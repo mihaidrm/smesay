@@ -35,8 +35,8 @@ Waiting on Mihai: nothing. The trademark search waits for the launch gate (decis
 Next tasks for Claude, in order (decision 0013, design first):
 1. Tidy the canvas: done 2026-10-01.
 2. Landing page E: done 2026-10-01 (use-cases section, four answers, phone board, note 09 fixes).
-3. Finish the respondent prototype: four answers (decision 0014), closed, revoked, personal link
-   resume, rate-blind mode, the other two layouts.
+3. Respondent prototype: done 2026-10-01, phone and desktop boards (note 11). Mihai clicks
+   through on a phone.
 4. Finish the PM prototype: settings, members, project list, sample watermark, item detail,
    export screen.
 5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).

@@ -64,10 +64,10 @@
       "y": 2100
     },
     "Respondent.dc.html": {
-      "h": 863,
+      "h": 844,
       "is_interactive": true,
       "title": "Respondent on a phone, current (click through)",
-      "w": 408,
+      "w": 390,
       "x": 1520,
       "y": 2100
     },
@@ -79,42 +79,42 @@
       "y": 0
     },
     "Brand01.dc.html": {
-      "x": 3200,
+      "x": 3700,
       "y": 0,
       "w": 1440,
       "h": 1000,
       "title": "Brand 01: identity"
     },
     "Brand02.dc.html": {
-      "x": 4720,
+      "x": 5220,
       "y": 0,
       "w": 1440,
       "h": 1300,
       "title": "Brand 02: colour"
     },
     "Brand03.dc.html": {
-      "x": 6240,
+      "x": 6740,
       "y": 0,
       "w": 1440,
       "h": 1320,
       "title": "Brand 03: type"
     },
     "Brand04.dc.html": {
-      "x": 3200,
+      "x": 3700,
       "y": 1560,
       "w": 1440,
       "h": 740,
       "title": "Brand 04: space, shape, layout"
     },
     "Brand05.dc.html": {
-      "x": 4720,
+      "x": 5220,
       "y": 1560,
       "w": 1440,
       "h": 1040,
       "title": "Brand 05: components"
     },
     "Brand06.dc.html": {
-      "x": 6240,
+      "x": 6740,
       "y": 1560,
       "w": 1440,
       "h": 1140,
@@ -126,6 +126,14 @@
       "w": 390,
       "h": 8000,
       "title": "Landing page E on a phone, current"
+    },
+    "RespondentDesktop.dc.html": {
+      "x": 2010,
+      "y": 2100,
+      "w": 1440,
+      "h": 900,
+      "is_interactive": true,
+      "title": "Respondent on a desktop, current (click through)"
     }
   },
   "createdOnFiles": {
@@ -178,7 +186,7 @@
       "y": 3230
     },
     "t5": {
-      "x": 3200,
+      "x": 3700,
       "y": -300,
       "text": "Brand and design system, 1 October 2026 (note 10)",
       "kind": "title1",
@@ -202,7 +210,8 @@
     "Brand04.dc.html",
     "Brand05.dc.html",
     "Brand06.dc.html",
-    "LandingEPhone.dc.html"
+    "LandingEPhone.dc.html",
+    "RespondentDesktop.dc.html"
   ],
   "pages": [],
   "title": "SMEsay prototype"

@@ -1,35 +1,37 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Respondent journey, phone</title>
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<style>
-body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
-a{color:#0E6B63}a:hover{color:#0A4F49}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}button:disabled{cursor:not-allowed}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #0E6B63;outline-offset:2px}
-.col{width:100%;max-width:640px;margin:0 auto;box-sizing:border-box}
-</style>
-</helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 1.45; overflow: hidden">
+import pathlib, sys
+FONT = "<link href=\"https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap\" rel=\"stylesheet\">"
+BTN = "min-height: 52px; border: 0; border-radius: 999px; font-weight: 500;"
+def choice(label, hint, pre):
+    return f'''<button type="button" onClick="{{{{v.{pre}Pick}}}}" aria-pressed="{{{{v.{pre}On}}}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{{{v.{pre}Bd}}}}; border-radius: 12px; background: {{{{v.{pre}Bg}}}}; color: {{{{v.{pre}Fg}}}}; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 500">{label}</span>
+<span style="font-size: 14px; opacity: 0.8">{hint}</span>
+</button>'''
+def pill(pre):
+    return f'<sc-if value="{{{{v.{pre}Show}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" onClick="{{{{v.{pre}Pick}}}}" aria-pressed="{{{{v.{pre}On}}}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{{{v.{pre}Bd}}}}; border-radius: 999px; background: {{{{v.{pre}Bg}}}}; color: {{{{v.{pre}Fg}}}}; font-size: 15px; font-weight: 500">{{{{v.{pre}Label}}}}</button></sc-if>'
+TA = lambda id_, label, val, on: f'''<label for="{id_}" style="font-size: 15px; font-weight: 500">{label}</label>
+<textarea id="{id_}" rows="3" value="{{{{{val}}}}}" onChange="{{{{{on}}}}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>'''
+def footer(inner):
+    return f'<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
+def scroll(inner, gap=16):
+    return f'<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
+def notice(title, body, extra=''):
+    return f'''<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
+<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
+<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1">{title}</h1>
+<div style="color: #454A52">{body}</div>{extra}
+</div></div>'''
 
+screens = f'''
 <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E3E1DC">
 <div style="display: flex; align-items: center; gap: 10px">
 <div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div>
 <div style="font-size: 15px; font-weight: 500">Marlow Group</div>
 </div>
-<div style="font-size: 13px; color: #5B6069">{{headerNote}}</div>
+<div style="font-size: 13px; color: #5B6069">{{{{headerNote}}}}</div>
 </div>
 
-<sc-if value="{{isLanding}}" hint-placeholder-val="{{true}}">
-<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 20px"><h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em">New expense tool</h1>
+<sc-if value="{{{{isLanding}}}}" hint-placeholder-val="{{{{true}}}}">
+{scroll('''<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em">New expense tool</h1>
 <div style="color: #454A52">We are replacing the expense tool for all 400 staff. Below are six things we think it must do. Tell us where you agree and where you do not. It takes about five minutes.</div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-name" style="font-size: 15px; font-weight: 500">Your name</label>
@@ -45,121 +47,100 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <option value="HR">HR</option>
 </select>
 </div>
-<div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go, so you can close this page and come back. [PRIVACY NOTICE LINK]</div></div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{start}}" disabled="{{startDisabled}}" style="min-height: 52px; border: 0; border-radius: 999px; font-weight: 500; background: #16181C; color: #FFFFFF; opacity: {{startOpacity}}">Start</button>
-<sc-if value="{{startDisabled}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div></sc-if></div></div>
+<div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go, so you can close this page and come back. [PRIVACY NOTICE LINK]</div>''', 20)}
+{footer('''<button type="button" onClick="{{start}}" disabled="{{startDisabled}}" style="''' + BTN + ''' background: #16181C; color: #FFFFFF; opacity: {{startOpacity}}">Start</button>
+<sc-if value="{{startDisabled}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div></sc-if>''')}
 </sc-if>
 
-<sc-if value="{{isResume}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 20px"><h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em">Welcome back, Ioana</h1>
+<sc-if value="{{{{isResume}}}}" hint-placeholder-val="{{{{false}}}}">
+{scroll('''<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em">Welcome back, Ioana</h1>
 <div style="color: #454A52">This is your personal link for the new expense tool. You answered {{resumeCount}} of 6 items last time. Your answers are saved; carry on where you stopped.</div>
-<div style="background: #F6F6F4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 15px"><div><span style="color: #5B6069">Name</span> Ioana Marin</div><div><span style="color: #5B6069">Role</span> Sales</div><div style="color: #5B6069; font-size: 13px">Set by the project team. Not you? [CONTACT LINK]</div></div></div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{resumeGo}}" style="min-height: 52px; border: 0; border-radius: 999px; font-weight: 500; background: #16181C; color: #FFFFFF">Continue</button></div></div>
+<div style="background: #F6F6F4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 15px"><div><span style="color: #5B6069">Name</span> Ioana Marin</div><div><span style="color: #5B6069">Role</span> Sales</div><div style="color: #5B6069; font-size: 13px">Set by the project team. Not you? [CONTACT LINK]</div></div>''', 20)}
+{footer('''<button type="button" onClick="{{resumeGo}}" style="''' + BTN + ''' background: #16181C; color: #FFFFFF">Continue</button>''')}
 </sc-if>
 
-<sc-if value="{{isItem}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isItem}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="padding: 14px 20px 0 20px"><div class="col" style="display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; justify-content: space-between; font-size: 14px; color: #5B6069">
-<div>{{headLeft}}</div>
-<div style="font-family: 'Geist Mono', monospace">{{headRight}}</div>
+<div>{{{{headLeft}}}}</div>
+<div style="font-family: 'Geist Mono', monospace">{{{{headRight}}}}</div>
 </div>
 <div style="height: 6px; border-radius: 999px; background: #ECEAE5; overflow: hidden">
-<div style="height: 6px; border-radius: 999px; background: #16181C; width: {{progressWidth}}; transition: width 250ms ease-out"></div>
+<div style="height: 6px; border-radius: 999px; background: #16181C; width: {{{{progressWidth}}}}; transition: width 250ms ease-out"></div>
 </div>
 </div></div>
 <div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 28px">
-<sc-for list="{{visible}}" as="v" hint-placeholder-count="1">
+<sc-for list="{{{{visible}}}}" as="v" hint-placeholder-count="1">
 <div style="display: flex; flex-direction: column; gap: 16px">
 <div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
-<sc-if value="{{v.showArea}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #5B6069">{{v.area}} · {{v.ref}}</div></sc-if>
-<div style="font-size: 19px; line-height: 1.3">{{v.text}}</div>
-<sc-if value="{{v.showProposed}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{{{v.showArea}}}}" hint-placeholder-val="{{{{false}}}}"><div style="font-size: 13px; color: #5B6069">{{{{v.area}}}} · {{{{v.ref}}}}</div></sc-if>
+<div style="font-size: 19px; line-height: 1.3">{{{{v.text}}}}</div>
+<sc-if value="{{{{v.showProposed}}}}" hint-placeholder-val="{{{{true}}}}">
 <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #5B6069">
 <div>Proposed priority</div>
-<div style="padding: 2px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">{{v.proposedLabel}}</div>
+<div style="padding: 2px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">{{{{v.proposedLabel}}}}</div>
 </div>
 </sc-if>
 </div>
-<sc-if value="{{v.showProposed}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{{{v.showProposed}}}}" hint-placeholder-val="{{{{true}}}}">
 <div style="display: flex; flex-direction: column; gap: 8px">
-<button type="button" onClick="{{v.agPick}}" aria-pressed="{{v.agOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.agBd}}; border-radius: 12px; background: {{v.agBg}}; color: {{v.agFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Agree</span>
-<span style="font-size: 14px; opacity: 0.8">{{v.agreeHint}}</span>
-</button>
-<button type="button" onClick="{{v.dfPick}}" aria-pressed="{{v.dfOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.dfBd}}; border-radius: 12px; background: {{v.dfBg}}; color: {{v.dfFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Change the priority</span>
-<span style="font-size: 14px; opacity: 0.8">Pick another priority and say why</span>
-</button>
-<button type="button" onClick="{{v.dgPick}}" aria-pressed="{{v.dgOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.dgBd}}; border-radius: 12px; background: {{v.dgBg}}; color: {{v.dgFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Disagree</span>
-<span style="font-size: 14px; opacity: 0.8">Not needed, or wrong as written. Say why</span>
-</button>
-<button type="button" onClick="{{v.unPick}}" aria-pressed="{{v.unOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.unBd}}; border-radius: 12px; background: {{v.unBg}}; color: {{v.unFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Unclear</span>
-<span style="font-size: 14px; opacity: 0.8">I cannot answer without more detail</span>
-</button>
+{choice('Agree', '{{v.agreeHint}}', 'ag')}
+{choice('Change the priority', 'Pick another priority and say why', 'df')}
+{choice('Disagree', 'Not needed, or wrong as written. Say why', 'dg')}
+{choice('Unclear', 'I cannot answer without more detail', 'un')}
 </div>
 </sc-if>
-<sc-if value="{{v.blind}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{v.blind}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="display: flex; flex-direction: column; gap: 10px">
 <div style="font-size: 15px; font-weight: 500">How important is this?</div>
-<div style="display: flex; gap: 8px"><sc-if value="{{v.p1Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.p1Pick}}" aria-pressed="{{v.p1On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.p1Bd}}; border-radius: 999px; background: {{v.p1Bg}}; color: {{v.p1Fg}}; font-size: 15px; font-weight: 500">{{v.p1Label}}</button></sc-if><sc-if value="{{v.p2Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.p2Pick}}" aria-pressed="{{v.p2On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.p2Bd}}; border-radius: 999px; background: {{v.p2Bg}}; color: {{v.p2Fg}}; font-size: 15px; font-weight: 500">{{v.p2Label}}</button></sc-if><sc-if value="{{v.p3Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.p3Pick}}" aria-pressed="{{v.p3On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.p3Bd}}; border-radius: 999px; background: {{v.p3Bg}}; color: {{v.p3Fg}}; font-size: 15px; font-weight: 500">{{v.p3Label}}</button></sc-if><sc-if value="{{v.p4Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.p4Pick}}" aria-pressed="{{v.p4On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.p4Bd}}; border-radius: 999px; background: {{v.p4Bg}}; color: {{v.p4Fg}}; font-size: 15px; font-weight: 500">{{v.p4Label}}</button></sc-if></div>
+<div style="display: flex; gap: 8px">{pill('p1')}{pill('p2')}{pill('p3')}{pill('p4')}</div>
 <div style="display: flex; flex-direction: column; gap: 8px">
-<button type="button" onClick="{{v.dgPick}}" aria-pressed="{{v.dgOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.dgBd}}; border-radius: 12px; background: {{v.dgBg}}; color: {{v.dgFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Disagree</span>
-<span style="font-size: 14px; opacity: 0.8">Not needed, or wrong as written. Say why</span>
-</button>
-<button type="button" onClick="{{v.unPick}}" aria-pressed="{{v.unOn}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{v.unBd}}; border-radius: 12px; background: {{v.unBg}}; color: {{v.unFg}}; display: flex; flex-direction: column; gap: 2px">
-<span style="font-weight: 500">Unclear</span>
-<span style="font-size: 14px; opacity: 0.8">I cannot answer without more detail</span>
-</button>
+{choice('Disagree', 'Not needed, or wrong as written. Say why', 'dg')}
+{choice('Unclear', 'I cannot answer without more detail', 'un')}
 </div>
 </div>
 </sc-if>
-<sc-if value="{{v.isDiff}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{v.isDiff}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="display: flex; flex-direction: column; gap: 10px">
 <div style="font-size: 15px; font-weight: 500">What should it be?</div>
-<div style="display: flex; gap: 8px"><sc-if value="{{v.o1Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.o1Pick}}" aria-pressed="{{v.o1On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.o1Bd}}; border-radius: 999px; background: {{v.o1Bg}}; color: {{v.o1Fg}}; font-size: 15px; font-weight: 500">{{v.o1Label}}</button></sc-if><sc-if value="{{v.o2Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.o2Pick}}" aria-pressed="{{v.o2On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.o2Bd}}; border-radius: 999px; background: {{v.o2Bg}}; color: {{v.o2Fg}}; font-size: 15px; font-weight: 500">{{v.o2Label}}</button></sc-if><sc-if value="{{v.o3Show}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.o3Pick}}" aria-pressed="{{v.o3On}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{v.o3Bd}}; border-radius: 999px; background: {{v.o3Bg}}; color: {{v.o3Fg}}; font-size: 15px; font-weight: 500">{{v.o3Label}}</button></sc-if></div>
-<label for="r-reason-{{v.id}}" style="font-size: 15px; font-weight: 500">Why? The team reads every reason.</label>
-<textarea id="r-reason-{{v.id}}" rows="3" value="{{v.answerText}}" onChange="{{v.setText}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+<div style="display: flex; gap: 8px">{pill('o1')}{pill('o2')}{pill('o3')}</div>
+{TA('r-reason-{{v.id}}', 'Why? The team reads every reason.', 'v.answerText', 'v.setText')}
 </div>
 </sc-if>
-<sc-if value="{{v.isDisagree}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{v.isDisagree}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="display: flex; flex-direction: column; gap: 10px">
-<label for="r-disagree-{{v.id}}" style="font-size: 15px; font-weight: 500">What should it say instead, or why is it not needed?</label>
-<textarea id="r-disagree-{{v.id}}" rows="3" value="{{v.answerText}}" onChange="{{v.setText}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+{TA('r-disagree-{{v.id}}', 'What should it say instead, or why is it not needed?', 'v.answerText', 'v.setText')}
 </div>
 </sc-if>
-<sc-if value="{{v.isUnclear}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{v.isUnclear}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="display: flex; flex-direction: column; gap: 10px">
-<label for="r-question-{{v.id}}" style="font-size: 15px; font-weight: 500">What would you need to know to answer?</label>
-<textarea id="r-question-{{v.id}}" rows="3" value="{{v.answerText}}" onChange="{{v.setText}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+{TA('r-question-{{v.id}}', 'What would you need to know to answer?', 'v.answerText', 'v.setText')}
 </div>
 </sc-if>
-<sc-if value="{{v.showNote}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #5B6069">{{v.note}}</div></sc-if>
+<sc-if value="{{{{v.showNote}}}}" hint-placeholder-val="{{{{false}}}}"><div style="font-size: 14px; color: #5B6069">{{{{v.note}}}}</div></sc-if>
 </div>
 </sc-for>
 </div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><div style="display: flex; gap: 10px">
+{footer('''<div style="display: flex; gap: 10px">
 <button type="button" onClick="{{back}}" style="min-height: 52px; padding: 0 22px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Back</button>
-<button type="button" onClick="{{next}}" disabled="{{nextDisabled}}" style="flex-grow: 1; min-height: 52px; border: 0; border-radius: 999px; font-weight: 500; background: #16181C; color: #FFFFFF; opacity: {{nextOpacity}}">{{nextLabel}}</button>
+<button type="button" onClick="{{next}}" disabled="{{nextDisabled}}" style="flex-grow: 1; ''' + BTN + ''' background: #16181C; color: #FFFFFF; opacity: {{nextOpacity}}">{{nextLabel}}</button>
 </div>
-<div style="font-size: 14px; color: #5B6069; text-align: center">{{saveNote}}</div></div></div>
+<div style="font-size: 14px; color: #5B6069; text-align: center">{{saveNote}}</div>''')}
 </sc-if>
 
-<sc-if value="{{isMissing}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px"><h1 style="margin: 0; font-size: 26px; font-weight: 400; line-height: 1.15">Is anything missing?</h1>
+<sc-if value="{{{{isMissing}}}}" hint-placeholder-val="{{{{false}}}}">
+{scroll('''<h1 style="margin: 0; font-size: 26px; font-weight: 400; line-height: 1.15">Is anything missing?</h1>
 <div style="color: #454A52">If the list left out something the new system must do, add it here. Skip this if nothing comes to mind.</div>
 <label for="r-missing" style="font-size: 15px; font-weight: 500">Missing item</label>
-<textarea id="r-missing" rows="4" value="{{missingText}}" onChange="{{setMissing}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea></div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><div style="display: flex; gap: 10px">
+<textarea id="r-missing" rows="4" value="{{missingText}}" onChange="{{setMissing}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>''')}
+{footer('''<div style="display: flex; gap: 10px">
 <button type="button" onClick="{{backToItems}}" style="min-height: 52px; padding: 0 22px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Back</button>
-<button type="button" onClick="{{toSummary}}" style="flex-grow: 1; min-height: 52px; border: 0; border-radius: 999px; font-weight: 500; background: #16181C; color: #FFFFFF">{{missingNextLabel}}</button>
-</div></div></div>
+<button type="button" onClick="{{toSummary}}" style="flex-grow: 1; ''' + BTN + ''' background: #16181C; color: #FFFFFF">{{missingNextLabel}}</button>
+</div>''')}
 </sc-if>
 
-<sc-if value="{{isSummary}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 18px"><div style="display: flex; flex-direction: column; gap: 6px">
+<sc-if value="{{{{isSummary}}}}" hint-placeholder-val="{{{{false}}}}">
+{scroll('''<div style="display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-size: 26px; font-weight: 400; line-height: 1.15">Review your answers</h1>
 <div style="color: #454A52; font-size: 15px">{{summaryLine}}</div>
 </div>
@@ -195,54 +176,44 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; align-items: flex-start; gap: 12px; background: #F6F6F4; border-radius: 12px; padding: 14px">
 <input id="r-sign" type="checkbox" checked="{{signed}}" onChange="{{toggleSigned}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
 <label for="r-sign" style="font-size: 15px">I confirm these answers reflect my view as of today.</label>
-</div></div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{submit}}" disabled="{{submitDisabled}}" style="min-height: 52px; border: 0; border-radius: 999px; font-weight: 500; background: #16181C; color: #FFFFFF; opacity: {{submitOpacity}}">Submit answers</button>
-<sc-if value="{{submitDisabled}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #5B6069; text-align: center">Pick a confidence level and tick the confirmation to submit.</div></sc-if></div></div>
+</div>''', 18)}
+{footer('''<button type="button" onClick="{{submit}}" disabled="{{submitDisabled}}" style="''' + BTN + ''' background: #16181C; color: #FFFFFF; opacity: {{submitOpacity}}">Submit answers</button>
+<sc-if value="{{submitDisabled}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #5B6069; text-align: center">Pick a confidence level and tick the confirmation to submit.</div></sc-if>''')}
 </sc-if>
 
-<sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isDone}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
 <div style="width: 56px; height: 56px; border-radius: 999px; background: #E6F4EC; display: flex; align-items: center; justify-content: center">
 <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#22643F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 </div>
 <h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1">Answers submitted</h1>
-<div style="color: #454A52">Thank you, {{displayName}}. The project team can see your answers now.</div>
+<div style="color: #454A52">Thank you, {{{{displayName}}}}. The project team can see your answers now.</div>
 <div style="background: #F6F6F4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
-<div>{{summaryLine}}</div>
-<div style="color: #5B6069; font-family: 'Geist Mono', monospace; font-size: 13px">{{submittedAt}}</div>
+<div>{{{{summaryLine}}}}</div>
+<div style="color: #5B6069; font-family: 'Geist Mono', monospace; font-size: 13px">{{{{submittedAt}}}}</div>
 </div>
 <div style="color: #5B6069; font-size: 15px">You can change your answers until 20 October 2026. Open the same link again.</div>
 </div></div>
-<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{reopen}}" style="width: 100%; min-height: 52px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Change my answers</button></div></div>
+{footer('''<button type="button" onClick="{{reopen}}" style="width: 100%; min-height: 52px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Change my answers</button>''')}
 </sc-if>
 
-<sc-if value="{{isClosed}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
-<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
-<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1">This link closed on 20 October 2026</h1>
-<div style="color: #454A52">The project team at Marlow Group stopped collecting answers for the new expense tool. Nothing you sent is lost.</div><div style="background: #F6F6F4; border-radius: 12px; padding: 14px; font-size: 15px; display: flex; flex-direction: column; gap: 4px"><div>{{closedLine}}</div><div style="color: #5B6069">If you were still answering, contact the project team: [PM CONTACT]</div></div>
-</div></div>
+<sc-if value="{{{{isClosed}}}}" hint-placeholder-val="{{{{false}}}}">
+{notice('This link closed on 20 October 2026', 'The project team at Marlow Group stopped collecting answers for the new expense tool. Nothing you sent is lost.', '<div style="background: #F6F6F4; border-radius: 12px; padding: 14px; font-size: 15px; display: flex; flex-direction: column; gap: 4px"><div>{{closedLine}}</div><div style="color: #5B6069">If you were still answering, contact the project team: [PM CONTACT]</div></div>')}
 </sc-if>
 
-<sc-if value="{{isRevoked}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
-<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
-<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1">This link is no longer active</h1>
-<div style="color: #454A52">The project team at Marlow Group withdrew it. If you were asked to answer, ask them for a new link.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div>
-</div></div>
+<sc-if value="{{{{isRevoked}}}}" hint-placeholder-val="{{{{false}}}}">
+{notice('This link is no longer active', 'The project team at Marlow Group withdrew it. If you were asked to answer, ask them for a new link.', '<div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div>')}
 </sc-if>
 
 <div style="border-top: 1px dashed #C9C7C1; background: #F6F6F4; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 11px; color: #5B6069">
 <span>Prototype:</span>
-<button type="button" onClick="{{cycleLayout}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Layout: {{layoutLabel}}</button>
-<button type="button" onClick="{{toggleBlind}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Proposed value: {{blindLabel}}</button>
-<button type="button" onClick="{{cycleLink}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Link: {{linkLabel}}</button>
+<button type="button" onClick="{{{{cycleLayout}}}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Layout: {{{{layoutLabel}}}}</button>
+<button type="button" onClick="{{{{toggleBlind}}}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Proposed value: {{{{blindLabel}}}}</button>
+<button type="button" onClick="{{{{cycleLink}}}}" style="border: 0; background: transparent; padding: 4px 0; font-size: 11px; color: #0E6B63; text-decoration: underline">Link: {{{{linkLabel}}}}</button>
 </div>
+'''
 
-</div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
-class Component extends DCLogic {
+JS = r'''class Component extends DCLogic {
 state = { screen: 'landing', idx: 0, name: '', role: '', answers: {}, missingText: '', confidence: 0, signed: false, submittedAt: '', layout: 'item', blind: false, link: 'open' };
 
 items() {
@@ -372,7 +343,41 @@ toggleBlind: () => this.setState({ blind: !s.blind, answers: {} }),
 cycleLink: () => { const i = links.indexOf(s.link); const l = links[(i + 1) % links.length]; this.setState({ link: l, screen: l === 'personal' ? 'resume' : (l === 'open' ? 'landing' : s.screen), name: l === 'personal' ? 'Ioana Marin' : s.name, role: l === 'personal' ? 'Sales' : s.role, answers: l === 'personal' ? { i1: { kind: 'agree' }, i2: { kind: 'diff', value: 'M', text: 'My team bills two projects on almost every trip.' }, i3: { kind: 'agree' }, i4: { kind: 'diff', value: 'M', text: 'I find out I was over the limit three weeks later.' } } : s.answers }); }
 };
 }
-}
+}'''
+
+def page(title, root_style, header_pad, w, h):
+    s = screens.replace('padding: 16px 20px; border-bottom: 1px solid #E3E1DC">', f'padding: 16px {header_pad}; border-bottom: 1px solid #E3E1DC">', 1)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{title}</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+{FONT}
+<style>
+body{{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}}
+a{{color:#0E6B63}}a:hover{{color:#0A4F49}}
+button,input,select,textarea{{font:inherit;color:inherit}}
+button{{cursor:pointer}}button:disabled{{cursor:not-allowed}}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{{outline:2px solid #0E6B63;outline-offset:2px}}
+.col{{width:100%;max-width:640px;margin:0 auto;box-sizing:border-box}}
+</style>
+</helmet>
+<div style="{root_style}">
+{s}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{{"$preview":{{"width":{w},"height":{h}}}}}'>
+{JS}
 </script>
 </body>
 </html>
+"""
+out = pathlib.Path('out'); out.mkdir(exist_ok=True)
+(out / 'Respondent.dc.html').write_text(page('Respondent journey, phone', 'width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 1.45; overflow: hidden', '20px', 390, 844))
+(out / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 1.45; overflow: hidden', '120px', 1440, 900))
+print('written')

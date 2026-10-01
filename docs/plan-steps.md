@@ -33,7 +33,7 @@ is validated. Deploy, domain, email sending and company accounts move to the lau
 | # | Step | Who | Done when |
 |---|---|---|---|
 | 1.1 | Landing page E: use-cases section, four answers, phone board. Built 2026-10-01 | Claude | Mihai clicks through on laptop and phone and accepts |
-| 1.2 | Finish the respondent prototype: closed page, revoked page, personal link resume, rate-blind mode, all three layouts | Claude | Accepted on a phone |
+| 1.2 | Respondent prototype: four answers, closed, revoked, personal link, rate-blind, three layouts, phone and desktop boards. Built 2026-10-01 (note 11) | Claude | Accepted on a phone |
 | 1.3 | Finish the PM prototype: workspace settings, members, project list, sample project watermark, item detail, export screen | Claude | Accepted on a laptop |
 | 1.4 | docs/design-system.md and six brand boards on the canvas, written 2026-10-01 (notes 09, 10) | Claude | Mihai approves |
 | 1.5 | Draft all copy: landing, quickstart, transactional emails, error messages | Claude | Passes the WRITING.md scan; Mihai approves |
