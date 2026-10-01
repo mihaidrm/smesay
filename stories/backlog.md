@@ -1,6 +1,6 @@
 # R1 backlog: twelve epics, in build order
 
-E1  Foundation: repo, CI, schema v1, migrations, Vercel fra1 deploy, local Docker Postgres, seed.
+E1  Foundation: repo, CI, schema v1, migrations, workspace scoping, local Docker Postgres and RustFS, seed; deploy deferred to the launch gate (decision 0006). Stories E1-1 to E1-5 written 2026-10-01.
 E2  Accounts and workspaces: magic link, Google, Microsoft; workspace, members, owner and member roles; settings.
 E3  Import: xlsx and csv, header detection, ten-row preview, column mapping, set versioning, validation report; type or paste a list (decision 0010).
 E4  AI shaping: server route with budget; group into areas and order; reader version per item with original kept; duplicate and ambiguity flags; project context field (decision 0011); golden set and eval runner.

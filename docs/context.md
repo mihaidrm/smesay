@@ -43,6 +43,10 @@ Waiting on Mihai:
    /styleguide in the running app (note 14).
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
    (decision 0021, open item).
+5. E1 questions (stories/E1-2, E1-4): drop "rolls back" from the migration acceptance, since
+   drizzle-kit has no down migrations (proposal: applies from empty, second apply is a no-op,
+   CI recreates the database); and whether the seed carries the full Marlow sample with
+   responses and insights (proposal: yes).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
@@ -58,11 +62,11 @@ Phase 1, Design (now to about 17 October): Done 6 of 6 steps. 2 drafted, waits f
 - 1.5 Copy: drafted, waits for Mihai's approval.
 - 1.6 Golden set: drafted, waits for Mihai's approval.
 - 1.7 Trademark check: Mihai, when ready.
-Phase 2, Setup for building (about 1 week): Done 4 of 5 steps. Left: E1 stories. 1 drafted, waits for Mihai
+Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. 1 drafted, waits for Mihai
 - 2.1 Repository: done.
 - 2.2 Scaffold: done.
-- 2.3 Styleguide page: drafted, waits for Mihai's approval.
-- 2.4 E1 stories: open.
+- 2.3 Styleguide page: done.
+- 2.4 E1 stories: drafted, waits for Mihai's approval.
 - 2.5 PC setup: done.
 <!-- /sync:phases -->
 
