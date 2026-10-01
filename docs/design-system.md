@@ -130,6 +130,12 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   that says what to do.
 - Table: header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50. Card: radius 12 in
   the app, hairline, 16 padding, title 14 weight 500.
+- Segmented control (the preview's Desktop and Phone): greige track, radius 999, 3 px padding,
+  28 high options at 13 px weight 500; the active option is a white pill with ink text, the
+  others ink-muted. One is always active.
+- Preview panel (PM builder, note 13): 460 wide, grey-50, hairline on the left. Highlight ring
+  for "what this step changes": teal 300 box-shadow, 3 px at true size, with a 12 px teal 300
+  square before the caption.
 
 ## Respondent columns
 

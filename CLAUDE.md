@@ -21,10 +21,19 @@ No em dashes anywhere, code comments included.
 
 Each of Mihai's messages that asks for changes ends in its own pull request, pushed when the work
 is checked. Requests from different messages do not stack in one pull request (decision 0019).
+Claude marks the pull request ready and merges it as soon as the reply goes out; Mihai reviews
+on main (decision 0023). The next request starts from main.
 
 A change is not done until everything it touches says the same thing: every canvas board, every
 file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording before reporting
 (decision 0017).
+
+Status lives in one place: the Phase tables in docs/plan-steps.md (decision 0022). The Roadmap
+board and docs/context.md are written from it by `node scripts/sync-status.mjs --write`. A
+decision that retires a word adds a row to docs/retired-terms.md. First command of every
+session: `git config core.hooksPath scripts/githooks`. The pre-commit hook then blocks any
+commit where the status is stale, a retired term survives, a decision or note reference has no
+file, or the copy scan fails. Report the two scripts' counts with every handoff.
 
 Decisions are Mihai's. Ask, recommend one option, wait for approval. When you think Mihai is
 making a mistake, say so before doing it, with the reason and what you would do instead; then do
@@ -69,7 +78,8 @@ Data and security
 
 Every side
 - Every screen is designed for desktop (1440) and phone (390), desktop first, in the same
-  pass (decision 0015). The respondent side is the exception: phone first, desktop second.
+  pass (decision 0015). The respondent side is the exception: phone first, desktop second. The PM side is desktop
+  only in R1 (decision 0020).
 
 PM side
 - Every screen has empty, loading and error states. Every form validates on the server.

@@ -20,6 +20,11 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - docs/decisions/    one file per decision, numbered, dated
 - docs/design-notes/ dated design work; this is the record that the design is ours
 - docs/schema.md     object model
+- docs/copy/         every user-facing text: landing, quickstart, emails, error messages
+- scripts/scan-copy.mjs  the WRITING.md scan; `node scripts/scan-copy.mjs <paths>` until Phase 2 wires `npm run scan:copy`
+- scripts/sync-status.mjs  writes status from docs/plan-steps.md into the Roadmap board and docs/context.md; checks retired terms and references
+- scripts/githooks/     pre-commit hook; enable with `git config core.hooksPath scripts/githooks`
+- docs/retired-terms.md  words a decision replaced; the hook fails if one survives in a current file
 - assets/brand/      placeholder logo files
 - evals/             golden set for the AI features
 - defects/           defects found in testing, fixed before a story is accepted

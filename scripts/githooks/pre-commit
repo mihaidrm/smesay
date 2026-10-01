@@ -1,0 +1,6 @@
+#!/bin/sh
+# Blocks a commit when status is stale, a retired term is present, a reference is broken, or the
+# copy scan fails. Enable once per clone: git config core.hooksPath scripts/githooks
+cd "$(git rev-parse --show-toplevel)" || exit 1
+node scripts/sync-status.mjs || exit 1
+node scripts/scan-copy.mjs docs stories README.md CLAUDE.md INTERFACES.md SECURITY.md MISTAKES.md scripts || exit 1

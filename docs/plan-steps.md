@@ -30,15 +30,19 @@ is validated. Deploy, domain, email sending and company accounts move to the lau
 
 ## Phase 1. Design (now to about 17 October)
 
-| # | Step | Who | Done when |
-|---|---|---|---|
-| 1.1 | Landing page E: use-cases section, four answers, phone board. Built 2026-10-01 | Claude | Mihai clicks through on laptop and phone and accepts |
-| 1.2 | Respondent prototype: four answers, closed, revoked, personal link, rate-blind, three layouts, phone and desktop boards. Built 2026-10-01 (note 11) | Claude | Accepted on a phone |
-| 1.3 | PM prototype: settings, members, project list, sample watermark, item detail, export tab built 2026-10-01; phone board to do | Claude | Accepted on a laptop |
-| 1.4 | docs/design-system.md and six brand boards on the canvas, written 2026-10-01 (notes 09, 10) | Claude | Mihai approves |
-| 1.5 | Draft all copy: landing, quickstart, transactional emails, error messages | Claude | Passes the WRITING.md scan; Mihai approves |
-| 1.6 | Golden set for the AI: ten messy requirement lists from invented domains, with expected areas, item counts and must-not-invent lists | Claude | Ten files in evals/, Mihai reads two |
-| 1.7 | Mihai runs a trademark check on the chosen name when ready; the domain waits for the launch gate (0006) | Mihai | Name in docs/context.md |
+Status column: done, drafted (Claude's part is finished, Mihai has not approved), open, mihai.
+`node scripts/sync-status.mjs --write` copies this table's status to the Roadmap board and
+docs/context.md; the pre-commit hook fails when they differ (decision 0022).
+
+| # | Step | Who | Done when | Status |
+|---|---|---|---|---|
+| 1.1 | Landing page E: use-cases section, four answers, phone board. Built 2026-10-01 | Claude | Mihai clicks through on laptop and phone and accepts | done |
+| 1.2 | Respondent prototype: four answers, closed, revoked, personal link, rate-blind, three layouts, phone and desktop boards. Built 2026-10-01 (note 11), rebuilt around chapters and the rating row the same day (decisions 0016, 0018, note 12) | Claude | Accepted on a phone | done |
+| 1.3 | PM prototype: settings, members, project list, sample watermark, item detail, export tab, project context box, preview panel on every builder step. Built 2026-10-01, desktop only (decisions 0020, 0021, note 13) | Claude | Accepted on a laptop | done |
+| 1.4 | Design system: docs/design-system.md and six brand boards on the canvas, written 2026-10-01 (notes 09, 10) | Claude | Mihai approves | done |
+| 1.5 | Copy: landing, quickstart, transactional emails, error messages. Drafted 2026-10-01 in docs/copy/, scan passes (scripts/scan-copy.mjs) | Claude | Passes the WRITING.md scan; Mihai approves | drafted |
+| 1.6 | Golden set: ten messy requirement lists from invented domains, with expected areas, item counts and must-not-invent lists | Claude | Ten files in evals/, Mihai reads two | open |
+| 1.7 | Trademark check: Mihai runs it on the chosen name when ready; the domain waits for the launch gate (0006) | Mihai | Name in docs/context.md | mihai |
 
 Gate: the prototype and the design system are accepted, the name and domain exist.
 
@@ -65,7 +69,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 |
 | E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (MinIO in Docker) | 3 |
 | E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 |
-| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, preview | none | 4 |
+| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 |
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 |
 | E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility | none | 5 |
 | E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 |

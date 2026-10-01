@@ -36,21 +36,25 @@ Waiting on Mihai:
 2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
    ink (raised 2026-10-01; recommendation in the session log).
 3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
-   settings, sample, item detail, export) on phone and laptop.
+   settings, sample, item detail, export, preview panel) on phone and laptop.
+4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
+   (decision 0021, open item).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
-Next tasks for Claude, in order (decision 0013, design first):
-1. Tidy the canvas: done 2026-10-01.
-2. Landing page E: done 2026-10-01 (use-cases section, four answers, phone board, note 09 fixes).
-3. Respondent prototype: rebuilt around chapters and the rating row 2026-10-01 (decisions
-   0016, 0018, note 12). Mihai clicks through on a phone. Page E fragments and the PM app preview show the same
-   rating row (decision 0017).
-4. PM prototype: projects, settings and members, sample watermark, item detail, export tab
-   done 2026-10-01. Phone board still to do (decision 0015).
-5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
-6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
-7. Ten golden-set specs in evals/.
-8. Then Phase 2: scaffold, styleguide page, E1 stories, open questions before E1.
+Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
+styleguide page, E1 stories, open questions before E1.
+
+<!-- sync:phases -->
+Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
+Phase 1, Design (now to about 17 October): Done 5 of 6 steps. Left: Golden set. 1 drafted, waits for Mihai
+- 1.1 Landing page E: done.
+- 1.2 Respondent prototype: done.
+- 1.3 PM prototype: done.
+- 1.4 Design system: done.
+- 1.5 Copy: drafted, waits for Mihai's approval.
+- 1.6 Golden set: open.
+- 1.7 Trademark check: Mihai, when ready.
+<!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
 decide scope.

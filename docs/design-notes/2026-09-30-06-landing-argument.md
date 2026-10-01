@@ -27,7 +27,7 @@ agreed to what, and a synthesis written by hand the night before.
 6. What comes back: six concrete outputs, each shown as a real fragment.
 7. That the numbers are trustworthy and the AI is grounded.
 8. Who it is for, in their words.
-9. How it compares with what they use now, honestly.
+9. How it compares with what they use now, without spin.
 10. Price, and one action.
 
 ## Advantages, and how each is shown rather than claimed
