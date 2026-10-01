@@ -31,11 +31,10 @@ that run from an empty database, with every table scoped to a workspace.
 - Jira or Notion fields, write-back: R2.
 
 ## Open questions
-- The business plan's acceptance says the migration "applies to an empty database and rolls
-  back". drizzle-kit generates and applies forward migrations and has no down-migration
-  command in its migrate documentation (orm.drizzle.team/docs/drizzle-kit-migrate, read
-  2026-10-01; absence, so unverified). Proposal: replace "rolls back" with "applies from empty;
-  a second apply is a no-op; CI drops and recreates the database every run". Mihai decides.
+- None. The business plan's "rolls back" became "applies from empty, a second apply is a
+  no-op, CI recreates the database every run" (decision 0027): drizzle-kit has no
+  down-migration command in its migrate documentation (orm.drizzle.team/docs/drizzle-kit-migrate,
+  read 2026-10-01).
 
 ## Technical notes
 Tables (all timestamps `timestamptz`, UTC; ids `uuid` with `gen_random_uuid()` except the

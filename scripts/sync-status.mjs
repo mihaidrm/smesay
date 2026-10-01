@@ -23,16 +23,21 @@ function readPlan() {
     if (h) { phase = { n: Number(h[1]), title: h[2].trim(), steps: [] }; phases.push(phase); cols = null; continue; }
     if (!phase || !line.startsWith('|')) { if (!line.startsWith('|')) cols = null; continue; }
     const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-    if (cells[0] === '#') { cols = cells; continue; }
+    if (cells[0] === '#' || cells[0] === 'Epic') { cols = cells; continue; }
     if (!cols || cells.every((c) => /^-*$/.test(c))) continue;
     const row = {}; cols.forEach((c, i) => { row[c] = cells[i] || ''; });
     if (!row.Status) continue;
+    if (row.Epic) {
+      const m = row.Epic.match(/^(E\d+)\s+(.*)$/);
+      phase.steps.push({ id: m ? m[1] : row.Epic, short: m ? m[2].trim() : row.Epic, detail: row['What ships'] || '', who: 'Claude', status: row.Status.toLowerCase() });
+      continue;
+    }
     const [short, ...rest] = row.Step.split(':');
     phase.steps.push({ id: row['#'], short: short.trim(), detail: rest.join(':').trim(), who: row.Who, status: row.Status.toLowerCase() });
   }
   return phases.filter((p) => p.steps.length);
 }
-const STATUS = new Set(['done', 'drafted', 'open', 'mihai']);
+const STATUS = new Set(['done', 'drafted', 'open', 'mihai', 'building']);
 
 const phases = readPlan();
 if (!phases.length) { console.log('No phase table with a Status column in docs/plan-steps.md'); process.exit(1); }
@@ -41,12 +46,13 @@ for (const p of phases) for (const s of p.steps) if (!STATUS.has(s.status)) prob
 const summary = (p) => {
   const claude = p.steps.filter((s) => s.status !== 'mihai');
   const done = claude.filter((s) => s.status === 'done' || s.status === 'drafted');
-  const left = claude.filter((s) => s.status === 'open');
+  const left = claude.filter((s) => s.status === 'open' || s.status === 'building');
+  const leftText = left.length > 4 ? left.length + ' steps' : left.map((s) => s.short).join(', ');
   const waiting = claude.filter((s) => s.status === 'drafted');
   return {
     label: `Done ${done.length} of ${claude.length} steps.`,
-    left: left.length ? 'Left: ' + left.map((s) => s.short).join(', ') + (waiting.length ? `. ${waiting.length} drafted, waits for Mihai` : '') : (waiting.length ? `${waiting.length} drafted, waits for Mihai` : 'Phase complete'),
-    doneList: 'Done: ' + done.map((s) => s.short).join(', ') + '. ' + (left.length ? 'Left: ' + left.map((s) => s.short).join(', ') : 'Nothing left'),
+    left: left.length ? 'Left: ' + leftText + (waiting.length ? `. ${waiting.length} drafted, waits for Mihai` : '') : (waiting.length ? `${waiting.length} drafted, waits for Mihai` : 'Phase complete'),
+    doneList: (done.length ? 'Done: ' + done.map((s) => s.short).join(', ') + '. ' : '') + (left.length ? 'Left: ' + leftText : 'Nothing left') + (claude.some((s) => s.status === 'building') ? '. Building: ' + claude.filter((s) => s.status === 'building').map((s) => s.short).join(', ') : ''),
     bar: Math.round((done.length / claude.length) * 100) + '%',
     complete: left.length === 0
   };
@@ -86,7 +92,7 @@ for (const p of phases) {
 if (WRITE) sync(ROAD, /data-sync="now">([^<]*)</, nowLabel, 'now');
 
 const block = ['<!-- sync:phases -->', 'Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):']
-  .concat(phases.flatMap((p) => [`Phase ${p.n}, ${p.title}: ${summary(p).label} ${summary(p).left}`].concat(p.steps.map((s) => `- ${s.id} ${s.short}: ${{ done: 'done', drafted: "drafted, waits for Mihai's approval", open: 'open', mihai: 'Mihai, when ready' }[s.status]}.`))))
+  .concat(phases.flatMap((p) => [`Phase ${p.n}, ${p.title}: ${summary(p).label} ${summary(p).left}`].concat(p.steps.map((s) => `- ${s.id} ${s.short}: ${{ done: 'done', drafted: "drafted, waits for Mihai's approval", open: 'open', mihai: 'Mihai, when ready', building: 'building' }[s.status]}.`))))
   .concat(['<!-- /sync:phases -->']).join('\n');
 sync('docs/context.md', /(<!-- sync:phases -->[\s\S]*?<!-- \/sync:phases -->)/, block, 'phases block');
 

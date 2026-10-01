@@ -53,7 +53,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 | 2.1 | Repository: git init, first commit, push to GitHub. Done 2026-10-01 | Claude | Repository on GitHub | done |
 | 2.2 | Scaffold: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and an S3-compatible store (RustFS, decision 0025), CI. Built 2026-10-01 (docs/setup.md), CI green; docker compose up, lint, test and build passed on Mihai's PC the same day | Claude | lint, typecheck, tests and build pass; CI green | done |
 | 2.3 | Styleguide page: /styleguide in the app, from docs/design-system.md. Built 2026-10-01 (note 14), Mihai: works | Claude | Mihai approves | done |
-| 2.4 | E1 stories: written from the plan, open questions listed. Written 2026-10-01 (stories/E1-1 to E1-5); two questions wait for Mihai | Claude | Stories have acceptance criteria | drafted |
+| 2.4 | E1 stories: written from the plan, open questions listed. Written 2026-10-01 (stories/E1-1 to E1-5); questions answered (decision 0027) | Claude | Stories have acceptance criteria | done |
 | 2.5 | PC setup: Node 26 and Docker running, docker compose up, lint, test, build. Done 2026-10-01; the E1 questions move to 2.4 | Mihai | docs/setup.md checks pass on the PC | done |
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
@@ -63,20 +63,20 @@ Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push
 Each epic: stories written, Mihai answers questions, Claude builds story by story, the reviewer
 audits, Mihai accepts each story with a note. Estimates are sessions at two per week.
 
-| Epic | What ships | Mihai sets up first | Sessions |
-|---|---|---|---|
-| E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and RustFS, seed; deploy moved to the launch gate | none | 2 |
-| E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 |
-| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (RustFS in Docker) | 3 |
-| E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 |
-| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 |
-| E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 |
-| E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility | none | 5 |
-| E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 |
-| E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 |
-| E10 Exports | CSV, JSON, PDF summary | none | 2 |
-| E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry, Plausible and the lawyer at the launch gate | none until launch | 2 |
-| E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai | none | 3 |
+| Epic | What ships | Mihai sets up first | Sessions | Status |
+|---|---|---|---|---|
+| E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and RustFS, seed; deploy moved to the launch gate | none | 2 | building |
+| E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 | open |
+| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (RustFS in Docker) | 3 | open |
+| E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 | open |
+| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 | open |
+| E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 | open |
+| E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility | none | 5 | open |
+| E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 | open |
+| E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |
+| E10 Exports | CSV, JSON, PDF summary | none | 2 | open |
+| E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry, Plausible and the lawyer at the launch gate | none until launch | 2 | open |
+| E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai | none | 3 | open |
 
 Launch gate: Mihai decides the product is worth a domain. Then: name, domain, personal Vercel
 and Neon, Resend, Sentry, Plausible, legal pages confirmed, deploy. After that, one organisation
