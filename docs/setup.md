@@ -8,7 +8,7 @@ sign-in. Everything below runs on a laptop with Node 22 or newer and Docker (dec
 ```
 npm run hooks            # once per clone: the pre-commit hook (decision 0022)
 cp .env.example .env.local
-docker compose up -d     # Postgres 5432, MinIO 9000 (console 9001), Mailpit 8025 (SMTP 1025)
+docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 8025 (SMTP 1025)
 npm install
 npm run dev              # http://localhost:3000
 ```
@@ -68,9 +68,10 @@ page, or the installed package's type file where the page did not say.
   status check and the scan.
 - docker-compose.yml. Postgres: `POSTGRES_PASSWORD` is the one required variable;
   `POSTGRES_USER` creates that superuser and a database of the same name; `POSTGRES_DB` names
-  the database (postgres image description on hub.docker.com). MinIO: `server /data
-  --console-address ":9001"` with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`, image
-  quay.io/minio/minio (github.com/minio/minio, docs/docker/README.md). Mailpit:
+  the database (postgres image description on hub.docker.com). RustFS (decision 0025; the store named in the plan before it now needs a registry login to pull):
+  image rustfs/rustfs:1.0.0, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, `RUSTFS_ADDRESS ":9000"`,
+  `RUSTFS_CONSOLE_ADDRESS ":9001"`, data in /data (docs.rustfs.com/installation/docker).
+  Mailpit:
   axllent/mailpit, web UI 8025, SMTP 1025 (mailpit.axllent.org/docs/install/docker). Docker is
   not available in the build session, so `docker compose up` itself was not run here; the
   first run on Mihai's laptop (step 2.5) is that check.

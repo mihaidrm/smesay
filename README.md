@@ -27,7 +27,7 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - docs/setup.md      how to run the app and its checks; what the scaffold contains and why
 - src/               the Next.js app (app router under src/app, database client under src/db)
 - e2e/               Playwright tests, one per user-facing flow
-- docker-compose.yml Postgres, MinIO and Mailpit for the laptop
+- docker-compose.yml Postgres, RustFS (S3-compatible) and Mailpit for the laptop
 - docs/retired-terms.md  words a decision replaced; the hook fails if one survives in a current file
 - assets/brand/      placeholder logo files
 - evals/             golden set for the AI shaping feature: ten specs, expected JSON, generator

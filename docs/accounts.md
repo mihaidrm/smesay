@@ -175,7 +175,7 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
    `.env.local`: `S3_ACCESS_KEY_ID=`, `S3_SECRET_ACCESS_KEY=`, `S3_ENDPOINT=`, and set
    `S3_BUCKET=uploads`.
 
-Local development uses MinIO in Docker, so this is only needed for the deployed app.
+Local development uses RustFS in Docker (decision 0025), so this is only needed for the deployed app.
 
 ## Step 9. Anthropic Console, the AI (before E4)
 

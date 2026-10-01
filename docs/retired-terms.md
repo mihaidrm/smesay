@@ -17,3 +17,4 @@ decision retires a term; remove the old wording in the same commit (decision 001
 | phone layout for the PM | decision 0020 | the PM side is desktop only in R1 |
 | Next.js 15 | decision 0024 | Next.js 16 |
 | Next 15 | decision 0024 | Next 16 |
+| MinIO | decision 0025 | RustFS |
