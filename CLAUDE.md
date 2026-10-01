@@ -29,7 +29,8 @@ file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording 
 (decision 0017).
 
 Status lives in one place: the Phase tables in docs/plan-steps.md (decision 0022). The Roadmap
-board and docs/context.md are written from it by `node scripts/sync-status.mjs --write`. A
+board, the Stories board and docs/context.md are written from it and from the Status line of
+each story by `node scripts/sync-status.mjs --write` (decision 0026). A
 decision that retires a word adds a row to docs/retired-terms.md. First command of every
 session: `npm run hooks` (git config core.hooksPath scripts/githooks). The pre-commit hook then blocks any
 commit where the status is stale, a retired term survives, a decision or note reference has no

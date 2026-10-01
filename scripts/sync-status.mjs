@@ -5,6 +5,7 @@
 // "note NN" reference points at a file that does not exist. The pre-commit hook runs the check.
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
+import { render as renderStories, BOARD as STORIES_BOARD } from './stories-board.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const WRITE = process.argv.includes('--write');
@@ -88,6 +89,17 @@ const block = ['<!-- sync:phases -->', 'Status, derived from the Phase tables in
   .concat(phases.flatMap((p) => [`Phase ${p.n}, ${p.title}: ${summary(p).label} ${summary(p).left}`].concat(p.steps.map((s) => `- ${s.id} ${s.short}: ${{ done: 'done', drafted: "drafted, waits for Mihai's approval", open: 'open', mihai: 'Mihai, when ready' }[s.status]}.`))))
   .concat(['<!-- /sync:phases -->']).join('\n');
 sync('docs/context.md', /(<!-- sync:phases -->[\s\S]*?<!-- \/sync:phases -->)/, block, 'phases block');
+
+// ---------- 3b. the Stories board, generated from stories/ ----------
+{
+  const { html, problems: sp, stories, epics } = renderStories();
+  for (const p of sp) problem('stories: ' + p);
+  let current = ''; try { current = rd(STORIES_BOARD); } catch { current = ''; }
+  if (current !== html) {
+    if (WRITE) { writeFileSync(join(ROOT, STORIES_BOARD), html); console.log(`wrote  ${STORIES_BOARD}: ${stories} stories in ${epics} epics`); }
+    else problem(`${STORIES_BOARD} does not match stories/. Run: node scripts/sync-status.mjs --write`);
+  }
+}
 
 // ---------- 4. retired terms ----------
 const retired = rd('docs/retired-terms.md').split('\n')

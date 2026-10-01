@@ -1,6 +1,7 @@
 # E1-4 Local development with seed data
 
 User: Mihai, opening the app on his PC; Claude, testing every later story against known data
+Status: ready
 Outcome: `docker compose up -d` and `npm run dev` give a running app with one seeded
 workspace holding the sample project, so there is something to look at from day one.
 

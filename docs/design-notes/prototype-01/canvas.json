@@ -142,6 +142,13 @@
       "w": 1440,
       "x": 8260,
       "y": 0
+    },
+    "Stories.dc.html": {
+      "h": 1960,
+      "title": "R1 stories, status from stories/ (generated)",
+      "w": 1440,
+      "x": 8260,
+      "y": 1100
     }
   },
   "createdOnFiles": {
@@ -208,6 +215,14 @@
       "w": 240,
       "x": 8260,
       "y": -300
+    },
+    "t7": {
+      "kind": "title1",
+      "maxW": 1440,
+      "text": "R1 stories, stories/ (decision 0026)",
+      "w": 240,
+      "x": 8260,
+      "y": 1020
     }
   },
   "order": [
@@ -229,7 +244,8 @@
     "Brand06.dc.html",
     "LandingEPhone.dc.html",
     "RespondentDesktop.dc.html",
-    "GoldenSet.dc.html"
+    "GoldenSet.dc.html",
+    "Stories.dc.html"
   ],
   "pages": [],
   "title": "SMEsay prototype"
