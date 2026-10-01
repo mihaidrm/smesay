@@ -626,7 +626,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
 </sc-if>
 <sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlD.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">This link was withdrawn</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group closed it. Answers already sent are kept. If you think this is a mistake, contact the person who sent you the link.</div></div>
+<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlD.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">Link inactive</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div></div>
 </sc-if>
 <sc-if value="{{pvIsArea}}" hint-placeholder-val="{{true}}">
 <div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
@@ -686,7 +686,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
 </sc-if>
 <sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlP.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">This link was withdrawn</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group closed it. Answers already sent are kept. If you think this is a mistake, contact the person who sent you the link.</div></div>
+<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlP.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">Link inactive</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div></div>
 </sc-if>
 <sc-if value="{{pvIsArea}}" hint-placeholder-val="{{true}}">
 <div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 16px 16px; display: flex; flex-direction: column; gap: 14px">
@@ -789,7 +789,7 @@ return { items: items, areas: areas, people: people, answers: answers };
 renderVals() {
 const s = this.state;
 const d = this.data();
-const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: "Won't have" };
+const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: 'Not needed' };
 const go = (step) => () => this.setState({ view: 'project', step: step, detailId: null, pvView: 'auto' });
 const patch = (key, id, value) => {
 const next = Object.assign({}, s[key]);
@@ -841,7 +841,7 @@ this.setState({ shaped: next });
 const selOn = { bg: '#F6F6F4', bd: '#16181C' };
 const selOff = { bg: '#FFFFFF', bd: '#E3E1DC' };
 const methods = [
-['moscow', 'MoSCoW', 'Must, Should, Could, Won’t'],
+['moscow', 'MoSCoW', 'Must, Should, Could, Not needed'],
 ['fit', '1 to 5 fit', 'How well the item fits the need'],
 ['kcd', 'Keep, change, drop', 'For reviewing an existing list']
 ].map((x) => {
@@ -914,7 +914,7 @@ return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg
 const actionDefs = [
 { id: 'a1', title: 'Decide whether policy flags move to Must have.', why: 'Both salespeople pushed it up from Should have. Nobody outside Sales did.', cites: 'Ioana Marin and Tom Reyes on CL-04' },
 { id: 'a2', title: 'Answer two open questions before the link closes.', why: 'Two respondents could not rate an item without more detail.', cites: 'Tom Reyes on CL-02, Lukas Berg on CL-06' },
-{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'HR rated it Won’t have because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.', cites: 'Priya Nair and Lukas Berg on CL-06' },
+{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.', cites: 'Priya Nair and Lukas Berg on CL-06' },
 { id: 'a4', title: 'Consider adding mileage from addresses to Submitting.', why: 'One respondent suggested it as a missing item.', cites: 'Dana Okafor, missing item' }
 ];
 const actions = actionDefs.map((a) => {

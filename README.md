@@ -20,6 +20,8 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - docs/decisions/    one file per decision, numbered, dated
 - docs/design-notes/ dated design work; this is the record that the design is ours
 - docs/schema.md     object model
+- docs/copy/         every user-facing text: landing, quickstart, emails, error messages
+- scripts/scan-copy.mjs  the WRITING.md scan; `node scripts/scan-copy.mjs <paths>` until Phase 2 wires `npm run scan:copy`
 - assets/brand/      placeholder logo files
 - evals/             golden set for the AI features
 - defects/           defects found in testing, fixed before a story is accepted

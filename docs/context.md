@@ -50,7 +50,9 @@ Next tasks for Claude, in order (decision 0013, design first):
 4. PM prototype: done 2026-10-01, desktop only (decision 0020), with the project context box
    on Import and a preview panel on every builder step (decision 0021, note 13).
 5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
-6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
+6. All copy: drafted 2026-10-01 in docs/copy/ (landing, quickstart, four emails, error
+   messages), scan passes with scripts/scan-copy.mjs. Waits for Mihai's approval; the emails
+   and errors list the decisions they need in "Decide" lines.
 7. Ten golden-set specs in evals/.
 8. Then Phase 2: scaffold, styleguide page, E1 stories, open questions before E1.
 
