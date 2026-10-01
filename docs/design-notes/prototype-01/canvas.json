@@ -1,1 +1,105 @@
-{"v":3,"createdOnFiles":{"v":1,"at":"2026-09-30T15:30:00Z"},"title":"Validation platform prototype","launch":{"view":"canvas"},"pages":[],"boards":{"Main.dc.html":{"x":0,"y":0,"w":1440,"h":720,"title":"User journey"},"PmApp.dc.html":{"x":0,"y":840,"w":1440,"h":1000,"title":"PM app (click through)","is_interactive":true},"Respondent.dc.html":{"x":1520,"y":840,"w":390,"h":844,"title":"Respondent on a phone (click through)","is_interactive":true}},"order":["Main.dc.html","PmApp.dc.html","Respondent.dc.html"],"notes":{},"designSystems":[]}
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Landing.dc.html": {
+      "h": 7790,
+      "title": "Landing page",
+      "w": 1440,
+      "x": 2030,
+      "y": 0
+    },
+    "LandingB.dc.html": {
+      "h": 5052,
+      "is_interactive": true,
+      "title": "Landing page B (own layout, animated)",
+      "w": 1440,
+      "x": 3550,
+      "y": 0
+    },
+    "LandingC.dc.html": {
+      "h": 7552,
+      "is_interactive": true,
+      "title": "Landing page C (what, how, why)",
+      "w": 1440,
+      "x": 5070,
+      "y": 0
+    },
+    "LandingD.dc.html": {
+      "h": 5152,
+      "is_interactive": true,
+      "title": "Landing page D (simple)",
+      "w": 1440,
+      "x": 6590,
+      "y": 0
+    },
+    "LandingE.dc.html": {
+      "h": 5272,
+      "is_interactive": true,
+      "title": "Landing page E (B layout, D story, outputs)",
+      "w": 1440,
+      "x": 8110,
+      "y": 0
+    },
+    "Logo.dc.html": {
+      "h": 580,
+      "title": "Name and logo options",
+      "w": 1440,
+      "x": 0,
+      "y": 1960
+    },
+    "Main.dc.html": {
+      "h": 720,
+      "title": "User journey",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "PmApp.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "PM app (click through)",
+      "w": 1440,
+      "x": 0,
+      "y": 840
+    },
+    "Respondent.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Respondent on a phone (click through)",
+      "w": 390,
+      "x": 1520,
+      "y": 840
+    },
+    "Roadmap.dc.html": {
+      "h": 1700,
+      "title": "Roadmap, Oct 2026 to Aug 2027",
+      "w": 1440,
+      "x": 5070,
+      "y": -1973
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-30T15:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {},
+  "order": [
+    "Main.dc.html",
+    "PmApp.dc.html",
+    "Respondent.dc.html",
+    "Logo.dc.html",
+    "Landing.dc.html",
+    "LandingB.dc.html",
+    "LandingC.dc.html",
+    "Roadmap.dc.html",
+    "LandingD.dc.html",
+    "LandingE.dc.html"
+  ],
+  "pages": [],
+  "title": "Validation platform prototype"
+}
