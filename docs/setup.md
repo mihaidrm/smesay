@@ -33,12 +33,13 @@ On a machine with a preinstalled Chromium and no download access, set
 Versions are the latest on npm on 2026-10-01. Each fact names its source: the documentation
 page, or the installed package's type file where the page did not say.
 
-- Next.js 15.5.27 with the App Router, TypeScript, Tailwind 4, ESLint 9, Turbopack, `src/`
-  directory, `@/*` alias. Created with `create-next-app@15.5.27` and its flags (`--help`
-  output). The lint script is `eslint`, as create-next-app writes it; the Next 16 upgrade
-  guide lists "Migrate from next lint to the ESLint CLI" (nextjs.org/docs/app/guides/upgrading/
-  version-16), so nothing changes there on an upgrade. Next 16.3.8 is the current major;
-  CLAUDE.md names 15, see "Open" below.
+- Next.js 16.3.8 with the App Router, TypeScript, Tailwind 4, ESLint 9, `src/` directory,
+  `@/*` alias. Created with `create-next-app@15.5.27` and its flags (`--help` output), then
+  moved to 16 the same day (decision 0024) with `npm install next@16.3.8
+  eslint-config-next@16.3.8`. Turbopack is the default for dev and build in 16, so the
+  `--turbopack` flags are gone from the scripts (nextjs.org/docs/app/guides/upgrading/
+  version-16, "Turbopack by default"). The lint script is `eslint`; the same guide lists
+  "Migrate from next lint to the ESLint CLI", already the case here.
 - shadcn/ui 4.21.1, initialised with `npx shadcn@4.21.1 init -d` (defaults: template next,
   style base-nova, neutral, lucide) and `add button`. Wrote components.json, src/lib/utils.ts
   (`cn` from the `cn` package), src/components/ui/button.tsx, and the imports of
@@ -77,11 +78,10 @@ page, or the installed package's type file where the page did not say.
   then installs Chromium and runs the Playwright test. First run on PR 8: green. No database
   job yet; E1 adds Postgres as a service when the first migration exists.
 
-## Open
+## Decided while setting up
 
-- Next 15 or 16. CLAUDE.md says 15 and that is what is installed; 16.3.8 is current. From the
-  upgrade guide (nextjs.org/docs/app/guides/upgrading/version-16): Node 20.9 or newer,
-  TypeScript 5.1 or newer, `next lint` gone (we use the ESLint CLI already), the middleware
-  file becomes proxy, request APIs (params, searchParams, cookies, headers) are async only.
-  None of that touches the empty app, so moving now is one command and a check run; moving a
-  built app is a migration. Recommendation: 16, decided before E1.
+- Next 16, not 15 (decision 0024, Mihai, 2026-10-01). The upgrade guide
+  (nextjs.org/docs/app/guides/upgrading/version-16) asks for Node 20.9 or newer, TypeScript
+  5.1 or newer, the ESLint CLI instead of `next lint`, proxy instead of middleware, and async
+  request APIs. The empty app had none of the old forms, so the move was the install plus a
+  check run.

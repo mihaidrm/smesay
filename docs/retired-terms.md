@@ -15,3 +15,5 @@ decision retires a term; remove the old wording in the same commit (decision 001
 | PM app phone board | decision 0020 | the PM side is desktop only in R1 |
 | PM phone board | decision 0020 | the PM side is desktop only in R1 |
 | phone layout for the PM | decision 0020 | the PM side is desktop only in R1 |
+| Next.js 15 | decision 0024 | Next.js 16 |
+| Next 15 | decision 0024 | Next 16 |
