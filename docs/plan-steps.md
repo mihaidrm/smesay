@@ -48,13 +48,13 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 
 ## Phase 2. Setup for building (about 1 week)
 
-| # | Step | Who |
-|---|---|---|
-| 2.1 | git init, first commit, push to the GitHub repository. Done 2026-10-01 | Claude |
-| 2.2 | Scaffold: Next.js 15, TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and MinIO | Claude |
-| 2.3 | Styleguide page in the app from docs/design-system.md | Claude |
-| 2.4 | Stories for E1 written from the plan; open questions listed | Claude |
-| 2.5 | Answer the E1 questions; Node 22 and Docker running; optional personal GitHub repo | Mihai |
+| # | Step | Who | Done when | Status |
+|---|---|---|---|---|
+| 2.1 | Repository: git init, first commit, push to GitHub. Done 2026-10-01 | Claude | Repository on GitHub | done |
+| 2.2 | Scaffold: Next.js 15, TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and MinIO, CI. Built 2026-10-01 (docs/setup.md); shadcn init and the first docker compose up wait for Mihai's laptop | Claude | lint, typecheck, tests and build pass; CI green | drafted |
+| 2.3 | Styleguide page: in the app, from docs/design-system.md | Claude | Mihai approves | open |
+| 2.4 | E1 stories: written from the plan, open questions listed | Claude | Stories have acceptance criteria | open |
+| 2.5 | Laptop setup: answer the E1 questions, Node 22 and Docker running, shadcn init, docker compose up | Mihai | docs/setup.md checks pass on the laptop | mihai |
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
 
