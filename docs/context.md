@@ -26,8 +26,9 @@ Done so far:
 - Git repository on GitHub: mihaidrm/smesay, personal account (decision 0006). First commit
   2026-10-01.
 
-Machine check on 2026-10-01 (Mihai's laptop, decision 0005): Node v26.10.0, Docker 29.8.1
-running. The Claude Code cloud container has Node v22.22.0.
+Machine check on 2026-10-01 (Mihai's Windows PC, decision 0005): Node v26.10.0, Docker 29.8.1
+running; docker compose up, lint, test and build pass there (step 2.5). The Claude Code cloud
+container has Node v22.22.0 and no Docker daemon.
 
 Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design-notes/*, docs/schema.md,
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
@@ -41,7 +42,6 @@ Waiting on Mihai:
    settings, sample, item detail, export, preview panel) on phone and laptop.
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
    (decision 0021, open item).
-5. On the laptop: the first `docker compose up -d` (docs/setup.md, step 2.5).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
@@ -57,12 +57,12 @@ Phase 1, Design (now to about 17 October): Done 6 of 6 steps. 2 drafted, waits f
 - 1.5 Copy: drafted, waits for Mihai's approval.
 - 1.6 Golden set: drafted, waits for Mihai's approval.
 - 1.7 Trademark check: Mihai, when ready.
-Phase 2, Setup for building (about 1 week): Done 2 of 4 steps. Left: Styleguide page, E1 stories. 1 drafted, waits for Mihai
+Phase 2, Setup for building (about 1 week): Done 3 of 5 steps. Left: Styleguide page, E1 stories
 - 2.1 Repository: done.
-- 2.2 Scaffold: drafted, waits for Mihai's approval.
+- 2.2 Scaffold: done.
 - 2.3 Styleguide page: open.
 - 2.4 E1 stories: open.
-- 2.5 Laptop setup: Mihai, when ready.
+- 2.5 PC setup: done.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;

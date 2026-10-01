@@ -1,7 +1,7 @@
 # Setup: how to run the app and what the scaffold contains
 
 Written 2026-10-01 (plan step 2.2). The app is empty: one placeholder page, no tables, no
-sign-in. Everything below runs on a laptop with Node 22 or newer and Docker (decision 0006).
+sign-in. Everything below runs on a machine with Node 22 or newer and Docker (decision 0006).
 
 ## Run it
 
@@ -74,7 +74,7 @@ page, or the installed package's type file where the page did not say.
   Mailpit:
   axllent/mailpit, web UI 8025, SMTP 1025 (mailpit.axllent.org/docs/install/docker). Docker is
   not available in the build session, so `docker compose up` itself was not run here; the
-  first run on Mihai's laptop (step 2.5) is that check.
+  first run on Mihai's PC (step 2.5, 2026-10-01) was that check: all three containers started.
 - CI: .github/workflows/ci.yml runs lint, typecheck, scan, status check, unit tests, build,
   then installs Chromium and runs the Playwright test. First run on PR 8: green. No database
   job yet; E1 adds Postgres as a service when the first migration exists.
