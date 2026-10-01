@@ -611,17 +611,17 @@ const questions = [];
 const gaps = [];
 const agreement = d.items.map((it) => {
 let agree = 0, pushed = 0, unclear = 0;
-let vetAgree = 0, vetAll = 0, restAgree = 0, restAll = 0;
+let salesAgree = 0, salesAll = 0, restAgree = 0, restAll = 0;
 submitted.forEach((p) => {
 const a = d.answers[it.id][p.id];
-const isVet = p.role === 'Sales';
-if (isVet) vetAll += 1; else restAll += 1;
-if (a[0] === 'A') { agree += 1; if (isVet) vetAgree += 1; else restAgree += 1; }
+const isSales = p.role === 'Sales';
+if (isSales) salesAll += 1; else restAll += 1;
+if (a[0] === 'A') { agree += 1; if (isSales) salesAgree += 1; else restAgree += 1; }
 if (a[0] === 'D') { pushed += 1; disagreements.push({ item: it.reader, name: p.name, role: p.role, proposed: LABEL[it.proposed], value: LABEL[a[1]], reason: a[2] }); }
 if (a[0] === 'U') { unclear += 1; questions.push({ item: it.reader, name: p.name, role: p.role, question: a[1] }); }
 });
 totalAgree += agree; totalPushed += pushed; totalUnclear += unclear; totalAnswers += submitted.length;
-gaps.push({ text: it.reader, gap: Math.abs(vetAgree / vetAll - restAgree / restAll), line: 'Sales: ' + vetAgree + ' of ' + vetAll + ' agree. Everyone else: ' + restAgree + ' of ' + restAll + ' agree.' });
+gaps.push({ text: it.reader, gap: Math.abs(salesAgree / salesAll - restAgree / restAll), line: 'Sales: ' + salesAgree + ' of ' + salesAll + ' agree. Everyone else: ' + restAgree + ' of ' + restAll + ' agree.' });
 return { area: it.area, text: it.reader, proposed: LABEL[it.proposed], agree: agree, pushed: pushed, unclear: unclear };
 });
 gaps.sort((a, b) => b.gap - a.gap);
@@ -638,7 +638,7 @@ return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg
 const actionDefs = [
 { id: 'a1', title: 'Decide whether policy flags move to Must have.', why: 'Both salespeople pushed it up from Should have. Nobody outside Sales did.', cites: 'Ioana Marin and Tom Reyes on CL-04' },
 { id: 'a2', title: 'Answer two open questions before the link closes.', why: 'Two respondents could not rate an item without more detail.', cites: 'Tom Reyes on CL-02, Lukas Berg on CL-06' },
-{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'Finance rated it Won’t have for licensing reasons, and the practice manager asked who carries the risk.', cites: 'Priya Nair and Lukas Berg on CL-06' },
+{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'HR rated it Won’t have because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.', cites: 'Priya Nair and Lukas Berg on CL-06' },
 { id: 'a4', title: 'Consider adding mileage from addresses to Submitting.', why: 'One respondent suggested it as a missing item.', cites: 'Dana Okafor, missing item' }
 ];
 const actions = actionDefs.map((a) => {
