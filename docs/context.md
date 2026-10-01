@@ -34,7 +34,9 @@ Waiting on Mihai:
 1. The order of the next sessions: design phase first (docs/plan-steps.md, Phase 1) or scaffold
    first (the earlier version of this file). Claude recommends the plan-steps order. Mihai
    deferred this on 2026-10-01 (decision 0009, item 5).
-2. Trademark search for SMEsay before buying anything.
+2. Allow euipo.europa.eu, www.tmdn.org, branddb.wipo.int and tmsearch.uspto.gov in the cloud
+   environment so Claude can run the trademark database search (decision 0012). No domain and
+   no filing until then.
 
 Next tasks for Claude, in the order Mihai picks:
 - Plan-steps order: finish the respondent prototype (closed, revoked, personal link resume,
