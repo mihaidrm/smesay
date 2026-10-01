@@ -31,22 +31,21 @@ Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
 
 Waiting on Mihai:
-1. The order of the next sessions: design phase first (docs/plan-steps.md, Phase 1) or scaffold
-   first (the earlier version of this file). Claude recommends the plan-steps order. Mihai
-   deferred this on 2026-10-01 (decision 0009, item 5).
-2. Allow euipo.europa.eu, www.tmdn.org, branddb.wipo.int and tmsearch.uspto.gov in the cloud
+1. Allow euipo.europa.eu, www.tmdn.org, branddb.wipo.int and tmsearch.uspto.gov in the cloud
    environment so Claude can run the trademark database search (decision 0012). No domain and
    no filing until then.
 
-Next tasks for Claude, in the order Mihai picks:
-- Plan-steps order: finish the respondent prototype (closed, revoked, personal link resume,
-  rate-blind mode, all three layouts), finish the PM prototype (settings, members, project list,
-  sample watermark, item detail, export), write docs/design-system.md from design notes 01 to
-  08, draft all copy, write the ten golden-set specs in evals/. Then scaffold.
-- Scaffold-first order: scaffold Next.js 15 with TypeScript, Tailwind, shadcn/ui, Drizzle,
-  better-auth, Vitest, Playwright and the copy scan script (`npm run scan:copy`); write
-  docs/design-system.md and the styleguide page; write stories/E1-*.md from the E1 rows of the
-  plan using stories/TEMPLATE.md; stop and list every open question before building E1.
+Next tasks for Claude, in order (decision 0013, design first):
+1. Tidy the canvas: current boards in the main flow, superseded landing pages apart, labelled.
+2. Landing page E: use-cases section in place of "who it is for" (decision 0010); phone layout.
+3. Finish the respondent prototype: closed, revoked, personal link resume, rate-blind mode, the
+   other two layouts.
+4. Finish the PM prototype: settings, members, project list, sample watermark, item detail,
+   export screen.
+5. docs/design-system.md from design notes 01 to 08.
+6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
+7. Ten golden-set specs in evals/.
+8. Then Phase 2: scaffold, styleguide page, E1 stories, open questions before E1.
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
 decide scope.

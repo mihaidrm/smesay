@@ -20,7 +20,7 @@ next phase waits.
 | 0.6 | Respondent answer model and the other prototype choices in note 03, accepted 2026-10-01 | docs/decisions/0009 |
 | 0.7 | Vercel: moot until the launch gate (decision 0006) | docs/accounts.md |
 | 0.8 | Retired agent files deleted 2026-10-01 | docs/decisions/0009 |
-| 0.9 | Order of the next sessions: Phase 1 design first, or scaffold first. Deferred by Mihai 2026-10-01 | docs/decisions/0009 |
+| 0.9 | Order of the next sessions: design first, decided 2026-10-01 | docs/decisions/0013 |
 
 Machine check 2026-10-01: Node v26.10.0 and Docker 29.8.1 running. Nothing to install. The
 repository is on Mihai's personal GitHub (mihaidrm/smesay), so step 2.1 is done.

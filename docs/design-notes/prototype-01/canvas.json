@@ -4,79 +4,79 @@
   "boards": {
     "Landing.dc.html": {
       "h": 7790,
-      "title": "Landing page",
+      "title": "A, superseded: followed duna.com too closely",
       "w": 1440,
-      "x": 2030,
-      "y": 0
+      "x": 3200,
+      "y": 3500
     },
     "LandingB.dc.html": {
       "h": 5052,
       "is_interactive": true,
-      "title": "Landing page B (own layout, animated)",
+      "title": "B, superseded: its layout lives on in E",
       "w": 1440,
-      "x": 3550,
-      "y": 0
+      "x": 4720,
+      "y": 3500
     },
     "LandingC.dc.html": {
       "h": 7552,
       "is_interactive": true,
-      "title": "Landing page C (what, how, why)",
+      "title": "C, superseded: the full argument, too long",
       "w": 1440,
-      "x": 5070,
-      "y": 0
+      "x": 6240,
+      "y": 3500
     },
     "LandingD.dc.html": {
       "h": 5152,
       "is_interactive": true,
-      "title": "Landing page D (simple)",
+      "title": "D, superseded: its three pictures live on in E",
       "w": 1440,
-      "x": 6590,
-      "y": 0
+      "x": 7760,
+      "y": 3500
     },
     "LandingE.dc.html": {
       "h": 5272,
       "is_interactive": true,
-      "title": "Landing page E (B layout, D story, outputs)",
+      "title": "Landing page E, current (decision 0008)",
       "w": 1440,
-      "x": 8110,
-      "y": 0
+      "x": 0,
+      "y": 3500
     },
     "Logo.dc.html": {
       "h": 580,
-      "title": "Name and logo options",
+      "title": "Name and logo: wordmark D with mark B, chosen",
       "w": 1440,
-      "x": 0,
-      "y": 1960
+      "x": 1520,
+      "y": 840
     },
     "Main.dc.html": {
       "h": 720,
-      "title": "User journey",
+      "title": "User journey, current",
       "w": 1440,
-      "x": 0,
+      "x": 1520,
       "y": 0
     },
     "PmApp.dc.html": {
       "h": 1000,
       "is_interactive": true,
-      "title": "PM app (click through)",
+      "title": "PM app, current (click through)",
       "w": 1440,
       "x": 0,
-      "y": 840
+      "y": 2100
     },
     "Respondent.dc.html": {
       "h": 844,
       "is_interactive": true,
-      "title": "Respondent on a phone (click through)",
+      "title": "Respondent on a phone, current (click through)",
       "w": 390,
       "x": 1520,
-      "y": 840
+      "y": 2100
     },
     "Roadmap.dc.html": {
       "h": 1700,
       "title": "Roadmap, Oct 2026 to Aug 2027",
       "w": 1440,
-      "x": 5070,
-      "y": -1973
+      "x": 0,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -87,7 +87,44 @@
   "launch": {
     "view": "canvas"
   },
-  "notes": {},
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "SMEsay prototype. Current boards, 1 October 2026",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "t2": {
+      "x": 0,
+      "y": 1830,
+      "text": "Product, click through",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "t3": {
+      "x": 0,
+      "y": 3230,
+      "text": "Landing page, current",
+      "kind": "title1",
+      "maxW": 1440
+    },
+    "t4": {
+      "x": 3200,
+      "y": 3230,
+      "text": "Superseded landing pages A to D, kept for comparison",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "s1": {
+      "x": 1520,
+      "y": 3500,
+      "w": 1200,
+      "maxH": 560,
+      "fill": "gray",
+      "text": "Why E replaced A to D.\n\nA followed duna.com too closely (note 05).\nB had its own layout and motion; its hero and three-step panel are in E.\nC made the full argument and grew to 13 sections (note 07).\nD was the simple one; its three pictures are in E.\nE = B's layout, D's story, one gallery of outputs (decision 0008).\n\nStill to do on E: use-cases section in place of \"Who it is for\" (decision 0010), phone layout."
+    }
+  },
   "order": [
     "Main.dc.html",
     "PmApp.dc.html",
@@ -101,5 +138,5 @@
     "LandingE.dc.html"
   ],
   "pages": [],
-  "title": "Validation platform prototype"
+  "title": "SMEsay prototype"
 }
