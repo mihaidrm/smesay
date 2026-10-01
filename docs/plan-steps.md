@@ -15,14 +15,15 @@ next phase waits.
 | 0.1 | Name: SMEsay chosen 2026-10-01, trademark search pending | docs/decisions/0005 |
 | 0.2 | Logo: wordmark D with mark B, chosen 2026-10-01 | docs/decisions/0005 |
 | 0.3 | Landing page: E chosen (B layout, D story, outputs gallery), 2026-10-01 | docs/decisions/0008 |
-| 0.4 | Headline: "Send the list as a link. Get back who agrees, and why." on page E; confirm | docs/design-notes/2026-10-01-08 |
-| 0.5 | Example: the expense tool, or another everyday case | docs/decisions/0005 |
-| 0.6 | Respondent answer model: Agree, Should be different (reason), Unclear (question) | docs/design-notes/2026-09-30-03 |
+| 0.4 | Headline: "Send the list as a link. Get back who agrees, and why." Confirmed 2026-10-01 | docs/decisions/0009 |
+| 0.5 | Example: the expense tool, confirmed 2026-10-01 | docs/decisions/0005, 0009 |
+| 0.6 | Respondent answer model and the other prototype choices in note 03, accepted 2026-10-01 | docs/decisions/0009 |
 | 0.7 | Vercel: moot until the launch gate (decision 0006) | docs/accounts.md |
-| 0.8 | Delete the eight retired agent files in .claude/agents/ | docs/context.md |
+| 0.8 | Retired agent files deleted 2026-10-01 | docs/decisions/0009 |
+| 0.9 | Order of the next sessions: Phase 1 design first, or scaffold first. Deferred by Mihai 2026-10-01 | docs/decisions/0009 |
 
-Machine check 2026-10-01: Node v26.10.0 and Docker 29.8.1 running. Nothing to install. A
-private repository on Mihai's personal GitHub is optional (decision 0006).
+Machine check 2026-10-01: Node v26.10.0 and Docker 29.8.1 running. Nothing to install. The
+repository is on Mihai's personal GitHub (mihaidrm/smesay), so step 2.1 is done.
 
 Decision 0006 (2026-10-01): everything stays local and on personal accounts until the product
 is validated. Deploy, domain, email sending and company accounts move to the launch gate.
@@ -45,7 +46,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 
 | # | Step | Who |
 |---|---|---|
-| 2.1 | git init, first commit, push to the GitHub repository | Claude |
+| 2.1 | git init, first commit, push to the GitHub repository. Done 2026-10-01 | Claude |
 | 2.2 | Scaffold: Next.js 15, TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and MinIO | Claude |
 | 2.3 | Styleguide page in the app from docs/design-system.md | Claude |
 | 2.4 | Stories for E1 written from the plan; open questions listed | Claude |
