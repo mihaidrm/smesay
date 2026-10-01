@@ -1,5 +1,5 @@
 # Local services (decision 0006: everything on the laptop until the launch gate).
-# Postgres for the app, MinIO as the S3-compatible store, Mailpit as the local mailbox.
+# Postgres for the app, RustFS as the S3-compatible store (decision 0025), Mailpit as the local mailbox.
 # Start: docker compose up -d. Stop and keep data: docker compose down. Wipe: docker compose down -v.
 # Sources for each image's settings are in docs/setup.md. Docker is not available in the build
 # session, so the first `docker compose up` on Mihai's laptop is the run check.
@@ -20,17 +20,18 @@ services:
       timeout: 3s
       retries: 10
 
-  minio:
-    image: quay.io/minio/minio
-    command: server /data --console-address ":9001"
+  rustfs:
+    image: rustfs/rustfs:1.0.0
     environment:
-      MINIO_ROOT_USER: smesay
-      MINIO_ROOT_PASSWORD: smesay-local
+      RUSTFS_ACCESS_KEY: smesay
+      RUSTFS_SECRET_KEY: smesay-local
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio:/data
+      - rustfs:/data
 
   mailpit:
     image: axllent/mailpit
@@ -40,4 +41,4 @@ services:
 
 volumes:
   postgres:
-  minio:
+  rustfs:

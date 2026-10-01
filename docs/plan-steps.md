@@ -51,7 +51,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 | # | Step | Who | Done when | Status |
 |---|---|---|---|---|
 | 2.1 | Repository: git init, first commit, push to GitHub. Done 2026-10-01 | Claude | Repository on GitHub | done |
-| 2.2 | Scaffold: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and MinIO, CI. Built 2026-10-01 (docs/setup.md), CI green; the first docker compose up waits for Mihai's laptop | Claude | lint, typecheck, tests and build pass; CI green | drafted |
+| 2.2 | Scaffold: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and an S3-compatible store (RustFS, decision 0025), CI. Built 2026-10-01 (docs/setup.md), CI green; the first docker compose up waits for Mihai's laptop | Claude | lint, typecheck, tests and build pass; CI green | drafted |
 | 2.3 | Styleguide page: in the app, from docs/design-system.md | Claude | Mihai approves | open |
 | 2.4 | E1 stories: written from the plan, open questions listed | Claude | Stories have acceptance criteria | open |
 | 2.5 | Laptop setup: answer the E1 questions, Node 22 and Docker running, shadcn init, docker compose up | Mihai | docs/setup.md checks pass on the laptop | mihai |
@@ -65,9 +65,9 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 
 | Epic | What ships | Mihai sets up first | Sessions |
 |---|---|---|---|
-| E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and MinIO, seed; deploy moved to the launch gate | none | 2 |
+| E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and RustFS, seed; deploy moved to the launch gate | none | 2 |
 | E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 |
-| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (MinIO in Docker) | 3 |
+| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (RustFS in Docker) | 3 |
 | E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 |
 | E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 |
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 |
