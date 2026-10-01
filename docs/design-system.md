@@ -131,6 +131,17 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 - Table: header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50. Card: radius 12 in
   the app, hairline, 16 padding, title 14 weight 500.
 
+## Rating row (respondent cards)
+
+Decision 0018. A card is a fieldset: reference in mono 11, title 15/22 weight 500, an optional
+details panel (grey-50, 14/20), the row "Your rating" with pills Must, Should, Could, Not
+needed, Unclear at 36 px high, 13 px text, 12 px side padding, radius 999. The proposed value
+has a dashed #454A52 border and a mono 10 px caption "proposed". The selected pill fills with
+the PM's accent and white text. The comment box (8 px radius, 15/22) opens under the row when
+required; "+ comment" opens it otherwise. The card footer holds Details, the comment toggle and
+the status note (Saved in agree green, what is missing in pushed-back amber, Not rated yet in
+ink-muted). Cards sit in one column on a phone and two on desktop, 10 px apart.
+
 ## Data
 
 Follows the dataviz rules: thin marks, 2 px surface gaps between segments, direct labels on at

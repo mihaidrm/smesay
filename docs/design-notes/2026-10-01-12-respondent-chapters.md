@@ -18,14 +18,25 @@ respondent-generator.py (Python 3.12 or later), checked by respondent-sim.js (no
   question; a note line that says exactly what is missing, or Saved. Rate-blind cards show the
   four priorities on one row and Disagree, Unclear on the next.
 - Footer: Back, Continue to the next chapter (never blocked), and how many are left here.
-- Wrap up: summary line, an amber box naming the gaps with a button to the chapter, the review
-  list (status pill, Change, the reason), the optional missing item, the optional closing
+- Wrap up: a tally of five tiles, an amber box naming the gaps with a button to the chapter,
+  sections for what the respondent suggested (higher, lower, not needed, a question; agreed
+  items are not listed, decision 0018 item 5), the optional missing item, the optional closing
   question marked as PM-configurable, confidence 1 to 5, the sign-off as one 48 px label,
   Submit with a line listing what is still needed, a Submitting state.
 - Done, Link closed, Link inactive. The closed page shows the respondent's own state only when
   the link was personal.
 - Prototype strip: layout (chapters, one item per screen), proposed value (shown, hidden), link
   (public first visit, public same device again, personal, closed, revoked), connection.
+
+## Same day, later: the rating row (decision 0018)
+
+Mihai asked for more cards per screen, smaller controls, a Details toggle, and a rating row like
+a screenshot he supplied. The card now shows the values as the answer (see decision 0018 and the
+rating row in docs/design-system.md). Screenshots from the static renderer:
+respondent-chapter-phone.png, respondent-chapter-desktop.png, respondent-wrapup-phone.png and
+respondent-wrapup-desktop.png beside the boards. The renderer
+(respondent-render.js) evaluates the template against the logic in a chosen state; it is not
+the canvas runtime, so Mihai's click-through remains the check of the real thing.
 
 ## Reviewer findings from note 11 and what happened to each
 

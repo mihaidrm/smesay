@@ -27,34 +27,29 @@ def notice(title, body, extra=''):
 <div style="color: #454A52">{body}</div>{extra}
 </div></div>'''
 
-card = f'''<fieldset style="margin: 0; padding: 16px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 12px; min-width: 0">
-<legend style="padding: 0; float: left; width: 100%; display: flex; flex-direction: column; gap: 6px">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{{{v.ref}}}}</span>
-<span style="font-size: 17px; line-height: 24px; font-weight: 500">{{{{v.text}}}}</span>
+card = f'''<fieldset style="margin: 0; padding: 12px 14px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<legend style="padding: 0; float: left; width: 100%; display: flex; align-items: baseline; gap: 8px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{{{v.ref}}}}</span>
+<span style="font-size: 15px; line-height: 22px; font-weight: 500">{{{{v.text}}}}</span>
 </legend>
-<sc-if value="{{{{v.showProposed}}}}" hint-placeholder-val="{{{{true}}}}">
-<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #5B6069; clear: both"><span>Proposed</span><span style="padding: 1px 10px; border-radius: 999px; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">{{{{v.proposedLabel}}}}</span></div>
-<div style="display: flex; gap: 6px">{pill('ag', 'Agree')}{pill('df', 'Change')}{pill('dg', 'Disagree')}{pill('un', 'Unclear')}</div>
-</sc-if>
-<sc-if value="{{{{v.blind}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="font-size: 14px; color: #5B6069; clear: both">How important is this?</div>
-<div style="display: flex; gap: 6px">{pill('p1')}{pill('p2')}{pill('p3')}{pill('p4')}</div>
-<div style="display: flex; gap: 6px">{pill('dg', 'Disagree')}{pill('un', 'Unclear')}</div>
-</sc-if>
-<sc-if value="{{{{v.isDiff}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #F6F6F4">
-<div style="font-size: 14px; font-weight: 500">What should it be?</div>
-<div style="display: flex; gap: 6px">{pill('o1')}{pill('o2')}{pill('o3')}</div>
-{textarea('r-reason-{{v.id}}', 'Why? The team reads every reason.')}
+<sc-if value="{{{{v.detailsOpen}}}}" hint-placeholder-val="{{{{false}}}}"><div style="font-size: 14px; line-height: 20px; color: #454A52; clear: both; padding: 8px 10px; border-radius: 8px; background: #F6F6F4">{{{{v.detail}}}}</div></sc-if>
+<div style="display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; clear: both">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 36px; flex-shrink: 0">Your rating</span>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p1Pick}}}}" aria-pressed="{{{{v.p1On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p1BdStyle}}}} {{{{v.p1Bd}}}}; border-radius: 999px; background: {{{{v.p1Bg}}}}; color: {{{{v.p1Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p1Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p1Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p2Pick}}}}" aria-pressed="{{{{v.p2On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p2BdStyle}}}} {{{{v.p2Bd}}}}; border-radius: 999px; background: {{{{v.p2Bg}}}}; color: {{{{v.p2Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p2Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p2Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p3Pick}}}}" aria-pressed="{{{{v.p3On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p3BdStyle}}}} {{{{v.p3Bd}}}}; border-radius: 999px; background: {{{{v.p3Bg}}}}; color: {{{{v.p3Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p3Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p3Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p4Pick}}}}" aria-pressed="{{{{v.p4On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p4BdStyle}}}} {{{{v.p4Bd}}}}; border-radius: 999px; background: {{{{v.p4Bg}}}}; color: {{{{v.p4Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p4Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p4Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.unPick}}}}" aria-pressed="{{{{v.unOn}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.unBdStyle}}}} {{{{v.unBd}}}}; border-radius: 999px; background: {{{{v.unBg}}}}; color: {{{{v.unFg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.unLabel}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.unCap}}}}</span></div>
+</div>
+<sc-if value="{{{{v.commentOpen}}}}" hint-placeholder-val="{{{{false}}}}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="r-c-{{{{v.id}}}}" style="font-size: 13px; font-weight: 500">{{{{v.commentLabel}}}}</label>
+<textarea id="r-c-{{{{v.id}}}}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="box-sizing: border-box; padding: 8px 12px; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; resize: none; font-size: 15px; line-height: 22px"></textarea>
 </div>
 </sc-if>
-<sc-if value="{{{{v.isDisagree}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #F6F6F4">{textarea('r-disagree-{{v.id}}', 'What should it say instead, or why is it not needed?')}</div>
-</sc-if>
-<sc-if value="{{{{v.isUnclear}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #F6F6F4">{textarea('r-question-{{v.id}}', 'What would you need to know to answer?')}</div>
-</sc-if>
-<div aria-live="polite" style="font-size: 13px; color: {{{{v.noteFg}}}}; clear: both">{{{{v.note}}}}</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px">
+<div style="display: flex; gap: 14px">
+<button type="button" onClick="{{{{v.toggleDetails}}}}" aria-expanded="{{{{v.detailsOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.detailsLabel}}}}</button>
+<sc-if value="{{{{v.showCommentToggle}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" onClick="{{{{v.toggleComment}}}}" aria-expanded="{{{{v.commentOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.commentToggleLabel}}}}</button></sc-if>
+</div>
+<div aria-live="polite" style="color: {{{{v.noteFg}}}}; text-align: right">{{{{v.note}}}}</div>
+</div>
 </fieldset>'''
 
 screens = f'''
@@ -111,11 +106,13 @@ screens = f'''
 </sc-if>
 
 <sc-if value="{{{{isArea}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 12px">
-<div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{{{areaName}}}}</h1><div style="font-size: 14px; color: #5B6069">{{{{areaIntro}}}}</div></div>
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{{{areaName}}}}</h1><div style="font-size: 14px; color: #5B6069">{{{{areaIntro}}}}</div></div>
+<div style="display: grid; grid-template-columns: repeat(COLS, minmax(0, 1fr)); gap: 10px; align-items: start">
 <sc-for list="{{{{visible}}}}" as="v" hint-placeholder-count="2">
 {card}
 </sc-for>
+</div>
 </div></div>
 {footer(f'''<div style="display: flex; gap: 10px">
 <button type="button" onClick="{{{{back}}}}" {S_BTN}">Back</button>
@@ -125,27 +122,27 @@ screens = f'''
 </sc-if>
 
 <sc-if value="{{{{isWrap}}}}" hint-placeholder-val="{{{{false}}}}">
-{scroll(f'''<div style="display: flex; flex-direction: column; gap: 6px">
-<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Wrap up</h1>
-<div style="color: #454A52; font-size: 15px">{{{{summaryLine}}}}</div>
+{scroll(f'''<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Wrap up</h1>
+<div style="display: grid; grid-template-columns: repeat(TALLYCOLS, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{{{tally}}}}" as="t" hint-placeholder-count="5">
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; line-height: 26px; color: {{{{t.fg}}}}">{{{{t.n}}}}</div><div style="font-size: 12px; line-height: 16px; color: #5B6069">{{{{t.label}}}}</div></div>
+</sc-for>
 </div>
 <sc-if value="{{{{hasGaps}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="background: #FBF1DC; color: #7A5210; border-radius: 12px; padding: 12px 16px; font-size: 15px; display: flex; flex-direction: column; gap: 6px"><div>{{{{gapLine}}}}</div><button type="button" onClick="{{{{gapGo}}}}" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border: 1px solid #7A5210; border-radius: 999px; background: #FFFFFF; color: #7A5210; font-weight: 500; font-size: 15px">Go to {{{{gapChapter}}}}</button></div>
 </sc-if>
+<sc-for list="{{{{sections}}}}" as="sec" hint-placeholder-count="2">
 <div style="display: flex; flex-direction: column; gap: 8px">
-<sc-for list="{{{{rows}}}}" as="r" hint-placeholder-count="6">
-<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px">
-<div style="font-size: 15px">{{{{r.text}}}}</div>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
-<div style="padding: 2px 10px; border-radius: 999px; background: {{{{r.bg}}}}; color: {{{{r.fg}}}}; border: 1px {{{{r.bdStyle}}}} {{{{r.bd}}}}; font-size: 12px; font-weight: 500">{{{{r.status}}}}</div>
-<button type="button" onClick="{{{{r.edit}}}}" aria-label="{{{{r.aria}}}}" style="min-height: 48px; padding: 0 12px; border: 0; background: transparent; color: #0E6B63; font-size: 15px; font-weight: 500">Change</button>
-</div>
-<sc-if value="{{{{r.hasDetail}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="font-size: 14px; color: #454A52; background: #F6F6F4; border-radius: 12px; padding: 8px 12px">{{{{r.detail}}}}</div>
-</sc-if>
+<div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 15px; font-weight: 500">{{{{sec.title}}}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{{{sec.count}}}}</span></div>
+<sc-for list="{{{{sec.rows}}}}" as="r" hint-placeholder-count="2">
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px"><div style="font-size: 15px; line-height: 22px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069">{{{{r.ref}}}}</span> {{{{r.text}}}}</div><button type="button" onClick="{{{{r.edit}}}}" aria-label="{{{{r.aria}}}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #0E6B63; font-size: 14px; font-weight: 500; flex-shrink: 0">Change</button></div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px"><span style="padding: 2px 10px; border-radius: 999px; background: {{{{r.bg}}}}; color: {{{{r.fg}}}}; border: 1px {{{{r.bdStyle}}}} {{{{r.bd}}}}; font-size: 12px; font-weight: 500">{{{{r.status}}}}</span><sc-if value="{{{{r.hasDetail}}}}" hint-placeholder-val="{{{{false}}}}"><span style="color: #454A52">{{{{r.detail}}}}</span></sc-if></div>
 </div>
 </sc-for>
 </div>
+</sc-for>
+<sc-if value="{{{{nothingToReview}}}}" hint-placeholder-val="{{{{false}}}}"><div style="color: #5B6069; font-size: 15px">You agreed with every proposed value. Nothing to review here.</div></sc-if>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-missing" style="font-size: 14px; font-weight: 500">Is anything missing from the list? Optional.</label>
 <textarea id="r-missing" rows="3" value="{{{{missingText}}}}" onChange="{{{{setMissing}}}}" style="{TA}"></textarea>
@@ -207,16 +204,16 @@ screens = f'''
 '''
 
 JS = r'''class Component extends DCLogic {
-state = { screen: 'about', area: 'Submitting', name: '', role: '', answers: {}, missingText: '', closingText: '', confidence: 0, signed: false, submittedAt: '', submitting: false, blind: false, link: 'open', offline: false, wasPersonal: false, layout: 'chapters', idx: 0 };
+state = { details: {}, comments: {}, screen: 'about', area: 'Submitting', name: '', role: '', answers: {}, missingText: '', closingText: '', confidence: 0, signed: false, submittedAt: '', submitting: false, blind: false, link: 'open', offline: false, wasPersonal: false, layout: 'chapters', idx: 0 };
 
 items() {
 return [
-{ id: 'i1', ref: 'CL-01', area: 'Submitting', proposed: 'M', text: 'Photograph a receipt and the amount, date and merchant are filled in automatically.' },
-{ id: 'i2', ref: 'CL-02', area: 'Submitting', proposed: 'S', text: 'Split one receipt across two projects or cost centres.' },
-{ id: 'i3', ref: 'CL-03', area: 'Approving', proposed: 'M', text: 'Managers approve or reject from the email, without logging in.' },
-{ id: 'i4', ref: 'CL-04', area: 'Approving', proposed: 'S', text: 'Expenses over the policy limit are flagged before they reach the approver.' },
-{ id: 'i5', ref: 'CL-05', area: 'Paying', proposed: 'M', text: 'Approved expenses are paid with the next salary run.' },
-{ id: 'i6', ref: 'CL-06', area: 'Paying', proposed: 'C', text: 'Employees can request a cash advance before a trip.' }
+{ id: 'i1', ref: 'CL-01', area: 'Submitting', proposed: 'M', text: 'Photograph a receipt and the amount, date and merchant are filled in automatically.', detail: 'From the spreadsheet: OCR receipt capture via mobile (auto-fill amt/date/vendor). Covers paper receipts and PDFs. Out of scope: receipts in a language the OCR does not read.' },
+{ id: 'i2', ref: 'CL-02', area: 'Submitting', proposed: 'S', text: 'Split one receipt across two projects or cost centres.', detail: 'From the spreadsheet: Multi-allocation of single expense line to 2+ cost centres/projects. Split by amount or by percentage. Each part follows its own approval chain.' },
+{ id: 'i3', ref: 'CL-03', area: 'Approving', proposed: 'M', text: 'Managers approve or reject from the email, without logging in.', detail: 'From the spreadsheet: Approval actionable from notification email (no login). The email shows the amount, the category and the receipt thumbnail. Links expire after seven days.' },
+{ id: 'i4', ref: 'CL-04', area: 'Approving', proposed: 'S', text: 'Expenses over the policy limit are flagged before they reach the approver.', detail: 'From the spreadsheet: Policy engine: auto-flag out-of-policy claims pre-approval. Limits per category and per role. A flagged claim still reaches the approver, with the flag.' },
+{ id: 'i5', ref: 'CL-05', area: 'Paying', proposed: 'M', text: 'Approved expenses are paid with the next salary run.', detail: 'From the spreadsheet: Reimbursement via payroll integration, next cycle. Cut-off is the 20th of the month. Claims approved after the cut-off go into the following run.' },
+{ id: 'i6', ref: 'CL-06', area: 'Paying', proposed: 'C', text: 'Employees can request a cash advance before a trip.', detail: 'From the spreadsheet: Travel advance request workflow (pre-trip). Advance is reconciled against the trip claims. The spreadsheet does not say who repays an advance if the trip is cancelled.' }
 ];
 }
 
@@ -231,7 +228,7 @@ return [
 seed(blind) {
 return blind
 ? { i1: { kind: 'pick', value: 'M', text: '' }, i2: { kind: 'pick', value: 'M', text: 'My team bills two projects on almost every trip.' }, i3: { kind: 'pick', value: 'M', text: '' }, i4: { kind: 'pick', value: 'M', text: '' } }
-: { i1: { kind: 'agree', value: null, text: '' }, i2: { kind: 'diff', value: 'M', text: 'My team bills two projects on almost every trip.' }, i3: { kind: 'agree', value: null, text: '' }, i4: { kind: 'diff', value: 'M', text: 'I find out I was over the limit three weeks later.' } };
+: { i1: { kind: 'agree', value: 'M', text: '' }, i2: { kind: 'diff', value: 'M', text: 'My team bills two projects on almost every trip.' }, i3: { kind: 'agree', value: 'M', text: '' }, i4: { kind: 'diff', value: 'M', text: 'I find out I was over the limit three weeks later.' } };
 }
 
 renderVals() {
@@ -247,8 +244,7 @@ const hasText = (x) => ((x && x.text) || '').trim().length > 0;
 const complete = (x) => !!x && (x.kind === 'agree' || (x.kind === 'pick' && !!x.value) || (x.kind === 'diff' && !!x.value && hasText(x)) || (x.kind === 'disagree' && hasText(x)) || (x.kind === 'unclear' && hasText(x)));
 const setAns = (id, next) => { const answers = Object.assign({}, s.answers); answers[id] = next; this.setState({ answers: answers }); };
 const missingFor = (a) => {
-if (!a || !a.kind) return 'Not answered yet.';
-if (a.kind === 'diff' && !a.value) return 'Pick a priority.';
+if (!a || !a.kind) return 'Not rated yet';
 if (a.kind === 'diff' && !hasText(a)) return 'Say why.';
 if (a.kind === 'disagree' && !hasText(a)) return 'Say why.';
 if (a.kind === 'unclear' && !hasText(a)) return 'Write your question.';
@@ -266,29 +262,35 @@ const idx = Math.min(s.idx, inArea.length - 1);
 const view = (single ? [inArea[idx]] : inArea).map((it) => {
 const a = s.answers[it.id] || {};
 const sty = (active) => (active ? on : off);
-const v = { id: it.id, ref: it.ref, text: it.text, proposedLabel: LABEL[it.proposed], showProposed: !s.blind, blind: s.blind };
-const kinds = { ag: 'agree', df: 'diff', dg: 'disagree', un: 'unclear' };
-Object.keys(kinds).forEach((k) => {
-const active = a.kind === kinds[k]; const st = sty(active);
-v[k + 'Show'] = true; v[k + 'On'] = active; v[k + 'Bg'] = st.bg; v[k + 'Fg'] = st.fg; v[k + 'Bd'] = st.bd;
-v[k + 'Pick'] = () => setAns(it.id, active ? a : { kind: kinds[k], value: null, text: a.text || '' });
+const v = { id: it.id, ref: it.ref, text: it.text, detail: it.detail, proposedLabel: LABEL[it.proposed] };
+const pickValue = (val) => {
+let kind;
+if (val === 'W') kind = 'disagree'; else if (s.blind) kind = 'pick'; else kind = val === it.proposed ? 'agree' : 'diff';
+setAns(it.id, { kind: kind, value: val, text: a.text || '' });
+};
+[['p1', 'M', 'Must'], ['p2', 'S', 'Should'], ['p3', 'C', 'Could'], ['p4', 'W', 'Not needed']].forEach((d) => {
+const k = d[0], val = d[1]; const active = a.kind !== 'unclear' && a.value === val; const st = sty(active);
+const proposed = !s.blind && val === it.proposed;
+v[k + 'Label'] = d[2]; v[k + 'On'] = active; v[k + 'Bg'] = st.bg; v[k + 'Fg'] = st.fg; v[k + 'Bd'] = active ? st.bd : (proposed ? '#454A52' : '#C9C7C1');
+v[k + 'BdStyle'] = proposed && !active ? 'dashed' : 'solid'; v[k + 'Cap'] = proposed ? 'proposed' : '';
+v[k + 'Pick'] = () => pickValue(val);
 });
-const opts = ['M', 'S', 'C', 'W'].filter((x) => x !== it.proposed);
-['o1', 'o2', 'o3'].forEach((k, i) => {
-const val = opts[i]; const active = a.kind === 'diff' && a.value === val; const st = sty(active);
-v[k + 'Show'] = !s.blind; v[k + 'Label'] = SHORT[val]; v[k + 'On'] = active; v[k + 'Bg'] = st.bg; v[k + 'Fg'] = st.fg; v[k + 'Bd'] = st.bd;
-v[k + 'Pick'] = () => setAns(it.id, { kind: 'diff', value: val, text: a.text || '' });
-});
-['p1', 'p2', 'p3', 'p4'].forEach((k, i) => {
-const val = ['M', 'S', 'C', 'W'][i]; const active = a.kind === 'pick' && a.value === val; const st = sty(active);
-v[k + 'Show'] = s.blind; v[k + 'Label'] = SHORT[val]; v[k + 'On'] = active; v[k + 'Bg'] = st.bg; v[k + 'Fg'] = st.fg; v[k + 'Bd'] = st.bd;
-v[k + 'Pick'] = () => setAns(it.id, { kind: 'pick', value: val, text: a.text || '' });
-});
-v.isDiff = a.kind === 'diff'; v.isDisagree = a.kind === 'disagree'; v.isUnclear = a.kind === 'unclear';
+{ const active = a.kind === 'unclear'; const st = sty(active);
+v.unLabel = 'Unclear'; v.unOn = active; v.unBg = st.bg; v.unFg = st.fg; v.unBd = st.bd; v.unBdStyle = 'solid'; v.unCap = '';
+v.unPick = () => setAns(it.id, { kind: 'unclear', value: null, text: a.text || '' }); }
+const required = a.kind === 'diff' || a.kind === 'disagree' || a.kind === 'unclear';
+v.commentOpen = required || !!s.comments[it.id];
+v.commentLabel = a.kind === 'diff' ? 'Why ' + SHORT[a.value] + ' and not ' + SHORT[it.proposed] + '? The team reads every reason.' : (a.kind === 'disagree' ? 'Why is it not needed, or what should it say instead?' : (a.kind === 'unclear' ? 'What would you need to know to rate it?' : 'Comment, optional'));
+v.showCommentToggle = !required;
+v.commentToggleLabel = s.comments[it.id] ? 'Hide comment' : '+ comment';
+v.toggleComment = () => { const c = Object.assign({}, s.comments); c[it.id] = !c[it.id]; this.setState({ comments: c }); };
+v.detailsOpen = !!s.details[it.id];
+v.detailsLabel = s.details[it.id] ? 'Hide details' : 'Details';
+v.toggleDetails = () => { const d = Object.assign({}, s.details); d[it.id] = !d[it.id]; this.setState({ details: d }); };
 v.answerText = a.text || '';
 v.setText = (e) => setAns(it.id, Object.assign({}, a, { text: e.target.value }));
 const miss = missingFor(a);
-v.note = miss ? miss : (s.offline ? 'Not saved yet. Kept on this device.' : 'Saved');
+v.note = miss ? miss : (s.offline ? 'Not saved yet' : 'Saved');
 v.noteFg = miss ? (a.kind ? '#7A5210' : '#5B6069') : (s.offline ? '#7A5210' : '#22643F');
 return v;
 });
@@ -316,26 +318,46 @@ if (areaIdx > 0) { const prev = areas[areaIdx - 1].name; return this.setState({ 
 return this.setState({ screen: 'about' });
 };
 const nextLabel = single && idx < inArea.length - 1 ? 'Continue' : (areaIdx < areas.length - 1 ? 'Continue to ' + areas[areaIdx + 1].name : 'Continue to Wrap up');
-const chapterNote = single ? ('Item ' + (idx + 1) + ' of ' + areaCount + ' in ' + s.area + '. ' + (areaDone === areaCount ? 'All answered.' : (areaCount - areaDone) + ' still to answer here.')) : (areaDone === areaCount ? 'All ' + areaCount + ' answered in this chapter.' : (areaCount - areaDone) + ' of ' + areaCount + ' still to answer here. You can come back later.');
+const chapterNote = single ? ('Item ' + (idx + 1) + ' of ' + areaCount + ' in ' + s.area + '. ' + (areaDone === areaCount ? 'All rated.' : (areaCount - areaDone) + ' still to rate here.')) : (areaDone === areaCount ? 'All ' + areaCount + ' rated in this chapter.' : (areaCount - areaDone) + ' of ' + areaCount + ' still to rate here. You can come back later.');
 
-let agreed = 0, picked = 0, pushed = 0, disagreed = 0, unclear = 0;
-const rows = items.map((x) => {
+let agreed = 0, picked = 0, lower = 0, higher = 0, disagreed = 0, unclear = 0, unfinished = 0;
+const RANK = { M: 3, S: 2, C: 1, W: 0 };
+const buckets = { lower: [], higher: [], disagree: [], unclear: [], unfinished: [] };
+items.forEach((x) => {
 const ans = s.answers[x.id] || {};
-let status = 'Not answered', bg = '#FFFFFF', fg = '#5B6069', bd = '#C9C7C1', bdStyle = 'dashed';
-if (ans.kind === 'agree') { agreed += 1; status = 'Agreed: ' + LABEL[x.proposed]; bg = '#E6F4EC'; fg = '#22643F'; bd = '#E6F4EC'; bdStyle = 'solid'; }
-if (ans.kind === 'pick') { picked += 1; status = 'Rated ' + LABEL[ans.value]; bg = '#E6F4EC'; fg = '#22643F'; bd = '#E6F4EC'; bdStyle = 'solid'; }
-if (ans.kind === 'diff') { pushed += 1; status = 'Changed to ' + (LABEL[ans.value] || ''); bg = '#FBF1DC'; fg = '#7A5210'; bd = '#FBF1DC'; bdStyle = 'solid'; }
-if (ans.kind === 'disagree') { disagreed += 1; status = 'Disagreed'; bg = '#F0F0EE'; fg = '#454A52'; bd = '#F0F0EE'; bdStyle = 'solid'; }
-if (ans.kind === 'unclear') { unclear += 1; status = 'Unclear'; bg = '#EEE8FA'; fg = '#4C2F94'; bd = '#EEE8FA'; bdStyle = 'solid'; }
-if (ans.kind && !complete(ans)) { status = 'Unfinished: ' + missingFor(ans); bg = '#FBF1DC'; fg = '#7A5210'; bd = '#FBF1DC'; bdStyle = 'solid'; }
-return { text: x.text, status: status, bg: bg, fg: fg, bd: bd, bdStyle: bdStyle, detail: ans.text || '', hasDetail: hasText(ans), aria: 'Change the answer for ' + x.ref, edit: () => this.setState({ screen: 'area', area: x.area, idx: Math.max(0, items.filter((y) => y.area === x.area).findIndex((y) => y.id === x.id)) }) };
+if (!ans.kind) return;
+const row = { ref: x.ref, text: x.text, detail: ans.text || '', hasDetail: hasText(ans), aria: 'Change the answer for ' + x.ref, bd: '#F0F0EE', bdStyle: 'solid', edit: () => this.setState({ screen: 'area', area: x.area, idx: Math.max(0, items.filter((y) => y.area === x.area).findIndex((y) => y.id === x.id)) }) };
+if (!complete(ans)) { unfinished += 1; buckets.unfinished.push(Object.assign(row, { status: 'Unfinished: ' + missingFor(ans), bg: '#FBF1DC', fg: '#7A5210', bd: '#FBF1DC' })); return; }
+if (ans.kind === 'agree') { agreed += 1; return; }
+if (ans.kind === 'pick') { picked += 1; return; }
+if (ans.kind === 'diff') {
+const up = RANK[ans.value] > RANK[x.proposed];
+if (up) higher += 1; else lower += 1;
+buckets[up ? 'higher' : 'lower'].push(Object.assign(row, { status: LABEL[x.proposed] + ' to ' + LABEL[ans.value], bg: '#FBF1DC', fg: '#7A5210', bd: '#FBF1DC' })); return;
+}
+if (ans.kind === 'disagree') { disagreed += 1; buckets.disagree.push(Object.assign(row, { status: 'Not needed', bg: '#F0F0EE', fg: '#454A52', bd: '#F0F0EE' })); return; }
+if (ans.kind === 'unclear') { unclear += 1; buckets.unclear.push(Object.assign(row, { status: 'Unclear', bg: '#EEE8FA', fg: '#4C2F94', bd: '#EEE8FA' })); return; }
 });
+const sections = [
+{ title: 'Still to finish', count: unfinished, rows: buckets.unfinished },
+{ title: 'You suggested a higher priority', count: higher, rows: buckets.higher },
+{ title: 'You suggested a lower priority', count: lower, rows: buckets.lower },
+{ title: 'You said these are not needed', count: disagreed, rows: buckets.disagree },
+{ title: 'You asked a question', count: unclear, rows: buckets.unclear }
+].filter((x) => x.rows.length > 0).map((x) => Object.assign(x, { count: x.count + (x.count === 1 ? ' item' : ' items') }));
+const nothingToReview = sections.length === 0 && answered === items.length;
+const tally = (s.blind
+? [{ n: picked, label: 'rated', fg: '#22643F' }, { n: disagreed, label: 'not needed', fg: '#454A52' }, { n: unclear, label: 'unclear', fg: '#4C2F94' }]
+: [{ n: agreed, label: 'agreed', fg: '#22643F' }, { n: higher, label: 'higher priority', fg: '#7A5210' }, { n: lower, label: 'lower priority', fg: '#7A5210' }, { n: disagreed, label: 'not needed', fg: '#454A52' }, { n: unclear, label: 'unclear', fg: '#4C2F94' }]
+).map((t) => Object.assign(t, { n: String(t.n) }));
+const rows = [];
+const pushed = higher + lower;
 const hasMissing = s.missingText.trim().length > 0;
-const summaryLine = (s.blind ? picked + ' rated' : agreed + ' agreed, ' + pushed + ' changed') + ', ' + disagreed + ' disagreed, ' + unclear + ' unclear' + (hasMissing ? ', 1 item added' : '') + (answered < items.length ? ', ' + (items.length - answered) + ' not answered' : '');
+const summaryLine = (s.blind ? picked + ' rated' : agreed + ' agreed, ' + pushed + ' changed') + ', ' + disagreed + ' not needed, ' + unclear + ' unclear' + (hasMissing ? ', 1 item added' : '') + (answered < items.length ? ', ' + (items.length - answered) + ' not answered' : '');
 const confidence = [1, 2, 3, 4, 5].map((n) => { const active = s.confidence === n; const st = active ? on : off; return { n: String(n), aria: 'Confidence ' + n + ' of 5', active: active, bg: st.bg, fg: st.fg, bd: st.bd, pick: () => this.setState({ confidence: n }) }; });
 const submitMissing = [];
 if (!fieldsOk) submitMissing.push('your name and role');
-if (answered < items.length) submitMissing.push((items.length - answered) + ' unanswered item' + (items.length - answered === 1 ? '' : 's'));
+if (answered < items.length) submitMissing.push((items.length - answered) + ' unrated item' + (items.length - answered === 1 ? '' : 's'));
 if (s.confidence === 0) submitMissing.push('a confidence level');
 if (!s.signed) submitMissing.push('the confirmation tick');
 const submitDisabled = submitMissing.length > 0 || s.submitting;
@@ -347,7 +369,7 @@ const headerNote = screen === 'done' ? 'Submitted' : (screen === 'closed' ? 'Clo
 const firstName = personal ? 'Ioana' : s.name.trim().split(' ')[0];
 const links = ['open', 'returning', 'personal', 'closed', 'revoked'];
 const linkLabels = { open: 'public, first visit', returning: 'public, same device again', personal: 'personal', closed: 'closed', revoked: 'revoked' };
-const fresh = { screen: 'about', area: 'Submitting', idx: 0, name: '', role: '', answers: {}, missingText: '', closingText: '', confidence: 0, signed: false, submittedAt: '', submitting: false, offline: false, wasPersonal: false };
+const fresh = { details: {}, comments: {}, screen: 'about', area: 'Submitting', idx: 0, name: '', role: '', answers: {}, missingText: '', closingText: '', confidence: 0, signed: false, submittedAt: '', submitting: false, offline: false, wasPersonal: false };
 
 return {
 accent: accent,
@@ -362,8 +384,8 @@ layoutLabel: single ? 'one item per screen' : 'chapters', toggleLayout: () => th
 name: s.name, role: s.role, setName: (e) => this.setState({ name: e.target.value }), setRole: (e) => this.setState({ role: e.target.value }),
 startDisabled: !fieldsOk, startOpacity: fieldsOk ? 1 : 0.4, start: () => this.setState({ screen: 'area', area: 'Submitting', idx: 0 }),
 areaName: s.area, areaIntro: (areas[areaIdx] || areas[0]).intro, visible: view, next: next, back: back, nextLabel: nextLabel, chapterNote: chapterNote,
-summaryLine: summaryLine, rows: rows,
-hasGaps: answered < items.length || !fieldsOk, gapLine: !fieldsOk ? 'Your name and role are missing.' : (items.length - answered) + ' item' + (items.length - answered === 1 ? '' : 's') + ' still unanswered.', gapChapter: !fieldsOk ? 'About you' : (firstGapArea || 'Submitting'), gapGo: () => this.setState(!fieldsOk ? { screen: 'about' } : { screen: 'area', area: firstGapArea || 'Submitting' }),
+summaryLine: summaryLine, rows: rows, sections: sections, tally: tally, nothingToReview: nothingToReview,
+hasGaps: answered < items.length || !fieldsOk, gapLine: !fieldsOk ? 'Your name and role are missing.' : (items.length - answered) + ' item' + (items.length - answered === 1 ? '' : 's') + ' still unrated.', gapChapter: !fieldsOk ? 'About you' : (firstGapArea || 'Submitting'), gapGo: () => this.setState(!fieldsOk ? { screen: 'about' } : { screen: 'area', area: firstGapArea || 'Submitting' }),
 missingText: s.missingText, setMissing: (e) => this.setState({ missingText: e.target.value }),
 closingText: s.closingText, setClosing: (e) => this.setState({ closingText: e.target.value }),
 confidence: confidence, signed: s.signed, toggleSigned: (e) => this.setState({ signed: e.target.checked }),
@@ -387,8 +409,8 @@ this.setState(base);
 }
 }'''
 
-def page(title, root_style, header_pad, w, h):
-    s = screens.replace('padding: 12px 20px; border-bottom: 1px solid #E6E4DF">', f'padding: 12px {header_pad}; border-bottom: 1px solid #E6E4DF">', 1)
+def page(title, root_style, header_pad, w, h, cols=1, colw=640):
+    s = screens.replace('repeat(COLS, minmax(0, 1fr))', f'repeat({cols}, minmax(0, 1fr))').replace('repeat(TALLYCOLS, minmax(0, 1fr))', f'repeat({3 if cols == 1 else 5}, minmax(0, 1fr))').replace('padding: 12px 20px; border-bottom: 1px solid #E6E4DF">', f'padding: 12px {header_pad}; border-bottom: 1px solid #E6E4DF">', 1)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -407,7 +429,7 @@ button,input,select,textarea{{font:inherit;color:inherit}}
 button{{cursor:pointer}}button:disabled{{cursor:not-allowed}}
 .hov:hover:not(:disabled){{filter:brightness(0.94)}}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{{outline:2px solid #0E6B63;outline-offset:2px}}
-.col{{width:100%;max-width:640px;margin:0 auto;box-sizing:border-box}}
+.col{{width:100%;max-width:{colw}px;margin:0 auto;box-sizing:border-box}}
 </style>
 </helmet>
 <div style="{root_style}">
@@ -422,5 +444,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 """
 OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'Respondent.dc.html').write_text(page('Respondent journey, phone', 'width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '20px', 390, 844))
-(OUT / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '120px', 1440, 900))
+(OUT / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '120px', 1440, 900, 2, 1000))
 print('written to', OUT)
