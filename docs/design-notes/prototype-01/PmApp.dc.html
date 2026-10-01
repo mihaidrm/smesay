@@ -313,11 +313,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </sc-if>
 </div>
-<div style="display: flex; flex-direction: column; gap: 8px">
-<sc-for list="{{scale}}" as="sc" hint-placeholder-count="3">
-<div style="min-height: 44px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #C9C7C1; border-radius: 12px; font-weight: 500">{{sc.label}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069">Your rating</span>
+<sc-for list="{{scale}}" as="sc" hint-placeholder-count="5">
+<div style="min-height: 36px; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; border: 1px solid #C9C7C1; border-radius: 999px; font-size: 13px; font-weight: 500">{{sc.label}}</div>
 </sc-for>
 </div>
+<div style="font-size: 12px; color: #5B6069">A rating other than the proposed one opens a comment box and needs a reason. Details and + comment under each card.</div>
 </div>
 <a href="Respondent.dc.html" style="font-weight: 500">Open the respondent prototype</a>
 </div>
@@ -715,10 +716,10 @@ const active = s.layout === x[0];
 const st = active ? selOn : selOff;
 return { label: x[1], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ layout: x[0] }) };
 });
-let scaleLabels = ['Must have', 'Should have', 'Could have', "Won't have", 'Disagree', 'Unclear'];
-if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Agree', 'Change the priority', 'Disagree', 'Unclear'];
-if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Disagree', 'Unclear'];
-if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Disagree', 'Unclear'];
+let scaleLabels = ['Must', 'Should', 'Could', 'Not needed', 'Unclear'];
+if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Must', 'Should (proposed)', 'Could', 'Not needed', 'Unclear'];
+if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Unclear'];
+if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Unclear'];
 
 const linkStates = {
 draft: { status: 'Draft', pillBg: '#F0F0EE', pillFg: '#454A52', fg: '#5B6069', note: 'Not published yet. Nobody can open the link.', btn: 'Publish', btnBg: '#16181C', btnFg: '#FFFFFF', btnBd: '#16181C', next: 'published' },

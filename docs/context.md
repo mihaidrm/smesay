@@ -43,8 +43,8 @@ Next tasks for Claude, in order (decision 0013, design first):
 1. Tidy the canvas: done 2026-10-01.
 2. Landing page E: done 2026-10-01 (use-cases section, four answers, phone board, note 09 fixes).
 3. Respondent prototype: rebuilt around chapters and the rating row 2026-10-01 (decisions
-   0016, 0018, note 12). Mihai clicks through on a phone. Still to carry over: the answer
-   buttons shown in landing page E fragments and the PM app preview (decision 0017).
+   0016, 0018, note 12). Mihai clicks through on a phone. Page E fragments and the PM app preview show the same
+   rating row (decision 0017).
 4. PM prototype: projects, settings and members, sample watermark, item detail, export tab
    done 2026-10-01. Phone board still to do (decision 0015).
 5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
