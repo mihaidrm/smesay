@@ -60,6 +60,10 @@ Data and security
 - Every schema change has a migration. A test proves a user in workspace A cannot read workspace B.
 - Change a shared shape in INTERFACES.md first, then in the code.
 
+Every side
+- Every screen is designed for desktop (1440) and phone (390), desktop first, in the same
+  pass (decision 0015). The respondent side is the exception: phone first, desktop second.
+
 PM side
 - Every screen has empty, loading and error states. Every form validates on the server.
 - A component that is not in the design system gets a line in docs/design-notes/ when it is added.
