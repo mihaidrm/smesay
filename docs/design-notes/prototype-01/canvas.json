@@ -134,6 +134,14 @@
       "w": 1440,
       "x": 0,
       "y": 0
+    },
+    "GoldenSet.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Golden set for the AI, 1 October 2026 (click a spec)",
+      "w": 1440,
+      "x": 8260,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -192,6 +200,14 @@
       "w": 240,
       "x": 3700,
       "y": -300
+    },
+    "t6": {
+      "kind": "title1",
+      "maxW": 1440,
+      "text": "Golden set, evals/ (plan step 1.6)",
+      "w": 240,
+      "x": 8260,
+      "y": -300
     }
   },
   "order": [
@@ -212,7 +228,8 @@
     "Brand05.dc.html",
     "Brand06.dc.html",
     "LandingEPhone.dc.html",
-    "RespondentDesktop.dc.html"
+    "RespondentDesktop.dc.html",
+    "GoldenSet.dc.html"
   ],
   "pages": [],
   "title": "SMEsay prototype"

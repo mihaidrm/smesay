@@ -13,6 +13,9 @@ produce. Written 2026-10-01 (plan step 1.6). The runner (run.ts) and the output 
 - expected/NN.json: the exact expectation, one object per spec (format below).
 - golden-generator.py: the source of both; edit the data there and rerun it (Python 3.12 or
   later), never the generated files.
+- golden-board-generator.py: writes docs/design-notes/prototype-01/GoldenSet.dc.html, the canvas
+  board that shows each spec as received next to what Shape must produce. Rerun it after
+  golden-generator.py.
 
 ## The ten
 
