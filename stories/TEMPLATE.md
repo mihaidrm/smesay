@@ -1,6 +1,7 @@
 # <Epic>-<n> <Title>
 
 User: <who>
+Status: ready
 Outcome: <what they get, one sentence>
 
 ## Acceptance criteria

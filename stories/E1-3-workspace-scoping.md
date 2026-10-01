@@ -1,6 +1,7 @@
 # E1-3 Workspace scoping and the cross-workspace test
 
 User: Claude, writing every query after this; the reviewer, auditing against SECURITY.md
+Status: ready
 Outcome: no query can reach another workspace's rows, and a test proves it on every run.
 
 ## Acceptance criteria

@@ -1,6 +1,7 @@
 # E1-2 Schema v1 and migrations
 
 User: Claude, building every later epic on it; Mihai, reading docs/schema.md
+Status: ready
 Outcome: the object model in docs/schema.md exists as Postgres tables, created by migrations
 that run from an empty database, with every table scoped to a workspace.
 

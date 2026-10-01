@@ -22,7 +22,8 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - docs/schema.md     object model
 - docs/copy/         every user-facing text: landing, quickstart, emails, error messages
 - scripts/scan-copy.mjs  the WRITING.md scan, `npm run scan:copy`; the rules are in scripts/copy-rules.mjs
-- scripts/sync-status.mjs  writes status from docs/plan-steps.md into the Roadmap board and docs/context.md; checks retired terms and references
+- scripts/sync-status.mjs  writes status from docs/plan-steps.md and stories/ into the Roadmap and Stories boards and docs/context.md; checks retired terms and references
+- scripts/stories-board.mjs  the Stories board generator the sync script uses
 - scripts/githooks/     pre-commit hook; enable with `npm run hooks`
 - docs/setup.md      how to run the app and its checks; what the scaffold contains and why
 - src/               the Next.js app (app router under src/app, database client under src/db)
