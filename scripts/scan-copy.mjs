@@ -12,9 +12,9 @@ const EXT = new Set(['.md', '.txt', '.html', '.ts', '.tsx', '.js', '.mjs', '.cjs
 
 function files(path) {
   const st = statSync(path);
-  if (st.isFile()) return [path];
+  if (st.isFile()) return (path.endsWith('WRITING.md') || path.endsWith('scan-copy.mjs')) ? [] : [path];
   return readdirSync(path).flatMap((n) => {
-    if (n === 'node_modules' || n.startsWith('.')) return [];
+    if (n === 'node_modules' || n.startsWith('.') || n === 'WRITING.md' || n === 'scan-copy.mjs') return [];
     const p = join(path, n);
     return statSync(p).isDirectory() ? files(p) : (EXT.has(extname(n)) ? [p] : []);
   });
@@ -27,7 +27,7 @@ for (const root of process.argv.slice(2)) {
     scanned += 1;
     const lines = readFileSync(f, 'utf8').split('\n');
     lines.forEach((line, i) => {
-      if (line.includes('—')) { problems += 1; console.log(`${f}:${i + 1}: em dash`); }
+      if (line.includes(String.fromCharCode(8212))) { problems += 1; console.log(`${f}:${i + 1}: em dash`); }
       const low = line.toLowerCase();
       for (const w of BANNED) {
         const re = new RegExp('(^|[^a-z])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])');

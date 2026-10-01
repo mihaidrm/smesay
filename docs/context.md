@@ -41,20 +41,20 @@ Waiting on Mihai:
    (decision 0021, open item).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
-Next tasks for Claude, in order (decision 0013, design first):
-1. Tidy the canvas: done 2026-10-01.
-2. Landing page E: done 2026-10-01 (use-cases section, four answers, phone board, note 09 fixes).
-3. Respondent prototype: rebuilt around chapters and the rating row 2026-10-01 (decisions
-   0016, 0018, note 12). Mihai clicks through on a phone. Page E fragments and the PM app preview show the same
-   rating row (decision 0017).
-4. PM prototype: done 2026-10-01, desktop only (decision 0020), with the project context box
-   on Import and a preview panel on every builder step (decision 0021, note 13).
-5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
-6. All copy: drafted 2026-10-01 in docs/copy/ (landing, quickstart, four emails, error
-   messages), scan passes with scripts/scan-copy.mjs. Waits for Mihai's approval; the emails
-   and errors list the decisions they need in "Decide" lines.
-7. Ten golden-set specs in evals/.
-8. Then Phase 2: scaffold, styleguide page, E1 stories, open questions before E1.
+Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
+styleguide page, E1 stories, open questions before E1.
+
+<!-- sync:phases -->
+Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
+Phase 1, Design (now to about 17 October): Done 5 of 6 steps. Left: Golden set. 1 drafted, waits for Mihai
+- 1.1 Landing page E: done.
+- 1.2 Respondent prototype: done.
+- 1.3 PM prototype: done.
+- 1.4 Design system: done.
+- 1.5 Copy: drafted, waits for Mihai's approval.
+- 1.6 Golden set: open.
+- 1.7 Trademark check: Mihai, when ready.
+<!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
 decide scope.

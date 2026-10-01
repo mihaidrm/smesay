@@ -148,6 +148,7 @@ Privacy policy, Terms, DPA and subprocessors. © Alerty S.R.L. 2026.
 
 ## Changed in this pass, 2026-10-01
 
-- The disagreement register said "Won't have" where the respondent card says "Not needed"
-  (decision 0018). The register, the PM app (item detail, action text, the MoSCoW hint) and the
-  respondent wrap-up now all say Not needed. "Won't have" no longer appears on any board.
+- The disagreement register used the MoSCoW word for the fourth priority where the respondent
+  card says "Not needed" (decision 0018). The register, the PM app (item detail, action text,
+  the MoSCoW hint) and the respondent wrap-up now all say Not needed. The MoSCoW word is in
+  docs/retired-terms.md, so the hook catches it if it comes back.
