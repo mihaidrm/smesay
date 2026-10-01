@@ -52,8 +52,8 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 |---|---|---|---|---|
 | 2.1 | Repository: git init, first commit, push to GitHub. Done 2026-10-01 | Claude | Repository on GitHub | done |
 | 2.2 | Scaffold: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and an S3-compatible store (RustFS, decision 0025), CI. Built 2026-10-01 (docs/setup.md), CI green; docker compose up, lint, test and build passed on Mihai's PC the same day | Claude | lint, typecheck, tests and build pass; CI green | done |
-| 2.3 | Styleguide page: /styleguide in the app, from docs/design-system.md. Built 2026-10-01 (note 14) | Claude | Mihai approves | drafted |
-| 2.4 | E1 stories: written from the plan, open questions listed | Claude | Stories have acceptance criteria | open |
+| 2.3 | Styleguide page: /styleguide in the app, from docs/design-system.md. Built 2026-10-01 (note 14), Mihai: works | Claude | Mihai approves | done |
+| 2.4 | E1 stories: written from the plan, open questions listed. Written 2026-10-01 (stories/E1-1 to E1-5); two questions wait for Mihai | Claude | Stories have acceptance criteria | drafted |
 | 2.5 | PC setup: Node 26 and Docker running, docker compose up, lint, test, build. Done 2026-10-01; the E1 questions move to 2.4 | Mihai | docs/setup.md checks pass on the PC | done |
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
