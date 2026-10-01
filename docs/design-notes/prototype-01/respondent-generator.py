@@ -17,9 +17,9 @@ def pill(pre, label=None):
 def textarea(id_, label):
     return f'<label for="{id_}" style="font-size: 14px; font-weight: 500">{label}</label>\n<textarea id="{id_}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="{TA}"></textarea>'
 def scroll(inner, gap=20):
-    return f'<div style="flex-grow: 1; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
+    return f'<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
 def footer(inner):
-    return f'<div style="padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
+    return f'<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
 def notice(title, body, extra=''):
     return f'''<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
 <div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
@@ -58,7 +58,7 @@ card = f'''<fieldset style="margin: 0; padding: 16px; border: 1px solid #E6E4DF;
 </fieldset>'''
 
 screens = f'''
-<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #E6E4DF">
+<div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #E6E4DF">
 <div style="display: flex; align-items: center; gap: 10px">
 <div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div>
 <div style="font-size: 15px; font-weight: 500">Marlow Group</div>
@@ -67,16 +67,16 @@ screens = f'''
 </div>
 
 <sc-if value="{{{{showNav}}}}" hint-placeholder-val="{{{{true}}}}">
-<div style="border-bottom: 1px solid #E6E4DF; overflow-x: auto"><div class="col" style="display: flex; gap: 6px; padding: 10px 20px; min-width: max-content">
+<div style="flex-shrink: 0; border-bottom: 1px solid #E6E4DF; overflow-x: auto"><div class="col" style="display: flex; gap: 6px; padding: 10px 20px; min-width: max-content">
 <sc-for list="{{{{chapters}}}}" as="ch" hint-placeholder-count="5">
 <button type="button" class="hov" onClick="{{{{ch.go}}}}" aria-current="{{{{ch.current}}}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{{{ch.bd}}}}; border-radius: 999px; background: {{{{ch.bg}}}}; color: {{{{ch.fg}}}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap"><span>{{{{ch.label}}}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{{{ch.meta}}}}</span></button>
 </sc-for>
 </div></div>
-<div class="col" style="padding: 0 20px"><div role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="{{{{answeredCount}}}}" aria-label="Items answered" style="height: 4px; background: #ECEAE5"><div style="height: 4px; background: {{{{accent}}}}; width: {{{{progressWidth}}}}; transition: width 250ms ease-out"></div></div></div>
+<div class="col" style="flex-shrink: 0; padding: 0 20px"><div role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="{{{{answeredCount}}}}" aria-label="Items answered" style="height: 4px; background: #ECEAE5"><div style="height: 4px; background: {{{{accent}}}}; width: {{{{progressWidth}}}}; transition: width 250ms ease-out"></div></div></div>
 </sc-if>
 
 <sc-if value="{{{{isOffline}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="padding: 10px 20px; background: #FBF1DC; color: #7A5210; font-size: 14px"><div class="col">Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.</div></div>
+<div style="flex-shrink: 0; padding: 10px 20px; background: #FBF1DC; color: #7A5210; font-size: 14px"><div class="col">Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.</div></div>
 </sc-if>
 
 <sc-if value="{{{{isAbout}}}}" hint-placeholder-val="{{{{true}}}}">
@@ -111,7 +111,7 @@ screens = f'''
 </sc-if>
 
 <sc-if value="{{{{isArea}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="flex-grow: 1; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 12px">
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 12px">
 <div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{{{areaName}}}}</h1><div style="font-size: 14px; color: #5B6069">{{{{areaIntro}}}}</div></div>
 <sc-for list="{{{{visible}}}}" as="v" hint-placeholder-count="2">
 {card}
@@ -197,7 +197,7 @@ screens = f'''
 {notice('Link inactive', 'The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.', '<div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div>')}
 </sc-if>
 
-<div style="border-top: 1px dashed #C9C7C1; background: #F6F6F4; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; font-size: 12px; color: #5B6069">
+<div style="flex-shrink: 0; border-top: 1px dashed #C9C7C1; background: #F6F6F4; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; font-size: 12px; color: #5B6069">
 <span>Prototype:</span>
 <button type="button" onClick="{{{{toggleLayout}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Layout: {{{{layoutLabel}}}}</button>
 <button type="button" onClick="{{{{toggleBlind}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Proposed value: {{{{blindLabel}}}}</button>
