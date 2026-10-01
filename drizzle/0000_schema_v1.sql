@@ -14,6 +14,7 @@ CREATE TABLE "ai_run" (
 --> statement-breakpoint
 CREATE TABLE "answer" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"workspace_id" uuid NOT NULL,
 	"response_id" uuid NOT NULL,
 	"item_id" uuid NOT NULL,
 	"kind" text NOT NULL,
@@ -53,6 +54,8 @@ CREATE TABLE "instrument" (
 	"respondent_fields" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"closing" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "instrument_id_workspace_uq" UNIQUE("id","workspace_id"),
+	CONSTRAINT "instrument_id_item_set_uq" UNIQUE("id","item_set_id"),
 	CONSTRAINT "instrument_method_check" CHECK ("method" in ('moscow', 'fit', 'kcd')),
 	CONSTRAINT "instrument_layout_check" CHECK ("layout" in ('chapters', 'item', 'page'))
 );
@@ -73,8 +76,10 @@ CREATE TABLE "invite" (
 	"reminders_sent" integer DEFAULT 0 NOT NULL,
 	"last_reminder_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "invite_id_workspace_uq" UNIQUE("id","workspace_id"),
 	CONSTRAINT "invite_kind_check" CHECK ("kind" in ('public', 'personal')),
-	CONSTRAINT "invite_personal_email_check" CHECK ("kind" = 'public' or "email" is not null)
+	CONSTRAINT "invite_personal_email_check" CHECK ("kind" = 'public' or "email" is not null),
+	CONSTRAINT "invite_token_length_check" CHECK (length("token") >= 32)
 );
 --> statement-breakpoint
 CREATE TABLE "item" (
@@ -91,6 +96,7 @@ CREATE TABLE "item" (
 	"proposed_value" text,
 	"custom" jsonb,
 	"flags" jsonb,
+	CONSTRAINT "item_id_workspace_uq" UNIQUE("id","workspace_id"),
 	CONSTRAINT "item_original_text_check" CHECK (length(btrim("original_text")) > 0),
 	CONSTRAINT "item_reader_status_check" CHECK ("reader_status" is null or "reader_status" in ('suggested', 'accepted', 'rejected'))
 );
@@ -104,12 +110,14 @@ CREATE TABLE "item_set" (
 	"source_filename" text,
 	"import_report" jsonb,
 	"imported_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "item_set_id_workspace_uq" UNIQUE("id","workspace_id"),
 	CONSTRAINT "item_set_source_check" CHECK ("source" in ('xlsx', 'csv', 'pasted')),
 	CONSTRAINT "item_set_version_check" CHECK ("version" >= 1)
 );
 --> statement-breakpoint
 CREATE TABLE "missing_item" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"workspace_id" uuid NOT NULL,
 	"response_id" uuid NOT NULL,
 	"text" text NOT NULL,
 	"suggested_area" text,
@@ -126,7 +134,8 @@ CREATE TABLE "project" (
 	"is_sample" boolean DEFAULT false NOT NULL,
 	"created_by" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"archived_at" timestamp with time zone
+	"archived_at" timestamp with time zone,
+	CONSTRAINT "project_id_workspace_uq" UNIQUE("id","workspace_id")
 );
 --> statement-breakpoint
 CREATE TABLE "response" (
@@ -142,7 +151,9 @@ CREATE TABLE "response" (
 	"submitted_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "response_confidence_check" CHECK ("confidence" is null or ("confidence" between 1 and 5))
+	CONSTRAINT "response_id_workspace_uq" UNIQUE("id","workspace_id"),
+	CONSTRAINT "response_confidence_check" CHECK ("confidence" is null or ("confidence" between 1 and 5)),
+	CONSTRAINT "response_device_token_length_check" CHECK (length("device_token") >= 32)
 );
 --> statement-breakpoint
 CREATE TABLE "workspace" (
@@ -214,32 +225,35 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 ALTER TABLE "ai_run" ADD CONSTRAINT "ai_run_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ai_run" ADD CONSTRAINT "ai_run_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "answer" ADD CONSTRAINT "answer_response_id_response_id_fk" FOREIGN KEY ("response_id") REFERENCES "public"."response"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "answer" ADD CONSTRAINT "answer_item_id_item_id_fk" FOREIGN KEY ("item_id") REFERENCES "public"."item"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ai_run" ADD CONSTRAINT "ai_run_project_fk" FOREIGN KEY ("project_id","workspace_id") REFERENCES "public"."project"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "answer" ADD CONSTRAINT "answer_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "answer" ADD CONSTRAINT "answer_response_fk" FOREIGN KEY ("response_id","workspace_id") REFERENCES "public"."response"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "answer" ADD CONSTRAINT "answer_item_fk" FOREIGN KEY ("item_id","workspace_id") REFERENCES "public"."item"("id","workspace_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "insight" ADD CONSTRAINT "insight_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "insight" ADD CONSTRAINT "insight_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "insight" ADD CONSTRAINT "insight_project_fk" FOREIGN KEY ("project_id","workspace_id") REFERENCES "public"."project"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "instrument" ADD CONSTRAINT "instrument_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "instrument" ADD CONSTRAINT "instrument_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "instrument" ADD CONSTRAINT "instrument_item_set_id_item_set_id_fk" FOREIGN KEY ("item_set_id") REFERENCES "public"."item_set"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "instrument" ADD CONSTRAINT "instrument_project_fk" FOREIGN KEY ("project_id","workspace_id") REFERENCES "public"."project"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "instrument" ADD CONSTRAINT "instrument_item_set_fk" FOREIGN KEY ("item_set_id","workspace_id") REFERENCES "public"."item_set"("id","workspace_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "invite" ADD CONSTRAINT "invite_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "invite" ADD CONSTRAINT "invite_instrument_id_instrument_id_fk" FOREIGN KEY ("instrument_id") REFERENCES "public"."instrument"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "invite" ADD CONSTRAINT "invite_instrument_fk" FOREIGN KEY ("instrument_id","workspace_id") REFERENCES "public"."instrument"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "item" ADD CONSTRAINT "item_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "item" ADD CONSTRAINT "item_item_set_id_item_set_id_fk" FOREIGN KEY ("item_set_id") REFERENCES "public"."item_set"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "item" ADD CONSTRAINT "item_item_set_fk" FOREIGN KEY ("item_set_id","workspace_id") REFERENCES "public"."item_set"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "item_set" ADD CONSTRAINT "item_set_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "item_set" ADD CONSTRAINT "item_set_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "missing_item" ADD CONSTRAINT "missing_item_response_id_response_id_fk" FOREIGN KEY ("response_id") REFERENCES "public"."response"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "item_set" ADD CONSTRAINT "item_set_project_fk" FOREIGN KEY ("project_id","workspace_id") REFERENCES "public"."project"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "missing_item" ADD CONSTRAINT "missing_item_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "missing_item" ADD CONSTRAINT "missing_item_response_fk" FOREIGN KEY ("response_id","workspace_id") REFERENCES "public"."response"("id","workspace_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project" ADD CONSTRAINT "project_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project" ADD CONSTRAINT "project_created_by_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "response" ADD CONSTRAINT "response_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "response" ADD CONSTRAINT "response_instrument_id_instrument_id_fk" FOREIGN KEY ("instrument_id") REFERENCES "public"."instrument"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "response" ADD CONSTRAINT "response_item_set_id_item_set_id_fk" FOREIGN KEY ("item_set_id") REFERENCES "public"."item_set"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "response" ADD CONSTRAINT "response_invite_id_invite_id_fk" FOREIGN KEY ("invite_id") REFERENCES "public"."invite"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "response" ADD CONSTRAINT "response_instrument_fk" FOREIGN KEY ("instrument_id","workspace_id") REFERENCES "public"."instrument"("id","workspace_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "response" ADD CONSTRAINT "response_instrument_set_fk" FOREIGN KEY ("instrument_id","item_set_id") REFERENCES "public"."instrument"("id","item_set_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "response" ADD CONSTRAINT "response_invite_fk" FOREIGN KEY ("invite_id","workspace_id") REFERENCES "public"."invite"("id","workspace_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "workspace_member" ADD CONSTRAINT "workspace_member_workspace_id_workspace_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "workspace_member" ADD CONSTRAINT "workspace_member_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "ai_run_workspace_idx" ON "ai_run" USING btree ("workspace_id");--> statement-breakpoint
+CREATE INDEX "answer_workspace_idx" ON "answer" USING btree ("workspace_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "answer_response_item_idx" ON "answer" USING btree ("response_id","item_id");--> statement-breakpoint
 CREATE INDEX "answer_item_idx" ON "answer" USING btree ("item_id");--> statement-breakpoint
 CREATE INDEX "insight_workspace_idx" ON "insight" USING btree ("workspace_id");--> statement-breakpoint
@@ -253,12 +267,14 @@ CREATE INDEX "item_workspace_idx" ON "item" USING btree ("workspace_id");--> sta
 CREATE INDEX "item_set_idx" ON "item" USING btree ("item_set_id");--> statement-breakpoint
 CREATE INDEX "item_set_workspace_idx" ON "item_set" USING btree ("workspace_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "item_set_project_version_idx" ON "item_set" USING btree ("project_id","version");--> statement-breakpoint
+CREATE INDEX "missing_item_workspace_idx" ON "missing_item" USING btree ("workspace_id");--> statement-breakpoint
 CREATE INDEX "missing_item_response_idx" ON "missing_item" USING btree ("response_id");--> statement-breakpoint
 CREATE INDEX "project_workspace_idx" ON "project" USING btree ("workspace_id");--> statement-breakpoint
 CREATE INDEX "response_workspace_idx" ON "response" USING btree ("workspace_id");--> statement-breakpoint
 CREATE INDEX "response_instrument_submitted_idx" ON "response" USING btree ("instrument_id","submitted_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "response_device_token_idx" ON "response" USING btree ("device_token");--> statement-breakpoint
 CREATE UNIQUE INDEX "workspace_slug_idx" ON "workspace" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX "workspace_member_user_idx" ON "workspace_member" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");

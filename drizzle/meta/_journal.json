@@ -5,8 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1790865781095,
-      "tag": "0000_clear_squadron_supreme",
+      "when": 1790866535719,
+      "tag": "0000_schema_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790866537013,
+      "tag": "0001_item_text_and_version_immutable",
       "breakpoints": true
     }
   ]

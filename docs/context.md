@@ -25,6 +25,9 @@ Done so far:
   mark B. Example: Marlow Group replacing its expense tool, confirmed 2026-10-01.
 - Git repository on GitHub: mihaidrm/smesay, personal account (decision 0006). First commit
   2026-10-01.
+- Schema v1 (stories/E1-2): 12 application tables plus 4 better-auth tables, two migrations in
+  drizzle/, docs/schema.md generated from them by scripts/schema-doc.mjs (the pre-commit hook
+  fails when it is stale). The database tests run against `smesay_test`, never the dev database.
 
 Machine check on 2026-10-01 (Mihai's Windows PC, decision 0005): Node v26.10.0, Docker 29.8.1
 running; docker compose up, lint, test and build pass there (step 2.5). The Claude Code cloud

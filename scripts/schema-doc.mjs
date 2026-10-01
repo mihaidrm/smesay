@@ -32,34 +32,47 @@ export function render() {
   const snapFile = readdirSync(dir).filter((f) => f.endsWith('_snapshot.json')).sort().pop();
   const snap = JSON.parse(readFileSync(join(dir, snapFile), 'utf8'));
   const migrations = readdirSync(join(ROOT, 'drizzle')).filter((f) => f.endsWith('.sql')).sort();
+  const journal = JSON.parse(readFileSync(join(dir, '_journal.json'), 'utf8'));
+  const last = journal.entries[journal.entries.length - 1];
+  const date = new Date(last.when).toISOString().slice(0, 10);
   const tables = Object.values(snap.tables);
   const byName = Object.fromEntries(tables.map((t) => [t.name, t]));
   const names = [...ORDER.filter((n) => byName[n]), ...tables.map((t) => t.name).filter((n) => !ORDER.includes(n))];
   const problems = tables.map((t) => t.name).filter((n) => !PURPOSE[n]).map((n) => `docs/schema.md: table ${n} has no purpose line in scripts/schema-doc.mjs`);
   const lines = [];
-  lines.push('# Schema v1 (generated)', '',
-    `Generated from ${migrations.length} migration${migrations.length === 1 ? '' : 's'} in drizzle/ (latest snapshot ${snapFile}) by`,
+  lines.push('# Schema v1 (generated)', '', `v1, ${date} (the date of the latest migration, ${last.tag}).`, '',
+    `Generated from the snapshot of the ${migrations.length} migration${migrations.length === 1 ? '' : 's'} in drizzle/ (${snapFile}) by`,
     '`node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design',
     'is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;',
-    'fk = foreign key, pk = primary key.', '',
+    'fk = foreign key, pk = primary key. Triggers live in the custom migration',
+    '(drizzle/0001_item_text_and_version_immutable.sql), not in the snapshot.', '',
     '## Rules', '',
-    '- Every table carries workspace_id or is reachable only through a table that does (answer and',
-    '  missing_item through response); the better-auth tables are the exception, a user exists before',
-    '  any workspace. src/db/schema.test.ts checks it on every run.',
-    '- Item text is never overwritten: original_text is kept beside reader_text and cannot be blanked.',
-    '- A response references the set version it was given (response.item_set_id), and a set version',
-    '  with responses cannot be deleted.',
-    '- Enum columns are text with a check constraint, so adding a value is a plain migration.', '');
+    '- Every application table carries workspace_id with a foreign key to workspace. Child rows reference',
+    '  their parent on (parent_id, workspace_id), so a row cannot point at another workspace\'s parent.',
+    '  The better-auth tables (user, session, account, verification) are the exception: a user exists',
+    '  before any workspace; workspace_member is the bridge. src/db/schema.test.ts checks it on every run.',
+    '- Item text is never overwritten: original_text is kept beside reader_text, cannot be blank, and a',
+    '  trigger refuses any update that changes it. item_set.version is never renumbered (trigger).',
+    '- A response is pinned to the set version its instrument was built from: (instrument_id,',
+    '  item_set_id) references instrument. Instruments, invites, set versions and items with responses',
+    '  or answers under them cannot be deleted (on delete restrict). Deleting a workspace deletes',
+    '  everything in it (cascade); deleting a project deletes its sets, items, instruments and runs,',
+    '  and is refused while responses exist.',
+    '- Enum columns are text with a check constraint, so adding a value is a plain migration.',
+    '- Tokens (invite.token, response.device_token) are at least 32 characters; crypto.randomBytes(16)',
+    '  as hex gives exactly 32.', '');
   for (const n of names) {
     const t = byName[n];
     lines.push(`## ${n}`, '', PURPOSE[n] ? PURPOSE[n] + '.' : '', '', '| Column | Type | Notes |', '|---|---|---|');
     const fks = Object.values(t.foreignKeys || {});
-    const uniques = new Set(Object.values(t.indexes || {}).filter((i) => i.isUnique).flatMap((i) => i.columns.map((c) => c.expression)));
+    const uniques = new Set(Object.values(t.indexes || {}).filter((i) => i.isUnique && i.columns.length === 1).map((i) => i.columns[0].expression));
     for (const c of Object.values(t.columns)) {
       const notes = [];
       if (c.primaryKey) notes.push('pk');
-      const fk = fks.find((f) => f.columnsFrom.includes(c.name));
-      if (fk) notes.push(`fk ${fk.tableTo}.${fk.columnsTo[0]}${fk.onDelete && fk.onDelete !== 'no action' ? ', on delete ' + fk.onDelete : ''}`);
+      for (const fk of fks.filter((f) => f.columnsFrom[0] === c.name)) {
+        const rest = fk.columnsFrom.slice(1);
+        notes.push(`fk ${fk.tableTo}.${fk.columnsTo[0]}${rest.length ? ' with ' + rest.join(', ') : ''}${fk.onDelete && fk.onDelete !== 'no action' ? ', on delete ' + fk.onDelete : ''}`);
+      }
       if (c.notNull && !c.primaryKey) notes.push('not null');
       if (c.default !== undefined) notes.push('default ' + String(c.default).replace(/'/g, '').replace(/::\w+(\[\])?/g, ''));
       if (uniques.has(c.name) || c.isUnique) notes.push('unique');
@@ -67,6 +80,10 @@ export function render() {
     }
     const pk = t.compositePrimaryKeys ? Object.values(t.compositePrimaryKeys) : [];
     for (const p of pk) lines.push('', `Primary key: (${p.columns.join(', ')}).`);
+    const uqs = t.uniqueConstraints ? Object.values(t.uniqueConstraints) : [];
+    if (uqs.length) lines.push('', 'Unique: ' + uqs.map((u) => `${u.name} on ${u.columns.join(', ')}`).join('; ') + '.');
+    const composite = fks.filter((f) => f.columnsFrom.length > 1);
+    if (composite.length) lines.push('', 'Foreign keys: ' + composite.map((f) => `${f.name} (${f.columnsFrom.join(', ')}) references ${f.tableTo} (${f.columnsTo.join(', ')})${f.onDelete && f.onDelete !== 'no action' ? ' on delete ' + f.onDelete : ''}`).join('; ') + '.');
     const checks = Object.values(t.checkConstraints || {});
     const idx = Object.values(t.indexes || {});
     const extra = [];
