@@ -50,9 +50,9 @@ Status colours, fixed across the product, each shown with its word, never colour
 | Pushed back | #B7791F | #FBF1DC | #7A5210 | 6.15 |
 | Unclear | #7C3AED | #EEE8FA | #4C2F94 | 8.20 |
 | Missing | #2B6CB0 | #E3EEF9 | #1F4F7A | 7.27 |
-| Not needed | #718096 | #F0F0EE | #454A52 | 7.82 |
+| Disagree (was not needed, decision 0014) | #718096 | #F0F0EE | #454A52 | 7.82 |
 
-Solid pushed back (3.64:1) and solid not needed (4.02:1) are never used as text on white.
+Solid pushed back (3.64:1) and solid disagree (4.02:1) are never used as text on white.
 Unclear changed from #6B46C1 to #7C3AED on 2026-10-01 so unclear and missing pass the
 colour-vision check (worst adjacent pair 17.3, target 15; note 09).
 
