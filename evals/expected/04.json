@@ -1,0 +1,218 @@
+{
+  "id": "04",
+  "domain": "Ski resort lift ticketing",
+  "source": "specs/04-ski-ticketing.md",
+  "context": {
+    "goal": "Replace the lift ticket system before the December season: online sales, gate validation and season passes for a resort with 14 lifts.",
+    "audience": "Ticket office staff, lift operators, the finance lead and the ski school, who will answer the list.",
+    "glossary": [
+      "SkiPass+",
+      "Valley Card",
+      "Gate 7",
+      "RFID",
+      "ski school"
+    ]
+  },
+  "item_count": 15,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Sales",
+      "aliases": [
+        "Tickets",
+        "Selling"
+      ],
+      "items": [
+        "G04-01",
+        "G04-02",
+        "G04-03",
+        "G04-04",
+        "G04-05"
+      ]
+    },
+    {
+      "name": "Access",
+      "aliases": [
+        "Gates",
+        "Validation"
+      ],
+      "items": [
+        "G04-06",
+        "G04-07",
+        "G04-08",
+        "G04-09"
+      ]
+    },
+    {
+      "name": "Passes and renewals",
+      "aliases": [
+        "Season passes"
+      ],
+      "items": [
+        "G04-10",
+        "G04-11",
+        "G04-12"
+      ]
+    },
+    {
+      "name": "Reporting",
+      "aliases": [
+        "Finance and reporting"
+      ],
+      "items": [
+        "G04-13",
+        "G04-14",
+        "G04-15"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G04-01",
+      "meaning": "Sell day, multi-day and season tickets online and at the 3 ticket offices.",
+      "must_keep": [
+        "3",
+        "online"
+      ],
+      "area": "Sales"
+    },
+    {
+      "ref": "G04-02",
+      "meaning": "SkiPass+ includes 5 friend days redeemable at the gate without visiting the office.",
+      "must_keep": [
+        "SkiPass+",
+        "5",
+        "gate"
+      ],
+      "area": "Sales"
+    },
+    {
+      "ref": "G04-03",
+      "meaning": "Valley Card holders get the resident price automatically when the card is scanned.",
+      "must_keep": [
+        "Valley Card",
+        "resident"
+      ],
+      "area": "Sales"
+    },
+    {
+      "ref": "G04-04",
+      "meaning": "When more than 50 percent of lifts close for weather, the day is credited automatically.",
+      "must_keep": [
+        "50",
+        "credit"
+      ],
+      "area": "Sales"
+    },
+    {
+      "ref": "G04-05",
+      "meaning": "Group bookings of 10 or more get one invoice and individual tickets.",
+      "must_keep": [
+        "10",
+        "one invoice"
+      ],
+      "area": "Sales"
+    },
+    {
+      "ref": "G04-06",
+      "meaning": "RFID gates on all 14 lifts read the card at 1 m without taking it out.",
+      "must_keep": [
+        "RFID",
+        "14",
+        "1 m"
+      ],
+      "area": "Access"
+    },
+    {
+      "ref": "G04-07",
+      "meaning": "Gate 7 is free for ski school children under 8 accompanied by an instructor badge.",
+      "must_keep": [
+        "Gate 7",
+        "8",
+        "instructor"
+      ],
+      "area": "Access"
+    },
+    {
+      "ref": "G04-08",
+      "meaning": "A ticket used at two gates more than 10 km apart within 5 minutes is blocked.",
+      "must_keep": [
+        "10 km",
+        "5 minutes"
+      ],
+      "area": "Access"
+    },
+    {
+      "ref": "G04-09",
+      "meaning": "Gates keep validating from a local list for 4 hours when the network drops.",
+      "must_keep": [
+        "4 hours",
+        "local"
+      ],
+      "area": "Access"
+    },
+    {
+      "ref": "G04-10",
+      "meaning": "The season pass photo is taken at the office or uploaded and checked by staff before activation.",
+      "must_keep": [
+        "photo",
+        "before activation"
+      ],
+      "area": "Passes and renewals"
+    },
+    {
+      "ref": "G04-11",
+      "meaning": "SkiPass+ renews for next season at a discount until 30 September.",
+      "must_keep": [
+        "SkiPass+",
+        "30 September"
+      ],
+      "area": "Passes and renewals"
+    },
+    {
+      "ref": "G04-12",
+      "meaning": "A lost card is blocked and replaced for 20 EUR with the history transferred.",
+      "must_keep": [
+        "20 EUR",
+        "history"
+      ],
+      "area": "Passes and renewals"
+    },
+    {
+      "ref": "G04-13",
+      "meaning": "Live count of people on the mountain by lift.",
+      "must_keep": [
+        "live",
+        "by lift"
+      ],
+      "area": "Reporting"
+    },
+    {
+      "ref": "G04-14",
+      "meaning": "Sales by channel by day, exported to the accounting package (Saga).",
+      "must_keep": [
+        "Saga",
+        "by channel"
+      ],
+      "area": "Reporting"
+    },
+    {
+      "ref": "G04-15",
+      "meaning": "Photo and name are deleted 2 years after the pass expires.",
+      "must_keep": [
+        "2 years",
+        "deleted"
+      ],
+      "area": "Reporting",
+      "ambiguous": true
+    }
+  ],
+  "must_not_invent": [
+    "a redesign of the website as a requirement (the source says the design is done elsewhere)",
+    "a mobile app",
+    "parking tickets",
+    "equipment rental",
+    "a loyalty programme beyond SkiPass+"
+  ],
+  "notes": "Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; \"Premium season pass\" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps \"ski school\". Without the context a model may rename the areas to \"Online sales\" or \"Gates\"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; both are accepted."
+}

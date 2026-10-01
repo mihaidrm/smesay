@@ -1,0 +1,178 @@
+{
+  "id": "07",
+  "domain": "University course registration",
+  "source": "specs/07-course-registration.md",
+  "context": null,
+  "item_count": 13,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Registration",
+      "aliases": [
+        "Registering",
+        "Enrolment"
+      ],
+      "items": [
+        "G07-01",
+        "G07-02",
+        "G07-03",
+        "G07-04",
+        "G07-05",
+        "G07-08",
+        "G07-09"
+      ]
+    },
+    {
+      "name": "People and roles",
+      "aliases": [
+        "Advisors",
+        "Students"
+      ],
+      "items": [
+        "G07-06",
+        "G07-07"
+      ]
+    },
+    {
+      "name": "Data and reporting",
+      "aliases": [
+        "Exports",
+        "Records"
+      ],
+      "items": [
+        "G07-10",
+        "G07-11",
+        "G07-12",
+        "G07-13"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G07-01",
+      "meaning": "Students register in a 48-hour window per year of study, year 4 first.",
+      "must_keep": [
+        "48",
+        "year 4"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-02",
+      "meaning": "Prerequisites are checked at registration and the missing ones are listed.",
+      "must_keep": [
+        "prerequisite",
+        "missing"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-03",
+      "meaning": "Courses have a capacity; the waiting list promotes automatically by timestamp when a seat opens.",
+      "must_keep": [
+        "waiting list",
+        "timestamp"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-04",
+      "meaning": "A timetable clash warns but registration is still allowed with the dean's approval.",
+      "must_keep": [
+        "clash",
+        "dean"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-05",
+      "meaning": "A student can drop a course until week 3 without a transcript mark.",
+      "must_keep": [
+        "week 3",
+        "transcript"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-06",
+      "meaning": "Advisors see their students' registrations and can hold one pending a meeting.",
+      "must_keep": [
+        "advisor",
+        "hold"
+      ],
+      "area": "People and roles"
+    },
+    {
+      "ref": "G07-07",
+      "meaning": "Erasmus students use the same system with a provisional student id.",
+      "must_keep": [
+        "Erasmus",
+        "provisional"
+      ],
+      "area": "People and roles"
+    },
+    {
+      "ref": "G07-08",
+      "meaning": "A student with unpaid fees from last semester cannot register.",
+      "must_keep": [
+        "unpaid",
+        "cannot register"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-09",
+      "meaning": "Registration confirmation PDF with the courses and the timetable.",
+      "must_keep": [
+        "PDF",
+        "timetable"
+      ],
+      "area": "Registration"
+    },
+    {
+      "ref": "G07-10",
+      "meaning": "Nightly xlsx export of enrolment per course to the department secretaries.",
+      "must_keep": [
+        "xlsx",
+        "nightly"
+      ],
+      "area": "Data and reporting"
+    },
+    {
+      "ref": "G07-11",
+      "meaning": "Audit log of every registration change, who and when, kept 5 years.",
+      "must_keep": [
+        "audit",
+        "5 years"
+      ],
+      "area": "Data and reporting"
+    },
+    {
+      "ref": "G07-12",
+      "meaning": "Course description page with ECTS, lecturer, language and assessment method.",
+      "must_keep": [
+        "ECTS",
+        "assessment"
+      ],
+      "area": "Data and reporting"
+    },
+    {
+      "ref": "G07-13",
+      "meaning": "The system holds 3,000 concurrent registrations in the first hour of the window.",
+      "must_keep": [
+        "3,000",
+        "first hour"
+      ],
+      "area": "Data and reporting"
+    }
+  ],
+  "must_not_invent": [
+    "a mobile app (REG-114 is Won't do)",
+    "fixing the old system crash (REG-106 is a bug, not a requirement)",
+    "password reset emails (REG-111 is a bug)",
+    "REG-103 as a separate item",
+    "online fee payment",
+    "grades or transcripts beyond the drop rule"
+  ],
+  "notes": "Statuses matter: Bug rows and the Won't do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert \"Won't do\" into a Not needed item on the list; it is excluded from the list."
+}

@@ -1,0 +1,200 @@
+{
+  "id": "02",
+  "domain": "Veterinary clinic scheduling",
+  "source": "specs/02-vet-scheduling.md",
+  "context": null,
+  "item_count": 14,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Booking",
+      "aliases": [
+        "Scheduling",
+        "Appointments"
+      ],
+      "items": [
+        "G02-01",
+        "G02-02",
+        "G02-03",
+        "G02-04",
+        "G02-07",
+        "G02-13"
+      ]
+    },
+    {
+      "name": "Reminders",
+      "aliases": [
+        "Notifications"
+      ],
+      "items": [
+        "G02-05",
+        "G02-12"
+      ]
+    },
+    {
+      "name": "Client and animal file",
+      "aliases": [
+        "Records",
+        "Clients"
+      ],
+      "items": [
+        "G02-06",
+        "G02-08",
+        "G02-10",
+        "G02-11"
+      ]
+    },
+    {
+      "name": "Owner and reporting",
+      "aliases": [
+        "Reporting",
+        "Management"
+      ],
+      "items": [
+        "G02-09",
+        "G02-14"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G02-01",
+      "meaning": "Existing clients can book online; new clients book by phone.",
+      "must_keep": [
+        "existing clients",
+        "new clients"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-02",
+      "meaning": "Default durations: visit 20 minutes, vaccination 10, surgery as set by the doctor; 30 minutes for birds and reptiles.",
+      "must_keep": [
+        "20",
+        "10",
+        "30",
+        "birds"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-03",
+      "meaning": "Two doctors and two rooms; the shared X-ray room is booked together with the visit when needed.",
+      "must_keep": [
+        "X-ray",
+        "shared"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-04",
+      "meaning": "A doctor can block time (Thursday mornings for surgery) that no booking, online included, can take.",
+      "must_keep": [
+        "block",
+        "online"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-05",
+      "meaning": "SMS reminder two days before the appointment.",
+      "must_keep": [
+        "SMS",
+        "two days"
+      ],
+      "area": "Reminders"
+    },
+    {
+      "ref": "G02-06",
+      "meaning": "The client file shows the animals, last visit, vaccines due and the balance owed.",
+      "must_keep": [
+        "vaccines due",
+        "balance"
+      ],
+      "area": "Client and animal file"
+    },
+    {
+      "ref": "G02-07",
+      "meaning": "Late cancellations (under 24 hours) are visible per client with a count.",
+      "must_keep": [
+        "24",
+        "late"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-08",
+      "meaning": "An emergency can be overbooked on top of a full day.",
+      "must_keep": [
+        "emergency",
+        "overbook"
+      ],
+      "area": "Client and animal file",
+      "ambiguous": true
+    },
+    {
+      "ref": "G02-09",
+      "meaning": "Daily revenue by doctor is visible on the owner's phone in the morning.",
+      "must_keep": [
+        "revenue",
+        "by doctor"
+      ],
+      "area": "Owner and reporting"
+    },
+    {
+      "ref": "G02-10",
+      "meaning": "The vaccination certificate prints from the visit with the stamp image, in Romanian and English.",
+      "must_keep": [
+        "stamp",
+        "Romanian",
+        "English"
+      ],
+      "area": "Client and animal file"
+    },
+    {
+      "ref": "G02-11",
+      "meaning": "The boarding kennel (6 places) has its own calendar but the same client file.",
+      "must_keep": [
+        "kennel",
+        "6"
+      ],
+      "area": "Client and animal file"
+    },
+    {
+      "ref": "G02-12",
+      "meaning": "Reminders stop the same day an animal is marked deceased.",
+      "must_keep": [
+        "deceased",
+        "same day"
+      ],
+      "area": "Reminders"
+    },
+    {
+      "ref": "G02-13",
+      "meaning": "No app; the website is enough.",
+      "must_keep": [
+        "website",
+        "no app"
+      ],
+      "area": "Booking"
+    },
+    {
+      "ref": "G02-14",
+      "meaning": "Clients can request their file and the clinic exports it (GDPR).",
+      "must_keep": [
+        "export",
+        "GDPR"
+      ],
+      "area": "Owner and reporting"
+    }
+  ],
+  "must_not_invent": [
+    "a paper agenda feature",
+    "online booking for new clients",
+    "a reminder one day before (superseded in the thread)",
+    "payments online",
+    "inventory of medicines",
+    "a mobile app"
+  ],
+  "notes": "The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 belongs to Booking by meaning; the runner accepts it in Booking or Client file, the listed area is where it sits in the source. \"Keep it cheap\" is not an item."
+}

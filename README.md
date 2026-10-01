@@ -26,7 +26,7 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - scripts/githooks/     pre-commit hook; enable with `git config core.hooksPath scripts/githooks`
 - docs/retired-terms.md  words a decision replaced; the hook fails if one survives in a current file
 - assets/brand/      placeholder logo files
-- evals/             golden set for the AI features
+- evals/             golden set for the AI shaping feature: ten specs, expected JSON, generator
 - defects/           defects found in testing, fixed before a story is accepted
 
 ## What is not here, on purpose

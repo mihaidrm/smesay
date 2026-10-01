@@ -1,0 +1,153 @@
+{
+  "id": "05",
+  "domain": "Community choir management",
+  "source": "specs/05-choir-membership.md",
+  "context": null,
+  "item_count": 10,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Rehearsals and attendance",
+      "aliases": [
+        "Attendance",
+        "Rehearsals"
+      ],
+      "items": [
+        "G05-01",
+        "G05-02",
+        "G05-03"
+      ]
+    },
+    {
+      "name": "Membership and fees",
+      "aliases": [
+        "Members",
+        "Fees"
+      ],
+      "items": [
+        "G05-04",
+        "G05-05",
+        "G05-06",
+        "G05-07",
+        "G05-10"
+      ]
+    },
+    {
+      "name": "Music and concerts",
+      "aliases": [
+        "Concerts",
+        "Sheet music"
+      ],
+      "items": [
+        "G05-08",
+        "G05-09"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G05-01",
+      "meaning": "A member sees the season rehearsal calendar and marks attendance for each rehearsal.",
+      "must_keep": [
+        "calendar",
+        "coming"
+      ],
+      "area": "Rehearsals and attendance"
+    },
+    {
+      "ref": "G05-02",
+      "meaning": "Attendance for a rehearsal is known by the Monday before.",
+      "must_keep": [
+        "Monday"
+      ],
+      "area": "Rehearsals and attendance",
+      "ambiguous": true
+    },
+    {
+      "ref": "G05-03",
+      "meaning": "When a member misses three rehearsals in a row before a concert, the section leader is told so a person can call; no automatic email to the member.",
+      "must_keep": [
+        "three",
+        "section leader",
+        "not an automatic email"
+      ],
+      "area": "Rehearsals and attendance"
+    },
+    {
+      "ref": "G05-04",
+      "meaning": "The annual fee is 120 lei; the site shows who has paid.",
+      "must_keep": [
+        "120",
+        "paid"
+      ],
+      "area": "Membership and fees"
+    },
+    {
+      "ref": "G05-05",
+      "meaning": "Fee reminders go to unpaid members in February and again in March.",
+      "must_keep": [
+        "February",
+        "March"
+      ],
+      "area": "Membership and fees"
+    },
+    {
+      "ref": "G05-06",
+      "meaning": "Waiting list: people add their name and voice part themselves; the committee picks who joins, not first come first served.",
+      "must_keep": [
+        "voice part",
+        "committee",
+        "not first come"
+      ],
+      "area": "Membership and fees"
+    },
+    {
+      "ref": "G05-07",
+      "meaning": "Members over 70 pay half and the site applies it without anyone remembering.",
+      "must_keep": [
+        "70",
+        "half"
+      ],
+      "area": "Membership and fees"
+    },
+    {
+      "ref": "G05-08",
+      "meaning": "Sheet music PDFs are behind the member login and not available to the waiting list.",
+      "must_keep": [
+        "PDF",
+        "login",
+        "waiting list"
+      ],
+      "area": "Music and concerts"
+    },
+    {
+      "ref": "G05-09",
+      "meaning": "Concert dates show the dress code and call time; a public page lists the next three concerts with a link to Eventbook for tickets.",
+      "must_keep": [
+        "dress code",
+        "call time",
+        "three",
+        "Eventbook"
+      ],
+      "area": "Music and concerts"
+    },
+    {
+      "ref": "G05-10",
+      "meaning": "The site is the source of truth for membership, not the notebook.",
+      "must_keep": [
+        "truth"
+      ],
+      "area": "Membership and fees",
+      "ambiguous": true
+    }
+  ],
+  "must_not_invent": [
+    "an own ticketing system",
+    "a WhatsApp integration",
+    "a mobile app",
+    "an automatic email to a member who missed rehearsals",
+    "first come first served admission",
+    "a feature for the notebook"
+  ],
+  "notes": "Prose only. The model must find ten items in sentences and keep the negatives: \"not an automatic email, a person\" and \"not first come first served\". G05-02 is an ambiguity flag candidate (whose deadline is it, and what happens after Monday); G05-10 could be dropped as not a requirement or kept as a principle, both accepted. \"Half of whom left years ago\" is background, not an item."
+}

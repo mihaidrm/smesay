@@ -1,0 +1,209 @@
+{
+  "id": "03",
+  "domain": "Municipal library catalogue",
+  "source": "specs/03-library-catalogue.md",
+  "context": null,
+  "item_count": 14,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Search and borrowing",
+      "aliases": [
+        "Public catalogue",
+        "Borrowing"
+      ],
+      "items": [
+        "G03-01",
+        "G03-02",
+        "G03-03",
+        "G03-08",
+        "G03-11"
+      ]
+    },
+    {
+      "name": "Accounts and fines",
+      "aliases": [
+        "Members",
+        "Accounts"
+      ],
+      "items": [
+        "G03-04",
+        "G03-05",
+        "G03-10",
+        "G03-13"
+      ]
+    },
+    {
+      "name": "Branch operations",
+      "aliases": [
+        "Branches",
+        "Staff"
+      ],
+      "items": [
+        "G03-06",
+        "G03-07",
+        "G03-09",
+        "G03-12"
+      ]
+    },
+    {
+      "name": "Website",
+      "aliases": [
+        "Public site"
+      ],
+      "items": [
+        "G03-14"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G03-01",
+      "meaning": "Search the catalogue by title, author, ISBN and subject.",
+      "must_keep": [
+        "ISBN",
+        "subject"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "1"
+    },
+    {
+      "ref": "G03-02",
+      "meaning": "Reserve a book that is out, up to 3 reservations, with an email when it is back.",
+      "must_keep": [
+        "3",
+        "email"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "1"
+    },
+    {
+      "ref": "G03-03",
+      "meaning": "Renew online twice unless someone reserved the book.",
+      "must_keep": [
+        "twice",
+        "reserved"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "2"
+    },
+    {
+      "ref": "G03-04",
+      "meaning": "Children's accounts have no fines and carry a parent email.",
+      "must_keep": [
+        "no fines",
+        "parent"
+      ],
+      "area": "Accounts and fines",
+      "proposed": "2"
+    },
+    {
+      "ref": "G03-05",
+      "meaning": "Fines are calculated per day late and capped at the book price.",
+      "must_keep": [
+        "per day",
+        "capped"
+      ],
+      "area": "Accounts and fines",
+      "proposed": "1"
+    },
+    {
+      "ref": "G03-06",
+      "meaning": "Interlibrary loan requests to the county library with status tracking.",
+      "must_keep": [
+        "county",
+        "status"
+      ],
+      "area": "Branch operations",
+      "proposed": "3"
+    },
+    {
+      "ref": "G03-07",
+      "meaning": "Self-checkout kiosk using the card barcode.",
+      "must_keep": [
+        "kiosk",
+        "barcode"
+      ],
+      "area": "Branch operations",
+      "proposed": "3"
+    },
+    {
+      "ref": "G03-08",
+      "meaning": "Weekly new arrivals list on the website and by email to subscribers.",
+      "must_keep": [
+        "weekly",
+        "subscribers"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "2"
+    },
+    {
+      "ref": "G03-09",
+      "meaning": "Branch staff can move a copy between branches and the catalogue shows where it is.",
+      "must_keep": [
+        "between branches",
+        "where"
+      ],
+      "area": "Branch operations",
+      "proposed": "1"
+    },
+    {
+      "ref": "G03-10",
+      "meaning": "Reading history is private to the user and can be turned off.",
+      "must_keep": [
+        "private",
+        "turned off"
+      ],
+      "area": "Accounts and fines",
+      "proposed": "1"
+    },
+    {
+      "ref": "G03-11",
+      "meaning": "E-books link to the national e-lending platform; no own e-book system.",
+      "must_keep": [
+        "national",
+        "no own"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "2"
+    },
+    {
+      "ref": "G03-12",
+      "meaning": "Report of the most borrowed titles per branch per month.",
+      "must_keep": [
+        "per branch",
+        "per month"
+      ],
+      "area": "Branch operations",
+      "proposed": "2"
+    },
+    {
+      "ref": "G03-13",
+      "meaning": "A lost card is blocked and replaced for 10 lei.",
+      "must_keep": [
+        "10 lei",
+        "blocked"
+      ],
+      "area": "Accounts and fines",
+      "proposed": "3"
+    },
+    {
+      "ref": "G03-14",
+      "meaning": "The public site passes WCAG AA.",
+      "must_keep": [
+        "WCAG",
+        "AA"
+      ],
+      "area": "Website",
+      "proposed": "1"
+    }
+  ],
+  "must_not_invent": [
+    "an own e-book system",
+    "a mobile app",
+    "late-fee payment online",
+    "L-3 or L-11 as items (they are empty rows)",
+    "a Romanian-only requirement separate from renewal"
+  ],
+  "notes": "L-7 is the Romanian duplicate of L-4; expected as one item (G03-03). The empty rows L-3 and L-11 are not items. Priorities are numbers 1 to 3; the model keeps them as given, it does not convert them to MoSCoW."
+}

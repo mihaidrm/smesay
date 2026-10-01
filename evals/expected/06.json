@@ -1,0 +1,212 @@
+{
+  "id": "06",
+  "domain": "Wind farm maintenance logging",
+  "source": "specs/06-wind-maintenance.md",
+  "context": {
+    "goal": "Replace the paper maintenance log for a 22-turbine onshore wind farm with a tablet app that technicians use on the turbine.",
+    "audience": "Technicians, the site manager, the HSE officer and the asset owner's engineer, who will answer the list.",
+    "glossary": [
+      "WTG",
+      "LOTO",
+      "SCADA",
+      "nacelle",
+      "HSE",
+      "OEM"
+    ]
+  },
+  "item_count": 14,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Jobs",
+      "aliases": [
+        "Work orders",
+        "Job management"
+      ],
+      "items": [
+        "G06-01",
+        "G06-05",
+        "G06-06",
+        "G06-07",
+        "G06-08",
+        "G06-09",
+        "G06-14"
+      ]
+    },
+    {
+      "name": "Safety",
+      "aliases": [
+        "HSE",
+        "LOTO"
+      ],
+      "items": [
+        "G06-02",
+        "G06-03",
+        "G06-11",
+        "G06-12",
+        "G06-13"
+      ]
+    },
+    {
+      "name": "Parts",
+      "aliases": [
+        "Inventory"
+      ],
+      "items": [
+        "G06-04"
+      ]
+    },
+    {
+      "name": "Oversight",
+      "aliases": [
+        "Site manager",
+        "Reporting"
+      ],
+      "items": [
+        "G06-10"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G06-01",
+      "meaning": "Open a job on a WTG from the tablet; types: scheduled service, fault, inspection, retrofit.",
+      "must_keep": [
+        "WTG",
+        "retrofit"
+      ],
+      "area": "Jobs"
+    },
+    {
+      "ref": "G06-02",
+      "meaning": "The LOTO checklist is completed and signed by 2 technicians before a job can go to in progress, no exceptions.",
+      "must_keep": [
+        "LOTO",
+        "2",
+        "before"
+      ],
+      "area": "Safety"
+    },
+    {
+      "ref": "G06-03",
+      "meaning": "Nacelle work logs the climb, the harness check and the second person on the ground.",
+      "must_keep": [
+        "nacelle",
+        "harness",
+        "ground"
+      ],
+      "area": "Safety"
+    },
+    {
+      "ref": "G06-04",
+      "meaning": "Parts used are scanned by barcode from the container inventory, with a warning below minimum stock.",
+      "must_keep": [
+        "barcode",
+        "min stock"
+      ],
+      "area": "Parts"
+    },
+    {
+      "ref": "G06-05",
+      "meaning": "Time per job per technician is recorded for OEM warranty claims.",
+      "must_keep": [
+        "OEM",
+        "warranty",
+        "per tech"
+      ],
+      "area": "Jobs"
+    },
+    {
+      "ref": "G06-06",
+      "meaning": "Before and after photos attach to the job, at most 10, compressed on the tablet.",
+      "must_keep": [
+        "10",
+        "compressed"
+      ],
+      "area": "Jobs"
+    },
+    {
+      "ref": "G06-07",
+      "meaning": "The job report is a PDF in the OEM template so warranty claims are accepted.",
+      "must_keep": [
+        "PDF",
+        "OEM"
+      ],
+      "area": "Jobs",
+      "ambiguous": true
+    },
+    {
+      "ref": "G06-08",
+      "meaning": "A fault job links to the SCADA alarm that triggered it by alarm id.",
+      "must_keep": [
+        "SCADA",
+        "alarm id"
+      ],
+      "area": "Jobs"
+    },
+    {
+      "ref": "G06-09",
+      "meaning": "The app works without signal in the nacelle and syncs at the base.",
+      "must_keep": [
+        "no signal",
+        "sync"
+      ],
+      "area": "Jobs"
+    },
+    {
+      "ref": "G06-10",
+      "meaning": "The site manager sees open jobs by WTG and by technician, with overdue scheduled services marked in a configurable colour.",
+      "must_keep": [
+        "by WTG",
+        "overdue",
+        "configurable"
+      ],
+      "area": "Oversight"
+    },
+    {
+      "ref": "G06-11",
+      "meaning": "HSE gets a monthly export of all LOTO records and near misses.",
+      "must_keep": [
+        "monthly",
+        "LOTO",
+        "near miss"
+      ],
+      "area": "Safety"
+    },
+    {
+      "ref": "G06-12",
+      "meaning": "Near miss report: what, where, photo, from any technician; anonymous to the site, visible to HSE.",
+      "must_keep": [
+        "anonymous",
+        "visible to HSE"
+      ],
+      "area": "Safety"
+    },
+    {
+      "ref": "G06-13",
+      "meaning": "The app shows SCADA wind speed and blocks opening a nacelle job above 15 m/s.",
+      "must_keep": [
+        "15 m/s",
+        "nacelle"
+      ],
+      "area": "Safety"
+    },
+    {
+      "ref": "G06-14",
+      "meaning": "Retrofit jobs carry the OEM bulletin number.",
+      "must_keep": [
+        "bulletin"
+      ],
+      "area": "Jobs"
+    }
+  ],
+  "must_not_invent": [
+    "a 12 m/s limit for nacelle work (corrected to 15)",
+    "overdue jobs shown in red (corrected to configurable)",
+    "fully anonymous near misses (corrected)",
+    "the OEM template contents (not attached)",
+    "spare parts ordering from the OEM",
+    "a rotor job type"
+  ],
+  "notes": "Context spec (decision 0011). Glossary terms WTG, LOTO, SCADA, nacelle, HSE and OEM stay as written; \"turbine\" for WTG is accepted only in addition, never instead. The corrections at the bottom override the list: 15 m/s, configurable colour, anonymous to the site but visible to HSE. G06-07 is flagged ambiguous because the template is missing. The 12 m/s rotor limit is not an item; it is an explanation."
+}
