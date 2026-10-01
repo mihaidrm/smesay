@@ -16,39 +16,41 @@ def pill(pre, label=None):
     return f'<sc-if value="{{{{v.{pre}Show}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" class="hov" onClick="{{{{v.{pre}Pick}}}}" aria-pressed="{{{{v.{pre}On}}}}" style="flex-grow: 1; min-height: 44px; padding: 0 10px; border: 1px solid {{{{v.{pre}Bd}}}}; border-radius: 999px; background: {{{{v.{pre}Bg}}}}; color: {{{{v.{pre}Fg}}}}; font-size: 14px; font-weight: 500; white-space: nowrap">{lab}</button></sc-if>'
 def textarea(id_, label):
     return f'<label for="{id_}" style="font-size: 14px; font-weight: 500">{label}</label>\n<textarea id="{id_}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="{TA}"></textarea>'
-def scroll(inner, gap=20):
-    return f'<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
-def footer(inner):
-    return f'<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
+def scroll(inner, gap=20, col='col'):
+    return f'<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="{col}" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
+def footer(inner, col='col'):
+    return f'<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="{col}" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
 def notice(title, body, extra=''):
-    return f'''<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
+    return f'''<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col-narrow" style="display: flex; flex-direction: column; gap: 16px">
 <div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
 <h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{title}</h1>
 <div style="color: #454A52">{body}</div>{extra}
 </div></div>'''
 
-card = f'''<fieldset style="margin: 0; padding: 12px 14px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0">
-<legend style="padding: 0; float: left; width: 100%; display: flex; align-items: baseline; gap: 8px">
+card = f'''<fieldset style="margin: 0; padding: 12px 14px; height: CARDHpx; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<legend style="padding: 0; float: left; width: 100%; display: flex; align-items: baseline; gap: 8px; height: 44px">
 <span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{{{v.ref}}}}</span>
-<span style="font-size: 15px; line-height: 22px; font-weight: 500">{{{{v.text}}}}</span>
+<span style="font-size: 15px; line-height: 22px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{{{v.text}}}}</span>
 </legend>
-<sc-if value="{{{{v.detailsOpen}}}}" hint-placeholder-val="{{{{false}}}}"><div style="font-size: 14px; line-height: 20px; color: #454A52; clear: both; padding: 8px 10px; border-radius: 8px; background: #F6F6F4">{{{{v.detail}}}}</div></sc-if>
-<div style="display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; clear: both">
-<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 36px; flex-shrink: 0">Your rating</span>
-<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p1Pick}}}}" aria-pressed="{{{{v.p1On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p1BdStyle}}}} {{{{v.p1Bd}}}}; border-radius: 999px; background: {{{{v.p1Bg}}}}; color: {{{{v.p1Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p1Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p1Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p2Pick}}}}" aria-pressed="{{{{v.p2On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p2BdStyle}}}} {{{{v.p2Bd}}}}; border-radius: 999px; background: {{{{v.p2Bg}}}}; color: {{{{v.p2Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p2Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p2Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p3Pick}}}}" aria-pressed="{{{{v.p3On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p3BdStyle}}}} {{{{v.p3Bd}}}}; border-radius: 999px; background: {{{{v.p3Bg}}}}; color: {{{{v.p3Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p3Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p3Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p4Pick}}}}" aria-pressed="{{{{v.p4On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p4BdStyle}}}} {{{{v.p4Bd}}}}; border-radius: 999px; background: {{{{v.p4Bg}}}}; color: {{{{v.p4Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p4Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p4Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.unPick}}}}" aria-pressed="{{{{v.unOn}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.unBdStyle}}}} {{{{v.unBd}}}}; border-radius: 999px; background: {{{{v.unBg}}}}; color: {{{{v.unFg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.unLabel}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.unCap}}}}</span></div>
+<div style="clear: both; display: flex; flex-direction: column; gap: 4px; height: 66px; flex-shrink: 0">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 14px">Your rating</span>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 4px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p1Pick}}}}" aria-pressed="{{{{v.p1On}}}}" style="min-height: 36px; width: 100%; padding: 0 2px; overflow: hidden; border: 1px {{{{v.p1BdStyle}}}} {{{{v.p1Bd}}}}; border-radius: 999px; background: {{{{v.p1Bg}}}}; color: {{{{v.p1Fg}}}}; font-size: PILLFSpx; font-weight: 500; white-space: nowrap">{{{{v.p1Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p1Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p2Pick}}}}" aria-pressed="{{{{v.p2On}}}}" style="min-height: 36px; width: 100%; padding: 0 2px; overflow: hidden; border: 1px {{{{v.p2BdStyle}}}} {{{{v.p2Bd}}}}; border-radius: 999px; background: {{{{v.p2Bg}}}}; color: {{{{v.p2Fg}}}}; font-size: PILLFSpx; font-weight: 500; white-space: nowrap">{{{{v.p2Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p2Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p3Pick}}}}" aria-pressed="{{{{v.p3On}}}}" style="min-height: 36px; width: 100%; padding: 0 2px; overflow: hidden; border: 1px {{{{v.p3BdStyle}}}} {{{{v.p3Bd}}}}; border-radius: 999px; background: {{{{v.p3Bg}}}}; color: {{{{v.p3Fg}}}}; font-size: PILLFSpx; font-weight: 500; white-space: nowrap">{{{{v.p3Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p3Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p4Pick}}}}" aria-pressed="{{{{v.p4On}}}}" style="min-height: 36px; width: 100%; padding: 0 2px; overflow: hidden; border: 1px {{{{v.p4BdStyle}}}} {{{{v.p4Bd}}}}; border-radius: 999px; background: {{{{v.p4Bg}}}}; color: {{{{v.p4Fg}}}}; font-size: PILLFSpx; font-weight: 500; white-space: nowrap">{{{{v.p4Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p4Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.unPick}}}}" aria-pressed="{{{{v.unOn}}}}" style="min-height: 36px; width: 100%; padding: 0 2px; overflow: hidden; border: 1px {{{{v.unBdStyle}}}} {{{{v.unBd}}}}; border-radius: 999px; background: {{{{v.unBg}}}}; color: {{{{v.unFg}}}}; font-size: PILLFSpx; font-weight: 500; white-space: nowrap">{{{{v.unLabel}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.unCap}}}}</span></div>
 </div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column">
 <sc-if value="{{{{v.commentOpen}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="r-c-{{{{v.id}}}}" style="font-size: 13px; font-weight: 500">{{{{v.commentLabel}}}}</label>
-<textarea id="r-c-{{{{v.id}}}}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="box-sizing: border-box; padding: 8px 12px; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; resize: none; font-size: 15px; line-height: 22px"></textarea>
-</div>
+<label for="r-c-{{{{v.id}}}}" style="font-size: 12px; font-weight: 500; line-height: 16px; margin-bottom: 4px">{{{{v.commentLabel}}}}</label>
+<textarea id="r-c-{{{{v.id}}}}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="flex-grow: 1; min-height: 0; box-sizing: border-box; padding: 6px 10px; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; resize: none; font-size: 14px; line-height: 20px"></textarea>
 </sc-if>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px">
-<div style="display: flex; gap: 14px">
-<button type="button" onClick="{{{{v.toggleDetails}}}}" aria-expanded="{{{{v.detailsOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.detailsLabel}}}}</button>
-<sc-if value="{{{{v.showCommentToggle}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" onClick="{{{{v.toggleComment}}}}" aria-expanded="{{{{v.commentOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.commentToggleLabel}}}}</button></sc-if>
+<sc-if value="{{{{v.detailsOpen}}}}" hint-placeholder-val="{{{{false}}}}"><div style="flex-grow: 1; min-height: 0; overflow-y: auto; font-size: 13px; line-height: 18px; color: #454A52; padding: 6px 10px; border-radius: 8px; background: #F6F6F4">{{{{v.detail}}}}</div></sc-if>
 </div>
-<div aria-live="polite" style="color: {{{{v.noteFg}}}}; text-align: right">{{{{v.note}}}}</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; height: 24px; flex-shrink: 0">
+<div style="display: flex; gap: 14px">
+<button type="button" onClick="{{{{v.toggleDetails}}}}" aria-expanded="{{{{v.detailsOpen}}}}" style="min-height: 24px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.detailsLabel}}}}</button>
+<sc-if value="{{{{v.showCommentToggle}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" onClick="{{{{v.toggleComment}}}}" aria-expanded="{{{{v.commentOpen}}}}" style="min-height: 24px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.commentToggleLabel}}}}</button></sc-if>
+</div>
+<div aria-live="polite" style="color: {{{{v.noteFg}}}}; text-align: right; white-space: nowrap">{{{{v.note}}}}</div>
 </div>
 </fieldset>'''
 
@@ -86,11 +88,11 @@ screens = f'''
 <sc-if value="{{{{askFields}}}}" hint-placeholder-val="{{{{true}}}}">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-name" style="font-size: 14px; font-weight: 500">Your name</label>
-<input id="r-name" type="text" value="{{{{name}}}}" onChange="{{{{setName}}}}" autocomplete="name" style="{INPUT}">
+<input id="r-name" type="text" class="field" value="{{{{name}}}}" onChange="{{{{setName}}}}" autocomplete="name" style="{INPUT}">
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-role" style="font-size: 14px; font-weight: 500">Your role</label>
-<select id="r-role" value="{{{{role}}}}" onChange="{{{{setRole}}}}" style="{INPUT}">
+<select id="r-role" class="field" value="{{{{role}}}}" onChange="{{{{setRole}}}}" style="{INPUT}">
 <option value="">Choose a role</option>
 <option value="Sales">Sales</option>
 <option value="Finance">Finance</option>
@@ -100,15 +102,15 @@ screens = f'''
 </div>
 </sc-if>
 <div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device, so you can close this page and come back. [PRIVACY NOTICE LINK]</div>
-{POWERED}''')}
-{footer(f'''<button type="button" onClick="{{{{start}}}}" disabled="{{{{startDisabled}}}}" {P_BTN}; opacity: {{{{startOpacity}}}}">Start with Submitting</button>
-<sc-if value="{{{{startDisabled}}}}" hint-placeholder-val="{{{{false}}}}"><div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div></sc-if>''')}
+{POWERED}''', 20, 'col-narrow')}
+{footer(f'''<button type="button" class="cta hov" onClick="{{{{start}}}}" disabled="{{{{startDisabled}}}}" style="min-height: 48px; padding: 0 24px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; opacity: {{{{startOpacity}}}}">Start with Submitting</button>
+<sc-if value="{{{{startDisabled}}}}" hint-placeholder-val="{{{{false}}}}"><div aria-live="polite" style="font-size: 14px; color: #5B6069">Fill in your name and role to start.</div></sc-if>''', 'col-narrow')}
 </sc-if>
 
 <sc-if value="{{{{isArea}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{{{areaName}}}}</h1><div style="font-size: 14px; color: #5B6069">{{{{areaIntro}}}}</div></div>
-<div style="display: grid; grid-template-columns: repeat(COLS, minmax(0, 1fr)); gap: 10px; align-items: start">
+<div style="display: grid; grid-template-columns: repeat(COLS, minmax(0, 1fr)); gap: 10px; align-items: stretch">
 <sc-for list="{{{{visible}}}}" as="v" hint-placeholder-count="2">
 {card}
 </sc-for>
@@ -164,13 +166,13 @@ screens = f'''
 <input id="r-sign" type="checkbox" checked="{{{{signed}}}}" onChange="{{{{toggleSigned}}}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
 <span style="font-size: 15px">I confirm these answers reflect my view as of today. [PM SIGN-OFF WORDING]</span>
 </label>
-{POWERED}''', 18)}
+{POWERED}''', 18, 'col-mid')}
 {footer(f'''<button type="button" onClick="{{{{submit}}}}" disabled="{{{{submitDisabled}}}}" {P_BTN}; opacity: {{{{submitOpacity}}}}">{{{{submitLabel}}}}</button>
-<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{{{submitNote}}}}</div>''')}
+<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{{{submitNote}}}}</div>''', 'col-mid')}
 </sc-if>
 
 <sc-if value="{{{{isDone}}}}" hint-placeholder-val="{{{{false}}}}">
-<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
+<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col-narrow" style="display: flex; flex-direction: column; gap: 16px">
 <div style="width: 56px; height: 56px; border-radius: 999px; background: #E6F4EC; display: flex; align-items: center; justify-content: center">
 <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#22643F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 </div>
@@ -183,7 +185,7 @@ screens = f'''
 <div style="color: #5B6069; font-size: 15px">You can change your answers until 20 October 2026. Open the same link again.</div>
 {POWERED}
 </div></div>
-{footer(f'''<button type="button" onClick="{{{{reopen}}}}" {S_BTN}">Change my answers</button>''')}
+{footer(f'''<button type="button" onClick="{{{{reopen}}}}" {S_BTN}">Change my answers</button>''', 'col-narrow')}
 </sc-if>
 
 <sc-if value="{{{{isClosed}}}}" hint-placeholder-val="{{{{false}}}}">
@@ -262,7 +264,7 @@ const idx = Math.min(s.idx, inArea.length - 1);
 const view = (single ? [inArea[idx]] : inArea).map((it) => {
 const a = s.answers[it.id] || {};
 const sty = (active) => (active ? on : off);
-const v = { id: it.id, ref: it.ref, text: it.text, detail: it.detail, proposedLabel: LABEL[it.proposed] };
+const v = { id: it.id, ref: it.ref, text: it.text, detail: it.text + ' ' + it.detail, proposedLabel: LABEL[it.proposed] };
 const pickValue = (val) => {
 let kind;
 if (val === 'W') kind = 'disagree'; else if (s.blind) kind = 'pick'; else kind = val === it.proposed ? 'agree' : 'diff';
@@ -279,12 +281,12 @@ v[k + 'Pick'] = () => pickValue(val);
 v.unLabel = 'Unclear'; v.unOn = active; v.unBg = st.bg; v.unFg = st.fg; v.unBd = st.bd; v.unBdStyle = 'solid'; v.unCap = '';
 v.unPick = () => setAns(it.id, { kind: 'unclear', value: null, text: a.text || '' }); }
 const required = a.kind === 'diff' || a.kind === 'disagree' || a.kind === 'unclear';
-v.commentOpen = required || !!s.comments[it.id];
+v.detailsOpen = !!s.details[it.id];
+v.commentOpen = (required || !!s.comments[it.id]) && !v.detailsOpen;
 v.commentLabel = a.kind === 'diff' ? 'Why ' + SHORT[a.value] + ' and not ' + SHORT[it.proposed] + '? The team reads every reason.' : (a.kind === 'disagree' ? 'Why is it not needed, or what should it say instead?' : (a.kind === 'unclear' ? 'What would you need to know to rate it?' : 'Comment, optional'));
 v.showCommentToggle = !required;
 v.commentToggleLabel = s.comments[it.id] ? 'Hide comment' : '+ comment';
-v.toggleComment = () => { const c = Object.assign({}, s.comments); c[it.id] = !c[it.id]; this.setState({ comments: c }); };
-v.detailsOpen = !!s.details[it.id];
+v.toggleComment = () => { const c = Object.assign({}, s.comments); c[it.id] = !c[it.id]; const d = Object.assign({}, s.details); d[it.id] = false; this.setState({ comments: c, details: d }); };
 v.detailsLabel = s.details[it.id] ? 'Hide details' : 'Details';
 v.toggleDetails = () => { const d = Object.assign({}, s.details); d[it.id] = !d[it.id]; this.setState({ details: d }); };
 v.answerText = a.text || '';
@@ -409,8 +411,8 @@ this.setState(base);
 }
 }'''
 
-def page(title, root_style, header_pad, w, h, cols=1, colw=640):
-    s = screens.replace('repeat(COLS, minmax(0, 1fr))', f'repeat({cols}, minmax(0, 1fr))').replace('repeat(TALLYCOLS, minmax(0, 1fr))', f'repeat({3 if cols == 1 else 5}, minmax(0, 1fr))').replace('padding: 12px 20px; border-bottom: 1px solid #E6E4DF">', f'padding: 12px {header_pad}; border-bottom: 1px solid #E6E4DF">', 1)
+def page(title, root_style, header_pad, w, h, cols=1, colw=640, cardh=260, pillfs=11, fieldw=9999, ctaw=9999):
+    s = screens.replace('PILLFSpx', f'{pillfs}px').replace('CARDHpx', f'{cardh}px').replace('repeat(COLS, minmax(0, 1fr))', f'repeat({cols}, minmax(0, 1fr))').replace('repeat(TALLYCOLS, minmax(0, 1fr))', f'repeat({3 if cols == 1 else 5}, minmax(0, 1fr))').replace('padding: 12px 20px; border-bottom: 1px solid #E6E4DF">', f'padding: 12px {header_pad}; border-bottom: 1px solid #E6E4DF">', 1)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -430,6 +432,10 @@ button{{cursor:pointer}}button:disabled{{cursor:not-allowed}}
 .hov:hover:not(:disabled){{filter:brightness(0.94)}}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{{outline:2px solid #0E6B63;outline-offset:2px}}
 .col{{width:100%;max-width:{colw}px;margin:0 auto;box-sizing:border-box}}
+.col-narrow{{width:100%;max-width:560px;margin:0 auto;box-sizing:border-box}}
+.col-mid{{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box}}
+.field{{width:100%;max-width:{fieldw}px}}
+.cta{{width:100%;max-width:{ctaw}px}}
 </style>
 </helmet>
 <div style="{root_style}">
@@ -444,5 +450,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 """
 OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'Respondent.dc.html').write_text(page('Respondent journey, phone', 'width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '20px', 390, 844))
-(OUT / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '120px', 1440, 900, 2, 1000))
+(OUT / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '120px', 1440, 900, 2, 1000, 260, 12, 360, 280))
 print('written to', OUT)

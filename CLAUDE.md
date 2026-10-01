@@ -19,6 +19,9 @@ steps for Mihai are in docs/accounts.md.
 Write plain English. Follow WRITING.md and run `npm run scan:copy` on any user-facing text.
 No em dashes anywhere, code comments included.
 
+Each of Mihai's messages that asks for changes ends in its own pull request, pushed when the work
+is checked. Requests from different messages do not stack in one pull request (decision 0019).
+
 A change is not done until everything it touches says the same thing: every canvas board, every
 file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording before reporting
 (decision 0017).
