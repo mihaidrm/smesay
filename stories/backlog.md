@@ -2,8 +2,8 @@
 
 E1  Foundation: repo, CI, schema v1, migrations, Vercel fra1 deploy, local Docker Postgres, seed.
 E2  Accounts and workspaces: magic link, Google, Microsoft; workspace, members, owner and member roles; settings.
-E3  Import: xlsx and csv, header detection, ten-row preview, column mapping, set versioning, validation report.
-E4  AI shaping: server route with budget; group into areas and order; reader version per item with original kept; duplicate and ambiguity flags; golden set and eval runner.
+E3  Import: xlsx and csv, header detection, ten-row preview, column mapping, set versioning, validation report; type or paste a list (decision 0010).
+E4  AI shaping: server route with budget; group into areas and order; reader version per item with original kept; duplicate and ambiguity flags; project context field (decision 0011); golden set and eval runner.
 E5  Instrument builder: intro, respondent fields, scoring method templates, layout templates, perspective filter, closing questions, preview.
 E6  Sharing: public link with token, open and close dates, passcode; personal invites; reminders; kill switch.
 E7  Respondent experience: link landing, fields, items, reason and question boxes, autosave and resume, navigation, missing-item form, summary and sign-off, submit, accessibility.

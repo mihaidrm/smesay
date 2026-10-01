@@ -1,1 +1,201 @@
-{"v":3,"createdOnFiles":{"v":1,"at":"2026-09-30T15:30:00Z"},"title":"Validation platform prototype","launch":{"view":"canvas"},"pages":[],"boards":{"Main.dc.html":{"x":0,"y":0,"w":1440,"h":720,"title":"User journey"},"PmApp.dc.html":{"x":0,"y":840,"w":1440,"h":1000,"title":"PM app (click through)","is_interactive":true},"Respondent.dc.html":{"x":1520,"y":840,"w":390,"h":844,"title":"Respondent on a phone (click through)","is_interactive":true}},"order":["Main.dc.html","PmApp.dc.html","Respondent.dc.html"],"notes":{},"designSystems":[]}
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Landing.dc.html": {
+      "h": 7790,
+      "title": "A, superseded: followed duna.com too closely",
+      "w": 1440,
+      "x": 3200,
+      "y": 3500
+    },
+    "LandingB.dc.html": {
+      "h": 5052,
+      "is_interactive": true,
+      "title": "B, superseded: its layout lives on in E",
+      "w": 1440,
+      "x": 4720,
+      "y": 3500
+    },
+    "LandingC.dc.html": {
+      "h": 7552,
+      "is_interactive": true,
+      "title": "C, superseded: the full argument, too long",
+      "w": 1440,
+      "x": 6240,
+      "y": 3500
+    },
+    "LandingD.dc.html": {
+      "h": 5152,
+      "is_interactive": true,
+      "title": "D, superseded: its three pictures live on in E",
+      "w": 1440,
+      "x": 7760,
+      "y": 3500
+    },
+    "LandingE.dc.html": {
+      "h": 5352,
+      "is_interactive": true,
+      "title": "Landing page E, current (decision 0008)",
+      "w": 1440,
+      "x": 0,
+      "y": 3500
+    },
+    "Logo.dc.html": {
+      "h": 594,
+      "title": "Name and logo: wordmark D with mark B, chosen",
+      "w": 1472,
+      "x": 1520,
+      "y": 840
+    },
+    "Main.dc.html": {
+      "h": 732,
+      "title": "User journey, current",
+      "w": 1449,
+      "x": 1520,
+      "y": 0
+    },
+    "PmApp.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "PM app, current (click through)",
+      "w": 1440,
+      "x": 0,
+      "y": 2100
+    },
+    "Respondent.dc.html": {
+      "h": 863,
+      "is_interactive": true,
+      "title": "Respondent on a phone, current (click through)",
+      "w": 408,
+      "x": 1520,
+      "y": 2100
+    },
+    "Roadmap.dc.html": {
+      "h": 1717,
+      "title": "Roadmap, Oct 2026 to Aug 2027",
+      "w": 1462,
+      "x": 0,
+      "y": 0
+    },
+    "Brand01.dc.html": {
+      "x": 3200,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "title": "Brand 01: identity"
+    },
+    "Brand02.dc.html": {
+      "x": 4720,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "title": "Brand 02: colour"
+    },
+    "Brand03.dc.html": {
+      "x": 6240,
+      "y": 0,
+      "w": 1440,
+      "h": 1320,
+      "title": "Brand 03: type"
+    },
+    "Brand04.dc.html": {
+      "x": 3200,
+      "y": 1560,
+      "w": 1440,
+      "h": 740,
+      "title": "Brand 04: space, shape, layout"
+    },
+    "Brand05.dc.html": {
+      "x": 4720,
+      "y": 1560,
+      "w": 1440,
+      "h": 1040,
+      "title": "Brand 05: components"
+    },
+    "Brand06.dc.html": {
+      "x": 6240,
+      "y": 1560,
+      "w": 1440,
+      "h": 1140,
+      "title": "Brand 06: data, motion, theming, email"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-30T15:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "s1": {
+      "fill": "gray",
+      "maxH": 560,
+      "text": "Why E replaced A to D.\n\nA followed duna.com too closely (note 05).\nB had its own layout and motion; its hero and three-step panel are in E.\nC made the full argument and grew to 13 sections (note 07).\nD was the simple one; its three pictures are in E.\nE = B's layout, D's story, one gallery of outputs (decision 0008).\n\nStill to do on E: use-cases section in place of \"Who it is for\" (decision 0010), phone layout.",
+      "w": 1200,
+      "x": 1520,
+      "y": 3500
+    },
+    "t1": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "SMEsay prototype. Current boards, 1 October 2026",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Product, click through",
+      "w": 240,
+      "x": 0,
+      "y": 1830
+    },
+    "t3": {
+      "kind": "title1",
+      "maxW": 1440,
+      "text": "Landing page, current",
+      "w": 240,
+      "x": 0,
+      "y": 3230
+    },
+    "t4": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Superseded landing pages A to D, kept for comparison",
+      "w": 240,
+      "x": 3200,
+      "y": 3230
+    },
+    "t5": {
+      "x": 3200,
+      "y": -300,
+      "text": "Brand and design system, 1 October 2026 (note 10)",
+      "kind": "title1",
+      "maxW": 4480
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "PmApp.dc.html",
+    "Respondent.dc.html",
+    "Logo.dc.html",
+    "Landing.dc.html",
+    "LandingB.dc.html",
+    "LandingC.dc.html",
+    "Roadmap.dc.html",
+    "LandingD.dc.html",
+    "LandingE.dc.html",
+    "Brand01.dc.html",
+    "Brand02.dc.html",
+    "Brand03.dc.html",
+    "Brand04.dc.html",
+    "Brand05.dc.html",
+    "Brand06.dc.html"
+  ],
+  "pages": [],
+  "title": "SMEsay prototype"
+}

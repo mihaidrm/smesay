@@ -15,14 +15,15 @@ next phase waits.
 | 0.1 | Name: SMEsay chosen 2026-10-01, trademark search pending | docs/decisions/0005 |
 | 0.2 | Logo: wordmark D with mark B, chosen 2026-10-01 | docs/decisions/0005 |
 | 0.3 | Landing page: E chosen (B layout, D story, outputs gallery), 2026-10-01 | docs/decisions/0008 |
-| 0.4 | Headline: "Send the list as a link. Get back who agrees, and why." on page E; confirm | docs/design-notes/2026-10-01-08 |
-| 0.5 | Example: the expense tool, or another everyday case | docs/decisions/0005 |
-| 0.6 | Respondent answer model: Agree, Should be different (reason), Unclear (question) | docs/design-notes/2026-09-30-03 |
+| 0.4 | Headline: "Send the list as a link. Get back who agrees, and why." Confirmed 2026-10-01 | docs/decisions/0009 |
+| 0.5 | Example: the expense tool, confirmed 2026-10-01 | docs/decisions/0005, 0009 |
+| 0.6 | Respondent answer model and the other prototype choices in note 03, accepted 2026-10-01 | docs/decisions/0009 |
 | 0.7 | Vercel: moot until the launch gate (decision 0006) | docs/accounts.md |
-| 0.8 | Delete the eight retired agent files in .claude/agents/ | docs/context.md |
+| 0.8 | Retired agent files deleted 2026-10-01 | docs/decisions/0009 |
+| 0.9 | Order of the next sessions: design first, decided 2026-10-01 | docs/decisions/0013 |
 
-Machine check 2026-10-01: Node v26.10.0 and Docker 29.8.1 running. Nothing to install. A
-private repository on Mihai's personal GitHub is optional (decision 0006).
+Machine check 2026-10-01: Node v26.10.0 and Docker 29.8.1 running. Nothing to install. The
+repository is on Mihai's personal GitHub (mihaidrm/smesay), so step 2.1 is done.
 
 Decision 0006 (2026-10-01): everything stays local and on personal accounts until the product
 is validated. Deploy, domain, email sending and company accounts move to the launch gate.
@@ -31,10 +32,10 @@ is validated. Deploy, domain, email sending and company accounts move to the lau
 
 | # | Step | Who | Done when |
 |---|---|---|---|
-| 1.1 | Build the story landing page from note 07, with the five states of one list, desktop and phone | Claude | Mihai clicks through on laptop and phone and accepts |
+| 1.1 | Landing page E: add the use-cases section in place of "who it is for" (decision 0010); phone layout | Claude | Mihai clicks through on laptop and phone and accepts |
 | 1.2 | Finish the respondent prototype: closed page, revoked page, personal link resume, rate-blind mode, all three layouts | Claude | Accepted on a phone |
 | 1.3 | Finish the PM prototype: workspace settings, members, project list, sample project watermark, item detail, export screen | Claude | Accepted on a laptop |
-| 1.4 | Write docs/design-system.md: type, colour, spacing, components, states, motion, voice, from notes 01 to 07 | Claude | Mihai approves |
+| 1.4 | docs/design-system.md and six brand boards on the canvas, written 2026-10-01 (notes 09, 10) | Claude | Mihai approves |
 | 1.5 | Draft all copy: landing, quickstart, transactional emails, error messages | Claude | Passes the WRITING.md scan; Mihai approves |
 | 1.6 | Golden set for the AI: ten messy requirement lists from invented domains, with expected areas, item counts and must-not-invent lists | Claude | Ten files in evals/, Mihai reads two |
 | 1.7 | Mihai runs a trademark check on the chosen name when ready; the domain waits for the launch gate (0006) | Mihai | Name in docs/context.md |
@@ -45,7 +46,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 
 | # | Step | Who |
 |---|---|---|
-| 2.1 | git init, first commit, push to the GitHub repository | Claude |
+| 2.1 | git init, first commit, push to the GitHub repository. Done 2026-10-01 | Claude |
 | 2.2 | Scaffold: Next.js 15, TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and MinIO | Claude |
 | 2.3 | Styleguide page in the app from docs/design-system.md | Claude |
 | 2.4 | Stories for E1 written from the plan; open questions listed | Claude |
