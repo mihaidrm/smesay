@@ -42,16 +42,16 @@
       "y": 3500
     },
     "Logo.dc.html": {
-      "h": 580,
+      "h": 594,
       "title": "Name and logo: wordmark D with mark B, chosen",
-      "w": 1440,
+      "w": 1472,
       "x": 1520,
       "y": 840
     },
     "Main.dc.html": {
-      "h": 720,
+      "h": 732,
       "title": "User journey, current",
-      "w": 1440,
+      "w": 1449,
       "x": 1520,
       "y": 0
     },
@@ -64,19 +64,61 @@
       "y": 2100
     },
     "Respondent.dc.html": {
-      "h": 844,
+      "h": 863,
       "is_interactive": true,
       "title": "Respondent on a phone, current (click through)",
-      "w": 390,
+      "w": 408,
       "x": 1520,
       "y": 2100
     },
     "Roadmap.dc.html": {
-      "h": 1700,
+      "h": 1717,
       "title": "Roadmap, Oct 2026 to Aug 2027",
-      "w": 1440,
+      "w": 1462,
       "x": 0,
       "y": 0
+    },
+    "Brand01.dc.html": {
+      "x": 3200,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "title": "Brand 01: identity"
+    },
+    "Brand02.dc.html": {
+      "x": 4720,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "title": "Brand 02: colour"
+    },
+    "Brand03.dc.html": {
+      "x": 6240,
+      "y": 0,
+      "w": 1440,
+      "h": 1320,
+      "title": "Brand 03: type"
+    },
+    "Brand04.dc.html": {
+      "x": 3200,
+      "y": 1560,
+      "w": 1440,
+      "h": 740,
+      "title": "Brand 04: space, shape, layout"
+    },
+    "Brand05.dc.html": {
+      "x": 4720,
+      "y": 1560,
+      "w": 1440,
+      "h": 1040,
+      "title": "Brand 05: components"
+    },
+    "Brand06.dc.html": {
+      "x": 6240,
+      "y": 1560,
+      "w": 1440,
+      "h": 1140,
+      "title": "Brand 06: data, motion, theming, email"
     }
   },
   "createdOnFiles": {
@@ -88,41 +130,52 @@
     "view": "canvas"
   },
   "notes": {
+    "s1": {
+      "fill": "gray",
+      "maxH": 560,
+      "text": "Why E replaced A to D.\n\nA followed duna.com too closely (note 05).\nB had its own layout and motion; its hero and three-step panel are in E.\nC made the full argument and grew to 13 sections (note 07).\nD was the simple one; its three pictures are in E.\nE = B's layout, D's story, one gallery of outputs (decision 0008).\n\nStill to do on E: use-cases section in place of \"Who it is for\" (decision 0010), phone layout.",
+      "w": 1200,
+      "x": 1520,
+      "y": 3500
+    },
     "t1": {
-      "x": 0,
-      "y": -300,
-      "text": "SMEsay prototype. Current boards, 1 October 2026",
       "kind": "title1",
-      "maxW": 2960
+      "maxW": 2960,
+      "text": "SMEsay prototype. Current boards, 1 October 2026",
+      "w": 240,
+      "x": 0,
+      "y": -300
     },
     "t2": {
-      "x": 0,
-      "y": 1830,
-      "text": "Product, click through",
       "kind": "title1",
-      "maxW": 2960
+      "maxW": 2960,
+      "text": "Product, click through",
+      "w": 240,
+      "x": 0,
+      "y": 1830
     },
     "t3": {
-      "x": 0,
-      "y": 3230,
-      "text": "Landing page, current",
       "kind": "title1",
-      "maxW": 1440
+      "maxW": 1440,
+      "text": "Landing page, current",
+      "w": 240,
+      "x": 0,
+      "y": 3230
     },
     "t4": {
-      "x": 3200,
-      "y": 3230,
-      "text": "Superseded landing pages A to D, kept for comparison",
       "kind": "title1",
-      "maxW": 6000
+      "maxW": 6000,
+      "text": "Superseded landing pages A to D, kept for comparison",
+      "w": 240,
+      "x": 3200,
+      "y": 3230
     },
-    "s1": {
-      "x": 1520,
-      "y": 3500,
-      "w": 1200,
-      "maxH": 560,
-      "fill": "gray",
-      "text": "Why E replaced A to D.\n\nA followed duna.com too closely (note 05).\nB had its own layout and motion; its hero and three-step panel are in E.\nC made the full argument and grew to 13 sections (note 07).\nD was the simple one; its three pictures are in E.\nE = B's layout, D's story, one gallery of outputs (decision 0008).\n\nStill to do on E: use-cases section in place of \"Who it is for\" (decision 0010), phone layout."
+    "t5": {
+      "x": 3200,
+      "y": -300,
+      "text": "Brand and design system, 1 October 2026 (note 10)",
+      "kind": "title1",
+      "maxW": 4480
     }
   },
   "order": [
@@ -135,7 +188,13 @@
     "LandingC.dc.html",
     "Roadmap.dc.html",
     "LandingD.dc.html",
-    "LandingE.dc.html"
+    "LandingE.dc.html",
+    "Brand01.dc.html",
+    "Brand02.dc.html",
+    "Brand03.dc.html",
+    "Brand04.dc.html",
+    "Brand05.dc.html",
+    "Brand06.dc.html"
   ],
   "pages": [],
   "title": "SMEsay prototype"

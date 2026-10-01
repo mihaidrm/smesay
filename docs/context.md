@@ -36,13 +36,13 @@ Waiting on Mihai:
    no filing until then.
 
 Next tasks for Claude, in order (decision 0013, design first):
-1. Tidy the canvas: current boards in the main flow, superseded landing pages apart, labelled.
+1. Tidy the canvas: done 2026-10-01.
 2. Landing page E: use-cases section in place of "who it is for" (decision 0010); phone layout.
 3. Finish the respondent prototype: closed, revoked, personal link resume, rate-blind mode, the
    other two layouts.
 4. Finish the PM prototype: settings, members, project list, sample watermark, item detail,
    export screen.
-5. docs/design-system.md from design notes 01 to 08.
+5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
 6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
 7. Ten golden-set specs in evals/.
 8. Then Phase 2: scaffold, styleguide page, E1 stories, open questions before E1.
