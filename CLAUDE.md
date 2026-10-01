@@ -21,6 +21,8 @@ No em dashes anywhere, code comments included.
 
 Each of Mihai's messages that asks for changes ends in its own pull request, pushed when the work
 is checked. Requests from different messages do not stack in one pull request (decision 0019).
+Claude marks the pull request ready and merges it as soon as the reply goes out; Mihai reviews
+on main (decision 0023). The next request starts from main.
 
 A change is not done until everything it touches says the same thing: every canvas board, every
 file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording before reporting
