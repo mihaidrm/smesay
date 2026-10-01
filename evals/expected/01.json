@@ -1,0 +1,243 @@
+{
+  "id": "01",
+  "domain": "Bakery chain ordering",
+  "source": "specs/01-bakery-ordering.md",
+  "context": null,
+  "item_count": 17,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Ordering",
+      "aliases": [
+        "Placing orders",
+        "Orders"
+      ],
+      "items": [
+        "G01-01",
+        "G01-02",
+        "G01-03",
+        "G01-05",
+        "G01-08",
+        "G01-15",
+        "G01-16",
+        "G01-17"
+      ]
+    },
+    {
+      "name": "Confirming and shortages",
+      "aliases": [
+        "Confirmation",
+        "Delivery"
+      ],
+      "items": [
+        "G01-04",
+        "G01-06",
+        "G01-11",
+        "G01-12",
+        "G01-18"
+      ]
+    },
+    {
+      "name": "Catalogue and prices",
+      "aliases": [
+        "Products",
+        "Pricing"
+      ],
+      "items": [
+        "G01-09",
+        "G01-10"
+      ]
+    },
+    {
+      "name": "Wastage and returns",
+      "aliases": [
+        "Reporting",
+        "Wastage"
+      ],
+      "items": [
+        "G01-07",
+        "G01-13",
+        "G01-14"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G01-01",
+      "meaning": "A shop places the next-day order from a phone or the shop PC until 16:00.",
+      "must_keep": [
+        "16:00",
+        "phone"
+      ],
+      "area": "Ordering",
+      "proposed": "Must"
+    },
+    {
+      "ref": "G01-02",
+      "meaning": "The order form shows the previous order so it can be copied and adjusted.",
+      "must_keep": [
+        "copy"
+      ],
+      "area": "Ordering"
+    },
+    {
+      "ref": "G01-03",
+      "meaning": "Products out of production that day are shown greyed out, not hidden.",
+      "must_keep": [
+        "greyed",
+        "not hidden"
+      ],
+      "area": "Ordering"
+    },
+    {
+      "ref": "G01-04",
+      "meaning": "The central bakery sees all orders in one list by 16:15 and can print it per oven line.",
+      "must_keep": [
+        "16:15",
+        "oven line"
+      ],
+      "area": "Confirming and shortages"
+    },
+    {
+      "ref": "G01-05",
+      "meaning": "A shop manager can set a standing order per weekday, created automatically unless changed by 15:30.",
+      "must_keep": [
+        "standing order",
+        "15:30"
+      ],
+      "area": "Ordering"
+    },
+    {
+      "ref": "G01-06",
+      "meaning": "Order confirmation with totals goes to the shop by SMS and email.",
+      "must_keep": [
+        "SMS",
+        "email"
+      ],
+      "area": "Confirming and shortages",
+      "ambiguous": true
+    },
+    {
+      "ref": "G01-07",
+      "meaning": "At closing the shop records what was thrown away per product and a report compares it with the order.",
+      "must_keep": [
+        "thrown away",
+        "per product"
+      ],
+      "area": "Wastage and returns",
+      "proposed": "Could"
+    },
+    {
+      "ref": "G01-08",
+      "meaning": "The order form also shows the same weekday of the previous week.",
+      "must_keep": [
+        "last week",
+        "same day"
+      ],
+      "area": "Ordering",
+      "duplicate_of": "G01-02"
+    },
+    {
+      "ref": "G01-09",
+      "meaning": "The allergen list per product is visible in the order form.",
+      "must_keep": [
+        "allergen"
+      ],
+      "area": "Catalogue and prices",
+      "proposed": "Must"
+    },
+    {
+      "ref": "G01-10",
+      "meaning": "Prices are set centrally; shops cannot edit them.",
+      "must_keep": [
+        "centrally",
+        "cannot edit"
+      ],
+      "area": "Catalogue and prices"
+    },
+    {
+      "ref": "G01-11",
+      "meaning": "If the bakery cannot deliver the full quantity, the shop is told before 06:00 what is short.",
+      "must_keep": [
+        "06:00",
+        "short"
+      ],
+      "area": "Confirming and shortages"
+    },
+    {
+      "ref": "G01-12",
+      "meaning": "The driver scans the crate label at drop-off so the shop knows the order arrived.",
+      "must_keep": [
+        "scan",
+        "crate label"
+      ],
+      "area": "Confirming and shortages",
+      "ambiguous": true
+    },
+    {
+      "ref": "G01-13",
+      "meaning": "Unsold bread returned to the central bakery for the animal feed partner is counted per crate.",
+      "must_keep": [
+        "returns",
+        "per crate"
+      ],
+      "area": "Wastage and returns"
+    },
+    {
+      "ref": "G01-14",
+      "meaning": "Owners see sales, orders and wastage per shop per week on a dashboard.",
+      "must_keep": [
+        "per shop",
+        "per week"
+      ],
+      "area": "Wastage and returns",
+      "proposed": "Must"
+    },
+    {
+      "ref": "G01-15",
+      "meaning": "Roles: shop manager, shop staff (order only), bakery planner, driver, owner.",
+      "must_keep": [
+        "shop staff",
+        "driver",
+        "owner"
+      ],
+      "area": "Ordering"
+    },
+    {
+      "ref": "G01-16",
+      "meaning": "The shop can keep ordering offline and it syncs when the connection returns.",
+      "must_keep": [
+        "offline",
+        "sync"
+      ],
+      "area": "Ordering",
+      "proposed": "Should"
+    },
+    {
+      "ref": "G01-17",
+      "meaning": "The order cut-off time can differ per shop.",
+      "must_keep": [
+        "cut-off",
+        "per shop"
+      ],
+      "area": "Ordering"
+    },
+    {
+      "ref": "G01-18",
+      "meaning": "A shortage notice names the replacement product when there is one.",
+      "must_keep": [
+        "replacement"
+      ],
+      "area": "Confirming and shortages"
+    }
+  ],
+  "must_not_invent": [
+    "fax ordering",
+    "parking",
+    "WhatsApp confirmation as a requirement (it is a question in the source)",
+    "payment or invoicing",
+    "loyalty cards",
+    "recipes"
+  ],
+  "notes": "Item 6 is ambiguous: WhatsApp is a question, not a channel. Item 12 says \"phase 2?\", so it stays an item, flagged ambiguous for scope; the model must not drop it. Item 8 restates 2 with a second window (last week), which is a real addition, so it is a duplicate only in part; the runner accepts it as its own item or as merged into G01-02 with \"last week\" kept. The meeting notes and the parking line are noise, not items."
+}

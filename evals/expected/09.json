@@ -1,0 +1,193 @@
+{
+  "id": "09",
+  "domain": "Theatre box office",
+  "source": "specs/09-theatre-boxoffice.md",
+  "context": null,
+  "item_count": 13,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Ticket sales",
+      "aliases": [
+        "Sales"
+      ],
+      "items": [
+        "G09-01",
+        "G09-02",
+        "G09-03",
+        "G09-04",
+        "G09-05"
+      ]
+    },
+    {
+      "name": "Entrance",
+      "aliases": [
+        "Access control"
+      ],
+      "items": [
+        "G09-06",
+        "G09-07"
+      ]
+    },
+    {
+      "name": "Reporting and finance",
+      "aliases": [
+        "Finance"
+      ],
+      "items": [
+        "G09-08",
+        "G09-09",
+        "G09-10"
+      ]
+    },
+    {
+      "name": "Audience",
+      "aliases": [
+        "Patrons",
+        "Accounts"
+      ],
+      "items": [
+        "G09-11",
+        "G09-12"
+      ]
+    },
+    {
+      "name": "Accessibility",
+      "aliases": [],
+      "items": [
+        "G09-13"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G09-01",
+      "meaning": "Tickets for reserved seating sell through the box office, the website and authorised resellers from a single seat map.",
+      "must_keep": [
+        "resellers",
+        "single seat map"
+      ],
+      "area": "Ticket sales"
+    },
+    {
+      "ref": "G09-02",
+      "meaning": "A seat is held for at most 10 minutes during an online purchase.",
+      "must_keep": [
+        "10 minutes"
+      ],
+      "area": "Ticket sales"
+    },
+    {
+      "ref": "G09-03",
+      "meaning": "Discounts (students, pensioners, groups of 15 or more, staff) need proof at the box office; discounted online tickets are validated at the entrance.",
+      "must_keep": [
+        "15",
+        "proof",
+        "entrance"
+      ],
+      "area": "Ticket sales"
+    },
+    {
+      "ref": "G09-04",
+      "meaning": "Season subscriptions of 6 performances with a fixed seat.",
+      "must_keep": [
+        "6",
+        "fixed seat"
+      ],
+      "area": "Ticket sales"
+    },
+    {
+      "ref": "G09-05",
+      "meaning": "Never sell more than the declared hall capacity: 486 seats and 4 wheelchair spaces.",
+      "must_keep": [
+        "486",
+        "4"
+      ],
+      "area": "Ticket sales"
+    },
+    {
+      "ref": "G09-06",
+      "meaning": "Tickets scan at the entrance from paper or a phone screen and are accepted once.",
+      "must_keep": [
+        "once",
+        "phone"
+      ],
+      "area": "Entrance"
+    },
+    {
+      "ref": "G09-07",
+      "meaning": "Entrance scanners work without internet for the whole performance.",
+      "must_keep": [
+        "without",
+        "performance"
+      ],
+      "area": "Entrance"
+    },
+    {
+      "ref": "G09-08",
+      "meaning": "A settlement report per performance within 30 minutes of its end, by channel and price category.",
+      "must_keep": [
+        "30 minutes",
+        "channel"
+      ],
+      "area": "Reporting and finance"
+    },
+    {
+      "ref": "G09-09",
+      "meaning": "Author royalties per performance as a percentage of net sales, the percentage set per production.",
+      "must_keep": [
+        "royalties",
+        "net sales",
+        "per production"
+      ],
+      "area": "Reporting and finance"
+    },
+    {
+      "ref": "G09-10",
+      "meaning": "Daily sales export to the accounting system in the Annex C format.",
+      "must_keep": [
+        "Annex C",
+        "daily"
+      ],
+      "area": "Reporting and finance"
+    },
+    {
+      "ref": "G09-11",
+      "meaning": "Patrons may create an account for purchase history and the programme by email; no account is required to buy.",
+      "must_keep": [
+        "not be required",
+        "history"
+      ],
+      "area": "Audience",
+      "ambiguous": true
+    },
+    {
+      "ref": "G09-12",
+      "meaning": "All purchases require a patron account so marketing can contact the audience.",
+      "must_keep": [
+        "require",
+        "marketing"
+      ],
+      "area": "Audience",
+      "ambiguous": true
+    },
+    {
+      "ref": "G09-13",
+      "meaning": "The website conforms to WCAG 2.1 AA; wheelchair spaces are bookable online with an adjacent companion seat.",
+      "must_keep": [
+        "WCAG",
+        "companion"
+      ],
+      "area": "Accessibility"
+    }
+  ],
+  "must_not_invent": [
+    "the contents of Annex C",
+    "a resolution of the account contradiction (the model flags it, it does not pick a side)",
+    "a loyalty scheme",
+    "a mobile app",
+    "dynamic pricing",
+    "a seat map for standing performances"
+  ],
+  "notes": "3.4.1 and 3.4.2 contradict each other. Both are expected as items, both flagged ambiguous, and the ambiguity flag should name the contradiction. Dropping one of them, or rewriting one to agree with the other, is a failure. \"Shall\" wording becomes plain sentences in the reader version without losing the numbers."
+}

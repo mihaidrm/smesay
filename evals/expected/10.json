@@ -1,0 +1,161 @@
+{
+  "id": "10",
+  "domain": "Beekeeping cooperative traceability",
+  "source": "specs/10-honey-traceability.md",
+  "context": null,
+  "item_count": 10,
+  "item_count_tolerance": 1,
+  "areas": [
+    {
+      "name": "Harvest and batches",
+      "aliases": [
+        "Batches",
+        "Harvests"
+      ],
+      "items": [
+        "G10-02",
+        "G10-03",
+        "G10-08"
+      ]
+    },
+    {
+      "name": "Lab and quality",
+      "aliases": [
+        "Lab results"
+      ],
+      "items": [
+        "G10-04",
+        "G10-10"
+      ]
+    },
+    {
+      "name": "Labels and public page",
+      "aliases": [
+        "Traceability",
+        "Consumer page"
+      ],
+      "items": [
+        "G10-01",
+        "G10-05",
+        "G10-09"
+      ]
+    },
+    {
+      "name": "Stock and sales",
+      "aliases": [
+        "Warehouse",
+        "Sales"
+      ],
+      "items": [
+        "G10-06",
+        "G10-07"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ref": "G10-01",
+      "meaning": "Every jar has a QR code opening a page with the beekeeper, the apiary village (not GPS), the harvest date and the lab result.",
+      "must_keep": [
+        "QR",
+        "village",
+        "not GPS"
+      ],
+      "area": "Labels and public page"
+    },
+    {
+      "ref": "G10-02",
+      "meaning": "Beekeepers record each harvest from their phone: apiary, date, kg, honey type.",
+      "must_keep": [
+        "phone",
+        "kg",
+        "type"
+      ],
+      "area": "Harvest and batches"
+    },
+    {
+      "ref": "G10-03",
+      "meaning": "A batch mixes honey from several beekeepers and its page lists each with their share.",
+      "must_keep": [
+        "batch",
+        "share"
+      ],
+      "area": "Harvest and batches"
+    },
+    {
+      "ref": "G10-04",
+      "meaning": "Lab results attach to the batch as the lab PDF; the public page shows pass or fail only, not the numbers.",
+      "must_keep": [
+        "PDF",
+        "pass",
+        "not the numbers"
+      ],
+      "area": "Lab and quality"
+    },
+    {
+      "ref": "G10-05",
+      "meaning": "Labels with the batch number and QR print on the cooperative's Zebra printer.",
+      "must_keep": [
+        "Zebra",
+        "batch number"
+      ],
+      "area": "Labels and public page"
+    },
+    {
+      "ref": "G10-06",
+      "meaning": "Warehouse stock in kg per honey type, by batch.",
+      "must_keep": [
+        "kg",
+        "by batch"
+      ],
+      "area": "Stock and sales"
+    },
+    {
+      "ref": "G10-07",
+      "meaning": "Sales to shops with an invoice per shop; honey leaves stock by batch, oldest first.",
+      "must_keep": [
+        "invoice",
+        "oldest first"
+      ],
+      "area": "Stock and sales"
+    },
+    {
+      "ref": "G10-08",
+      "meaning": "A beekeeper sees only their own harvests and the batches they are part of.",
+      "must_keep": [
+        "only their own"
+      ],
+      "area": "Harvest and batches"
+    },
+    {
+      "ref": "G10-09",
+      "meaning": "No public map of apiaries; the public page shows the village only.",
+      "must_keep": [
+        "no",
+        "map",
+        "village"
+      ],
+      "area": "Labels and public page"
+    },
+    {
+      "ref": "G10-10",
+      "meaning": "Pass or fail thresholds are set per honey type (acacia and polyfloral have different moisture limits); the lab also sends a CSV with HMF, moisture, diastase and pollen origin.",
+      "must_keep": [
+        "per honey type",
+        "moisture",
+        "CSV"
+      ],
+      "area": "Lab and quality",
+      "ambiguous": true
+    }
+  ],
+  "must_not_invent": [
+    "a public apiary map",
+    "a price on the public page (open question, not decided)",
+    "GPS coordinates",
+    "selling outside the cooperative (open question)",
+    "hosting arrangements",
+    "an online shop for consumers"
+  ],
+  "notes": "The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not items; a model that turns \"do we show the price\" into a requirement has invented one. Item 9 is a negative requirement and stays."
+}

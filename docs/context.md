@@ -46,13 +46,13 @@ styleguide page, E1 stories, open questions before E1.
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
-Phase 1, Design (now to about 17 October): Done 5 of 6 steps. Left: Golden set. 1 drafted, waits for Mihai
+Phase 1, Design (now to about 17 October): Done 6 of 6 steps. 2 drafted, waits for Mihai
 - 1.1 Landing page E: done.
 - 1.2 Respondent prototype: done.
 - 1.3 PM prototype: done.
 - 1.4 Design system: done.
 - 1.5 Copy: drafted, waits for Mihai's approval.
-- 1.6 Golden set: open.
+- 1.6 Golden set: drafted, waits for Mihai's approval.
 - 1.7 Trademark check: Mihai, when ready.
 <!-- /sync:phases -->
 
