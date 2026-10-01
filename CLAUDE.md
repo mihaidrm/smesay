@@ -19,6 +19,10 @@ steps for Mihai are in docs/accounts.md.
 Write plain English. Follow WRITING.md and run `npm run scan:copy` on any user-facing text.
 No em dashes anywhere, code comments included.
 
+A change is not done until everything it touches says the same thing: every canvas board, every
+file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording before reporting
+(decision 0017).
+
 Decisions are Mihai's. Ask, recommend one option, wait for approval. When you think Mihai is
 making a mistake, say so before doing it, with the reason and what you would do instead; then do
 what he decides (decision 0007). If two requirements
@@ -59,6 +63,10 @@ Data and security
 - Tokens come from crypto.randomBytes(16) or stronger.
 - Every schema change has a migration. A test proves a user in workspace A cannot read workspace B.
 - Change a shared shape in INTERFACES.md first, then in the code.
+
+Every side
+- Every screen is designed for desktop (1440) and phone (390), desktop first, in the same
+  pass (decision 0015). The respondent side is the exception: phone first, desktop second.
 
 PM side
 - Every screen has empty, loading and error states. Every form validates on the server.

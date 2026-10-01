@@ -1,64 +1,96 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Respondent journey, phone</title>
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<style>
-body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
-a{color:#0E6B63}a:hover{color:#0A4F49}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}button:disabled{cursor:not-allowed}
-.hov:hover:not(:disabled){filter:brightness(0.94)}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #0E6B63;outline-offset:2px}
-.col{width:100%;max-width:640px;margin:0 auto;box-sizing:border-box}
-</style>
-</helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden">
+# Respondent prototype generator. Needs Python 3.12 or later (nested quotes in f-strings).
+# Usage: python3.13 respondent-generator.py [output directory]   (default: the script's directory)
+# Writes Respondent.dc.html (phone, 390 by 844) and RespondentDesktop.dc.html (desktop, 1440 by 900).
+import pathlib, sys
+OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).resolve().parent
+FONT = "<link href=\"https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap\" rel=\"stylesheet\">"
+MARK = '<svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg>'
+POWERED = f'<div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #5B6069; padding: 8px 0">Powered by {MARK}<span style="font-weight: 600; color: #16181C">S<span style="color: #0E6B63">ME</span>say</span></div>'
+P_BTN = 'class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px'
+S_BTN = 'class="hov" style="min-height: 48px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; font-size: 17px'
+INPUT = 'min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; font-size: 17px'
+TA = 'box-sizing: border-box; padding: 12px 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none; font-size: 17px; line-height: 26px'
 
+def pill(pre, label=None):
+    lab = label if label is not None else f'{{{{v.{pre}Label}}}}'
+    return f'<sc-if value="{{{{v.{pre}Show}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" class="hov" onClick="{{{{v.{pre}Pick}}}}" aria-pressed="{{{{v.{pre}On}}}}" style="flex-grow: 1; min-height: 44px; padding: 0 10px; border: 1px solid {{{{v.{pre}Bd}}}}; border-radius: 999px; background: {{{{v.{pre}Bg}}}}; color: {{{{v.{pre}Fg}}}}; font-size: 14px; font-weight: 500; white-space: nowrap">{lab}</button></sc-if>'
+def textarea(id_, label):
+    return f'<label for="{id_}" style="font-size: 14px; font-weight: 500">{label}</label>\n<textarea id="{id_}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="{TA}"></textarea>'
+def scroll(inner, gap=20):
+    return f'<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: {gap}px">{inner}</div></div>'
+def footer(inner):
+    return f'<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px">{inner}</div></div>'
+def notice(title, body, extra=''):
+    return f'''<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
+<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
+<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{title}</h1>
+<div style="color: #454A52">{body}</div>{extra}
+</div></div>'''
+
+card = f'''<fieldset style="margin: 0; padding: 12px 14px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<legend style="padding: 0; float: left; width: 100%; display: flex; align-items: baseline; gap: 8px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{{{v.ref}}}}</span>
+<span style="font-size: 15px; line-height: 22px; font-weight: 500">{{{{v.text}}}}</span>
+</legend>
+<sc-if value="{{{{v.detailsOpen}}}}" hint-placeholder-val="{{{{false}}}}"><div style="font-size: 14px; line-height: 20px; color: #454A52; clear: both; padding: 8px 10px; border-radius: 8px; background: #F6F6F4">{{{{v.detail}}}}</div></sc-if>
+<div style="display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; clear: both">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 36px; flex-shrink: 0">Your rating</span>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p1Pick}}}}" aria-pressed="{{{{v.p1On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p1BdStyle}}}} {{{{v.p1Bd}}}}; border-radius: 999px; background: {{{{v.p1Bg}}}}; color: {{{{v.p1Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p1Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p1Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p2Pick}}}}" aria-pressed="{{{{v.p2On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p2BdStyle}}}} {{{{v.p2Bd}}}}; border-radius: 999px; background: {{{{v.p2Bg}}}}; color: {{{{v.p2Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p2Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p2Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p3Pick}}}}" aria-pressed="{{{{v.p3On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p3BdStyle}}}} {{{{v.p3Bd}}}}; border-radius: 999px; background: {{{{v.p3Bg}}}}; color: {{{{v.p3Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p3Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p3Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.p4Pick}}}}" aria-pressed="{{{{v.p4On}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.p4BdStyle}}}} {{{{v.p4Bd}}}}; border-radius: 999px; background: {{{{v.p4Bg}}}}; color: {{{{v.p4Fg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.p4Label}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.p4Cap}}}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{{{v.unPick}}}}" aria-pressed="{{{{v.unOn}}}}" style="min-height: 36px; padding: 0 12px; border: 1px {{{{v.unBdStyle}}}} {{{{v.unBd}}}}; border-radius: 999px; background: {{{{v.unBg}}}}; color: {{{{v.unFg}}}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{{{v.unLabel}}}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{{{v.unCap}}}}</span></div>
+</div>
+<sc-if value="{{{{v.commentOpen}}}}" hint-placeholder-val="{{{{false}}}}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="r-c-{{{{v.id}}}}" style="font-size: 13px; font-weight: 500">{{{{v.commentLabel}}}}</label>
+<textarea id="r-c-{{{{v.id}}}}" rows="2" value="{{{{v.answerText}}}}" onChange="{{{{v.setText}}}}" style="box-sizing: border-box; padding: 8px 12px; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; resize: none; font-size: 15px; line-height: 22px"></textarea>
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px">
+<div style="display: flex; gap: 14px">
+<button type="button" onClick="{{{{v.toggleDetails}}}}" aria-expanded="{{{{v.detailsOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.detailsLabel}}}}</button>
+<sc-if value="{{{{v.showCommentToggle}}}}" hint-placeholder-val="{{{{true}}}}"><button type="button" onClick="{{{{v.toggleComment}}}}" aria-expanded="{{{{v.commentOpen}}}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{{{v.commentToggleLabel}}}}</button></sc-if>
+</div>
+<div aria-live="polite" style="color: {{{{v.noteFg}}}}; text-align: right">{{{{v.note}}}}</div>
+</div>
+</fieldset>'''
+
+screens = f'''
 <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #E6E4DF">
 <div style="display: flex; align-items: center; gap: 10px">
 <div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div>
 <div style="font-size: 15px; font-weight: 500">Marlow Group</div>
 </div>
-<div aria-live="polite" style="font-size: 13px; color: {{headerFg}}">{{headerNote}}</div>
+<div aria-live="polite" style="font-size: 13px; color: {{{{headerFg}}}}">{{{{headerNote}}}}</div>
 </div>
 
-<sc-if value="{{showNav}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{{{showNav}}}}" hint-placeholder-val="{{{{true}}}}">
 <div style="flex-shrink: 0; border-bottom: 1px solid #E6E4DF; overflow-x: auto"><div class="col" style="display: flex; gap: 6px; padding: 10px 20px; min-width: max-content">
-<sc-for list="{{chapters}}" as="ch" hint-placeholder-count="5">
-<button type="button" class="hov" onClick="{{ch.go}}" aria-current="{{ch.current}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{ch.bd}}; border-radius: 999px; background: {{ch.bg}}; color: {{ch.fg}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap"><span>{{ch.label}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{ch.meta}}</span></button>
+<sc-for list="{{{{chapters}}}}" as="ch" hint-placeholder-count="5">
+<button type="button" class="hov" onClick="{{{{ch.go}}}}" aria-current="{{{{ch.current}}}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{{{ch.bd}}}}; border-radius: 999px; background: {{{{ch.bg}}}}; color: {{{{ch.fg}}}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap"><span>{{{{ch.label}}}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{{{ch.meta}}}}</span></button>
 </sc-for>
 </div></div>
-<div class="col" style="flex-shrink: 0; padding: 0 20px"><div role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="{{answeredCount}}" aria-label="Items answered" style="height: 4px; background: #ECEAE5"><div style="height: 4px; background: {{accent}}; width: {{progressWidth}}; transition: width 250ms ease-out"></div></div></div>
+<div class="col" style="flex-shrink: 0; padding: 0 20px"><div role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="{{{{answeredCount}}}}" aria-label="Items answered" style="height: 4px; background: #ECEAE5"><div style="height: 4px; background: {{{{accent}}}}; width: {{{{progressWidth}}}}; transition: width 250ms ease-out"></div></div></div>
 </sc-if>
 
-<sc-if value="{{isOffline}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isOffline}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="flex-shrink: 0; padding: 10px 20px; background: #FBF1DC; color: #7A5210; font-size: 14px"><div class="col">Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.</div></div>
 </sc-if>
 
-<sc-if value="{{isAbout}}" hint-placeholder-val="{{true}}">
-<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 20px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
+<sc-if value="{{{{isAbout}}}}" hint-placeholder-val="{{{{true}}}}">
+{scroll(f'''<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
 <div style="color: #454A52">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
-<sc-if value="{{isReturning}}" hint-placeholder-val="{{false}}">
-<div style="background: #E3F1EF; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500">Welcome back{{returnName}}</div><div style="font-size: 15px; color: #454A52">You answered {{answeredCount}} of 6 last time. Your answers are saved on this device.</div><button type="button" onClick="{{resumeGo}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; align-self: flex-start; min-height: 44px; font-size: 15px">Carry on</button></div>
+<sc-if value="{{{{isReturning}}}}" hint-placeholder-val="{{{{false}}}}">
+<div style="background: #E3F1EF; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500">Welcome back{{{{returnName}}}}</div><div style="font-size: 15px; color: #454A52">You answered {{{{answeredCount}}}} of 6 last time. Your answers are saved on this device.</div><button type="button" onClick="{{{{resumeGo}}}}" {P_BTN}; align-self: flex-start; min-height: 44px; font-size: 15px">Carry on</button></div>
 </sc-if>
-<sc-if value="{{isPersonal}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isPersonal}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="background: #F6F6F4; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 15px"><div><span style="color: #5B6069">Name</span> Ioana Marin</div><div><span style="color: #5B6069">Role</span> Sales</div><div style="color: #5B6069; font-size: 13px">Set by the project team for your personal link. Not you? [CONTACT LINK]</div></div>
 </sc-if>
-<sc-if value="{{askFields}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{{{askFields}}}}" hint-placeholder-val="{{{{true}}}}">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-name" style="font-size: 14px; font-weight: 500">Your name</label>
-<input id="r-name" type="text" value="{{name}}" onChange="{{setName}}" autocomplete="name" style="min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; font-size: 17px">
+<input id="r-name" type="text" value="{{{{name}}}}" onChange="{{{{setName}}}}" autocomplete="name" style="{INPUT}">
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-role" style="font-size: 14px; font-weight: 500">Your role</label>
-<select id="r-role" value="{{role}}" onChange="{{setRole}}" style="min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; font-size: 17px">
+<select id="r-role" value="{{{{role}}}}" onChange="{{{{setRole}}}}" style="{INPUT}">
 <option value="">Choose a role</option>
 <option value="Sales">Sales</option>
 <option value="Finance">Finance</option>
@@ -68,143 +100,110 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </sc-if>
 <div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device, so you can close this page and come back. [PRIVACY NOTICE LINK]</div>
-<div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #5B6069; padding: 8px 0">Powered by <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg><span style="font-weight: 600; color: #16181C">S<span style="color: #0E6B63">ME</span>say</span></div></div></div>
-<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{start}}" disabled="{{startDisabled}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; opacity: {{startOpacity}}">Start with Submitting</button>
-<sc-if value="{{startDisabled}}" hint-placeholder-val="{{false}}"><div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div></sc-if></div></div>
+{POWERED}''')}
+{footer(f'''<button type="button" onClick="{{{{start}}}}" disabled="{{{{startDisabled}}}}" {P_BTN}; opacity: {{{{startOpacity}}}}">Start with Submitting</button>
+<sc-if value="{{{{startDisabled}}}}" hint-placeholder-val="{{{{false}}}}"><div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div></sc-if>''')}
 </sc-if>
 
-<sc-if value="{{isArea}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isArea}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 16px 20px 20px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{areaName}}</h1><div style="font-size: 14px; color: #5B6069">{{areaIntro}}</div></div>
-<div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: start">
-<sc-for list="{{visible}}" as="v" hint-placeholder-count="2">
-<fieldset style="margin: 0; padding: 12px 14px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0">
-<legend style="padding: 0; float: left; width: 100%; display: flex; align-items: baseline; gap: 8px">
-<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{v.ref}}</span>
-<span style="font-size: 15px; line-height: 22px; font-weight: 500">{{v.text}}</span>
-</legend>
-<sc-if value="{{v.detailsOpen}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; line-height: 20px; color: #454A52; clear: both; padding: 8px 10px; border-radius: 8px; background: #F6F6F4">{{v.detail}}</div></sc-if>
-<div style="display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; clear: both">
-<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 36px; flex-shrink: 0">Your rating</span>
-<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{v.p1Pick}}" aria-pressed="{{v.p1On}}" style="min-height: 36px; padding: 0 12px; border: 1px {{v.p1BdStyle}} {{v.p1Bd}}; border-radius: 999px; background: {{v.p1Bg}}; color: {{v.p1Fg}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{v.p1Label}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{v.p1Cap}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{v.p2Pick}}" aria-pressed="{{v.p2On}}" style="min-height: 36px; padding: 0 12px; border: 1px {{v.p2BdStyle}} {{v.p2Bd}}; border-radius: 999px; background: {{v.p2Bg}}; color: {{v.p2Fg}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{v.p2Label}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{v.p2Cap}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{v.p3Pick}}" aria-pressed="{{v.p3On}}" style="min-height: 36px; padding: 0 12px; border: 1px {{v.p3BdStyle}} {{v.p3Bd}}; border-radius: 999px; background: {{v.p3Bg}}; color: {{v.p3Fg}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{v.p3Label}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{v.p3Cap}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{v.p4Pick}}" aria-pressed="{{v.p4On}}" style="min-height: 36px; padding: 0 12px; border: 1px {{v.p4BdStyle}} {{v.p4Bd}}; border-radius: 999px; background: {{v.p4Bg}}; color: {{v.p4Fg}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{v.p4Label}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{v.p4Cap}}</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><button type="button" class="hov" onClick="{{v.unPick}}" aria-pressed="{{v.unOn}}" style="min-height: 36px; padding: 0 12px; border: 1px {{v.unBdStyle}} {{v.unBd}}; border-radius: 999px; background: {{v.unBg}}; color: {{v.unFg}}; font-size: 13px; font-weight: 500; white-space: nowrap">{{v.unLabel}}</button><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px">{{v.unCap}}</span></div>
-</div>
-<sc-if value="{{v.commentOpen}}" hint-placeholder-val="{{false}}">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="r-c-{{v.id}}" style="font-size: 13px; font-weight: 500">{{v.commentLabel}}</label>
-<textarea id="r-c-{{v.id}}" rows="2" value="{{v.answerText}}" onChange="{{v.setText}}" style="box-sizing: border-box; padding: 8px 12px; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; resize: none; font-size: 15px; line-height: 22px"></textarea>
-</div>
-</sc-if>
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px">
-<div style="display: flex; gap: 14px">
-<button type="button" onClick="{{v.toggleDetails}}" aria-expanded="{{v.detailsOpen}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{v.detailsLabel}}</button>
-<sc-if value="{{v.showCommentToggle}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{v.toggleComment}}" aria-expanded="{{v.commentOpen}}" style="min-height: 32px; padding: 0; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">{{v.commentToggleLabel}}</button></sc-if>
-</div>
-<div aria-live="polite" style="color: {{v.noteFg}}; text-align: right">{{v.note}}</div>
-</div>
-</fieldset>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{{{areaName}}}}</h1><div style="font-size: 14px; color: #5B6069">{{{{areaIntro}}}}</div></div>
+<div style="display: grid; grid-template-columns: repeat(COLS, minmax(0, 1fr)); gap: 10px; align-items: start">
+<sc-for list="{{{{visible}}}}" as="v" hint-placeholder-count="2">
+{card}
 </sc-for>
 </div>
 </div></div>
-<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><div style="display: flex; gap: 10px">
-<button type="button" onClick="{{back}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; font-size: 17px">Back</button>
-<button type="button" onClick="{{next}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; flex-grow: 1">{{nextLabel}}</button>
+{footer(f'''<div style="display: flex; gap: 10px">
+<button type="button" onClick="{{{{back}}}}" {S_BTN}">Back</button>
+<button type="button" onClick="{{{{next}}}}" {P_BTN}; flex-grow: 1">{{{{nextLabel}}}}</button>
 </div>
-<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{chapterNote}}</div></div></div>
+<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{{{chapterNote}}}}</div>''')}
 </sc-if>
 
-<sc-if value="{{isWrap}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col" style="display: flex; flex-direction: column; gap: 18px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Wrap up</h1>
-<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
-<sc-for list="{{tally}}" as="t" hint-placeholder-count="5">
-<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; line-height: 26px; color: {{t.fg}}">{{t.n}}</div><div style="font-size: 12px; line-height: 16px; color: #5B6069">{{t.label}}</div></div>
+<sc-if value="{{{{isWrap}}}}" hint-placeholder-val="{{{{false}}}}">
+{scroll(f'''<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Wrap up</h1>
+<div style="display: grid; grid-template-columns: repeat(TALLYCOLS, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{{{tally}}}}" as="t" hint-placeholder-count="5">
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; line-height: 26px; color: {{{{t.fg}}}}">{{{{t.n}}}}</div><div style="font-size: 12px; line-height: 16px; color: #5B6069">{{{{t.label}}}}</div></div>
 </sc-for>
 </div>
-<sc-if value="{{hasGaps}}" hint-placeholder-val="{{false}}">
-<div style="background: #FBF1DC; color: #7A5210; border-radius: 12px; padding: 12px 16px; font-size: 15px; display: flex; flex-direction: column; gap: 6px"><div>{{gapLine}}</div><button type="button" onClick="{{gapGo}}" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border: 1px solid #7A5210; border-radius: 999px; background: #FFFFFF; color: #7A5210; font-weight: 500; font-size: 15px">Go to {{gapChapter}}</button></div>
+<sc-if value="{{{{hasGaps}}}}" hint-placeholder-val="{{{{false}}}}">
+<div style="background: #FBF1DC; color: #7A5210; border-radius: 12px; padding: 12px 16px; font-size: 15px; display: flex; flex-direction: column; gap: 6px"><div>{{{{gapLine}}}}</div><button type="button" onClick="{{{{gapGo}}}}" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border: 1px solid #7A5210; border-radius: 999px; background: #FFFFFF; color: #7A5210; font-weight: 500; font-size: 15px">Go to {{{{gapChapter}}}}</button></div>
 </sc-if>
-<sc-for list="{{sections}}" as="sec" hint-placeholder-count="2">
+<sc-for list="{{{{sections}}}}" as="sec" hint-placeholder-count="2">
 <div style="display: flex; flex-direction: column; gap: 8px">
-<div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 15px; font-weight: 500">{{sec.title}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{sec.count}}</span></div>
-<sc-for list="{{sec.rows}}" as="r" hint-placeholder-count="2">
+<div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 15px; font-weight: 500">{{{{sec.title}}}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{{{sec.count}}}}</span></div>
+<sc-for list="{{{{sec.rows}}}}" as="r" hint-placeholder-count="2">
 <div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px">
-<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px"><div style="font-size: 15px; line-height: 22px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069">{{r.ref}}</span> {{r.text}}</div><button type="button" onClick="{{r.edit}}" aria-label="{{r.aria}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #0E6B63; font-size: 14px; font-weight: 500; flex-shrink: 0">Change</button></div>
-<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px"><span style="padding: 2px 10px; border-radius: 999px; background: {{r.bg}}; color: {{r.fg}}; border: 1px {{r.bdStyle}} {{r.bd}}; font-size: 12px; font-weight: 500">{{r.status}}</span><sc-if value="{{r.hasDetail}}" hint-placeholder-val="{{false}}"><span style="color: #454A52">{{r.detail}}</span></sc-if></div>
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px"><div style="font-size: 15px; line-height: 22px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069">{{{{r.ref}}}}</span> {{{{r.text}}}}</div><button type="button" onClick="{{{{r.edit}}}}" aria-label="{{{{r.aria}}}}" style="min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #0E6B63; font-size: 14px; font-weight: 500; flex-shrink: 0">Change</button></div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px"><span style="padding: 2px 10px; border-radius: 999px; background: {{{{r.bg}}}}; color: {{{{r.fg}}}}; border: 1px {{{{r.bdStyle}}}} {{{{r.bd}}}}; font-size: 12px; font-weight: 500">{{{{r.status}}}}</span><sc-if value="{{{{r.hasDetail}}}}" hint-placeholder-val="{{{{false}}}}"><span style="color: #454A52">{{{{r.detail}}}}</span></sc-if></div>
 </div>
 </sc-for>
 </div>
 </sc-for>
-<sc-if value="{{nothingToReview}}" hint-placeholder-val="{{false}}"><div style="color: #5B6069; font-size: 15px">You agreed with every proposed value. Nothing to review here.</div></sc-if>
+<sc-if value="{{{{nothingToReview}}}}" hint-placeholder-val="{{{{false}}}}"><div style="color: #5B6069; font-size: 15px">You agreed with every proposed value. Nothing to review here.</div></sc-if>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-missing" style="font-size: 14px; font-weight: 500">Is anything missing from the list? Optional.</label>
-<textarea id="r-missing" rows="3" value="{{missingText}}" onChange="{{setMissing}}" style="box-sizing: border-box; padding: 12px 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none; font-size: 17px; line-height: 26px"></textarea>
+<textarea id="r-missing" rows="3" value="{{{{missingText}}}}" onChange="{{{{setMissing}}}}" style="{TA}"></textarea>
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-closing" style="font-size: 14px; font-weight: 500">Anything else the team should know? Optional. [PM CLOSING QUESTION]</label>
-<textarea id="r-closing" rows="2" value="{{closingText}}" onChange="{{setClosing}}" style="box-sizing: border-box; padding: 12px 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none; font-size: 17px; line-height: 26px"></textarea>
+<textarea id="r-closing" rows="2" value="{{{{closingText}}}}" onChange="{{{{setClosing}}}}" style="{TA}"></textarea>
 </div>
 <div style="display: flex; flex-direction: column; gap: 8px">
 <div style="font-size: 14px; font-weight: 500">How confident are you in these answers?</div>
 <div style="display: flex; gap: 8px">
-<sc-for list="{{confidence}}" as="k" hint-placeholder-count="5">
-<button type="button" class="hov" onClick="{{k.pick}}" aria-pressed="{{k.active}}" aria-label="{{k.aria}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{k.bd}}; border-radius: 12px; background: {{k.bg}}; color: {{k.fg}}; font-family: 'Geist Mono', monospace">{{k.n}}</button>
+<sc-for list="{{{{confidence}}}}" as="k" hint-placeholder-count="5">
+<button type="button" class="hov" onClick="{{{{k.pick}}}}" aria-pressed="{{{{k.active}}}}" aria-label="{{{{k.aria}}}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{{{k.bd}}}}; border-radius: 12px; background: {{{{k.bg}}}}; color: {{{{k.fg}}}}; font-family: 'Geist Mono', monospace">{{{{k.n}}}}</button>
 </sc-for>
 </div>
 <div style="display: flex; justify-content: space-between; font-size: 13px; color: #5B6069"><div>Guessing</div><div>Certain</div></div>
 </div>
 <label for="r-sign" style="display: flex; align-items: center; gap: 12px; background: #F6F6F4; border-radius: 12px; padding: 12px 16px; min-height: 48px; box-sizing: border-box">
-<input id="r-sign" type="checkbox" checked="{{signed}}" onChange="{{toggleSigned}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
+<input id="r-sign" type="checkbox" checked="{{{{signed}}}}" onChange="{{{{toggleSigned}}}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
 <span style="font-size: 15px">I confirm these answers reflect my view as of today. [PM SIGN-OFF WORDING]</span>
 </label>
-<div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #5B6069; padding: 8px 0">Powered by <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg><span style="font-weight: 600; color: #16181C">S<span style="color: #0E6B63">ME</span>say</span></div></div></div>
-<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{submit}}" disabled="{{submitDisabled}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; opacity: {{submitOpacity}}">{{submitLabel}}</button>
-<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{submitNote}}</div></div></div>
+{POWERED}''', 18)}
+{footer(f'''<button type="button" onClick="{{{{submit}}}}" disabled="{{{{submitDisabled}}}}" {P_BTN}; opacity: {{{{submitOpacity}}}}">{{{{submitLabel}}}}</button>
+<div aria-live="polite" style="font-size: 14px; color: #5B6069; text-align: center">{{{{submitNote}}}}</div>''')}
 </sc-if>
 
-<sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{{{isDone}}}}" hint-placeholder-val="{{{{false}}}}">
 <div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
 <div style="width: 56px; height: 56px; border-radius: 999px; background: #E6F4EC; display: flex; align-items: center; justify-content: center">
 <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#22643F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 </div>
 <h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Answers submitted</h1>
-<div style="color: #454A52">{{thanks}} The project team can see your answers now.</div>
+<div style="color: #454A52">{{{{thanks}}}} The project team can see your answers now.</div>
 <div style="background: #F6F6F4; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
-<div>{{summaryLine}}</div>
-<div style="color: #5B6069; font-family: 'Geist Mono', monospace; font-size: 13px">{{submittedAt}}</div>
+<div>{{{{summaryLine}}}}</div>
+<div style="color: #5B6069; font-family: 'Geist Mono', monospace; font-size: 13px">{{{{submittedAt}}}}</div>
 </div>
 <div style="color: #5B6069; font-size: 15px">You can change your answers until 20 October 2026. Open the same link again.</div>
-<div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #5B6069; padding: 8px 0">Powered by <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg><span style="font-weight: 600; color: #16181C">S<span style="color: #0E6B63">ME</span>say</span></div>
+{POWERED}
 </div></div>
-<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col" style="display: flex; flex-direction: column; gap: 8px"><button type="button" onClick="{{reopen}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; font-size: 17px">Change my answers</button></div></div>
+{footer(f'''<button type="button" onClick="{{{{reopen}}}}" {S_BTN}">Change my answers</button>''')}
 </sc-if>
 
-<sc-if value="{{isClosed}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
-<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
-<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Link closed</h1>
-<div style="color: #454A52">The project team at Marlow Group stopped collecting answers for the new expense tool on 20 October 2026. Nothing you sent is lost.</div><sc-if value="{{closedDetail}}" hint-placeholder-val="{{false}}"><div style="background: #F6F6F4; border-radius: 12px; padding: 12px 16px; font-size: 15px">{{closedLine}}</div></sc-if><div style="color: #5B6069; font-size: 15px">If you were still answering, contact the project team: [PM CONTACT]</div>
-</div></div>
+<sc-if value="{{{{isClosed}}}}" hint-placeholder-val="{{{{false}}}}">
+{notice('Link closed', 'The project team at Marlow Group stopped collecting answers for the new expense tool on 20 October 2026. Nothing you sent is lost.', '<sc-if value="{{closedDetail}}" hint-placeholder-val="{{false}}"><div style="background: #F6F6F4; border-radius: 12px; padding: 12px 16px; font-size: 15px">{{closedLine}}</div></sc-if><div style="color: #5B6069; font-size: 15px">If you were still answering, contact the project team: [PM CONTACT]</div>')}
 </sc-if>
 
-<sc-if value="{{isRevoked}}" hint-placeholder-val="{{false}}">
-<div style="flex-grow: 1; padding: 48px 20px 24px 20px"><div class="col" style="display: flex; flex-direction: column; gap: 16px">
-<div style="width: 56px; height: 56px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#454A52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
-<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">Link inactive</h1>
-<div style="color: #454A52">The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div>
-</div></div>
+<sc-if value="{{{{isRevoked}}}}" hint-placeholder-val="{{{{false}}}}">
+{notice('Link inactive', 'The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.', '<div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div>')}
 </sc-if>
 
 <div style="flex-shrink: 0; border-top: 1px dashed #C9C7C1; background: #F6F6F4; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; font-size: 12px; color: #5B6069">
 <span>Prototype:</span>
-<button type="button" onClick="{{toggleLayout}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Layout: {{layoutLabel}}</button>
-<button type="button" onClick="{{toggleBlind}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Proposed value: {{blindLabel}}</button>
-<button type="button" onClick="{{cycleLink}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Link: {{linkLabel}}</button>
-<button type="button" onClick="{{toggleOffline}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Connection: {{connLabel}}</button>
+<button type="button" onClick="{{{{toggleLayout}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Layout: {{{{layoutLabel}}}}</button>
+<button type="button" onClick="{{{{toggleBlind}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Proposed value: {{{{blindLabel}}}}</button>
+<button type="button" onClick="{{{{cycleLink}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Link: {{{{linkLabel}}}}</button>
+<button type="button" onClick="{{{{toggleOffline}}}}" style="min-height: 32px; border: 0; background: transparent; padding: 0; font-size: 12px; color: #0E6B63; text-decoration: underline">Connection: {{{{connLabel}}}}</button>
 </div>
+'''
 
-</div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#1F4F7A","options":["#1F4F7A","#0E6B63","#16181C","#7C3AED"]},"$preview":{"width":390,"height":844}}'>
-class Component extends DCLogic {
+JS = r'''class Component extends DCLogic {
 state = { details: {}, comments: {}, screen: 'about', area: 'Submitting', name: '', role: '', answers: {}, missingText: '', closingText: '', confidence: 0, signed: false, submittedAt: '', submitting: false, blind: false, link: 'open', offline: false, wasPersonal: false, layout: 'chapters', idx: 0 };
 
 items() {
@@ -408,7 +407,42 @@ this.setState(base);
 }
 };
 }
-}
+}'''
+
+def page(title, root_style, header_pad, w, h, cols=1, colw=640):
+    s = screens.replace('repeat(COLS, minmax(0, 1fr))', f'repeat({cols}, minmax(0, 1fr))').replace('repeat(TALLYCOLS, minmax(0, 1fr))', f'repeat({3 if cols == 1 else 5}, minmax(0, 1fr))').replace('padding: 12px 20px; border-bottom: 1px solid #E6E4DF">', f'padding: 12px {header_pad}; border-bottom: 1px solid #E6E4DF">', 1)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{title}</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+{FONT}
+<style>
+body{{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}}
+a{{color:#0E6B63}}a:hover{{color:#0A4F49}}
+button,input,select,textarea{{font:inherit;color:inherit}}
+button{{cursor:pointer}}button:disabled{{cursor:not-allowed}}
+.hov:hover:not(:disabled){{filter:brightness(0.94)}}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{{outline:2px solid #0E6B63;outline-offset:2px}}
+.col{{width:100%;max-width:{colw}px;margin:0 auto;box-sizing:border-box}}
+</style>
+</helmet>
+<div style="{root_style}">
+{s}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{{"accent":{{"editor":"color","default":"#1F4F7A","options":["#1F4F7A","#0E6B63","#16181C","#7C3AED"]}},"$preview":{{"width":{w},"height":{h}}}}}'>
+{JS}
 </script>
 </body>
 </html>
+"""
+OUT.mkdir(parents=True, exist_ok=True)
+(OUT / 'Respondent.dc.html').write_text(page('Respondent journey, phone', 'width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '20px', 390, 844))
+(OUT / 'RespondentDesktop.dc.html').write_text(page('Respondent journey, desktop', 'width: 1440px; height: 900px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; overflow: hidden', '120px', 1440, 900, 2, 1000))
+print('written to', OUT)

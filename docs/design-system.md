@@ -52,6 +52,9 @@ Status colours, fixed across the product, each shown with its word, never colour
 | Missing | #2B6CB0 | #E3EEF9 | #1F4F7A | 7.27 |
 | Disagree (was not needed, decision 0014) | #718096 | #F0F0EE | #454A52 | 7.82 |
 
+Not answered (respondent review, tracker): white fill, dashed hairline-strong border, ink-muted
+text. It is an absence, not a status, so it never takes a status colour.
+
 Solid pushed back (3.64:1) and solid disagree (4.02:1) are never used as text on white.
 Unclear changed from #6B46C1 to #7C3AED on 2026-10-01 so unclear and missing pass the
 colour-vision check (worst adjacent pair 17.3, target 15; note 09).
@@ -67,16 +70,17 @@ Dark mode: defined as a mapping, not built in R1. background #111214, surface #1
 ## Type
 
 Geist Sans and Geist Mono, SIL Open Font License, https://github.com/vercel/geist-font. Weights
-400, 500, 600; 600 only in the wordmark.
+400, 500, 600; 600 only in the wordmark. The app self-hosts the font files (E1): no request to
+Google Fonts from product pages. The canvas boards load them from Google Fonts for convenience.
 
 | Size | Line height | Tracking | Weight | Use |
 |---|---|---|---|---|
 | 64 | 66 | -0.045em | 500 | marketing headline (40 on a phone) |
 | 40 | 44 | -0.035em | 500 | section heading |
 | 32 | 36 | -0.03em | 500 | page title in the app and on boards |
-| 24 | 30 | -0.02em | 500 | card title, respondent item text |
+| 24 | 30 | -0.02em | 500 | card title, respondent screen title |
 | 20 | 26 | -0.02em | 500 | lead paragraph, step title |
-| 17 | 26 | -0.01em | 400 | respondent body, marketing body |
+| 17 | 26 | -0.01em | 400 | respondent body, marketing body; respondent item text in cards at weight 500 with line height 24 |
 | 16 | 24 | 0 | 400 | marketing small body, email body |
 | 14 | 20 | 0 | 400 | app body, tables |
 | 13 | 18 | 0 | 400 | app secondary, captions |
@@ -113,7 +117,7 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   (underlined text link), destructive (white pill, red #9B2C2C border and text). Height 40 in
   the app, 48 on the respondent side and marketing. Verbs as labels. One primary per screen.
 - Hover: primary brightens 18 percent; others fill grey-50. Focus: 2 px teal 700 ring, 2 px
-  offset, on every control for keyboard and mouse. Loading: a 14 px ring spinner before the
+  offset, on keyboard focus (focus-visible) on every control. Loading: a 14 px ring spinner before the
   label, the label stays. Disabled: the same control at 40 percent opacity, never grey on grey.
 - Inputs: 40 high, hairline-strong, radius 6 (12 on the respondent side), placeholder #8A8E96
   (placeholder only, never for real text). Focus as buttons. Error: red border and a message in
@@ -126,6 +130,17 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   that says what to do.
 - Table: header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50. Card: radius 12 in
   the app, hairline, 16 padding, title 14 weight 500.
+
+## Rating row (respondent cards)
+
+Decision 0018. A card is a fieldset: reference in mono 11, title 15/22 weight 500, an optional
+details panel (grey-50, 14/20), the row "Your rating" with pills Must, Should, Could, Not
+needed, Unclear at 36 px high, 13 px text, 12 px side padding, radius 999. The proposed value
+has a dashed #454A52 border and a mono 10 px caption "proposed". The selected pill fills with
+the PM's accent and white text. The comment box (8 px radius, 15/22) opens under the row when
+required; "+ comment" opens it otherwise. The card footer holds Details, the comment toggle and
+the status note (Saved in agree green, what is missing in pushed-back amber, Not rated yet in
+ink-muted). Cards sit in one column on a phone and two on desktop, 10 px apart.
 
 ## Data
 
@@ -149,8 +164,9 @@ prefers-reduced-motion everything is off and the content is visible.
 
 ## Respondent theming
 
-The PM's logo and accent come from workspace settings (E2). The accent is used on the progress
-bar, the focus ring and links. Buttons stay ink. Neutrals and type never change. An accent under
+The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
+answer, the active chapter, the progress bar, the focus ring and links (decision 0016). Buttons
+stay ink. Neutrals and type never change. An accent under
 4.5:1 on white falls back to ink and settings says why. No dark mode on the respondent side.
 
 ## Email

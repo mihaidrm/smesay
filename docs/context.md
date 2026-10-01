@@ -30,16 +30,23 @@ running. The Claude Code cloud container has Node v22.22.0.
 Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design-notes/*, docs/schema.md,
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
 
-Waiting on Mihai: nothing. The trademark search waits for the launch gate (decisions 0012, 0014).
+Waiting on Mihai:
+1. Partial responses: do unsubmitted answers reach the PM, and how are they marked? And may a
+   closed public link show any per-device state? (reviewer findings 26 and 33, note 12.)
+2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
+   ink (raised 2026-10-01; recommendation in the session log).
+3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
+   settings, sample, item detail, export) on phone and laptop.
+The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first):
 1. Tidy the canvas: done 2026-10-01.
-2. Landing page E: use-cases section in place of "who it is for" (decision 0010); phone layout;
-   a Disagree answer in the hero (decision 0014); the small fixes from note 09.
-3. Finish the respondent prototype: four answers (decision 0014), closed, revoked, personal link
-   resume, rate-blind mode, the other two layouts.
-4. Finish the PM prototype: settings, members, project list, sample watermark, item detail,
-   export screen.
+2. Landing page E: done 2026-10-01 (use-cases section, four answers, phone board, note 09 fixes).
+3. Respondent prototype: rebuilt around chapters and the rating row 2026-10-01 (decisions
+   0016, 0018, note 12). Mihai clicks through on a phone. Page E fragments and the PM app preview show the same
+   rating row (decision 0017).
+4. PM prototype: projects, settings and members, sample watermark, item detail, export tab
+   done 2026-10-01. Phone board still to do (decision 0015).
 5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
 6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
 7. Ten golden-set specs in evals/.
