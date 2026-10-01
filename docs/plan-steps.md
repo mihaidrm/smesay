@@ -32,7 +32,7 @@ is validated. Deploy, domain, email sending and company accounts move to the lau
 
 | # | Step | Who | Done when |
 |---|---|---|---|
-| 1.1 | Build the story landing page from note 07, with the five states of one list, desktop and phone | Claude | Mihai clicks through on laptop and phone and accepts |
+| 1.1 | Landing page E: add the use-cases section in place of "who it is for" (decision 0010); phone layout | Claude | Mihai clicks through on laptop and phone and accepts |
 | 1.2 | Finish the respondent prototype: closed page, revoked page, personal link resume, rate-blind mode, all three layouts | Claude | Accepted on a phone |
 | 1.3 | Finish the PM prototype: workspace settings, members, project list, sample project watermark, item detail, export screen | Claude | Accepted on a laptop |
 | 1.4 | Write docs/design-system.md: type, colour, spacing, components, states, motion, voice, from notes 01 to 07 | Claude | Mihai approves |
