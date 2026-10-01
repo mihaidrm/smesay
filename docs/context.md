@@ -39,7 +39,8 @@ Waiting on Mihai:
 2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
    ink (raised 2026-10-01; recommendation in the session log).
 3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
-   settings, sample, item detail, export, preview panel) on phone and laptop.
+   settings, sample, item detail, export, preview panel) on phone and laptop, and of
+   /styleguide in the running app (note 14).
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
    (decision 0021, open item).
 The trademark search waits for the launch gate (decisions 0012, 0014).
@@ -57,10 +58,10 @@ Phase 1, Design (now to about 17 October): Done 6 of 6 steps. 2 drafted, waits f
 - 1.5 Copy: drafted, waits for Mihai's approval.
 - 1.6 Golden set: drafted, waits for Mihai's approval.
 - 1.7 Trademark check: Mihai, when ready.
-Phase 2, Setup for building (about 1 week): Done 3 of 5 steps. Left: Styleguide page, E1 stories
+Phase 2, Setup for building (about 1 week): Done 4 of 5 steps. Left: E1 stories. 1 drafted, waits for Mihai
 - 2.1 Repository: done.
 - 2.2 Scaffold: done.
-- 2.3 Styleguide page: open.
+- 2.3 Styleguide page: drafted, waits for Mihai's approval.
 - 2.4 E1 stories: open.
 - 2.5 PC setup: done.
 <!-- /sync:phases -->
