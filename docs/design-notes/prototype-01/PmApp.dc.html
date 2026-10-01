@@ -26,12 +26,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px">
 <div style="font-size: 12px; color: #5B6069">Workspace</div>
-<div style="font-weight: 500">Marlow Group</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><div style="font-weight: 500">Marlow Group</div><button type="button" onClick="{{goSettings}}" style="min-height: 28px; padding: 0 8px; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">Settings</button></div>
+<div style="font-size: 12px; color: #5B6069">2 members · Free while validating</div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 4px">
-<div style="font-size: 12px; color: #5B6069; padding-bottom: 4px">Projects</div>
-<div style="padding: 8px 10px; border-radius: 6px; background: #FFFFFF; border: 1px solid #E3E1DC; font-weight: 500">New expense tool</div>
-<div style="padding: 8px 10px; color: #5B6069">Sample project</div>
+<div style="display: flex; align-items: center; justify-content: space-between"><div style="font-size: 12px; color: #5B6069">Projects</div><button type="button" onClick="{{goProjects}}" style="min-height: 28px; padding: 0 8px; border: 0; background: transparent; color: #0E6B63; font-size: 13px; font-weight: 500">All</button></div>
+<button type="button" onClick="{{goProject}}" aria-pressed="{{navProjectOn}}" style="text-align: left; min-height: 36px; padding: 8px 10px; border-radius: 6px; background: {{navProjectBg}}; border: 1px solid {{navProjectBd}}; font-weight: 500">New expense tool</button>
+<button type="button" onClick="{{goSample}}" aria-pressed="{{navSampleOn}}" style="text-align: left; min-height: 36px; padding: 8px 10px; border-radius: 6px; background: {{navSampleBg}}; border: 1px solid {{navSampleBd}}; color: #454A52; display: flex; align-items: center; justify-content: space-between; gap: 8px"><span>Sample project</span><span style="padding: 1px 8px; border-radius: 999px; background: #F0F0EE; font-size: 11px; font-weight: 500; color: #454A52">Sample</span></button>
 </div>
 <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6069">
 <div>Prototype with mocked data. Nothing is saved.</div>
@@ -42,9 +43,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
 <div style="padding: 20px 32px 16px 32px; border-bottom: 1px solid #E3E1DC; display: flex; align-items: center; justify-content: space-between; gap: 24px">
 <div style="display: flex; flex-direction: column; gap: 2px">
-<div style="font-size: 12px; color: #5B6069">Marlow Group</div>
-<h1 style="margin: 0; font-size: 20px; font-weight: 500">New expense tool</h1>
+<div style="font-size: 12px; color: #5B6069">{{crumb}}</div>
+<h1 style="margin: 0; font-size: 20px; font-weight: 500">{{title}}</h1>
 </div>
+<sc-if value="{{isProject}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #F6F6F4; border: 1px solid #E3E1DC">
 <sc-for list="{{steps}}" as="st" hint-placeholder-count="5">
 <button type="button" onClick="{{st.go}}" aria-pressed="{{st.active}}" style="min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: {{st.bg}}; color: {{st.fg}}; font-weight: 500; display: flex; align-items: center; gap: 8px">
@@ -53,9 +55,81 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </button>
 </sc-for>
 </div>
+</sc-if>
 </div>
 
-<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 28px 32px; box-sizing: border-box">
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 28px 32px; box-sizing: border-box; position: relative">
+<sc-if value="{{isSample}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; display: flex; align-items: center; justify-content: center"><div style="transform: rotate(-24deg); font-size: 140px; font-weight: 600; letter-spacing: -0.04em; color: rgba(22, 24, 28, 0.06); white-space: nowrap">Sample data</div></div>
+</sc-if>
+<sc-if value="{{isProjects}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Projects</h2><div style="color: #5B6069">One project per validation. Free plan while we build it: no limit on projects or responses.</div></div>
+<button type="button" onClick="{{goProject}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">New project</button>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="flex-grow: 1">Project</div><div style="width: 90px">Items</div><div style="width: 120px">Responses</div><div style="width: 120px">Status</div><div style="width: 140px">Updated</div><div style="width: 90px"></div></div>
+<sc-for list="{{projects}}" as="pj" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px">
+<div style="flex-grow: 1; min-width: 0; display: flex; align-items: center; gap: 8px"><span style="font-weight: 500">{{pj.name}}</span><sc-if value="{{pj.sample}}" hint-placeholder-val="{{false}}"><span style="padding: 1px 8px; border-radius: 999px; background: #F0F0EE; font-size: 11px; font-weight: 500; color: #454A52">Sample</span></sc-if></div>
+<div style="width: 90px; font-family: 'Geist Mono', monospace">{{pj.items}}</div>
+<div style="width: 120px; font-family: 'Geist Mono', monospace">{{pj.responses}}</div>
+<div style="width: 120px"><span style="padding: 2px 8px; border-radius: 999px; background: {{pj.bg}}; color: {{pj.fg}}; font-size: 12px; font-weight: 500">{{pj.status}}</span></div>
+<div style="width: 140px; color: #5B6069">{{pj.updated}}</div>
+<div style="width: 90px; display: flex; justify-content: flex-end"><button type="button" onClick="{{pj.open}}" style="min-height: 32px; padding: 0 12px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Open</button></div>
+</div>
+</sc-for>
+</div>
+<div style="color: #5B6069; font-size: 13px">A deleted project removes its items, responses and files within 24 hours. Export first if you need a copy.</div>
+</div>
+</sc-if>
+<sc-if value="{{isSettings}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Workspace settings</h2><div style="color: #5B6069">Name, logo and accent appear on every instrument created after you save.</div></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Brand on the respondent side</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ws-name" style="font-weight: 500">Workspace name</label><input id="ws-name" type="text" value="{{wsName}}" onChange="{{setWsName}}" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div>
+<div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600">M</div><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Logo</div><div style="font-size: 12px; color: #5B6069">PNG or SVG, up to 1 MB. Shown at 28 px in the respondent header.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Upload</button></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 40px; border-radius: 8px; background: #1F4F7A; display: block"></span><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Accent colour <span style="font-family: 'Geist Mono', monospace; font-weight: 400; color: #5B6069">#1F4F7A</span></div><div style="font-size: 12px; color: #22643F">Contrast on white 8.54:1. Used on the progress bar and focus ring. Buttons stay black.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Change</button></div>
+<div style="display: flex; justify-content: flex-end"><button type="button" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Save</button></div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">AI budget</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between"><span>Used this month</span><span style="font-family: 'Geist Mono', monospace">EUR 0.12 of EUR 50.00</span></div>
+<div style="height: 6px; border-radius: 999px; background: #ECEAE5"><div style="width: 1%; min-width: 4px; height: 6px; border-radius: 999px; background: #16181C"></div></div>
+<div style="font-size: 12px; color: #5B6069">3 shaping runs, 1 insight run. A run that would exceed the budget is refused and shows the shortfall.</div>
+</div>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Plan</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 6px"><div><span style="font-weight: 500">Free</span> <span style="padding: 2px 8px; border-radius: 999px; background: #E3F1EF; color: #0A4F49; font-size: 12px">While we build it with the first users</span></div><div style="font-size: 12px; color: #5B6069">Paid plans come later. Nothing you build now is lost or locked.</div></div>
+</div>
+</div>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500"><span>Members</span><span style="font-size: 12px; color: #5B6069; font-weight: 400">Owners can delete the workspace and change billing. Members can do everything else.</span></div>
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="flex-grow: 1">Name</div><div style="width: 260px">Email</div><div style="width: 120px">Role</div><div style="width: 160px">Joined</div><div style="width: 90px"></div></div>
+<sc-for list="{{members}}" as="mb" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px"><div style="flex-grow: 1; font-weight: 500">{{mb.name}}</div><div style="width: 260px; color: #5B6069">{{mb.email}}</div><div style="width: 120px">{{mb.role}}</div><div style="width: 160px; color: #5B6069">{{mb.joined}}</div><div style="width: 90px; display: flex; justify-content: flex-end"><sc-if value="{{mb.canRemove}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{mb.remove}}" style="min-height: 32px; padding: 0 12px; border: 0; background: transparent; color: #9B2C2C; font-weight: 500">Remove</button></sc-if></div></div>
+</sc-for>
+<div style="display: flex; gap: 10px; align-items: flex-end; padding: 12px 16px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px"><label for="inv-email" style="font-size: 13px; font-weight: 500">Invite by email</label><input id="inv-email" type="email" value="{{inviteEmail}}" onChange="{{setInviteEmail}}" placeholder="name@company.example" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div>
+<button type="button" onClick="{{invite}}" disabled="{{inviteDisabled}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; opacity: {{inviteOpacity}}">Send invite</button>
+</div>
+<sc-if value="{{inviteNote}}" hint-placeholder-val="{{false}}"><div style="padding: 0 16px 12px 16px; font-size: 13px; color: #22643F">Invite sent. They get a sign-in link that works once and expires in 15 minutes.</div></sc-if>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; border-color: #E6C9C9">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Export and delete</div>
+<div style="padding: 16px; display: flex; align-items: center; gap: 16px"><div style="flex-grow: 1; color: #5B6069">Export everything in this workspace as JSON, or delete the workspace. Deletion removes all rows and files within 24 hours and emails a confirmation.</div><button type="button" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Export workspace</button><button type="button" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; color: #9B2C2C; border-color: #9B2C2C">Delete workspace</button></div>
+</div>
+</div>
+</sc-if>
 
 <sc-if value="{{isImport}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
@@ -303,8 +377,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </sc-if>
 
-<sc-if value="{{isResults}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{showResults}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
+<sc-if value="{{isSample}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-radius: 6px; background: #ECEAE5"><div><span style="font-weight: 500">This is the sample project, with invented data.</span> Click through the results, then delete it when you have your own. The watermark cannot be removed any other way.</div><button type="button" onClick="{{deleteSample}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; flex-shrink: 0">Delete sample</button></div>
+</sc-if>
 <div style="display: flex; align-items: flex-end; justify-content: space-between">
 <div style="display: flex; flex-direction: column; gap: 4px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Results</h2>
@@ -312,15 +389,37 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 <div style="display: flex; align-items: center; gap: 8px; color: #22643F; font-size: 13px"><span style="width: 8px; height: 8px; border-radius: 999px; background: #2F855A; display: block"></span><span>Live</span></div>
 </div>
-<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.submittedOf}}</div><div style="color: #5B6069; font-size: 13px">Submitted</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.agreePct}}</div><div style="color: #5B6069; font-size: 13px">Agreement, {{t.agreeOf}} answers</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.pushed}}</div><div style="color: #5B6069; font-size: 13px">Pushed back</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.disagreed}}</div><div style="color: #5B6069; font-size: 13px">Disagreed</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.unclear}}</div><div style="color: #5B6069; font-size: 13px">Unclear</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.missing}}</div><div style="color: #5B6069; font-size: 13px">Missing items suggested</div></div>
 </div>
+<sc-if value="{{detailOpen}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 12px"><button type="button" onClick="{{closeDetail}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px; padding: 0 12px">Back to agreement</button><div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{dt.ref}} · {{dt.area}}</div></div>
+<div style="display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px"><div style="font-size: 18px">{{dt.reader}}</div><div style="font-size: 13px; color: #5B6069">Original: {{dt.original}}</div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5B6069"><span>Proposed</span><span style="padding: 2px 10px; border-radius: 999px; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">{{dt.proposed}}</span></div></div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="width: 200px">Respondent</div><div style="width: 130px">Answer</div><div style="flex-grow: 1">Reason, question or comment</div></div>
+<sc-for list="{{dt.rows}}" as="dr" hint-placeholder-count="5">
+<div style="display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div style="width: 200px; flex-shrink: 0; display: flex; flex-direction: column"><span style="font-weight: 500">{{dr.name}}</span><span style="color: #5B6069; font-size: 12px">{{dr.role}}</span></div><div style="width: 130px; flex-shrink: 0"><span style="padding: 2px 8px; border-radius: 999px; background: {{dr.bg}}; color: {{dr.fg}}; font-size: 12px; font-weight: 500">{{dr.status}}</span></div><div style="flex-grow: 1; min-width: 0; color: {{dr.textFg}}">{{dr.text}}</div></div>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px"><div style="font-weight: 500">On this item</div><div style="display: flex; justify-content: space-between"><span>Agree</span><span style="font-family: 'Geist Mono', monospace">{{dt.agree}}</span></div><div style="display: flex; justify-content: space-between"><span>Changed the priority</span><span style="font-family: 'Geist Mono', monospace">{{dt.pushed}}</span></div><div style="display: flex; justify-content: space-between"><span>Disagree</span><span style="font-family: 'Geist Mono', monospace">{{dt.disagreed}}</span></div><div style="display: flex; justify-content: space-between"><span>Unclear</span><span style="font-family: 'Geist Mono', monospace">{{dt.unclear}}</span></div><div style="display: flex; justify-content: space-between; color: #5B6069"><span>Not yet answered</span><span style="font-family: 'Geist Mono', monospace">{{dt.pending}}</span></div></div>
+<div style="background: #ECEAE5; border-radius: 6px; padding: 14px 16px; font-size: 13px; color: #454A52">Loads under 500 ms with 100 responses. Every count here matches the CSV of answers filtered to {{dt.ref}}.</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{noDetail}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; gap: 4px; border-bottom: 1px solid #E3E1DC">
-<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="6">
 <button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.active}}" style="min-height: 40px; padding: 0 14px; border: 0; border-bottom: 2px solid {{tb.bd}}; background: transparent; color: {{tb.fg}}; font-weight: 500">{{tb.label}}</button>
 </sc-for>
 </div>
@@ -332,30 +431,35 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="width: 110px">Area</div>
 <div style="flex-grow: 1">Item</div>
 <div style="width: 90px">Proposed</div>
-<div style="width: 220px">Answers</div>
-<div style="width: 70px; text-align: right">Agree</div>
-<div style="width: 70px; text-align: right">Pushed</div>
-<div style="width: 70px; text-align: right">Unclear</div>
+<div style="width: 200px">Answers</div>
+<div style="width: 60px; text-align: right">Agree</div>
+<div style="width: 60px; text-align: right">Changed</div>
+<div style="width: 60px; text-align: right">Disagree</div>
+<div style="width: 60px; text-align: right">Unclear</div>
 </div>
 <sc-for list="{{agreement}}" as="ag" hint-placeholder-count="6">
 <div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px">
 <div style="width: 110px; color: #5B6069">{{ag.area}}</div>
-<div style="flex-grow: 1; min-width: 0">{{ag.text}}</div>
+<div style="flex-grow: 1; min-width: 0"><button type="button" onClick="{{ag.open}}" style="text-align: left; padding: 0; border: 0; background: transparent; color: #16181C; font-size: 14px; text-decoration: underline; text-decoration-color: #C9C7C1; text-underline-offset: 3px">{{ag.text}}</button></div>
 <div style="width: 90px">{{ag.proposed}}</div>
-<div style="width: 220px; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #F0F0EE; gap: 2px">
+<div style="width: 200px; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #F0F0EE; gap: 2px">
 <div style="flex-grow: {{ag.agree}}; background: #2F855A"></div>
 <div style="flex-grow: {{ag.pushed}}; background: #B7791F"></div>
-<div style="flex-grow: {{ag.unclear}}; background: #6B46C1"></div>
+<div style="flex-grow: {{ag.disagreed}}; background: #718096"></div>
+<div style="flex-grow: {{ag.unclear}}; background: #7C3AED"></div>
 </div>
-<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.agree}}</div>
-<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.pushed}}</div>
-<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.unclear}}</div>
+<div style="width: 60px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.agree}}</div>
+<div style="width: 60px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.pushed}}</div>
+<div style="width: 60px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.disagreed}}</div>
+<div style="width: 60px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.unclear}}</div>
 </div>
 </sc-for>
 <div style="display: flex; gap: 16px; padding: 10px 16px; font-size: 12px; color: #5B6069">
 <div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2F855A; display: block"></span><span>Agree</span></div>
-<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Pushed back</span></div>
-<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #6B46C1; display: block"></span><span>Unclear</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Changed the priority</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #718096; display: block"></span><span>Disagree</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #7C3AED; display: block"></span><span>Unclear</span></div>
+<div style="margin-left: auto">Click an item for every answer on it.</div>
 </div>
 </div>
 <div style="background: #ECEAE5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
@@ -377,7 +481,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
 <div style="width: 300px">Item</div>
 <div style="width: 150px">Respondent</div>
-<div style="width: 170px">Proposed, their value</div>
+<div style="width: 170px">Proposed, changed to</div>
 <div style="flex-grow: 1">Reason</div>
 </div>
 <sc-for list="{{disagreements}}" as="dg" hint-placeholder-count="8">
@@ -387,6 +491,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="width: 170px; flex-shrink: 0"><span style="color: #5B6069">{{dg.proposed}}</span> <span style="padding: 2px 8px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px; font-weight: 500">{{dg.value}}</span></div>
 <div style="flex-grow: 1; min-width: 0">{{dg.reason}}</div>
 </div>
+</sc-for>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; margin-top: 16px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Disagree with the item</div>
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="width: 300px">Item</div><div style="width: 150px">Respondent</div><div style="flex-grow: 1">What should it say instead, or why it is not needed</div></div>
+<sc-for list="{{disagreeList}}" as="dl" hint-placeholder-count="1">
+<div style="display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div style="width: 300px; flex-shrink: 0">{{dl.item}}</div><div style="width: 150px; flex-shrink: 0; display: flex; flex-direction: column"><span style="font-weight: 500">{{dl.name}}</span><span style="color: #5B6069; font-size: 12px">{{dl.role}}</span></div><div style="flex-grow: 1; min-width: 0">{{dl.reason}}</div></div>
 </sc-for>
 </div>
 </sc-if>
@@ -462,6 +573,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </sc-if>
 
+<sc-if value="{{tabExport}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="color: #5B6069">Every number on the dashboard reconciles with these files to the row. Exports include every response, submitted or in progress, marked as such.</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{exports}}" as="ex" hint-placeholder-count="4">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; justify-content: space-between"><div style="font-weight: 500">{{ex.title}}</div><div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{ex.format}}</div></div>
+<div style="color: #454A52">{{ex.what}}</div>
+<div style="font-size: 12px; color: #5B6069">{{ex.note}}</div>
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 4px"><button type="button" onClick="{{ex.download}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px; padding: 0 14px">Download</button><sc-if value="{{ex.done}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #22643F">Ready, {{ex.size}}</span></sc-if></div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+</sc-if>
 </div>
 </sc-if>
 
@@ -472,7 +600,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
 state = {
+view: 'project',
 step: 'import',
+detailId: null,
+wsName: 'Marlow Group',
+inviteEmail: '',
+invited: false,
+removed: {},
+exported: {},
 mapping: { Ref: 'ref', Requirement: 'text', Module: 'area', Priority: 'value' },
 shaped: {},
 flagOpen: true,
@@ -512,7 +647,7 @@ const answers = {
 i1: { r1: ['A'], r2: ['A'], r3: ['D', 'S', 'Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera.'], r4: ['A'], r5: ['A'] },
 i2: { r1: ['A'], r2: ['U', 'Does this include splitting between two clients on one trip?'], r3: ['D', 'M', 'Finance re-keys about thirty split claims a month by hand.'], r4: ['D', 'M', 'My team bills two projects on almost every trip.'], r5: ['A'] },
 i3: { r1: ['A'], r2: ['D', 'S', 'Approving from email means approving without seeing the receipt.'], r3: ['A'], r4: ['A'], r5: ['A'] },
-i4: { r1: ['D', 'M', 'I find out I was over the limit three weeks later, after I have paid.'], r2: ['D', 'M', 'Sales gets most of the rejections, and always after the fact.'], r3: ['A'], r4: ['A'], r5: ['A'] },
+i4: { r1: ['D', 'M', 'I find out I was over the limit three weeks later, after I have paid.'], r2: ['D', 'M', 'Sales gets most of the rejections, and always after the fact.'], r3: ['A'], r4: ['A'], r5: ['G', 'Flagging after submission is too late. The limit should block the claim at entry.'] },
 i5: { r1: ['A'], r2: ['A'], r3: ['A'], r4: ['A'], r5: ['A'] },
 i6: { r1: ['A'], r2: ['A'], r3: ['D', 'S', 'New starters ask for an advance every month. It is a real need.'], r4: ['U', 'Would the advance be deducted from salary if the trip is cancelled?'], r5: ['D', 'W', 'Advances are taxable income if not reconciled in time. Payroll would have to police it.'] }
 };
@@ -523,7 +658,7 @@ renderVals() {
 const s = this.state;
 const d = this.data();
 const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: "Won't have" };
-const go = (step) => () => this.setState({ step: step });
+const go = (step) => () => this.setState({ view: 'project', step: step, detailId: null });
 const patch = (key, id, value) => {
 const next = Object.assign({}, s[key]);
 next[id] = value;
@@ -605,12 +740,13 @@ remind: () => patch('reminded', p.id, true)
 const submitted = d.people.filter((p) => p.status === 'Submitted');
 const byId = {};
 d.people.forEach((p) => { byId[p.id] = p; });
-let totalAgree = 0, totalPushed = 0, totalUnclear = 0, totalAnswers = 0;
+let totalAgree = 0, totalPushed = 0, totalDisagreed = 0, totalUnclear = 0, totalAnswers = 0;
 const disagreements = [];
+const disagreeList = [];
 const questions = [];
 const gaps = [];
 const agreement = d.items.map((it) => {
-let agree = 0, pushed = 0, unclear = 0;
+let agree = 0, pushed = 0, disagreed = 0, unclear = 0;
 let salesAgree = 0, salesAll = 0, restAgree = 0, restAll = 0;
 submitted.forEach((p) => {
 const a = d.answers[it.id][p.id];
@@ -618,18 +754,19 @@ const isSales = p.role === 'Sales';
 if (isSales) salesAll += 1; else restAll += 1;
 if (a[0] === 'A') { agree += 1; if (isSales) salesAgree += 1; else restAgree += 1; }
 if (a[0] === 'D') { pushed += 1; disagreements.push({ item: it.reader, name: p.name, role: p.role, proposed: LABEL[it.proposed], value: LABEL[a[1]], reason: a[2] }); }
+if (a[0] === 'G') { disagreed += 1; disagreeList.push({ item: it.reader, name: p.name, role: p.role, reason: a[1] }); }
 if (a[0] === 'U') { unclear += 1; questions.push({ item: it.reader, name: p.name, role: p.role, question: a[1] }); }
 });
-totalAgree += agree; totalPushed += pushed; totalUnclear += unclear; totalAnswers += submitted.length;
+totalAgree += agree; totalPushed += pushed; totalDisagreed += disagreed; totalUnclear += unclear; totalAnswers += submitted.length;
 gaps.push({ text: it.reader, gap: Math.abs(salesAgree / salesAll - restAgree / restAll), line: 'Sales: ' + salesAgree + ' of ' + salesAll + ' agree. Everyone else: ' + restAgree + ' of ' + restAll + ' agree.' });
-return { area: it.area, text: it.reader, proposed: LABEL[it.proposed], agree: agree, pushed: pushed, unclear: unclear };
+return { id: it.id, area: it.area, text: it.reader, proposed: LABEL[it.proposed], agree: agree, pushed: pushed, disagreed: disagreed, unclear: unclear, open: () => this.setState({ detailId: it.id }) };
 });
 gaps.sort((a, b) => b.gap - a.gap);
 
 const statusStyle = { 'Submitted': ['#E6F4EC', '#22643F'], 'In progress': ['#FBF1DC', '#7A5210'], 'Invited': ['#F0F0EE', '#454A52'] };
 const tracker = d.people.map((p) => ({ name: p.name, role: p.role, status: p.status, bg: statusStyle[p.status][0], fg: statusStyle[p.status][1], progress: p.done + ' of ' + d.items.length, date: p.date || 'Not yet', source: p.source }));
 
-const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Pushed back (' + totalPushed + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)']];
+const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Pushed back (' + (totalPushed + totalDisagreed) + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)'], ['export', 'Export']];
 const tabs = tabDefs.map((x) => {
 const active = s.tab === x[0];
 return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg: active ? '#16181C' : '#5B6069', pick: () => this.setState({ tab: x[0] }) };
@@ -654,9 +791,61 @@ reopen: () => patch('actionState', a.id, null)
 };
 });
 
+const PILL = { A: ['Agree', '#E6F4EC', '#22643F'], D: ['Changed', '#FBF1DC', '#7A5210'], G: ['Disagree', '#F0F0EE', '#454A52'], U: ['Unclear', '#EEE8FA', '#4C2F94'] };
+const dItem = d.items.find((x) => x.id === s.detailId);
+let dt = null;
+if (dItem) {
+const ag = agreement.find((x) => x.id === dItem.id);
+const rows = d.people.map((p) => {
+const a = d.answers[dItem.id][p.id];
+if (!a) return { name: p.name, role: p.role, status: p.status === 'Invited' ? 'Not started' : 'In progress', bg: '#F0F0EE', fg: '#454A52', text: 'No answer yet.', textFg: '#5B6069' };
+const pl = PILL[a[0]];
+let text = 'No reason needed.';
+if (a[0] === 'D') text = 'Should be ' + LABEL[a[1]] + '. ' + a[2];
+if (a[0] === 'G') text = a[1];
+if (a[0] === 'U') text = a[1];
+return { name: p.name, role: p.role, status: pl[0], bg: pl[1], fg: pl[2], text: text, textFg: a[0] === 'A' ? '#5B6069' : '#16181C' };
+});
+dt = { ref: dItem.ref, area: dItem.area, reader: dItem.reader, original: dItem.original, proposed: LABEL[dItem.proposed], rows: rows, agree: ag.agree, pushed: ag.pushed, disagreed: ag.disagreed, unclear: ag.unclear, pending: d.people.length - submitted.length };
+}
+const projects = [
+{ id: 'p1', name: 'New expense tool', sample: false, items: 6, responses: '5 of 7', status: 'Open', bg: '#E6F4EC', fg: '#22643F', updated: '12 Oct 2026', open: () => this.setState({ view: 'project', step: 'results', detailId: null }) },
+{ id: 'p2', name: 'Sample project', sample: true, items: 6, responses: '5 of 7', status: 'Sample', bg: '#F0F0EE', fg: '#454A52', updated: 'Created with the workspace', open: () => this.setState({ view: 'sample', tab: 'agreement', detailId: null }) }
+];
+const members = [
+{ id: 'm1', name: 'Alex Pop', email: 'alex@marlow.example', role: 'Owner', joined: '30 Sep 2026', canRemove: false },
+{ id: 'm2', name: 'Dana Okafor', email: 'dana@marlow.example', role: 'Member', joined: '1 Oct 2026', canRemove: true }
+].filter((m) => !s.removed[m.id]).map((m) => Object.assign({}, m, { remove: () => patch('removed', m.id, true) }));
+const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
+const exportDefs = [
+{ id: 'x1', title: 'Answers', format: 'CSV, UTF-8', what: 'One row per answer: respondent, role, item, area, proposed value, answer, their value, reason or question, submitted at.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: text, original, area, proposed value, counts of agree, changed, disagree, unclear, and the agreement percentage.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
+{ id: 'x3', title: 'Whole project', format: 'JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
+{ id: 'x4', title: 'Summary for the deck', format: 'PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
+];
+const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));
+const isProject = s.view === 'project';
+const isSample = s.view === 'sample';
+const titles = { project: ['Marlow Group', 'New expense tool'], sample: ['Marlow Group · sample project', 'Sample project'], projects: ['Marlow Group', 'Projects'], settings: ['Marlow Group', 'Settings'] };
+
 return {
+view: s.view,
+crumb: titles[s.view][0], title: titles[s.view][1],
+isProject: isProject, isSample: isSample, isProjects: s.view === 'projects', isSettings: s.view === 'settings',
+goProjects: () => this.setState({ view: 'projects', detailId: null }), goSettings: () => this.setState({ view: 'settings', detailId: null }),
+goProject: () => this.setState({ view: 'project', detailId: null }), goSample: () => this.setState({ view: 'sample', tab: 'agreement', detailId: null }),
+navProjectOn: isProject, navProjectBg: isProject ? '#FFFFFF' : 'transparent', navProjectBd: isProject ? '#E3E1DC' : 'transparent',
+navSampleOn: isSample, navSampleBg: isSample ? '#FFFFFF' : 'transparent', navSampleBd: isSample ? '#E3E1DC' : 'transparent',
+deleteSample: () => this.setState({ view: 'projects' }),
+showResults: (isProject && s.step === 'results') || isSample,
+detailOpen: !!dt, noDetail: !dt, dt: dt || { rows: [] }, closeDetail: () => this.setState({ detailId: null }),
+projects: projects, members: members,
+wsName: s.wsName, setWsName: (e) => this.setState({ wsName: e.target.value }),
+inviteEmail: s.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: e.target.value, invited: false }),
+inviteDisabled: !inviteOk, inviteOpacity: inviteOk ? 1 : 0.4, invite: () => this.setState({ invited: true, inviteEmail: '' }), inviteNote: s.invited,
+exports: exports, disagreeList: disagreeList,
 steps: steps,
-isImport: s.step === 'import', isShape: s.step === 'shape', isBuild: s.step === 'build', isShare: s.step === 'share', isResults: s.step === 'results',
+isImport: isProject && s.step === 'import', isShape: isProject && s.step === 'shape', isBuild: isProject && s.step === 'build', isShare: isProject && s.step === 'share',
 goShape: go('shape'), goBuild: go('build'), goShare: go('share'), goResults: go('results'),
 mapping: mapping, preview: preview,
 areas: areas,
@@ -679,10 +868,10 @@ submitted: submitted.length,
 submittedOf: submitted.length + ' of ' + d.people.length,
 agreePct: Math.round((totalAgree / totalAnswers) * 100) + '%',
 agreeOf: totalAgree + ' of ' + totalAnswers,
-pushed: totalPushed, unclear: totalUnclear, missing: 1
+pushed: totalPushed, disagreed: totalDisagreed, unclear: totalUnclear, missing: 1
 },
 tabs: tabs,
-tabAgreement: s.tab === 'agreement', tabDisagree: s.tab === 'disagree', tabOpen: s.tab === 'open', tabResponses: s.tab === 'responses', tabActions: s.tab === 'actions',
+tabAgreement: s.tab === 'agreement', tabDisagree: s.tab === 'disagree', tabOpen: s.tab === 'open', tabResponses: s.tab === 'responses', tabActions: s.tab === 'actions', tabExport: s.tab === 'export',
 agreement: agreement,
 gaps: gaps.slice(0, 2),
 disagreements: disagreements,
