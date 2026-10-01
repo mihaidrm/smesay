@@ -1,9 +1,8 @@
 # Local services (decision 0006: everything on the laptop until the launch gate).
 # Postgres for the app, MinIO as the S3-compatible store, Mailpit as the local mailbox.
 # Start: docker compose up -d. Stop and keep data: docker compose down. Wipe: docker compose down -v.
-# Image settings below are the images' documented defaults as remembered; the docs sites were
-# not reachable from the build session, so the first `docker compose up` on Mihai's laptop is
-# the check (docs/setup.md).
+# Sources for each image's settings are in docs/setup.md. Docker is not available in the build
+# session, so the first `docker compose up` on Mihai's laptop is the run check.
 services:
   postgres:
     image: postgres:16-alpine
@@ -22,7 +21,7 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: smesay
