@@ -41,8 +41,7 @@ Waiting on Mihai:
    settings, sample, item detail, export, preview panel) on phone and laptop.
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
    (decision 0021, open item).
-5. Next 15 (as CLAUDE.md says, installed) or Next 16 (current major) before E1 (docs/setup.md).
-6. On the laptop: the first `docker compose up -d` (docs/setup.md, step 2.5).
+5. On the laptop: the first `docker compose up -d` (docs/setup.md, step 2.5).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,

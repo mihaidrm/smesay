@@ -56,7 +56,7 @@ When you report: numbers, file paths, commands. No adjectives. When something fa
 failed and what caught it. Do not thank, do not summarise the request back, do not describe the
 code as anything other than what it is.
 
-Stack: Next.js 15, TypeScript, Tailwind, shadcn/ui, Drizzle on Postgres, better-auth, server-sent
+Stack: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle on Postgres, better-auth, server-sent
 events for live updates, S3-compatible storage, Resend, Anthropic API from server routes only,
 Vitest, Playwright. Nothing on the critical path may depend on a single vendor's feature; the app
 must run from `docker compose up` with plain Postgres.
