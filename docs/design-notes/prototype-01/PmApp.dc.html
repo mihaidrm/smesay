@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PM app</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
+a{color:#0E6B63}a:hover{color:#0A4F49}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #0E6B63;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1000px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; font-size: 14px; line-height: 1.45; overflow: hidden">
+
+<div style="width: 240px; flex-shrink: 0; box-sizing: border-box; background: #F6F6F4; border-right: 1px solid #E3E1DC; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg>
+<div style="font-size: 15px; font-weight: 600">SMEsay</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; color: #5B6069">Workspace</div>
+<div style="font-weight: 500">Marlow Group</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; color: #5B6069; padding-bottom: 4px">Projects</div>
+<div style="padding: 8px 10px; border-radius: 6px; background: #FFFFFF; border: 1px solid #E3E1DC; font-weight: 500">New expense tool</div>
+<div style="padding: 8px 10px; color: #5B6069">Sample project</div>
+</div>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5B6069">
+<div>Prototype with mocked data. Nothing is saved.</div>
+<a href="Main.dc.html">Back to the journey</a>
+</div>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<div style="padding: 20px 32px 16px 32px; border-bottom: 1px solid #E3E1DC; display: flex; align-items: center; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 12px; color: #5B6069">Marlow Group</div>
+<h1 style="margin: 0; font-size: 20px; font-weight: 500">New expense tool</h1>
+</div>
+<div style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #F6F6F4; border: 1px solid #E3E1DC">
+<sc-for list="{{steps}}" as="st" hint-placeholder-count="5">
+<button type="button" onClick="{{st.go}}" aria-pressed="{{st.active}}" style="min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: {{st.bg}}; color: {{st.fg}}; font-weight: 500; display: flex; align-items: center; gap: 8px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; opacity: 0.7">{{st.n}}</span>
+<span>{{st.label}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 28px 32px; box-sizing: border-box">
+
+<sc-if value="{{isImport}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Import the list</h2>
+<div style="color: #5B6069">expense-requirements.xlsx, 6 rows read, header found on row 1.</div>
+</div>
+<button type="button" onClick="{{goShape}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Import 6 items</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; flex-direction: column">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Column mapping</div>
+<sc-for list="{{mapping}}" as="m" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid #F0EFEB">
+<div style="width: 140px; flex-shrink: 0; display: flex; flex-direction: column">
+<label for="{{m.id}}" style="font-weight: 500">{{m.col}}</label>
+<div style="font-size: 12px; color: #5B6069">Column {{m.letter}}</div>
+</div>
+<div style="color: #5B6069">maps to</div>
+<select id="{{m.id}}" value="{{m.to}}" onChange="{{m.set}}" style="flex-grow: 1; min-height: 36px; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF">
+<option value="text">Item text</option>
+<option value="area">Area</option>
+<option value="value">Proposed value</option>
+<option value="ref">Reference</option>
+<option value="skip">Do not import</option>
+</select>
+</div>
+</sc-for>
+<div style="padding: 12px 16px; color: #5B6069; font-size: 13px">This mapping is remembered for files with the same headers.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Check before import</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0">
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 20px">0</div>
+<div style="color: #5B6069; font-size: 13px">Empty rows</div>
+</div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC">
+<div style="font-family: 'Geist Mono', monospace; font-size: 20px">0</div>
+<div style="color: #5B6069; font-size: 13px">Exact duplicates</div>
+</div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC">
+<div style="font-family: 'Geist Mono', monospace; font-size: 20px">0</div>
+<div style="color: #5B6069; font-size: 13px">Over 1,000 characters</div>
+</div>
+</div>
+</div>
+<div style="background: #ECEAE5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; color: #5B6069">First rows of the file</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 6px">
+<sc-for list="{{preview}}" as="p" hint-placeholder-count="6">
+<div style="display: flex; gap: 12px; padding: 9px 12px; border-bottom: 1px solid #F0EFEB; font-size: 13px">
+<div style="width: 52px; flex-shrink: 0; font-family: 'Geist Mono', monospace; color: #5B6069">{{p.ref}}</div>
+<div style="flex-grow: 1; min-width: 0">{{p.original}}</div>
+<div style="width: 96px; flex-shrink: 0; color: #5B6069">{{p.module}}</div>
+<div style="width: 52px; flex-shrink: 0; color: #5B6069">{{p.priority}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isShape}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Shape the list</h2>
+<div style="color: #5B6069">AI grouped 6 items into 3 areas and suggested a readable version of each. The original text is always kept. {{shapeCount}}</div>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" onClick="{{acceptAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Accept all</button>
+<button type="button" onClick="{{rejectAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reject all</button>
+<button type="button" onClick="{{goBuild}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Continue</button>
+</div>
+</div>
+<sc-if value="{{flagOpen}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-radius: 6px; background: #EEE8FA; color: #3B2475">
+<div><span style="font-weight: 500">Ambiguity in CL-06.</span> The item does not say who repays a cash advance if the trip is cancelled. Respondents may mark it unclear.</div>
+<button type="button" onClick="{{dismissFlag}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #B7A6E3; border-radius: 999px; background: #FFFFFF; color: #3B2475; font-weight: 500; flex-shrink: 0">Dismiss</button>
+</div>
+</sc-if>
+<sc-for list="{{areas}}" as="ar" hint-placeholder-count="3">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; background: #F6F6F4; border-bottom: 1px solid #E3E1DC; border-radius: 6px 6px 0 0">
+<div style="font-weight: 500">{{ar.name}}</div>
+<div style="color: #5B6069; font-size: 13px">{{ar.rationale}}</div>
+</div>
+<sc-for list="{{ar.items}}" as="it" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid #F0EFEB">
+<div style="width: 52px; flex-shrink: 0; font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{it.ref}}</div>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 15px">{{it.reader}}</div>
+<div style="font-size: 12px; color: #5B6069">Original: {{it.original}}</div>
+</div>
+<div style="width: 150px; flex-shrink: 0; display: flex; justify-content: flex-end">
+<div style="padding: 2px 10px; border-radius: 999px; background: {{it.pillBg}}; color: {{it.pillFg}}; font-size: 12px; font-weight: 500">{{it.pill}}</div>
+</div>
+<div style="width: 170px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 6px">
+<sc-if value="{{it.pending}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{it.accept}}" style="min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Accept</button>
+<button type="button" onClick="{{it.reject}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reject</button>
+</sc-if>
+<sc-if value="{{it.decided}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{it.undo}}" style="min-height: 32px; padding: 0 14px; border: 0; background: transparent; color: #0E6B63; font-weight: 500">Undo</button>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{isBuild}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Build the instrument</h2>
+<div style="color: #5B6069">What respondents see, from version 1 of the list.</div>
+</div>
+<button type="button" onClick="{{goShare}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Continue</button>
+</div>
+<div style="display: flex; gap: 24px; align-items: flex-start">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-weight: 500">Scoring method</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{methods}}" as="me" hint-placeholder-count="3">
+<button type="button" onClick="{{me.pick}}" aria-pressed="{{me.active}}" style="text-align: left; padding: 12px 14px; border: 1px solid {{me.bd}}; border-radius: 6px; background: {{me.bg}}; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 500">{{me.label}}</span>
+<span style="font-size: 13px; color: #5B6069">{{me.hint}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-weight: 500">Show the proposed value to respondents</div>
+<div style="font-size: 13px; color: #5B6069">On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard.</div>
+</div>
+<button type="button" role="switch" aria-checked="{{showProposed}}" aria-label="Show the proposed value to respondents" onClick="{{toggleProposed}}" style="width: 52px; height: 30px; flex-shrink: 0; padding: 3px; border: 0; border-radius: 999px; background: {{switchBg}}; display: flex; justify-content: {{switchAlign}}">
+<span style="width: 24px; height: 24px; border-radius: 999px; background: #FFFFFF; display: block"></span>
+</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-weight: 500">Layout</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{layouts}}" as="la" hint-placeholder-count="3">
+<button type="button" onClick="{{la.pick}}" aria-pressed="{{la.active}}" style="text-align: left; padding: 12px 14px; border: 1px solid {{la.bd}}; border-radius: 6px; background: {{la.bg}}; font-weight: 500">{{la.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Respondent fields</div>
+<div style="display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div>Name</div><div style="color: #5B6069">Text, mandatory</div></div>
+<div style="display: flex; justify-content: space-between; padding: 10px 16px"><div>Role</div><div style="color: #5B6069">Dropdown, 4 options, mandatory</div></div>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Closing and sign-off</div>
+<div style="display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div>Confidence scale, 1 to 5</div><div style="color: #5B6069">Always on</div></div>
+<div style="display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div>Missing item form</div><div style="color: #5B6069">On</div></div>
+<div style="padding: 10px 16px; display: flex; flex-direction: column; gap: 2px"><div>Sign-off wording</div><div style="color: #5B6069">I confirm these answers reflect my view as of today.</div></div>
+</div>
+</div>
+</div>
+<div style="width: 380px; flex-shrink: 0; background: #ECEAE5; border-radius: 6px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 12px; color: #5B6069">Preview, item 2 of 6</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; font-size: 16px">
+<div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div>Split one receipt across two projects or cost centres.</div>
+<sc-if value="{{showPill}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5B6069">
+<div>Proposed priority</div>
+<div style="padding: 2px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">Should have</div>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{scale}}" as="sc" hint-placeholder-count="3">
+<div style="min-height: 44px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #C9C7C1; border-radius: 12px; font-weight: 500">{{sc.label}}</div>
+</sc-for>
+</div>
+</div>
+<a href="Respondent.dc.html" style="font-weight: 500">Open the respondent prototype</a>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isShare}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Share</h2>
+<div style="color: #5B6069">One public link, or a personal link per person that resumes on any device.</div>
+</div>
+<button type="button" onClick="{{goResults}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">See results</button>
+</div>
+<div style="display: flex; gap: 20px; align-items: flex-start">
+<div style="width: 440px; flex-shrink: 0; border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E3E1DC">
+<div style="font-weight: 500">Public link</div>
+<div style="padding: 2px 10px; border-radius: 999px; background: {{linkPillBg}}; color: {{linkPillFg}}; font-size: 12px; font-weight: 500">{{linkStatus}}</div>
+</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="padding: 10px 12px; border-radius: 6px; background: #F6F6F4; font-family: 'Geist Mono', monospace; font-size: 13px; color: {{linkFg}}; overflow-wrap: anywhere">[YOUR DOMAIN]/r/9f3c1a7e52b04d68a1c4e0b7d2f85a36</div>
+<div style="display: flex; justify-content: space-between"><div style="color: #5B6069">Opens</div><div>6 Oct 2026, 09:00</div></div>
+<div style="display: flex; justify-content: space-between"><div style="color: #5B6069">Closes</div><div>20 Oct 2026, 18:00</div></div>
+<div style="display: flex; justify-content: space-between"><div style="color: #5B6069">Passcode</div><div>Off</div></div>
+<div style="color: #5B6069; font-size: 13px">{{linkNote}}</div>
+<button type="button" onClick="{{linkAction}}" style="min-height: 40px; border: 1px solid {{linkBtnBd}}; border-radius: 999px; background: {{linkBtnBg}}; color: {{linkBtnFg}}; font-weight: 500">{{linkBtnLabel}}</button>
+</div>
+</div>
+<div style="flex-grow: 1; min-width: 0; border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E3E1DC">
+<div style="font-weight: 500">Personal invites</div>
+<div style="color: #5B6069; font-size: 13px">Reminders: at most one every three days</div>
+</div>
+<div style="display: flex; gap: 12px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
+<div style="flex-grow: 1">Person</div>
+<div style="width: 130px">Status</div>
+<div style="width: 170px">Reminders</div>
+<div style="width: 110px"></div>
+</div>
+<sc-for list="{{invites}}" as="iv" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px">
+<div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">{{iv.name}}</span> <span style="color: #5B6069">{{iv.role}}</span></div>
+<div style="width: 130px">{{iv.status}}</div>
+<div style="width: 170px; color: #5B6069">{{iv.reminders}}</div>
+<div style="width: 110px; display: flex; justify-content: flex-end">
+<sc-if value="{{iv.canRemind}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{iv.remind}}" style="min-height: 32px; padding: 0 12px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Remind</button>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isResults}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Results</h2>
+<div style="color: #5B6069">Based on {{t.submitted}} submitted responses. The link closes on 20 Oct 2026.</div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; color: #22643F; font-size: 13px"><span style="width: 8px; height: 8px; border-radius: 999px; background: #2F855A; display: block"></span><span>Live</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.submittedOf}}</div><div style="color: #5B6069; font-size: 13px">Submitted</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.agreePct}}</div><div style="color: #5B6069; font-size: 13px">Agreement, {{t.agreeOf}} answers</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.pushed}}</div><div style="color: #5B6069; font-size: 13px">Pushed back</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.unclear}}</div><div style="color: #5B6069; font-size: 13px">Unclear</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.missing}}</div><div style="color: #5B6069; font-size: 13px">Missing items suggested</div></div>
+</div>
+<div style="display: flex; gap: 4px; border-bottom: 1px solid #E3E1DC">
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.active}}" style="min-height: 40px; padding: 0 14px; border: 0; border-bottom: 2px solid {{tb.bd}}; background: transparent; color: {{tb.fg}}; font-weight: 500">{{tb.label}}</button>
+</sc-for>
+</div>
+
+<sc-if value="{{tabAgreement}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
+<div style="width: 110px">Area</div>
+<div style="flex-grow: 1">Item</div>
+<div style="width: 90px">Proposed</div>
+<div style="width: 220px">Answers</div>
+<div style="width: 70px; text-align: right">Agree</div>
+<div style="width: 70px; text-align: right">Pushed</div>
+<div style="width: 70px; text-align: right">Unclear</div>
+</div>
+<sc-for list="{{agreement}}" as="ag" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px">
+<div style="width: 110px; color: #5B6069">{{ag.area}}</div>
+<div style="flex-grow: 1; min-width: 0">{{ag.text}}</div>
+<div style="width: 90px">{{ag.proposed}}</div>
+<div style="width: 220px; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #F0F0EE; gap: 2px">
+<div style="flex-grow: {{ag.agree}}; background: #2F855A"></div>
+<div style="flex-grow: {{ag.pushed}}; background: #B7791F"></div>
+<div style="flex-grow: {{ag.unclear}}; background: #6B46C1"></div>
+</div>
+<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.agree}}</div>
+<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.pushed}}</div>
+<div style="width: 70px; text-align: right; font-family: 'Geist Mono', monospace">{{ag.unclear}}</div>
+</div>
+</sc-for>
+<div style="display: flex; gap: 16px; padding: 10px 16px; font-size: 12px; color: #5B6069">
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2F855A; display: block"></span><span>Agree</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Pushed back</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #6B46C1; display: block"></span><span>Unclear</span></div>
+</div>
+</div>
+<div style="background: #ECEAE5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-weight: 500">Where groups disagree, by role: Sales and everyone else</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{gaps}}" as="gp" hint-placeholder-count="2">
+<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div>{{gp.text}}</div>
+<div style="color: #5B6069; font-size: 13px">{{gp.line}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabDisagree}}" hint-placeholder-val="{{false}}">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
+<div style="width: 300px">Item</div>
+<div style="width: 150px">Respondent</div>
+<div style="width: 170px">Proposed, their value</div>
+<div style="flex-grow: 1">Reason</div>
+</div>
+<sc-for list="{{disagreements}}" as="dg" hint-placeholder-count="8">
+<div style="display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid #F0EFEB">
+<div style="width: 300px; flex-shrink: 0">{{dg.item}}</div>
+<div style="width: 150px; flex-shrink: 0; display: flex; flex-direction: column"><span style="font-weight: 500">{{dg.name}}</span><span style="color: #5B6069; font-size: 12px">{{dg.role}}</span></div>
+<div style="width: 170px; flex-shrink: 0"><span style="color: #5B6069">{{dg.proposed}}</span> <span style="padding: 2px 8px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px; font-weight: 500">{{dg.value}}</span></div>
+<div style="flex-grow: 1; min-width: 0">{{dg.reason}}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{tabOpen}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Unclear items and questions</div>
+<sc-for list="{{questions}}" as="qu" hint-placeholder-count="2">
+<div style="padding: 12px 16px; border-bottom: 1px solid #F0EFEB; display: flex; flex-direction: column; gap: 6px">
+<div style="color: #5B6069; font-size: 13px">{{qu.item}}</div>
+<div>{{qu.question}}</div>
+<div style="font-size: 12px; color: #5B6069">{{qu.name}}, {{qu.role}}</div>
+</div>
+</sc-for>
+</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Missing items suggested</div>
+<div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; gap: 8px"><span style="padding: 2px 8px; border-radius: 999px; background: #E3EEF9; color: #1F4F7A; font-size: 12px; font-weight: 500">Submitting</span><span style="padding: 2px 8px; border-radius: 999px; background: #F0F0EE; color: #454A52; font-size: 12px; font-weight: 500">Suggested: Should have</span></div>
+<div>Mileage is calculated from a start and end address instead of typed in.</div>
+<div style="font-size: 12px; color: #5B6069">Dana Okafor, Finance</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabResponses}}" hint-placeholder-val="{{false}}">
+<div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
+<div style="flex-grow: 1">Respondent</div>
+<div style="width: 160px">Role</div>
+<div style="width: 130px">Status</div>
+<div style="width: 110px">Progress</div>
+<div style="width: 120px">Submitted</div>
+<div style="width: 140px">Source</div>
+</div>
+<sc-for list="{{tracker}}" as="tr" hint-placeholder-count="7">
+<div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #F0EFEB; min-height: 36px">
+<div style="flex-grow: 1; font-weight: 500">{{tr.name}}</div>
+<div style="width: 160px; color: #5B6069">{{tr.role}}</div>
+<div style="width: 130px"><span style="padding: 2px 8px; border-radius: 999px; background: {{tr.bg}}; color: {{tr.fg}}; font-size: 12px; font-weight: 500">{{tr.status}}</span></div>
+<div style="width: 110px; font-family: 'Geist Mono', monospace">{{tr.progress}}</div>
+<div style="width: 120px; color: #5B6069">{{tr.date}}</div>
+<div style="width: 140px; color: #5B6069">{{tr.source}}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{tabActions}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="color: #5B6069">Written by AI from the responses. Every action cites the answers behind it. This run cost EUR 0.04 of the workspace budget.</div>
+<sc-for list="{{actions}}" as="ac" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 20px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px; background: {{ac.bg}}">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 15px; font-weight: 500; color: {{ac.fg}}">{{ac.title}}</div>
+<div style="color: #5B6069">{{ac.why}}</div>
+<div style="font-size: 12px; color: #5B6069">Cites: {{ac.cites}}</div>
+</div>
+<div style="flex-shrink: 0; display: flex; gap: 6px; align-items: center">
+<sc-if value="{{ac.open}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{ac.done}}" style="min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Mark done</button>
+<button type="button" onClick="{{ac.dismiss}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Dismiss</button>
+</sc-if>
+<sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}">
+<div style="color: #5B6069">{{ac.stateLabel}}</div>
+<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 12px; border: 0; background: transparent; color: #0E6B63; font-weight: 500">Undo</button>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+</div>
+</sc-if>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+state = {
+step: 'import',
+mapping: { Ref: 'ref', Requirement: 'text', Module: 'area', Priority: 'value' },
+shaped: {},
+flagOpen: true,
+method: 'moscow',
+showProposed: true,
+layout: 'item',
+link: 'draft',
+reminded: {},
+tab: 'agreement',
+actionState: {}
+};
+
+data() {
+const items = [
+{ id: 'i1', ref: 'CL-01', area: 'Submitting', proposed: 'M', reader: 'Photograph a receipt and the amount, date and merchant are filled in automatically.', original: 'OCR receipt capture via mobile (auto-fill amt/date/vendor).' },
+{ id: 'i2', ref: 'CL-02', area: 'Submitting', proposed: 'S', reader: 'Split one receipt across two projects or cost centres.', original: 'Multi-allocation of single expense line to 2+ cost centres/projects.' },
+{ id: 'i3', ref: 'CL-03', area: 'Approving', proposed: 'M', reader: 'Managers approve or reject from the email, without logging in.', original: 'Approval actionable from notification email (no login).' },
+{ id: 'i4', ref: 'CL-04', area: 'Approving', proposed: 'S', reader: 'Expenses over the policy limit are flagged before they reach the approver.', original: 'Policy engine: auto-flag out-of-policy claims pre-approval.' },
+{ id: 'i5', ref: 'CL-05', area: 'Paying', proposed: 'M', reader: 'Approved expenses are paid with the next salary run.', original: 'Reimbursement via payroll integration, next cycle.' },
+{ id: 'i6', ref: 'CL-06', area: 'Paying', proposed: 'C', reader: 'Employees can request a cash advance before a trip.', original: 'Travel advance request workflow (pre-trip).' }
+];
+const areas = [
+{ name: 'Submitting', rationale: 'First, because every claim starts here.' },
+{ name: 'Approving', rationale: 'Second, what happens to a claim once it is in.' },
+{ name: 'Paying', rationale: 'Last, the money.' }
+];
+const people = [
+{ id: 'r1', name: 'Ioana Marin', role: 'Sales', status: 'Submitted', done: 6, date: '7 Oct 2026', source: 'Personal invite', reminders: 0 },
+{ id: 'r2', name: 'Tom Reyes', role: 'Sales', status: 'Submitted', done: 6, date: '8 Oct 2026', source: 'Personal invite', reminders: 1 },
+{ id: 'r3', name: 'Dana Okafor', role: 'Finance', status: 'Submitted', done: 6, date: '8 Oct 2026', source: 'Public link', reminders: 0 },
+{ id: 'r4', name: 'Lukas Berg', role: 'Engineering manager', status: 'Submitted', done: 6, date: '9 Oct 2026', source: 'Personal invite', reminders: 0 },
+{ id: 'r5', name: 'Priya Nair', role: 'HR', status: 'Submitted', done: 6, date: '12 Oct 2026', source: 'Personal invite', reminders: 1 },
+{ id: 'r6', name: 'Sam Hill', role: 'Office manager', status: 'In progress', done: 4, date: '', source: 'Personal invite', reminders: 1 },
+{ id: 'r7', name: 'Elena Costa', role: 'Sales', status: 'Invited', done: 0, date: '', source: 'Personal invite', reminders: 1 }
+];
+const answers = {
+i1: { r1: ['A'], r2: ['A'], r3: ['D', 'S', 'Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera.'], r4: ['A'], r5: ['A'] },
+i2: { r1: ['A'], r2: ['U', 'Does this include splitting between two clients on one trip?'], r3: ['D', 'M', 'Finance re-keys about thirty split claims a month by hand.'], r4: ['D', 'M', 'My team bills two projects on almost every trip.'], r5: ['A'] },
+i3: { r1: ['A'], r2: ['D', 'S', 'Approving from email means approving without seeing the receipt.'], r3: ['A'], r4: ['A'], r5: ['A'] },
+i4: { r1: ['D', 'M', 'I find out I was over the limit three weeks later, after I have paid.'], r2: ['D', 'M', 'Sales gets most of the rejections, and always after the fact.'], r3: ['A'], r4: ['A'], r5: ['A'] },
+i5: { r1: ['A'], r2: ['A'], r3: ['A'], r4: ['A'], r5: ['A'] },
+i6: { r1: ['A'], r2: ['A'], r3: ['D', 'S', 'New starters ask for an advance every month. It is a real need.'], r4: ['U', 'Would the advance be deducted from salary if the trip is cancelled?'], r5: ['D', 'W', 'Advances are taxable income if not reconciled in time. Payroll would have to police it.'] }
+};
+return { items: items, areas: areas, people: people, answers: answers };
+}
+
+renderVals() {
+const s = this.state;
+const d = this.data();
+const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: "Won't have" };
+const go = (step) => () => this.setState({ step: step });
+const patch = (key, id, value) => {
+const next = Object.assign({}, s[key]);
+next[id] = value;
+const upd = {};
+upd[key] = next;
+this.setState(upd);
+};
+
+const steps = [['import', 'Import'], ['shape', 'Shape'], ['build', 'Build'], ['share', 'Share'], ['results', 'Results']].map((x, i) => {
+const active = s.step === x[0];
+return { n: String(i + 1), label: x[1], active: active, go: go(x[0]), bg: active ? '#16181C' : 'transparent', fg: active ? '#FFFFFF' : '#454A52' };
+});
+
+const mapping = [['Ref', 'A'], ['Requirement', 'B'], ['Module', 'C'], ['Priority', 'D']].map((x) => ({
+id: 'map-' + x[0], col: x[0], letter: x[1], to: s.mapping[x[0]], set: (e) => patch('mapping', x[0], e.target.value)
+}));
+const preview = d.items.map((it) => ({ ref: it.ref, original: it.original, module: it.area, priority: it.proposed }));
+
+let acceptedCount = 0;
+const shapeItem = (it) => {
+const st = s.shaped[it.id];
+if (st === 'accepted') acceptedCount += 1;
+return {
+ref: it.ref, reader: it.reader, original: it.original,
+pending: !st, decided: !!st,
+pill: st === 'accepted' ? 'Reader version used' : (st === 'rejected' ? 'Original kept' : 'Suggested'),
+pillBg: st === 'accepted' ? '#E6F4EC' : (st === 'rejected' ? '#F0F0EE' : '#FBF1DC'),
+pillFg: st === 'accepted' ? '#22643F' : (st === 'rejected' ? '#454A52' : '#7A5210'),
+accept: () => patch('shaped', it.id, 'accepted'),
+reject: () => patch('shaped', it.id, 'rejected'),
+undo: () => patch('shaped', it.id, null)
+};
+};
+const areas = d.areas.map((ar) => ({ name: ar.name, rationale: ar.rationale, items: d.items.filter((it) => it.area === ar.name).map(shapeItem) }));
+const setAll = (value) => () => {
+const next = {};
+d.items.forEach((it) => { next[it.id] = value; });
+this.setState({ shaped: next });
+};
+
+const selOn = { bg: '#F6F6F4', bd: '#16181C' };
+const selOff = { bg: '#FFFFFF', bd: '#E3E1DC' };
+const methods = [
+['moscow', 'MoSCoW', 'Must, Should, Could, Won’t'],
+['fit', '1 to 5 fit', 'How well the item fits the need'],
+['kcd', 'Keep, change, drop', 'For reviewing an existing list']
+].map((x) => {
+const active = s.method === x[0];
+const st = active ? selOn : selOff;
+return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ method: x[0] }) };
+});
+const layouts = [['item', 'One item per screen'], ['area', 'One area per screen'], ['page', 'Single long page']].map((x) => {
+const active = s.layout === x[0];
+const st = active ? selOn : selOff;
+return { label: x[1], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ layout: x[0] }) };
+});
+let scaleLabels = ['Must have', 'Should have', 'Could have', "Won't have", 'Unclear'];
+if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Agree', 'Should be different', 'Unclear'];
+if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Unclear'];
+if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Unclear'];
+
+const linkStates = {
+draft: { status: 'Draft', pillBg: '#F0F0EE', pillFg: '#454A52', fg: '#5B6069', note: 'Not published yet. Nobody can open the link.', btn: 'Publish', btnBg: '#16181C', btnFg: '#FFFFFF', btnBd: '#16181C', next: 'published' },
+published: { status: 'Published', pillBg: '#E6F4EC', pillFg: '#22643F', fg: '#16181C', note: 'Anyone with the link can respond until the close date.', btn: 'Revoke link', btnBg: '#FFFFFF', btnFg: '#16181C', btnBd: '#C9C7C1', next: 'revoked' },
+revoked: { status: 'Revoked', pillBg: '#FBF1DC', pillFg: '#7A5210', fg: '#5B6069', note: 'The link now shows a page saying it was withdrawn. Answers already given are kept.', btn: 'Publish again', btnBg: '#16181C', btnFg: '#FFFFFF', btnBd: '#16181C', next: 'published' }
+};
+const ln = linkStates[s.link];
+const invites = d.people.filter((p) => p.source === 'Personal invite').map((p) => {
+const extra = s.reminded[p.id] ? 1 : 0;
+const count = p.reminders + extra;
+return {
+name: p.name, role: p.role, status: p.status,
+reminders: extra ? count + ' sent, last today' : (count === 0 ? 'None sent' : count + ' sent'),
+canRemind: p.status !== 'Submitted' && !extra,
+remind: () => patch('reminded', p.id, true)
+};
+});
+
+const submitted = d.people.filter((p) => p.status === 'Submitted');
+const byId = {};
+d.people.forEach((p) => { byId[p.id] = p; });
+let totalAgree = 0, totalPushed = 0, totalUnclear = 0, totalAnswers = 0;
+const disagreements = [];
+const questions = [];
+const gaps = [];
+const agreement = d.items.map((it) => {
+let agree = 0, pushed = 0, unclear = 0;
+let vetAgree = 0, vetAll = 0, restAgree = 0, restAll = 0;
+submitted.forEach((p) => {
+const a = d.answers[it.id][p.id];
+const isVet = p.role === 'Sales';
+if (isVet) vetAll += 1; else restAll += 1;
+if (a[0] === 'A') { agree += 1; if (isVet) vetAgree += 1; else restAgree += 1; }
+if (a[0] === 'D') { pushed += 1; disagreements.push({ item: it.reader, name: p.name, role: p.role, proposed: LABEL[it.proposed], value: LABEL[a[1]], reason: a[2] }); }
+if (a[0] === 'U') { unclear += 1; questions.push({ item: it.reader, name: p.name, role: p.role, question: a[1] }); }
+});
+totalAgree += agree; totalPushed += pushed; totalUnclear += unclear; totalAnswers += submitted.length;
+gaps.push({ text: it.reader, gap: Math.abs(vetAgree / vetAll - restAgree / restAll), line: 'Sales: ' + vetAgree + ' of ' + vetAll + ' agree. Everyone else: ' + restAgree + ' of ' + restAll + ' agree.' });
+return { area: it.area, text: it.reader, proposed: LABEL[it.proposed], agree: agree, pushed: pushed, unclear: unclear };
+});
+gaps.sort((a, b) => b.gap - a.gap);
+
+const statusStyle = { 'Submitted': ['#E6F4EC', '#22643F'], 'In progress': ['#FBF1DC', '#7A5210'], 'Invited': ['#F0F0EE', '#454A52'] };
+const tracker = d.people.map((p) => ({ name: p.name, role: p.role, status: p.status, bg: statusStyle[p.status][0], fg: statusStyle[p.status][1], progress: p.done + ' of ' + d.items.length, date: p.date || 'Not yet', source: p.source }));
+
+const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Pushed back (' + totalPushed + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)']];
+const tabs = tabDefs.map((x) => {
+const active = s.tab === x[0];
+return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg: active ? '#16181C' : '#5B6069', pick: () => this.setState({ tab: x[0] }) };
+});
+
+const actionDefs = [
+{ id: 'a1', title: 'Decide whether policy flags move to Must have.', why: 'Both salespeople pushed it up from Should have. Nobody outside Sales did.', cites: 'Ioana Marin and Tom Reyes on CL-04' },
+{ id: 'a2', title: 'Answer two open questions before the link closes.', why: 'Two respondents could not rate an item without more detail.', cites: 'Tom Reyes on CL-02, Lukas Berg on CL-06' },
+{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'Finance rated it Won’t have for licensing reasons, and the practice manager asked who carries the risk.', cites: 'Priya Nair and Lukas Berg on CL-06' },
+{ id: 'a4', title: 'Consider adding mileage from addresses to Submitting.', why: 'One respondent suggested it as a missing item.', cites: 'Dana Okafor, missing item' }
+];
+const actions = actionDefs.map((a) => {
+const st = s.actionState[a.id];
+return {
+title: a.title, why: a.why, cites: a.cites,
+open: !st, closed: !!st,
+stateLabel: st === 'done' ? 'Done' : 'Dismissed',
+bg: st ? '#F6F6F4' : '#FFFFFF', fg: st ? '#5B6069' : '#16181C',
+done: () => patch('actionState', a.id, 'done'),
+dismiss: () => patch('actionState', a.id, 'dismissed'),
+reopen: () => patch('actionState', a.id, null)
+};
+});
+
+return {
+steps: steps,
+isImport: s.step === 'import', isShape: s.step === 'shape', isBuild: s.step === 'build', isShare: s.step === 'share', isResults: s.step === 'results',
+goShape: go('shape'), goBuild: go('build'), goShare: go('share'), goResults: go('results'),
+mapping: mapping, preview: preview,
+areas: areas,
+shapeCount: acceptedCount + ' of ' + d.items.length + ' reader versions accepted.',
+acceptAll: setAll('accepted'), rejectAll: setAll('rejected'),
+flagOpen: s.flagOpen, dismissFlag: () => this.setState({ flagOpen: false }),
+methods: methods, layouts: layouts,
+showProposed: s.showProposed,
+showPill: s.showProposed && s.method === 'moscow',
+toggleProposed: () => this.setState({ showProposed: !s.showProposed }),
+switchBg: s.showProposed ? '#16181C' : '#8A8E96',
+switchAlign: s.showProposed ? 'flex-end' : 'flex-start',
+scale: scaleLabels.map((l) => ({ label: l })),
+linkStatus: ln.status, linkPillBg: ln.pillBg, linkPillFg: ln.pillFg, linkFg: ln.fg, linkNote: ln.note,
+linkBtnLabel: ln.btn, linkBtnBg: ln.btnBg, linkBtnFg: ln.btnFg, linkBtnBd: ln.btnBd,
+linkAction: () => this.setState({ link: ln.next }),
+invites: invites,
+t: {
+submitted: submitted.length,
+submittedOf: submitted.length + ' of ' + d.people.length,
+agreePct: Math.round((totalAgree / totalAnswers) * 100) + '%',
+agreeOf: totalAgree + ' of ' + totalAnswers,
+pushed: totalPushed, unclear: totalUnclear, missing: 1
+},
+tabs: tabs,
+tabAgreement: s.tab === 'agreement', tabDisagree: s.tab === 'disagree', tabOpen: s.tab === 'open', tabResponses: s.tab === 'responses', tabActions: s.tab === 'actions',
+agreement: agreement,
+gaps: gaps.slice(0, 2),
+disagreements: disagreements,
+questions: questions,
+tracker: tracker,
+actions: actions
+};
+}
+}
+</script>
+</body>
+</html>

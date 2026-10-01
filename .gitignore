@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.*.local
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+# never commit anything client-derived; keep such material outside this folder entirely
+reference/

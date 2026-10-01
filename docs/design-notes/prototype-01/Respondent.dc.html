@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Respondent journey</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
+a{color:#0E6B63}a:hover{color:#0A4F49}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}button:disabled{cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #0E6B63;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #16181C; display: flex; flex-direction: column; font-size: 17px; line-height: 1.45; overflow: hidden">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E3E1DC">
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div>
+<div style="font-size: 15px; font-weight: 500">Marlow Group</div>
+</div>
+<div style="font-size: 13px; color: #5B6069">{{headerNote}}</div>
+</div>
+
+<sc-if value="{{isLanding}}" hint-placeholder-val="{{true}}">
+<div style="flex-grow: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em">New expense tool</h1>
+<div style="color: #454A52">We are replacing the expense tool for all 400 staff. Below are six things we think it must do. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="r-name" style="font-size: 15px; font-weight: 500">Your name</label>
+<input id="r-name" type="text" value="{{name}}" onChange="{{setName}}" autocomplete="name" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="r-role" style="font-size: 15px; font-weight: 500">Your role</label>
+<select id="r-role" value="{{role}}" onChange="{{setRole}}" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF">
+<option value="">Choose a role</option>
+<option value="Sales">Sales</option>
+<option value="Finance">Finance</option>
+<option value="Engineering manager">Engineering manager</option>
+<option value="HR">HR</option>
+</select>
+</div>
+<div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go, so you can close this page and come back. [PRIVACY NOTICE LINK]</div>
+</div>
+<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC; display: flex; flex-direction: column; gap: 8px">
+<button type="button" onClick="{{start}}" disabled="{{startDisabled}}" style="min-height: 52px; border: 0; border-radius: 999px; background: {{startBg}}; color: #FFFFFF; font-weight: 500">Start</button>
+<sc-if value="{{startDisabled}}" hint-placeholder-val="{{false}}">
+<div style="font-size: 14px; color: #5B6069; text-align: center">Fill in your name and role to start.</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isItem}}" hint-placeholder-val="{{false}}">
+<div style="padding: 14px 20px 0 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 14px; color: #5B6069">
+<div>{{cur.area}}</div>
+<div style="font-family: 'Geist Mono', monospace">{{cur.position}}</div>
+</div>
+<div style="height: 6px; border-radius: 999px; background: #ECEAE5; overflow: hidden">
+<div style="height: 6px; border-radius: 999px; background: #16181C; width: {{progressWidth}}; transition: width 250ms ease-out"></div>
+</div>
+</div>
+<div style="flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 19px; line-height: 1.3">{{cur.text}}</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #5B6069">
+<div>Proposed priority</div>
+<div style="padding: 2px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">{{cur.proposedLabel}}</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{choices}}" as="c" hint-placeholder-count="3">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.active}}" style="min-height: 52px; padding: 8px 16px; text-align: left; border: 1px solid {{c.bd}}; border-radius: 12px; background: {{c.bg}}; color: {{c.fg}}; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 500">{{c.label}}</span>
+<span style="font-size: 14px; opacity: 0.8">{{c.hint}}</span>
+</button>
+</sc-for>
+</div>
+<sc-if value="{{isDiff}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 15px; font-weight: 500">What should it be?</div>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{diffOptions}}" as="o" hint-placeholder-count="3">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.active}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{o.bd}}; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; font-size: 15px; font-weight: 500">{{o.label}}</button>
+</sc-for>
+</div>
+<label for="r-reason" style="font-size: 15px; font-weight: 500">Why? The team reads every reason.</label>
+<textarea id="r-reason" rows="3" value="{{answerText}}" onChange="{{setAnswerText}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+</div>
+</sc-if>
+<sc-if value="{{isUnclear}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<label for="r-question" style="font-size: 15px; font-weight: 500">What would you need to know to answer?</label>
+<textarea id="r-question" rows="3" value="{{answerText}}" onChange="{{setAnswerText}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+</div>
+</sc-if>
+</div>
+<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 10px">
+<button type="button" onClick="{{back}}" style="min-height: 52px; padding: 0 22px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Back</button>
+<button type="button" onClick="{{next}}" disabled="{{nextDisabled}}" style="flex-grow: 1; min-height: 52px; border: 0; border-radius: 999px; background: {{nextBg}}; color: #FFFFFF; font-weight: 500">{{nextLabel}}</button>
+</div>
+<div style="font-size: 14px; color: #5B6069; text-align: center">{{saveNote}}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isMissing}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 26px; font-weight: 400; line-height: 1.15">Is anything missing?</h1>
+<div style="color: #454A52">If the list left out something the new system must do, add it here. Skip this if nothing comes to mind.</div>
+<label for="r-missing" style="font-size: 15px; font-weight: 500">Missing item</label>
+<textarea id="r-missing" rows="4" value="{{missingText}}" onChange="{{setMissing}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; resize: none"></textarea>
+</div>
+<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC; display: flex; gap: 10px">
+<button type="button" onClick="{{backToItems}}" style="min-height: 52px; padding: 0 22px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Back</button>
+<button type="button" onClick="{{toSummary}}" style="flex-grow: 1; min-height: 52px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">{{missingNextLabel}}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isSummary}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 26px; font-weight: 400; line-height: 1.15">Review your answers</h1>
+<div style="color: #454A52; font-size: 15px">{{summaryLine}}</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="border: 1px solid #E3E1DC; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 15px">{{r.text}}</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<div style="padding: 2px 10px; border-radius: 999px; background: {{r.bg}}; color: {{r.fg}}; font-size: 13px; font-weight: 500">{{r.status}}</div>
+<button type="button" onClick="{{r.edit}}" style="min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: #0E6B63; font-size: 15px; font-weight: 500">Change</button>
+</div>
+<sc-if value="{{r.hasDetail}}" hint-placeholder-val="{{false}}">
+<div style="font-size: 14px; color: #454A52; background: #F6F6F4; border-radius: 8px; padding: 8px 10px">{{r.detail}}</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{hasMissing}}" hint-placeholder-val="{{false}}">
+<div style="border: 1px solid #E3E1DC; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: #E3EEF9; color: #1F4F7A; font-size: 13px; font-weight: 500">You added</div>
+<div style="font-size: 15px">{{missingText}}</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 15px; font-weight: 500">How confident are you in these answers?</div>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{confidence}}" as="k" hint-placeholder-count="5">
+<button type="button" onClick="{{k.pick}}" aria-pressed="{{k.active}}" aria-label="{{k.aria}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{k.bd}}; border-radius: 12px; background: {{k.bg}}; color: {{k.fg}}; font-family: 'Geist Mono', monospace">{{k.n}}</button>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #5B6069">
+<div>Guessing</div>
+<div>Certain</div>
+</div>
+</div>
+<div style="display: flex; align-items: flex-start; gap: 12px; background: #F6F6F4; border-radius: 12px; padding: 14px">
+<input id="r-sign" type="checkbox" checked="{{signed}}" onChange="{{toggleSigned}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
+<label for="r-sign" style="font-size: 15px">I confirm these answers reflect my view as of today.</label>
+</div>
+</div>
+<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC; display: flex; flex-direction: column; gap: 8px">
+<button type="button" onClick="{{submit}}" disabled="{{submitDisabled}}" style="min-height: 52px; border: 0; border-radius: 999px; background: {{submitBg}}; color: #FFFFFF; font-weight: 500">Submit answers</button>
+<sc-if value="{{submitDisabled}}" hint-placeholder-val="{{false}}">
+<div style="font-size: 14px; color: #5B6069; text-align: center">Pick a confidence level and tick the confirmation to submit.</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; padding: 48px 20px 24px 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="width: 56px; height: 56px; border-radius: 999px; background: #E6F4EC; display: flex; align-items: center; justify-content: center">
+<svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#22643F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</div>
+<h1 style="margin: 0; font-size: 28px; font-weight: 400; line-height: 1.1">Answers submitted</h1>
+<div style="color: #454A52">Thank you, {{name}}. The project team can see your answers now.</div>
+<div style="background: #F6F6F4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<div>{{summaryLine}}</div>
+<div style="color: #5B6069; font-family: 'Geist Mono', monospace; font-size: 13px">{{submittedAt}}</div>
+</div>
+<div style="color: #5B6069; font-size: 15px">You can change your answers until 20 October 2026. Open the same link again.</div>
+</div>
+<div style="padding: 16px 20px; border-top: 1px solid #E3E1DC">
+<button type="button" onClick="{{reopen}}" style="width: 100%; min-height: 52px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Change my answers</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+state = { screen: 'landing', idx: 0, name: '', role: '', answers: {}, missingText: '', confidence: 0, signed: false, submittedAt: '' };
+
+items() {
+return [
+{ id: 'i1', area: 'Submitting', proposed: 'M', text: 'Photograph a receipt and the amount, date and merchant are filled in automatically.' },
+{ id: 'i2', area: 'Submitting', proposed: 'S', text: 'Split one receipt across two projects or cost centres.' },
+{ id: 'i3', area: 'Approving', proposed: 'M', text: 'Managers approve or reject from the email, without logging in.' },
+{ id: 'i4', area: 'Approving', proposed: 'S', text: 'Expenses over the policy limit are flagged before they reach the approver.' },
+{ id: 'i5', area: 'Paying', proposed: 'M', text: 'Approved expenses are paid with the next salary run.' },
+{ id: 'i6', area: 'Paying', proposed: 'C', text: 'Employees can request a cash advance before a trip.' }
+];
+}
+
+renderVals() {
+const s = this.state;
+const items = this.items();
+const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: "Won't have" };
+const SHORT = { M: 'Must', S: 'Should', C: 'Could', W: "Won't" };
+const on = { bg: '#16181C', fg: '#FFFFFF', bd: '#16181C' };
+const off = { bg: '#FFFFFF', fg: '#16181C', bd: '#C9C7C1' };
+const it = items[s.idx];
+const a = s.answers[it.id] || {};
+const setAns = (next) => {
+const answers = Object.assign({}, s.answers);
+answers[it.id] = next;
+this.setState({ answers: answers });
+};
+const hasText = (x) => (x.text || '').trim().length > 0;
+const complete = (x) => !!x && (x.kind === 'agree' || (x.kind === 'diff' && !!x.value && hasText(x)) || (x.kind === 'unclear' && hasText(x)));
+
+const choiceDefs = [
+{ kind: 'agree', label: 'Agree', hint: LABEL[it.proposed] + ' is right' },
+{ kind: 'diff', label: 'Should be different', hint: 'Pick another priority and say why' },
+{ kind: 'unclear', label: 'Unclear', hint: 'I cannot answer without more detail' }
+];
+const choices = choiceDefs.map((c) => {
+const active = a.kind === c.kind;
+const st = active ? on : off;
+return { label: c.label, hint: c.hint, active: active, bg: st.bg, fg: st.fg, bd: st.bd, pick: () => setAns(active ? a : { kind: c.kind, value: null, text: '' }) };
+});
+const diffOptions = ['M', 'S', 'C', 'W'].filter((v) => v !== it.proposed).map((v) => {
+const active = a.value === v;
+const st = active ? on : off;
+return { label: SHORT[v], active: active, bg: st.bg, fg: st.fg, bd: st.bd, pick: () => setAns({ kind: 'diff', value: v, text: a.text || '' }) };
+});
+
+const curDone = complete(a);
+const last = s.idx === items.length - 1;
+const startDisabled = s.name.trim().length === 0 || s.role === '';
+const submitDisabled = s.confidence === 0 || !s.signed;
+
+let agreed = 0, pushed = 0, unclear = 0;
+const rows = items.map((x, i) => {
+const ans = s.answers[x.id] || {};
+let status = 'Not answered', bg = '#F0F0EE', fg = '#454A52';
+if (ans.kind === 'agree') { agreed += 1; status = 'Agree: ' + LABEL[x.proposed]; bg = '#E6F4EC'; fg = '#22643F'; }
+if (ans.kind === 'diff') { pushed += 1; status = 'Different: ' + (LABEL[ans.value] || ''); bg = '#FBF1DC'; fg = '#7A5210'; }
+if (ans.kind === 'unclear') { unclear += 1; status = 'Unclear'; bg = '#EEE8FA'; fg = '#4C2F94'; }
+return { text: x.text, status: status, bg: bg, fg: fg, detail: ans.text || '', hasDetail: hasText(ans), edit: () => this.setState({ screen: 'item', idx: i }) };
+});
+const hasMissing = s.missingText.trim().length > 0;
+const summaryLine = agreed + ' agreed, ' + pushed + ' pushed back, ' + unclear + ' unclear' + (hasMissing ? ', 1 item added' : '');
+
+const confidence = [1, 2, 3, 4, 5].map((n) => {
+const active = s.confidence === n;
+const st = active ? on : off;
+return { n: String(n), aria: 'Confidence ' + n + ' of 5', active: active, bg: st.bg, fg: st.fg, bd: st.bd, pick: () => this.setState({ confidence: n }) };
+});
+
+const pad = (n) => (n < 10 ? '0' : '') + n;
+const stamp = () => {
+const d = new Date();
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+return 'Submitted ' + d.getUTCDate() + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ', ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' UTC';
+};
+
+const headerNote = s.screen === 'done' ? 'Submitted' : (s.screen === 'landing' ? 'Closes 20 Oct' : 'Saved');
+
+return {
+isLanding: s.screen === 'landing',
+isItem: s.screen === 'item',
+isMissing: s.screen === 'missing',
+isSummary: s.screen === 'summary',
+isDone: s.screen === 'done',
+headerNote: headerNote,
+name: s.name,
+role: s.role,
+setName: (e) => this.setState({ name: e.target.value }),
+setRole: (e) => this.setState({ role: e.target.value }),
+startDisabled: startDisabled,
+startBg: startDisabled ? '#8A8E96' : '#16181C',
+start: () => this.setState({ screen: 'item', idx: 0 }),
+cur: { area: it.area, text: it.text, proposedLabel: LABEL[it.proposed], position: (s.idx + 1) + ' of ' + items.length },
+progressWidth: Math.round(((s.idx + (curDone ? 1 : 0)) / items.length) * 100) + '%',
+choices: choices,
+isDiff: a.kind === 'diff',
+isUnclear: a.kind === 'unclear',
+diffOptions: diffOptions,
+answerText: a.text || '',
+setAnswerText: (e) => setAns(Object.assign({}, a, { text: e.target.value })),
+nextDisabled: !curDone,
+nextBg: curDone ? '#16181C' : '#8A8E96',
+nextLabel: last ? 'Continue' : 'Next item',
+saveNote: curDone ? 'Saved' : (a.kind === 'diff' ? 'Pick a priority and give a reason to continue.' : (a.kind === 'unclear' ? 'Write your question to continue.' : 'Choose an answer to continue.')),
+next: () => this.setState(last ? { screen: 'missing' } : { idx: s.idx + 1 }),
+back: () => this.setState(s.idx === 0 ? { screen: 'landing' } : { idx: s.idx - 1 }),
+missingText: s.missingText,
+setMissing: (e) => this.setState({ missingText: e.target.value }),
+missingNextLabel: hasMissing ? 'Add and continue' : 'Skip',
+backToItems: () => this.setState({ screen: 'item', idx: items.length - 1 }),
+toSummary: () => this.setState({ screen: 'summary' }),
+rows: rows,
+hasMissing: hasMissing,
+summaryLine: summaryLine,
+confidence: confidence,
+signed: s.signed,
+toggleSigned: (e) => this.setState({ signed: e.target.checked }),
+submitDisabled: submitDisabled,
+submitBg: submitDisabled ? '#8A8E96' : '#16181C',
+submit: () => this.setState({ screen: 'done', submittedAt: stamp() }),
+submittedAt: s.submittedAt,
+reopen: () => this.setState({ screen: 'summary' })
+};
+}
+}
+</script>
+</body>
+</html>

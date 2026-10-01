@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Landing page C</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
+a{color:#16181C;text-decoration:none}a:hover{color:#0E6B63}
+a:focus-visible{outline:2px solid #0E6B63;outline-offset:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.in1{animation:fadeUp .7s ease-out both}
+.in2{animation:fadeUp .7s ease-out .12s both}
+.in3{animation:fadeUp .7s ease-out .24s both}
+.in4{animation:fadeUp .8s ease-out .3s both}
+@keyframes r1{0%,4%{opacity:0;transform:translateY(12px)}9%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+@keyframes r2{0%,16%{opacity:0;transform:translateY(12px)}21%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+@keyframes r3{0%,28%{opacity:0;transform:translateY(12px)}33%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+@keyframes r4{0%,40%{opacity:0;transform:translateY(12px)}45%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+@keyframes r5{0%,52%{opacity:0;transform:translateY(12px)}57%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+@keyframes r6{0%,66%{opacity:0;transform:translateY(12px) scale(.98)}72%,93%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+.r1{animation:r1 13s ease-out infinite}.r2{animation:r2 13s ease-out infinite}.r3{animation:r3 13s ease-out infinite}
+.r4{animation:r4 13s ease-out infinite}.r5{animation:r5 13s ease-out infinite}.r6{animation:r6 13s ease-out infinite}
+@keyframes p1{0%,30%{opacity:1}33.3%,96.6%{opacity:0}100%{opacity:1}}
+@keyframes p2{0%,30%{opacity:0}33.3%,63.3%{opacity:1}66.6%,100%{opacity:0}}
+@keyframes p3{0%,63.3%{opacity:0}66.6%,96.6%{opacity:1}100%{opacity:0}}
+.p1{animation:p1 15s ease-in-out infinite}.p2{opacity:0;animation:p2 15s ease-in-out infinite}.p3{opacity:0;animation:p3 15s ease-in-out infinite}
+@keyframes t1{0%,30%{opacity:1}33.3%,96.6%{opacity:.45}100%{opacity:1}}
+@keyframes t2{0%,30%{opacity:.45}33.3%,63.3%{opacity:1}66.6%,100%{opacity:.45}}
+@keyframes t3{0%,63.3%{opacity:.45}66.6%,96.6%{opacity:1}100%{opacity:.45}}
+.t1{animation:t1 15s ease-in-out infinite}.t2{animation:t2 15s ease-in-out infinite}.t3{animation:t3 15s ease-in-out infinite}
+@keyframes l1{0%{width:0}33.3%,99.9%{width:100%}100%{width:0}}
+@keyframes l2{0%,33.3%{width:0}66.6%,99.9%{width:100%}100%{width:0}}
+@keyframes l3{0%,66.6%{width:0}99.9%{width:100%}100%{width:0}}
+.l1{animation:l1 15s linear infinite}.l2{animation:l2 15s linear infinite}.l3{animation:l3 15s linear infinite}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.mq{animation:mq 60s linear infinite}.mqr{animation:mq 70s linear infinite reverse}
+@keyframes grow{0%{transform:scaleX(0);opacity:1}16%{transform:scaleX(1)}92%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+.g{transform-origin:left center;animation:grow 9s cubic-bezier(.2,.7,.2,1) infinite}
+.g2{animation-delay:.15s}.g3{animation-delay:.3s}.g4{animation-delay:.45s}.g5{animation-delay:.6s}.g6{animation-delay:.75s}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(47,133,90,.45)}60%{box-shadow:0 0 0 7px rgba(47,133,90,0)}}
+.live{animation:pulse 2s ease-out infinite}
+.rr .rv{opacity:0;transform:translateY(22px);transition:opacity .75s ease-out,transform .75s ease-out}
+.rr .rv.on{opacity:1;transform:none}
+.rv-d1{transition-delay:.12s}.rv-d2{transition-delay:.24s}.rv-d3{transition-delay:.36s}
+@media (prefers-reduced-motion: reduce){.in1,.in2,.in3,.in4,.r1,.r2,.r3,.r4,.r5,.r6,.p1,.t1,.t2,.t3,.l1,.l2,.l3,.mq,.mqr,.g,.live{animation:none}.p2,.p3{animation:none;opacity:0}.rr .rv{opacity:1;transform:none;transition:none}}
+</style>
+</helmet>
+<div style="width: 1440px; height: 7552px; box-sizing: border-box; background: #FFFFFF; color: #16181C; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column">
+
+<div id="top" style="height: 72px; box-sizing: border-box; padding: 0 120px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ECEAE5">
+<a href="#top" style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg>
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em">S<span style="color: #0E6B63">ME</span>say</span>
+</a>
+<div style="display: flex; align-items: center; gap: 32px; font-size: 15px">
+<a href="#how">How it works</a>
+<a href="#outputs">What you get</a>
+<a href="#compare">Compare</a>
+<a href="#pricing">Pricing</a>
+<a href="Respondent.dc.html">Try the sample</a>
+<a href="#pricing" style="display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 999px; background: #16181C; color: #FFFFFF">Start free</a>
+</div>
+</div>
+
+<div style="height: 760px; box-sizing: border-box; padding: 0 120px; display: flex; align-items: center; justify-content: space-between">
+<div style="width: 540px; display: flex; flex-direction: column; align-items: flex-start">
+<div class="in1" style="font-family: 'Geist Mono', monospace; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: #0E6B63">Requirement validation</div>
+<h1 class="in1" style="margin: 20px 0 0 0; font-size: 68px; font-weight: 500; line-height: 68px; letter-spacing: -0.045em">Know where they agree before you build.</h1>
+<div class="in2" style="margin-top: 28px; font-size: 20px; line-height: 30px; letter-spacing: -0.01em; color: #454A52">Import a requirement list and send one link. Stakeholders agree, push back with a reason, or ask a question. You get the results, a signed-off record and the next steps.</div>
+<div class="in3" style="margin-top: 36px; display: flex; align-items: center; gap: 24px">
+<a href="#pricing" style="display: inline-flex; align-items: center; height: 48px; padding: 0 26px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-size: 17px">Start free</a>
+<a href="Respondent.dc.html" style="font-size: 17px; border-bottom: 1px solid #16181C; padding-bottom: 2px">Answer the sample as a respondent</a>
+</div>
+<div class="in3" style="margin-top: 56px; display: flex; gap: 28px; font-size: 14px; color: #5B6069">
+<div>No accounts for respondents</div><div>Finished on a phone</div><div>Hosted in the EU</div>
+</div>
+</div>
+<div class="in4" style="width: 600px; height: 600px; box-sizing: border-box; border-radius: 28px; background: #ECEAE5; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #5B6069">
+<div style="display: flex; align-items: center; gap: 8px"><span class="live" style="width: 8px; height: 8px; border-radius: 999px; background: #2F855A; display: block"></span><span>Answers arriving</span></div>
+<div style="font-family: 'Geist Mono', monospace">CL-04</div>
+</div>
+<div style="background: #FFFFFF; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 20px; line-height: 1.3; letter-spacing: -0.01em">Expenses over the policy limit are flagged before they reach the approver.</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5B6069"><div>You proposed</div><div style="padding: 1px 10px; border-radius: 999px; border: 1px solid #C9C7C1; color: #16181C">Should have</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="r1" style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px"><div style="width: 28px; height: 28px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">IM</div><div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">Sales.</span> I find out I was over the limit three weeks later, after I have paid.</div><div style="padding: 1px 9px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px; font-weight: 500; white-space: nowrap">Must have</div></div>
+<div class="r2" style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px"><div style="width: 28px; height: 28px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">DO</div><div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">Finance.</span></div><div style="padding: 1px 9px; border-radius: 999px; background: #E6F4EC; color: #22643F; font-size: 12px; font-weight: 500">Agree</div></div>
+<div class="r3" style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px"><div style="width: 28px; height: 28px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">TR</div><div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">Sales.</span> Sales gets most of the rejections, and always after the fact.</div><div style="padding: 1px 9px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px; font-weight: 500; white-space: nowrap">Must have</div></div>
+<div class="r4" style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px"><div style="width: 28px; height: 28px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">LB</div><div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">Engineering manager.</span></div><div style="padding: 1px 9px; border-radius: 999px; background: #E6F4EC; color: #22643F; font-size: 12px; font-weight: 500">Agree</div></div>
+<div class="r5" style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px"><div style="width: 28px; height: 28px; border-radius: 999px; background: #F0F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0">PN</div><div style="flex-grow: 1; min-width: 0"><span style="font-weight: 500">HR.</span></div><div style="padding: 1px 9px; border-radius: 999px; background: #E6F4EC; color: #22643F; font-size: 12px; font-weight: 500">Agree</div></div>
+</div>
+<div style="display: flex; gap: 4px; height: 8px">
+<div class="r1" style="flex-grow: 1; border-radius: 999px; background: #B7791F"></div>
+<div class="r2" style="flex-grow: 1; border-radius: 999px; background: #2F855A"></div>
+<div class="r3" style="flex-grow: 1; border-radius: 999px; background: #B7791F"></div>
+<div class="r4" style="flex-grow: 1; border-radius: 999px; background: #2F855A"></div>
+<div class="r5" style="flex-grow: 1; border-radius: 999px; background: #2F855A"></div>
+</div>
+<div class="r6" style="margin-top: auto; background: #16181C; color: #FFFFFF; border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-size: 12px; color: #9BE7B4">Suggested action</div><div style="font-size: 16px">Decide whether policy flags move to Must have.</div></div>
+<div style="font-size: 12px; color: #C9C7C1; white-space: nowrap">Cites 2 responses</div>
+</div>
+</div>
+</div>
+
+<div style="height: 640px; box-sizing: border-box; padding: 96px 120px 0 120px; border-top: 1px solid #ECEAE5; display: flex; flex-direction: column">
+<div class="rv" style="display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; width: 640px; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">The list is done. Now everyone has to agree to it.</h2>
+<div style="width: 400px; color: #454A52; font-size: 17px">This is the step that turns into a spreadsheet, an email thread and a workshop. It is the step this tool replaces.</div>
+</div>
+<div style="margin-top: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+<div class="rv rv-d1" style="height: 380px; box-sizing: border-box; border-radius: 20px; background: #ECEAE5; padding: 28px; display: flex; flex-direction: column; gap: 14px; color: #454A52">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-family: 'Geist Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em">Today</span><span>Spreadsheet, email, workshop</span></div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; opacity: 0.85">
+<div style="display: flex; justify-content: space-between"><span style="font-weight: 500">RE: RE: RE: Expense tool requirements v3 FINAL (2).xlsx</span><span style="color: #8A8E96">14 replies</span></div>
+<div style="display: flex; gap: 10px; color: #5B6069"><span style="width: 22px; height: 22px; border-radius: 999px; background: #F0F0EE; flex-shrink: 0; display: block"></span><span>See my comments in column H. Which version is this?</span></div>
+<div style="display: flex; gap: 10px; color: #5B6069"><span style="width: 22px; height: 22px; border-radius: 999px; background: #F0F0EE; flex-shrink: 0; display: block"></span><span>Can we park this for the workshop on Thursday?</span></div>
+<div style="display: flex; gap: 10px; color: #5B6069"><span style="width: 22px; height: 22px; border-radius: 999px; background: #F0F0EE; flex-shrink: 0; display: block"></span><span>I only got as far as row 40, sorry.</span></div>
+</div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: grid; grid-template-columns: 60px 1fr 90px 90px; gap: 8px; font-size: 13px; opacity: 0.7">
+<div style="color: #8A8E96">Ref</div><div style="color: #8A8E96">Requirement</div><div style="color: #8A8E96">Priority</div><div style="color: #8A8E96">Ioana?</div>
+<div>CL-04</div><div>Policy engine: auto-flag out-of-policy claims</div><div>Should</div><div style="color: #B7791F">Must!!</div>
+<div>CL-05</div><div>Reimbursement via payroll, next cycle</div><div>Must</div><div style="color: #8A8E96">(blank)</div>
+</div>
+<div style="margin-top: auto; font-size: 15px">Three versions of the file. Half the people answered. No record of who agreed to what, or why.</div>
+</div>
+<div class="rv rv-d2" style="height: 380px; box-sizing: border-box; border-radius: 20px; background: #FFFFFF; border: 1px solid #E6E4DF; padding: 28px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(22, 24, 28, 0.06)">
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #5B6069"><span style="font-family: 'Geist Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em; color: #0E6B63">With SMEsay</span><span>One link</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #E6E4DF; border-radius: 12px; font-size: 13px; color: #5B6069">
+<div style="padding: 12px 14px"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; color: #16181C">5 of 7</div><div>Submitted and signed off</div></div>
+<div style="padding: 12px 14px; border-left: 1px solid #E6E4DF"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; color: #16181C">8</div><div>Push-backs, each with a reason</div></div>
+<div style="padding: 12px 14px; border-left: 1px solid #E6E4DF"><div style="font-family: 'Geist Mono', monospace; font-size: 22px; color: #16181C">3</div><div>Questions and gaps to answer</div></div>
+</div>
+<div style="display: flex; flex-direction: column; font-size: 14px">
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F0EFEB"><span><span style="font-weight: 500">Ioana Marin</span> <span style="color: #5B6069">Sales</span></span><span style="color: #22643F">Signed off 7 Oct, 14:05</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F0EFEB"><span><span style="font-weight: 500">Dana Okafor</span> <span style="color: #5B6069">Finance</span></span><span style="color: #22643F">Signed off 8 Oct, 09:12</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0"><span><span style="font-weight: 500">Sam Hill</span> <span style="color: #5B6069">Office manager</span></span><span style="color: #7A5210">In progress, 4 of 6</span></div>
+</div>
+<div style="margin-top: auto; font-size: 15px; color: #454A52">One version. Everyone answers the same items on a phone. Every disagreement carries its reason, and every submission is signed.</div>
+</div>
+</div>
+</div>
+
+<div id="how" style="height: 820px; box-sizing: border-box; padding: 100px 120px 0 120px; background: #F6F6F4; display: flex; flex-direction: column">
+<div class="rv" style="display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; width: 620px; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Three steps, each with something to show for it</h2>
+<div style="width: 400px; color: #454A52; font-size: 17px">Import and shape the list. Send one link. Read the answers and decide.</div>
+</div>
+<div class="rv rv-d1" style="margin-top: 56px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div class="t1" style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 3px; border-radius: 999px; background: #DDDAD3; overflow: hidden"><div class="l1" style="height: 3px; background: #16181C; width: 100%"></div></div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069">01</span><span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">Import and shape</span></div>
+</div>
+<div class="t2" style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 3px; border-radius: 999px; background: #DDDAD3; overflow: hidden"><div class="l2" style="height: 3px; background: #16181C; width: 100%"></div></div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069">02</span><span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">Send one link</span></div>
+</div>
+<div class="t3" style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 3px; border-radius: 999px; background: #DDDAD3; overflow: hidden"><div class="l3" style="height: 3px; background: #16181C; width: 100%"></div></div>
+<div style="display: flex; align-items: baseline; gap: 10px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069">03</span><span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">Read and decide</span></div>
+</div>
+</div>
+<div class="rv rv-d2" style="margin-top: 28px; position: relative; height: 440px">
+
+<div class="p1" style="position: absolute; left: 0; top: 0; width: 1200px; height: 440px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 40px; display: flex; gap: 48px">
+<div style="width: 360px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 26px; line-height: 1.2; letter-spacing: -0.02em">Upload the list you already have.</div>
+<div style="color: #454A52">Map the columns once. AI groups the items into areas and suggests a readable version of each. The original wording is always kept, and nothing changes until you accept it.</div>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="color: #5B6069">You get</span><span style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4; font-weight: 500">A readable instrument</span></div>
+</div>
+<div style="flex-grow: 1; display: flex; gap: 20px">
+<div style="width: 300px; background: #F6F6F4; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border-radius: 10px; padding: 10px 12px"><span style="width: 26px; height: 26px; border-radius: 6px; background: #E6F4EC; display: block; flex-shrink: 0"></span><span style="font-weight: 500">expense-requirements.xlsx</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid #E6E4DF"><span style="color: #5B6069">Requirement</span><span>Item text</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid #E6E4DF"><span style="color: #5B6069">Module</span><span>Area</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid #E6E4DF"><span style="color: #5B6069">Priority</span><span>Proposed value</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 2px"><span style="color: #5B6069">Ref</span><span>Reference</span></div>
+<div style="margin-top: auto; font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">6 rows, 0 empty, 0 duplicates</div>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px"><div style="font-size: 12px; color: #5B6069">Original</div><div style="color: #5B6069">Policy engine: auto-flag out-of-policy claims pre-approval.</div></div>
+<div style="border: 1px solid #16181C; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><div style="font-size: 12px; color: #5B6069">Reader version</div><div style="padding: 0 8px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px; font-weight: 500">Suggested</div></div><div style="font-size: 16px">Expenses over the policy limit are flagged before they reach the approver.</div></div>
+<div style="display: flex; gap: 8px"><div style="padding: 7px 16px; border-radius: 999px; background: #16181C; color: #FFFFFF">Accept</div><div style="padding: 7px 16px; border-radius: 999px; border: 1px solid #C9C7C1">Reject</div></div>
+<div style="margin-top: auto; display: flex; gap: 8px; font-size: 13px"><div style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4">Submitting, 2 items</div><div style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4">Approving, 2</div><div style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4">Paying, 2</div></div>
+</div>
+</div>
+</div>
+
+<div class="p2" style="position: absolute; left: 0; top: 0; width: 1200px; height: 440px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 40px; display: flex; gap: 48px">
+<div style="width: 360px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 26px; line-height: 1.2; letter-spacing: -0.02em">Publish, then share one link.</div>
+<div style="color: #454A52">Respondents open it on a phone with no account. Each answer is saved as it is given, so they can stop and come back. Close or revoke the link whenever you like.</div>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="color: #5B6069">You get</span><span style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4; font-weight: 500">Signed-off responses</span></div>
+</div>
+<div style="flex-grow: 1; display: flex; gap: 20px">
+<div style="width: 340px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; background: #F6F6F4; border-radius: 12px; padding: 12px 14px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px">[YOUR DOMAIN]/r/9f3c1a7e</span><span style="padding: 0 8px; border-radius: 999px; background: #E6F4EC; color: #22643F; font-size: 12px; font-weight: 500">Published</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid #E6E4DF"><span>Ioana Marin</span><span style="color: #22643F">Submitted</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid #E6E4DF"><span>Sam Hill</span><span style="color: #7A5210">In progress, 4 of 6</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 2px"><span>Elena Costa</span><span style="color: #5B6069">Invited, 1 reminder</span></div>
+<div style="margin-top: auto; color: #5B6069">Closes 20 Oct 2026</div>
+</div>
+<div style="flex-grow: 1; background: #ECEAE5; border-radius: 14px; display: flex; align-items: center; justify-content: center">
+<div style="width: 250px; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; box-shadow: 0 12px 32px rgba(22, 24, 28, 0.10)">
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5B6069"><span>Submitting</span><span style="font-family: 'Geist Mono', monospace">2 of 6</span></div>
+<div style="height: 4px; border-radius: 999px; background: #ECEAE5"><div style="height: 4px; width: 33%; border-radius: 999px; background: #16181C"></div></div>
+<div style="font-size: 16px; line-height: 1.3">Split one receipt across two projects or cost centres.</div>
+<div style="padding: 9px 12px; border-radius: 10px; border: 1px solid #C9C7C1">Agree</div>
+<div style="padding: 9px 12px; border-radius: 10px; background: #16181C; color: #FFFFFF">Should be different</div>
+<div style="padding: 9px 12px; border-radius: 10px; border: 1px solid #C9C7C1">Unclear</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="p3" style="position: absolute; left: 0; top: 0; width: 1200px; height: 440px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 40px; display: flex; gap: 48px">
+<div style="width: 360px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 26px; line-height: 1.2; letter-spacing: -0.02em">See the answers as they arrive.</div>
+<div style="color: #454A52">Agreement per item, every push-back with its reason, every open question, every missing item. AI turns them into a short list of actions and names the responses behind each one.</div>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="color: #5B6069">You get</span><span style="padding: 4px 12px; border-radius: 999px; background: #F6F6F4; font-weight: 500">Decisions with sources</span></div>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #E6E4DF; border-radius: 12px">
+<div style="padding: 14px 16px"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">5 of 7</div><div style="font-size: 13px; color: #5B6069">Submitted</div></div>
+<div style="padding: 14px 16px; border-left: 1px solid #E6E4DF"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">67%</div><div style="font-size: 13px; color: #5B6069">Agreement</div></div>
+<div style="padding: 14px 16px; border-left: 1px solid #E6E4DF"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">8</div><div style="font-size: 13px; color: #5B6069">Pushed back</div></div>
+<div style="padding: 14px 16px; border-left: 1px solid #E6E4DF"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">2</div><div style="font-size: 13px; color: #5B6069">Open questions</div></div>
+</div>
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px"><div><div style="font-weight: 500">Answer two open questions before the link closes.</div><div style="font-size: 13px; color: #5B6069">Cites: Tom Reyes on CL-02, Lukas Berg on CL-06</div></div><div style="padding: 6px 14px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-size: 14px; white-space: nowrap">Mark done</div></div>
+<div style="border: 1px solid #E6E4DF; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px"><div><div style="font-weight: 500">Rewrite CL-06 to say who repays an advance if the trip is cancelled.</div><div style="font-size: 13px; color: #5B6069">Cites: Priya Nair and Lukas Berg on CL-06</div></div><div style="padding: 6px 14px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-size: 14px; white-space: nowrap">Mark done</div></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div id="outputs" style="height: 760px; box-sizing: border-box; padding: 100px 120px 0 120px; display: flex; flex-direction: column">
+<div class="rv" style="display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; width: 620px; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">What comes back</h2>
+<div style="width: 400px; color: #454A52; font-size: 17px">Not a pile of answers. Six things you can act on, on screen and in the export.</div>
+</div>
+<div style="margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<div class="rv" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #0E6B63; text-transform: uppercase; letter-spacing: 0.04em">01 Agreement map</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">Where people agree, per item and per area</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; margin-top: auto">
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 110px; color: #5B6069">Submitting</span><div style="flex-grow: 1; display: flex; gap: 2px; height: 8px"><div style="flex-grow: 6; background: #2F855A; border-radius: 3px"></div><div style="flex-grow: 3; background: #B7791F; border-radius: 3px"></div><div style="flex-grow: 1; background: #6B46C1; border-radius: 3px"></div></div><span style="font-family: 'Geist Mono', monospace; width: 36px; text-align: right">60%</span></div>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 110px; color: #5B6069">Approving</span><div style="flex-grow: 1; display: flex; gap: 2px; height: 8px"><div style="flex-grow: 7; background: #2F855A; border-radius: 3px"></div><div style="flex-grow: 3; background: #B7791F; border-radius: 3px"></div></div><span style="font-family: 'Geist Mono', monospace; width: 36px; text-align: right">70%</span></div>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 110px; color: #5B6069">Paying</span><div style="flex-grow: 1; display: flex; gap: 2px; height: 8px"><div style="flex-grow: 7; background: #2F855A; border-radius: 3px"></div><div style="flex-grow: 2; background: #B7791F; border-radius: 3px"></div><div style="flex-grow: 1; background: #6B46C1; border-radius: 3px"></div></div><span style="font-family: 'Geist Mono', monospace; width: 36px; text-align: right">70%</span></div>
+</div>
+</div>
+<div class="rv rv-d1" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #0E6B63; text-transform: uppercase; letter-spacing: 0.04em">02 Disagreement register</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">Every push-back, with who and why</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; margin-top: auto">
+<div style="background: #F6F6F4; border-radius: 10px; padding: 8px 10px"><span style="font-weight: 500">Priya Nair, HR.</span> <span style="padding: 0 7px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px">Won't have</span> <span style="color: #454A52">Advances are taxable income if not reconciled in time.</span></div>
+<div style="background: #F6F6F4; border-radius: 10px; padding: 8px 10px"><span style="font-weight: 500">Dana Okafor, Finance.</span> <span style="padding: 0 7px; border-radius: 999px; background: #FBF1DC; color: #7A5210; font-size: 12px">Must have</span> <span style="color: #454A52">Finance re-keys about thirty split claims a month by hand.</span></div>
+</div>
+</div>
+<div class="rv rv-d2" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #0E6B63; text-transform: uppercase; letter-spacing: 0.04em">03 Open questions</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">What people could not answer, and what they asked</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; margin-top: auto">
+<div style="background: #F6F6F4; border-radius: 10px; padding: 8px 10px"><span style="padding: 0 7px; border-radius: 999px; background: #EEE8FA; color: #4C2F94; font-size: 12px">CL-02</span> <span style="color: #454A52">Does this include splitting between two clients on one trip?</span> <span style="color: #5B6069">Tom Reyes</span></div>
+<div style="background: #F6F6F4; border-radius: 10px; padding: 8px 10px"><span style="padding: 0 7px; border-radius: 999px; background: #EEE8FA; color: #4C2F94; font-size: 12px">CL-06</span> <span style="color: #454A52">Would the advance be deducted from salary if the trip is cancelled?</span> <span style="color: #5B6069">Lukas Berg</span></div>
+</div>
+</div>
+<div class="rv" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #0E6B63; text-transform: uppercase; letter-spacing: 0.04em">04 Missing items</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">What the list left out, suggested by the people who know</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; margin-top: auto">
+<div style="background: #F6F6F4; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px"><div style="display: flex; gap: 6px"><span style="padding: 0 7px; border-radius: 999px; background: #E3EEF9; color: #1F4F7A; font-size: 12px">Submitting</span><span style="padding: 0 7px; border-radius: 999px; background: #F0F0EE; color: #454A52; font-size: 12px">Suggested: Should have</span></div><div style="color: #454A52">Mileage is calculated from a start and end address instead of typed in.</div><div style="color: #5B6069">Dana Okafor, Finance</div></div>
+</div>
+</div>
+<div class="rv rv-d1" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #0E6B63; text-transform: uppercase; letter-spacing: 0.04em">05 Sign-off record</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">Who confirmed, when, and how sure they were</div>
+<div style="display: flex; flex-direction: column; font-size: 13px; margin-top: auto">
+<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F0EFEB"><span style="font-weight: 500">Ioana Marin</span><span style="color: #5B6069">7 Oct 2026, 14:05 UTC</span><span style="font-family: 'Geist Mono', monospace">4 of 5</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F0EFEB"><span style="font-weight: 500">Tom Reyes</span><span style="color: #5B6069">8 Oct 2026, 08:41 UTC</span><span style="font-family: 'Geist Mono', monospace">3 of 5</span></div>
+<div style="display: flex; justify-content: space-between; padding: 6px 0"><span style="font-weight: 500">Dana Okafor</span><span style="color: #5B6069">8 Oct 2026, 09:12 UTC</span><span style="font-family: 'Geist Mono', monospace">5 of 5</span></div>
+</div>
+</div>
+<div class="rv rv-d2" style="height: 244px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 12px; background: #16181C; color: #FFFFFF">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #9BE7B4; text-transform: uppercase; letter-spacing: 0.04em">06 Actions with sources</div>
+<div style="font-size: 19px; letter-spacing: -0.02em">A to-do list written from the answers</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; margin-top: auto">
+<div style="background: #22252A; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px"><div>Decide whether policy flags move to Must have.</div><div style="color: #C9C7C1">Cites Ioana Marin and Tom Reyes on CL-04</div></div>
+<div style="background: #22252A; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px"><div>Rewrite CL-06 to say who repays an advance if the trip is cancelled.</div><div style="color: #C9C7C1">Cites Priya Nair and Lukas Berg on CL-06</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="height: 480px; box-sizing: border-box; background: #16181C; color: #FFFFFF; padding-top: 72px; overflow: hidden; display: flex; flex-direction: column">
+<div class="rv" style="padding: 0 120px; display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; width: 640px; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">A vote tells you what.<br>A reason tells you why.</h2>
+<div style="width: 400px; color: #C9C7C1; font-size: 17px">Nobody can disagree without saying why, and nobody can mark an item unclear without asking the question. These are the lines you read first.</div>
+</div>
+<div class="rv rv-d1" style="margin-top: 44px; display: flex; flex-direction: column; gap: 16px">
+<div class="mq" style="display: flex; gap: 16px; width: max-content">
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Finance, on receipt photos</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">I find out I was over the limit three weeks later, after I have paid.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Sales, on policy flags</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Does this include splitting between two clients on one trip?</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #33285A; color: #CBB8F2">Unclear</span><span>Sales, on split receipts</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">My team bills two projects on almost every trip.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Engineering manager, on split receipts</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Finance, on receipt photos</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">I find out I was over the limit three weeks later, after I have paid.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Sales, on policy flags</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Does this include splitting between two clients on one trip?</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #33285A; color: #CBB8F2">Unclear</span><span>Sales, on split receipts</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 420px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">My team bills two projects on almost every trip.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Engineering manager, on split receipts</span></div></div>
+</div>
+<div class="mqr" style="display: flex; gap: 16px; width: max-content">
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Approving from email means approving without seeing the receipt.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Sales, on email approvals</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Would the advance be deducted from salary if the trip is cancelled?</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #33285A; color: #CBB8F2">Unclear</span><span>Engineering manager, on cash advances</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Advances are taxable income if not reconciled in time. Payroll would have to police it.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>HR, on cash advances</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Mileage is calculated from a start and end address instead of typed in.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #1F3A55; color: #A9CDEF">Missing item</span><span>Finance, suggested for Submitting</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Approving from email means approving without seeing the receipt.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>Sales, on email approvals</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Would the advance be deducted from salary if the trip is cancelled?</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #33285A; color: #CBB8F2">Unclear</span><span>Engineering manager, on cash advances</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Advances are taxable income if not reconciled in time. Payroll would have to police it.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #4A3A14; color: #F3CF8A">Pushed back</span><span>HR, on cash advances</span></div></div>
+<div style="background: #22252A; border: 1px solid #2E3238; border-radius: 16px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; width: 460px; box-sizing: border-box"><div style="font-size: 18px; line-height: 1.35">Mileage is calculated from a start and end address instead of typed in.</div><div style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #C9C7C1"><span style="padding: 0 9px; border-radius: 999px; background: #1F3A55; color: #A9CDEF">Missing item</span><span>Finance, suggested for Submitting</span></div></div>
+</div>
+</div>
+</div>
+
+<div style="height: 720px; box-sizing: border-box; padding: 0 120px; display: flex; align-items: center; justify-content: space-between">
+<div class="rv" style="width: 420px; height: 620px; box-sizing: border-box; border-radius: 28px; background: #ECEAE5; display: flex; align-items: center; justify-content: center">
+<div style="width: 300px; height: 560px; box-sizing: border-box; background: #FFFFFF; border-radius: 24px; box-shadow: 0 24px 60px rgba(22, 24, 28, 0.12); position: relative; overflow: hidden; font-size: 14px">
+<div class="p1" style="position: absolute; left: 0; top: 0; width: 300px; height: 560px; box-sizing: border-box; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5B6069"><span>Approving</span><span style="font-family: 'Geist Mono', monospace">4 of 6</span></div>
+<div style="height: 4px; border-radius: 999px; background: #ECEAE5"><div style="height: 4px; width: 60%; border-radius: 999px; background: #16181C"></div></div>
+<div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="font-size: 15px; line-height: 1.3">Expenses over the policy limit are flagged before they reach the approver.</div><div style="display: flex; gap: 6px; align-items: center; font-size: 12px; color: #5B6069"><span>Proposed</span><span style="padding: 0 8px; border-radius: 999px; border: 1px solid #C9C7C1; color: #16181C">Should have</span></div></div>
+<div style="padding: 11px 12px; border-radius: 12px; border: 1px solid #C9C7C1">Agree</div>
+<div style="padding: 11px 12px; border-radius: 12px; background: #16181C; color: #FFFFFF">Should be different</div>
+<div style="padding: 11px 12px; border-radius: 12px; border: 1px solid #C9C7C1">Unclear</div>
+<div style="display: flex; gap: 6px; font-size: 13px"><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; background: #16181C; color: #FFFFFF">Must</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; border: 1px solid #C9C7C1">Could</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; border: 1px solid #C9C7C1">Won't</span></div>
+<div style="border: 1px solid #C9C7C1; border-radius: 12px; padding: 10px 12px; color: #454A52; font-size: 13px; min-height: 64px">I find out I was over the limit three weeks later, after I have paid.</div>
+<div style="margin-top: auto; padding: 12px; border-radius: 999px; background: #16181C; color: #FFFFFF; text-align: center; font-weight: 500">Next item</div>
+</div>
+<div class="p2" style="position: absolute; left: 0; top: 0; width: 300px; height: 560px; box-sizing: border-box; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 12px; color: #5B6069">After the last item</div>
+<div style="font-size: 22px; line-height: 1.15; letter-spacing: -0.02em">Is anything missing?</div>
+<div style="color: #454A52; font-size: 13px">If the list left out something the new system must do, add it here. Or skip.</div>
+<div style="border: 1px solid #C9C7C1; border-radius: 12px; padding: 10px 12px; color: #454A52; font-size: 13px; min-height: 110px">Mileage is calculated from a start and end address instead of typed in.</div>
+<div style="display: flex; gap: 6px; font-size: 13px"><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; background: #16181C; color: #FFFFFF">Submitting</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; border: 1px solid #C9C7C1">Approving</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 999px; border: 1px solid #C9C7C1">Paying</span></div>
+<div style="margin-top: auto; padding: 12px; border-radius: 999px; background: #16181C; color: #FFFFFF; text-align: center; font-weight: 500">Add and continue</div>
+</div>
+<div class="p3" style="position: absolute; left: 0; top: 0; width: 300px; height: 560px; box-sizing: border-box; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 22px; line-height: 1.15; letter-spacing: -0.02em">Review your answers</div>
+<div style="color: #454A52; font-size: 13px">4 agreed, 1 pushed back, 1 unclear, 1 item added</div>
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; font-size: 12px"><span>Receipt photos</span><span style="color: #22643F">Agree</span></div>
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; font-size: 12px"><span>Policy flags</span><span style="color: #7A5210">Must have</span></div>
+<div style="border: 1px solid #E3E1DC; border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; font-size: 12px"><span>Cash advances</span><span style="color: #4C2F94">Unclear</span></div>
+<div style="font-size: 13px; font-weight: 500; margin-top: 4px">How confident are you?</div>
+<div style="display: flex; gap: 6px"><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 10px; border: 1px solid #C9C7C1; font-family: 'Geist Mono', monospace">1</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 10px; border: 1px solid #C9C7C1; font-family: 'Geist Mono', monospace">2</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 10px; border: 1px solid #C9C7C1; font-family: 'Geist Mono', monospace">3</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 10px; background: #16181C; color: #FFFFFF; font-family: 'Geist Mono', monospace">4</span><span style="flex-grow: 1; text-align: center; padding: 8px 0; border-radius: 10px; border: 1px solid #C9C7C1; font-family: 'Geist Mono', monospace">5</span></div>
+<div style="background: #F6F6F4; border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px"><span style="width: 18px; height: 18px; border-radius: 4px; background: #16181C; flex-shrink: 0; display: block"></span><span>I confirm these answers reflect my view as of today.</span></div>
+<div style="margin-top: auto; padding: 12px; border-radius: 999px; background: #16181C; color: #FFFFFF; text-align: center; font-weight: 500">Submit answers</div>
+</div>
+</div>
+</div>
+<div class="rv rv-d1" style="width: 640px; display: flex; flex-direction: column">
+<h2 style="margin: 0; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Your stakeholders will finish it</h2>
+<div style="margin-top: 20px; color: #454A52; font-size: 17px">Every validation fails at the same place: the people who know do not answer, or stop at row 40. The respondent side is built for one thing, getting to the end.</div>
+<div style="margin-top: 36px; display: flex; flex-direction: column">
+<div style="padding: 18px 0; border-top: 1px solid #E6E4DF; display: flex; gap: 20px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px; padding-top: 4px">1</span><div><div style="font-size: 18px; font-weight: 500; letter-spacing: -0.01em">One item per screen, on a phone</div><div style="color: #5B6069">Eighty items are readable when they arrive one at a time, with the area and the progress always visible.</div></div></div>
+<div style="padding: 18px 0; border-top: 1px solid #E6E4DF; display: flex; gap: 20px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px; padding-top: 4px">2</span><div><div style="font-size: 18px; font-weight: 500; letter-spacing: -0.01em">No account, no app</div><div style="color: #5B6069">The link is the login. A personal link resumes that person's answers on any device.</div></div></div>
+<div style="padding: 18px 0; border-top: 1px solid #E6E4DF; display: flex; gap: 20px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px; padding-top: 4px">3</span><div><div style="font-size: 18px; font-weight: 500; letter-spacing: -0.01em">Stops and resumes</div><div style="color: #5B6069">Every answer is saved as it is given. Closing the tab loses nothing.</div></div></div>
+<div style="padding: 18px 0; border-top: 1px solid #E6E4DF; border-bottom: 1px solid #E6E4DF; display: flex; gap: 20px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px; padding-top: 4px">4</span><div><div style="font-size: 18px; font-weight: 500; letter-spacing: -0.01em">Ends with a sign-off</div><div style="color: #5B6069">A summary, a confidence score and a confirmation. The answer stands, and you can show who gave it.</div></div></div>
+</div>
+<a href="Respondent.dc.html" style="margin-top: 28px; align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px 0 20px; border-radius: 999px; border: 1px solid #C9C7C1; font-size: 16px">Answer the sample yourself <span aria-hidden="true">&#8250;</span></a>
+</div>
+</div>
+
+<div id="results" style="height: 780px; box-sizing: border-box; padding: 120px 120px 0 120px; background: #F6F6F4; display: flex; justify-content: space-between">
+<div class="rv" style="width: 440px; display: flex; flex-direction: column">
+<h2 style="margin: 0; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Every number traces back to an answer</h2>
+<div style="margin-top: 20px; color: #454A52; font-size: 17px">The dashboard fills in while the link is open. What you see on screen is what the export contains, row for row. The AI never adds an item and never shows an action it cannot source.</div>
+<div style="margin-top: 40px; display: flex; flex-direction: column">
+<div style="padding: 16px 0; border-top: 1px solid #DDDAD3; display: flex; gap: 16px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px">A</span><div><div style="font-weight: 500">Agreement per item and per area</div><div style="color: #5B6069; font-size: 15px">Who agreed, who pushed back, who found it unclear.</div></div></div>
+<div style="padding: 16px 0; border-top: 1px solid #DDDAD3; display: flex; gap: 16px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px">B</span><div><div style="font-weight: 500">Where groups disagree</div><div style="color: #5B6069; font-size: 15px">Compare answers by role or any field you asked for.</div></div></div>
+<div style="padding: 16px 0; border-top: 1px solid #DDDAD3; display: flex; gap: 16px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px">C</span><div><div style="font-weight: 500">Live while the link is open</div><div style="color: #5B6069; font-size: 15px">A new answer shows within seconds, without a reload.</div></div></div>
+<div style="padding: 16px 0; border-top: 1px solid #DDDAD3; border-bottom: 1px solid #DDDAD3; display: flex; gap: 16px"><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #5B6069; width: 24px">D</span><div><div style="font-weight: 500">Exports</div><div style="color: #5B6069; font-size: 15px">CSV, JSON and a PDF summary for the steering deck.</div></div></div>
+</div>
+</div>
+<div class="rv rv-d1" style="width: 680px; height: 540px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 24px 60px rgba(22, 24, 28, 0.06)">
+<div style="display: flex; justify-content: space-between; align-items: center"><div style="font-size: 18px; font-weight: 500">Agreement by item</div><div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #22643F"><span class="live" style="width: 8px; height: 8px; border-radius: 999px; background: #2F855A; display: block"></span><span>Live, 5 of 7 submitted</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Receipts from a photo</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">4 of 5</span></div><div class="g" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 4; border-radius: 4px; background: #2F855A"></div><div style="flex-grow: 1; border-radius: 4px; background: #B7791F"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Split a receipt across projects</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">2 of 5</span></div><div class="g g2" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 2; border-radius: 4px; background: #2F855A"></div><div style="flex-grow: 2; border-radius: 4px; background: #B7791F"></div><div style="flex-grow: 1; border-radius: 4px; background: #6B46C1"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Approve from email</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">4 of 5</span></div><div class="g g3" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 4; border-radius: 4px; background: #2F855A"></div><div style="flex-grow: 1; border-radius: 4px; background: #B7791F"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Policy flags before approval</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">3 of 5</span></div><div class="g g4" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 3; border-radius: 4px; background: #2F855A"></div><div style="flex-grow: 2; border-radius: 4px; background: #B7791F"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Paid with the next salary run</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">5 of 5</span></div><div class="g g5" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 5; border-radius: 4px; background: #2F855A"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between"><span>Cash advance before a trip</span><span style="font-family: 'Geist Mono', monospace; color: #5B6069">2 of 5</span></div><div class="g g6" style="display: flex; gap: 3px; height: 12px"><div style="flex-grow: 2; border-radius: 4px; background: #2F855A"></div><div style="flex-grow: 2; border-radius: 4px; background: #B7791F"></div><div style="flex-grow: 1; border-radius: 4px; background: #6B46C1"></div></div></div>
+</div>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid #E6E4DF; font-size: 13px; color: #5B6069; white-space: nowrap">
+<div style="display: flex; gap: 16px"><div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2F855A; display: block"></span><span>Agree</span></div><div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Pushed back</span></div><div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #6B46C1; display: block"></span><span>Unclear</span></div></div>
+<div>Sales and everyone else disagree most on policy flags and cash advances.</div>
+</div>
+</div>
+</div>
+
+<div style="height: 460px; box-sizing: border-box; padding: 100px 120px 0 120px; display: flex; flex-direction: column">
+<h2 class="rv" style="margin: 0; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Who it is for</h2>
+<div style="margin-top: 40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+<div class="rv rv-d1" style="height: 220px; box-sizing: border-box; border-radius: 20px; background: #ECEAE5; padding: 32px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; text-transform: uppercase; letter-spacing: 0.04em">Consultancies and agencies</div>
+<div style="font-size: 24px; line-height: 1.2; letter-spacing: -0.02em">Validate the discovery list on every engagement</div>
+<div style="color: #454A52">Send the link to the client's experts, put the PDF summary and the sign-off record in the steering deck, and bill the tool to the engagement.</div>
+</div>
+<div class="rv rv-d2" style="height: 220px; box-sizing: border-box; border-radius: 20px; background: #ECEAE5; padding: 32px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; text-transform: uppercase; letter-spacing: 0.04em">Product and IT teams</div>
+<div style="font-size: 24px; line-height: 1.2; letter-spacing: -0.02em">Check the roadmap with the people who will live with it</div>
+<div style="color: #454A52">Roadmaps, catalogues and platform requirements confirmed by internal experts before the budget is committed. An enterprise plan with single-tenant hosting.</div>
+</div>
+</div>
+</div>
+
+<div id="compare" style="height: 640px; box-sizing: border-box; padding: 60px 120px 0 120px; display: flex; flex-direction: column">
+<div class="rv" style="display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Compared with what you use now</h2>
+<div style="width: 400px; color: #5B6069; font-size: 14px">Prices as listed publicly in September 2026, rounded. Feature columns describe the category, not one product.</div>
+</div>
+<div class="rv rv-d1" style="margin-top: 40px; border: 1px solid #E6E4DF; border-radius: 20px; overflow: hidden; font-size: 15px">
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); background: #F6F6F4; border-bottom: 1px solid #E6E4DF; font-size: 13px; color: #5B6069">
+<div style="padding: 14px 20px"></div>
+<div style="padding: 14px 12px">Spreadsheet and email</div>
+<div style="padding: 14px 12px">Survey forms</div>
+<div style="padding: 14px 12px">Feedback boards</div>
+<div style="padding: 14px 12px">Sourcing suites</div>
+<div style="padding: 14px 12px; color: #16181C; font-weight: 500; background: #ECEAE5">SMEsay</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); border-bottom: 1px solid #E6E4DF; align-items: center">
+<div style="padding: 14px 20px">Readable at 80 items on a phone</div>
+<div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px">Yes</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">Yes</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); border-bottom: 1px solid #E6E4DF; align-items: center">
+<div style="padding: 14px 20px">A reason required for every disagreement</div>
+<div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">Votes only</div><div style="padding: 14px 12px">Partly</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">Yes</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); border-bottom: 1px solid #E6E4DF; align-items: center">
+<div style="padding: 14px 20px">Answers compared by role or group</div>
+<div style="padding: 14px 12px; color: #8A8E96">By hand</div><div style="padding: 14px 12px; color: #8A8E96">Partly</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px">Yes</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">Yes</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); border-bottom: 1px solid #E6E4DF; align-items: center">
+<div style="padding: 14px 20px">Sign-off record per respondent</div>
+<div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px">Yes</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">Yes</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); border-bottom: 1px solid #E6E4DF; align-items: center">
+<div style="padding: 14px 20px">Actions written from the responses, with sources</div>
+<div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; color: #8A8E96">No</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">Yes</div>
+</div>
+<div style="display: grid; grid-template-columns: 300px repeat(5, minmax(0, 1fr)); align-items: center">
+<div style="padding: 14px 20px">Price</div>
+<div style="padding: 14px 12px">Free, plus your evenings</div><div style="padding: 14px 12px">Free to about $50 a month</div><div style="padding: 14px 12px">$19 to $129 a month</div><div style="padding: 14px 12px">From $8,000 per project</div><div style="padding: 14px 12px; background: #F6F6F4; font-weight: 500">&#8364;0 to &#8364;149 a month</div>
+</div>
+</div>
+</div>
+
+<div id="pricing" style="height: 700px; box-sizing: border-box; padding: 110px 120px 0 120px; display: flex; flex-direction: column">
+<div class="rv" style="display: flex; justify-content: space-between; align-items: flex-end">
+<h2 style="margin: 0; font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.035em">Pricing</h2>
+<div style="color: #5B6069">Euro, before VAT. Two months free when paid yearly.</div>
+</div>
+<div class="rv rv-d1" style="margin-top: 48px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #E6E4DF; border-radius: 20px">
+<div style="padding: 32px 28px; height: 380px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+<div style="font-weight: 500">Free</div>
+<div style="font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.03em">&#8364;0</div>
+<div style="color: #454A52; font-size: 15px">1 active project<br>25 responses<br>3 AI runs per month</div>
+<a href="#pricing" style="margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 44px; border-radius: 999px; background: #16181C; color: #FFFFFF">Start free</a>
+</div>
+<div style="padding: 32px 28px; height: 380px; box-sizing: border-box; border-left: 1px solid #E6E4DF; display: flex; flex-direction: column; gap: 14px">
+<div style="font-weight: 500">Pro</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.03em">&#8364;49</div><div style="color: #5B6069; font-size: 14px">per month</div></div>
+<div style="color: #454A52; font-size: 15px">Unlimited projects<br>500 responses per month<br>AI shaping and insights<br>Your branding, exports</div>
+<a href="#pricing" style="margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 44px; border-radius: 999px; border: 1px solid #C9C7C1">Choose Pro</a>
+</div>
+<div style="padding: 32px 28px; height: 380px; box-sizing: border-box; border-left: 1px solid #E6E4DF; background: #F6F6F4; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between"><div style="font-weight: 500">Team</div><div style="padding: 0 10px; border-radius: 999px; background: #E3F1EF; color: #0A4F49; font-size: 12px; font-weight: 500">For consultancies</div></div>
+<div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.03em">&#8364;149</div><div style="color: #5B6069; font-size: 14px">per month</div></div>
+<div style="color: #454A52; font-size: 15px">5 seats<br>2,500 responses per month<br>Personal invites and reminders<br>Priority support</div>
+<a href="#pricing" style="margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 44px; border-radius: 999px; border: 1px solid #C9C7C1; background: #FFFFFF">Choose Team</a>
+</div>
+<div style="padding: 32px 28px; height: 380px; box-sizing: border-box; border-left: 1px solid #E6E4DF; display: flex; flex-direction: column; gap: 14px">
+<div style="font-weight: 500">Enterprise</div>
+<div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 44px; font-weight: 500; line-height: 48px; letter-spacing: -0.03em">&#8364;6,000</div><div style="color: #5B6069; font-size: 14px; white-space: nowrap">a year, from</div></div>
+<div style="color: #454A52; font-size: 15px">Single-tenant or self-hosted<br>SSO and audit log<br>DPA<br>Your own AI key</div>
+<a href="#pricing" style="margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 44px; border-radius: 999px; border: 1px solid #C9C7C1">Talk to us</a>
+</div>
+</div>
+</div>
+
+<div style="height: 420px; box-sizing: border-box; padding: 0 120px">
+<div class="rv" style="height: 360px; box-sizing: border-box; border-radius: 28px; background: #0E6B63; color: #FFFFFF; padding: 0 72px; display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 16px; width: 640px">
+<div style="font-size: 48px; font-weight: 500; line-height: 52px; letter-spacing: -0.035em">Try it on the list you are about to send round.</div>
+<div style="color: #DCEDEA; font-size: 17px">Free for one project. Data hosted in the EU. Export or delete everything yourself.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; align-items: stretch; width: 260px">
+<a href="#pricing" style="display: inline-flex; align-items: center; justify-content: center; height: 52px; border-radius: 999px; background: #FFFFFF; color: #16181C; font-size: 17px">Start free</a>
+<a href="Respondent.dc.html" style="display: inline-flex; align-items: center; justify-content: center; height: 52px; border-radius: 999px; border: 1px solid #7FB5AE; color: #FFFFFF; font-size: 17px">Try the sample first</a>
+</div>
+</div>
+</div>
+
+<div style="height: 300px; box-sizing: border-box; padding: 56px 120px 40px 120px; display: flex; flex-direction: column; justify-content: space-between; border-top: 1px solid #ECEAE5">
+<div style="display: flex; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 10px; align-self: flex-start"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg><span style="font-size: 17px; font-weight: 600">S<span style="color: #0E6B63">ME</span>say</span></div>
+<div style="display: flex; gap: 88px; font-size: 15px">
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500; margin-bottom: 4px">Product</div><a href="#how" style="color: #454A52">How it works</a><a href="#outputs" style="color: #454A52">What you get</a><a href="#compare" style="color: #454A52">Compare</a><a href="#pricing" style="color: #454A52">Pricing</a></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500; margin-bottom: 4px">Try it</div><a href="Respondent.dc.html" style="color: #454A52">Sample instrument</a><a href="PmApp.dc.html" style="color: #454A52">Sample project</a></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500; margin-bottom: 4px">Legal</div><a href="#top" style="color: #454A52">Privacy policy</a><a href="#top" style="color: #454A52">Terms</a><a href="#top" style="color: #454A52">DPA and subprocessors</a></div>
+</div>
+</div>
+<div style="font-size: 13px; color: #5B6069">&#169; Alerty S.R.L. 2026</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":7552}}'>
+class Component extends DCLogic {
+componentDidMount() {
+if (!('IntersectionObserver' in window)) return;
+document.documentElement.classList.add('rr');
+const io = new IntersectionObserver((entries) => {
+entries.forEach((en) => {
+if (en.isIntersecting) { en.target.classList.add('on'); io.unobserve(en.target); }
+});
+}, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+this.revealObserver = io;
+}
+componentWillUnmount() {
+if (this.revealObserver) this.revealObserver.disconnect();
+}
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
