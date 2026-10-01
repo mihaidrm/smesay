@@ -69,7 +69,8 @@ Data and security
 
 Every side
 - Every screen is designed for desktop (1440) and phone (390), desktop first, in the same
-  pass (decision 0015). The respondent side is the exception: phone first, desktop second.
+  pass (decision 0015). The respondent side is the exception: phone first, desktop second. The PM side is desktop
+  only in R1 (decision 0020).
 
 PM side
 - Every screen has empty, loading and error states. Every form validates on the server.

@@ -140,6 +140,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 <button type="button" onClick="{{goShape}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Import 6 items</button>
 </div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; gap: 20px; padding: 16px; align-items: flex-start">
+<div style="width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px"><div style="font-weight: 500">About this project</div><div style="font-size: 13px; color: #5B6069">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</div></div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="ctx-goal" style="font-size: 13px; font-weight: 500">What is this about?</label><textarea id="ctx-goal" rows="2" value="{{ctxGoal}}" onChange="{{setCtxGoal}}" style="box-sizing: border-box; padding: 8px 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF; resize: none"></textarea></div>
+<div style="display: flex; gap: 12px; align-items: flex-end"><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px"><label for="ctx-terms" style="font-size: 13px; font-weight: 500">Terms to keep as written, optional</label><input id="ctx-terms" type="text" value="{{ctxTerms}}" onChange="{{setCtxTerms}}" placeholder="Product names, internal acronyms, the client's own labels" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div><div style="font-size: 12px; color: #5B6069; white-space: nowrap">{{ctxCount}}</div></div>
+</div>
+</div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; flex-direction: column">
 <div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Column mapping</div>
@@ -203,6 +210,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; flex-direction: column; gap: 4px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Shape the list</h2>
 <div style="color: #5B6069">AI grouped 6 items into 3 areas and suggested a readable version of each. The original text is always kept. {{shapeCount}}</div>
+<div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">Context used:</span> {{ctxLine}}</div>
 </div>
 <div style="display: flex; gap: 8px">
 <button type="button" onClick="{{acceptAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Accept all</button>
@@ -605,6 +613,8 @@ view: 'project',
 step: 'import',
 detailId: null,
 wsName: 'Marlow Group',
+ctxGoal: 'We are replacing the expense tool for all 400 staff. The list is what the new tool should do; Sales, Finance, HR and the engineering managers answer.',
+ctxTerms: 'Marlow Group, cost centre, policy limit',
 inviteEmail: '',
 invited: false,
 removed: {},
@@ -842,6 +852,9 @@ showResults: (isProject && s.step === 'results') || isSample,
 detailOpen: !!dt, noDetail: !dt, dt: dt || { rows: [] }, closeDetail: () => this.setState({ detailId: null }),
 projects: projects, members: members,
 wsName: s.wsName, setWsName: (e) => this.setState({ wsName: e.target.value }),
+ctxGoal: s.ctxGoal, setCtxGoal: (e) => this.setState({ ctxGoal: e.target.value }), ctxTerms: s.ctxTerms, setCtxTerms: (e) => this.setState({ ctxTerms: e.target.value }),
+ctxCount: (s.ctxGoal.length + s.ctxTerms.length) + ' of 2,000 characters',
+ctxLine: (s.ctxGoal.trim() || 'none given') + (s.ctxTerms.trim() ? ' Kept as written: ' + s.ctxTerms.trim() + '.' : ''),
 inviteEmail: s.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: e.target.value, invited: false }),
 inviteDisabled: !inviteOk, inviteOpacity: inviteOk ? 1 : 0.4, invite: () => this.setState({ invited: true, inviteEmail: '' }), inviteNote: s.invited,
 exports: exports, disagreeList: disagreeList,

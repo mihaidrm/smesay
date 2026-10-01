@@ -6,6 +6,8 @@ Every screen and page is designed twice: a desktop board (1440 wide) and a phone
 wide). The desktop board is drawn first, then the phone board, in the same pass. A design is not
 done with only one.
 
+Amended by decision 0020: the PM side is desktop only in R1.
+
 Exception kept from CLAUDE.md: the respondent side is phone first, because respondents answer
 on phones. It still gets a desktop board in the same pass.
 
