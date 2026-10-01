@@ -2,8 +2,9 @@
 
 Written 2026-10-01 from design notes 01 to 09 and the six brand boards on the canvas
 (Brand01 to Brand06 in docs/design-notes/prototype-01/). The boards are the picture; this file
-is the text the scaffold's styleguide page and the Tailwind theme are built from. When the two
-disagree, fix both the same day and say so in a design note.
+is the text the styleguide page and the Tailwind theme are built from. Rendered at /styleguide
+(src/app/styleguide), values in src/lib/tokens.ts, theme in src/app/globals.css (note 14). When
+they disagree, fix all the same day and say so in a design note.
 
 ## Identity
 
