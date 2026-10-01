@@ -302,7 +302,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </div>
 <div style="width: 380px; flex-shrink: 0; background: #ECEAE5; border-radius: 6px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
-<div style="font-size: 12px; color: #5B6069">Preview, item 2 of 6</div>
+<div style="font-size: 12px; color: #5B6069">Preview, chapter Submitting, first card</div>
 <div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; font-size: 16px">
 <div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
 <div>Split one receipt across two projects or cost centres.</div>
@@ -613,7 +613,7 @@ shaped: {},
 flagOpen: true,
 method: 'moscow',
 showProposed: true,
-layout: 'item',
+layout: 'area',
 link: 'draft',
 reminded: {},
 tab: 'agreement',
@@ -710,15 +710,15 @@ const active = s.method === x[0];
 const st = active ? selOn : selOff;
 return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ method: x[0] }) };
 });
-const layouts = [['item', 'One item per screen'], ['area', 'One area per screen'], ['page', 'Single long page']].map((x) => {
+const layouts = [['area', 'Chapters: one area per screen, compact cards'], ['item', 'One item per screen'], ['page', 'Single long page']].map((x) => {
 const active = s.layout === x[0];
 const st = active ? selOn : selOff;
 return { label: x[1], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ layout: x[0] }) };
 });
-let scaleLabels = ['Must have', 'Should have', 'Could have', "Won't have", 'Unclear'];
-if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Agree', 'Should be different', 'Unclear'];
-if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Unclear'];
-if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Unclear'];
+let scaleLabels = ['Must have', 'Should have', 'Could have', "Won't have", 'Disagree', 'Unclear'];
+if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Agree', 'Change the priority', 'Disagree', 'Unclear'];
+if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Disagree', 'Unclear'];
+if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Disagree', 'Unclear'];
 
 const linkStates = {
 draft: { status: 'Draft', pillBg: '#F0F0EE', pillFg: '#454A52', fg: '#5B6069', note: 'Not published yet. Nobody can open the link.', btn: 'Publish', btnBg: '#16181C', btnFg: '#FFFFFF', btnBd: '#16181C', next: 'published' },

@@ -4,12 +4,14 @@ Workspace        organisation: members, billing, AI budget, branding defaults
 Project          one validation effort; holds item sets and instruments
 ItemSet          imported or typed items, versioned (decision 0010); each item: original text, source ref, area,
                  proposed value (optional), custom fields
-Instrument       a presentation of one set version: grouping, order, scoring method, template,
-                 intro, respondent fields, closing questions, whether the proposed value is shown
+Instrument       a presentation of one set version: grouping, order, scoring method, layout
+                 (chapters, one item per screen, single long page), intro, respondent fields,
+                 closing questions, whether the proposed value is shown
 Invite           a link: public token or personal per email; open/close dates; passcode; revoked
 Response         one respondent's session against one instrument: fields, answers, progress,
                  sign-off, submitted_at
-Answer           per item: value, reason, question, comment
+Answer           per item: kind (agree, change, disagree, unclear; pick when rate-blind),
+                 value, reason or question, comment (decision 0014)
 Insight          a generated action on a project with the responses it cites
 
 Rules
