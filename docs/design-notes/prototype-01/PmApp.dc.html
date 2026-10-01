@@ -58,7 +58,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 </div>
 
-<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 28px 32px; box-sizing: border-box; position: relative">
+<div style="flex-grow: 1; min-height: 0; display: flex">
+<div style="flex-grow: 1; min-width: 0; min-height: 0; overflow-y: auto; padding: 28px 32px; box-sizing: border-box; position: relative">
 <sc-if value="{{isSample}}" hint-placeholder-val="{{false}}">
 <div aria-hidden="true" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; display: flex; align-items: center; justify-content: center"><div style="transform: rotate(-24deg); font-size: 140px; font-weight: 600; letter-spacing: -0.04em; color: rgba(22, 24, 28, 0.06); white-space: nowrap">Sample data</div></div>
 </sc-if>
@@ -133,21 +134,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{isImport}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
-<div style="display: flex; align-items: flex-end; justify-content: space-between">
 <div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Import the list</h2>
+<button type="button" onClick="{{goShape}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">Import 6 items</button>
+</div>
 <div style="color: #5B6069">expense-requirements.xlsx, 6 rows read, header found on row 1.</div>
 </div>
-<button type="button" onClick="{{goShape}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Import 6 items</button>
-</div>
-<div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; gap: 20px; padding: 16px; align-items: flex-start">
-<div style="width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px"><div style="font-weight: 500">About this project</div><div style="font-size: 13px; color: #5B6069">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</div></div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; padding: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="font-weight: 500">About this project</div><div style="font-size: 13px; color: #5B6069">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</div></div>
 <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; flex-direction: column; gap: 4px"><label for="ctx-goal" style="font-size: 13px; font-weight: 500">What is this about?</label><textarea id="ctx-goal" rows="2" value="{{ctxGoal}}" onChange="{{setCtxGoal}}" style="box-sizing: border-box; padding: 8px 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF; resize: none"></textarea></div>
 <div style="display: flex; gap: 12px; align-items: flex-end"><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px"><label for="ctx-terms" style="font-size: 13px; font-weight: 500">Terms to keep as written, optional</label><input id="ctx-terms" type="text" value="{{ctxTerms}}" onChange="{{setCtxTerms}}" placeholder="Product names, internal acronyms, the client's own labels" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div><div style="font-size: 12px; color: #5B6069; white-space: nowrap">{{ctxCount}}</div></div>
 </div>
 </div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 20px">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; flex-direction: column">
 <div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Column mapping</div>
 <sc-for list="{{mapping}}" as="m" hint-placeholder-count="4">
@@ -193,7 +194,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; gap: 12px; padding: 9px 12px; border-bottom: 1px solid #F0EFEB; font-size: 13px">
 <div style="width: 52px; flex-shrink: 0; font-family: 'Geist Mono', monospace; color: #5B6069">{{p.ref}}</div>
 <div style="flex-grow: 1; min-width: 0">{{p.original}}</div>
-<div style="width: 96px; flex-shrink: 0; color: #5B6069">{{p.module}}</div>
+<div style="width: 84px; flex-shrink: 0; color: #5B6069">{{p.module}}</div>
 <div style="width: 52px; flex-shrink: 0; color: #5B6069">{{p.priority}}</div>
 </div>
 </sc-for>
@@ -206,17 +207,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{isShape}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 16px">
-<div style="display: flex; align-items: flex-end; justify-content: space-between">
-<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Shape the list</h2>
-<div style="color: #5B6069">AI grouped 6 items into 3 areas and wrote a readable version of each. {{shapeCount}}</div>
-<div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">Context used:</span> {{ctxLine}}</div>
-</div>
 <div style="display: flex; gap: 8px; flex-shrink: 0">
 <button type="button" onClick="{{acceptAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; white-space: nowrap">Accept all</button>
 <button type="button" onClick="{{rejectAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; white-space: nowrap">Reject all</button>
 <button type="button" onClick="{{goBuild}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap">Continue</button>
 </div>
+</div>
+<div style="color: #5B6069">AI grouped 6 items into 3 areas and wrote a readable version of each. {{shapeCount}}</div>
+<div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">Context used:</span> {{ctxLine}}</div>
 </div>
 <sc-if value="{{flagOpen}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-radius: 6px; background: #EEE8FA; color: #3B2475">
@@ -237,10 +238,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="font-size: 15px">{{it.reader}}</div>
 <div style="font-size: 12px; color: #5B6069">Original: {{it.original}}</div>
 </div>
-<div style="width: 150px; flex-shrink: 0; display: flex; justify-content: flex-end">
-<div style="padding: 2px 10px; border-radius: 999px; background: {{it.pillBg}}; color: {{it.pillFg}}; font-size: 12px; font-weight: 500">{{it.pill}}</div>
-</div>
-<div style="width: 170px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 6px">
+<div style="width: 160px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+<div style="padding: 2px 10px; border-radius: 999px; background: {{it.pillBg}}; color: {{it.pillFg}}; font-size: 12px; font-weight: 500; white-space: nowrap">{{it.pill}}</div>
+<div style="display: flex; justify-content: flex-end; gap: 6px">
 <sc-if value="{{it.pending}}" hint-placeholder-val="{{true}}">
 <button type="button" onClick="{{it.accept}}" style="min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Accept</button>
 <button type="button" onClick="{{it.reject}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reject</button>
@@ -248,6 +248,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{it.decided}}" hint-placeholder-val="{{false}}">
 <button type="button" onClick="{{it.undo}}" style="min-height: 32px; padding: 0 14px; border: 0; background: transparent; color: #0E6B63; font-weight: 500">Undo</button>
 </sc-if>
+</div>
 </div>
 </div>
 </sc-for>
@@ -258,12 +259,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{isBuild}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
-<div style="display: flex; align-items: flex-end; justify-content: space-between">
 <div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Build the instrument</h2>
-<div style="color: #5B6069">What respondents see, from version 1 of the list.</div>
+<button type="button" onClick="{{goShare}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">Continue</button>
 </div>
-<button type="button" onClick="{{goShare}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Continue</button>
+<div style="color: #5B6069">What respondents see, from version 1 of the list. The preview on the right follows every change.</div>
 </div>
 <div style="display: flex; gap: 24px; align-items: flex-start">
 <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px">
@@ -309,42 +310,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </div>
 </div>
-<div style="width: 380px; flex-shrink: 0; background: #ECEAE5; border-radius: 6px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
-<div style="font-size: 12px; color: #5B6069">Preview, chapter Submitting, first card</div>
-<div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; font-size: 16px">
-<div style="background: #F6F6F4; border: 1px solid #E3E1DC; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
-<div>Split one receipt across two projects or cost centres.</div>
-<sc-if value="{{showPill}}" hint-placeholder-val="{{true}}">
-<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5B6069">
-<div>Proposed priority</div>
-<div style="padding: 2px 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #C9C7C1; color: #16181C; font-weight: 500">Should have</div>
-</div>
-</sc-if>
-</div>
-<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069">Your rating</span>
-<sc-for list="{{scale}}" as="sc" hint-placeholder-count="5">
-<div style="min-height: 36px; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; border: 1px solid #C9C7C1; border-radius: 999px; font-size: 13px; font-weight: 500">{{sc.label}}</div>
-</sc-for>
-</div>
-<div style="font-size: 12px; color: #5B6069">A rating other than the proposed one opens a comment box and needs a reason. Details and + comment under each card.</div>
-</div>
-<a href="Respondent.dc.html" style="font-weight: 500">Open the respondent prototype</a>
-</div>
 </div>
 </div>
 </sc-if>
 
 <sc-if value="{{isShare}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
-<div style="display: flex; align-items: flex-end; justify-content: space-between">
 <div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Share</h2>
+<button type="button" onClick="{{goResults}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">See results</button>
+</div>
 <div style="color: #5B6069">One public link, or a personal link per person that resumes on any device.</div>
 </div>
-<button type="button" onClick="{{goResults}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">See results</button>
-</div>
-<div style="display: flex; gap: 20px; align-items: flex-start">
-<div style="width: 440px; flex-shrink: 0; border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="display: flex; flex-direction: column; gap: 20px; align-items: stretch">
+<div style="width: 100%; max-width: 440px; box-sizing: border-box; border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E3E1DC">
 <div style="font-weight: 500">Public link</div>
 <div style="padding: 2px 10px; border-radius: 999px; background: {{linkPillBg}}; color: {{linkPillFg}}; font-size: 12px; font-weight: 500">{{linkStatus}}</div>
@@ -358,7 +338,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <button type="button" onClick="{{linkAction}}" style="min-height: 40px; border: 1px solid {{linkBtnBd}}; border-radius: 999px; background: {{linkBtnBg}}; color: {{linkBtnFg}}; font-weight: 500">{{linkBtnLabel}}</button>
 </div>
 </div>
-<div style="flex-grow: 1; min-width: 0; border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="width: 100%; box-sizing: border-box; border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E3E1DC">
 <div style="font-weight: 500">Personal invites</div>
 <div style="color: #5B6069; font-size: 13px">Reminders: at most one every three days</div>
@@ -603,6 +583,145 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 
 </div>
+
+<sc-if value="{{pvOn}}" hint-placeholder-val="{{true}}">
+<div style="width: 460px; flex-shrink: 0; box-sizing: border-box; border-left: 1px solid #E3E1DC; background: #F6F6F4; display: flex; flex-direction: column; min-height: 0">
+<div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #E3E1DC">
+<div style="font-weight: 500">Preview</div>
+<div style="display: flex; align-items: center; gap: 12px">
+<div role="group" aria-label="Preview device" style="display: flex; padding: 3px; border-radius: 999px; background: #ECEAE5">
+<button type="button" onClick="{{pvPickDesktop}}" aria-pressed="{{pvDesktop}}" style="min-height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: {{pvDeskBg}}; color: {{pvDeskFg}}; font-size: 13px; font-weight: 500">Desktop</button>
+<button type="button" onClick="{{pvPickPhone}}" aria-pressed="{{pvPhone}}" style="min-height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: {{pvPhoneBg}}; color: {{pvPhoneFg}}; font-size: 13px; font-weight: 500">Phone</button>
+</div>
+<a href="{{pvFullHref}}" style="font-size: 13px; font-weight: 500; white-space: nowrap">Open full size</a>
+</div>
+</div>
+<div style="flex-shrink: 0; display: flex; align-items: flex-start; gap: 8px; padding: 12px 20px; font-size: 13px; color: #454A52; border-bottom: 1px solid #E3E1DC"><span aria-hidden="true" style="width: 12px; height: 12px; margin-top: 3px; border-radius: 3px; background: #7FD1C6; flex-shrink: 0; display: block"></span><span>{{pvCaption}}</span></div>
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center">
+<sc-if value="{{pvDesktop}}" hint-placeholder-val="{{true}}">
+<div style="font-size: 12px; color: #5B6069; align-self: stretch">Desktop, 1000 px column at 42 percent. Phone is true size.</div>
+<div style="width: 420px; height: 378px; overflow: hidden; border: 1px solid #C9C7C1; border-radius: 8px; background: #FFFFFF; box-sizing: content-box; flex-shrink: 0">
+<div style="width: 1000px; height: 900px; transform: scale(0.42); transform-origin: top left; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; color: #16181C; overflow: hidden">
+<div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #E6E4DF">
+<div style="display: flex; align-items: center; gap: 10px"><div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div><div style="font-size: 15px; font-weight: 500">Marlow Group</div></div>
+<div style="font-size: 13px; color: #5B6069; border-radius: 4px; box-shadow: {{hlD.note}}; white-space: nowrap">{{pvHeaderNote}}</div>
+</div>
+<sc-if value="{{pvNav}}" hint-placeholder-val="{{true}}">
+<div style="flex-shrink: 0; border-bottom: 1px solid #E6E4DF; overflow: hidden"><div style="display: flex; gap: 6px; padding: 10px 16px; min-width: max-content; border-radius: 4px; box-shadow: {{hlD.nav}}">
+<sc-for list="{{pvChapters}}" as="ch" hint-placeholder-count="5">
+<button type="button" onClick="{{ch.go}}" aria-current="{{ch.current}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{ch.bd}}; border-radius: 999px; background: {{ch.bg}}; color: {{ch.fg}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap"><span>{{ch.label}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{ch.meta}}</span></button>
+</sc-for>
+</div></div>
+<div style="flex-shrink: 0; height: 4px; background: #ECEAE5"></div>
+</sc-if>
+<sc-if value="{{pvIsAbout}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 20px calc((100% - 560px) / 2); display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
+<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="font-size: 14px; color: {{pvOpenFg}}; padding: 8px 10px; border-radius: 8px; background: {{pvOpenBg}}; box-shadow: {{hlD.open}}">{{pvOpenNote}}</div>
+<div style="display: flex; flex-direction: column; gap: 6px; border-radius: 8px; box-shadow: {{hlD.fields}}"><div style="font-size: 14px; font-weight: 500">Your name</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF"></div>
+<div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
+<div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device.</div>
+</div>
+<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
+</sc-if>
+<sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlD.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">This link was withdrawn</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group closed it. Answers already sent are kept. If you think this is a mistake, contact the person who sent you the link.</div></div>
+</sc-if>
+<sc-if value="{{pvIsArea}}" hint-placeholder-val="{{true}}">
+<div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{pvGroups}}" as="g" hint-placeholder-count="1">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{g.name}}</h1><div style="font-size: 14px; color: #5B6069">{{g.intro}}</div></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{g.cards}}" as="v" hint-placeholder-count="2">
+<div style="padding: 12px 14px; height: 260px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0; box-shadow: {{hlD.card}}">
+<div style="display: flex; align-items: baseline; gap: 8px; height: 44px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{v.ref}}</span><span style="font-size: 15px; line-height: 22px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; border-radius: 4px; box-shadow: {{hlD.text}}">{{v.text}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px; height: 66px; flex-shrink: 0; border-radius: 4px; box-shadow: {{hlD.rating}}">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 14px">Your rating</span>
+<div style="display: grid; grid-template-columns: {{pvGridCols}}; gap: 4px">
+<sc-for list="{{v.pills}}" as="pl" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><div style="min-height: 36px; width: 100%; box-sizing: border-box; padding: 0 2px; overflow: hidden; border: 1px {{pl.bdStyle}} #C9C7C1; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 500; white-space: nowrap; display: flex; align-items: center; justify-content: center">{{pl.label}}</div><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px; white-space: nowrap">{{pl.cap}}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; height: 24px; flex-shrink: 0"><div style="display: flex; gap: 14px; color: #0E6B63; font-weight: 500"><span>Details</span><span>+ comment</span></div><div style="color: #5B6069; white-space: nowrap">Not rated yet</div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF; display: flex; flex-direction: column; gap: 8px"><div style="display: flex; gap: 10px"><div style="height: 48px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; display: flex; align-items: center; font-weight: 500">Back</div><div style="height: 48px; flex-grow: 1; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center">{{pvNextLabel}}</div></div><div style="font-size: 14px; color: #5B6069; text-align: center">{{pvFootNote}}</div></div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{pvPhone}}" hint-placeholder-val="{{false}}">
+<div style="font-size: 12px; color: #5B6069; align-self: stretch">Phone, 390 px, true size.</div>
+<div style="width: 390px; height: 844px; overflow: hidden; border: 1px solid #C9C7C1; border-radius: 24px; background: #FFFFFF; box-sizing: content-box; flex-shrink: 0">
+<div style="width: 390px; height: 844px; transform: scale(1); transform-origin: top left; display: flex; flex-direction: column; font-size: 17px; line-height: 26px; color: #16181C; overflow: hidden">
+<div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #E6E4DF">
+<div style="display: flex; align-items: center; gap: 10px"><div style="width: 28px; height: 28px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">M</div><div style="font-size: 15px; font-weight: 500">Marlow Group</div></div>
+<div style="font-size: 13px; color: #5B6069; border-radius: 4px; box-shadow: {{hlP.note}}; white-space: nowrap">{{pvHeaderNote}}</div>
+</div>
+<sc-if value="{{pvNav}}" hint-placeholder-val="{{true}}">
+<div style="flex-shrink: 0; border-bottom: 1px solid #E6E4DF; overflow: hidden"><div style="display: flex; gap: 6px; padding: 10px 16px; min-width: max-content; border-radius: 4px; box-shadow: {{hlP.nav}}">
+<sc-for list="{{pvChapters}}" as="ch" hint-placeholder-count="5">
+<button type="button" onClick="{{ch.go}}" aria-current="{{ch.current}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{ch.bd}}; border-radius: 999px; background: {{ch.bg}}; color: {{ch.fg}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap"><span>{{ch.label}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{ch.meta}}</span></button>
+</sc-for>
+</div></div>
+<div style="flex-shrink: 0; height: 4px; background: #ECEAE5"></div>
+</sc-if>
+<sc-if value="{{pvIsAbout}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
+<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="font-size: 14px; color: {{pvOpenFg}}; padding: 8px 10px; border-radius: 8px; background: {{pvOpenBg}}; box-shadow: {{hlP.open}}">{{pvOpenNote}}</div>
+<div style="display: flex; flex-direction: column; gap: 6px; border-radius: 8px; box-shadow: {{hlP.fields}}"><div style="font-size: 14px; font-weight: 500">Your name</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF"></div>
+<div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
+<div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device.</div>
+</div>
+<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
+</sc-if>
+<sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlP.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">This link was withdrawn</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group closed it. Answers already sent are kept. If you think this is a mistake, contact the person who sent you the link.</div></div>
+</sc-if>
+<sc-if value="{{pvIsArea}}" hint-placeholder-val="{{true}}">
+<div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 16px 16px; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{pvGroups}}" as="g" hint-placeholder-count="1">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">{{g.name}}</h1><div style="font-size: 14px; color: #5B6069">{{g.intro}}</div></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px">
+<sc-for list="{{g.cards}}" as="v" hint-placeholder-count="2">
+<div style="padding: 12px 14px; height: 260px; box-sizing: border-box; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; display: flex; flex-direction: column; gap: 8px; min-width: 0; box-shadow: {{hlP.card}}">
+<div style="display: flex; align-items: baseline; gap: 8px; height: 44px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; flex-shrink: 0">{{v.ref}}</span><span style="font-size: 15px; line-height: 22px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; border-radius: 4px; box-shadow: {{hlP.text}}">{{v.text}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px; height: 66px; flex-shrink: 0; border-radius: 4px; box-shadow: {{hlP.rating}}">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #5B6069; line-height: 14px">Your rating</span>
+<div style="display: grid; grid-template-columns: {{pvGridCols}}; gap: 4px">
+<sc-for list="{{v.pills}}" as="pl" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px"><div style="min-height: 36px; width: 100%; box-sizing: border-box; padding: 0 2px; overflow: hidden; border: 1px {{pl.bdStyle}} #C9C7C1; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 500; white-space: nowrap; display: flex; align-items: center; justify-content: center">{{pl.label}}</div><span style="font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069; line-height: 12px; min-height: 12px; white-space: nowrap">{{pl.cap}}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; height: 24px; flex-shrink: 0"><div style="display: flex; gap: 14px; color: #0E6B63; font-weight: 500"><span>Details</span><span>+ comment</span></div><div style="color: #5B6069; white-space: nowrap">Not rated yet</div></div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF; display: flex; flex-direction: column; gap: 8px"><div style="display: flex; gap: 10px"><div style="height: 48px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; display: flex; align-items: center; font-weight: 500">Back</div><div style="height: 48px; flex-grow: 1; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center">{{pvNextLabel}}</div></div><div style="font-size: 14px; color: #5B6069; text-align: center">{{pvFootNote}}</div></div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</div>
 </div>
 </div>
 </x-dc>
@@ -628,7 +747,9 @@ layout: 'area',
 link: 'draft',
 reminded: {},
 tab: 'agreement',
-actionState: {}
+actionState: {},
+pvDevice: 'desktop',
+pvView: 'auto'
 };
 
 data() {
@@ -669,7 +790,7 @@ renderVals() {
 const s = this.state;
 const d = this.data();
 const LABEL = { M: 'Must have', S: 'Should have', C: 'Could have', W: "Won't have" };
-const go = (step) => () => this.setState({ view: 'project', step: step, detailId: null });
+const go = (step) => () => this.setState({ view: 'project', step: step, detailId: null, pvView: 'auto' });
 const patch = (key, id, value) => {
 const next = Object.assign({}, s[key]);
 next[id] = value;
@@ -844,6 +965,61 @@ const exportDefs = [
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));
 const isProject = s.view === 'project';
 const isSample = s.view === 'sample';
+// Preview panel: what respondents see, driven by the builder state
+const pvOn = isProject && s.step !== 'results';
+const pvDesktop = s.pvDevice === 'desktop';
+const textFor = (it) => (s.shaped[it.id] === 'rejected' ? it.original : it.reader);
+let pillDefs = [['Must', 'M'], ['Should', 'S'], ['Could', 'C'], ['Not needed', 'W'], ['Unclear', '']];
+let pvGridCols = 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr)';
+if (s.method === 'fit') { pillDefs = [['1', ''], ['2', ''], ['3', ''], ['4', ''], ['5', ''], ['Unclear', '']]; pvGridCols = 'repeat(5, minmax(0, 1fr)) minmax(0, 1.6fr)'; }
+if (s.method === 'kcd') { pillDefs = [['Keep', ''], ['Change', ''], ['Drop', ''], ['Unclear', '']]; pvGridCols = 'repeat(4, minmax(0, 1fr))'; }
+const pillsFor = (it) => pillDefs.map((pd, i) => {
+const proposed = s.method === 'moscow' && s.showProposed && pd[1] === it.proposed;
+let cap = proposed ? 'proposed' : '';
+if (s.method === 'fit' && i === 0) cap = 'no fit'; if (s.method === 'fit' && i === 4) cap = 'fits fully';
+return { label: pd[0], cap: cap, bdStyle: proposed ? 'dashed' : 'solid' };
+});
+const cardFor = (it) => ({ ref: it.ref, text: textFor(it), pills: pillsFor(it) });
+const firstArea = d.areas[0].name;
+let pvScreen = 'area';
+let pvArea = firstArea;
+if (s.step === 'share') pvScreen = s.link === 'revoked' ? 'revoked' : 'about';
+if (s.pvView === 'about') pvScreen = 'about';
+else if (s.pvView !== 'auto') { pvScreen = 'area'; pvArea = s.pvView; }
+if (s.step === 'share' && s.link === 'revoked') pvScreen = 'revoked';
+const pvGroupsAll = d.areas.map((ar) => ({ name: ar.name, intro: ar.rationale, cards: d.items.filter((it) => it.area === ar.name).map(cardFor) }));
+let pvGroups = pvGroupsAll.filter((g) => g.name === pvArea);
+if (s.layout === 'page') pvGroups = pvGroupsAll;
+if (s.layout === 'item') pvGroups = pvGroups.map((g) => ({ name: g.name, intro: g.intro, cards: g.cards.slice(0, 1) }));
+const pvAreaIdx = d.areas.findIndex((ar) => ar.name === pvArea);
+const pvNextArea = d.areas[pvAreaIdx + 1];
+const pvChapters = [{ label: 'About you', meta: '', key: 'about' }]
+.concat(d.areas.map((ar) => ({ label: ar.name, meta: '0 of ' + d.items.filter((it) => it.area === ar.name).length, key: ar.name })))
+.concat([{ label: 'Wrap up', meta: '', key: 'wrap' }])
+.map((ch) => {
+const current = (pvScreen === 'about' && ch.key === 'about') || (pvScreen === 'area' && ch.key === pvArea);
+return { label: ch.label, meta: ch.meta, current: current, bg: current ? '#16181C' : '#FFFFFF', fg: current ? '#FFFFFF' : '#454A52', bd: current ? '#16181C' : '#C9C7C1', go: ch.key === 'wrap' ? () => {} : () => this.setState({ pvView: ch.key }) };
+});
+const ring = (on, w) => (on ? '0 0 0 ' + w + 'px #7FD1C6' : 'none');
+const hlOn = {
+nav: s.step === 'import' || (s.step === 'build' && s.layout !== 'area'),
+card: s.step === 'import', text: s.step === 'shape', rating: s.step === 'build',
+open: s.step === 'share', note: s.step === 'share', fields: s.step === 'build' && pvScreen === 'about'
+};
+const hlFor = (w) => { const o = {}; Object.keys(hlOn).forEach((k) => { o[k] = ring(hlOn[k], w); }); return o; };
+const captions = {
+import: 'Highlighted: what this step changes. The 6 items in 3 areas become chapters and cards.',
+shape: 'Highlighted: what this step changes. The card wording: accepted and suggested reader versions, or the original where you rejected.',
+build: 'Highlighted: what this step changes. The rating row, the proposed marker and the layout.',
+share: 'Highlighted: what this step changes. When the link opens and closes, and the page a withdrawn link shows.'
+};
+const linkNotes = {
+draft: { note: 'Not published yet. Opens 6 Oct 2026, 09:00 and closes 20 Oct 2026, 18:00.', bg: '#F0F0EE', fg: '#454A52' },
+published: { note: 'Open until 20 Oct 2026, 18:00.', bg: '#E6F4EC', fg: '#22643F' },
+revoked: { note: 'Withdrawn.', bg: '#FBF1DC', fg: '#7A5210' }
+};
+const pvLayoutCount = s.layout === 'item' ? 1 : d.items.filter((it) => it.area === pvArea).length;
+
 const titles = { project: ['Marlow Group', 'New expense tool'], sample: ['Marlow Group · sample project', 'Sample project'], projects: ['Marlow Group', 'Projects'], settings: ['Marlow Group', 'Settings'] };
 
 return {
@@ -866,6 +1042,20 @@ inviteEmail: s.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: 
 inviteDisabled: !inviteOk, inviteOpacity: inviteOk ? 1 : 0.4, invite: () => this.setState({ invited: true, inviteEmail: '' }), inviteNote: s.invited,
 exports: exports, disagreeList: disagreeList,
 steps: steps,
+pvOn: pvOn, pvDesktop: pvDesktop, pvPhone: !pvDesktop,
+pvPickDesktop: () => this.setState({ pvDevice: 'desktop' }), pvPickPhone: () => this.setState({ pvDevice: 'phone' }),
+pvDeskBg: pvDesktop ? '#FFFFFF' : 'transparent', pvDeskFg: pvDesktop ? '#16181C' : '#5B6069',
+pvPhoneBg: pvDesktop ? 'transparent' : '#FFFFFF', pvPhoneFg: pvDesktop ? '#5B6069' : '#16181C',
+pvFullHref: pvDesktop ? 'RespondentDesktop.dc.html' : 'Respondent.dc.html',
+pvCaption: captions[s.step] || '',
+pvNav: pvScreen !== 'revoked' && s.layout !== 'page',
+pvChapters: pvChapters, pvGroups: pvGroups, pvGridCols: pvGridCols,
+pvIsAbout: pvScreen === 'about', pvIsArea: pvScreen === 'area', pvIsRevoked: pvScreen === 'revoked',
+pvHeaderNote: s.step === 'share' ? (s.link === 'published' ? 'Closes 20 Oct 2026' : (s.link === 'revoked' ? 'Link withdrawn' : 'Not published yet')) : 'Saved on this device',
+pvOpenNote: linkNotes[s.link].note, pvOpenBg: linkNotes[s.link].bg, pvOpenFg: linkNotes[s.link].fg,
+pvNextLabel: s.layout === 'page' ? 'Continue to Wrap up' : (pvNextArea ? 'Continue to ' + pvNextArea.name : 'Continue to Wrap up'),
+pvFootNote: s.layout === 'page' ? 'All 6 on one page. You can come back later.' : (s.layout === 'item' ? 'Item 1 of ' + d.items.filter((it) => it.area === pvArea).length + ' in ' + pvArea + '.' : pvLayoutCount + ' of ' + pvLayoutCount + ' still to rate here. You can come back later.'),
+hlD: hlFor(6), hlP: hlFor(3),
 isImport: isProject && s.step === 'import', isShape: isProject && s.step === 'shape', isBuild: isProject && s.step === 'build', isShare: isProject && s.step === 'share',
 goShape: go('shape'), goBuild: go('build'), goShare: go('share'), goResults: go('results'),
 mapping: mapping, preview: preview,

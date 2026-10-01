@@ -36,7 +36,9 @@ Waiting on Mihai:
 2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
    ink (raised 2026-10-01; recommendation in the session log).
 3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
-   settings, sample, item detail, export) on phone and laptop.
+   settings, sample, item detail, export, preview panel) on phone and laptop.
+4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
+   (decision 0021, open item).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first):
@@ -46,7 +48,7 @@ Next tasks for Claude, in order (decision 0013, design first):
    0016, 0018, note 12). Mihai clicks through on a phone. Page E fragments and the PM app preview show the same
    rating row (decision 0017).
 4. PM prototype: done 2026-10-01, desktop only (decision 0020), with the project context box
-   on Import.
+   on Import and a preview panel on every builder step (decision 0021, note 13).
 5. docs/design-system.md: done 2026-10-01, with six brand boards on the canvas (note 10).
 6. All copy: landing, quickstart, transactional emails, error messages. Scan with WRITING.md.
 7. Ten golden-set specs in evals/.

@@ -65,7 +65,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 |
 | E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (MinIO in Docker) | 3 |
 | E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 |
-| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, preview | none | 4 |
+| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 |
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 |
 | E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility | none | 5 |
 | E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 |
