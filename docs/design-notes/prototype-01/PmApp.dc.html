@@ -49,9 +49,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{isProject}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #F6F6F4; border: 1px solid #E3E1DC">
 <sc-for list="{{steps}}" as="st" hint-placeholder-count="5">
-<button type="button" onClick="{{st.go}}" aria-pressed="{{st.active}}" style="min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: {{st.bg}}; color: {{st.fg}}; font-weight: 500; display: flex; align-items: center; gap: 8px">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; opacity: 0.7">{{st.n}}</span>
-<span>{{st.label}}</span>
+<button type="button" onClick="{{st.go}}" aria-pressed="{{st.active}}" style="min-height: 36px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; background: {{st.bg}}; color: {{st.fg}}; font-weight: 500; display: flex; align-items: center; gap: 8px">
+<span aria-hidden="true" style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 999px; border: 1px solid {{st.nBd}}; background: {{st.nBg}}; color: {{st.nFg}}; font-size: 12px; font-weight: 500; line-height: 20px; text-align: center; flex-shrink: 0">{{st.n}}</span>
+<span style="line-height: 22px">{{st.label}}</span>
 </button>
 </sc-for>
 </div>
@@ -678,9 +678,16 @@ upd[key] = next;
 this.setState(upd);
 };
 
+const stepKeys = ['import', 'shape', 'build', 'share', 'results'];
+const stepIdx = stepKeys.indexOf(s.step);
 const steps = [['import', 'Import'], ['shape', 'Shape'], ['build', 'Build'], ['share', 'Share'], ['results', 'Results']].map((x, i) => {
 const active = s.step === x[0];
-return { n: String(i + 1), label: x[1], active: active, go: go(x[0]), bg: active ? '#16181C' : 'transparent', fg: active ? '#FFFFFF' : '#454A52' };
+const done = i < stepIdx;
+return {
+n: String(i + 1), label: x[1], active: active, go: go(x[0]),
+bg: active ? '#16181C' : 'transparent', fg: active ? '#FFFFFF' : (done ? '#16181C' : '#5B6069'),
+nBg: active ? '#FFFFFF' : (done ? '#16181C' : 'transparent'), nFg: active ? '#16181C' : (done ? '#FFFFFF' : '#5B6069'), nBd: active ? '#FFFFFF' : (done ? '#16181C' : '#C9C7C1')
+};
 });
 
 const mapping = [['Ref', 'A'], ['Requirement', 'B'], ['Module', 'C'], ['Priority', 'D']].map((x) => ({
