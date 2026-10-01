@@ -131,14 +131,28 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 - Table: header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50. Card: radius 12 in
   the app, hairline, 16 padding, title 14 weight 500.
 
+## Respondent columns
+
+Three column widths on the respondent side, decided 2026-10-01 after Mihai's review of the
+desktop board. About you, done, closed and inactive: 560 px, with the name field at 360 px, the
+role select at 360 px and the primary button sized to its label (280 px), left-aligned under the
+form. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point
+there. On a phone every column is the screen width and controls span it. The convention behind
+it (single column, field width matched to the expected input, labels above fields, the primary
+action under the form in the same column) is standard form guidance; the NN/g and GOV.UK pages
+on it could not be opened from this environment, so it is recorded here unverified.
+
 ## Rating row (respondent cards)
 
-Decision 0018. A card is a fieldset: reference in mono 11, title 15/22 weight 500, an optional
-details panel (grey-50, 14/20), the row "Your rating" with pills Must, Should, Could, Not
-needed, Unclear at 36 px high, 13 px text, 12 px side padding, radius 999. The proposed value
+Decision 0018. Every card has the same size on screen: a 260 px frame (phone and desktop) with
+four fixed parts. Reference in mono 11 and the title at 15/22 weight 500, clamped to two lines
+(the full title is in Details). The label "Your rating" over a five-column grid of pills Must,
+Should, Could, Not needed, Unclear, 36 px high, 12 px text, radius 999, always one row. One
+slot that shows either the details text (grey-50, 13/18, scrolls) or the comment box, never
+both. A 24 px footer with Details, the comment toggle and the status note. The proposed value
 has a dashed #454A52 border and a mono 10 px caption "proposed". The selected pill fills with
-the PM's accent and white text. The comment box (8 px radius, 15/22) opens under the row when
-required; "+ comment" opens it otherwise. The card footer holds Details, the comment toggle and
+the PM's accent and white text. The comment box (8 px radius, 14/20) takes the slot when
+required; "+ comment" opens it otherwise and closes Details. The card footer holds Details, the comment toggle and
 the status note (Saved in agree green, what is missing in pushed-back amber, Not rated yet in
 ink-muted). Cards sit in one column on a phone and two on desktop, 10 px apart.
 
