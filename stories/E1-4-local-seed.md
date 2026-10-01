@@ -28,10 +28,7 @@ workspace holding the sample project, so there is something to look at from day 
 - Resetting the database from the UI: not in R1.
 
 ## Open questions
-- Whether the seed carries the full sample (responses, answers, insights) or only the
-  workspace and items. Proposal: the full sample, because the dashboard (E8) and the exports
-  (E10) are tested against it and the reconciliation rule ("every number matches the CSV to
-  the row") needs real rows. Mihai decides.
+- None. The seed carries the full sample, responses and insights included (decision 0027).
 
 ## Technical notes
 Seed data lives in src/db/seed/sample.ts as plain objects, the same facts as the prototype's
