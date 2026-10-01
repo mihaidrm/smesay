@@ -13,7 +13,7 @@
 body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FFFFFF;color:#16181C}
 </style>
 </helmet>
-<div style="width: 1440px; height: 1960px; box-sizing: border-box; background: #FFFFFF; color: #16181C; padding: 44px 56px; display: flex; flex-direction: column; gap: 20px; font-size: 14px; line-height: 1.45">
+<div style="width: 1440px; height: 2360px; box-sizing: border-box; background: #FFFFFF; color: #16181C; padding: 44px 56px; display: flex; flex-direction: column; gap: 20px; font-size: 14px; line-height: 1.45">
 <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; text-transform: uppercase; letter-spacing: 0.04em">Generated from stories/ by scripts/stories-board.mjs</div>
@@ -35,41 +35,22 @@ body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FF
 <span style="font-size: 13px; color: #5B6069; flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">repo, CI, schema v1, migrations, workspace scoping, local Docker Postgres and RustFS, seed; deploy deferred to the launch gate (decision 0006). Stories E1-1 to E1-5 written 2026-10-01.</span>
 <span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; white-space: nowrap">1 of 5 accepted</span>
 </div>
+<sc-for list="{{e1}}" as="s" hint-placeholder-count="5">
 <div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: 44px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">E1-1</span>
-<span style="font-size: 14px">Repository, lint, tests and CI</span>
-<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #16181C; color: #FFFFFF; border: 1px solid #16181C; font-size: 12px; font-weight: 500; white-space: nowrap">Done</span></span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">4 criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">no questions</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{s.id}}</span>
+<span style="font-size: 14px">{{s.title}}</span>
+<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}; font-size: 12px; font-weight: 500; white-space: nowrap">{{s.label}}</span></span>
+<button type="button" onClick="{{s.toggle}}" aria-expanded="{{s.open}}" style="justify-self: start; min-height: 28px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: 6px; background: {{s.btnBg}}; font-family: 'Geist Mono', monospace; font-size: 12px; color: #16181C; cursor: pointer; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-size: 10px">{{s.arrow}}</span>{{s.count}}</button>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{s.qFg}}">{{s.qText}}</span>
 </div>
-<div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: 44px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">E1-2</span>
-<span style="font-size: 14px">Schema v1 and migrations</span>
-<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #E3F1EF; color: #0E6B63; border: 1px solid #E3F1EF; font-size: 12px; font-weight: 500; white-space: nowrap">Built</span></span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">6 criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">no questions</span>
+<sc-if value="{{s.open}}" hint-placeholder-val="{{false}}">
+<div style="padding: 8px 16px 12px 104px; background: #FAFAF8; border-top: 1px solid #F0EFEB">
+<sc-for list="{{s.items}}" as="c" hint-placeholder-count="4">
+<div style="display: flex; gap: 12px; padding: 4px 0; font-size: 14px; line-height: 22px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; width: 20px; flex-shrink: 0; line-height: 22px">{{c.n}}</span><span>{{c.text}}</span></div>
+</sc-for>
 </div>
-<div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: 44px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">E1-3</span>
-<span style="font-size: 14px">Workspace scoping and the cross-workspace test</span>
-<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #FFFFFF; color: #454A52; border: 1px solid #C9C7C1; font-size: 12px; font-weight: 500; white-space: nowrap">Ready</span></span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">5 criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">no questions</span>
-</div>
-<div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: 44px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">E1-4</span>
-<span style="font-size: 14px">Local development with seed data</span>
-<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #FFFFFF; color: #454A52; border: 1px solid #C9C7C1; font-size: 12px; font-weight: 500; white-space: nowrap">Ready</span></span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">5 criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">no questions</span>
-</div>
-<div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: 44px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">E1-5</span>
-<span style="font-size: 14px">Deploy from main with preview deploys</span>
-<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: #F0F0EE; color: #454A52; border: 1px solid #F0F0EE; font-size: 12px; font-weight: 500; white-space: nowrap">Deferred</span></span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">4 criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7A5210">1 open question</span>
-</div>
+</sc-if>
+</sc-for>
 </div>
 
 <div style="border: 1px solid #E6E4DF; border-radius: 12px; overflow: hidden; flex-shrink: 0">
@@ -181,13 +162,28 @@ body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FF
 </div>
 <div style="display: flex; align-items: center; height: 44px; padding: 0 16px; border-top: 1px dashed #C9C7C1; color: #5B6069; font-size: 13px">Stories not written yet. They are written when the epic before it is accepted (plan step 2.4 pattern).</div>
 </div>
-<div style="margin-top: auto; color: #5B6069; font-size: 12px">A story is ready when it has at least three acceptance criteria and no open question that blocks building (stories/README.md). Open questions are Mihai's to answer; they are listed in docs/context.md.</div>
+<div style="margin-top: auto; color: #5B6069; font-size: 12px">Click a story's criteria count to read its acceptance criteria. A story is ready when it has at least three acceptance criteria and no open question that blocks building (stories/README.md). Open questions are Mihai's to answer; they are listed in docs/context.md.</div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1960}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2360}}'>
 class Component extends DCLogic {
+state = { open: null };
 renderVals() {
-return {};
+const open = this.state.open;
+const STATUSES = {"ready":{"label":"Ready","bg":"#FFFFFF","fg":"#454A52","bd":"#C9C7C1"},"building":{"label":"Building","bg":"#FBF1DC","fg":"#7A5210","bd":"#FBF1DC"},"built":{"label":"Built","bg":"#E3F1EF","fg":"#0E6B63","bd":"#E3F1EF"},"accepted":{"label":"Accepted","bg":"#E6F4EC","fg":"#22643F","bd":"#E6F4EC"},"done":{"label":"Done","bg":"#16181C","fg":"#FFFFFF","bd":"#16181C"},"deferred":{"label":"Deferred","bg":"#F0F0EE","fg":"#454A52","bd":"#F0F0EE"}};
+const EPICS = {"e1":[{"id":"E1-1","title":"Repository, lint, tests and CI","status":"done","questions":0,"criteria":["`npm run lint` and `npm test` pass on the empty app. Checked: lint 0 problems, 19 unit tests, on Mihai's PC and in CI.","CI runs lint, typecheck, the copy scan, the status check, unit tests, build and the Playwright tests on every push and pull request. Checked: .github/workflows/ci.yml, runs 1 to 19 green.","The pre-commit hook refuses a commit when status is stale, a retired term survives, a reference is broken or the copy scan fails. Checked: it refused the first attempt at the decision 0022 commit.","`npm install`, `docker compose up -d` and `npm run dev` give a running app on a machine with Node 22 or newer and Docker. Checked on Mihai's Windows PC, Node 26."]},{"id":"E1-2","title":"Schema v1 and migrations","status":"built","questions":0,"criteria":["`npm run db:migrate` on an empty database creates every table below and records the migrations; running it again changes nothing (exit 0, the migrations table is unchanged). A unit test in CI drops and recreates its own test database (`<database>_test`, never the one DATABASE_URL names), applies the migrations and asserts both.","Every application table has a `workspace_id` column with a foreign key to `workspace`, and every child row references its parent on `(parent_id, workspace_id)`, so a child can never belong to a different workspace than its parent. The better-auth tables (`user`, `session`, `account`, `verification`) are outside the rule: a user exists before any workspace and `workspace_member` is the bridge (decision 0028, pending). A test reads the information schema and fails if an application table has no such foreign key, and proves that a child pointing at another workspace's parent is refused.","Item text is never overwritten: `item` has `original_text` and `reader_text`, both kept; a check constraint keeps `original_text` non-empty and a trigger refuses any update that changes it. A test proves both.","A response references the set version it was given: `(response.instrument_id, response.item_set_id)` is a foreign key to `(instrument.id, instrument.item_set_id)`, so a response can only carry the version its instrument shows, and a re-import (new `item_set` version) never changes what an old response points at. `item_set.version` is never renumbered (trigger).","docs/schema.md is rewritten from the migration (tables, columns, types, keys) and says \"v1, 2026-10-xx\"; INTERFACES.md carries the enums below before the migration is generated (CLAUDE.md: change a shared shape in INTERFACES.md first).","`npm run db:generate` produces no new migration after the story is merged (the schema file and the migration folder agree)."]},{"id":"E1-3","title":"Workspace scoping and the cross-workspace test","status":"ready","questions":0,"criteria":["Every data access goes through a helper in src/db/queries/ that takes `workspaceId` as its first argument and adds `where workspace_id = $1` (or the join to a scoped parent) itself. No route or page builds a query on `db` directly; an ESLint rule (no-restricted-imports of `@/db` outside src/db/) fails lint when one does.","The workspace id comes from the session, never from the request body or the URL alone: `requireWorkspace()` reads the session, checks membership, and returns the id the helpers use. A request for a workspace the user is not a member of gets 404, not 403, so the workspace's existence is not leaked.","A Vitest test creates workspace A and workspace B with one project, one item set, one instrument, one invite and one response each, then proves with A's id that every helper returns nothing from B: list, get by id, update, delete, and the count. The test runs in CI against a Postgres service container.","The same test proves B's rows are untouched after A's update and delete calls (counts and contents compared before and after).","The reviewer agent's checklist (SECURITY.md, Multi-tenancy) is satisfied by reading src/db/queries/ alone."]},{"id":"E1-4","title":"Local development with seed data","status":"ready","questions":0,"criteria":["`npm run db:seed` on a migrated, empty database creates the workspace \"Marlow Group\" with the sample project \"New expense tool\" (decision 0005): 6 items in 3 areas with original and reader text, one instrument (MoSCoW, proposed value shown, chapters layout, fields name and role), one public invite and five personal invites, 7 responses (5 submitted, 1 in progress, 1 not started) with the answers, reasons, questions, one missing item and confidences the prototype boards show, and 4 insights. The numbers on the PM app board (5 of 7 submitted, agreement per item) are reproducible from these rows.","The sample project is marked `is_sample = true` on the project row so every screen can show the watermark (CLAUDE.md, dashboard rules) and \"Delete sample\" can remove it.","Running the seed twice does not duplicate anything: it exits 0 and says the sample already exists.","The seed never creates a user account: the workspace has no members until E2 signs the first user in and attaches them (the seed stores the sample under a fixed workspace id, and E2's first sign-in becomes its owner).","docs/setup.md \"Run it\" includes the seed step and Mihai has run it on his PC."]},{"id":"E1-5","title":"Deploy from main with preview deploys","status":"deferred","questions":1,"criteria":["A merge to main deploys to the domain within five minutes; a push to any branch gets a preview address posted on its pull request.","The hello page answers over HTTPS with the security headers in SECURITY.md (HSTS, CSP with nonces, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) and securityheaders.com grades it A.","The deployed app runs against a managed Postgres and an S3-compatible bucket named in docs/accounts.md, with every secret in the host's environment settings and none in the repository (`git log -p` grep for the key names finds only .env.example).","docs/accounts.md steps 2 to 4 and 8 are done by Mihai and ticked in that file."]}],"e2":[],"e3":[],"e4":[],"e5":[],"e6":[],"e7":[],"e8":[],"e9":[],"e10":[],"e11":[],"e12":[]};
+const row = (s) => {
+const st = STATUSES[s.status];
+const isOpen = open === s.id;
+return { id: s.id, title: s.title, label: st.label, bg: st.bg, fg: st.fg, bd: st.bd,
+count: s.criteria.length + ' criteria', open: isOpen, arrow: isOpen ? '▼' : '▶', btnBg: isOpen ? '#ECEAE5' : 'transparent',
+toggle: () => this.setState({ open: isOpen ? null : s.id }),
+items: s.criteria.map((text, i) => ({ n: String(i + 1), text: text })),
+qFg: s.questions ? '#7A5210' : '#5B6069', qText: s.questions ? s.questions + ' open question' + (s.questions > 1 ? 's' : '') : 'no questions' };
+};
+const vals = {};
+for (const k of Object.keys(EPICS)) vals[k] = EPICS[k].map(row);
+return vals;
 }
 }
 </script>
