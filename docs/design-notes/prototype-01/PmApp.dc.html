@@ -207,15 +207,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{isShape}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 16px">
 <div style="display: flex; align-items: flex-end; justify-content: space-between">
-<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Shape the list</h2>
-<div style="color: #5B6069">AI grouped 6 items into 3 areas and suggested a readable version of each. The original text is always kept. {{shapeCount}}</div>
+<div style="color: #5B6069">AI grouped 6 items into 3 areas and wrote a readable version of each. {{shapeCount}}</div>
 <div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">Context used:</span> {{ctxLine}}</div>
 </div>
-<div style="display: flex; gap: 8px">
-<button type="button" onClick="{{acceptAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Accept all</button>
-<button type="button" onClick="{{rejectAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reject all</button>
-<button type="button" onClick="{{goBuild}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Continue</button>
+<div style="display: flex; gap: 8px; flex-shrink: 0">
+<button type="button" onClick="{{acceptAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; white-space: nowrap">Accept all</button>
+<button type="button" onClick="{{rejectAll}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; white-space: nowrap">Reject all</button>
+<button type="button" onClick="{{goBuild}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap">Continue</button>
 </div>
 </div>
 <sc-if value="{{flagOpen}}" hint-placeholder-val="{{true}}">
