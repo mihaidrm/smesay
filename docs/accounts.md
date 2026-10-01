@@ -216,7 +216,7 @@ lawyer must confirm. You send the drafts to a Romanian lawyer once and tell Clau
 
 ## One value you do not need an account for
 
-`AUTH_SECRET` is a random string. Claude generates it straight into `.env.local` during
+`BETTER_AUTH_SECRET` is a random string. Claude generates it straight into `.env.local` during
 scaffolding without showing it. You generate a different one for Vercel when Claude asks.
 
 ## Monthly cost

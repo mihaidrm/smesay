@@ -4,17 +4,14 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
-const BANNED = [
-  'honestly', 'genuinely', 'worth noting', 'i want to flag', 'for what it\'s worth', 'let me',
-  'here\'s the thing', 'seamless', 'leverage', 'empower', 'unlock', 'elevate', 'robust', 'cutting-edge'
-];
+import { scanLine } from './copy-rules.mjs';
 const EXT = new Set(['.md', '.txt', '.html', '.ts', '.tsx', '.js', '.mjs', '.cjs', '.py', '.json']);
 
 function files(path) {
   const st = statSync(path);
-  if (st.isFile()) return (path.endsWith('WRITING.md') || path.endsWith('scan-copy.mjs')) ? [] : [path];
+  if (st.isFile()) return (path.endsWith('WRITING.md') || path.endsWith('copy-rules.mjs') || path.endsWith('copy-rules.test.mjs')) ? [] : [path];
   return readdirSync(path).flatMap((n) => {
-    if (n === 'node_modules' || n.startsWith('.') || n === 'WRITING.md' || n === 'scan-copy.mjs') return [];
+    if (n === 'node_modules' || n.startsWith('.') || n === 'WRITING.md' || n === 'copy-rules.mjs' || n === 'copy-rules.test.mjs') return [];
     const p = join(path, n);
     return statSync(p).isDirectory() ? files(p) : (EXT.has(extname(n)) ? [p] : []);
   });
@@ -27,12 +24,7 @@ for (const root of process.argv.slice(2)) {
     scanned += 1;
     const lines = readFileSync(f, 'utf8').split('\n');
     lines.forEach((line, i) => {
-      if (line.includes(String.fromCharCode(8212))) { problems += 1; console.log(`${f}:${i + 1}: em dash`); }
-      const low = line.toLowerCase();
-      for (const w of BANNED) {
-        const re = new RegExp('(^|[^a-z])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])');
-        if (re.test(low)) { problems += 1; console.log(`${f}:${i + 1}: banned word "${w}"`); }
-      }
+      for (const p of scanLine(line)) { problems += 1; console.log(`${f}:${i + 1}: ${p.kind}${p.word ? ' "' + p.word + '"' : ''}`); }
     });
   }
 }

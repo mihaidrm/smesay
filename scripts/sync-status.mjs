@@ -3,7 +3,7 @@
 // docs/context.md. `node scripts/sync-status.mjs` (check) fails when any of them is stale, when a
 // retired term (docs/retired-terms.md) appears in a current file, or when a "decision NNNN" or
 // "note NN" reference points at a file that does not exist. The pre-commit hook runs the check.
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
@@ -70,13 +70,18 @@ function sync(file, re, want, name) {
   if (WRITE) { text = text.replace(re, (all, old) => all.replace(old, want)); writeFileSync(join(ROOT, file), text); console.log(`wrote  ${file}: ${name}`); }
   else problem(`${file}: ${name} says "${m[1]}", plan says "${want}". Run: node scripts/sync-status.mjs --write`);
 }
-const p1 = summary(phases[0]);
 const ROAD = 'docs/design-notes/prototype-01/Roadmap.dc.html';
 sync(ROAD, /data-sync="decisions">([^<]*)</, `Phase 0 done, decisions 0001 to ${latestDecision}:`, 'decisions');
-sync(ROAD, /data-sync="phase1-label">([^<]*)</, p1.label, 'phase1-label');
-sync(ROAD, /data-sync="phase1-left">([^<]*)</, ' ' + p1.left, 'phase1-left');
-sync(ROAD, /data-sync="phase1-done">([^<]*)</, p1.doneList, 'phase1-done');
-sync(ROAD, /data-sync="phase1-bar" style="width: ([^;]*);/, p1.bar, 'phase1-bar');
+const roadText = rd(ROAD);
+for (const p of phases) {
+  const k = 'phase' + p.n;
+  if (!roadText.includes(`data-sync="${k}-label"`)) continue;
+  const sm = summary(p);
+  sync(ROAD, new RegExp(`data-sync="${k}-label">([^<]*)<`), sm.label, k + '-label');
+  sync(ROAD, new RegExp(`data-sync="${k}-left">([^<]*)<`), ' ' + sm.left, k + '-left');
+  sync(ROAD, new RegExp(`data-sync="${k}-done">([^<]*)<`), sm.doneList, k + '-done');
+  sync(ROAD, new RegExp(`data-sync="${k}-bar" style="width: ([^;]*);`), sm.bar, k + '-bar');
+}
 if (WRITE) sync(ROAD, /data-sync="now">([^<]*)</, nowLabel, 'now');
 
 const block = ['<!-- sync:phases -->', 'Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):']

@@ -8,7 +8,9 @@ with reasons and gaps, plus AI-written actions. Respondents need no account. Pro
 Who: consultancies running discovery and platform selection; in-house product and IT teams.
 Owner: Alerty S.R.L. (Mihai). Built by Mihai and Claude Code.
 
-Where we are (updated 2026-10-01): Setup. No application code exists. Done so far:
+Where we are (updated 2026-10-01): Phase 2, setup for building. The app is scaffolded and empty
+(docs/setup.md); `npm run lint`, `npm test`, `npm run build` and the Playwright smoke test pass.
+Done so far:
 - Working setup decided (docs/decisions/0004-working-setup.md). The eight retired agent files
   were deleted on 2026-10-01 (decision 0009); reviewer.md and tester.md remain.
 - Account list with steps written (docs/accounts.md). No account is created yet.
@@ -39,6 +41,8 @@ Waiting on Mihai:
    settings, sample, item detail, export, preview panel) on phone and laptop.
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
    (decision 0021, open item).
+5. Next 15 (as CLAUDE.md says, installed) or Next 16 (current major) before E1 (docs/setup.md).
+6. On the laptop: the first `docker compose up -d` (docs/setup.md, step 2.5).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
@@ -54,6 +58,12 @@ Phase 1, Design (now to about 17 October): Done 6 of 6 steps. 2 drafted, waits f
 - 1.5 Copy: drafted, waits for Mihai's approval.
 - 1.6 Golden set: drafted, waits for Mihai's approval.
 - 1.7 Trademark check: Mihai, when ready.
+Phase 2, Setup for building (about 1 week): Done 2 of 4 steps. Left: Styleguide page, E1 stories. 1 drafted, waits for Mihai
+- 2.1 Repository: done.
+- 2.2 Scaffold: drafted, waits for Mihai's approval.
+- 2.3 Styleguide page: open.
+- 2.4 E1 stories: open.
+- 2.5 Laptop setup: Mihai, when ready.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
