@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 import { render as renderStories, BOARD as STORIES_BOARD } from './stories-board.mjs';
+import { render as renderSchema, DOC as SCHEMA_DOC } from './schema-doc.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const WRITE = process.argv.includes('--write');
@@ -107,12 +108,23 @@ sync('docs/context.md', /(<!-- sync:phases -->[\s\S]*?<!-- \/sync:phases -->)/, 
   }
 }
 
+// ---------- 3c. docs/schema.md, generated from the migration snapshot ----------
+{
+  const { text, problems: sp, tables } = renderSchema();
+  for (const p of sp) problem(p);
+  let current = ''; try { current = rd(SCHEMA_DOC); } catch { current = ''; }
+  if (current !== text) {
+    if (WRITE) { writeFileSync(join(ROOT, SCHEMA_DOC), text); console.log(`wrote  ${SCHEMA_DOC}: ${tables} tables`); }
+    else problem(`${SCHEMA_DOC} does not match drizzle/meta. Run: node scripts/sync-status.mjs --write`);
+  }
+}
+
 // ---------- 4. retired terms ----------
 const retired = rd('docs/retired-terms.md').split('\n')
   .filter((l) => l.startsWith('| ') && !l.startsWith('| Term') && !l.startsWith('|---'))
   .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()))
   .map((c) => ({ term: c[0].replace(/^`|`$/g, ''), by: c[1] }));
-const EXEMPT = [/^docs\/decisions\//, /^docs\/design-notes\/\d{4}-/, /^docs\/retired-terms\.md$/, /^MISTAKES\.md$/, /^scripts\//, /^docs\/business-plan\.pdf$/,
+const EXEMPT = [/^drizzle\//, /^docs\/decisions\//, /^docs\/design-notes\/\d{4}-/, /^docs\/retired-terms\.md$/, /^MISTAKES\.md$/, /^scripts\//, /^docs\/business-plan\.pdf$/,
   /^docs\/design-notes\/prototype-01\/Landing(B|C|D)?\.dc\.html$/, /^docs\/design-notes\/prototype-01\/.*\.(png|js)$/, /^\.git\//, /^node_modules\//, /^assets\//];
 function files(dir) {
   return readdirSync(dir).flatMap((n) => {

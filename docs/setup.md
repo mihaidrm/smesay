@@ -10,6 +10,7 @@ npm run hooks            # once per clone: the pre-commit hook (decision 0022)
 cp .env.example .env.local
 docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 8025 (SMTP 1025)
 npm install
+npm run db:migrate       # creates the tables (drizzle/, stories/E1-2)
 npm run dev              # http://localhost:3000
 ```
 
@@ -20,7 +21,7 @@ npm run lint             # ESLint, next/core-web-vitals and next/typescript
 npm run typecheck        # tsc --noEmit
 npm run scan:copy        # WRITING.md scan over docs, stories, evals, src, e2e, scripts
 npm run check:status     # status, retired terms, references (decision 0022)
-npm test                 # Vitest, unit tests for logic
+npm test                 # Vitest: logic, and the database tests against the compose Postgres
 npm run build
 npm run test:e2e         # Playwright, one test per user-facing flow
 ```

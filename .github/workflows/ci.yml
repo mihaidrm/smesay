@@ -7,6 +7,20 @@ on:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: smesay
+          POSTGRES_PASSWORD: smesay
+          POSTGRES_DB: smesay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smesay -d smesay"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     env:
       CI: "true"
       DATABASE_URL: postgres://smesay:smesay@localhost:5432/smesay
