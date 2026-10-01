@@ -1,5 +1,5 @@
 // Copy scan (WRITING.md): fails on em dashes and the banned words. No dependencies. Skips
-// WRITING.md (it quotes the banned words) and AGENTS.md (a block Next.js writes verbatim).
+// WRITING.md, which quotes the banned words.
 // Usage: node scripts/scan-copy.mjs <file or folder> [...]
 // Phase 2 wires this as `npm run scan:copy`. Until then run it with node directly.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -10,9 +10,9 @@ const EXT = new Set(['.md', '.txt', '.html', '.ts', '.tsx', '.js', '.mjs', '.cjs
 
 function files(path) {
   const st = statSync(path);
-  if (st.isFile()) return (path.endsWith('WRITING.md') || path.endsWith('AGENTS.md') || path.endsWith('copy-rules.mjs') || path.endsWith('copy-rules.test.mjs')) ? [] : [path];
+  if (st.isFile()) return (path.endsWith('WRITING.md') || path.endsWith('copy-rules.mjs') || path.endsWith('copy-rules.test.mjs')) ? [] : [path];
   return readdirSync(path).flatMap((n) => {
-    if (n === 'node_modules' || n.startsWith('.') || n === 'WRITING.md' || n === 'AGENTS.md' || n === 'copy-rules.mjs' || n === 'copy-rules.test.mjs') return [];
+    if (n === 'node_modules' || n.startsWith('.') || n === 'WRITING.md' || n === 'copy-rules.mjs' || n === 'copy-rules.test.mjs') return [];
     const p = join(path, n);
     return statSync(p).isDirectory() ? files(p) : (EXT.has(extname(n)) ? [p] : []);
   });

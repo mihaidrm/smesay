@@ -17,10 +17,12 @@ fk = foreign key, pk = primary key. Triggers live in the custom migration
 - Item text is never overwritten: original_text is kept beside reader_text, cannot be blank, and a
   trigger refuses any update that changes it. item_set.version is never renumbered (trigger).
 - A response is pinned to the set version its instrument was built from: (instrument_id,
-  item_set_id) references instrument. Instruments, invites, set versions and items with responses
-  or answers under them cannot be deleted (on delete restrict). Deleting a workspace deletes
-  everything in it (cascade); deleting a project deletes its sets, items, instruments and runs,
-  and is refused while responses exist.
+  item_set_id) references instrument; its invite belongs to that instrument; an answer names an
+  item of that set version (answer.item_set_id); an instrument is built on a set of its own project.
+  Instruments, invites, set versions and items with responses or answers under them cannot be
+  deleted (on delete restrict). Deleting a workspace deletes everything in it (cascade); deleting
+  a project deletes its sets, items, instruments, invites, insights and runs, and is refused while
+  responses exist (decision 0028).
 - Enum columns are text with a check constraint, so adding a value is a plain migration.
 - Tokens (invite.token, response.device_token) are at least 32 characters; crypto.randomBytes(16)
   as hex gives exactly 32.
@@ -76,7 +78,7 @@ one validation effort; the AI context (decision 0011); is_sample marks the water
 
 Unique: project_id_workspace_uq on id, workspace_id.
 
-Indexes: project_workspace_idx on workspace_id.
+Indexes: project_workspace_idx on workspace_id; project_created_by_idx on created_by.
 
 ## item_set
 
@@ -93,7 +95,7 @@ one imported or pasted version of the list (decision 0010); version is unique pe
 | import_report | jsonb |  |
 | imported_at | timestamp with time zone | not null, default now() |
 
-Unique: item_set_id_workspace_uq on id, workspace_id.
+Unique: item_set_id_workspace_uq on id, workspace_id; item_set_id_project_uq on id, project_id.
 
 Foreign keys: item_set_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
 
@@ -120,7 +122,7 @@ one requirement: original_text is never overwritten, reader_text sits beside it 
 | custom | jsonb |  |
 | flags | jsonb |  |
 
-Unique: item_id_workspace_uq on id, workspace_id.
+Unique: item_id_workspace_uq on id, workspace_id; item_id_item_set_uq on id, item_set_id.
 
 Foreign keys: item_item_set_fk (item_set_id, workspace_id) references item_set (id, workspace_id) on delete cascade.
 
@@ -136,21 +138,21 @@ how one set version is shown to respondents: method, proposed value shown or not
 | id | uuid | pk, default gen_random_uuid() |
 | workspace_id | uuid | fk workspace.id, on delete cascade, not null |
 | project_id | uuid | fk project.id with workspace_id, on delete cascade, not null |
-| item_set_id | uuid | fk item_set.id with workspace_id, on delete restrict, not null |
+| item_set_id | uuid | fk item_set.id with workspace_id, on delete restrict, fk item_set.id with project_id, on delete restrict, not null |
 | title | text | not null |
 | intro | text |  |
 | method | text | not null, default moscow |
 | show_proposed | boolean | not null, default true |
 | layout | text | not null, default chapters |
 | respondent_fields | jsonb | not null, default [] |
-| closing | jsonb | not null, default {} |
+| closing | jsonb | not null, default {"confidence": true, "missingForm": true, "signOffText": ""} |
 | created_at | timestamp with time zone | not null, default now() |
 
 Unique: instrument_id_workspace_uq on id, workspace_id; instrument_id_item_set_uq on id, item_set_id.
 
-Foreign keys: instrument_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; instrument_item_set_fk (item_set_id, workspace_id) references item_set (id, workspace_id) on delete restrict.
+Foreign keys: instrument_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; instrument_item_set_fk (item_set_id, workspace_id) references item_set (id, workspace_id) on delete restrict; instrument_item_set_project_fk (item_set_id, project_id) references item_set (id, project_id) on delete restrict.
 
-Indexes: instrument_workspace_idx on workspace_id; instrument_project_idx on project_id.
+Indexes: instrument_workspace_idx on workspace_id; instrument_project_idx on project_id; instrument_item_set_idx on item_set_id.
 Checks: instrument_method_check: method in ('moscow', 'fit', 'kcd'); instrument_layout_check: layout in ('chapters', 'item', 'page').
 
 ## invite
@@ -175,7 +177,7 @@ a public link or a personal link per email; opens and closes; passcode; revoked;
 | last_reminder_at | timestamp with time zone |  |
 | created_at | timestamp with time zone | not null, default now() |
 
-Unique: invite_id_workspace_uq on id, workspace_id.
+Unique: invite_id_workspace_uq on id, workspace_id; invite_id_instrument_uq on id, instrument_id.
 
 Foreign keys: invite_instrument_fk (instrument_id, workspace_id) references instrument (id, workspace_id) on delete cascade.
 
@@ -192,7 +194,7 @@ one respondent's session against one instrument, pinned to the set version it wa
 | workspace_id | uuid | fk workspace.id, on delete cascade, not null |
 | instrument_id | uuid | fk instrument.id with workspace_id, on delete restrict, fk instrument.id with item_set_id, on delete restrict, not null |
 | item_set_id | uuid | not null |
-| invite_id | uuid | fk invite.id with workspace_id, on delete restrict, not null |
+| invite_id | uuid | fk invite.id with workspace_id, on delete restrict, fk invite.id with instrument_id, on delete restrict, not null |
 | device_token | text | not null, unique |
 | fields | jsonb | not null, default {} |
 | confidence | integer |  |
@@ -201,11 +203,11 @@ one respondent's session against one instrument, pinned to the set version it wa
 | created_at | timestamp with time zone | not null, default now() |
 | updated_at | timestamp with time zone | not null, default now() |
 
-Unique: response_id_workspace_uq on id, workspace_id.
+Unique: response_id_workspace_uq on id, workspace_id; response_id_item_set_uq on id, item_set_id.
 
-Foreign keys: response_instrument_fk (instrument_id, workspace_id) references instrument (id, workspace_id) on delete restrict; response_instrument_set_fk (instrument_id, item_set_id) references instrument (id, item_set_id) on delete restrict; response_invite_fk (invite_id, workspace_id) references invite (id, workspace_id) on delete restrict.
+Foreign keys: response_instrument_fk (instrument_id, workspace_id) references instrument (id, workspace_id) on delete restrict; response_instrument_set_fk (instrument_id, item_set_id) references instrument (id, item_set_id) on delete restrict; response_invite_fk (invite_id, workspace_id) references invite (id, workspace_id) on delete restrict; response_invite_instrument_fk (invite_id, instrument_id) references invite (id, instrument_id) on delete restrict.
 
-Indexes: response_workspace_idx on workspace_id; response_instrument_submitted_idx on instrument_id, submitted_at; response_device_token_idx (unique) on device_token.
+Indexes: response_workspace_idx on workspace_id; response_instrument_submitted_idx on instrument_id, submitted_at; response_device_token_idx (unique) on device_token; response_invite_idx on invite_id.
 Checks: response_confidence_check: confidence is null or (confidence between 1 and 5); response_device_token_length_check: length(device_token) >= 32.
 
 ## answer
@@ -216,15 +218,16 @@ one answer per item per response: kind (agree, change, disagree, unclear, pick),
 |---|---|---|
 | id | uuid | pk, default gen_random_uuid() |
 | workspace_id | uuid | fk workspace.id, on delete cascade, not null |
-| response_id | uuid | fk response.id with workspace_id, on delete cascade, not null |
-| item_id | uuid | fk item.id with workspace_id, on delete restrict, not null |
+| response_id | uuid | fk response.id with workspace_id, on delete cascade, fk response.id with item_set_id, on delete cascade, not null |
+| item_set_id | uuid | not null |
+| item_id | uuid | fk item.id with workspace_id, on delete restrict, fk item.id with item_set_id, on delete restrict, not null |
 | kind | text | not null |
 | value | text |  |
 | reason | text |  |
 | comment | text |  |
 | updated_at | timestamp with time zone | not null, default now() |
 
-Foreign keys: answer_response_fk (response_id, workspace_id) references response (id, workspace_id) on delete cascade; answer_item_fk (item_id, workspace_id) references item (id, workspace_id) on delete restrict.
+Foreign keys: answer_response_fk (response_id, workspace_id) references response (id, workspace_id) on delete cascade; answer_item_fk (item_id, workspace_id) references item (id, workspace_id) on delete restrict; answer_response_set_fk (response_id, item_set_id) references response (id, item_set_id) on delete cascade; answer_item_set_fk (item_id, item_set_id) references item (id, item_set_id) on delete restrict.
 
 Indexes: answer_workspace_idx on workspace_id; answer_response_item_idx (unique) on response_id, item_id; answer_item_idx on item_id.
 Checks: answer_kind_check: kind in ('agree', 'change', 'disagree', 'unclear', 'pick').
@@ -290,7 +293,7 @@ every call to the model: purpose, tokens, cost in euro cents, duration (E4 budge
 
 Foreign keys: ai_run_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
 
-Indexes: ai_run_workspace_idx on workspace_id.
+Indexes: ai_run_workspace_idx on workspace_id; ai_run_project_idx on project_id.
 Checks: ai_run_purpose_check: purpose in ('shape', 'insights').
 
 ## user

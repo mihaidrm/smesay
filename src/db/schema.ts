@@ -5,12 +5,14 @@
 // is never overwritten (a trigger in drizzle/0001 refuses the update); a response is pinned to
 // the set version its instrument was built from. The enums are INTERFACES.md's; change that
 // file first. Drizzle pg-core API: pgTable, uuid, text, integer, boolean, timestamp, jsonb,
-// index, uniqueIndex, unique, check, primaryKey, foreignKey (node_modules/drizzle-orm/pg-core/*.d.ts).
+// index, uniqueIndex, unique, check, primaryKey, foreignKey (node_modules/drizzle-orm/pg-core/*.d.ts);
+// text({ enum }) and .$type<T>() type the enum and jsonb columns (column-builder.d.ts, columns/text.d.ts).
 import { sql } from "drizzle-orm";
 import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
+import type { ClosingSpec, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields } from "./types";
 
 export * from "./auth-schema";
 
@@ -44,7 +46,7 @@ export const workspace = pgTable("workspace", {
 export const workspaceMember = pgTable("workspace_member", {
   workspaceId: wsRef(),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  role: text("role").notNull(),
+  role: text("role", { enum: MEMBER_ROLES }).notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   primaryKey({ columns: [t.workspaceId, t.userId] }),
@@ -64,6 +66,7 @@ export const project = pgTable("project", {
   archivedAt: ts("archived_at"),
 }, (t) => [
   index("project_workspace_idx").on(t.workspaceId),
+  index("project_created_by_idx").on(t.createdBy),
   unique("project_id_workspace_uq").on(t.id, t.workspaceId),
 ]);
 
@@ -72,15 +75,16 @@ export const itemSet = pgTable("item_set", {
   workspaceId: wsRef(),
   projectId: uuid("project_id").notNull(),
   version: integer("version").notNull(),
-  source: text("source").notNull(),
+  source: text("source", { enum: ITEM_SET_SOURCES }).notNull(),
   sourceFilename: text("source_filename"),
-  importReport: jsonb("import_report"),
+  importReport: jsonb("import_report").$type<ImportReport>(),
   importedAt: ts("imported_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   index("item_set_workspace_idx").on(t.workspaceId),
   uniqueIndex("item_set_project_version_idx").on(t.projectId, t.version),
   unique("item_set_id_workspace_uq").on(t.id, t.workspaceId),
+  unique("item_set_id_project_uq").on(t.id, t.projectId),
   check("item_set_source_check", oneOf("source", ITEM_SET_SOURCES)),
   check("item_set_version_check", sql`"version" >= 1`),
 ]);
@@ -93,17 +97,18 @@ export const item = pgTable("item", {
   sourceRef: text("source_ref"),
   originalText: text("original_text").notNull(),
   readerText: text("reader_text"),
-  readerStatus: text("reader_status"),
+  readerStatus: text("reader_status", { enum: READER_STATUSES }),
   area: text("area"),
   areaRationale: text("area_rationale"),
   proposedValue: text("proposed_value"),
   custom: jsonb("custom"),
-  flags: jsonb("flags"),
+  flags: jsonb("flags").$type<ItemFlags>(),
 }, (t) => [
   foreignKey({ name: "item_item_set_fk", columns: [t.itemSetId, t.workspaceId], foreignColumns: [itemSet.id, itemSet.workspaceId] }).onDelete("cascade"),
   index("item_workspace_idx").on(t.workspaceId),
   index("item_set_idx").on(t.itemSetId),
   unique("item_id_workspace_uq").on(t.id, t.workspaceId),
+  unique("item_id_item_set_uq").on(t.id, t.itemSetId),
   check("item_original_text_check", sql`length(btrim("original_text")) > 0`),
   check("item_reader_status_check", sql`"reader_status" is null or ${oneOf("reader_status", READER_STATUSES)}`),
 ]);
@@ -115,17 +120,19 @@ export const instrument = pgTable("instrument", {
   itemSetId: uuid("item_set_id").notNull(),
   title: text("title").notNull(),
   intro: text("intro"),
-  method: text("method").notNull().default("moscow"),
+  method: text("method", { enum: SCORING_METHODS }).notNull().default("moscow"),
   showProposed: boolean("show_proposed").notNull().default(true),
-  layout: text("layout").notNull().default("chapters"),
-  respondentFields: jsonb("respondent_fields").notNull().default(sql`'[]'::jsonb`),
-  closing: jsonb("closing").notNull().default(sql`'{}'::jsonb`),
+  layout: text("layout", { enum: LAYOUTS }).notNull().default("chapters"),
+  respondentFields: jsonb("respondent_fields").$type<RespondentFieldSpec[]>().notNull().default(sql`'[]'::jsonb`),
+  closing: jsonb("closing").$type<ClosingSpec>().notNull().default(sql`'{"confidence": true, "missingForm": true, "signOffText": ""}'::jsonb`),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "instrument_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   foreignKey({ name: "instrument_item_set_fk", columns: [t.itemSetId, t.workspaceId], foreignColumns: [itemSet.id, itemSet.workspaceId] }).onDelete("restrict"),
+  foreignKey({ name: "instrument_item_set_project_fk", columns: [t.itemSetId, t.projectId], foreignColumns: [itemSet.id, itemSet.projectId] }).onDelete("restrict"),
   index("instrument_workspace_idx").on(t.workspaceId),
   index("instrument_project_idx").on(t.projectId),
+  index("instrument_item_set_idx").on(t.itemSetId),
   unique("instrument_id_workspace_uq").on(t.id, t.workspaceId),
   unique("instrument_id_item_set_uq").on(t.id, t.itemSetId),
   check("instrument_method_check", oneOf("method", SCORING_METHODS)),
@@ -136,7 +143,7 @@ export const invite = pgTable("invite", {
   id: id(),
   workspaceId: wsRef(),
   instrumentId: uuid("instrument_id").notNull(),
-  kind: text("kind").notNull(),
+  kind: text("kind", { enum: INVITE_KINDS }).notNull(),
   token: text("token").notNull(),
   email: text("email"),
   name: text("name"),
@@ -154,6 +161,7 @@ export const invite = pgTable("invite", {
   index("invite_instrument_idx").on(t.instrumentId),
   uniqueIndex("invite_token_idx").on(t.token),
   unique("invite_id_workspace_uq").on(t.id, t.workspaceId),
+  unique("invite_id_instrument_uq").on(t.id, t.instrumentId),
   check("invite_kind_check", oneOf("kind", INVITE_KINDS)),
   check("invite_personal_email_check", sql`"kind" = 'public' or "email" is not null`),
   check("invite_token_length_check", sql`length("token") >= 32`),
@@ -166,7 +174,7 @@ export const response = pgTable("response", {
   itemSetId: uuid("item_set_id").notNull(),
   inviteId: uuid("invite_id").notNull(),
   deviceToken: text("device_token").notNull(),
-  fields: jsonb("fields").notNull().default(sql`'{}'::jsonb`),
+  fields: jsonb("fields").$type<ResponseFields>().notNull().default(sql`'{}'::jsonb`),
   confidence: integer("confidence"),
   signedOff: boolean("signed_off").notNull().default(false),
   submittedAt: ts("submitted_at"),
@@ -176,10 +184,13 @@ export const response = pgTable("response", {
   foreignKey({ name: "response_instrument_fk", columns: [t.instrumentId, t.workspaceId], foreignColumns: [instrument.id, instrument.workspaceId] }).onDelete("restrict"),
   foreignKey({ name: "response_instrument_set_fk", columns: [t.instrumentId, t.itemSetId], foreignColumns: [instrument.id, instrument.itemSetId] }).onDelete("restrict"),
   foreignKey({ name: "response_invite_fk", columns: [t.inviteId, t.workspaceId], foreignColumns: [invite.id, invite.workspaceId] }).onDelete("restrict"),
+  foreignKey({ name: "response_invite_instrument_fk", columns: [t.inviteId, t.instrumentId], foreignColumns: [invite.id, invite.instrumentId] }).onDelete("restrict"),
   index("response_workspace_idx").on(t.workspaceId),
   index("response_instrument_submitted_idx").on(t.instrumentId, t.submittedAt),
   uniqueIndex("response_device_token_idx").on(t.deviceToken),
   unique("response_id_workspace_uq").on(t.id, t.workspaceId),
+  unique("response_id_item_set_uq").on(t.id, t.itemSetId),
+  index("response_invite_idx").on(t.inviteId),
   check("response_confidence_check", sql`"confidence" is null or ("confidence" between 1 and 5)`),
   check("response_device_token_length_check", sql`length("device_token") >= 32`),
 ]);
@@ -188,8 +199,9 @@ export const answer = pgTable("answer", {
   id: id(),
   workspaceId: wsRef(),
   responseId: uuid("response_id").notNull(),
+  itemSetId: uuid("item_set_id").notNull(),
   itemId: uuid("item_id").notNull(),
-  kind: text("kind").notNull(),
+  kind: text("kind", { enum: ANSWER_KINDS }).notNull(),
   value: text("value"),
   reason: text("reason"),
   comment: text("comment"),
@@ -197,6 +209,8 @@ export const answer = pgTable("answer", {
 }, (t) => [
   foreignKey({ name: "answer_response_fk", columns: [t.responseId, t.workspaceId], foreignColumns: [response.id, response.workspaceId] }).onDelete("cascade"),
   foreignKey({ name: "answer_item_fk", columns: [t.itemId, t.workspaceId], foreignColumns: [item.id, item.workspaceId] }).onDelete("restrict"),
+  foreignKey({ name: "answer_response_set_fk", columns: [t.responseId, t.itemSetId], foreignColumns: [response.id, response.itemSetId] }).onDelete("cascade"),
+  foreignKey({ name: "answer_item_set_fk", columns: [t.itemId, t.itemSetId], foreignColumns: [item.id, item.itemSetId] }).onDelete("restrict"),
   index("answer_workspace_idx").on(t.workspaceId),
   uniqueIndex("answer_response_item_idx").on(t.responseId, t.itemId),
   index("answer_item_idx").on(t.itemId),
@@ -224,7 +238,7 @@ export const insight = pgTable("insight", {
   title: text("title").notNull(),
   why: text("why"),
   citedAnswerIds: uuid("cited_answer_ids").array().notNull().default(sql`'{}'::uuid[]`),
-  state: text("state").notNull().default("open"),
+  state: text("state", { enum: INSIGHT_STATES }).notNull().default("open"),
   model: text("model"),
   tokensIn: integer("tokens_in"),
   tokensOut: integer("tokens_out"),
@@ -241,7 +255,7 @@ export const aiRun = pgTable("ai_run", {
   id: id(),
   workspaceId: wsRef(),
   projectId: uuid("project_id"),
-  purpose: text("purpose").notNull(),
+  purpose: text("purpose", { enum: AI_PURPOSES }).notNull(),
   model: text("model").notNull(),
   tokensIn: integer("tokens_in").notNull().default(0),
   tokensOut: integer("tokens_out").notNull().default(0),
@@ -251,5 +265,6 @@ export const aiRun = pgTable("ai_run", {
 }, (t) => [
   foreignKey({ name: "ai_run_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   index("ai_run_workspace_idx").on(t.workspaceId),
+  index("ai_run_project_idx").on(t.projectId),
   check("ai_run_purpose_check", oneOf("purpose", AI_PURPOSES)),
 ]);

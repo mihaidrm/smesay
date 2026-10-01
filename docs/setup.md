@@ -10,7 +10,7 @@ npm run hooks            # once per clone: the pre-commit hook (decision 0022)
 cp .env.example .env.local
 docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 8025 (SMTP 1025)
 npm install
-npm run db:migrate       # creates the tables (drizzle/, stories/E1-2)
+npm run db:migrate       # creates the tables (drizzle/, stories/E1-2); a second run changes nothing
 npm run dev              # http://localhost:3000
 ```
 

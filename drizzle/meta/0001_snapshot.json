@@ -1,6 +1,6 @@
 {
-  "id": "b3ee21ad-60d9-4643-896a-9f9c1599c485",
-  "prevId": "f573dfe0-5b88-4316-b38c-f113081b1d2e",
+  "id": "c27b5a7a-c409-4890-8455-b93e0b0adfab",
+  "prevId": "1d55fe04-f61c-4342-bab7-28ee1aa80435",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -89,6 +89,21 @@
           "with": {},
           "method": "btree",
           "concurrently": false
+        },
+        "ai_run_project_idx": {
+          "name": "ai_run_project_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
@@ -151,6 +166,12 @@
         },
         "response_id": {
           "name": "response_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "item_set_id": {
+          "name": "item_set_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -286,6 +307,36 @@
           "columnsTo": [
             "id",
             "workspace_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "answer_response_set_fk": {
+          "name": "answer_response_set_fk",
+          "tableFrom": "answer",
+          "columnsFrom": [
+            "response_id",
+            "item_set_id"
+          ],
+          "tableTo": "response",
+          "columnsTo": [
+            "id",
+            "item_set_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "cascade"
+        },
+        "answer_item_set_fk": {
+          "name": "answer_item_set_fk",
+          "tableFrom": "answer",
+          "columnsFrom": [
+            "item_id",
+            "item_set_id"
+          ],
+          "tableTo": "item",
+          "columnsTo": [
+            "id",
+            "item_set_id"
           ],
           "onUpdate": "no action",
           "onDelete": "restrict"
@@ -530,7 +581,7 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{}'::jsonb"
+          "default": "'{\"confidence\": true, \"missingForm\": true, \"signOffText\": \"\"}'::jsonb"
         },
         "created_at": {
           "name": "created_at",
@@ -561,6 +612,21 @@
           "columns": [
             {
               "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
+        "instrument_item_set_idx": {
+          "name": "instrument_item_set_idx",
+          "columns": [
+            {
+              "expression": "item_set_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -612,6 +678,21 @@
           "columnsTo": [
             "id",
             "workspace_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        },
+        "instrument_item_set_project_fk": {
+          "name": "instrument_item_set_project_fk",
+          "tableFrom": "instrument",
+          "columnsFrom": [
+            "item_set_id",
+            "project_id"
+          ],
+          "tableTo": "item_set",
+          "columnsTo": [
+            "id",
+            "project_id"
           ],
           "onUpdate": "no action",
           "onDelete": "restrict"
@@ -833,6 +914,14 @@
             "workspace_id"
           ],
           "nullsNotDistinct": false
+        },
+        "invite_id_instrument_uq": {
+          "name": "invite_id_instrument_uq",
+          "columns": [
+            "id",
+            "instrument_id"
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1007,6 +1096,14 @@
             "workspace_id"
           ],
           "nullsNotDistinct": false
+        },
+        "item_id_item_set_uq": {
+          "name": "item_id_item_set_uq",
+          "columns": [
+            "id",
+            "item_set_id"
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1152,6 +1249,14 @@
           "columns": [
             "id",
             "workspace_id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "item_set_id_project_uq": {
+          "name": "item_set_id_project_uq",
+          "columns": [
+            "id",
+            "project_id"
           ],
           "nullsNotDistinct": false
         }
@@ -1362,6 +1467,21 @@
           "with": {},
           "method": "btree",
           "concurrently": false
+        },
+        "project_created_by_idx": {
+          "name": "project_created_by_idx",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
@@ -1540,6 +1660,21 @@
           "with": {},
           "method": "btree",
           "concurrently": false
+        },
+        "response_invite_idx": {
+          "name": "response_invite_idx",
+          "columns": [
+            {
+              "expression": "invite_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
         }
       },
       "foreignKeys": {
@@ -1600,6 +1735,21 @@
           ],
           "onUpdate": "no action",
           "onDelete": "restrict"
+        },
+        "response_invite_instrument_fk": {
+          "name": "response_invite_instrument_fk",
+          "tableFrom": "response",
+          "columnsFrom": [
+            "invite_id",
+            "instrument_id"
+          ],
+          "tableTo": "invite",
+          "columnsTo": [
+            "id",
+            "instrument_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
         }
       },
       "compositePrimaryKeys": {},
@@ -1609,6 +1759,14 @@
           "columns": [
             "id",
             "workspace_id"
+          ],
+          "nullsNotDistinct": false
+        },
+        "response_id_item_set_uq": {
+          "name": "response_id_item_set_uq",
+          "columns": [
+            "id",
+            "item_set_id"
           ],
           "nullsNotDistinct": false
         }
