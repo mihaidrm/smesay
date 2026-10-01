@@ -45,11 +45,20 @@ Waiting on Mihai:
    settings, sample, item detail, export, preview panel) on phone and laptop, and of
    /styleguide in the running app (note 14).
 4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
-   (decision 0021, open item).
+   (decision 0021, open item; carried by stories/E5-6).
+5. Decision 0028 (proposed): identity tables outside the workspace rule; delete rules. And
+   the four acceptance criteria of E1-2 reworded during its build (asked 2026-10-01).
+6. From the stories written on 2026-10-01 (decision 0029), each with a recommendation in the
+   story file: E2-2 whether to create the Google and Microsoft developer accounts now; E3-6 the
+   new-version banner copy in docs/copy/errors.md; E4-3 hand editing of a reader version in R1;
+   E4-6 an Anthropic key as a repository secret for the evals job; E6-2 reply-to and sender
+   name on invites; E7-5 receipt with counts only or the answers; E8-4 "Add as item" in R1 or
+   not; E8-6 the small-group threshold (3); E12-4 whether the sample instrument stores
+   nothing. E7-1 carries item 1 above.
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
-Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
-styleguide page, E1 stories, open questions before E1.
+Next tasks for Claude: E1-3 workspace scoping and E1-4 seed, then E2 in story order
+(stories/backlog.md). Every story exists; a story is rewritten when Mihai sends a direction.
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
@@ -65,7 +74,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.1 Repository: done.
 - 2.2 Scaffold: done.
 - 2.3 Styleguide page: done.
-- 2.4 E1 stories: done.
+- 2.4 Stories: done.
 - 2.5 PC setup: done.
 Phase 3, R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about early March 2027): Done 0 of 12 steps. Left: 12 steps
 - E1 Foundation: building.

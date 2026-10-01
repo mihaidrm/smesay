@@ -11,7 +11,8 @@ a good view of them and be able to reference where we are on them".
    scripts/sync-status.mjs --write` runs it with the roadmap; the pre-commit hook refuses a
    commit when the board does not match the files (decision 0022 extended).
 3. Epics without stories show "not written yet"; stories are written when the epic before is
-   accepted, the way E1's were written at the end of Phase 2.
+   accepted, the way E1's were written at the end of Phase 2. Superseded by decision 0029 on
+   the same day: every R1 story is written now.
 
 Consequence: stories E1-2 to E1-4 marked ready, E1-1 done, E1-5 deferred; TEMPLATE.md has the
 line; CLAUDE.md and README name the board; canvas index gets the board under the golden set.
