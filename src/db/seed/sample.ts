@@ -1,17 +1,10 @@
 // The Marlow Group sample (decisions 0005, 0027): the same facts as the prototype boards
-// (docs/design-notes/prototype-01/PmApp.dc.html data(), Respondent.dc.html items()) and the
-// landing page. Fixed ids so tests and later stories can reference the rows. Nothing here comes
-// from a client engagement (decision 0002).
+// (docs/design-notes/prototype-01/PmApp.dc.html data(), Respondent.dc.html items(), the sign-off
+// record on LandingE.dc.html). Nothing here comes from a client engagement (decision 0002).
 
 // One fixed id, the workspace's (the helpers ignore ids on create, E1-3). Every other sample
 // row is found by a natural key: the item reference, the invite token, the respondent's name.
 export const SAMPLE_WORKSPACE_ID = "00000001-0000-4000-8000-000000000001";
-
-// Tokens are 32 hex characters (E1-2 check). These are fixed because the sample is public data
-// and the links are the sample instrument's (E12-4); every real token comes from crypto.
-export const SAMPLE_PUBLIC_TOKEN = "5a3f1c8e2b7d4960a1c3e5f7b9d2468a";
-const personalToken = (n: number) => `9e${String(n).padStart(2, "0")}c7b2d4f6a8e0b1c3d5f7a9e2b4c6d8f1`.slice(0, 32);
-const deviceToken = (n: number) => `d3${String(n).padStart(2, "0")}b8a1c6e4f2d0a9b7c5e3f1d8a6b4c2e0`.slice(0, 32);
 
 export const workspace = { id: SAMPLE_WORKSPACE_ID, name: "Marlow Group", slug: "marlow-group", accentHex: "#1F4F7A" };
 
@@ -38,8 +31,9 @@ export const items = [
   { n: 6, ref: "CL-06", area: "Paying", proposed: "C", reader: "Employees can request a cash advance before a trip.", original: "Travel advance request workflow (pre-trip).", details: "Advance is reconciled against the trip claims. The spreadsheet does not say who repays an advance if the trip is cancelled." },
 ];
 
-export const importReport = { emptyRows: 2, exactDuplicates: 1, overLimit: 0, rowsRead: 9, headerRow: 1 };
-export const sourceFilename = "Expense tool requirements v3 FINAL (2).xlsx";
+// As the PM app board's Import step shows: 6 rows read, header on row 1, nothing skipped.
+export const importReport = { emptyRows: 0, exactDuplicates: 0, overLimit: 0, rowsRead: 6, headerRow: 1 };
+export const sourceFilename = "expense-requirements.xlsx";
 
 export const instrument = {
   title: "New expense tool",
@@ -52,29 +46,31 @@ export const instrument = {
     { key: "role", label: "Role", type: "dropdown" as const, mandatory: true, options: ["Sales", "Finance", "Engineering manager", "HR", "Office manager"] },
   ],
   closing: { confidence: true as const, missingForm: true, signOffText: "I confirm these answers reflect my view as of today." },
-  opensAt: new Date("2026-10-06T07:00:00Z"),
-  closesAt: new Date("2026-10-20T16:00:00Z"),
+  // The boards say 6 Oct 09:00 and 20 Oct 18:00, Marlow Group's local time; Romania is UTC+3
+  // until 25 October 2026, so these are the instants.
+  opensAt: new Date("2026-10-06T06:00:00Z"),
+  closesAt: new Date("2026-10-20T15:00:00Z"),
 };
 
 // Seven respondents: six personal invites and one person who came through the public link.
-// status: submitted (date), progress (answers so far), invited (never opened).
+// status: submitted (the sign-off record on the landing page: time and confidence), progress
+// (answers so far), invited (never opened). Priya's time and confidence are not on a board; 3
+// gives the record's 3.8 average.
 export const people = [
-  { n: 1, name: "Ioana Marin", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-07T09:12:00Z", confidence: 4, reminders: 0 },
-  { n: 2, name: "Tom Reyes", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-08T14:40:00Z", confidence: 4, reminders: 1 },
-  { n: 3, name: "Dana Okafor", role: "Finance", invite: "public", status: "submitted", submittedAt: "2026-10-08T16:05:00Z", confidence: 4, reminders: 0 },
-  { n: 4, name: "Lukas Berg", role: "Engineering manager", invite: "personal", status: "submitted", submittedAt: "2026-10-09T11:30:00Z", confidence: 3, reminders: 0 },
-  { n: 5, name: "Priya Nair", role: "HR", invite: "personal", status: "submitted", submittedAt: "2026-10-12T08:55:00Z", confidence: 4, reminders: 1 },
+  { n: 1, name: "Ioana Marin", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-07T14:05:00Z", confidence: 4, reminders: 0 },
+  { n: 2, name: "Tom Reyes", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-08T08:41:00Z", confidence: 3, reminders: 1 },
+  { n: 3, name: "Dana Okafor", role: "Finance", invite: "public", status: "submitted", submittedAt: "2026-10-08T09:12:00Z", confidence: 5, reminders: 0 },
+  { n: 4, name: "Lukas Berg", role: "Engineering manager", invite: "personal", status: "submitted", submittedAt: "2026-10-09T16:30:00Z", confidence: 4, reminders: 0 },
+  { n: 5, name: "Priya Nair", role: "HR", invite: "personal", status: "submitted", submittedAt: "2026-10-12T08:55:00Z", confidence: 3, reminders: 1 },
   { n: 6, name: "Sam Hill", role: "Office manager", invite: "personal", status: "progress", submittedAt: null, confidence: null, reminders: 1 },
   { n: 7, name: "Elena Costa", role: "Sales", invite: "personal", status: "invited", submittedAt: null, confidence: null, reminders: 1 },
 ] as const;
-
-export const personalTokenFor = (n: number) => personalToken(n);
-export const deviceTokenFor = (n: number) => deviceToken(n);
 
 // Answers per item and person (decisions 0014 and 0018): agree; change with the value picked and
 // the reason; disagree (Not needed) with the reason; unclear with the question in `reason`.
 type A = { kind: "agree" } | { kind: "change"; value: string; reason: string } | { kind: "disagree"; reason: string } | { kind: "unclear"; reason: string };
 const agree: A = { kind: "agree" };
+// Sam Hill (person 6) is in progress with four answers; no board lists them, so they are agree.
 export const answers: Record<number, Record<number, A>> = {
   1: { 1: agree, 2: agree, 3: { kind: "change", value: "S", reason: "Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera." }, 4: agree, 5: agree, 6: agree },
   2: { 1: agree, 2: { kind: "unclear", reason: "Does this include splitting between two clients on one trip?" }, 3: { kind: "change", value: "M", reason: "Finance re-keys about thirty split claims a month by hand." }, 4: { kind: "change", value: "M", reason: "My team bills two projects on almost every trip." }, 5: agree, 6: agree },
@@ -86,12 +82,14 @@ export const answers: Record<number, Record<number, A>> = {
 
 export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in.", suggestedArea: "Submitting" };
 
-// Four actions; cites are (item, person) answer pairs or the missing item.
+// Four actions; cites are (item, person) answer pairs. The fourth action cites the missing item,
+// for which schema v1 has no column (decision 0033, waiting for Mihai): it is seeded without a
+// citation until then.
 export const insights = [
   { n: 1, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][] },
   { n: 2, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][] },
   { n: 3, title: "Rewrite CL-06 to say who repays an advance if the trip is cancelled.", why: "HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.", cites: [[6, 5], [6, 4]] as [number, number][] },
-  { n: 4, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][], citesMissingItem: true },
+  { n: 4, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][] },
 ];
 
 // Two model calls, invented numbers in the shape E4 logs (euro cents).

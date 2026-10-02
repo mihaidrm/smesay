@@ -98,6 +98,7 @@ screens = f'''
 <option value="Finance">Finance</option>
 <option value="Engineering manager">Engineering manager</option>
 <option value="HR">HR</option>
+<option value="Office manager">Office manager</option>
 </select>
 </div>
 </sc-if>

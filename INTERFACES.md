@@ -30,16 +30,21 @@ the check constraints use them). Change this file first.
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
-Code: src/db/queries/. Every helper takes a WorkspaceId first (src/db/types.ts, a branded
-string that only `requireWorkspace(headers, workspaceId)` in src/lib/workspace.ts produces
-from the session); a plain string from a URL or a body is a type error. Each table exports
-list(ws), get(ws, id), count(ws), create(ws, data), update(ws, id, patch), remove(ws, id);
-get, update and remove return null when the row is not in that workspace or the id is not a
-uuid; create and update ignore `id` and `workspaceId` in their input. Workspaces:
-listForUser(userId), getForUser(userId, workspaceId), create(data, ownerUserId),
-update(ws, patch), createEmpty(data) and hardDelete(id) for the seed and the removal job.
-Members: list, get, add, setRole, remove by (ws, userId). Importing "@/db", "@/db/schema",
-drizzle-orm or postgres outside src/db/ fails lint, by any path.
+Code: src/db/queries/. Every table helper takes a WorkspaceId first (src/db/types.ts, a
+branded string that only `requireWorkspace(headers, workspaceId)` in src/lib/workspace.ts
+produces from the session); a plain string from a URL or a body is a type error, and a cast
+to WorkspaceId or never fails lint outside tests. Each table exports list(ws), get(ws, id),
+count(ws), create(ws, data), update(ws, id, patch), remove(ws, id); get, update and remove
+return null when the row is not in that workspace or the id is not a uuid; create and update
+keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uuid parent id
+with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
+ownerUserId), update(ws, patch) (name, slug, accent, logo, budget only), markDeleted(ws).
+Members: list, get, add, setRole, remove by (ws, userId). src/db/queries/internal.ts
+(getWorkspaceById, createEmptyWorkspace, hardDeleteWorkspace, requireWorkspaceForUser) takes
+no session and is importable only from src/db and src/lib/workspace.ts. Importing "@/db",
+"@/db/schema", drizzle-orm or postgres outside src/db/ fails lint for every import spelling
+tested (src/db/queries/lint-rule.test.ts); what src/db/queries/ exports is the reviewer's
+reading.
 
 ## Response schema (runtime -> dashboard, runtime -> exports)
 Owner: runtime. Consumers: dashboard, exports, offline import.

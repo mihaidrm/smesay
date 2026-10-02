@@ -4,20 +4,12 @@
 // to handle auth checks in each page/route"), checks the user's membership and returns a
 // WorkspaceId, the branded type the helpers take; nothing else produces one for a request. A
 // workspace the user is not a member of, or that does not exist, or an id that is not a uuid, is
-// 404, so a workspace's existence is never leaked. requireWorkspaceForUser is the same check
-// for a user id the caller already trusts: the tests under src/db; lint refuses the import
-// anywhere else (eslint-rules/db-access.mjs).
+// 404, so a workspace's existence is never leaked. The membership check itself is
+// requireWorkspaceForUser in src/db/queries/internal.ts, which only this file and src/db may
+// import (eslint-rules/db-access.mjs); nothing here re-exports it.
 import { auth } from "@/lib/auth";
-import { NotFoundError, SignedOutError } from "@/lib/errors";
-import { workspaces } from "@/db/queries/workspaces";
+import { requireWorkspaceForUser } from "@/db/queries/internal";
 import type { WorkspaceId } from "@/db/types";
-
-export async function requireWorkspaceForUser(userId: string | null, workspaceId: string): Promise<WorkspaceId> {
-  if (!userId) throw new SignedOutError();
-  const found = await workspaces.getForUser(userId, workspaceId);
-  if (!found) throw new NotFoundError("This workspace does not exist, or you are not a member of it. Check the address, or go to your projects.");
-  return found.id as WorkspaceId;
-}
 
 export async function requireWorkspace(headers: Headers, workspaceId: string): Promise<WorkspaceId> {
   const session = await auth.api.getSession({ headers });
