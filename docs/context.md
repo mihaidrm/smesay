@@ -29,8 +29,9 @@ Done so far:
   drizzle/, docs/schema.md generated from them by scripts/schema-doc.mjs (the pre-commit hook
   fails when it is stale). Every test runs against `smesay_test`, never the dev database.
 - Workspace scoping (stories/E1-3, built 2026-10-02): src/db/queries/ holds every query, each
-  with the workspace id first; requireWorkspace() in src/lib/workspace.ts; lint refuses "@/db"
-  outside src/db/; the cross-workspace test runs in CI.
+  taking a WorkspaceId that only requireWorkspace() in src/lib/workspace.ts produces from the
+  session; lint (eslint-rules/db-access.mjs) refuses the database by any import path outside
+  src/db/; the cross-workspace test runs in CI.
 
 Machine check on 2026-10-01 (Mihai's Windows PC, decision 0005): Node v26.10.0, Docker 29.8.1
 running; docker compose up, lint, test and build pass there (step 2.5). The Claude Code cloud

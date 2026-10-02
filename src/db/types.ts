@@ -7,3 +7,8 @@ export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: 
 export type ResponseFields = { [key: string]: string };
 
 export type MemberRole = "owner" | "member";
+
+// The workspace id the query helpers take: a branded string that only src/lib/workspace.ts
+// produces from the session (stories/E1-3). A plain string from a URL or a body does not fit.
+declare const workspaceIdBrand: unique symbol;
+export type WorkspaceId = string & { readonly [workspaceIdBrand]: true };

@@ -1,6 +1,6 @@
 // The cross-workspace test (stories/E1-3, acceptance 3 and 4; CLAUDE.md: a test proves a user in
 // workspace A cannot read workspace B). Two workspaces with one row in every table; every helper
-// called with A's id must return nothing of B's, and B's rows must be untouched afterwards.
+// called with A's id must return nothing of B's, and every row of B must be unchanged afterwards.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -9,41 +9,39 @@ import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
 import { db } from "@/db";
 import { user } from "@/db/schema";
+import * as queries from "./index";
 import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, workspaces } from "./index";
-import { requireWorkspace } from "@/lib/workspace";
+import { unsafeWorkspaceId, type WorkspaceId } from "./scoped";
+import { requireWorkspaceForUser } from "@/lib/workspace";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
 
-const TOKEN = "0123456789abcdef0123456789abcdef";
 type Rows = Record<string, string>;
-type Fixture = { ws: string; userId: string; rows: Rows };
+type Fixture = { ws: WorkspaceId; userId: string; rows: Rows };
 type Row = { id: string };
 // What the generic check needs of a helper: the read, update and remove calls with any patch.
 type Checkable = {
-  list: (ws: string) => Promise<Row[]>;
-  get: (ws: string, id: string) => Promise<Row | null>;
-  count: (ws: string) => Promise<number>;
-  update: (ws: string, id: string, patch: never) => Promise<Row | null>;
-  remove: (ws: string, id: string) => Promise<Row | null>;
+  list: (ws: WorkspaceId) => Promise<Row[]>;
+  get: (ws: WorkspaceId, id: string) => Promise<Row | null>;
+  count: (ws: WorkspaceId) => Promise<number>;
+  update: (ws: WorkspaceId, id: string, patch: never) => Promise<Row | null>;
+  remove: (ws: WorkspaceId, id: string) => Promise<Row | null>;
 };
+const isCheckable = (v: unknown): v is Checkable =>
+  typeof v === "object" && v !== null && ["list", "get", "count", "create", "update", "remove"].every((k) => typeof (v as Record<string, unknown>)[k] === "function");
 
-// Every scoped helper, with the patch the update check uses (an empty patch is refused by Drizzle).
-const HELPERS: { name: string; helper: Checkable; patch: Record<string, unknown> }[] = [
-  { name: "projects", helper: projects, patch: { name: "renamed" } },
-  { name: "itemSets", helper: itemSets, patch: { sourceFilename: "other.csv" } },
-  { name: "items", helper: items, patch: { readerText: "rewritten" } },
-  { name: "instruments", helper: instruments, patch: { title: "renamed" } },
-  { name: "invites", helper: invites, patch: { name: "renamed" } },
-  { name: "responses", helper: responses, patch: { confidence: 3 } },
-  { name: "answers", helper: answers, patch: { comment: "changed" } },
-  { name: "missingItems", helper: missingItems, patch: { text: "changed" } },
-  { name: "insights", helper: insights, patch: { title: "changed" } },
-  { name: "aiRuns", helper: aiRuns, patch: { durationMs: 9 } },
-];
+// Every scoped helper exported from index.ts, found by shape, so a helper added later is checked
+// too; the update check needs a patch per helper (an empty patch reads instead of writing).
+const PATCHES: Record<string, Record<string, unknown>> = {
+  projects: { name: "renamed" }, itemSets: { sourceFilename: "other.csv" }, items: { readerText: "rewritten" },
+  instruments: { title: "renamed" }, invites: { name: "renamed" }, responses: { confidence: 3 }, answers: { comment: "changed" },
+  missingItems: { text: "changed" }, insights: { title: "changed" }, aiRuns: { durationMs: 9 },
+};
+const HELPERS = Object.entries(queries).filter(([, v]) => isCheckable(v)).map(([name, helper]) => ({ name, helper: helper as Checkable }));
 
 async function fixture(label: string): Promise<Fixture> {
   const userId = "user-" + randomUUID();
   await db.insert(user).values({ id: userId, name: label, email: `${userId}@example.com` });
-  const ws = (await workspaces.create({ name: "Scoping " + label, slug: "scoping-" + randomUUID() }, userId)).id;
+  const ws = unsafeWorkspaceId((await workspaces.create({ name: "Scoping " + label, slug: "scoping-" + randomUUID() }, userId)).id);
   const rows: Rows = {};
   rows.projects = (await projects.create(ws, { name: "P " + label })).id;
   rows.itemSets = (await itemSets.create(ws, { projectId: rows.projects, version: 1, source: "csv" })).id;
@@ -58,8 +56,25 @@ async function fixture(label: string): Promise<Fixture> {
   return { ws, userId, rows };
 }
 
+// Drizzle wraps a database error (DrizzleQueryError) with the Postgres error as its cause.
+async function failsWith(promise: Promise<unknown>, pattern: RegExp): Promise<void> {
+  let caught: unknown = null;
+  try { await promise; } catch (e) { caught = e; }
+  expect(caught).not.toBeNull();
+  const text = String(caught) + " " + String((caught as { cause?: { message?: string } }).cause?.message ?? "");
+  expect(text).toMatch(pattern);
+}
+
+// Every row of a workspace, table by table, for the before-and-after comparison.
+async function snapshot(f: Fixture): Promise<Record<string, unknown>> {
+  const out: Record<string, unknown> = { members: await members.list(f.ws), workspace: await workspaces.getForUser(f.userId, f.ws) };
+  for (const h of HELPERS) out[h.name] = await h.helper.list(f.ws);
+  return out;
+}
+
 let A: Fixture; let B: Fixture;
 let sql: ReturnType<typeof postgres>;
+let bBefore: Record<string, unknown>;
 
 beforeAll(async () => {
   const url = await ensureTestDatabase();
@@ -67,10 +82,10 @@ beforeAll(async () => {
   await migrate(drizzle(sql), { migrationsFolder: "drizzle" });
   A = await fixture("A");
   B = await fixture("B");
+  bBefore = await snapshot(B);
 }, 60_000);
 
 afterAll(async () => {
-  // Cascade removes everything under both workspaces; the users go with their rows.
   for (const f of [A, B]) {
     await sql`delete from workspace where id = ${f.ws}`;
     await sql`delete from "user" where id = ${f.userId}`;
@@ -78,38 +93,64 @@ afterAll(async () => {
   await sql.end();
 });
 
-describe("every helper, called with A's id", () => {
+describe("every scoped helper, called with A's id", () => {
+  it("is in the list and has a patch", () => {
+    expect(HELPERS.map((h) => h.name).sort()).toEqual(Object.keys(PATCHES).sort());
+    expect(HELPERS.length).toBe(10);
+  });
+
   for (const h of HELPERS) {
     it(`${h.name}: lists, reads, updates, removes and counts only A's rows`, async () => {
       const aId = A.rows[h.name]; const bId = B.rows[h.name];
-      expect(TOKEN.length).toBe(32);
-      const before = await h.helper.get(B.ws, bId);
-      expect(before).not.toBeNull();
-
       const listed = (await h.helper.list(A.ws)).map((r) => r.id);
       expect(listed).toContain(aId);
       expect(listed).not.toContain(bId);
       expect(await h.helper.count(A.ws)).toBe(1);
-
       expect(await h.helper.get(A.ws, bId)).toBeNull();
       expect(await h.helper.get(A.ws, aId)).toMatchObject({ id: aId });
-
-      expect(await h.helper.update(A.ws, bId, h.patch as never)).toBeNull();
+      expect(await h.helper.update(A.ws, bId, PATCHES[h.name] as never)).toBeNull();
       expect(await h.helper.remove(A.ws, bId)).toBeNull();
-
-      const after = await h.helper.get(B.ws, bId);
-      expect(after).toEqual(before);
-      expect(await h.helper.count(B.ws)).toBe(1);
+      expect(await h.helper.get(A.ws, "not-a-uuid")).toBeNull();
+      expect(await h.helper.update(A.ws, "not-a-uuid", PATCHES[h.name] as never)).toBeNull();
+      expect(await h.helper.remove(A.ws, "not-a-uuid")).toBeNull();
     });
   }
+
+  it("ignores id and workspaceId in a patch, so a row cannot be moved", async () => {
+    const moved = await projects.update(A.ws, A.rows.projects, { name: "moved?", workspaceId: B.ws, id: B.rows.projects } as never);
+    expect(moved).toMatchObject({ id: A.rows.projects, workspaceId: A.ws, name: "moved?" });
+    expect((await projects.list(B.ws)).map((p) => p.name)).not.toContain("moved?");
+    const renamed = await workspaces.update(A.ws, { name: "Scoping A renamed", id: B.ws } as never);
+    expect(renamed).toMatchObject({ id: A.ws, name: "Scoping A renamed" });
+  });
+
+  it("ignores id on create and refuses a parent from another workspace", async () => {
+    const created = await projects.create(A.ws, { name: "fresh", id: B.rows.projects } as never);
+    expect(created.id).not.toBe(B.rows.projects);
+    expect(created.workspaceId).toBe(A.ws);
+    await projects.remove(A.ws, created.id);
+    await failsWith(itemSets.create(A.ws, { projectId: B.rows.projects, version: 2, source: "csv" }), /item_set_project_fk/);
+    await failsWith(answers.create(A.ws, { responseId: A.rows.responses, itemSetId: B.rows.itemSets, itemId: B.rows.items, kind: "agree" }), /answer_/);
+  });
 
   it("updates and removes A's own rows", async () => {
     const updated = await missingItems.update(A.ws, A.rows.missingItems, { text: "Changed by A" });
     expect(updated?.text).toBe("Changed by A");
+    expect(await missingItems.update(A.ws, A.rows.missingItems, {})).toMatchObject({ text: "Changed by A" });
     const removed = await missingItems.remove(A.ws, A.rows.missingItems);
     expect(removed?.id).toBe(A.rows.missingItems);
     expect(await missingItems.count(A.ws)).toBe(0);
-    expect(await missingItems.count(B.ws)).toBe(1);
+  });
+
+  it("members: A cannot read, change or remove B's members", async () => {
+    expect(await members.get(A.ws, B.userId)).toBeNull();
+    expect(await members.setRole(A.ws, B.userId, "member")).toBeNull();
+    expect(await members.remove(A.ws, B.userId)).toBeNull();
+    expect((await members.list(A.ws)).map((m) => m.userId)).toEqual([A.userId]);
+  });
+
+  it("leaves every row of B exactly as it was", async () => {
+    expect(await snapshot(B)).toEqual(bBefore);
   });
 });
 
@@ -117,24 +158,25 @@ describe("workspaces and membership", () => {
   it("a user sees only the workspaces they belong to", async () => {
     expect((await workspaces.listForUser(A.userId)).map((w) => w.id)).toEqual([A.ws]);
     expect(await workspaces.getForUser(A.userId, B.ws)).toBeNull();
-    expect((await members.list(A.ws)).map((m) => m.userId)).toEqual([A.userId]);
-    expect(await members.get(A.ws, B.userId)).toBeNull();
+    expect(await workspaces.getForUser(A.userId, "not-a-uuid")).toBeNull();
   });
 
-  it("requireWorkspace returns the id for a member and 404 for anyone else", async () => {
-    expect(await requireWorkspace(A.userId, A.ws)).toBe(A.ws);
-    await expect(requireWorkspace(A.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
-    await expect(requireWorkspace(A.userId, randomUUID())).rejects.toBeInstanceOf(NotFoundError);
-    await expect(requireWorkspace(null, A.ws)).rejects.toBeInstanceOf(SignedOutError);
+  it("requireWorkspaceForUser returns the id for a member and 404 for anyone else", async () => {
+    expect(await requireWorkspaceForUser(A.userId, A.ws)).toBe(A.ws);
+    await expect(requireWorkspaceForUser(A.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(requireWorkspaceForUser(A.userId, randomUUID())).rejects.toBeInstanceOf(NotFoundError);
+    await expect(requireWorkspaceForUser(A.userId, "not-a-uuid")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(requireWorkspaceForUser(null, A.ws)).rejects.toBeInstanceOf(SignedOutError);
     await members.add(B.ws, A.userId, "member");
-    expect(await requireWorkspace(A.userId, B.ws)).toBe(B.ws);
+    expect(await requireWorkspaceForUser(A.userId, B.ws)).toBe(B.ws);
     await members.remove(B.ws, A.userId);
-    await expect(requireWorkspace(A.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(requireWorkspaceForUser(A.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
   });
 
-  it("a deleted workspace is invisible", async () => {
+  it("a deleted workspace is not handed out", async () => {
     await workspaces.update(B.ws, { deletedAt: new Date() } as never);
     expect(await workspaces.getForUser(B.userId, B.ws)).toBeNull();
-    await expect(requireWorkspace(B.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
+    expect((await workspaces.listForUser(B.userId)).length).toBe(0);
+    await expect(requireWorkspaceForUser(B.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);
   });
 });
