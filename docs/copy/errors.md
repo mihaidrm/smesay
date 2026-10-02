@@ -58,6 +58,9 @@ of the content; page means it replaces the screen.
 | Banner, Shape | Workspace AI budget spent | This workspace has used its AI budget for the month. The list is imported and can be published as it is. Ask the workspace owner to raise the budget. |
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
 | Banner, Shape | Context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. (Count shown live on Import.) |
+| Inline, Import, About this project | Save with the context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. |
+| Inline, New project | Name empty or over 80 characters | Enter a name for the project, up to 80 characters. |
+| Inline, New project | The plan has no room for another project (E2-6; never on the free entry) | Your plan has no room for another project. Archive one, or change the plan. |
 | Banner, Shape (already on the board) | Ambiguity flag | Ambiguity in [REF]. [What the item does not say]. Respondents may mark it unclear. [Dismiss] |
 | Inline, Shape | Reader version identical to the original | The readable version is the same as the original, so there is nothing to accept. |
 

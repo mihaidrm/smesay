@@ -34,11 +34,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="text-xs text-ink-muted">Projects</div>
             <Link href="/app" className="px-2 text-[13px] font-medium text-teal-700">All</Link>
           </div>
-          {projectRows.map((p) => (
-            <div key={p.id} className="flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-ink-soft">
+          {projectRows.filter((p) => p.archivedAt === null).map((p) => (
+            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-ink-soft hover:bg-white">
               <span className="truncate">{p.name}</span>
               {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
-            </div>
+            </Link>
           ))}
         </div>
         <div className="mt-auto flex flex-col gap-2 text-ink-muted">

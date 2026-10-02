@@ -1,0 +1,39 @@
+// The project frame (stories/E3-1, acceptance 2 and 4): breadcrumb, title, Archive or
+// Unarchive, the stepper, then the step page. A project id outside the workspace is 404
+// through projects.get(ws, id). Steps without a page yet are not links. Copy: docs/copy/app.md.
+import { notFound } from "next/navigation";
+import { Stepper, type StepKey } from "@/components/app/stepper";
+import { Button } from "@/components/ui/button";
+import { NeutralPill } from "@/components/ui/status-pill";
+import { projects } from "@/db/queries";
+import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { archiveAction } from "../actions";
+
+const BUILT: StepKey[] = ["import"];
+
+export default async function ProjectLayout({ children, params }: { children: React.ReactNode; params: Promise<{ projectId: string }> }) {
+  const { projectId } = await params;
+  const { current } = await requireCurrentWorkspace(`/app/projects/${projectId}/import`);
+  const project = await projects.get(current.ws, projectId);
+  if (!project) notFound();
+  const archived = project.archivedAt !== null;
+  return (
+    <main className="flex flex-col gap-5 px-8 py-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="text-xs text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
+          <h1 className="flex items-center gap-2 text-2xl font-normal">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
+        </div>
+        {!project.isSample && (
+          <form action={archiveAction}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="archived" value={archived ? "0" : "1"} />
+            <Button type="submit" variant="secondary" size="small">{archived ? "Unarchive" : "Archive project"}</Button>
+          </form>
+        )}
+      </div>
+      <Stepper current="import" done={[]} href={(step) => (BUILT.includes(step) ? `/app/projects/${project.id}/${step}` : null)} />
+      {children}
+    </main>
+  );
+}
