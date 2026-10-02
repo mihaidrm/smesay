@@ -1,5 +1,5 @@
 // contextBlock() (stories/E4-5, acceptance 1): both parts, one part, none; whitespace folded;
-// the instruction sentence names nothing from the context.
+// the instruction names nothing from the context.
 import { describe, expect, it } from "vitest";
 import { CONTEXT_INSTRUCTION, contextBlock, contextOf, hasContext } from "./context";
 

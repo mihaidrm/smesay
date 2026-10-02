@@ -19,7 +19,8 @@ versions) only when the section exists (acceptance 1, tested). shapeSet passes t
 project's two fields and the run stores them on the set (item_set.context_used, migration
 0011), so the page can say what a run was given rather than what Import says now.
 
-On Shape, under the title in 13 px (the board's ctxLine, with the story's full stops):
+On Shape, under the grouped line in 13 px (the board's ctxLine, with the story's full
+stops):
 after a run, "Context used: [goal]. Kept as written: [terms]."; before one, "Context the
 AI will use: ..."; "none given" stands for a blank goal; when Import's context differs
 from the one the run used, "The context on Import has changed since this run; Run again
@@ -36,9 +37,15 @@ so the AI keeps your names and terms." with a link to the About this project car
   a comma survives. The model is told they are the project's own names, never translated,
   expanded, shortened or renamed; E4-6 checks that each term survives in the reader
   versions of specs 04 and 06 (acceptance 3).
-- The line shows on Shape whenever a list exists. The sample's seed carries a goal and
-  terms but no run, so it reads "Context the AI will use:"; the no-context link is left
-  out there, where Import is read-only.
+- The line shows on Shape whenever a list exists, except on the sample: its seed carries a
+  goal and terms but no run can use them (shaping refuses the sample), so a line would
+  promise what cannot happen.
+- Goal and terms each get one full stop through sentence(), so a trailing full stop typed
+  on Import is not doubled. The too-long refusal reports the whole prompt as sent.
+- The board (PmApp.dc.html) carries the same ctxLine: the label, the sentence with the
+  link text when there is no context, one full stop each; it shows "Context used:" because
+  the prototype's Shape shows a run's results, and it has no "changed since this run" note,
+  which only a later edit on Import produces.
 - E3-1's 2,000 character cap on the context holds, so no truncation here (the story's note);
   the prompt ceiling of E4-2 counts it, and the too-long message now counts the list and
   the context together.

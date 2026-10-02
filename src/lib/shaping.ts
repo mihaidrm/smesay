@@ -108,7 +108,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
     const long = prompt.importedAreas.find((a) => a.length > AREA_NAME_MAX);
     if (long) return { error: SHAPE_COPY.longArea(long.length), retry: false };
   }
-  if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: SHAPE_COPY.tooLong(prompt.data.length), retry: false };
+  if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: SHAPE_COPY.tooLong(prompt.instructions.length + prompt.data.length), retry: false };
   const refs = rows.map(ref);
   const importedOf = new Map(rows.filter((it) => imported(it) && !kept(it)).map((it) => [ref(it), fold(imported(it)!)]));
   const keptAreas = [...new Set(rows.map(kept).filter((k): k is string => k !== null).map(fold))];

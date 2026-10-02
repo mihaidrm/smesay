@@ -274,7 +274,7 @@ describe("shapeSet", () => {
     const wide = (await projects.create(a.ws, { name: "Wide", createdBy: a.userId })).id;
     await importList(a, wide, Array.from({ length: 300 }, (_, i) => `- Item ${i + 1} ${"x".repeat(1700)}`));
     const refusal = await shapeSet(a, wide, { fetch });
-    expect("error" in refusal && refusal.error.startsWith("This list and its context come to 5") && refusal.error.endsWith("characters, more than one AI call can take. Shorten the longest items, or split the list.")).toBe(true);
+    expect("error" in refusal && refusal.error.startsWith("The AI call for this list, its context and the instructions comes to 5") && refusal.error.endsWith("characters, more than one call can take. Shorten the longest items, or split the list.")).toBe(true);
     expect(calls).toHaveLength(0);
   });
 

@@ -1,7 +1,8 @@
 // The project context in the prompts (stories/E4-5; decision 0011): the goal and audience
 // from Import and the terms to keep as written, passed as data in their own section before
-// the list, never in the instructions. The same builder serves shaping (E4-2) and insights
-// (E9). An empty context gives no section and no instruction sentence (acceptance 1).
+// the rest of the data, never in the instructions. contextBlock and CONTEXT_INSTRUCTION
+// serve shaping (E4-2) and insights (E9) alike. An empty context gives no section and no
+// instruction (acceptance 1).
 import type { ProjectContext } from "@/db/types";
 
 export type { ProjectContext };
