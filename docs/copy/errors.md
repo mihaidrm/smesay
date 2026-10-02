@@ -68,7 +68,15 @@ of the content; page means it replaces the screen.
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
 | Banner, Shape | Plan's AI run cap reached (E2-6, E4-1; no plan carries a cap today) | This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
 | Banner, Shape | AI answered but the answer is unusable: refused, cut off, or failed the schema or the check (E4-1) | The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
+| | The Try again button sits beside the two messages above only; a budget, plan, size or sample refusal has none (E4-2). | |
 | Inline, Shape | Shape on the sample project, through the server (E4-1) | The sample project cannot be changed by AI. |
+| Banner, Shape | The area column has more than 12 distinct areas (E4-2) | This list has [N] areas in its area column. Shape works with up to 12. Merge some in the file and import it again. |
+| Banner, Shape | An imported area name is over 60 characters (E4-2) | An area name in the list is [N] characters long. Shape works with names up to 60. Shorten it in the file and import it again. |
+| Banner, Shape | More than 400 items in the set (E4-2; the ceiling of one answer, see design note 27) | This list has [N] items. Shape works on lists up to 400 items for now. Split the list, or come back when larger lists are supported. |
+| Banner, Shape | The prompt would pass E4-1's 500,000 characters (E4-2) | This list has [N] characters of item text, more than one AI call can take. Shorten the longest items, or split the list. |
+| Inline, Shape | Move to an area that is not one of the set's, through the server (E4-2) | That area does not exist. Pick one from the list. |
+| Inline, Shape | Move before the first run, through the server (E4-2) | Run Shape with AI first. Items can be moved once the areas exist. |
+| Inline, Shape | Move on the sample project, through the server (E4-2) | The sample project cannot be edited. |
 | Banner, Shape | Context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. (Count shown live on Import.) |
 | Inline, Import, About this project | Save with the context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. |
 | Inline, New project | Name empty or over 80 characters | Enter a name for the project, up to 80 characters. |

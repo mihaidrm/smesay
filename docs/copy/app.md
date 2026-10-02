@@ -159,6 +159,24 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Version page title and line | Version [N]. [FILE], imported [DATE], [N] items. Read-only. Back to Import |
 | Version page headers | #, Ref, Item, Area, Proposed value |
 
+## Shape (E4-2)
+
+| Where | Text |
+|---|---|
+| Title | Shape the list |
+| Intro, before the first run | The AI groups the items into areas, orders the areas with a reason each, and writes a readable version of every item. The originals are never changed. |
+| Button, before the first run | Shape with AI |
+| Button, while running | Shaping... |
+| Button, after a run | Run again |
+| Grouped line, after a run | AI grouped [N] items into [M] areas. Run again replaces the areas the AI chose. Items you moved stay where they are. |
+| Area header | [Name] [rationale, the model's one sentence] |
+| Group of items without an area, before a run | Not shaped yet |
+| Pill on an item the model placed (the import had an area column and the item none) | Placed by AI |
+| Pill on an item the PM moved | Moved by you |
+| Per item: the select (its label is visually hidden) and its button; the keyboard path, dragging an item onto an area does the same | Move [ref] to [area], Move |
+| Empty state, no list yet | Import a list first. Shape works on the latest version. [Link: Go to Import] |
+| Refusals, from the model call and from the size checks | docs/copy/errors.md, Shaping; shown beside the button, with Try again where a second try can help |
+
 ## Import, column mapping (E3-3)
 
 | Where | Text |

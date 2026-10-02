@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, UploadPreview } from "./types";
+import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
 
@@ -149,6 +149,11 @@ export const itemSet = pgTable("item_set", {
   importedBy: text("imported_by").references(() => user.id, { onDelete: "set null" }),
   uploadId: uuid("upload_id"),
   importedAt: ts("imported_at").notNull().defaultNow(),
+  // Shaping (stories/E4-2; ShapeState in INTERFACES.md): the areas in the model's order with
+  // their rationale, how many runs, when the last one was.
+  areas: jsonb("areas").$type<ShapeArea[]>(),
+  shapeRuns: integer("shape_runs").notNull().default(0),
+  shapedAt: ts("shaped_at"),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   // No delete action: "set null" on a composite key would null workspace_id too (E3-4 audit,

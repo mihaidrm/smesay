@@ -11,9 +11,11 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { commitUpload } from "@/lib/imports";
+import { moveItemTo, shapeSet } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
-export type ProjectFormState = { error: string | null; saved: boolean };
+// retry (E4-2): the error is worth a "Try again" button.
+export type ProjectFormState = { error: string | null; saved: boolean; retry?: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
 
 export async function createProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
@@ -146,6 +148,37 @@ export async function commitAction(_previous: ProjectFormState, formData: FormDa
     if ("error" in result) return { ...NONE, error: result.error };
     revalidatePath(`/app/projects/${result.set.projectId}`, "layout");
     revalidatePath("/app");
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// Shape (stories/E4-2): run the model over the latest set; move one item to another area.
+// ForbiddenError (a member without the right) is thrown as the 403 page, like the others.
+export async function shapeAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await shapeSet({ ws: current.ws, userId: session.user.id }, projectId);
+    if ("error" in result) return { ...NONE, error: result.error, retry: result.retry };
+    revalidatePath(`/app/projects/${projectId}`, "layout");
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+export async function moveAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const itemId = String(formData.get("itemId") ?? "");
+  try {
+    const result = await moveItemTo({ ws: current.ws, userId: session.user.id }, projectId, itemId, formData.get("area"));
+    if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${projectId}/shape`);
     return { ...NONE, saved: true };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

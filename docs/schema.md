@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-02 (the date of the latest migration, 0009_one_set_per_upload).
+v1, 2026-10-02 (the date of the latest migration, 0010_shaping).
 
-Generated from the snapshot of the 10 migrations in drizzle/ (0009_snapshot.json) by
+Generated from the snapshot of the 11 migrations in drizzle/ (0010_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -116,6 +116,9 @@ one imported or pasted version of the list (decision 0010); version is unique pe
 | imported_by | text | fk user.id, on delete set null |
 | upload_id | uuid | fk upload.id with workspace_id, unique |
 | imported_at | timestamp with time zone | not null, default now() |
+| areas | jsonb |  |
+| shape_runs | integer | not null, default 0 |
+| shaped_at | timestamp with time zone |  |
 
 Unique: item_set_id_workspace_uq on id, workspace_id; item_set_id_project_uq on id, project_id.
 

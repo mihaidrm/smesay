@@ -2,8 +2,9 @@
 
 Ten messy requirement documents from invented domains (no client material, decision 0002), each
 with the areas, the items and the "must not invent" list the shaping step is expected to
-produce. Written 2026-10-01 (plan step 1.6). The runner (run.ts) and the output schema
-(schema.json) are written in E4; until then the set is read by people.
+produce. Written 2026-10-01 (plan step 1.6). The output schema (schema.json) is written from
+src/lib/ai/shape-schema.ts by `npm run evals:schema` (E4-2); the runner (run.ts) comes with
+E4-6. Until then the set is read by people.
 
 ## Files
 

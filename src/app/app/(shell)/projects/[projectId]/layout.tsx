@@ -10,7 +10,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { archiveAction } from "../actions";
 
-const BUILT: StepKey[] = ["import"];
+const BUILT: StepKey[] = ["import", "shape"];
 
 export default async function ProjectLayout({ children, params }: { children: React.ReactNode; params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -19,7 +19,8 @@ export default async function ProjectLayout({ children, params }: { children: Re
   if (!project) notFound();
   const archived = project.archivedAt !== null;
   // Import is done once the project has a set (stories/E3-5, acceptance 5); Shape is the
-  // current step until E4 builds its page.
+  // current step from then on (E4-2; Shape can be left at any time, E4-3), until E5 builds
+  // the Build page.
   const imported = project.isSample || (await latestSet(current.ws, project.id)) !== null;
   return (
     <main className="flex flex-col gap-5 px-8 py-6">
