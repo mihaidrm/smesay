@@ -50,7 +50,7 @@ of the content; page means it replaces the screen.
 | Inline, preview | No header row found | No header row found. Pick the row that holds the column names, or tell us which column is the requirement. |
 | Inline, mapping card | No column mapped to the item text (E3-3) | Pick the column that holds the requirement text. Without it there is nothing to import. |
 | Select option, mapping card | A sixth Custom field (E3-3) | Up to five custom fields |
-| Inline, paste box | Empty or one line | Paste at least two lines, one item per line. |
+| Inline, paste box | Empty or one line (E3-4; the size and row limits of the upload apply too) | Paste at least two lines, one item per line. |
 | Card, check before import | Empty rows, duplicates, long items (counts already on the board) | [N] empty rows, skipped. [N] exact duplicates, imported once. [N] items over 1,000 characters, imported whole; consider splitting them in Shape. |
 | Page, the signed-in error page | Upload interrupted: the connection drops before the server action runs, so nothing is stored and the error page shows (E3-2; its copy is the 500 row below, E11-6) | The upload stopped before the file arrived. Check your connection and upload it again. Nothing was imported. (the wording for E11-6 to show when the failed request was an upload) |
 | Banner, import | New version of a list already published | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. [Button: Import as version [N]] |

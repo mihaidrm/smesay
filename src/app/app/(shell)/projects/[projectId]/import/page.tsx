@@ -8,6 +8,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { rememberedFrom } from "@/lib/uploads";
 import { ContextForm } from "./context-form";
 import { MappingCard } from "./mapping";
+import { PasteForm } from "./paste-form";
 import { UploadPreview } from "./preview";
 import { UploadForm } from "./upload-form";
 
@@ -37,6 +38,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
             <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
           </div>
           <UploadForm projectId={project.id} hasUpload={upload !== null} />
+          <PasteForm projectId={project.id} />
         </section>
       )}
       {upload && <UploadPreview upload={upload} />}

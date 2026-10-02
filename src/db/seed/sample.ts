@@ -32,7 +32,7 @@ export const items = [
 ];
 
 // As the PM app board's Import step shows: 6 rows read, header on row 1, nothing skipped.
-export const importReport = { emptyRows: 0, exactDuplicates: 0, overLimit: 0, rowsRead: 6, headerRow: 1 };
+export const importReport = { emptyRows: 0, exactDuplicates: 0, overLimit: 0, rowsRead: 6, headerRow: 1, unrecognisedValues: 0, duplicateRefs: [] };
 export const sourceFilename = "expense-requirements.xlsx";
 
 export const instrument = {

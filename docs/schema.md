@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-02 (the date of the latest migration, 0007_column_mapping).
+v1, 2026-10-02 (the date of the latest migration, 0008_import_commit).
 
-Generated from the snapshot of the 8 migrations in drizzle/ (0007_snapshot.json) by
+Generated from the snapshot of the 9 migrations in drizzle/ (0008_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -113,11 +113,13 @@ one imported or pasted version of the list (decision 0010); version is unique pe
 | source | text | not null |
 | source_filename | text |  |
 | import_report | jsonb |  |
+| imported_by | text | fk user.id, on delete set null |
+| upload_id | uuid | fk upload.id with workspace_id, on delete set null |
 | imported_at | timestamp with time zone | not null, default now() |
 
 Unique: item_set_id_workspace_uq on id, workspace_id; item_set_id_project_uq on id, project_id.
 
-Foreign keys: item_set_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
+Foreign keys: item_set_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; item_set_upload_fk (upload_id, workspace_id) references upload (id, workspace_id) on delete set null.
 
 Indexes: item_set_workspace_idx on workspace_id; item_set_project_version_idx (unique) on project_id, version.
 Checks: item_set_source_check: source in ('xlsx', 'csv', 'pasted'); item_set_version_check: version >= 1.
@@ -336,10 +338,12 @@ a file a PM uploaded for a project (E3-2): the object key under uploads/<workspa
 | created_by | text | fk user.id, on delete set null |
 | created_at | timestamp with time zone | not null, default now() |
 
+Unique: upload_id_workspace_uq on id, workspace_id.
+
 Foreign keys: upload_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
 
 Indexes: upload_project_idx on project_id.
-Checks: upload_kind_check: kind in ('xlsx', 'csv').
+Checks: upload_kind_check: kind in ('xlsx', 'csv', 'pasted').
 
 ## workspace_mapping
 

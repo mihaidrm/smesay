@@ -117,6 +117,19 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Line under the rows | The first 10 of [N] rows. |
 | Empty sheet | This sheet has no rows. Pick another sheet, or upload another file. |
 
+## Import, paste a list (E3-4)
+
+| Where | Text |
+|---|---|
+| Link under the file input | Paste a list instead |
+| Box label | Paste a list |
+| Box placeholder | Receipts captured by phone / Approval from the notification email \| Approving \| Must |
+| Line under the box | One item per line. Add an area and a proposed value with a bar: text \| area \| value. |
+| Button | Use this list |
+| Summary line of a pasted list | Pasted list, [N] items. |
+| Column headers of a pasted list | A Item, B Area, C Proposed value (no header row, no pickers) |
+| File name in the import log (E3-6) | Pasted list |
+
 ## Import, column mapping (E3-3)
 
 | Where | Text |

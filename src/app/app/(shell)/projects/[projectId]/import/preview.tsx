@@ -2,11 +2,13 @@
 // the board ("expense-requirements.xlsx, 6 rows read, header found on row 1."), a sheet picker
 // when the workbook has several sheets, a header row picker (always available; opened by the
 // message when no row was found), then the first ten data rows under the column letters and
-// names. Server component; the pickers are pickers.tsx.
+// names. A pasted list (stories/E3-4) has no pickers and its own summary line. Server
+// component; the pickers are pickers.tsx.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Upload } from "@/db/queries/uploads";
 import { PREVIEW_ROWS } from "@/lib/import/limits";
 import { UPLOAD_COPY } from "@/lib/import/copy";
+import { PASTE_COPY } from "@/lib/import/paste";
 import { Pickers } from "./pickers";
 
 export function UploadPreview({ upload }: { upload: Upload }) {
@@ -16,10 +18,10 @@ export function UploadPreview({ upload }: { upload: Upload }) {
     <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="preview-title">
       <div className="flex flex-col gap-1">
         <h3 id="preview-title" className="font-medium">Preview</h3>
-        <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{UPLOAD_COPY.summary(upload.filename, preview.rowsRead, preview.headerRow)}</p>
+        <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{upload.kind === "pasted" ? PASTE_COPY.summary(preview.rowsRead) : UPLOAD_COPY.summary(upload.filename, preview.rowsRead, preview.headerRow)}</p>
       </div>
-      {preview.headerRow === null && <p id="preview-error" role="alert" className="text-sm text-danger">{UPLOAD_COPY.noHeader}</p>}
-      <Pickers projectId={upload.projectId} uploadId={upload.id} sheets={preview.sheets} sheet={preview.sheet} headerRow={preview.headerRow} rowOptions={rowOptions} />
+      {upload.kind !== "pasted" && preview.headerRow === null && <p id="preview-error" role="alert" className="text-sm text-danger">{UPLOAD_COPY.noHeader}</p>}
+      {upload.kind !== "pasted" && <Pickers projectId={upload.projectId} uploadId={upload.id} sheets={preview.sheets} sheet={preview.sheet} headerRow={preview.headerRow} rowOptions={rowOptions} />}
       {preview.rows.length === 0 ? (
         <p className="text-sm text-ink-muted">This sheet has no rows. Pick another sheet, or upload another file.</p>
       ) : (

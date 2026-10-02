@@ -31,12 +31,18 @@ the check constraints use them). Change this file first.
 - ClosingSpec (jsonb, instrument.closing):
   { confidence: true, missingForm: boolean, signOffText: string }
 - ImportReport (jsonb, item_set.import_report):
-  { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow: number }
+  { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow:
+  number (0 when the file had none), unrecognisedValues: number, duplicateRefs: { kept: string,
+  folded: string[] }[] } (E3-5; kept is the reference of the item kept, or "row N").
+- ImportRow (not stored; src/lib/import/report.ts, E3-4 and E3-5): the row shape the check
+  and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
+  foldedRefs }.
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean }
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
-  ten data rows), rowsRead: number }. UploadKind: xlsx, csv.
+  ten data rows), rowsRead: number }. UploadKind: xlsx, csv, pasted (E3-4: a pasted list is
+  stored as text with three columns, Item, Area, Proposed value, and no header row).
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.

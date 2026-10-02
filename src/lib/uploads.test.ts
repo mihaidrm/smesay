@@ -11,7 +11,8 @@ import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { memoryOutbox } from "@/lib/mail";
 import { getObject } from "@/lib/storage";
-import { rechoose, rememberedFrom, saveMapping, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { rechoose, rememberedFrom, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { PASTE_COPY } from "@/lib/import/paste";
 import { MAPPING_COPY } from "@/lib/import/mapping";
 import { requireWorkspace } from "@/lib/workspace";
 
@@ -163,5 +164,25 @@ describe("saveUpload", () => {
     await saveMapping(b.ws, theirs.upload.id, { Ref: "skip", Requirement: "text", Module: "skip", Priority: "skip" });
     const cAgain = await saveUpload(c, projectC, { name: "c-again.xlsx", bytes: fixture("title-row.xlsx") });
     expect("upload" in cAgain && cAgain.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "custom", Priority: "value" });
+  });
+
+  it("stores a pasted list as text with three columns and no pickers (stories/E3-4)", async () => {
+    expect(await savePaste(a, projectA, "Only one line")).toEqual({ error: PASTE_COPY.tooFew });
+    const result = await savePaste(a, projectA, "1. Receipts by phone | Submitting | Must\n2. Approve from email | Approving\n- Pay by payroll\n\n\u2022 Travel advances\n5) Per diems\n6) Mileage from addresses\n");
+    if (!("upload" in result)) throw new Error(result.error);
+    const { upload } = result;
+    expect(upload.kind).toBe("pasted");
+    expect(upload.filename).toBe("Pasted list");
+    expect(upload.objectKey).toMatch(new RegExp(`^uploads/${a.ws}/[0-9a-f]{16}\\.txt$`));
+    expect(new TextDecoder().decode((await getObject(upload.objectKey))!.body)).toContain("1. Receipts by phone");
+    expect(upload.preview.columns.map((c) => c.name)).toEqual(["Item", "Area", "Proposed value"]);
+    expect(upload.preview.headerRow).toBeNull();
+    expect(upload.preview.rowsRead).toBe(6);
+    expect(upload.preview.rows[0]).toEqual(["Receipts by phone", "Submitting", "Must"]);
+    expect(upload.preview.rows[2]).toEqual(["Pay by payroll", "", ""]);
+    expect(upload.mapping).toEqual({ Item: "text", Area: "area", "Proposed value": "value" });
+    expect(PASTE_COPY.summary(upload.preview.rowsRead)).toBe("Pasted list, 6 items.");
+    const long = await savePaste(a, projectA, Array.from({ length: 2001 }, (_, i) => `Item ${i}`).join("\n"));
+    expect(long).toEqual({ error: "This file has 2,001 rows. The limit is 2,000. Split the list and upload the first part." });
   });
 });
