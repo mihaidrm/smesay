@@ -35,8 +35,7 @@ confirms, and submits once; a second submit updates.
 - Partial responses policy: E7-1's open question.
 
 ## Open questions
-- From docs/copy/emails.md: the receipt lists counts only (recommended) or the answers too.
-  Mihai decides.
+- None. The receipt lists counts only, with the link (decision 0031).
 
 ## Technical notes
 missing_item (text, suggested_area, and a suggested value column added in migration 0002

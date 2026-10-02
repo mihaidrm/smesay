@@ -31,9 +31,7 @@ stores a response (decision 0021).
 - A preview on Results: nothing there changes the instrument (decision 0021).
 
 ## Open questions
-- Decision 0021's open item: keep the desktop preview at 42 percent (layout, not readable
-  text) or reflow it to one readable column. Recommend 42 percent plus "Open full size",
-  since the phone frame is where words are read. Mihai decides after clicking the PM board.
+- None. The desktop preview stays at 42 percent with "Open full size" (decision 0031).
 
 ## Technical notes
 The iframe loads /r/preview?instrument=[draft id]&device=desktop|phone with a short-lived

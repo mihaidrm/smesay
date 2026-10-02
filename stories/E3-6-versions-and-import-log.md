@@ -24,12 +24,8 @@ instruments and responses.
 - Showing the diff per item: R2.
 
 ## Open questions
-- docs/copy/errors.md (Import, last row) promises that importing a new version "keeps every
-  answer on the items that did not change and marks the changed ones". The schema pins a
-  response to one version and the plan puts carrying answers across rounds in R2. Recommend
-  changing the banner to: "This list is published. Importing a new version does not change
-  the published instrument; you build a new one on the new version." Mihai decides; the copy
-  file and this story change together (decision 0017).
+- None. The import banner says a new version does not change the published instrument
+  (decision 0031, docs/copy/errors.md).
 
 ## Technical notes
 Version diff in src/lib/import/diff.ts, pure, tested. Who imported: item_set gets

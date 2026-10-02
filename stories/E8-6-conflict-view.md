@@ -24,7 +24,7 @@ small-group rule.
 - Comparing by a text field: not in R1 (free text does not group).
 
 ## Open questions
-- The threshold N for small groups: 3 recommended (docs/copy/errors.md). Mihai decides.
+- None. The threshold is 3 (decision 0031).
 
 ## Technical notes
 src/db/queries/results.ts `gapsByField(workspaceId, instrumentId, fieldKey)`; the landing page

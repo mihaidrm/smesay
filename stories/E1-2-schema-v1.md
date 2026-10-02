@@ -1,7 +1,7 @@
 # E1-2 Schema v1 and migrations
 
 User: Claude, building every later epic on it; Mihai, reading docs/schema.md
-Status: built
+Status: accepted
 Outcome: the object model in docs/schema.md exists as Postgres tables, created by migrations
 that run from an empty database, with every table scoped to a workspace.
 
@@ -14,7 +14,7 @@ that run from an empty database, with every table scoped to a workspace.
    every child row references its parent on `(parent_id, workspace_id)`, so a child can never
    belong to a different workspace than its parent. The better-auth tables (`user`, `session`,
    `account`, `verification`) are outside the rule: a user exists before any workspace and
-   `workspace_member` is the bridge (decision 0028, pending). A test reads the information
+   `workspace_member` is the bridge (decision 0028). A test reads the information
    schema and fails if an application table has no such foreign key, and proves that a child
    pointing at another workspace's parent is refused.
 3. Item text is never overwritten: `item` has `original_text` and `reader_text`, both kept;
@@ -119,7 +119,7 @@ jsonb columns with `.$type<>()` from src/db/types.ts, the TypeScript twins of IN
 
 Costs are integer euro cents (`cost_eur_cents`), never a float column.
 
-Delete rules (decision 0028, pending): workspace cascades to everything in it; project
+Delete rules (decision 0028): workspace cascades to everything in it; project
 cascades to its sets, items, instruments, invites, insights and runs; anything with responses
 or answers under it (item_set, item, instrument, invite) is restricted, so deleting a project
 that has responses fails until the code deletes the responses first, on purpose. Nothing is

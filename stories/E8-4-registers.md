@@ -13,9 +13,8 @@ to the suggested new item.
 2. Rows read as the landing page promises: "[Name], [Role] says [Value]: [reason]" or "marked
    it Unclear: [question]" (docs/copy/landing.md); values use the instrument's labels (E5-2).
 3. Sortable by item and by respondent; a filter by respondent field as in E8-2.
-4. Each row links to the item detail (E8-5); a missing-item row has "Add as item", which
-   creates a draft item on the next set version in R1 only as a note in the import log (the
-   real add lands with E3-6's next version), and is marked as such.
+4. Each row links to the item detail (E8-5). A missing-item row has no action in R1: the
+   suggestion is read here and in the CSV (decision 0031).
 5. Counts in the tab labels equal the register row counts and the headline strip (E8-1).
 
 ## Out of scope
@@ -23,8 +22,7 @@ to the suggested new item.
   source", docs/plan-steps.md Phase 5).
 
 ## Open questions
-- "Add as item": ship the note-only version, or leave the button out until R2. Recommend
-  leaving it out of R1; the missing register and the CSV carry the suggestion. Mihai decides.
+- None. "Add as item" is out of R1 (decision 0031).
 
 ## Technical notes
 One query per register, scoped by workspace and instrument; the registers share the tracker's

@@ -18,9 +18,7 @@ without creating anything in anyone's workspace.
 - Collecting the visitors' answers for research: not without a privacy notice; not in R1.
 
 ## Open questions
-- Whether the sample should store nothing (recommended, nothing to explain in the privacy
-  policy) or keep anonymous answers so the landing page could show real visitor data later.
-  Mihai decides.
+- None. The sample stores nothing (decision 0031).
 
 ## Technical notes
 A fixed instrument built from the seed data in a read-only "sample" workspace that exists in

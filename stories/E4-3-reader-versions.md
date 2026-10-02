@@ -20,15 +20,16 @@ PM presses Accept.
    be left at any time; Build works with whatever is accepted.
 6. The golden set runner checks must_keep tokens survive in every reader version and that no
    negative is dropped (evals/README.md, scoring).
+7. Edit: each item has "Edit" beside Accept; the reader text becomes an input, saving sets
+   reader_status to accepted with the edited text, the original stays untouched (decision
+   0031). A blank edit is refused with "Write the readable version, or reject the suggestion
+   to keep the original."
 
 ## Out of scope
-- Editing the reader text by hand: not in R1 (accept or reject only). Listed as an R2
-  candidate in stories/backlog.md.
+- Rewriting the original text: never (E1-2).
 
 ## Open questions
-- Hand editing. The plan says accept or reject; a PM who likes a rewrite except one word has
-  no way to fix it. Recommend adding an inline edit that sets reader_status to accepted with
-  the edited text, in R1, one session. Mihai decides.
+- None.
 
 ## Technical notes
 Columns item.reader_text and item.reader_status (INTERFACES.md ReaderStatus). Accept all and

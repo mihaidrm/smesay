@@ -17,14 +17,14 @@ three clients Mihai checks, pass the writing scan, and carry the link as text.
    0004); the result per client is recorded in the story.
 4. Every placeholder is filled from the app's data with a unit test per template that renders
    it and finds no "[" left.
-5. The three "Decide" items in docs/copy/emails.md (sign-in minutes, reply-to and sender name,
-   receipt contents) are closed before the templates are final (E2-1, E6-2, E7-5 carry them).
+5. The sign-in minutes (15), reply-to and sender name, and receipt contents are decided
+   (decision 0031) and the templates follow docs/copy/emails.md as written.
 
 ## Out of scope
 - Marketing emails, digests: none (docs/copy/emails.md, Not sent).
 
 ## Open questions
-- None beyond the three carried by E2-1, E6-2 and E7-5.
+- None.
 
 ## Technical notes
 React Email (react.email, licence and release checked with the research rule) or plain

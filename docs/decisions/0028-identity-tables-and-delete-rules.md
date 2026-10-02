@@ -1,7 +1,7 @@
 # 0028 Identity tables outside the workspace rule, and delete rules, 2026-10-01
 
-Status: proposed by Claude on 2026-10-01 after the E1-2 review (findings 2 and 10). Waiting for
-Mihai's answer; this file is updated with it the day it comes.
+Status: proposed by Claude on 2026-10-01 after the E1-2 review (findings 2 and 10); accepted by
+Mihai on 2026-10-02, both parts (decision 0031).
 
 Question 1. CLAUDE.md says every table has a workspace_id or is reachable only through a table
 that does. better-auth's `user`, `session`, `account` and `verification` tables have neither:

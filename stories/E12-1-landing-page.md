@@ -25,9 +25,7 @@ on Lighthouse performance and accessibility on mobile.
 - Rewriting the copy after first users: Phase 4.
 
 ## Open questions
-- Colour direction (docs/context.md, Waiting on Mihai item 2): primary actions and selection
-  in teal or ink on the PM app and marketing. The page is built in ink as designed unless
-  Mihai says teal.
+- None. Primary actions and selection stay ink (decision 0031).
 
 ## Technical notes
 src/app/(marketing)/page.tsx with sections as components; the fragments import the dashboard

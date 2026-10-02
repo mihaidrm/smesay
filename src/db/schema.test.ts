@@ -26,7 +26,7 @@ let db: ReturnType<typeof drizzle>;
 const TOKEN = "0123456789abcdef0123456789abcdef";
 
 // Tables without workspace_id: the identity tables better-auth owns (a user exists before any
-// workspace; decision 0028).
+// workspace; decision 0028, accepted 2026-10-02).
 const AUTH_TABLES = ["user", "session", "account", "verification"];
 const APP_TABLES = ["workspace", "workspace_member", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run"];
 // Columns that reference a user, not a workspace parent.

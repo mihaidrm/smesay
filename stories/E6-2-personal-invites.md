@@ -28,9 +28,7 @@ device and records answers under their name.
 - Importing invitees from a file: not in R1.
 
 ## Open questions
-- From docs/copy/emails.md: reply-to the PM's own address (recommended) or none; sender name
-  shows the PM's name (recommended) or the workspace name. Mihai decides; the email and the
-  story change together.
+- None. Reply-to is the PM's own address and the sender name is the PM's (decision 0031).
 
 ## Technical notes
 invite.email, name, role_hint (docs/schema.md); the response for a personal invite is created

@@ -26,8 +26,8 @@ person the magic link would, matched by verified email.
 - Publishing the Google consent screen for outside users: the launch gate.
 
 ## Open questions
-- Whether Mihai creates the two developer accounts now or later. Both are optional for R1
-  (docs/plan-steps.md, E2 row); the story can be accepted with the buttons hidden.
+- None. The developer accounts come later; the story is accepted with the buttons hidden
+  (decision 0031).
 
 ## Technical notes
 better-auth social providers (better-auth.com/docs/authentication/google and /microsoft; read
