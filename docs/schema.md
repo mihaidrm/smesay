@@ -397,7 +397,7 @@ Indexes: session_userId_idx on user_id.
 
 ## account
 
-better-auth: a sign-in method (magic link, Google, Microsoft) attached to a user.
+better-auth: a sign-in method (magic link, Google; Microsoft and Apple after launch, decision 0034) attached to a user.
 
 | Column | Type | Notes |
 |---|---|---|

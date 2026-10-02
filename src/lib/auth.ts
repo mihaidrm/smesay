@@ -1,5 +1,5 @@
 // better-auth server instance (stories/E2-1). Magic link sign-in only in E2-1; Google and
-// Microsoft come with E2-2. Sources: betterAuth and the drizzle adapter,
+// Google comes with E2-2 (Microsoft and Apple after launch, decision 0034). Sources: betterAuth and the drizzle adapter,
 // better-auth.com/docs/installation and /docs/adapters/drizzle; the magic link plugin and its
 // options (expiresIn in seconds, sendMagicLink, storeToken "hashed" so a database read does not
 // yield working links), better-auth.com/docs/plugins/magic-link and node_modules/better-auth/

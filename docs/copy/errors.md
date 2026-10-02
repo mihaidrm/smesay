@@ -19,7 +19,7 @@ of the content; page means it replaces the screen.
 | Inline, email field | The server refused the request for another reason | The link was not sent. Try again in a minute. |
 | Inline, workspace name field | Name empty or over 80 characters | Enter a name for your workspace, up to 80 characters. |
 | Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |
-| Page | Google or Microsoft sign-in cancelled or refused | Sign-in with [PROVIDER] did not complete. Try again, or use the email link. |
+| Page | Google sign-in cancelled, refused, or the email unverified (E2-2; Microsoft and Apple after launch, decision 0034) | Sign-in with Google did not complete. Try again, or use the email link. |
 | Inline, invite field | Member invite to an address already in the workspace | [EMAIL] is already a member of this workspace. |
 | Inline, invite field | Member invite with an empty field | Enter the email address to invite. |
 | Inline, invite field | Member invite to text that is not an address | [TEXT] is not an email address. Check it and try again. |
