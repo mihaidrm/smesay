@@ -77,7 +77,7 @@ after E3 on 2026-10-02; E2-2 was built the same day with Google only, decision 0
 checks the real Google flow on his PC). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
 the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
-link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (67 in 13 epics); a story is rewritten when Mihai
+link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (71 in 14 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
@@ -96,7 +96,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 3 of 13 steps. Left: 10 steps
+Phase 3, R1 build, fourteen epics in order (about 44 sessions, 22 weeks, to about end of March 2027): Done 3 of 14 steps. Left: 11 steps
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
@@ -110,6 +110,7 @@ Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to abou
 - E11 Trust: open.
 - E12 Landing and onboarding: open.
 - E13 Analytics for us: open.
+- E14 Admin and support: open.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
