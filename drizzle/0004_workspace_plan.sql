@@ -1,0 +1,2 @@
+ALTER TABLE "workspace" ADD COLUMN "plan" text DEFAULT 'free' NOT NULL;--> statement-breakpoint
+ALTER TABLE "workspace" ADD CONSTRAINT "workspace_plan_check" CHECK ("plan" in ('free', 'pro', 'team', 'enterprise'));

@@ -1,5 +1,6 @@
 // Workspace settings (stories/E2-5, acceptance 1; stories/E2-4, acceptance 1; the PM app board,
-// Settings): the brand card (name, logo, accent), the AI budget and plan cards, and the Members
+// Settings): the brand card (name, logo, accent), the AI budget card with the usage line
+// (stories/E2-6, acceptance 3), the Plan card, and the Members
 // section. Owners see the forms and controls; members see the values and the list. The server
 // refuses what the UI hides (src/lib/brand.ts, src/lib/members.ts). Copy: docs/copy/app.md,
 // errors.md.
@@ -7,7 +8,8 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { accentContrast } from "@/lib/brand-rules";
 import { listMembersAndInvites } from "@/lib/members";
 import { can } from "@/lib/permissions";
-import { aiRuns, members } from "@/db/queries";
+import { members } from "@/db/queries";
+import { usage } from "@/db/queries/usage";
 import { BrandForm } from "./brand";
 import { InviteForm, MemberRow } from "./members";
 
@@ -21,7 +23,9 @@ export default async function SettingsPage() {
   const manage = me !== null && can(me.role, "members.invite");
   const { members: rows, invited } = await listMembersAndInvites(current.ws);
   const owners = rows.filter((m) => m.role === "owner").length;
-  const spentCents = await aiRuns.costThisMonthCents(current.ws);
+  const used = await usage(current.ws);
+  const spentCents = used.aiCostCentsThisMonth;
+  const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
   const { workspace } = current;
   const logoUrl = workspace.logoObjectKey ? `/brand/${workspace.id}/logo?v=${encodeURIComponent(workspace.logoObjectKey.slice(-20))}` : null;
   const ratio = accentContrast(workspace.accentHex);
@@ -51,6 +55,7 @@ export default async function SettingsPage() {
               <div className="font-mono" data-testid="budget-line">{`EUR ${workspace.aiBudgetEur.toFixed(2)} per month, ${EUR(spentCents)} used this month`}</div>
               <div className="h-1.5 rounded-full bg-greige"><div className="h-1.5 rounded-full bg-ink" style={{ width: `${Math.min(100, Math.max(1, (spentCents / 100) / workspace.aiBudgetEur * 100))}%`, minWidth: 4 }} /></div>
               <div className="text-xs text-ink-muted">The budget is not editable on the Free plan. A run that would exceed it is refused and shows the shortfall.</div>
+              <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month.`}</div>
             </div>
           </section>
           <section className="rounded-md border border-hairline" aria-labelledby="plan-title">

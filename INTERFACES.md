@@ -16,6 +16,8 @@ the check constraints use them). Change this file first.
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
+- PlanKey: free, pro, team, enterprise (workspace.plan, default free; E2-6). The limits per plan
+  live in src/lib/plans.ts, the one place in the code that names a limit (decision 0008).
 - MemberRole: owner, member.
 - ItemSetSource: xlsx, csv, pasted.
 - AiPurpose: shape, insights.
@@ -47,6 +49,9 @@ pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effect
 in src/lib/brand-rules.ts is what the respondent side uses; the logo is at
 /brand/[workspaceId]/logo. Object storage: putObject, getObject, deleteObject in
 src/lib/storage.ts, keyed by path; nothing else touches the bucket.
+Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
+aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
+src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.
 Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
 Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
 createWorkspaceWithSample(data, ownerUserId) in src/db/queries/onboarding.ts, imported by

@@ -25,8 +25,9 @@ the accent is too light (the colour is kept; the respondent side falls back to t
 sees the three values as a list, no form.
 
 AI budget: the mono line "EUR 50.00 per month, EUR [SPENT] used this month", a 6 px greige
-bar with an ink fill for the share used, and the note that the budget is not editable on the
-Free plan. Plan: "Free" with the teal pill "While we build it with the first users" and one
+bar with an ink fill for the share used, the note that the budget is not editable on the
+Free plan, and (E2-6) the usage line "[N] projects, [N] responses this month, [N] AI runs this
+month." in muted ink. Plan: "Free" with the teal pill "While we build it with the first users" and one
 line.
 
 The board's logo line says 28 px; the story and the design system say 24, so 24 it is.

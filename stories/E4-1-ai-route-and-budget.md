@@ -34,6 +34,8 @@ never lets the key near a browser.
 - None.
 
 ## Technical notes
+The budget check reads usage() (E2-6, src/db/queries/usage.ts) for the month's cost and
+`withinPlan(ws, "aiRuns")` for the run cap, so the euro cap and the run cap cannot disagree.
 Anthropic SDK for TypeScript (docs.anthropic.com; the model id and pricing page are read when
 the story starts and cited in the price table). Default model: the latest Sonnet class model
 on that day, recorded in the table. Prompt caching is not used in R1. The claude-api skill in

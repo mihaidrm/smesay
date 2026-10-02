@@ -23,7 +23,9 @@ test("owner sets the name, the logo and the accent", async ({ page, request }) =
   await expect(page).toHaveURL(/\/app$/);
   await page.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Brand on the respondent side" })).toBeVisible();
-  await expect(page.getByTestId("budget-line")).toHaveText("EUR 50.00 per month, EUR 0.09 used this month");
+  // The sample project's rows never count (E2-6), so a new workspace starts at zero.
+  await expect(page.getByTestId("budget-line")).toHaveText("EUR 50.00 per month, EUR 0.00 used this month");
+  await expect(page.getByTestId("usage-line")).toHaveText("0 projects, 0 responses this month, 0 AI runs this month.");
 
   await page.getByLabel("Workspace name").fill("Marlow Group Ltd");
   await page.getByLabel("Accent colour").fill("#1F4F7A");

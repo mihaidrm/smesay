@@ -25,6 +25,7 @@ export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
 export const MEMBER_ROLES = ["owner", "member"] as const;
 export const ITEM_SET_SOURCES = ["xlsx", "csv", "pasted"] as const;
 export const AI_PURPOSES = ["shape", "insights"] as const;
+export const PLAN_KEYS = ["free", "pro", "team", "enterprise"] as const;
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
 const id = () => uuid("id").primaryKey().default(sql`gen_random_uuid()`);
@@ -39,9 +40,12 @@ export const workspace = pgTable("workspace", {
   accentHex: text("accent_hex"),
   logoObjectKey: text("logo_object_key"),
   aiBudgetEur: integer("ai_budget_eur").notNull().default(50),
+  // The plan (stories/E2-6): a column change switches a workspace; the limits are in
+  // src/lib/plans.ts and the free entry has none while the product is validated (decision 0008).
+  plan: text("plan", { enum: PLAN_KEYS }).notNull().default("free"),
   createdAt: ts("created_at").notNull().defaultNow(),
   deletedAt: ts("deleted_at"),
-}, (t) => [uniqueIndex("workspace_slug_idx").on(t.slug)]);
+}, (t) => [uniqueIndex("workspace_slug_idx").on(t.slug), check("workspace_plan_check", oneOf("plan", PLAN_KEYS))]);
 
 export const workspaceMember = pgTable("workspace_member", {
   workspaceId: wsRef(),
