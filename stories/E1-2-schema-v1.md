@@ -71,8 +71,9 @@ jsonb columns with `.$type<>()` from src/db/types.ts, the TypeScript twins of IN
   delete set null, indexed), created_at, archived_at.
 - `item_set`: id, workspace_id, project_id (fk project with workspace_id, on delete cascade),
   version (integer >= 1, unique per project, never renumbered), source (xlsx, csv, pasted),
-  source_filename, import_report (jsonb, ImportReport in INTERFACES.md), imported_at. Unique
-  (id, project_id). Decision 0010.
+  source_filename, import_report (jsonb, ImportReport in INTERFACES.md), imported_at; since
+  migration 0008 (E3-5, E3-6) imported_by (fk `user`, on delete set null) and upload_id (fk
+  upload with workspace_id, no delete action). Unique (id, project_id). Decision 0010.
 - `item`: id, workspace_id, item_set_id (fk item_set with workspace_id, on delete cascade),
   position, source_ref, original_text (not blank, never changed), reader_text, reader_status
   (suggested, accepted, rejected, or null), area, area_rationale, proposed_value, custom (jsonb,

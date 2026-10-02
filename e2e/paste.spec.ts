@@ -1,5 +1,5 @@
 // The main path of E3-4 (acceptance 5): paste six lines, see them in the preview with the
-// three columns and the mapping guessed; the import click joins the test with E3-5.
+// three columns and the mapping guessed, then import (E3-5).
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -41,4 +41,6 @@ test("paste a list and see the preview", async ({ page, request }) => {
   await expect(page.getByLabel("Header row")).toHaveCount(0);
   await expect(page.getByLabel("Item", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Proposed value", { exact: true })).toHaveValue("value");
+  await page.getByRole("button", { name: "Import 6 items" }).click();
+  await expect(page.getByTestId("imported-line")).toContainText("Imported 6 items as version 1 on");
 });

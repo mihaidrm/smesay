@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { latestSet } from "@/lib/imports";
 import { archiveAction } from "../actions";
 
 const BUILT: StepKey[] = ["import"];
@@ -17,6 +18,9 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();
   const archived = project.archivedAt !== null;
+  // Import is done once the project has a set (stories/E3-5, acceptance 5); Shape is the
+  // current step until E4 builds its page.
+  const imported = project.isSample || (await latestSet(current.ws, project.id)) !== null;
   return (
     <main className="flex flex-col gap-5 px-8 py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -24,7 +28,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
           <div className="text-xs text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
           <h1 className="flex items-center gap-2 text-xl font-medium">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
         </div>
-        <Stepper current="import" done={[]} href={(step) => (BUILT.includes(step) ? `/app/projects/${project.id}/${step}` : null)} />
+        <Stepper current={imported ? "shape" : "import"} done={imported ? ["import"] : []} href={(step) => (BUILT.includes(step) ? `/app/projects/${project.id}/${step}` : null)} />
         {!project.isSample && (
           <form action={archiveAction}>
             <input type="hidden" name="projectId" value={project.id} />

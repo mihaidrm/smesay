@@ -40,4 +40,14 @@ Built 2026-10-02.
 - Lines over 1,000 characters are counted by the check report (E3-5, src/lib/import/
   report.ts, ITEM_LIMIT), which reads the same rows.
 - Playwright: e2e/paste.spec.ts, six lines to the preview with the three columns and the
-  guessed mapping; the import click of acceptance 5 joins the test with E3-5.
+  guessed mapping, then the import (E3-5, built the same day).
+- Audit of 2026-10-02 (fresh context, 17 findings), closed in the story's PR: only the exact
+  form "text | area | value" fills the area and the value, any other line is item text as
+  written (a two-part or four-part line was being split); a letter marker counts only with
+  ")" so an initial stays; the limit messages speak of a list, not a file; tests for another
+  workspace's project, the sample and the 5 MB limit; a long line kept whole through the
+  parser and the check; the groundwork's set-to-upload key had "set null" on a composite key
+  (it would null workspace_id too) and now has no delete action, with the hand edit of
+  migration 0008 recorded in MISTAKES.md; E3-6 and E1-2 name migration 0008; the diff line
+  and the placeholder in docs/copy. Acceptance 4 and 5 are met by E3-5 in the same PR (the
+  pasted set, the import click).

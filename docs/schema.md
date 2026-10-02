@@ -114,12 +114,12 @@ one imported or pasted version of the list (decision 0010); version is unique pe
 | source_filename | text |  |
 | import_report | jsonb |  |
 | imported_by | text | fk user.id, on delete set null |
-| upload_id | uuid | fk upload.id with workspace_id, on delete set null |
+| upload_id | uuid | fk upload.id with workspace_id |
 | imported_at | timestamp with time zone | not null, default now() |
 
 Unique: item_set_id_workspace_uq on id, workspace_id; item_set_id_project_uq on id, project_id.
 
-Foreign keys: item_set_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; item_set_upload_fk (upload_id, workspace_id) references upload (id, workspace_id) on delete set null.
+Foreign keys: item_set_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; item_set_upload_fk (upload_id, workspace_id) references upload (id, workspace_id).
 
 Indexes: item_set_workspace_idx on workspace_id; item_set_project_version_idx (unique) on project_id, version.
 Checks: item_set_source_check: source in ('xlsx', 'csv', 'pasted'); item_set_version_check: version >= 1.

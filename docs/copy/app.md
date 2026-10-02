@@ -123,12 +123,37 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Link under the file input | Paste a list instead |
 | Box label | Paste a list |
-| Box placeholder | Receipts captured by phone / Approval from the notification email \| Approving \| Must |
+| Box placeholder, two lines | Receipts captured by phone; then: Approval from the notification email \| Approving \| Must |
 | Line under the box | One item per line. Add an area and a proposed value with a bar: text \| area \| value. |
 | Button | Use this list |
 | Summary line of a pasted list | Pasted list, [N] items. |
 | Column headers of a pasted list | A Item, B Area, C Proposed value (no header row, no pickers) |
 | File name in the import log (E3-6) | Pasted list |
+
+## Import, check and commit (E3-5)
+
+| Where | Text |
+|---|---|
+| Check card title (board) | Check before import |
+| The three counts (board, errors.md) | [N] empty rows, skipped. / [N] exact duplicates, imported once. / [N] items over 1,000 characters, imported whole; consider splitting them in Shape. |
+| Fourth line, only above zero | [N] proposed values not recognised, kept as written. |
+| Rows under a count | Row [N]; Row [N], same as row [N]; Row [N]: [VALUE] |
+| Import button | Import [N] items (disabled at 40 percent without a text column or with nothing to import) |
+| After the import, in the check card | Imported as version [N]. |
+| Under the Import title, once a set exists | Imported [N] items as version [N] on [DATE]. |
+
+## Import, versions (E3-6)
+
+| Where | Text |
+|---|---|
+| Log card title | Versions |
+| Table headers | Version, Source, File, Imported, Items, Checks, By |
+| Version cell | Version [N] (a link to the read-only version) |
+| File cell of a pasted list | Pasted list |
+| Checks cell | [N] empty, [N] duplicates, [N] long, [N] values |
+| Diff line under the table | Version [N] to [N]: [N] items unchanged, [N] changed, [N] new, [N] gone. |
+| Version page title and line | Version [N]. [FILE], imported [DATE], [N] items. Read-only. Back to Import |
+| Version page headers | #, Ref, Item, Area, Proposed value |
 
 ## Import, column mapping (E3-3)
 

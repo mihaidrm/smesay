@@ -17,7 +17,7 @@ export const MOST = 0.6;
 export const LOOK_AHEAD = 5;
 export const SEARCH_ROWS = 20;
 export const LONGER_RATIO = 1.5;
-export const LONGER_MIN = 8;
+export const LONGER_MIN = 3;
 
 export type HeaderResult = { headerRow: number | null };
 

@@ -1278,7 +1278,7 @@
             "id",
             "workspace_id"
           ],
-          "onDelete": "set null",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },

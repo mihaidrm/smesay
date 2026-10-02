@@ -35,11 +35,11 @@ export async function savePaste(actor: { ws: WorkspaceId; userId: string }, proj
   if (!project) throw new NotFoundError();
   if (project.isSample) return { error: UPLOAD_COPY.sample };
   const bytes = new TextEncoder().encode(text);
-  if (bytes.byteLength > SIZE_MAX) return { error: UPLOAD_COPY.tooBig(bytes.byteLength) };
+  if (bytes.byteLength > SIZE_MAX) return { error: UPLOAD_COPY.pasteTooBig(bytes.byteLength) };
   const rows = parsePaste(text);
   const tooFew = pasteError(rows);
   if (tooFew) return { error: tooFew };
-  if (rows.length > ROWS_MAX) return { error: UPLOAD_COPY.tooManyRows(rows.length, null) };
+  if (rows.length > ROWS_MAX) return { error: UPLOAD_COPY.pasteTooManyRows(rows.length) };
   const preview = buildPreview({ kind: "pasted", sheets: [{ name: "pasted", rows: pastedRows(rows) }] });
   const { mapping, remember } = await initialMapping(actor.ws, preview);
   const objectKey = `uploads/${actor.ws}/${randomBytes(8).toString("hex")}.txt`;

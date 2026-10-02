@@ -1,7 +1,7 @@
 # E3-6 Set versioning and the import log
 
 User: a PM whose list changed after the first import
-Status: ready
+Status: built
 Outcome: re-importing creates version 2; version 1 stays readable and attached to its
 instruments and responses.
 
@@ -29,4 +29,24 @@ instruments and responses.
 
 ## Technical notes
 Version diff in src/lib/import/diff.ts, pure, tested. Who imported: item_set gets
-`imported_by` (user id, set null on delete) in migration 0002.
+`imported_by` (user id, set null on delete) and `upload_id` in migration 0008 (built with
+E3-4 and E3-5; 0002 had gone to E2-3).
+
+Built 2026-10-02.
+
+- A new version is the same flow (acceptance 1): another upload or paste on Import, its
+  mapping and check, then Import; commitImport (src/db/queries/importCommit.ts) takes the
+  project row's lock and writes version max + 1, never renumbered.
+- The import log (acceptance 2) is the Versions card on Import (design note 24):
+  itemSets.versions() in src/db/queries/itemSets.ts (every set of the project with a SQL item
+  count and the importer's name), each version opening read-only at
+  /app/projects/[id]/import/versions/[setId] (a set of another project or workspace is 404).
+- The diff (acceptance 4) is src/lib/import/diff.ts, matched by reference then by exact text
+  (whitespace collapsed, case kept), shown as the line under the log for the two latest
+  versions; diff.test.ts proves the counts on a fixture pair and the one-match rule.
+- Owed to E5-1 (acceptance 3): "Build on version N+1" and the "Version N" header on Results;
+  no instrument can be built yet, and the schema already pins an instrument to its set
+  (E1-2). The published-list banner of errors.md waits for E6 too.
+- Playwright (acceptance 5): e2e/import.spec.ts imports a second copy of the Marlow fixture
+  with CL-05 reworded (e2e/fixtures/expense-requirements-v2.xlsx) and sees "Version 1 to 2:
+  11 items unchanged, 1 changed, 0 new, 0 gone." and the read-only version 1.

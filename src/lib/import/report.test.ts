@@ -34,6 +34,7 @@ describe("checkRows", () => {
       ["CL-06", "approve from email", null, "Approving"],
     ]);
     expect(result.items[0].custom).toEqual({ Owner: "Dana" });
+    expect(result.items[2].text).toHaveLength(ITEM_LIMIT + 1);
     expect(result.items[3].custom).toEqual({});
   });
   it("works without a reference or custom column and names rows by number", () => {

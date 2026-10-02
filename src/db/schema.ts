@@ -151,7 +151,10 @@ export const itemSet = pgTable("item_set", {
   importedAt: ts("imported_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
-  foreignKey({ name: "item_set_upload_fk", columns: [t.uploadId, t.workspaceId], foreignColumns: [upload.id, upload.workspaceId] }).onDelete("set null"),
+  // No delete action: "set null" on a composite key would null workspace_id too (E3-4 audit,
+  // finding 3). An upload that became a version is not deleted on its own; the workspace
+  // deletion cascades through both tables.
+  foreignKey({ name: "item_set_upload_fk", columns: [t.uploadId, t.workspaceId], foreignColumns: [upload.id, upload.workspaceId] }),
   index("item_set_workspace_idx").on(t.workspaceId),
   uniqueIndex("item_set_project_version_idx").on(t.projectId, t.version),
   unique("item_set_id_workspace_uq").on(t.id, t.workspaceId),

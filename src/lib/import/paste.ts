@@ -14,10 +14,10 @@ export const PASTE_COPY = {
   summary: (rows: number) => `Pasted list, ${rows.toLocaleString("en-GB")} ${rows === 1 ? "item" : "items"}.`,
 };
 
-// Leading list markers: "1. ", "1) ", "(1) ", "a) ", "A. ", a hyphen, an asterisk, a bullet
-// (U+2022), an en or em dash (U+2013, U+2014), a middle dot or ">", a few of them stacked
-// ("1. - "), then whitespace.
-const MARKER = /^(?:\(?(?:\d{1,4}|[a-zA-Z])[.)]\s+|[-*\u2022\u2013\u2014\u00b7>]\s+)+/;
+// Leading list markers: "1. ", "1) ", "(1) ", "a) ", a hyphen, an asterisk, a bullet (U+2022),
+// an en or em dash (U+2013, U+2014) or a middle dot, a few of them stacked ("1. - "), then
+// whitespace. A letter counts only with ")" so an initial ("P. Smith") stays.
+const MARKER = /^(?:\(?\d{1,4}[.)]\s+|\(?[a-zA-Z]\)\s+|[-*\u2022\u2013\u2014\u00b7]\s+)+/;
 
 export function stripMarker(line: string): string {
   return line.trimStart().replace(MARKER, "").trim();
@@ -25,10 +25,13 @@ export function stripMarker(line: string): string {
 
 export type PastedRow = { text: string; area: string; value: string };
 
+// Exactly "text | area | value" (three parts) fills the area and the value (acceptance 3);
+// any other line, bars included, is item text as written.
 export function parsePaste(text: string): PastedRow[] {
   return text.split(/\r?\n/).map(stripMarker).filter((line) => line !== "").map((line) => {
-    const [item = "", area = "", value = ""] = line.split("|").map((part) => part.trim());
-    return { text: item, area, value };
+    const parts = line.split("|").map((part) => part.trim());
+    if (parts.length === 3) return { text: parts[0], area: parts[1], value: parts[2] };
+    return { text: line, area: "", value: "" };
   }).filter((row) => row.text !== "");
 }
 

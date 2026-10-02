@@ -1,11 +1,17 @@
 // Import (stories/E3-1, acceptance 3; stories/E3-2; decision 0020): the "About this project"
-// card, then the upload card, the preview of the latest upload and its column mapping
-// (stories/E3-3); the check report and the import come with E3-5.
+// card, then the upload card, the preview of the latest upload, its column mapping
+// (stories/E3-3) and the check before import with the Import button (stories/E3-5). Once a
+// set exists the imported line sits under the title, the stepper is on Shape (layout.tsx) and
+// the import log lists every version (stories/E3-6).
 // The sample project has no upload card (it is read-only, stories/E8-8). Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import { projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { checkUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
+import { mappingError } from "@/lib/import/mapping";
 import { rememberedFrom } from "@/lib/uploads";
+import { CheckCard } from "./check-card";
+import { ImportLog } from "./import-log";
 import { ContextForm } from "./context-form";
 import { MappingCard } from "./mapping";
 import { PasteForm } from "./paste-form";
@@ -21,9 +27,16 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   if (!project) notFound();
   const upload = project.isSample ? null : await uploads.latestForProject(current.ws, project.id);
   const remembered = upload ? await rememberedFrom(current.ws, upload) : null;
+  const set = project.isSample ? null : await latestSet(current.ws, project.id);
+  const check = upload && upload.mapping && !mappingError(upload.mapping) ? await checkUpload(upload) : null;
+  const log = project.isSample ? { versions: [], diffText: null } : await importLog(current.ws, project.id);
+  const setItems = log.versions[0]?.items ?? 0;
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-xl font-normal">Import the list</h2>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-normal">Import the list</h2>
+        {set && <p data-testid="imported-line" className="text-ink-muted">{IMPORT_COPY.imported(setItems, set.version, DATE.format(set.importedAt))}</p>}
+      </div>
       <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">
           <h3 id="about-title" className="font-medium">About this project</h3>
@@ -44,6 +57,10 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {upload && <UploadPreview upload={upload} />}
       {upload && upload.mapping && upload.preview.columns.length > 0 && (
         <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} />
+      )}
+      <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
+      {upload && upload.mapping && upload.preview.columns.length > 0 && (
+        <CheckCard uploadId={upload.id} check={check} mappingError={mappingError(upload.mapping)} importedVersion={set && set.uploadId === upload.id ? set.version : null} />
       )}
     </div>
   );

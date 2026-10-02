@@ -183,6 +183,15 @@ describe("saveUpload", () => {
     expect(upload.mapping).toEqual({ Item: "text", Area: "area", "Proposed value": "value" });
     expect(PASTE_COPY.summary(upload.preview.rowsRead)).toBe("Pasted list, 6 items.");
     const long = await savePaste(a, projectA, Array.from({ length: 2001 }, (_, i) => `Item ${i}`).join("\n"));
-    expect(long).toEqual({ error: "This file has 2,001 rows. The limit is 2,000. Split the list and upload the first part." });
+    expect(long).toEqual({ error: "This list has 2,001 lines. The limit is 2,000. Split it and paste the first part." });
+    const big = await savePaste(a, projectA, "x".repeat(5 * 1024 * 1024 + 1) + "\ny");
+    expect(big).toEqual({ error: "This list is 5,121 KB. The limit is 5 MB. Paste a shorter list." });
+    // Another workspace's project and the sample are refused before anything is stored.
+    const uploadsBefore = (await uploads.list(b.ws)).length;
+    await expect(savePaste(b, projectA, "One\nTwo")).rejects.toBeInstanceOf(NotFoundError);
+    expect((await uploads.list(b.ws)).length).toBe(uploadsBefore);
+    const withSample = await createWorkspaceWithSample({ name: "Paste sample", slug: `paste-sample-${Date.now()}` }, a.userId);
+    const sampleProject = (await projects.list(withSample.id as WorkspaceId)).find((p) => p.isSample)!;
+    expect(await savePaste({ ws: withSample.id as WorkspaceId, userId: a.userId }, sampleProject.id, "One\nTwo")).toEqual({ error: UPLOAD_COPY.sample });
   });
 });
