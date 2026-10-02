@@ -62,7 +62,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
 
   // Move to, by keyboard-reachable controls.
   const travel = page.getByTestId("item").filter({ hasText: "Travel advances before a trip" });
-  await travel.getByLabel(/Move to/).selectOption("Paying");
+  await travel.getByLabel(/^Move .* to$/).selectOption("Paying");
   await travel.getByRole("button", { name: "Move" }).click();
   await expect(areas.nth(2).getByTestId("item").filter({ hasText: "Travel advances" })).toHaveCount(1);
   await expect(areas.nth(2).getByTestId("item").filter({ hasText: "Travel advances" }).getByTestId("moved-pill")).toHaveText("Moved by you");
