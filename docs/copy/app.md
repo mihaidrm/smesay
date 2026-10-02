@@ -30,12 +30,32 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Switch page line when the current workspace was removed | The workspace you were in is no longer available to you. Pick another one to work in. |
 | Signed-in line under both pages | Signed in as [EMAIL]. |
 
+## Settings, Members (E2-4)
+
+| Where | Text |
+|---|---|
+| Sidebar link beside the workspace name | Settings |
+| Page title | Workspace settings |
+| Page line (until E2-5 adds the rest) | Who can work in this workspace. |
+| Section title | Members |
+| Section line | Owners manage the workspace and its members. Members can do everything else. |
+| Table headers | Name, Email, Role, Joined |
+| Row of a person without a name | No name yet |
+| Marker on the signed-in person's row | you |
+| Role control values | Owner, Member |
+| Row of an open invitation, name column | Invited |
+| Remove button | Remove |
+| Field label and placeholder | Invite by email, name@company.example |
+| Button | Send invite |
+| Line after sending | Invite sent. They get a sign-in link that works once and expires in [N] minutes. |
+
 ## Signed-in shell (E2-1, E2-3)
 
 | Where | Text |
 |---|---|
 | Sidebar, workspace block label | Workspace |
 | Sidebar, member count | 1 member / [N] members |
+| Sidebar, settings link | Settings |
 | Sidebar, projects label and link | Projects, All |
 | Sidebar and list, sample pill | Sample |
 | Sidebar footer button | Sign out |

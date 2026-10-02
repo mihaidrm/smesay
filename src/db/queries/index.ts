@@ -2,6 +2,7 @@
 // from "@/db/queries/<table>" or from here, never from "@/db" (eslint.config.mjs refuses it).
 export { workspaces } from "./workspaces";
 export { members } from "./members";
+export { workspaceInvites } from "./workspaceInvites";
 export { projects } from "./projects";
 export { itemSets } from "./itemSets";
 export { items } from "./items";

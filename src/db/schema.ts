@@ -54,6 +54,24 @@ export const workspaceMember = pgTable("workspace_member", {
   check("workspace_member_role_check", oneOf("role", MEMBER_ROLES)),
 ]);
 
+// A pending invitation (stories/E2-4): the address has no user row yet, so it cannot be a
+// workspace_member; it becomes one on the invitee's first signed-in request, through
+// acceptPendingInvites() in src/db/queries/onboarding.ts. One open invite per address and
+// workspace; invited_by is kept for the list, set null when that user is deleted.
+export const workspaceInvite = pgTable("workspace_invite", {
+  id: id(),
+  workspaceId: wsRef(),
+  email: text("email").notNull(),
+  role: text("role", { enum: MEMBER_ROLES }).notNull().default("member"),
+  invitedBy: text("invited_by").references(() => user.id, { onDelete: "set null" }),
+  invitedAt: ts("invited_at").notNull().defaultNow(),
+  acceptedAt: ts("accepted_at"),
+}, (t) => [
+  uniqueIndex("workspace_invite_email_uq").on(t.workspaceId, t.email),
+  index("workspace_invite_email_idx").on(t.email),
+  check("workspace_invite_role_check", oneOf("role", MEMBER_ROLES)),
+]);
+
 export const project = pgTable("project", {
   id: id(),
   workspaceId: wsRef(),

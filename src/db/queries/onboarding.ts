@@ -9,6 +9,10 @@
 // (node_modules/drizzle-orm/errors.js, DrizzleQueryError), and the next try adds a 4 character
 // suffix; three tries, then the error is thrown.
 import { randomBytes } from "node:crypto";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { workspaceInvite, workspaceMember } from "@/db/schema";
+import { INVITE_VALID_MINUTES } from "@/lib/invites";
 import { internal } from "./internal";
 import { unsafeWorkspaceId } from "./scoped";
 import { workspaces, type Workspace } from "./workspaces";
@@ -38,4 +42,25 @@ export async function createWorkspaceWithSample({ name, slug }: { name: string; 
     throw error;
   }
   return created;
+}
+
+// The invitee's side (stories/E2-4, acceptance 2): on a signed-in request, every open and
+// unexpired invitation for the person's address becomes a membership, in one transaction, and
+// is marked accepted. Called by src/lib/current-workspace.ts before the memberships are listed;
+// the email is the session's, never a request's. Returns how many memberships were added.
+// on conflict do nothing: orm.drizzle.team/docs/insert#on-conflict-do-nothing.
+export async function acceptPendingInvites(userId: string, email: string): Promise<number> {
+  const address = email.trim().toLowerCase();
+  const since = new Date(Date.now() - INVITE_VALID_MINUTES * 60 * 1000);
+  return db.transaction(async (tx) => {
+    const open = await tx.select().from(workspaceInvite)
+      .where(and(eq(sql`lower(${workspaceInvite.email})`, address), isNull(workspaceInvite.acceptedAt), gt(workspaceInvite.invitedAt, since)));
+    let added = 0;
+    for (const invite of open) {
+      const inserted = await tx.insert(workspaceMember).values({ workspaceId: invite.workspaceId, userId, role: invite.role }).onConflictDoNothing().returning();
+      added += inserted.length;
+      await tx.update(workspaceInvite).set({ acceptedAt: new Date() }).where(eq(workspaceInvite.id, invite.id));
+    }
+    return added;
+  });
 }

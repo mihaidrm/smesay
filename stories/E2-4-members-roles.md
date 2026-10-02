@@ -1,7 +1,7 @@
 # E2-4 Invite a member by email; owner and member roles
 
 User: the workspace owner adding a colleague; the colleague joining
-Status: ready
+Status: built
 Outcome: a member can create and run projects; only an owner can change the workspace itself.
 
 ## Acceptance criteria
@@ -29,8 +29,37 @@ Outcome: a member can create and run projects; only an owner can change the work
 - None.
 
 ## Technical notes
-Permission check in one place, src/lib/permissions.ts: `can(role, action)` with the action list
-above; every owner-only route calls it. The invite is a better-auth magic link sent to the
-address with a pending membership row (workspace_member with role and a `joined_at` null is
-not in schema v1; add `invited_at` and nullable `joined_at` in migration 0002 and record it in
-docs/schema.md through the generator).
+Built 2026-10-02.
+
+- Permission check in one place, src/lib/permissions.ts: `can(role, action)` over the sixteen
+  actions of acceptance 3, nine of them owner-only; `requireRole()` in src/lib/members.ts reads
+  the actor's membership and throws ForbiddenError (403, src/lib/errors.ts). The three actions
+  (invite, remove, change a role) live in src/lib/members.ts and are called by the server
+  actions in src/app/app/(shell)/settings/actions.ts, which turn a refusal or a message into
+  form state; src/lib/members.test.ts calls each one as a member and gets 403.
+- The pending invitation is its own table, workspace_invite (migration 0003, docs/schema.md
+  through the generator), not columns on workspace_member as this story first said: a member row
+  is keyed by a user id and the invitee has none until they sign in. One open invitation per
+  address and workspace; inviting again replaces the row and sends a new link. The invite email
+  is E2-1's, sent through `auth.api.signInMagicLink` (node_modules/better-auth/dist/plugins/
+  magic-link/index.d.mts). An invitation is valid for 15 minutes, as long as the link
+  (`INVITE_VALID_MINUTES` in src/lib/invites.ts); after that the "Invited" row is gone
+  and the owner invites again.
+- On the invitee's first signed-in request, `acceptPendingInvites()` (src/db/queries/
+  onboarding.ts, called from src/lib/current-workspace.ts with the session's own email) turns
+  every open invitation for that address into a membership in one transaction; with one
+  membership the workspace is selected without asking (E2-3), so the invitee lands on its
+  project list.
+- Settings, Members (src/app/app/(shell)/settings): the list (name or "No name yet", email, role,
+  joined), the "Invited" rows, the invite form (button at 40 percent until the field holds an
+  address, the same zod rule as the server), a native select for the role and Remove on each row
+  for owners; the last owner's row has neither. A member sees the list only. E2-5 adds the rest
+  of the settings page above the section; a second owner is made by changing a role here.
+- Tests: src/lib/permissions.test.ts; src/lib/members.test.ts (invite writes the row and sends
+  the email; bad and duplicate addresses as messages; 403 for a member on all three actions;
+  404 for an outsider; acceptance once and an expired invitation ignored; the last owner kept;
+  a removed person has no workspace on the next request); scoping.test.ts covers the new table;
+  e2e/members.spec.ts (owner invites from Settings, the invitee signs in through Mailpit and
+  lands in the workspace, appears as a member, is removed and lands on the create page).
+  Design note 17 has the screenshots.
+- Copy: docs/copy/app.md (Settings, Members) and errors.md.

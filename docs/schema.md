@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-02 (the date of the latest migration, 0002_current_workspace).
+v1, 2026-10-02 (the date of the latest migration, 0003_workspace_invite).
 
-Generated from the snapshot of the 3 migrations in drizzle/ (0002_snapshot.json) by
+Generated from the snapshot of the 4 migrations in drizzle/ (0003_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -59,6 +59,23 @@ Primary key: (workspace_id, user_id).
 
 Indexes: workspace_member_user_idx on user_id.
 Checks: workspace_member_role_check: role in ('owner', 'member').
+
+## workspace_invite
+
+an open invitation by email (E2-4); becomes a workspace_member row on the invitee's first signed-in request.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade, not null |
+| email | text | not null |
+| role | text | not null, default member |
+| invited_by | text | fk user.id, on delete set null |
+| invited_at | timestamp with time zone | not null, default now() |
+| accepted_at | timestamp with time zone |  |
+
+Indexes: workspace_invite_email_uq (unique) on workspace_id, email; workspace_invite_email_idx on email.
+Checks: workspace_invite_role_check: role in ('owner', 'member').
 
 ## project
 
