@@ -42,8 +42,9 @@ jobs:
       # The CI session secret is for the throwaway CI database only; it is no secret.
       BETTER_AUTH_SECRET: ci-only-secret-for-the-throwaway-database
       BETTER_AUTH_URL: http://localhost:3000
-      # Placeholders so the Google button renders in CI (stories/E2-2): the flow is followed to
-      # Google's own page and no further; the real values stay in the repository secrets.
+      # Placeholders so the Google button renders in CI (stories/E2-2): the Playwright test
+      # answers the request to Google itself, so these values are never sent anywhere; the
+      # real values stay in the repository secrets and are not used by CI.
       GOOGLE_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
       GOOGLE_CLIENT_SECRET: ci-placeholder-secret
       MAIL_SMTP_URL: smtp://localhost:1025

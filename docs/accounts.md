@@ -142,8 +142,9 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
 3. Open "APIs and Services", then the OAuth consent screen. User type: External. App name: the
    product name. Support email: yours. Scopes: email, profile, openid. Save.
 4. Open "Credentials", click "Create Credentials", then "OAuth client ID". Type: Web application.
-5. Under "Authorized redirect URIs" add two lines. Claude confirms the exact path against the
-   better-auth documentation when it builds E2; the expected form is:
+5. Under "Authorized redirect URIs" add two lines (the path is better-auth's callback route,
+   confirmed on 2026-10-02 against node_modules/better-auth/dist/api/routes/callback.mjs and
+   asserted by src/lib/auth.test.ts):
    - `http://localhost:3000/api/auth/callback/google`
    - `https://yourdomain/api/auth/callback/google`
 6. Copy the Client ID and Client secret into `.env.local` after `GOOGLE_CLIENT_ID=` and

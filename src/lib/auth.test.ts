@@ -155,5 +155,84 @@ describe("magic link", () => {
     // Nothing printed the secret.
     expect(url).not.toContain("test-secret");
   });
+
+  // The Google callback end to end (stories/E2-2, acceptance 2 and 3), with only Google's token
+  // endpoint answered here: the provider reads the id_token by decoding it (node_modules/
+  // @better-auth/core/src/social-providers/google.ts, getUserInfo), so an unsigned token with
+  // the claims is enough. The authorisation step gives the state and its cookie; the callback
+  // gets both back.
+  describe("the Google callback", () => {
+    const base = "http://localhost:3000";
+    const withGoogle = createAuth({ baseURL: base, secret: "x".repeat(32), google: { clientId: "test-client-id.apps.googleusercontent.com", clientSecret: "test-secret" } }, { disableOriginCheck: true });
+    const jwt = (claims: Record<string, unknown>) => {
+      const part = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
+      return `${part({ alg: "none", typ: "JWT" })}.${part(claims)}.`;
+    };
+    async function googleSignIn(profile: { email: string; email_verified: boolean; sub: string }, callbackURL = "/app") {
+      const started = await withGoogle.handler(new Request(`${base}/api/auth/sign-in/social`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ provider: "google", callbackURL, errorCallbackURL: GOOGLE_ERROR_PATH, disableRedirect: true }) }));
+      const { url } = (await started.json()) as { url: string };
+      const state = new URL(url).searchParams.get("state")!;
+      const cookies = started.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
+      const realFetch = globalThis.fetch;
+      globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const target = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+        if (target.startsWith("https://oauth2.googleapis.com/token")) {
+          const token = jwt({ iss: "https://accounts.google.com", aud: "test-client-id.apps.googleusercontent.com", exp: Math.floor(Date.now() / 1000) + 3600, iat: Math.floor(Date.now() / 1000), name: "Test Person", ...profile });
+          return new Response(JSON.stringify({ access_token: "access", id_token: token, token_type: "Bearer", expires_in: 3600, scope: "openid email profile" }), { status: 200, headers: { "content-type": "application/json" } });
+        }
+        return realFetch(input, init);
+      }) as typeof fetch;
+      try {
+        return await withGoogle.handler(new Request(`${base}/api/auth/callback/google?code=test-code&state=${encodeURIComponent(state)}`, { headers: { cookie: cookies }, redirect: "manual" }));
+      } finally {
+        globalThis.fetch = realFetch;
+      }
+    }
+    async function magicLinkSignIn(address: string) {
+      const before = memoryOutbox.length;
+      await withGoogle.handler(new Request(`${base}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ email: address, callbackURL: "/app" }) }));
+      const link = memoryOutbox[before].text.split("\n").find((l) => l.startsWith(base + "/api/auth/magic-link/verify"))!;
+      await withGoogle.handler(new Request(link, { redirect: "manual" }));
+    }
+    const userFor = async (address: string) => (await withGoogle.$context).internalAdapter.findUserByEmail(address);
+
+    it("joins the magic-link user when Google's email is verified: one user row, a session (acceptance 2)", async () => {
+      const email = `google-link-${Date.now()}@example.com`;
+      await magicLinkSignIn(email);
+      const before = await userFor(email);
+      expect(before?.user.emailVerified).toBe(true);
+      const res = await googleSignIn({ email, email_verified: true, sub: "g-1" });
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toMatch(/^(http:\/\/localhost:3000)?\/app$/);
+      const cookie = sessionCookie(res);
+      const me = await withGoogle.api.getSession({ headers: new Headers({ cookie: cookie.split(";")[0] }) });
+      expect(me?.user.email).toBe(email);
+      // The same row as the magic link's, with the Google account attached.
+      expect(me?.user.id).toBe(before!.user.id);
+      const accounts = await (await withGoogle.$context).internalAdapter.findAccounts(me!.user.id);
+      expect(accounts.map((a) => a.providerId)).toContain("google");
+    });
+
+    it("refuses an unverified Google email for a new address: no user, no session, the refusal page (acceptance 3)", async () => {
+      const email = `google-unverified-${Date.now()}@example.com`;
+      const res = await googleSignIn({ email, email_verified: false, sub: "g-2" });
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toContain(GOOGLE_ERROR_PATH);
+      expect(res.headers.getSetCookie().some((c) => c.includes("session_token=") && !c.includes("session_token=;"))).toBe(false);
+      expect(await userFor(email)).toBeNull();
+    });
+
+    it("refuses an unverified Google email for an existing user, and sends a state error to the same page", async () => {
+      const email = `google-existing-${Date.now()}@example.com`;
+      await magicLinkSignIn(email);
+      const res = await googleSignIn({ email, email_verified: false, sub: "g-3" });
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toContain(GOOGLE_ERROR_PATH);
+      expect((await userFor(email))?.user.emailVerified).toBe(true);
+      const stale = await withGoogle.handler(new Request(`${base}/api/auth/callback/google?code=x&state=unknown-state`, { redirect: "manual" }));
+      expect(stale.status).toBe(302);
+      expect(stale.headers.get("location")).toContain(GOOGLE_ERROR_PATH);
+    });
+  });
 });
 

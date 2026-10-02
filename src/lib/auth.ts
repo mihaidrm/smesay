@@ -20,13 +20,20 @@
 // sends state and a PKCE code verifier itself and checks them on the callback
 // (node_modules/better-auth/dist/api/routes/callback.mjs, parseState). The provider is
 // configured only when both variables exist; without them the button is hidden and the server
-// log names the variable (acceptance 4). Linking to an existing account goes by the
-// provider's verified email, with the local row's email verified as well
-// (accountLinking.requireLocalEmailVerified, node_modules/@better-auth/core/dist/types/
-// init-options.d.mts; the magic link marks the email verified), so one email is one user row
-// (acceptance 2). A refused or cancelled sign-in lands on errorCallbackURL with ?error=<code>
-// (node_modules/better-auth/dist/oauth2/errors.mjs: email_not_verified,
-// unable_to_link_account, and Google's access_denied on cancel).
+// log names the variable (acceptance 4). One email is one user row (acceptance 2): better-auth
+// links a Google sign-in to the existing user when Google's email_verified claim is true and
+// the local row's email is verified (node_modules/better-auth/dist/oauth2/link-account.mjs,
+// handleOAuthUserInfo; the magic link marks the email verified, dist/plugins/magic-link/
+// index.mjs). An unverified Google email is refused in both directions (acceptance 3): for
+// an existing user, better-auth answers account_not_linked; for a new email, the
+// databaseHooks.user.create.before hook below returns false (init-options.d.mts: "if the hook
+// returns false, the user will not be created"), so no row and no session exist, and the
+// provider's requireEmailVerification (node_modules/@better-auth/core/src/oauth2/
+// oauth-provider.ts) withholds the session as a second guard. Every refusal, a cancel at
+// Google (access_denied) and a state error (state_mismatch, state_not_found) land on
+// GOOGLE_ERROR_PATH: the first two through errorCallbackURL (dist/oauth2/errors.mjs,
+// redirectOnError), the state errors through onAPIError.errorURL (dist/api/routes/
+// callback.mjs, defaultErrorURL). The ?error code is not shown.
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
@@ -83,8 +90,18 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
     baseURL,
     secret,
     database: drizzleAdapter(db, { provider: "pg", schema }),
-    socialProviders: google ? { google: { clientId: google.clientId, clientSecret: google.clientSecret } } : undefined,
-    account: { accountLinking: { enabled: true, requireLocalEmailVerified: true } },
+    socialProviders: google ? { google: { clientId: google.clientId, clientSecret: google.clientSecret, requireEmailVerification: true } } : undefined,
+    account: { accountLinking: { enabled: true } },
+    onAPIError: { errorURL: `${baseURL}${GOOGLE_ERROR_PATH}` },
+    databaseHooks: {
+      user: {
+        create: {
+          // A user row needs a verified email: the magic link verifies it on creation; a social
+          // sign-in with an unverified claim creates nothing (stories/E2-2, acceptance 3).
+          before: async (user) => (user.emailVerified === true ? undefined : false),
+        },
+      },
+    },
     session: {
       expiresIn: SESSION_DAYS * DAY,
       updateAge: DAY,

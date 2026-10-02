@@ -9,9 +9,9 @@ sign-in-google-failed-desktop.png (the refusal page).
 
 Under the email form, when both Google variables exist: a hairline divider with "or" in muted
 13 px between two lines, then a secondary pill "Continue with Google" aligned left like "Send
-me a link". No Google logo: the design system shows no third-party marks, and the words are
-what Google's own sign-in branding guidance asks for first; the logo can be added at the
-launch gate if the consent screen review asks for it. Without the variables the whole block
+me a link". No Google logo: the design system shows no third-party marks (whether Google's
+branding guidance requires one for a published app is unverified; the launch gate's consent
+screen review will say). Without the variables the whole block
 is absent, so the page is the E2-1 page.
 
 ## The refusal page
@@ -19,10 +19,10 @@ is absent, so the page is the E2-1 page.
 /sign-in/google-failed, the shape of the link-used page: the lockup, "Sign-in with Google did
 not complete." as the title, "Try again, or use the email link." under it, a primary "Back to
 sign-in". The error code better-auth appends (?error=email_not_verified, access_denied and
-the rest) is not shown.
+the rest, and the state errors routed through onAPIError.errorURL) is not shown.
 
 ## Decisions taken here
 
-- One message for every refusal (unverified email, linking refused, cancelled at Google), as
-  errors.md has it; the code is logged by better-auth, not shown.
+- One message for every refusal (unverified email, linking refused, cancelled at Google, a
+  stale or missing state), as errors.md has it; the code stays in the URL and is not shown.
 - The button is a secondary pill, not primary: the email link stays the first way in.
