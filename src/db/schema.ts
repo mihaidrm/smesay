@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import type { ClosingSpec, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields } from "./types";
+import type { ClosingSpec, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, UploadPreview } from "./types";
 
 export * from "./auth-schema";
 
@@ -24,6 +24,7 @@ export const READER_STATUSES = ["suggested", "accepted", "rejected"] as const;
 export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
 export const MEMBER_ROLES = ["owner", "member"] as const;
 export const ITEM_SET_SOURCES = ["xlsx", "csv", "pasted"] as const;
+export const UPLOAD_KINDS = ["xlsx", "csv"] as const;
 export const AI_PURPOSES = ["shape", "insights"] as const;
 export const PLAN_KEYS = ["free", "pro", "team", "enterprise"] as const;
 
@@ -90,6 +91,29 @@ export const project = pgTable("project", {
   index("project_workspace_idx").on(t.workspaceId),
   index("project_created_by_idx").on(t.createdBy),
   unique("project_id_workspace_uq").on(t.id, t.workspaceId),
+]);
+
+// A file a PM uploaded for a project (stories/E3-2): the object in the bucket under the
+// workspace's prefix, what the server found in it (the sheet, the header row, a ten-row preview
+// in jsonb, UploadPreview in INTERFACES.md), and who uploaded it. The import commit (E3-5)
+// makes the item set from it; until then it is a draft the Import step shows.
+export const upload = pgTable("upload", {
+  id: id(),
+  workspaceId: wsRef(),
+  projectId: uuid("project_id").notNull(),
+  objectKey: text("object_key").notNull(),
+  filename: text("filename").notNull(),
+  kind: text("kind", { enum: UPLOAD_KINDS }).notNull(),
+  byteSize: integer("byte_size").notNull(),
+  sheet: text("sheet"),
+  headerRow: integer("header_row"),
+  preview: jsonb("preview").$type<UploadPreview>().notNull(),
+  createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [
+  foreignKey({ name: "upload_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
+  index("upload_project_idx").on(t.projectId),
+  check("upload_kind_check", oneOf("kind", UPLOAD_KINDS)),
 ]);
 
 export const itemSet = pgTable("item_set", {

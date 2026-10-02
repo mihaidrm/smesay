@@ -29,6 +29,9 @@ the check constraints use them). Change this file first.
   { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow: number }
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean }
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
+- UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
+  headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
+  ten data rows), rowsRead: number }. UploadKind: xlsx, csv.
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
@@ -53,6 +56,15 @@ Projects (E3-1): projects.summaries(ws, { archived }) (each project with items, 
 invites and the links its status derives from), projects.setArchived(ws, id, archived),
 projects.deleteSample(ws, id); the status rule is projectStatus() in src/lib/project-status.ts,
 the context rule src/lib/project-context.ts.
+Uploads (E3-2): uploads, the scoped six over upload plus uploads.latestForProject(ws, projectId)
+(the draft the Import step shows); `saveUpload(actor, projectId, { name, bytes })` and
+`rechoose(ws, uploadId, { sheet, headerRow })` in src/lib/uploads.ts, each returning
+{ error } or { upload }; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
+client can use it). upload.preview is UploadPreview (above): rowsRead counts the data rows
+below the chosen header row of the chosen sheet (every row when there is no header), at most
+2,000 after the checks; rows holds the first ten of them. Objects are at
+uploads/<workspace id>/<16 hex>.<xlsx|csv>, logos at logos/<workspace id>/..., so a workspace's
+objects are its segment under each of the two prefixes (E11-2 lists both).
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
 aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.

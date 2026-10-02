@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-02 (the date of the latest migration, 0004_workspace_plan).
+v1, 2026-10-02 (the date of the latest migration, 0005_upload).
 
-Generated from the snapshot of the 5 migrations in drizzle/ (0004_snapshot.json) by
+Generated from the snapshot of the 6 migrations in drizzle/ (0005_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -314,6 +314,30 @@ Foreign keys: ai_run_project_fk (project_id, workspace_id) references project (i
 
 Indexes: ai_run_workspace_idx on workspace_id; ai_run_project_idx on project_id.
 Checks: ai_run_purpose_check: purpose in ('shape', 'insights').
+
+## upload
+
+a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview in jsonb.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade, not null |
+| project_id | uuid | fk project.id with workspace_id, on delete cascade, not null |
+| object_key | text | not null |
+| filename | text | not null |
+| kind | text | not null |
+| byte_size | integer | not null |
+| sheet | text |  |
+| header_row | integer |  |
+| preview | jsonb | not null |
+| created_by | text | fk user.id, on delete set null |
+| created_at | timestamp with time zone | not null, default now() |
+
+Foreign keys: upload_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
+
+Indexes: upload_project_idx on project_id.
+Checks: upload_kind_check: kind in ('xlsx', 'csv').
 
 ## user
 

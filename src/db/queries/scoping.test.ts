@@ -10,7 +10,7 @@ import { ensureTestDatabase } from "../test-db";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import * as queries from "./index";
-import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, workspaceInvites, workspaces } from "./index";
+import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, uploads, workspaceInvites, workspaces } from "./index";
 import { unsafeWorkspaceId, type WorkspaceId } from "./scoped";
 import { internal, requireWorkspaceForUser } from "./internal";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
@@ -35,6 +35,7 @@ const PATCHES: Record<string, Record<string, unknown>> = {
   projects: { name: "renamed" }, itemSets: { sourceFilename: "other.csv" }, items: { readerText: "rewritten" },
   instruments: { title: "renamed" }, invites: { name: "renamed" }, responses: { confidence: 3 }, answers: { comment: "changed" },
   missingItems: { text: "changed" }, insights: { title: "changed" }, aiRuns: { durationMs: 9 }, workspaceInvites: { role: "owner" },
+  uploads: { headerRow: 2 },
 };
 const HELPERS = Object.entries(queries).filter(([, v]) => isCheckable(v)).map(([name, helper]) => ({ name, helper: helper as Checkable }));
 
@@ -54,6 +55,7 @@ async function fixture(label: string): Promise<Fixture> {
   rows.missingItems = (await missingItems.create(ws, { responseId: rows.responses, text: "Missing " + label })).id;
   rows.insights = (await insights.create(ws, { projectId: rows.projects, title: "Do " + label })).id;
   rows.aiRuns = (await aiRuns.create(ws, { projectId: rows.projects, purpose: "shape", model: "test" })).id;
+  rows.uploads = (await uploads.create(ws, { projectId: rows.projects, objectKey: `uploads/${ws}/${label}.csv`, filename: "list.csv", kind: "csv", byteSize: 10, preview: { sheets: ["csv"], sheet: "csv", headerRow: 1, columns: [], rows: [], rowsRead: 0 } })).id;
   return { ws, userId, rows };
 }
 
@@ -97,7 +99,7 @@ afterAll(async () => {
 describe("every scoped helper, called with A's id", () => {
   it("is in the list and has a patch", () => {
     expect(HELPERS.map((h) => h.name).sort()).toEqual(Object.keys(PATCHES).sort());
-    expect(HELPERS.length).toBe(11);
+    expect(HELPERS.length).toBe(12);
   });
 
   for (const h of HELPERS) {
