@@ -27,6 +27,9 @@ count as answered until its reason or question is written.
 6. Playwright: on the sample link, answer one card with Change and a reason, see Saved;
    answer another with Unclear and no question, see "Write your question."
 
+7. The selected answer pill takes `effectiveAccent()` from the workspace (E2-5, acceptance 3);
+   ink when the accent fails (E7-7).
+
 ## Out of scope
 - Saving: E7-3. Wrap up: E7-5.
 

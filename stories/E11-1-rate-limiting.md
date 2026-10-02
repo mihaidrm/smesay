@@ -21,6 +21,9 @@ passcode guesses are throttled, all with plain pages.
    recorded here.
 5. Unit tests drive each limiter past its threshold and across the window.
 
+5. The public logo route, /brand/[workspaceId]/logo (E2-5), is in the same per-IP limit as the
+   respondent routes.
+
 ## Out of scope
 - A web application firewall: the host's business at the launch gate.
 

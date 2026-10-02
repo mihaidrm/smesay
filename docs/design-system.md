@@ -187,8 +187,8 @@ prefers-reduced-motion everything is off and the content is visible.
 ## Respondent theming
 
 The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
-answer, the active chapter, the progress bar, the focus ring and links (decision 0016). Buttons
-stay ink. Neutrals and type never change. An accent under
+answer, the active chapter and the progress bar (decision 0016; the focus ring and links stay
+teal). Buttons stay ink. Neutrals and type never change. An accent under
 4.5:1 on white falls back to ink and settings says why. No dark mode on the respondent side.
 
 ## Email

@@ -55,6 +55,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # The store answers on 9000 once up; a request to it before then would fail the upload test.
+      - run: for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:9000/ && break; sleep 1; done
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run scan:copy
