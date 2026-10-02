@@ -1,7 +1,7 @@
 # E3-4 Type or paste a list instead of uploading a file
 
 User: a PM with a list in an email, a document or their head
-Status: ready
+Status: built
 Outcome: paste one item per line and get the same import as a file (decision 0010).
 
 ## Acceptance criteria
@@ -22,6 +22,32 @@ Outcome: paste one item per line and get the same import as a file (decision 001
 - None.
 
 ## Technical notes
-Shares the preview and check report with E3-2 and E3-5: pasting produces the same row shape
-(`ImportRow { ref?, text, area?, value?, custom? }`, added to INTERFACES.md) that the file
-parser produces.
+Built 2026-10-02.
+
+- src/lib/import/paste.ts: the line parser (markers "1. ", "1) ", "(1) ", "a) ", hyphen,
+  asterisk, bullet, dashes, middle dot, stacked, then whitespace; "text | area | value"),
+  tested on the story's four markers and more in paste.test.ts. The rows have the shape of a
+  file with three columns (Item, Area, Proposed value) and no header row, so the preview
+  (src/lib/import/preview.ts, kind "pasted"), the mapping (guessed from those three names) and
+  the import (E3-5, ImportRow in INTERFACES.md) read a pasted list like a file.
+- src/lib/uploads.ts savePaste(): the sample refused, the 5 MB and 2,000-row limits of the
+  upload, then the text stored as text/plain under uploads/<workspace id>/<16 hex>.txt and an
+  upload row of kind "pasted" (UPLOAD_KINDS, migration 0008; the item_set source "pasted" is
+  E3-5's) with the file name "Pasted list" for the log. Tested in uploads.test.ts.
+- The box is src/app/app/(shell)/projects/[projectId]/import/paste-form.tsx under the file
+  input (design note 22); pasteAction in projects/actions.ts. The preview shows "Pasted list,
+  [N] items." and no pickers for a pasted upload.
+- Lines over 1,000 characters are counted by the check report (E3-5, src/lib/import/
+  report.ts, ITEM_LIMIT), which reads the same rows.
+- Playwright: e2e/paste.spec.ts, six lines to the preview with the three columns and the
+  guessed mapping, then the import (E3-5, built the same day).
+- Audit of 2026-10-02 (fresh context, 17 findings), closed in the story's PR: only the exact
+  form "text | area | value" fills the area and the value, any other line is item text as
+  written (a two-part or four-part line was being split); a letter marker counts only with
+  ")" so an initial stays; the limit messages speak of a list, not a file; tests for another
+  workspace's project, the sample and the 5 MB limit; a long line kept whole through the
+  parser and the check; the groundwork's set-to-upload key had "set null" on a composite key
+  (it would null workspace_id too) and now has no delete action, with the hand edit of
+  migration 0008 recorded in MISTAKES.md; E3-6 and E1-2 name migration 0008; the diff line
+  and the placeholder in docs/copy. Acceptance 4 and 5 are met by E3-5 in the same PR (the
+  pasted set, the import click).

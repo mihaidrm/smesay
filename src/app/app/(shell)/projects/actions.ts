@@ -10,7 +10,8 @@ import { notFound, redirect } from "next/navigation";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
-import { rechoose, saveMapping, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { commitUpload } from "@/lib/imports";
+import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 export type ProjectFormState = { error: string | null; saved: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
@@ -113,6 +114,39 @@ export async function mapAction(_previous: ProjectFormState, formData: FormData)
     const result = await saveMapping(current.ws, uploadId, raw);
     revalidatePath(`/app/projects/${result.upload.projectId}/import`);
     return { ...NONE, error: result.error, saved: result.error === null };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// The paste box (stories/E3-4): the text goes through the same checks and store as a file.
+export async function pasteAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await savePaste({ ws: current.ws, userId: session.user.id }, projectId, String(formData.get("text") ?? ""));
+    if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${result.upload.projectId}/import`);
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// The import commit (stories/E3-5, acceptance 3 and 5): the check runs again on the server,
+// the set is written in one transaction, and the Import page re-renders with the stepper on
+// Shape.
+export async function commitAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const uploadId = String(formData.get("uploadId") ?? "");
+  try {
+    const result = await commitUpload(current.ws, uploadId, session.user.id);
+    if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${result.set.projectId}`, "layout");
+    revalidatePath("/app");
+    return { ...NONE, saved: true };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;

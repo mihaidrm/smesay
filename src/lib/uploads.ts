@@ -21,12 +21,43 @@ import { UPLOAD_COPY } from "@/lib/import/copy";
 import { ROWS_MAX, SIZE_MAX } from "@/lib/import/limits";
 import { applyMapping, cleanMapping, guessMapping, headersKey, mappingError } from "@/lib/import/mapping";
 import { UnreadableFileError, extensionOf, kindOf, parseFile } from "@/lib/import/parse";
+import { parsePaste, pasteError, pastedRows, PASTE_COPY } from "@/lib/import/paste";
 import { buildPreview } from "@/lib/import/preview";
 import { deleteObject, getObject, putObject } from "@/lib/storage";
 
 export { UPLOAD_COPY };
 
-const CONTENT_TYPES = { xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", csv: "text/csv" } as const;
+// A pasted list (stories/E3-4): the text is the source file, stored as text/plain under the
+// same prefix, and the row is an upload of kind "pasted" with the three fixed columns; from
+// there the preview, the mapping and the import treat it like a file.
+export async function savePaste(actor: { ws: WorkspaceId; userId: string }, projectId: string, text: string): Promise<SaveUploadResult> {
+  const project = await projects.get(actor.ws, projectId);
+  if (!project) throw new NotFoundError();
+  if (project.isSample) return { error: UPLOAD_COPY.sample };
+  const bytes = new TextEncoder().encode(text);
+  if (bytes.byteLength > SIZE_MAX) return { error: UPLOAD_COPY.pasteTooBig(bytes.byteLength) };
+  const rows = parsePaste(text);
+  const tooFew = pasteError(rows);
+  if (tooFew) return { error: tooFew };
+  if (rows.length > ROWS_MAX) return { error: UPLOAD_COPY.pasteTooManyRows(rows.length) };
+  const preview = buildPreview({ kind: "pasted", sheets: [{ name: "pasted", rows: pastedRows(rows) }] });
+  const { mapping, remember } = await initialMapping(actor.ws, preview);
+  const objectKey = `uploads/${actor.ws}/${randomBytes(8).toString("hex")}.txt`;
+  await putObject(objectKey, bytes, CONTENT_TYPES.pasted);
+  try {
+    const upload = await uploads.create(actor.ws, {
+      projectId, objectKey, filename: PASTE_COPY.filename, kind: "pasted", byteSize: bytes.byteLength,
+      sheet: null, headerRow: null, preview, mapping, createdBy: actor.userId,
+    });
+    if (remember && mapping) await workspaceMappings.upsert(actor.ws, headersKey(preview.columns), mapping);
+    return { upload };
+  } catch (error) {
+    await deleteObject(objectKey).catch(() => undefined);
+    throw error;
+  }
+}
+
+const CONTENT_TYPES = { xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", csv: "text/csv", pasted: "text/plain" } as const;
 
 export type SaveUploadResult = { error: string } | { upload: Upload };
 

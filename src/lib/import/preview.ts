@@ -8,11 +8,14 @@ import type { UploadPreview } from "@/db/types";
 import { columnLetter, detectHeader } from "./header";
 import { PREVIEW_ROWS } from "./limits";
 import type { ParsedFile } from "./parse";
+import { PASTE_COLUMNS } from "./paste";
 
 export function buildPreview(file: ParsedFile, choice: { sheet?: string | null; headerRow?: number | null } = {}): UploadPreview {
   const sheets = file.sheets.map((s) => s.name);
   const chosen = (choice.sheet && file.sheets.find((s) => s.name === choice.sheet)) || file.sheets.find((s) => s.rows.length > 0) || null;
   if (!chosen) return { sheets, sheet: null, headerRow: null, columns: [], rows: [], rowsRead: 0 };
+  // A pasted list (stories/E3-4) has its three fixed columns and no header row to find.
+  if (file.kind === "pasted") return { sheets, sheet: chosen.name, headerRow: null, columns: PASTE_COLUMNS, rows: chosen.rows.slice(0, PREVIEW_ROWS), rowsRead: chosen.rows.length };
   const picked = choice.headerRow;
   const headerRow = picked === 0 ? null : picked && picked >= 1 && picked <= chosen.rows.length ? picked : detectHeader(chosen.rows);
   const header = headerRow ? chosen.rows[headerRow - 1] : [];

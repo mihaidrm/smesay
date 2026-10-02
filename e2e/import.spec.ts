@@ -1,7 +1,8 @@
 // The main path of E3-2 (acceptance 6): sign in, create a project, upload the Marlow fixture
 // (12 rows, invented, decision 0002), see the summary line, the four columns and ten rows.
-// Then E3-3 (acceptance 5): the guessed mapping, a change, a second copy of the file opening
-// with "Mapping remembered from"; the import click joins the test with E3-5.
+// Then E3-3 (acceptance 5): the guessed mapping, a change, the import (E3-5: the check card,
+// the commit, the stepper on Shape), a second copy of the file opening with "Mapping
+// remembered from".
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -59,8 +60,27 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.locator("#mapping-error")).toHaveText("Pick the column that holds the requirement text. Without it there is nothing to import.");
   await page.getByLabel("Requirement", { exact: true }).selectOption("text");
   await expect(page.locator("#mapping-error")).toHaveCount(0);
-  await page.getByLabel("Upload another file").setInputFiles("e2e/fixtures/expense-requirements.xlsx");
+
+  // E3-5: the check card and the import.
+  await expect(page.getByTestId("check-card").getByText("0 empty rows, skipped.", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("check-card").getByText("0 exact duplicates, imported once.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Import 12 items" }).click();
+  await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
+  await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();
+  await expect(page.getByTestId("imported-version")).toHaveText("Imported as version 1.");
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Shape/);
+
+  // A second copy with one changed row (CL-05): the mapping remembered, then version 2 and
+  // the diff counts (E3-6, acceptance 4 and 5).
+  await page.getByLabel("Upload another file").setInputFiles("e2e/fixtures/expense-requirements-v2.xlsx");
   await page.getByRole("button", { name: "Upload", exact: true }).click();
   await expect(page.getByTestId("mapping-remembered")).toContainText("Mapping remembered from");
   await expect(page.getByLabel("Module", { exact: true })).toHaveValue("custom");
+  await page.getByRole("button", { name: "Import 12 items" }).click();
+  await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 2 on");
+  await expect(page.getByTestId("version-row")).toHaveCount(2);
+  await expect(page.getByTestId("version-diff")).toHaveText("Version 1 to 2: 11 items unchanged, 1 changed, 0 new, 0 gone.");
+  await page.getByRole("link", { name: "Version 1", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Version 1", exact: true })).toBeVisible();
+  await expect(page.getByTestId("version-items").getByRole("row")).toHaveCount(13);
 });

@@ -9,6 +9,8 @@ export const UPLOAD_COPY = {
   tooBig: (size: number) => `This file is ${formatBytes(size)}. The limit is ${formatBytes(SIZE_MAX)}. Remove sheets or columns you do not need and upload again.`,
   tooManyRows: (rows: number, sheet: string | null) =>
     `${sheet ? `Sheet ${sheet} has` : "This file has"} ${rows.toLocaleString("en-GB")} rows. The limit is ${ROWS_MAX.toLocaleString("en-GB")}. Split the list and upload the first part.`,
+  pasteTooBig: (size: number) => `This list is ${formatBytes(size)}. The limit is ${formatBytes(SIZE_MAX)}. Paste a shorter list.`,
+  pasteTooManyRows: (rows: number) => `This list has ${rows.toLocaleString("en-GB")} lines. The limit is ${ROWS_MAX.toLocaleString("en-GB")}. Split it and paste the first part.`,
   unreadable: "The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it.",
   sample: "The sample project cannot be edited.",
   noHeader: "No header row found. Pick the row that holds the column names, or tell us which column is the requirement.",

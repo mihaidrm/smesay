@@ -39,3 +39,7 @@ instrument shows a closed page, not an error.
 invite rows of kind public (docs/schema.md: token, opens_at, closes_at, passcode_hash). One
 public invite per instrument in R1; publishing creates it. The passcode is remembered per
 device by a cookie scoped to the token path.
+
+Owed from E3-6 (recorded 2026-10-02): the Import banner "This list is published. Importing a
+new version does not change the published instrument..." (docs/copy/errors.md) once an
+instrument can be published.

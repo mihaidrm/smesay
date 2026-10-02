@@ -88,3 +88,7 @@ Built 2026-10-02.
   cells in the header row (MIN_FILLED), so a one-column list gets the picker. And the noHeader
   message says "tell us which column is the requirement", a control E3-3 adds. Both asked
   2026-10-02.
+- Change of 2026-10-02 (with E3-5): LONGER_MIN in src/lib/import/header.ts went from 8 to 3,
+  because a header "Requirement" over 19-character requirements was not found (the data
+  rows were not "clearly longer" by 8); header.test.ts has the case. The six fixtures still
+  give the same rows, no-header.csv included.

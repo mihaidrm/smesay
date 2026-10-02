@@ -31,12 +31,19 @@ the check constraints use them). Change this file first.
 - ClosingSpec (jsonb, instrument.closing):
   { confidence: true, missingForm: boolean, signOffText: string }
 - ImportReport (jsonb, item_set.import_report):
-  { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow: number }
-- ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean }
+  { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow:
+  number (0 when the file had none), unrecognisedValues: number, duplicateRefs: { kept: string,
+  folded: string[] }[] } (E3-5; kept is the reference of the item kept, or "row N").
+- ImportRow (not stored; src/lib/import/report.ts, E3-4 and E3-5): the row shape the check
+  and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
+  foldedRefs }.
+- ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean,
+  foldedRefs?: string[] (E3-5: the references of the exact duplicates folded into this item) }
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
-  ten data rows), rowsRead: number }. UploadKind: xlsx, csv.
+  ten data rows), rowsRead: number }. UploadKind: xlsx, csv, pasted (E3-4: a pasted list is
+  stored as text with three columns, Item, Area, Proposed value, and no header row).
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
@@ -68,8 +75,13 @@ Uploads (E3-2): uploads, the scoped six over upload plus uploads.latestForProjec
 client can use it). upload.preview is UploadPreview (above): rowsRead counts the data rows
 below the chosen header row of the chosen sheet (every row when there is no header), at most
 2,000 after the checks; rows holds the first ten of them. Objects are at
-uploads/<workspace id>/<16 hex>.<xlsx|csv>, logos at logos/<workspace id>/..., so a workspace's
-objects are its segment under each of the two prefixes (E11-2 lists both).
+uploads/<workspace id>/<16 hex>.<xlsx|csv|txt> (txt for a pasted list, `savePaste()` in
+src/lib/uploads.ts), logos at logos/<workspace id>/..., so a workspace's objects are its
+segment under each of the two prefixes (E11-2 lists both).
+Import (E3-5, E3-6): `checkUpload(upload)`, `commitUpload(ws, uploadId, userId)` (one set per
+upload), `importLog(ws, projectId)` and `latestSet(ws, projectId)` in src/lib/imports.ts;
+`commitImport(ws, input)` in src/db/queries/importCommit.ts (imported by name, the one
+transaction); itemSets.versions(ws, projectId) (every set with its item count and importer).
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
 aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.

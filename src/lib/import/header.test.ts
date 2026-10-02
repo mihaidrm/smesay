@@ -57,6 +57,12 @@ describe("detectHeader on the fixtures", () => {
   });
 });
 
+describe("the longer-below rule", () => {
+  it("finds a header over short requirements (LONGER_MIN 3, E3-5)", () => {
+    expect(detectHeader([["Ref", "Requirement", "Module", "Priority"], ["CL-01", "OCR receipt capture", "Submitting", "Must"], ["CL-02", "Approve from email", "Approving", "High"]])).toBe(1);
+  });
+});
+
 describe("the cell rules", () => {
   it("typed cells are numbers, dates and booleans", () => {
     for (const c of ["12", "1,200.50", "-3", "45%", "2026-10-02", "02/10/2026", "yes", "FALSE"]) expect(isTyped(c), c).toBe(true);

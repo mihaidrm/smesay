@@ -24,7 +24,7 @@ export const READER_STATUSES = ["suggested", "accepted", "rejected"] as const;
 export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
 export const MEMBER_ROLES = ["owner", "member"] as const;
 export const ITEM_SET_SOURCES = ["xlsx", "csv", "pasted"] as const;
-export const UPLOAD_KINDS = ["xlsx", "csv"] as const;
+export const UPLOAD_KINDS = ["xlsx", "csv", "pasted"] as const;
 export const AI_PURPOSES = ["shape", "insights"] as const;
 export const PLAN_KEYS = ["free", "pro", "team", "enterprise"] as const;
 
@@ -119,6 +119,7 @@ export const upload = pgTable("upload", {
 }, (t) => [
   foreignKey({ name: "upload_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   index("upload_project_idx").on(t.projectId),
+  unique("upload_id_workspace_uq").on(t.id, t.workspaceId),
   check("upload_kind_check", oneOf("kind", UPLOAD_KINDS)),
 ]);
 
@@ -143,11 +144,22 @@ export const itemSet = pgTable("item_set", {
   source: text("source", { enum: ITEM_SET_SOURCES }).notNull(),
   sourceFilename: text("source_filename"),
   importReport: jsonb("import_report").$type<ImportReport>(),
+  // Who imported (stories/E3-6, the import log); the upload the set came from (E3-5), null for
+  // the sample and for sets made before E3-5.
+  importedBy: text("imported_by").references(() => user.id, { onDelete: "set null" }),
+  uploadId: uuid("upload_id"),
   importedAt: ts("imported_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
+  // No delete action: "set null" on a composite key would null workspace_id too (E3-4 audit,
+  // finding 3). An upload that became a version is not deleted on its own; the workspace
+  // deletion cascades through both tables.
+  foreignKey({ name: "item_set_upload_fk", columns: [t.uploadId, t.workspaceId], foreignColumns: [upload.id, upload.workspaceId] }),
   index("item_set_workspace_idx").on(t.workspaceId),
   uniqueIndex("item_set_project_version_idx").on(t.projectId, t.version),
+  // One set per upload (stories/E3-5; E3-5 audit, finding 1): a replayed Import form cannot
+  // write a second, identical version.
+  uniqueIndex("item_set_upload_idx").on(t.uploadId),
   unique("item_set_id_workspace_uq").on(t.id, t.workspaceId),
   unique("item_set_id_project_uq").on(t.id, t.projectId),
   check("item_set_source_check", oneOf("source", ITEM_SET_SOURCES)),

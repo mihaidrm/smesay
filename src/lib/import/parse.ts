@@ -10,8 +10,7 @@
 //   (types/InvalidSpreadsheetError.d.ts).
 // - papaparse 5.7.0 for csv: Papa.parse(text, { delimiter: "" }) guesses the delimiter from
 //   the first rows (node_modules/@types/papaparse/index.d.ts, `delimiter`: "Leave blank to
-//   auto-detect from a list of most common delimiters"), skipEmptyLines drops blank lines
-//   (ibid.), and meta.delimiter reports the one it chose.
+//   auto-detect from a list of most common delimiters"); blank lines are kept as empty rows.
 // The text decoding is ours: a UTF-16 byte order mark (FF FE or FE FF) picks that encoding,
 // a UTF-8 mark is dropped by TextDecoder's default (developer.mozilla.org/docs/Web/API/
 // TextDecoder/TextDecoder: ignoreBOM false strips it), anything else is read as UTF-8.
@@ -20,8 +19,10 @@
 import Papa from "papaparse";
 import readXlsxFile, { InvalidInputError, InvalidSpreadsheetError } from "read-excel-file/node";
 import { SIZE_MAX } from "./limits";
+import { parsePaste, pastedRows } from "./paste";
 
-export type UploadKind = "xlsx" | "csv";
+// "pasted" (stories/E3-4) is the text of the paste box, stored as the source file.
+export type UploadKind = "xlsx" | "csv" | "pasted";
 export type ParsedSheet = { name: string; rows: string[][] };
 export type ParsedFile = { kind: UploadKind; sheets: ParsedSheet[] };
 
@@ -43,7 +44,7 @@ export function extensionOf(filename: string): string {
 
 export async function parseFile(kind: UploadKind, bytes: Uint8Array): Promise<ParsedFile> {
   if (bytes.byteLength > SIZE_MAX) throw new Error(`parseFile refuses ${bytes.byteLength} bytes; check the size before calling it.`);
-  const sheets = kind === "xlsx" ? await parseXlsx(bytes) : [parseCsv(bytes)];
+  const sheets = kind === "xlsx" ? await parseXlsx(bytes) : kind === "csv" ? [parseCsv(bytes)] : [{ name: "pasted", rows: pastedRows(parsePaste(decode(bytes))) }];
   // Every row is kept: both libraries parse the whole file anyway, and the row limit
   // (src/lib/uploads.ts) needs the real count for its message.
   return { kind, sheets };
@@ -61,7 +62,9 @@ async function parseXlsx(bytes: Uint8Array): Promise<ParsedSheet[]> {
 
 function parseCsv(bytes: Uint8Array): ParsedSheet {
   const text = decode(bytes);
-  const result = Papa.parse<string[]>(text, { delimiter: "", skipEmptyLines: true });
+  // Blank lines stay (skipEmptyLines false, the default), so a row number on the check card is
+  // the line in the file and a blank line counts as an empty row; trailing ones are dropped.
+  const result = Papa.parse<string[]>(text, { delimiter: "" });
   return { name: "csv", rows: trimTrailing(result.data.map((row) => row.map((c) => (c ?? "").trim()))) };
 }
 
