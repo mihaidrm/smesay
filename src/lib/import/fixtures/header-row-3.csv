@@ -1,0 +1,9 @@
+Expense tool requirements,,,
+Exported 2026-09-30 by the PMO,,,
+Ref,Requirement,Module,Priority
+CL-01,OCR receipt capture via mobile (auto-fill amt/date/vendor).,Submitting,Must
+CL-02,Multi-allocation of single expense line to 2+ cost centres/projects.,Submitting,Should
+CL-03,Approval actionable from notification email (no login).,Approving,Must
+CL-04,Policy engine: auto-flag out-of-policy claims pre-approval.,Approving,Should
+CL-05,"Reimbursement via payroll integration, next cycle.",Paying,Must
+CL-06,Travel advance request workflow (pre-trip).,Paying,Could

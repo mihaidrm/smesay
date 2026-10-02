@@ -29,6 +29,9 @@ the check constraints use them). Change this file first.
   { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow: number }
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean }
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
+- UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
+  headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
+  ten data rows), rowsRead: number }. UploadKind: xlsx, csv.
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.

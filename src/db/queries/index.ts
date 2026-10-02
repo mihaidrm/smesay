@@ -4,6 +4,7 @@ export { workspaces } from "./workspaces";
 export { members } from "./members";
 export { workspaceInvites } from "./workspaceInvites";
 export { projects } from "./projects";
+export { uploads } from "./uploads";
 export { itemSets } from "./itemSets";
 export { items } from "./items";
 export { instruments } from "./instruments";

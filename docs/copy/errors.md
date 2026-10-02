@@ -41,9 +41,12 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Inline, upload | File is not xlsx or csv | This file is [EXTENSION]. Upload an xlsx or csv, or paste the list instead. |
-| Inline, upload | File over the size limit | This file is [SIZE]. The limit is [LIMIT, decide in E3]. Remove sheets or columns you do not need and upload again. |
-| Inline, upload | No header row found | No header row found. Pick the row that holds the column names, or tell us which column is the requirement. |
+| Inline, upload | File is not xlsx or csv (by extension; a file without one reads "without an extension") | This file is [EXTENSION]. Upload an xlsx or csv, or paste the list instead. |
+| Inline, upload | File over 5 MB (checked in the browser before the upload and again on the server; E3-2) | This file is [SIZE]. The limit is 5 MB. Remove sheets or columns you do not need and upload again. |
+| Inline, upload | Over 2,000 rows below the header (E3-2) | This file has over 2,000 rows. The limit is 2,000. Split the list and upload the first part. |
+| Inline, upload | The file has the extension but is not a workbook or readable text (E3-2) | The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it. |
+| Inline, upload | Upload on the sample project, through the server (E3-2) | The sample project cannot be edited. |
+| Inline, preview | No header row found | No header row found. Pick the row that holds the column names, or tell us which column is the requirement. |
 | Inline, upload | No column mapped to the item text | Pick the column that holds the requirement text. Without it there is nothing to import. |
 | Inline, paste box | Empty or one line | Paste at least two lines, one item per line. |
 | Card, check before import | Empty rows, duplicates, long items (counts already on the board) | [N] empty rows, skipped. [N] exact duplicates, imported once. [N] items over 1,000 characters, imported whole; consider splitting them in Shape. |

@@ -101,6 +101,22 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | About card button and saved line | Save; Saved. |
 | About card on the sample | The sample project cannot be edited. |
 
+## Import, upload and preview (E3-2)
+
+| Where | Text |
+|---|---|
+| Upload card title and line | The list. Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported. |
+| File field label | Your file (after the first upload: Upload another file) |
+| File field line | xlsx or csv, up to 5 MB and 2,000 rows. One item per row; the columns are mapped on the next card. |
+| Upload button | Upload |
+| Preview card title | Preview |
+| Summary line (the board's wording) | [FILE], [N] rows read, header found on row [N]. (no header: [FILE], [N] rows read, no header row found.) |
+| Sheet picker | Sheet; Show sheet |
+| Header row picker | Header row; No header row, Row [N]; Use this row |
+| Column headers | [LETTER] [NAME] (the letter alone when there is no header) |
+| Line under the rows | The first 10 of [N] rows. |
+| Empty sheet | This sheet has no rows. Pick another sheet, or upload another file. |
+
 ## Signed-in shell (E2-1, E2-3)
 
 | Where | Text |

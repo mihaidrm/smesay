@@ -5,6 +5,17 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number };
 export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean };
 export type ResponseFields = { [key: string]: string };
+// What the server found in an upload (stories/E3-2): the sheets, the chosen sheet, the header
+// row (1-based, null when none qualified), the columns with their letters and names, the first
+// ten data rows, the number of data rows.
+export type UploadPreview = {
+  sheets: string[];
+  sheet: string | null;
+  headerRow: number | null;
+  columns: { letter: string; name: string }[];
+  rows: string[][];
+  rowsRead: number;
+};
 
 export type MemberRole = "owner" | "member";
 export type PlanKey = "free" | "pro" | "team" | "enterprise";
