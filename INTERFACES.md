@@ -158,4 +158,6 @@ projectId, "accept" | "reject")` over the latest set's suggested versions in one
 `textFor(item)` in src/lib/item-text.ts (no database import) is the one rule for which text
 an item shows: the reader version only where reader_status is accepted, else the original;
 `hasReaderVersion`, `readerIsOriginal`, `readerCounts` beside it. The respondent side (E7)
-and the preview (E5-6) read textFor().
+and the preview (E5-6) read textFor(). Flags (E4-4): `flagsFor(rows)` (one ItemFlag per
+flagged item, dismissed ones and duplicates whose target left the set dropped),
+`dismissFlag(actor, projectId, itemId)` on `dismissItemFlags`.

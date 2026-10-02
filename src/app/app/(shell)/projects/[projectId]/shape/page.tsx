@@ -11,8 +11,9 @@ import { items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
-import { areaNames, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
+import { areaNames, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
+import { FlagBanners } from "./flags";
 import { ReaderAll } from "./reader-all";
 import { ShapeButton } from "./shape-button";
 
@@ -30,6 +31,13 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const suggested = rows.filter((it) => hasReaderVersion(it) && it.readerStatus === "suggested").length;
   // The sample's reader versions are accepted in the seed; it shows them without a run.
   const showReaders = shaped || project.isSample;
+  // Flags (stories/E4-4): the banners above the areas and the note on each flagged item.
+  const flags = flagsFor(rows);
+  const noteFor = (id: string) => {
+    const own = flags.filter((f) => f.itemId === id);
+    const parts = own.map((f) => (f.kind === "ambiguity" ? `${SHAPE_COPY.ambiguityNote} ${f.what}` : SHAPE_COPY.duplicateItemNote(f.otherRef)));
+    return parts.length ? parts.join(" ") : null;
+  };
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -52,13 +60,14 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
       </div>
+      <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
         <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-hairline-strong p-6" data-testid="shape-empty">
           <div className="font-medium">{SHAPE_COPY.noSet}</div>
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) } })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, note: noteFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
       )}
     </div>
   );

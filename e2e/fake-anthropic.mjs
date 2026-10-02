@@ -4,7 +4,7 @@
 // sends ("[ref] (area: name) text" lines, src/lib/ai/prompts/shape.ts) and answers with a
 // message in the API's shape: imported areas kept with the loose items in the first one, or
 // three areas by thirds when the list has none; an item marked (keep in: name) stays in that
-// area. GET /health says it is up.
+// area. One ambiguity and one duplicate flag are raised by item text. GET /health says it is up.
 import http from "node:http";
 
 const PORT = Number(process.env.FAKE_ANTHROPIC_PORT ?? 4010);
@@ -31,7 +31,9 @@ function shape(data) {
   }
   return {
     areas: areas.map((a, i) => ({ ...a, rationale: i === 0 ? `First, because ${a.name.toLowerCase()} starts it.` : `Then, ${a.name.toLowerCase()}.` })),
-    items: items.map((it) => ({ ref: it.ref, reader: `${it.text} (in plain words)`, flags: { ambiguity: null, duplicateOf: null } })),
+    // One ambiguity on the per diem item, one duplicate flag on mileage pointing at the first
+    // item, so the browser test can see both banners (stories/E4-4).
+    items: items.map((it) => ({ ref: it.ref, reader: `${it.text} (in plain words)`, flags: { ambiguity: /per diem/i.test(it.text) ? "Which countries, and who sets the rate" : null, duplicateOf: /mileage/i.test(it.text) ? items[0].ref : null } })),
   };
 }
 

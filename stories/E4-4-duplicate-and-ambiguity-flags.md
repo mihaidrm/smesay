@@ -1,7 +1,7 @@
 # E4-4 Duplicate and ambiguity flags
 
 User: a PM who wants to fix a list before 40 people read it
-Status: ready
+Status: built
 Outcome: near-duplicates and items that do not say enough are flagged, each flag links to the
 items involved, and a dismissed flag stays dismissed.
 

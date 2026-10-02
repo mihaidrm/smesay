@@ -16,7 +16,8 @@ import { SHAPE_COPY } from "@/lib/shaping-copy";
 import { moveAction, type ProjectFormState } from "../../actions";
 import { ReaderControls, ReaderText, type ReaderState } from "./reader-row";
 
-export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState };
+// note (E4-4): the item's own line under its text, the ambiguity or the duplicate it may be.
+export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; note: string | null };
 export type BoardGroup = { name: string; rationale: string | null; items: BoardItem[] };
 const NONE: ProjectFormState = { error: null, saved: false };
 
@@ -54,6 +55,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
             {group.items.map((it) => (
               <div
                 key={it.id}
+                id={`item-${it.id}`}
                 data-testid="item"
                 data-item-id={it.id}
                 draggable={!readOnly}
@@ -61,7 +63,10 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                 className={cn("flex items-start gap-4 border-b border-grey-100 px-4 py-3 last:border-b-0", !readOnly && "cursor-grab active:cursor-grabbing")}
               >
                 <div className="w-14 shrink-0 pt-0.5 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
-                <div className="min-w-0 flex-grow"><ReaderText item={it.reader} original={it.text} /></div>
+                <div className="min-w-0 flex-grow">
+                  <ReaderText item={it.reader} original={it.text} />
+                  {it.note && <div className="mt-1 text-xs text-unclear-text" data-testid="item-note">{it.note}</div>}
+                </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {/* Keyed by what the server holds, so a saved decision or edit closes the controls' own state. */}
                   <ReaderControls key={`${it.reader.status}:${it.reader.reader}`} projectId={projectId} itemId={it.id} ref={it.ref ?? String(it.position)} item={it.reader} readOnly={readOnly || readerOnly} />

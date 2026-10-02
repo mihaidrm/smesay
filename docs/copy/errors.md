@@ -83,6 +83,7 @@ of the content; page means it replaces the screen.
 | Inline, New project | The plan has no room for another project (E2-6; never on the free entry; archived projects count too, usage.ts) | Your plan has no room for another project. Change the plan. |
 | Inline, About this project | Save on the sample project, through the server | The sample project cannot be edited. |
 | Banner, Shape (already on the board) | Ambiguity flag | Ambiguity in [REF]. [What the item does not say]. Respondents may mark it unclear. [Dismiss] |
+| Banner, Shape | Duplicate flag (E4-4) | [REF] may duplicate [REF]. If they ask for the same thing, remove one in the file and import it again. [Dismiss] |
 | Inline, Shape | Reader version identical to the original | The readable version is the same as the original, so there is nothing to accept. |
 | Inline, Shape | A blank edit of a reader version (E4-3, decision 0031 item 8) | Write the readable version, or reject the suggestion to keep the original. |
 | Inline, Shape | An edit over 1,000 characters (E4-3; the model's versions have the same cap) | The readable version is [N] characters. Keep it to 1,000 or fewer. |

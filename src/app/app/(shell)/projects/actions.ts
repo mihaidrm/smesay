@@ -11,7 +11,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { commitUpload } from "@/lib/imports";
-import { decideAllReaders, decideReader, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
+import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button.
@@ -225,6 +225,21 @@ export async function readerAllAction(_previous: ProjectFormState, formData: For
   if (move !== "accept" && move !== "reject") notFound();
   try {
     const result = await decideAllReaders({ ws: current.ws, userId: session.user.id }, projectId, move);
+    if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${projectId}/shape`);
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// Flags (stories/E4-4): dismiss one item's flags.
+export async function dismissFlagAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await dismissFlag({ ws: current.ws, userId: session.user.id }, projectId, String(formData.get("itemId") ?? ""));
     if ("error" in result) return { ...NONE, error: result.error };
     revalidatePath(`/app/projects/${projectId}/shape`);
     return { ...NONE, saved: true };

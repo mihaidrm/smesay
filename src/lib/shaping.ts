@@ -4,7 +4,7 @@
 // src/lib/shaping-copy.ts (no database import, so the client components use it);
 // docs/copy/app.md (Shape) and docs/copy/errors.md (Shaping).
 import { items as itemQueries, projects } from "@/db/queries";
-import { applyShaping, moveItem, setReaderStatus, setReaderStatusForItems, type Placement } from "@/db/queries/shaping";
+import { applyShaping, dismissItemFlags, moveItem, setReaderStatus, setReaderStatusForItems, type Placement } from "@/db/queries/shaping";
 import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { ShapeArea } from "@/db/types";
@@ -236,4 +236,36 @@ export async function decideAllReaders(actor: Actor, projectId: string, move: "a
   if (!set) throw new NotFoundError();
   const ids = (await itemQueries.forSet(actor.ws, set.id)).filter((it) => it.readerStatus === "suggested" && hasReaderVersion(it)).map((it) => it.id);
   return { count: await setReaderStatusForItems(actor.ws, set.id, ids, move === "accept" ? "accepted" : "rejected") };
+}
+
+// Flags (stories/E4-4): what the Shape page shows for the model's ambiguity and duplicate
+// flags. One entry per flagged item, in position order, dismissed ones left out; a
+// duplicateOf whose target is not in the set is dropped here too (acceptance 4). Refs are
+// the source reference when there is one, else the position.
+export type ItemFlag =
+  | { kind: "ambiguity"; itemId: string; ref: string; what: string }
+  | { kind: "duplicate"; itemId: string; ref: string; otherId: string; otherRef: string };
+
+export const displayRef = (it: Item) => it.sourceRef ?? String(it.position);
+
+export function flagsFor(rows: Item[]): ItemFlag[] {
+  const byPosition = new Map(rows.map((it) => [String(it.position), it]));
+  const out: ItemFlag[] = [];
+  for (const it of rows) {
+    const flags = it.flags;
+    if (!flags || flags.dismissed) continue;
+    if (flags.ambiguity) out.push({ kind: "ambiguity", itemId: it.id, ref: displayRef(it), what: flags.ambiguity });
+    const other = flags.duplicateOf ? byPosition.get(flags.duplicateOf) : undefined;
+    if (other && other.id !== it.id) out.push({ kind: "duplicate", itemId: it.id, ref: displayRef(it), otherId: other.id, otherRef: displayRef(other) });
+  }
+  return out;
+}
+
+export async function dismissFlag(actor: Actor, projectId: string, itemId: string): Promise<{ error: string } | { item: Item }> {
+  const own = await ownItem(actor, projectId, itemId);
+  if ("error" in own) return own;
+  if (!own.item.flags?.ambiguity && !own.item.flags?.duplicateOf) return { error: SHAPE_COPY.noFlag };
+  const item = await dismissItemFlags(actor.ws, own.item.id);
+  if (!item) throw new NotFoundError();
+  return { item };
 }

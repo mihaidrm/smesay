@@ -90,6 +90,18 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("area").nth(1).getByTestId("item").filter({ hasText: "Mileage" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(0).getByTestId("item")).toHaveCount(2);
 
+  // Flags (E4-4): the stand-in raises one ambiguity and one duplicate. Dismiss the duplicate;
+  // it stays dismissed after a reload and a run again (checked at the end).
+  await expect(page.getByTestId("flag-ambiguity")).toHaveCount(1);
+  await expect(page.getByTestId("flag-ambiguity")).toContainText("Ambiguity in 5. Which countries, and who sets the rate. Respondents may mark it unclear.");
+  await expect(page.getByTestId("flag-duplicate")).toContainText("6 may duplicate 1.");
+  await expect(page.getByTestId("item").filter({ hasText: "Per diem" }).getByTestId("item-note")).toHaveText("Ambiguity: Which countries, and who sets the rate");
+  await page.getByTestId("flag-duplicate").getByRole("button", { name: "Dismiss" }).click();
+  await expect(page.getByTestId("flag-duplicate")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId("flag-duplicate")).toHaveCount(0);
+  await expect(page.getByTestId("flag-ambiguity")).toHaveCount(1);
+
   // Reader versions (E4-3): every item has a suggested one from the stand-in.
   await expect(page.getByTestId("reader-counter")).toHaveText("0 of 6 reader versions accepted.");
   await expect(page.getByTestId("reader-pill")).toHaveCount(6);
@@ -115,4 +127,10 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("reader-pill").filter({ hasText: "Original kept" })).toHaveCount(5);
   await expect(page.getByTestId("reader-counter")).toHaveText("1 of 6 reader versions accepted.");
   await expect(page.getByRole("button", { name: "Accept all" })).toHaveCount(0);
+
+  // A run again keeps the dismissal (E4-4, acceptance 3).
+  await page.getByRole("button", { name: "Run again" }).click();
+  await expect(page.getByTestId("reader-counter")).toHaveText("1 of 6 reader versions accepted.");
+  await expect(page.getByTestId("flag-duplicate")).toHaveCount(0);
+  await expect(page.getByTestId("flag-ambiguity")).toHaveCount(1);
 });

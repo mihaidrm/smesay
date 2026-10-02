@@ -83,3 +83,15 @@ export async function setReaderStatusForItems(workspaceId: WorkspaceId, itemSetI
   const rows = await db.update(item).set({ readerStatus: status }).where(and(eq(item.workspaceId, workspaceId), eq(item.itemSetId, itemSetId), inArray(item.id, ids), eq(item.readerStatus, "suggested"))).returning({ id: item.id });
   return rows.length;
 }
+
+// Dismissing an item's flags (stories/E4-4, acceptance 3): flags.dismissed on, nothing else
+// touched; applyShaping keeps it across runs.
+export async function dismissItemFlags(workspaceId: WorkspaceId, itemId: string): Promise<Item | null> {
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select().from(item).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).for("update");
+    if (!row) return null;
+    const flags: ItemFlags = { ...(row.flags ?? {}), dismissed: true };
+    const [updated] = await tx.update(item).set({ flags }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).returning();
+    return updated ?? null;
+  });
+}
