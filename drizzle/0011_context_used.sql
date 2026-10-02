@@ -1,0 +1,1 @@
+ALTER TABLE "item_set" ADD COLUMN "context_used" jsonb;

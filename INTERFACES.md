@@ -51,8 +51,10 @@ the check constraints use them). Change this file first.
 - ShapeState (E4-2, on item_set): areas jsonb ShapeArea[] = { name, rationale }[] (the areas
   in the model's order, each with its one-sentence rationale; an area the PM has emptied
   stays until the next run; null until shaped), shape_runs integer (how many times shaping
-  ran on this set, default 0), shaped_at timestamp (the last run, null until shaped). Each
-  item also carries its area's rationale as item.area_rationale, for the respondent side.
+  ran on this set, default 0), shaped_at timestamp (the last run, null until shaped),
+  context_used jsonb ProjectContext = { goal, terms } (E4-5: what the last run was given,
+  null fields when the project had none; null until shaped). Each item also carries its
+  area's rationale as item.area_rationale, for the respondent side.
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
@@ -163,4 +165,12 @@ an item shows: the reader version only where reader_status is accepted, else the
 and the preview (E5-6) read textFor(). Flags (E4-4): `flagsFor(rows)` (one ItemFlag per
 flag, an item with both has two; dismissed items and duplicates whose target left the set
 dropped), `dismissFlag(actor, projectId, itemId)` on `dismissItemFlags`. The ambiguity text
-is stored with its whitespace folded and dropped when blank.
+is stored with its whitespace folded and dropped when blank. Project context (E4-5):
+`contextBlock({ goal, terms })` in src/lib/ai/context.ts gives the PROJECT CONTEXT data
+section (null when both are blank), `contextOf()` the two fields folded, and
+CONTEXT_INSTRUCTION the instruction for the system prompt, purpose-neutral and saying the
+section is data; each prompt adds its own line on what the goal is for. buildShapePrompt
+(items, context) puts the section before AREAS and the list; E9's insights prompt reuses
+contextBlock and CONTEXT_INSTRUCTION the same way. shapeSet stores the context it sent on
+the set (context_used); `contextLine(set, project)` says what the page shows: used, next,
+none, and whether Import's context changed since the run.

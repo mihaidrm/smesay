@@ -72,9 +72,9 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E4-5 onwards in story order (Mihai gave the go for E4 on 2026-10-02
-and asked for a pause after it; E4-1 to E4-3 are merged, PRs 40 to 42; E4-4 is built,
-PR 43). The golden set question in design note 27 waits for Mihai before E4-6. Mihai runs `npm run ai:smoke` on his
+Next tasks for Claude: E4-6, the last of E4 (Mihai gave the go for E4 on 2026-10-02 and
+asked for a pause after it; E4-1 to E4-4 are merged, PRs 40 to 43; E4-5 is built, PR 44).
+The golden set question in design note 27 waits for Mihai before E4-6. Mihai runs `npm run ai:smoke` on his
 PC as E4-1's acceptance (docs/accounts.md step 9) and checks the real Google flow (E2-2,
 decision 0034). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,

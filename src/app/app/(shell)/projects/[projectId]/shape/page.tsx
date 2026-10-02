@@ -3,7 +3,9 @@
 // items; an item can be dragged to another area or moved with "Move to". Each item shows
 // its reader version with Accept, Edit, Reject and Undo, and the title row has Accept all
 // and Reject all with the counter under it (stories/E4-3). Without a set the page points to
-// Import. The sample is read-only (E8-8): its reader versions are shown as accepted, with no
+// Import. The context line (stories/E4-5) says what the AI was given, or where to add it;
+// the sample, which no run can use, has none.
+// The sample is read-only (E8-8): its reader versions are shown as accepted, with no
 // controls. Copy: docs/copy/app.md (Shape).
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,7 +13,7 @@ import { items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
-import { areaNames, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
+import { areaNames, contextLine, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
 import { FlagBanners } from "./flags";
 import { ReaderAll } from "./reader-all";
@@ -55,6 +57,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
         ) : (
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
+        {set && rows.length > 0 && !project.isSample && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={`/app/projects/${project.id}/import#about-title`} />}
       </div>
       <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
@@ -66,5 +69,20 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
         <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
       )}
     </div>
+  );
+}
+
+// The context line (stories/E4-5; the board's ctxLine): 13 px under the grouped line, the
+// label in ink, the rest muted. Not on the sample, which no run can use.
+function ContextLine({ line, importHref }: { line: ReturnType<typeof contextLine>; importHref: string }) {
+  if (line.kind === "none") {
+    return <p className="text-[13px] text-ink-muted" data-testid="context-line">{SHAPE_COPY.noContext} <Link href={importHref} className="underline underline-offset-4">{SHAPE_COPY.noContextLink}</Link></p>;
+  }
+  return (
+    <p className="text-[13px] text-ink-muted" data-testid="context-line">
+      <span className="font-medium text-ink">{line.kind === "used" ? SHAPE_COPY.contextUsed : SHAPE_COPY.contextNext}</span> {SHAPE_COPY.sentence(line.goal)}
+      {line.terms ? ` ${SHAPE_COPY.keptAsWritten} ${SHAPE_COPY.sentence(line.terms)}` : ""}
+      {line.changed && line.kind === "used" ? <> <span data-testid="context-changed">{SHAPE_COPY.contextChanged}</span></> : null}
+    </p>
   );
 }
