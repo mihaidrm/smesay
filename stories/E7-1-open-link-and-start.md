@@ -34,6 +34,9 @@ fields the PM asked for, and Start lands on the first chapter.
   0030).
 
 ## Technical notes
+Every workspace's sample project (E2-3) carries working invite tokens and an instrument with
+fixed dates (src/db/seed/sample.ts); this story must not let those links collect answers from
+outsiders: the sample instrument is treated as not published to the public (E8-8, acceptance 2).
 The respondent app lives under src/app/r/[token]/ and never imports the PM app's session
 helpers: access is by token (E1-3, out of scope note). The device token for a public link is
 created on Start and stored in a cookie scoped to /r/[token] (E7-3).

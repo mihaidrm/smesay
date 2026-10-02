@@ -26,7 +26,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Field label | Workspace name |
 | Button | Create workspace |
 | Switch page title | Choose a workspace |
-| Switch page line | Pick the workspace to work in. You can switch any time from the sidebar. |
+| Switch page line | Pick the workspace to work in. |
 | Switch page line when the current workspace was removed | The workspace you were in is no longer available to you. Pick another one to work in. |
 | Signed-in line under both pages | Signed in as [EMAIL]. |
 
@@ -52,3 +52,5 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Error state of any page, title | The server could not finish this request. |
 | Error state of any page, line | It has been logged. Try again in a minute. |
 | Error state button | Try again |
+| 404 page title and line (errors.md) | This page does not exist. Check the address, or go to your projects. |
+| 404 page button | Go to your projects |

@@ -30,6 +30,7 @@ Neutrals
 |---|---|---|
 | white | #FFFFFF | page background |
 | grey-50 | #F6F6F4 | section background, table header, hovered row |
+| grey-100 | #F0F0EE | neutral pill fill (the Sample pill), the same hex as the Disagree tint |
 | greige | #ECEAE5 | cards holding product fragments |
 | hairline | #E6E4DF | borders, dividers |
 | hairline-strong | #C9C7C1 | input borders, secondary buttons, arrows |

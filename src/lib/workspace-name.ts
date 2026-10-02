@@ -1,7 +1,7 @@
 // The workspace name and slug (stories/E2-3, acceptance 1 and the technical notes). The default
 // name is the part of the email after the @, capitalised. The slug is the name in lower case
 // with runs of anything but letters and digits turned into one hyphen; a taken slug gets a
-// short random suffix (src/lib/onboarding.ts). Validation runs on the server (CLAUDE.md, PM
+// short random suffix (src/db/queries/onboarding.ts). Validation runs on the server (CLAUDE.md, PM
 // side); the schema is zod (zod.dev/api).
 import { z } from "zod";
 

@@ -6,6 +6,7 @@
 // Copy: docs/copy/app.md.
 import Link from "next/link";
 import { Lockup } from "@/components/brand/mark";
+import { NeutralPill } from "@/components/ui/status-pill";
 import { members, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { SignOutButton } from "../sign-out-button";
@@ -13,7 +14,7 @@ import { WorkspaceSwitcher } from "./workspace-switcher";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { session, memberships, current } = await requireCurrentWorkspace("/app");
-  const [memberCount, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
+  const [memberRows, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
   return (
     <div className="flex min-h-screen">
       <aside className="flex w-60 shrink-0 flex-col gap-6 border-r border-hairline bg-grey-50 px-4 py-5 text-sm">
@@ -23,7 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {memberships.length > 1
             ? <WorkspaceSwitcher current={current.workspace.id} options={memberships.map((w) => ({ id: w.id, name: w.name }))} />
             : <div className="font-medium">{current.workspace.name}</div>}
-          <div className="text-xs text-ink-muted">{memberCount.length === 1 ? "1 member" : `${memberCount.length} members`}</div>
+          <div className="text-xs text-ink-muted">{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</div>
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
@@ -33,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {projectRows.map((p) => (
             <div key={p.id} className="flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-ink-soft">
               <span className="truncate">{p.name}</span>
-              {p.isSample && <span className="rounded-full bg-grey-100 px-2 text-[11px] font-medium leading-5 text-ink-soft">Sample</span>}
+              {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
             </div>
           ))}
         </div>

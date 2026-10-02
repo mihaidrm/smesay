@@ -20,6 +20,10 @@ marked everywhere as a sample, and one click deletes it.
    not updatable through any helper (the helpers refuse the column).
 5. Playwright: open the sample, see the band, delete it, see it gone from the list.
 
+## Technical notes
+The sample's invite tokens are real 128-bit tokens, one set per workspace (E2-3); acceptance 2
+is what keeps them closed to outsiders, and E7-1 refuses them until then.
+
 ## Out of scope
 - Restoring a deleted sample: not in R1 (a new workspace gets a new one).
 

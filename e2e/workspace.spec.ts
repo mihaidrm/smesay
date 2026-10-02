@@ -26,13 +26,23 @@ test("name the workspace on the first sign-in and see the sample project", async
   const sidebar = page.getByRole("complementary");
   await expect(sidebar.getByText("Marlow Group")).toBeVisible();
   await expect(sidebar.getByText("1 member")).toBeVisible();
+  await expect(page.getByTestId("breadcrumb")).toHaveText("Marlow Group");
   const rows = page.getByTestId("project-row");
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText("Sample project");
-  await expect(rows.first()).toContainText("Sample");
+  await expect(rows.first().getByTestId("project-status")).toHaveText("Sample");
   await expect(rows.first()).toContainText("Created with the workspace");
 
-  // A second visit to the create page goes back to the app.
+  // A second visit to the create page goes back to the app, and so does a second sign-in: the
+  // new session selects the only workspace without asking (src/lib/workspace-choice.ts).
   await page.goto("/app/new");
   await expect(page).toHaveURL(/\/app$/);
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/sign-in/);
+  await page.getByLabel("Email").fill(email);
+  await page.getByRole("button", { name: "Send me a link" }).click();
+  await expect(page.getByRole("status")).toBeVisible();
+  await page.goto(await latestLink(request, email));
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByTestId("breadcrumb")).toHaveText("Marlow Group");
 });

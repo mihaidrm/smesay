@@ -35,3 +35,13 @@ export function NotAnsweredPill({ className }: { className?: string }) {
     </span>
   )
 }
+
+// Neutral pill: grey-100 fill, ink-soft text, for a label that is not a verdict (the Sample
+// pill and the sample's status, stories/E2-3; design note 16).
+export function NeutralPill({ children, className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span className={cn("inline-flex h-5 items-center rounded-full bg-grey-100 px-2 text-xs font-medium leading-none text-ink-soft", className)} {...props}>
+      {children}
+    </span>
+  )
+}
