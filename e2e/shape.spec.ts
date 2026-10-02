@@ -42,8 +42,10 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await page.getByRole("button", { name: "Import 6 items" }).click();
   await expect(page.getByTestId("imported-line")).toContainText("Imported 6 items as version 1 on");
 
-  await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ }).click();
-  await expect(page).toHaveURL(/\/shape$/);
+  // Shape is the current step after an import, so the stepper shows it as the ink pill, not
+  // a link (E3-1); the page is reached by its address.
+  await expect(page.getByRole("navigation", { name: "Steps" })).toContainText("Shape");
+  await page.goto(`${projectUrl}/shape`);
   await expect(page.getByRole("heading", { name: "Shape the list" })).toBeVisible();
   // Before the run: the imported areas and the loose items, read-only.
   await expect(page.getByTestId("area")).toHaveCount(4);
