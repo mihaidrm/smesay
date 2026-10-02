@@ -382,11 +382,13 @@ describe("flags (stories/E4-4)", () => {
     const rows = await items.forSet(a.ws, set.id);
     const first = rows[0];
     // Its own run, so the test stands alone: a question mark and a blank ambiguity among the flags.
-    const seed = transport({ ...answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]), items: ["1", "2", "3", "4"].map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "1" ? " Which  phone." : r === "2" ? "   " : null, duplicateOf: r === "4" ? "1" : null } })) });
+    const seed = transport({ ...answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]), items: ["1", "2", "3", "4"].map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "1" ? " Which  phone." : r === "2" ? "   " : r === "3" ? "..." : null, duplicateOf: r === "4" ? "1" : null } })) });
     if ("error" in (await shapeSet(a, plain, seed))) throw new Error("seed run failed");
     expect((await items.get(a.ws, first.id))?.flags).toMatchObject({ ambiguity: "Which phone." });
     expect((await items.get(a.ws, rows[1].id))?.flags?.ambiguity).toBeUndefined();
+    expect((await items.get(a.ws, rows[2].id))?.flags?.ambiguity).toBeUndefined();
     expect(SHAPE_COPY.sentence("Which phone?")).toBe("Which phone?");
+    expect(SHAPE_COPY.sentence(" ... ")).toBe("");
     expect(SHAPE_COPY.sentence(" Which phone . ")).toBe("Which phone.");
     expect(await dismissFlag(a, plain, rows[1].id)).toEqual({ error: SHAPE_COPY.noFlag });
     const dismissed = await dismissFlag(a, plain, first.id);

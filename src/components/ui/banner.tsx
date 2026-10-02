@@ -29,7 +29,7 @@ export function Banner({
         <button
           type="button"
           onClick={onDismiss}
-          className="h-8 shrink-0 rounded-full border border-[#B7A6E3] bg-white px-3.5 text-[13px] font-medium text-unclear-text outline-none hover:bg-grey-50 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2"
+          className={bannerButtonClass}
         >
           {dismissLabel}
         </button>

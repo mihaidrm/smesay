@@ -127,7 +127,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
         itemId: it.id, area: fold(area.name),
         byAi: imported(it) === null,
         importedArea: imported(it) ? fold(imported(it)!) : null,
-        reader: fold(answer.reader), ambiguity: answer.flags.ambiguity ? fold(answer.flags.ambiguity) || null : null, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
+        reader: fold(answer.reader), ambiguity: answer.flags.ambiguity && SHAPE_COPY.sentence(answer.flags.ambiguity) !== "" ? fold(answer.flags.ambiguity) : null, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
       });
     }
   }

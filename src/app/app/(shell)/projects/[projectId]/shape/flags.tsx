@@ -1,7 +1,7 @@
 "use client";
-// The flag banners (stories/E4-4, acceptance 1 and 2; PM app board, Shape): one per flagged
-// flag, stacked above the areas (an item with both flags has two), in the unclear tint with
-// a Dismiss pill (the Banner of the design system, with its action slot). An ambiguity banner names the item and what it does not say; a duplicate
+// The flag banners (stories/E4-4, acceptance 1 and 2; PM app board, Shape): one per flag,
+// stacked above the areas (an item with both flags has two), in the unclear tint with a
+// Dismiss pill (the Banner of the design system, with its action slot). An ambiguity banner names the item and what it does not say; a duplicate
 // banner names both items. The refs link to the rows. Dismiss is a form on dismissFlagAction;
 // the sample shows its banners without it.
 import { useActionState } from "react";

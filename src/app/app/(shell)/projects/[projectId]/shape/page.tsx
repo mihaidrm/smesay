@@ -31,7 +31,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const suggested = rows.filter((it) => hasReaderVersion(it) && it.readerStatus === "suggested").length;
   // The sample's reader versions are accepted in the seed; it shows them without a run.
   const showReaders = shaped || project.isSample;
-  // Flags (stories/E4-4): the banners above the areas and the note on each flagged item.
+  // Flags (stories/E4-4): the banners above the areas and a note per flag on the item.
   const flags = flagsFor(rows);
   const notesFor = (id: string) => flags.filter((f) => f.itemId === id).map((f) => (f.kind === "ambiguity" ? SHAPE_COPY.ambiguityNote(SHAPE_COPY.sentence(f.what)) : SHAPE_COPY.duplicateItemNote(f.otherRef)));
   return (

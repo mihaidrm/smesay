@@ -50,7 +50,7 @@ export const SHAPE_COPY = {
   mayMarkUnclear: "Respondents may mark it unclear.",
   // The model's sentence as one sentence: whitespace folded, one full stop unless it ends in
   // a question or exclamation mark.
-  sentence: (what: string) => { const t = what.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, ""); return /[?!]$/.test(t) ? t : `${t}.`; },
+  sentence: (what: string) => { const t = what.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, ""); return t === "" ? "" : /[?!]$/.test(t) ? t : `${t}.`; },
   duplicateNote: "If they ask for the same thing, remove one in the file and import it again.",
   dismiss: "Dismiss",
   ambiguityNote: (what: string) => `Ambiguity: ${what}`,
