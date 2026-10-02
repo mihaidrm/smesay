@@ -29,6 +29,8 @@ confirm, each showing its version and date, and every instrument links to the pr
 - None.
 
 ## Technical notes
+The sign-in email's footer already links to /legal/privacy (E2-1, src/lib/mail/sign-in-email.ts),
+so the address is fixed; until this story the link opens the 404 page.
 Markdown in docs/legal/ rendered through a small renderer with the design system's type;
 subprocessors list from docs/accounts.md (hosting, database, email, storage, AI, errors,
 analytics) with "none yet" where the account does not exist (decision 0006).

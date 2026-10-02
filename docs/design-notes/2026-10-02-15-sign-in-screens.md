@@ -2,8 +2,10 @@
 
 Story E2-1. Three screens built straight from docs/design-system.md, no board first (the PM app
 board has no sign-in page). Nothing external was looked at. Screenshots beside the boards:
-sign-in-desktop.png (1440), sign-in-phone.png (390), sign-in-error-desktop.png,
-sign-in-link-used-desktop.png.
+sign-in-desktop.png (1440), sign-in-phone.png (390), sign-in-error-desktop.png and
+sign-in-error-phone.png, sign-in-sent-desktop.png and sign-in-sent-phone.png (the status
+box), sign-in-link-used-desktop.png and sign-in-link-used-phone.png, app-shell-desktop.png
+(the signed-in shell; the dark circle bottom left is Next's dev tools badge, dev server only).
 
 ## Sign-in (/sign-in)
 
@@ -26,9 +28,11 @@ back to the sign-in page.
 ## The signed-in shell (/app)
 
 The PM app board's frame: a 240 px sidebar on grey-50 with a hairline on the right, the lockup
-at the top, the workspace block (placeholder until E2-3), and at the bottom the signed-in email
-in muted ink with a small secondary "Sign out" button. The content column is empty but for a
-title in this story. Desktop only (decision 0020); the sign-in pages have a phone layout
+at the top, the workspace block ("No workspace yet" until E2-3), and at the bottom the signed-in
+email in muted ink with a small secondary "Sign out" button; if the sign-out request fails, a
+danger line appears under the button. The content column is empty but for a title in this
+story. The segment has a loading state (one muted line) and an error state (the 500 copy with a
+"Try again" button), src/app/app/loading.tsx and error.tsx. Desktop only (decision 0020); the sign-in pages have a phone layout
 because a link from a phone's mail client opens them there.
 
 ## Checked

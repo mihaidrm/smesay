@@ -217,8 +217,9 @@ lawyer must confirm. You send the drafts to a Romanian lawyer once and tell Clau
 
 ## One value you do not need an account for
 
-`BETTER_AUTH_SECRET` is a random string. Claude generates it straight into `.env.local` during
-scaffolding without showing it. You generate a different one for Vercel when Claude asks.
+`BETTER_AUTH_SECRET` is a random string. On your PC you generate it once with the command in
+docs/setup.md and paste it into `.env.local`; Claude's own environment has a different one it
+generated without showing it. You generate a third one for Vercel when Claude asks.
 
 ## Monthly cost
 

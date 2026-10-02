@@ -1,15 +1,19 @@
 "use client";
-// The email form (stories/E2-1, acceptance 1 and 2). Validates the address, asks better-auth for a
-// magic link, then shows the "Check your email" banner. Components from docs/design-system.md.
+// The email form (stories/E2-1, acceptance 1 and 2). Validates the address with the same rule
+// the server applies (better-auth's endpoint uses zod's z.email(), node_modules/better-auth/
+// dist/plugins/magic-link/index.mjs; zod.dev/api#emails), asks better-auth for a magic link,
+// then shows the "Check your email" status box. Every message shown comes from docs/copy/
+// errors.md; the library's own text never reaches the screen. Components from
+// docs/design-system.md.
 import { useState } from "react";
+import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
+import { messageForStatus, SIGN_IN_COPY } from "@/lib/sign-in-copy";
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+const EMAIL = z.email();
 export function SignInForm({ next }: { next: string }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -19,19 +23,17 @@ export function SignInForm({ next }: { next: string }) {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const address = email.trim();
-    if (!EMAIL.test(address)) { setError("Enter the email address you signed up with."); return; }
+    if (!EMAIL.safeParse(address).success) { setError(SIGN_IN_COPY.badAddress); return; }
     setError(null); setBusy(true);
     const { error: sendError } = await authClient.signIn.magicLink({ email: address, callbackURL: next, errorCallbackURL: "/sign-in/link-used" });
     setBusy(false);
-    if (sendError) { setError(sendError.message ?? "The link was not sent. Check the address and try again."); return; }
+    if (sendError) { setError(messageForStatus(sendError.status)); return; }
     setSent(true);
   }
 
   if (sent) {
     return (
-      <div role="status" className="rounded-lg border border-hairline bg-grey-50 px-4 py-3">
-        Check your email. The link works once and stops working in {SIGN_IN_LINK_MINUTES} minutes.
-      </div>
+      <div role="status" className="rounded-lg border border-hairline bg-grey-50 px-4 py-3">{SIGN_IN_COPY.sent}</div>
     );
   }
   return (

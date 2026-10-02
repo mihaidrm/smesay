@@ -1,9 +1,10 @@
 # Security checklist (reviewer audits against this)
 
 Auth and sessions
-- Magic links single-use, 15 minute expiry, bound to the requesting email.
+- Magic links single-use, 15 minute expiry, bound to the requesting email, stored hashed.
 - OAuth state and PKCE verified; providers matched to one user by verified email only.
-- Sessions httpOnly, Secure, SameSite=Lax; rotation on privilege change.
+- Sessions httpOnly, Secure, SameSite=Lax; rotation on privilege change. A production process
+  refuses an http base URL other than localhost.
 
 Multi-tenancy
 - Every query scoped by workspace id from the session, never from the request body.
