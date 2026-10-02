@@ -21,6 +21,10 @@ marked everywhere as a sample, and one click deletes it.
 5. Playwright: open the sample, see the band, delete it, see it gone from the list.
 
 ## Technical notes
+Acceptance 3 (Delete sample on the project list, responses first then the project in one
+transaction) is built by E3-1 (projects.deleteSample in src/db/queries/projects.ts, tested);
+this story adds the confirm text, the button on the sample header and the Playwright check.
+The sample's About card is read-only since E3-1.
 The sample's invite tokens are real 128-bit tokens, one set per workspace (E2-3); acceptance 2
 is what keeps them closed to outsiders, and E7-1 refuses them until then.
 

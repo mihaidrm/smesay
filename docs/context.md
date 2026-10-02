@@ -35,6 +35,10 @@ Done so far:
   src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
   /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
   docs/copy/app.md.
+- Projects (stories/E3-1, built 2026-10-02): the list with counts and the derived status
+  (src/lib/project-status.ts), New project, the project frame with the stepper
+  (src/components/app/stepper.tsx), the About this project card on Import, archive, and Delete
+  sample (E8-8 acceptance 3).
 - Plans and usage (stories/E2-6, built 2026-10-02): src/lib/plans.ts is the one place with
   limits (free has none, decision 0008); usage() in src/db/queries/usage.ts counts by SQL;
   withinPlan() is the check E3-1, E7-5 and E4-1 call.
@@ -68,8 +72,8 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E3 in story order (E3-1 first); E2-2 when the developer accounts exist
-(decision 0031). E2 is then complete but for E2-2. Every story exists (67 in 13 epics); a story is rewritten when Mihai
+Next tasks for Claude: E3-2 onwards in story order; E2-2 when the developer accounts exist
+(decision 0031). E2 is complete but for E2-2. Every story exists (67 in 13 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
@@ -91,7 +95,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 0 of 13 steps. Left: 13 steps
 - E1 Foundation: building.
 - E2 Accounts: building.
-- E3 Import: open.
+- E3 Import: building.
 - E4 AI shaping: open.
 - E5 Instrument builder: open.
 - E6 Sharing: open.

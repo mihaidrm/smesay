@@ -67,7 +67,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 |---|---|---|---|---|
 | E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and RustFS, seed; deploy moved to the launch gate | none | 2 | building |
 | E2 Accounts | Magic link (local mailbox), Google, Microsoft sign-in; workspaces, members, roles, settings | Free personal Google and Microsoft developer accounts, optional | 4 | building |
-| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (RustFS in Docker) | 3 | open |
+| E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report | none (RustFS in Docker) | 3 | building |
 | E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 | open |
 | E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021) | none | 4 | open |
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 | open |

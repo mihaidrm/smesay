@@ -73,6 +73,34 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Button | Send invite |
 | Line after sending | Invite sent. They get a sign-in link that works once and expires in [N] minutes. |
 
+## Projects and the project frame (E3-1)
+
+| Where | Text |
+|---|---|
+| Projects page title, archived view | Projects, Archived projects |
+| Projects page line | One project per validation. |
+| New project button | New project |
+| Table headers | Project, Items, Responses, Status, Updated |
+| Responses cell | [N] of [N] |
+| Status values | Draft, Open, Closed, Sample |
+| Updated cell of the sample | Created with the workspace |
+| Row buttons | Open, Delete sample |
+| Empty state when only the sample exists | No projects yet. Start one and import your list. [New project] |
+| Empty state of the archived view | No archived projects. Archived projects appear here. |
+| Links under the table | Show archived, Back to projects |
+| New project title and line | New project. A name is enough. The list comes on the next step. |
+| New project field and button | Project name, Create project |
+| Project frame breadcrumb | [WORKSPACE NAME] (the sample: [WORKSPACE NAME] · sample project) |
+| Archived marker and buttons | Archived; Archive project, Unarchive |
+| Stepper | Import, Shape, Build, Share, Results |
+| Import step title | Import the list |
+| About card title | About this project |
+| About card line | A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build. |
+| About card fields | What is this about?; Terms to keep as written, optional (placeholder: Product names, internal acronyms, the client's own labels) |
+| About card count | [N] of 2,000 characters |
+| About card button and saved line | Save; Saved. |
+| About card on the sample | The sample project cannot be edited. |
+
 ## Signed-in shell (E2-1, E2-3)
 
 | Where | Text |
@@ -84,14 +112,6 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Sidebar and list, sample pill | Sample |
 | Sidebar footer button | Sign out |
 | Projects page breadcrumb | [WORKSPACE NAME] |
-| Projects page title | Projects |
-| Projects page line | One project per validation. |
-| Table headers | Project, Status, Updated |
-| Status of the sample | Sample |
-| Status of a project before E3-1 | Draft |
-| Updated line of the sample | Created with the workspace |
-| Empty state title | No projects yet |
-| Empty state line | Your workspace has no projects. |
 | Loading state of any page | Loading. |
 | Error state of any page, title | The server could not finish this request. |
 | Error state of any page, line | It has been logged. Try again in a minute. |

@@ -49,6 +49,10 @@ pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effect
 in src/lib/brand-rules.ts is what the respondent side uses; the logo is at
 /brand/[workspaceId]/logo. Object storage: putObject, getObject, deleteObject in
 src/lib/storage.ts, keyed by path; nothing else touches the bucket.
+Projects (E3-1): projects.summaries(ws, { archived }) (each project with items, submitted,
+invites and the links its status derives from), projects.setArchived(ws, id, archived),
+projects.deleteSample(ws, id); the status rule is projectStatus() in src/lib/project-status.ts,
+the context rule src/lib/project-context.ts.
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
 aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.
