@@ -72,13 +72,16 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E4-1 onwards in story order, after Mihai's go (he asked for a pause
-after E3 on 2026-10-02; E2-2 was built the same day with Google only, decision 0034, and Mihai
-checks the real Google flow on his PC). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
+Next tasks for Claude: E4-2 onwards in story order (Mihai gave the go for E4 on 2026-10-02
+and asked for a pause after it; E4-1 is built, PR 40). Mihai runs `npm run ai:smoke` on his
+PC as E4-1's acceptance (docs/accounts.md step 9) and checks the real Google flow (E2-2,
+decision 0034). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
 the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
 link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (71 in 14 epics); a story is rewritten when Mihai
-sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
+sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
+EUR 10); the two questions from design note 26 (ANTHROPIC_MONTHLY_BUDGET_EUR, the EUR 50
+workspace default) wait for his answer.
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):

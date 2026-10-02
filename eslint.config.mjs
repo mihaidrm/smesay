@@ -23,6 +23,15 @@ const eslintConfig = defineConfig([
     plugins: { smesay },
     rules: { "smesay/no-db-reexport": "error" },
   },
+  // The Anthropic SDK is imported in src/lib/ai/ only, and the module with the key never
+  // from a "use client" file (stories/E4-1, acceptance 1): the key and every call stay in
+  // one place, out of every client bundle. The rule is in eslint-rules/db-access.mjs and
+  // tested by src/lib/ai/lint-rule.test.ts.
+  {
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    plugins: { smesay },
+    rules: { "smesay/ai-sdk": "error" },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

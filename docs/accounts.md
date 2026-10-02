@@ -43,7 +43,7 @@ for the launch gate. The steps stay here for that day.
 | Before E2 | 6 | Google Cloud (Google sign-in) | Free |
 | After launch | 7 | Microsoft Entra or Apple Developer (a second sign-in provider, decision 0034) | Free (Microsoft), USD 99 per year (Apple) |
 | Before E3 (import) | 8 | Cloudflare R2 (file storage) | Free tier |
-| Before E4 (AI) | 9 | Anthropic Console (API) | Usage, capped at EUR 50 per month |
+| Before E4 (AI) | 9 | Anthropic Console (API) | Usage, capped at EUR 10 per month (set 2026-10-02) |
 | Before E11 (trust) | 10 | Sentry (error reports) | Free tier |
 | Before E11 | 11 | Plausible (visits) | EUR 9 per month |
 | Before launch | 12 | Lawyer review of legal pages | EUR 0 to 500 once |
@@ -199,14 +199,20 @@ Local development uses RustFS in Docker (decision 0025), so this is only needed 
 This is separate from your Claude subscription. The subscription pays for Claude Code. The API
 is billed per use.
 
-1. Go to https://console.anthropic.com and sign up with the Alerty email. Organisation name:
-   Alerty S.R.L.
+1. Go to https://console.anthropic.com and sign up with your Gmail (the ground rules above:
+   personal accounts until the launch gate; the Alerty email and organisation name come with
+   the switch).
 2. Open "Billing". Add a card and buy a small amount of credit (the minimum is a few euros).
    Leave auto-reload off.
-3. Open "Limits" and set the monthly spend limit to EUR 50 (or the dollar equivalent).
-4. Open "API keys", click "Create Key". Name it `validation-platform-dev`. Copy it once.
+3. Open "Limits" and set the monthly spend limit to EUR 10 (or the dollar equivalent). Done
+   2026-10-02 at EUR 10.
+4. Open "API keys", click "Create Key" (not "Identity federation": that is for cloud workloads
+   with their own identity provider). Name it `validation-platform-dev`. Copy it once.
 5. Paste it in `.env.local` after `ANTHROPIC_API_KEY=`. Create a second key for production and
    paste it into Vercel only.
+6. Check it with one real call: `npm run ai:smoke` (stories/E4-1, acceptance 6). It needs a
+   project of your own in the oldest workspace, and prints the answer, the tokens, the cost in
+   euro cents and the ai_run row id. A key that is missing or wrong is named in the error.
 
 ## Step 10. Sentry, error reports (before E11)
 

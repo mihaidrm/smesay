@@ -66,6 +66,9 @@ of the content; page means it replaces the screen.
 | Banner, Shape | AI call failed | The AI did not answer. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
 | Banner, Shape | Workspace AI budget spent | This workspace has used its AI budget for the month. The list is imported and can be published as it is. Ask the workspace owner to raise the budget. |
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
+| Banner, Shape | Plan's AI run cap reached (E2-6, E4-1; no plan carries a cap today) | This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
+| Banner, Shape | AI answered but the answer is unusable: refused, cut off, or failed the schema or the check (E4-1) | The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
+| Inline, Shape | Shape on the sample project, through the server (E4-1) | The sample project cannot be changed by AI. |
 | Banner, Shape | Context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. (Count shown live on Import.) |
 | Inline, Import, About this project | Save with the context over 2,000 characters | Your project context is [N] characters. Shorten it to 2,000 or fewer. |
 | Inline, New project | Name empty or over 80 characters | Enter a name for the project, up to 80 characters. |
