@@ -3,13 +3,15 @@
 // items; an item can be dragged to another area or moved with "Move to". Each item shows
 // its reader version with Accept, Edit, Reject and Undo, and the title row has Accept all
 // and Reject all with the counter under it (stories/E4-3). Without a set the page points to
-// Import. The sample is read-only (E8-8): its reader versions are shown as accepted, with no
+// Import. The context line (stories/E4-5) says what the AI was given, or where to add it.
+// The sample is read-only (E8-8): its reader versions are shown as accepted, with no
 // controls. Copy: docs/copy/app.md (Shape).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
+import { hasContext } from "@/lib/ai/context";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
 import { areaNames, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
@@ -56,6 +58,18 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
       </div>
+      {set && rows.length > 0 && (
+        <p className="text-[13px] text-ink-muted" data-testid="context-line">
+          {hasContext({ goal: project.contextGoal, terms: project.contextTerms }) ? (
+            <>
+              <span className="font-medium text-ink">{SHAPE_COPY.contextUsed}</span> {project.contextGoal?.trim() || ""}
+              {project.contextTerms?.trim() ? <> <span className="font-medium text-ink">{SHAPE_COPY.keptAsWritten}</span> {project.contextTerms.trim()}</> : null}
+            </>
+          ) : (
+            <>{SHAPE_COPY.noContext} {!project.isSample && <Link href={`/app/projects/${project.id}/import#about-title`} className="underline underline-offset-4">{SHAPE_COPY.noContextLink}</Link>}</>
+          )}
+        </p>
+      )}
       <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
         <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-hairline-strong p-6" data-testid="shape-empty">

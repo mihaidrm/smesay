@@ -1,7 +1,7 @@
 # E4-5 Project context used by the prompts
 
 User: a PM whose terms must survive the rewrite
-Status: ready
+Status: built
 Outcome: the goal and the glossary from Import shape the grouping and the wording, and the PM
 can see that they were used.
 

@@ -219,6 +219,24 @@ describe("shapeSet", () => {
     expect((await items.forSet(a.ws, result.set.id)).find((r) => r.position === 2)).toMatchObject({ area: "During", flags: { areaBy: "pm" } });
   });
 
+  it("passes the project's context as data before the list, and nothing without one (stories/E4-5)", async () => {
+    const withContext = (await projects.create(a.ws, { name: "With context", createdBy: a.userId, contextGoal: "Replace the expense tool for 400 staff.", contextTerms: "Marlow, per diem" })).id;
+    await importList(a, withContext, ["- Receipts by phone", "- Per diem rates", "- Approval by email"]);
+    const { fetch, calls } = transport(answer([{ name: "A", items: ["1"] }, { name: "B", items: ["2"] }, { name: "C", items: ["3"] }], ["1", "2", "3"]));
+    const result = await shapeSet(a, withContext, { fetch });
+    if ("error" in result) throw new Error(result.error);
+    const sent = body(calls[0]);
+    expect(sent.messages[0].content[0].text.startsWith("PROJECT CONTEXT\nGoal and audience: Replace the expense tool for 400 staff.\nTerms to keep as written: Marlow, per diem\n\nITEMS (3)")).toBe(true);
+    expect(sent.system[0].text).toContain("Terms to keep as written");
+    expect(sent.system[0].text).not.toContain("Marlow");
+    const noContext = (await projects.create(a.ws, { name: "No context", createdBy: a.userId })).id;
+    await importList(a, noContext, ["- One", "- Two", "- Three"]);
+    const bare = transport(answer([{ name: "A", items: ["1"] }, { name: "B", items: ["2"] }, { name: "C", items: ["3"] }], ["1", "2", "3"]));
+    if ("error" in (await shapeSet(a, noContext, bare))) throw new Error("bare run failed");
+    expect(body(bare.calls[0]).messages[0].content[0].text).not.toContain("PROJECT CONTEXT");
+    expect(body(bare.calls[0]).system[0].text).not.toContain("PROJECT CONTEXT");
+  });
+
   it("refuses the sample, a project without a list, a move before shaping, and another workspace's project", async () => {
     expect(await shapeSet(sampleWs, sampleProject)).toEqual({ error: AI_COPY.sample, retry: false });
     const sampleItem = (await items.list(sampleWs.ws))[0];

@@ -163,4 +163,8 @@ an item shows: the reader version only where reader_status is accepted, else the
 and the preview (E5-6) read textFor(). Flags (E4-4): `flagsFor(rows)` (one ItemFlag per
 flag, an item with both has two; dismissed items and duplicates whose target left the set
 dropped), `dismissFlag(actor, projectId, itemId)` on `dismissItemFlags`. The ambiguity text
-is stored with its whitespace folded and dropped when blank.
+is stored with its whitespace folded and dropped when blank. Project context (E4-5):
+`contextBlock({ goal, terms })` in src/lib/ai/context.ts gives the PROJECT CONTEXT data
+section (null when both are blank) and CONTEXT_INSTRUCTION the one sentence for the system
+prompt; buildShapePrompt(items, context) puts the section before AREAS and the list, and E9
+reuses the same builder for insights.

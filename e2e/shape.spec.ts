@@ -31,6 +31,12 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("shape-empty")).toContainText("Import a list first.");
   await page.getByRole("link", { name: "Go to Import" }).click();
 
+  // The project context (E4-5): typed on Import, shown on Shape as what the AI was given.
+  await page.getByLabel("What is this about?").fill("Replace the expense tool for 400 staff.");
+  await page.getByLabel("Terms to keep as written, optional").fill("Marlow, per diem");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+
   await page.getByRole("button", { name: "Paste a list instead" }).click();
   await page.getByLabel("Paste a list").fill([
     "1. Receipts captured by phone | Submitting | Must",
@@ -47,6 +53,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ }).click();
   await expect(page).toHaveURL(/\/shape$/);
   await expect(page.getByRole("heading", { name: "Shape the list" })).toBeVisible();
+  await expect(page.getByTestId("context-line")).toHaveText("Context used: Replace the expense tool for 400 staff. Kept as written: Marlow, per diem");
   // Before the run: the imported areas and the loose items, read-only.
   await expect(page.getByTestId("area")).toHaveCount(4);
   await expect(page.getByTestId("area").last()).toContainText("Not shaped yet");

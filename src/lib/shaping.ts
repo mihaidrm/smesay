@@ -100,7 +100,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   // again (acceptance 4).
   const imported = (it: Item) => it.flags?.importedArea ?? (it.flags?.areaBy === undefined ? it.area : null);
   const kept = (it: Item) => (it.flags?.areaBy === "pm" ? it.area : null);
-  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: imported(it), keep: kept(it) })));
+  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: imported(it), keep: kept(it) })), { goal: project.contextGoal, terms: project.contextTerms });
   if (prompt.importedAreas) {
     if (prompt.importedAreas.length > IMPORTED_AREAS_MAX) return { error: SHAPE_COPY.tooManyAreas(prompt.importedAreas.length), retry: false };
     const long = prompt.importedAreas.find((a) => a.length > AREA_NAME_MAX);

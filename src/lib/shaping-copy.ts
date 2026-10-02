@@ -44,6 +44,11 @@ export const SHAPE_COPY = {
   acceptAllConfirm: (n: number) => `Accept all ${n} suggested reader ${n === 1 ? "version" : "versions"}?`,
   rejectAllConfirm: (n: number) => `Reject all ${n} suggested reader ${n === 1 ? "version" : "versions"} and keep the originals?`,
   noReader: "This item has no reader version. Run Shape with AI first.",
+  // The context line (stories/E4-5, acceptance 2; PM app board, ctxLine).
+  contextUsed: "Context used:",
+  keptAsWritten: "Kept as written:",
+  noContext: "No project context given. Add one on Import so the AI keeps your names and terms.",
+  noContextLink: "Add it on Import",
   // Flags (stories/E4-4; docs/copy/errors.md, Shaping).
   // The banners read "Ambiguity in [REF]. [What the item does not say]. Respondents may mark
   // it unclear." and "[REF] may duplicate [REF]." with the refs as links (flags.tsx).
