@@ -15,8 +15,11 @@ npm install
 npm run db:migrate       # creates the tables (drizzle/, stories/E1-2); a second run changes nothing
 npm run db:seed          # the Marlow Group sample workspace (stories/E1-4); a second run changes nothing
 # Sign in (stories/E2-1): open http://localhost:3000/sign-in, enter any address, open the email at
-# http://localhost:8025 (Mailpit) and click Sign in. Needs BETTER_AUTH_SECRET, MAIL_SMTP_URL and
-# EMAIL_FROM in .env.local (.env.example has the local values; the secret is generated for you).
+# http://localhost:8025 (Mailpit) and click Sign in. Needs BETTER_AUTH_SECRET, BETTER_AUTH_URL,
+# MAIL_SMTP_URL and EMAIL_FROM in .env.local (.env.example has the local values). The secret is
+# the one value you type: paste the output of the next line into BETTER_AUTH_SECRET= (crypto.randomBytes,
+# nodejs.org/api/crypto.html).
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 npm run dev              # http://localhost:3000
 ```
 

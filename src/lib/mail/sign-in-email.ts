@@ -1,13 +1,17 @@
 // Email 1 of docs/copy/emails.md (the sign-in link), rendered as the plain-text part and a
 // one-column HTML part on the design system's email rules (docs/design-system.md: 600 px wide,
-// the system font stack, one ink button, the link as plain text under it, the footer). E12-3
-// turns the four emails into shared templates and Mihai checks them in real clients.
+// the system font stack, one ink button, the link as plain text under it, the footer with the
+// privacy policy link). The mark as a 22 px inline image needs a hosted PNG and checks in real
+// clients, so it is a text wordmark until E12-3 turns the four emails into shared templates.
 export const SIGN_IN_LINK_MINUTES = 15;
 
 const FOOTER = "SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]";
 
+// The privacy policy link is absolute (a relative href does not resolve in a mail client) and
+// points at /legal/privacy, the page E11-3 builds; until then it is the 404 page.
 export function signInEmail(url: string): { subject: string; text: string; html: string } {
   const minutes = SIGN_IN_LINK_MINUTES;
+  const privacyUrl = new URL("/legal/privacy", url).toString();
   const subject = "Your sign-in link for SMEsay";
   const text = [
     "Hi,", "",
@@ -15,6 +19,7 @@ export function signInEmail(url: string): { subject: string; text: string; html:
     url, "",
     "If you did not ask for this link, ignore this email. Nobody can sign in without it.", "",
     FOOTER,
+    `Privacy policy: ${privacyUrl}`,
   ].join("\n");
   const safeUrl = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
   const html = `<!doctype html><html><body style="margin:0;background:#F6F6F4;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#16181C">
@@ -28,7 +33,7 @@ export function signInEmail(url: string): { subject: string; text: string; html:
 <p style="margin:24px 0 0;word-break:break-all;color:#5B6069;font-size:14px;line-height:20px">${safeUrl}</p>
 <p style="margin:24px 0 0">If you did not ask for this link, ignore this email. Nobody can sign in without it.</p>
 </td></tr></table>
-<p style="margin:24px 0 0;color:#5B6069;font-size:13px;line-height:18px">${FOOTER}<br><a href="/legal/privacy" style="color:#0E6B63">Privacy policy</a></p>
+<p style="margin:24px 0 0;color:#5B6069;font-size:13px;line-height:18px">${FOOTER}<br><a href="${privacyUrl}" style="color:#0E6B63">Privacy policy</a></p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
 }

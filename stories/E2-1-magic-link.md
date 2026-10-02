@@ -38,30 +38,49 @@ Built 2026-10-02.
 
 - src/lib/auth.ts: better-auth with the magic link plugin (better-auth.com/docs/plugins/magic-
   link; options in node_modules/better-auth/dist/plugins/magic-link/index.d.mts: `expiresIn`
-  in seconds, set to 15 minutes; `sendMagicLink` gets email and url; the plugin's own rate limit
-  of 5 requests per minute applies until E11-1 sets the auth limits) and `nextCookies()`.
-  Sessions last 30 days and refresh once a day (`session.expiresIn`, `updateAge`, in
-  node_modules/@better-auth/core/dist/types/init-options.d.mts); the cookie is httpOnly and
-  SameSite=Lax, Secure in production (better-auth.com/docs/concepts/cookies). The route handler
+  in seconds, set to 15 minutes; `sendMagicLink` gets email and url; `storeToken: "hashed"`, so
+  a database read does not yield working links; the plugin ships a limit of 5 requests per
+  minute that better-auth enforces only with NODE_ENV=production, in memory per process, so
+  E11-1 sets the real auth limits) and `nextCookies()`. Sessions last 30 days and refresh once
+  a day (`session.expiresIn`, `updateAge`, in node_modules/@better-auth/core/dist/types/
+  init-options.d.mts); the cookie is httpOnly and SameSite=Lax; Secure and the `__Secure-` name
+  prefix follow the scheme of BETTER_AUTH_URL (node_modules/better-auth/dist/cookies/index.mjs,
+  createCookieGetter), and `readAuthEnv()` refuses to start a production process with an http
+  base URL other than localhost, or without BETTER_AUTH_URL and BETTER_AUTH_SECRET at all. The route handler
   is src/app/api/auth/[...all]/route.ts through `toNextJsHandler(auth)`
   (node_modules/better-auth/dist/integrations/next-js.d.mts). better-auth's verify endpoint
   consumes a token atomically on the first use (index.d.mts, allowedAttempts note), so a link
   works once; a second use is sent to /sign-in/link-used through errorCallbackURL.
 - One transport, SMTP through nodemailer 10.0.13 (MIT-0, released 2026-09-30, own types in
-  dist/esm; open issue count unverified, the GitHub API outside the project is not reachable).
+  dist/esm; open issue count unverified: api.github.com answers 403 from the session and the
+  session's GitHub access is scoped to this repository. Mihai can read it at
+  github.com/nodemailer/nodemailer/issues).
   `MAIL_SMTP_URL` points at the compose Mailpit locally and at Resend's SMTP endpoint at the
   launch gate (resend.com/docs/send-with-smtp), so the switch is a variable, not a driver.
   `memory:` keeps messages in an outbox for the unit test. The sign-in email is email 1 of
-  docs/copy/emails.md with N = 15, as text and a one-column HTML (src/lib/mail/sign-in-email.ts);
-  E12-3 makes the four emails shared templates and Mihai checks them in real clients.
+  docs/copy/emails.md with N = 15, as text and a one-column HTML (src/lib/mail/sign-in-email.ts).
+  The footer's privacy policy link is absolute and points at /legal/privacy, which E11-3
+  builds; until then it opens the 404 page. The mark as a 22 px inline image needs a hosted
+  PNG and checks in real clients, so the HTML carries the text wordmark until E12-3 makes the
+  four emails shared templates.
 - Screens: /sign-in (one field, one button, the inline message and the "Check your email"
   status box), /sign-in/link-used (the used-or-expired page with "Send a new link"), and the
   signed-in shell under /app: a 240 px sidebar with the lockup, the workspace block (E2-3 fills
-  it), the signed-in email and Sign out. A signed-out visit to /app goes to /sign-in?next=/app
-  and comes back after the link; `next` must be a path inside the site (src/lib/safe-path.ts).
-  Design note 15 has the screenshots.
+  it), the signed-in email and Sign out (which shows a message if the request fails), plus the
+  loading and error states of the segment (src/app/app/loading.tsx, error.tsx; the support
+  address in the error copy comes with E11-6). A signed-out request under /app is sent by
+  src/proxy.ts to /sign-in with the full path in `next`, and every page under /app verifies the
+  session again through `requireSession()` (src/lib/session.ts), because a layout alone does not
+  guard its pages (node_modules/next/dist/docs/01-app/02-guides/authentication.md). `next` must
+  be a path inside the site: src/lib/safe-path.ts applies better-auth's own relative-URL rule
+  (no "//", no backslash, no control character, no encoded slash, same origin after parsing),
+  with src/lib/safe-path.test.ts. Every string on these screens is in docs/copy/app.md or
+  errors.md; a refused request shows the matching copy line, never the library's text
+  (src/lib/sign-in-copy.ts). Design note 15 has the screenshots.
 - Tests: src/lib/auth.test.ts runs the sign-in through better-auth's handler on the test
-  database with the memory outbox (link once, cookie flags, second use refused, 15 and 30 day
+  database with the memory outbox (link once, cookie flags, Secure and the prefix on an https
+  base URL, a link opened after 16 minutes refused, a new session token per sign-in, an
+  off-site callback refused with the origin check on, a missing variable named, 15 and 30 day
   values); e2e/sign-in.spec.ts does the whole path in a browser against Mailpit's API
   (mailpit.axllent.org/docs/api-v1: GET /api/v1/search?query=to:address, GET
   /api/v1/message/{ID}); CI runs a Mailpit service container for it. Variables: BETTER_AUTH_SECRET
@@ -69,3 +88,7 @@ Built 2026-10-02.
   (.env.example); the Vitest and CI values are placeholders for throwaway databases.
 - Not in this story: the five-attempt auth limit (E11-1), Google and Microsoft (E2-2), the
   quickstart after the first sign-in (E12-2), the workspace (E2-3).
+- Audit of 2026-10-02 (fresh context, 19 findings): the four blocking ones (a tab in `next`
+  resolving to another host, Secure unproven, library text on screen, EMAIL_FROM defined twice
+  in .env.example) and the seven should-fix ones were closed the same day in the pull request
+  after the story's; the notes are recorded above where they changed a claim.

@@ -32,6 +32,9 @@ Done so far:
   workspace through the helpers; src/db/seed/sample.ts holds the facts and the expected counts.
 - Sign-in (stories/E2-1, built 2026-10-02): magic link through better-auth, mail over SMTP to
   the compose Mailpit (Resend's SMTP endpoint at the gate), the signed-in shell under /app.
+  src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
+  /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
+  docs/copy/app.md.
 - Workspace scoping (stories/E1-3, built 2026-10-02): src/db/queries/ holds every query, each
   taking a WorkspaceId that only requireWorkspace() in src/lib/workspace.ts produces from the
   session; lint (eslint-rules/db-access.mjs) refuses the database by any import path outside

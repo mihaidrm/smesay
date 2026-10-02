@@ -25,6 +25,9 @@ session keeps what was typed.
 - None.
 
 ## Technical notes
+The signed-in segment already has src/app/app/error.tsx with the 500 copy up to "Try again in a
+minute." and a "Try again" button (E2-1); this story adds the support address to it and builds
+the pages.
 Next.js not-found.tsx and error.tsx per layout (nextjs.org/docs/app/api-reference/file-
 conventions/not-found and /error, read when the story starts). SUPPORT_EMAIL variable with a
 placeholder until the gate.

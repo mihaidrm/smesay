@@ -16,6 +16,8 @@ of the content; page means it replaces the screen.
 | Banner, sign-in page | Link sent | Check your email. The link works once and stops working in [N] minutes. |
 | Page | Link used twice or expired | This sign-in link has already been used or has expired. Ask for a new one. [Button: Send a new link] |
 | Page | Five failed attempts | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. |
+| Inline, email field | The server refused the request for another reason | The link was not sent. Try again in a minute. |
+| Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |
 | Page | Google or Microsoft sign-in cancelled or refused | Sign-in with [PROVIDER] did not complete. Try again, or use the email link. |
 | Inline, invite field | Member invite to an address already in the workspace | [EMAIL] is already a member of this workspace. |
 | Banner, settings | Accent colour under 4.5:1 on white | This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours. |
