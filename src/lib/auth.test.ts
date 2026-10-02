@@ -6,7 +6,7 @@
 // timers: vitest.dev/api/vi#vi-usefaketimers (toFake) and #vi-setsystemtime.
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { prepareTestDatabase } from "@/db/test-db";
-import { auth, createAuth, readAuthEnv, SESSION_DAYS } from "@/lib/auth";
+import { auth, createAuth, GOOGLE_ERROR_PATH, readAuthEnv, readGoogleEnv, SESSION_DAYS } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
 
@@ -68,7 +68,7 @@ describe("magic link", () => {
 
   it("sets Secure and the __Secure- prefix on an https base URL", async () => {
     const base = "https://smesay.test";
-    const https = createAuth({ baseURL: base, secret: readAuthEnv().secret });
+    const https = createAuth({ baseURL: base, secret: readAuthEnv().secret, google: null });
     const link = await sentLink(https, base);
     const res = await https.handler(new Request(link, { redirect: "manual" }));
     expect(res.status).toBe(302);
@@ -122,4 +122,38 @@ describe("magic link", () => {
     expect(readAuthEnv({ BETTER_AUTH_URL: "https://smesay.test", BETTER_AUTH_SECRET: "x", NODE_ENV: "production" }).baseURL).toBe("https://smesay.test");
     expect(readAuthEnv({ BETTER_AUTH_URL: "http://localhost:3000", BETTER_AUTH_SECRET: "x", NODE_ENV: "production" }).baseURL).toBe("http://localhost:3000");
   });
+
+  // stories/E2-2: the Google provider from the two variables, the start of the flow, nothing
+  // without the variables.
+  it("names a missing Google variable and hides the provider; with both, the flow starts with state and PKCE", async () => {
+    const lines: string[] = [];
+    expect(readGoogleEnv({}, (l) => lines.push(l))).toBeNull();
+    expect(readGoogleEnv({ GOOGLE_CLIENT_ID: "id" }, (l) => lines.push(l))).toBeNull();
+    expect(lines).toEqual([
+      "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET not set: the Google sign-in button is hidden (docs/accounts.md step 6).",
+      "GOOGLE_CLIENT_SECRET not set: the Google sign-in button is hidden (docs/accounts.md step 6).",
+    ]);
+    expect(readGoogleEnv({ GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "s" }, (l) => lines.push(l))).toEqual({ clientId: "id", clientSecret: "s" });
+    expect(lines).toHaveLength(2);
+
+    const without = createAuth({ baseURL: BASE, secret: "x".repeat(32), google: null }, { disableOriginCheck: true });
+    const refused = await without.handler(new Request(`${BASE}/api/auth/sign-in/social`, { method: "POST", headers: { "content-type": "application/json", origin: BASE }, body: JSON.stringify({ provider: "google", callbackURL: "/app", disableRedirect: true }) }));
+    expect(refused.status).toBeGreaterThanOrEqual(400);
+
+    const withGoogle = createAuth({ baseURL: BASE, secret: "x".repeat(32), google: { clientId: "test-client-id.apps.googleusercontent.com", clientSecret: "test-secret" } }, { disableOriginCheck: true });
+    const started = await withGoogle.handler(new Request(`${BASE}/api/auth/sign-in/social`, { method: "POST", headers: { "content-type": "application/json", origin: BASE }, body: JSON.stringify({ provider: "google", callbackURL: "/app", errorCallbackURL: GOOGLE_ERROR_PATH, disableRedirect: true }) }));
+    expect(started.status).toBe(200);
+    const { url } = (await started.json()) as { url: string };
+    const target = new URL(url);
+    expect(target.origin + target.pathname).toBe("https://accounts.google.com/o/oauth2/v2/auth");
+    expect(target.searchParams.get("client_id")).toBe("test-client-id.apps.googleusercontent.com");
+    expect(target.searchParams.get("redirect_uri")).toBe(`${BASE}/api/auth/callback/google`);
+    expect(target.searchParams.get("state")).toMatch(/.{16,}/);
+    expect(target.searchParams.get("code_challenge")).toMatch(/.{32,}/);
+    expect(target.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(target.searchParams.get("scope")).toContain("email");
+    // Nothing printed the secret.
+    expect(url).not.toContain("test-secret");
+  });
 });
+

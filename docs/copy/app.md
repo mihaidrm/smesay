@@ -16,6 +16,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Link-used page title | This sign-in link has already been used or has expired. |
 | Link-used page line | Ask for a new one. |
 | Link-used page button | Send a new link |
+| Divider under the email form (E2-2, only when Google is configured) | or |
+| Google button (E2-2) | Continue with Google |
+| Google-failed page title, line and button (E2-2) | Sign-in with Google did not complete. / Try again, or use the email link. / Back to sign-in |
 
 ## Workspace step (E2-3)
 

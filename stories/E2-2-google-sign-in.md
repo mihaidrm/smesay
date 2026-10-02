@@ -1,7 +1,7 @@
 # E2-2 Sign in with Google
 
 User: a PM whose company runs on Google Workspace
-Status: ready
+Status: built
 Outcome: one click on "Continue with Google" signs in the same person the magic link would,
 matched by verified email. Microsoft and Apple come after launch (decision 0034).
 
@@ -32,8 +32,28 @@ matched by verified email. Microsoft and Apple come after launch (decision 0034)
 - None.
 
 ## Technical notes
-better-auth social provider for Google (node_modules/better-auth, read when the story starts).
-Account linking by verified email only; Google's `email_verified` claim decides. Variables:
-GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, listed in .env.example without values; Mihai's values
-are in his .env.local and in the GitHub repository secrets since 2026-10-02 (the "Secrets
-check" workflow reported both set at 16:11).
+Built 2026-10-02.
+
+- src/lib/auth.ts: socialProviders.google from GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+  (node_modules/@better-auth/core/src/social-providers/google.ts, GoogleOptions); state and
+  PKCE are better-auth's own (callback.mjs, parseState). readGoogleEnv() returns null and logs
+  the missing name when either variable is absent; the page then renders no button
+  (acceptance 4). accountLinking is on with requireLocalEmailVerified, so a Google sign-in
+  with an email that the magic link already verified joins that user row and never makes a
+  second one (acceptance 2; the magic link marks the email verified). The full Google round
+  trip cannot run in a test (Google's token endpoint), so acceptance 2 is proven by better-auth's
+  linking rule and checked by Mihai on his PC; auth.test.ts proves the start of the flow: the
+  authorisation URL carries the client id, the callback URI
+  (/api/auth/callback/google), a state and a PKCE challenge, and the provider is absent
+  without the variables.
+- src/app/sign-in/google-button.tsx calls authClient.signIn.social with callbackURL (the
+  safe next path) and errorCallbackURL /sign-in/google-failed; that page (design note 25)
+  shows the one message of docs/copy/errors.md for every ?error code (acceptance 3).
+- CI runs with placeholder values (GOOGLE_CLIENT_ID=ci-placeholder) so e2e/sign-in.spec.ts
+  sees the button and follows it to accounts.google.com with the client id and the redirect
+  URI in the URL (acceptance 5); Google then shows its own error page, which the test does
+  not read. Mihai's real values are in his .env.local and in the GitHub repository secrets
+  (reported set by the Secrets check at 16:11 on 2026-10-02); CI does not use the secrets.
+- Mihai checks the real flow on his PC: sign in with the magic link, sign out, "Continue with
+  Google" with the same Gmail, one user row (Settings, Members shows one person); then with
+  a second Google account, a new user. The acceptance note records it.

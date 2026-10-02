@@ -1,9 +1,11 @@
-// Sign-in page (stories/E2-1): one field, one button. Copy from docs/copy/errors.md, "Sign-in and
-// workspace". A signed-in person goes straight to the app. searchParams is a Promise in
+// Sign-in page (stories/E2-1, E2-2): the email form and, when Google is configured,
+// "Continue with Google" under it. Copy from docs/copy/app.md and errors.md, "Sign-in". A signed-in person goes straight to the app. searchParams is a Promise in
 // Next.js 16 (decision 0024; nextjs.org/docs/app/api-reference/file-conventions/page).
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth, GOOGLE_ERROR_PATH, readGoogleEnv } from "@/lib/auth";
+import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
+import { GoogleButton } from "./google-button";
 import { safeNextPath } from "@/lib/safe-path";
 import { Lockup } from "@/components/brand/mark";
 import { SignInForm } from "./sign-in-form";
@@ -21,6 +23,12 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         <p className="text-ink-muted">Enter your email and we send you a link. No password to remember.</p>
       </div>
       <SignInForm next={target} />
+      {readGoogleEnv(process.env, () => undefined) && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 text-sm text-ink-muted" aria-hidden="true"><span className="h-px flex-grow bg-hairline" />{SIGN_IN_COPY.or}<span className="h-px flex-grow bg-hairline" /></div>
+          <GoogleButton next={target} errorPath={GOOGLE_ERROR_PATH} />
+        </div>
+      )}
     </main>
   );
 }
