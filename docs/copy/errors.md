@@ -32,7 +32,7 @@ of the content; page means it replaces the screen.
 | Inline, paste box | Empty or one line | Paste at least two lines, one item per line. |
 | Card, check before import | Empty rows, duplicates, long items (counts already on the board) | [N] empty rows, skipped. [N] exact duplicates, imported once. [N] items over 1,000 characters, imported whole; consider splitting them in Shape. |
 | Banner, import | Upload interrupted | The upload stopped before the file arrived. Check your connection and upload it again. Nothing was imported. |
-| Banner, import | New version of a list already published | This list is published. Importing a new version keeps every answer on the items that did not change and marks the changed ones. [Button: Import as version [N]] |
+| Banner, import | New version of a list already published | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. [Button: Import as version [N]] |
 
 ## Shaping (E4)
 
@@ -97,7 +97,7 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Empty state, results | No responses yet | No answers yet. The link is [open until DATE / not published]. Share it, or open the sample project to see what results look like. |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
-| Banner, results | Fewer than [N] responses in a group | Groups with fewer than [N] answers are shown but not compared, so one person cannot be singled out. [Decide N in E8; recommendation 3.] |
+| Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
 | Inline, export | Export failed | The [FORMAT] export did not finish. Try again; if it fails again, export the answers as CSV, which always works. |
 | Inline, PDF | PDF over the page limit | The summary runs to [N] pages. It still downloads; the deck version is the first [N]. |
 | Inline, sample project | Delete sample | The sample project and its invented answers are deleted. Your own projects are not affected. [Button: Delete sample] |

@@ -19,6 +19,11 @@ export default defineConfig({
   },
   webServer: {
     command: CI ? "npm run start" : "npm run dev",
+    // next dev writes a Next.js block into CLAUDE.md when it detects a coding agent
+    // (node_modules/next/dist/server/lib/generate-agent-files.js, detected through AI_AGENT,
+    // CLAUDECODE or CLAUDE_CODE in next/dist/compiled/@vercel/detect-agent); the
+    // block has em dashes and the pre-commit hook refuses it. webServer.env: test.d.ts.
+    env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "" },
     url: "http://localhost:3000",
     reuseExistingServer: !CI,
     timeout: 120_000,

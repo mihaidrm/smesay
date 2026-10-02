@@ -6,8 +6,7 @@ submission receipt). Layout rules are in the design system: 600 px, one column, 
 privacy policy link. Every email also carries the link as plain text under the button, for
 clients that strip buttons. Mihai tests them in Gmail, Outlook and Apple Mail (E12).
 
-Placeholders in [CAPS] are filled by the app or decided later. Lines marked "decide" need
-Mihai's answer before E2 or E6.
+Placeholders in [CAPS] are filled by the app.
 
 Footer, all four emails:
 SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]
@@ -32,9 +31,8 @@ Button: Sign in
 
 If you did not ask for this link, ignore this email. Nobody can sign in without it.
 
-Decide: [N]. Recommendation 15 minutes. better-auth's magic link plugin has its own default;
-the value is set in E2 and the email reads the same value, so they cannot drift. Unverified
-which default the plugin ships with.
+[N] is 15 minutes (stories/E2-1). The value is set in E2 and the email reads the same value,
+so they cannot drift.
 
 ## 2. Personal invite
 
@@ -65,9 +63,8 @@ Button: Open your link
 This link is yours. Do not forward it; answers sent through it are recorded under your name.
 It closes on [CLOSE DATE AND TIME, with time zone].
 
-Decide: reply-to the PM's own address (recommended, so questions go to the person who knows),
-or no reply-to. Decide: whether the sender name shows the PM's name (recommended) or the
-workspace name.
+Reply-to is the PM's own address, so questions go to the person who knows, and the sender
+name is the PM's (decision 0031).
 
 ## 3. Reminder
 
@@ -122,8 +119,7 @@ Button: See your answers
 
 [LINK as plain text]
 
-Decide: whether the receipt lists the answers themselves (longer email, no second visit needed)
-or only the counts (shorter, as above). Recommendation: counts, with the link.
+The receipt lists the counts with the link, not the answers (decision 0031).
 
 ## Not sent
 

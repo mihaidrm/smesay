@@ -1,4 +1,5 @@
-// Copy scan (WRITING.md): fails on em dashes and the banned words. No dependencies.
+// Copy scan (WRITING.md): fails on em dashes and the banned words. No dependencies. Skips
+// WRITING.md, which quotes the banned words.
 // Usage: node scripts/scan-copy.mjs <file or folder> [...]
 // Phase 2 wires this as `npm run scan:copy`. Until then run it with node directly.
 import { readFileSync, readdirSync, statSync } from 'node:fs';

@@ -25,6 +25,9 @@ Done so far:
   mark B. Example: Marlow Group replacing its expense tool, confirmed 2026-10-01.
 - Git repository on GitHub: mihaidrm/smesay, personal account (decision 0006). First commit
   2026-10-01.
+- Schema v1 (stories/E1-2, accepted 2026-10-02): 12 application tables plus 4 better-auth tables, two migrations in
+  drizzle/, docs/schema.md generated from them by scripts/schema-doc.mjs (the pre-commit hook
+  fails when it is stale). The database tests run against `smesay_test`, never the dev database.
 
 Machine check on 2026-10-01 (Mihai's Windows PC, decision 0005): Node v26.10.0, Docker 29.8.1
 running; docker compose up, lint, test and build pass there (step 2.5). The Claude Code cloud
@@ -34,19 +37,16 @@ Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
 
 Waiting on Mihai:
-1. Partial responses: do unsubmitted answers reach the PM, and how are they marked? And may a
-   closed public link show any per-device state? (reviewer findings 26 and 33, note 12.)
-2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
-   ink (raised 2026-10-01; recommendation in the session log).
-3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
+1. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
    settings, sample, item detail, export, preview panel) on phone and laptop, and of
    /styleguide in the running app (note 14).
-4. Preview panel: keep the desktop preview at 42 percent, or reflow it to one readable column
-   (decision 0021, open item).
-The trademark search waits for the launch gate (decisions 0012, 0014).
+Every design and story question raised up to 2026-10-02 is answered (decisions 0030, 0031).
+The evals key comes when E4-6 is built. The trademark search waits for the launch gate
+(decisions 0012, 0014).
 
-Next tasks for Claude, in order (decision 0013, design first), then Phase 2: scaffold,
-styleguide page, E1 stories, open questions before E1.
+Next tasks for Claude: E1-3 workspace scoping and E1-4 seed, then E2 in story order
+(stories/backlog.md). Every story exists (67 in 13 epics); a story is rewritten when Mihai
+sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
@@ -62,9 +62,9 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.1 Repository: done.
 - 2.2 Scaffold: done.
 - 2.3 Styleguide page: done.
-- 2.4 E1 stories: done.
+- 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about early March 2027): Done 0 of 12 steps. Left: 12 steps
+Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 0 of 13 steps. Left: 13 steps
 - E1 Foundation: building.
 - E2 Accounts: open.
 - E3 Import: open.
@@ -77,6 +77,7 @@ Phase 3, R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about 
 - E10 Exports: open.
 - E11 Trust: open.
 - E12 Landing and onboarding: open.
+- E13 Analytics for us: open.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;

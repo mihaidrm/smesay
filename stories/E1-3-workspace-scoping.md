@@ -35,6 +35,9 @@ Outcome: no query can reach another workspace's rows, and a test proves it on ev
 Helpers return plain objects, not Drizzle rows, so later layers do not depend on the ORM
 shape. One file per table (workspaces.ts, projects.ts, itemSets.ts, items.ts, instruments.ts,
 invites.ts, responses.ts, answers.ts, insights.ts). Counting and aggregation stay in SQL
-(CLAUDE.md, dashboard rules). CI: .github/workflows/ci.yml adds a `services: postgres:
-16-alpine` block with the same user, password and database as docker-compose.yml, and
-DATABASE_URL already points at it. Vitest gets a `globalSetup` that runs the migrations once.
+(CLAUDE.md, dashboard rules). CI already runs a Postgres 16 service and `npm run db:migrate`
+(E1-2). Database tests run on `<database>_test`; src/db/schema.test.ts drops and recreates
+that database's schemas, so the helper tests either run in the same file order with
+`fileParallelism: false` in vitest.config.mts (vitest.dev/config, fileParallelism) or use
+their own transaction-per-test setup on a database the schema test does not touch. Decide in
+the story's first session and record it here.

@@ -37,9 +37,10 @@ export function readStories() {
     if (!h1) { problems.push(`${f}: no "# E<n>-<n> Title" heading`); continue; }
     if (!status || !STATUSES[status]) { problems.push(`${f}: Status line missing or not one of ${Object.keys(STATUSES).join(', ')}`); continue; }
     const section = (name) => { const m = text.match(new RegExp(`^## ${name}\\n([\\s\\S]*?)(?=^## |\\Z)`, 'm')); return m ? m[1] : ''; };
-    const criteria = (section('Acceptance criteria').match(/^\d+\./gm) || []).length;
+    const criteriaText = section('Acceptance criteria').replace(/\n(?!\d+\.)/g, ' ').split('\n').map((l) => l.trim()).filter((l) => /^\d+\./.test(l)).map((l) => l.replace(/^\d+\.\s*/, '').replace(/\s+/g, ' '));
+    const criteria = criteriaText.length;
     const questions = (section('Open questions').match(/^- (?!None)/gm) || []).length;
-    const story = { id: `${h1[1]}-${h1[2]}`, epic: h1[1], title: h1[3].trim(), status, criteria, questions, file: f };
+    const story = { id: `${h1[1]}-${h1[2]}`, epic: h1[1], title: h1[3].trim(), status, criteria, criteriaText, questions, file: f };
     const epic = epics.find((e) => e.id === h1[1]);
     if (!epic) { problems.push(`${f}: epic ${h1[1]} is not in stories/backlog.md`); continue; }
     epic.stories.push(story);
@@ -53,19 +54,33 @@ export function render() {
   const count = (s) => all.filter((x) => x.status === s).length;
   const written = epics.filter((e) => e.stories.length).length;
   const rowH = 44, epicHead = 58, epicGap = 20, headerH = 170, footerH = 60, pad = 44;
+  // One story is open at a time; the frame leaves room for the tallest list of criteria
+  // (about 150 characters per line at 1210px, 22px per line, 8px between criteria).
+  const lines = (t) => Math.ceil(t.length / 150);
+  const expandH = (st) => 16 + st.criteriaText.reduce((h, t) => h + lines(t) * 22 + 8, 0);
+  const tallest = Math.max(0, ...all.map(expandH));
   const bodyH = epics.reduce((h, e) => h + epicHead + (e.stories.length ? e.stories.length * rowH : rowH) + epicGap, 0);
-  const H = Math.ceil((headerH + bodyH + footerH + pad * 2) / 10) * 10;
+  const H = Math.ceil((headerH + bodyH + tallest + footerH + pad * 2) / 10) * 10;
   const pill = (s) => { const st = STATUSES[s]; return `<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: ${st.bg}; color: ${st.fg}; border: 1px ${st.style} ${st.bd}; font-size: 12px; font-weight: 500; white-space: nowrap">${st.label}</span>`; };
   const legend = Object.entries(STATUSES).map(([k, st]) => `<div style="display: flex; align-items: center; gap: 8px">${pill(k)}<span style="color: #5B6069">${st.hint}</span></div>`).join('\n');
   const rows = epics.map((e) => {
-    const stories = e.stories.length ? e.stories.map((s) => `
+    const stories = e.stories.length ? `
+<sc-for list="{{${e.id.toLowerCase()}}}" as="s" hint-placeholder-count="${e.stories.length}">
 <div style="display: grid; grid-template-columns: 72px 1fr 110px 120px 120px; gap: 16px; align-items: center; height: ${rowH}px; padding: 0 16px; border-top: 1px solid #F0EFEB">
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">${s.id}</span>
-<span style="font-size: 14px">${esc(s.title)}</span>
-<span>${pill(s.status)}</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">${s.criteria} criteria</span>
-<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: ${s.questions ? '#7A5210' : '#5B6069'}">${s.questions ? s.questions + ' open question' + (s.questions > 1 ? 's' : '') : 'no questions'}</span>
-</div>`).join('') : `
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{s.id}}</span>
+<span style="font-size: 14px">{{s.title}}</span>
+<span><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 999px; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}; font-size: 12px; font-weight: 500; white-space: nowrap">{{s.label}}</span></span>
+<button type="button" onClick="{{s.toggle}}" aria-expanded="{{s.open}}" style="justify-self: start; min-height: 28px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: 6px; background: {{s.btnBg}}; font-family: 'Geist Mono', monospace; font-size: 12px; color: #16181C; cursor: pointer; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-size: 10px">{{s.arrow}}</span>{{s.count}}</button>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{s.qFg}}">{{s.qText}}</span>
+</div>
+<sc-if value="{{s.open}}" hint-placeholder-val="{{false}}">
+<div style="padding: 8px 16px 12px 104px; background: #FAFAF8; border-top: 1px solid #F0EFEB">
+<sc-for list="{{s.items}}" as="c" hint-placeholder-count="4">
+<div style="display: flex; gap: 12px; padding: 4px 0; font-size: 14px; line-height: 22px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069; width: 20px; flex-shrink: 0; line-height: 22px">{{c.n}}</span><span>{{c.text}}</span></div>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>` : `
 <div style="display: flex; align-items: center; height: ${rowH}px; padding: 0 16px; border-top: 1px dashed #C9C7C1; color: #5B6069; font-size: 13px">Stories not written yet. They are written when the epic before it is accepted (plan step 2.4 pattern).</div>`;
     const done = e.stories.filter((s) => ['done', 'accepted'].includes(s.status)).length;
     return `
@@ -103,13 +118,28 @@ body{margin:0;font-family:'Geist','Segoe UI',system-ui,sans-serif;background:#FF
 <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">${legend}</div>
 </div>
 ${rows}
-<div style="margin-top: auto; color: #5B6069; font-size: 12px">A story is ready when it has at least three acceptance criteria and no open question that blocks building (stories/README.md). Open questions are Mihai's to answer; they are listed in docs/context.md.</div>
+<div style="margin-top: auto; color: #5B6069; font-size: 12px">Click a story's criteria count to read its acceptance criteria. A story is ready when it has at least three acceptance criteria and no open question that blocks building (stories/README.md). Open questions are Mihai's to answer; they are listed in docs/context.md.</div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":${H}}}'>
 class Component extends DCLogic {
+state = { open: null };
 renderVals() {
-return {};
+const open = this.state.open;
+const STATUSES = ${JSON.stringify(Object.fromEntries(Object.entries(STATUSES).map(([k, v]) => [k, { label: v.label, bg: v.bg, fg: v.fg, bd: v.bd }])))};
+const EPICS = ${JSON.stringify(Object.fromEntries(epics.map((e) => [e.id.toLowerCase(), e.stories.map((s) => ({ id: s.id, title: s.title, status: s.status, questions: s.questions, criteria: s.criteriaText }))])))};
+const row = (s) => {
+const st = STATUSES[s.status];
+const isOpen = open === s.id;
+return { id: s.id, title: s.title, label: st.label, bg: st.bg, fg: st.fg, bd: st.bd,
+count: s.criteria.length + ' criteria', open: isOpen, arrow: isOpen ? '\u25BC' : '\u25B6', btnBg: isOpen ? '#ECEAE5' : 'transparent',
+toggle: () => this.setState({ open: isOpen ? null : s.id }),
+items: s.criteria.map((text, i) => ({ n: String(i + 1), text: text })),
+qFg: s.questions ? '#7A5210' : '#5B6069', qText: s.questions ? s.questions + ' open question' + (s.questions > 1 ? 's' : '') : 'no questions' };
+};
+const vals = {};
+for (const k of Object.keys(EPICS)) vals[k] = EPICS[k].map(row);
+return vals;
 }
 }
 </script>

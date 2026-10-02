@@ -53,12 +53,12 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 | 2.1 | Repository: git init, first commit, push to GitHub. Done 2026-10-01 | Claude | Repository on GitHub | done |
 | 2.2 | Scaffold: Next.js 16 (decision 0024), TypeScript, Tailwind, shadcn/ui, Drizzle, better-auth, Vitest, Playwright, the copy scan script, Docker Compose with Postgres and an S3-compatible store (RustFS, decision 0025), CI. Built 2026-10-01 (docs/setup.md), CI green; docker compose up, lint, test and build passed on Mihai's PC the same day | Claude | lint, typecheck, tests and build pass; CI green | done |
 | 2.3 | Styleguide page: /styleguide in the app, from docs/design-system.md. Built 2026-10-01 (note 14), Mihai: works | Claude | Mihai approves | done |
-| 2.4 | E1 stories: written from the plan, open questions listed. Written 2026-10-01 (stories/E1-1 to E1-5); questions answered (decision 0027) | Claude | Stories have acceptance criteria | done |
+| 2.4 | Stories: E1 written 2026-10-01 (stories/E1-1 to E1-5), questions answered (decision 0027); every other R1 story written the same day, 64 in all (decision 0029) | Claude | Stories have acceptance criteria | done |
 | 2.5 | PC setup: Node 26 and Docker running, docker compose up, lint, test, build. Done 2026-10-01; the E1 questions move to 2.4 | Mihai | docs/setup.md checks pass on the PC | done |
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
 
-## Phase 3. R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about early March 2027)
+## Phase 3. R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027)
 
 Each epic: stories written, Mihai answers questions, Claude builds story by story, the reviewer
 audits, Mihai accepts each story with a note. Estimates are sessions at two per week.
@@ -75,8 +75,9 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 | open |
 | E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |
 | E10 Exports | CSV, JSON, PDF summary | none | 2 | open |
-| E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry, Plausible and the lawyer at the launch gate | none until launch | 2 | open |
+| E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry and the lawyer at the launch gate | none until launch | 2 | open |
 | E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai | none | 3 | open |
+| E13 Analytics for us | Event catalogue and log, admin page with funnel and usage per workspace, Plausible on the landing page and the PM app (decision 0030) | Plausible at the launch gate (step 11); ADMIN_EMAILS in .env.local | 2 | open |
 
 Launch gate: Mihai decides the product is worth a domain. Then: name, domain, personal Vercel
 and Neon, Resend, Sentry, Plausible, legal pages confirmed, deploy. After that, one organisation
