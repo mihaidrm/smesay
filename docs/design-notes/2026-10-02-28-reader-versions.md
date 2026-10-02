@@ -31,15 +31,28 @@ reader version differs from the original.
 - Undo returns an item to suggested with the text it carries. After an edit, the model's
   wording is gone; Undo keeps the edited text as the suggestion. Run again replaces the
   suggested versions and leaves accepted and rejected ones alone (E4-2's apply).
+- An edit that writes the original's own words back (whitespace aside) is a rejection: the
+  original is kept and the model's wording stays as the suggestion for Undo, so no item ends
+  up with an identical "accepted" version and no way back (the audit's note 7). Edits are
+  capped at 1,000 characters, the model's own cap.
 - Accept all and Reject all touch the latest set's suggested versions only, in one update
-  each (the story's note), and skip versions equal to the original.
+  each (the story's note). The ids come from the same rule the page counts with
+  (hasReaderVersion, whitespace folded), so the confirmed count is what the update touches;
+  versions equal to the original and blank ones are skipped. The model's reader text is
+  stored with its whitespace folded, and an answer with a blank version is refused.
+- Accept and Reject apply only while the row is still suggested, Undo only while it is
+  decided: a decision pressed on a stale page changes nothing and the page redraws from
+  the server. A Run again between the page load and an Accept still swaps the suggested
+  text under the PM: the row keeps its status, so the new text is accepted unseen. Rare,
+  and visible on the redraw; a text check on the decision would close it.
 - The sample project shows its reader versions as accepted (the seed), with the pills and
   no controls; its counter reads "6 of 6".
 - Items without a reader version (a set never shaped) show the original alone; the server
   refuses a decision on them with its own line (docs/copy/errors.md).
-- The row's client state (the open edit form) is keyed by the server's text and status, so
-  a saved decision or edit closes it; a blank edit changes nothing and stays open with the
-  message (MISTAKES.md).
+- The row's client state is keyed by the server's text and status, so a saved decision or
+  edit closes it; the edit form is its own component, mounted while editing, so Cancel drops
+  a shown error; the Accept all and Reject all control is keyed by the suggested count, so a
+  change on the server closes an open confirm line (MISTAKES.md).
 
 ## Open for Mihai
 
