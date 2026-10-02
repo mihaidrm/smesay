@@ -25,6 +25,13 @@ AI
 - Uploaded text passed as data, separated from instructions; output validated against a JSON
   schema before display; model may not add items, additions flagged as suggestions.
 
+Admin area (E13-2, E14)
+- /admin served only to ADMIN_EMAILS; everyone else gets 404. The admin queries live in one
+  module the product's pages never import.
+- Every admin action writes an audit row in the same transaction; "view as" is read-only,
+  shows a banner, expires after 60 minutes and is audited at start and stop.
+- No respondent names or answers in the admin area except through "view as".
+
 Headers and transport
 - HSTS, CSP with nonces, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
 - securityheaders.com grade A on the production domain.

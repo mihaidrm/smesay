@@ -32,4 +32,6 @@ the usage of every workspace.
 
 ## Technical notes
 Queries in src/db/queries/admin.ts, the one place that reads across workspaces, guarded by
-the admin check and never imported by the app's own pages (lint rule as in E1-3).
+the admin check and never imported by the app's own pages (lint rule as in E1-3). This page
+is the Overview of the admin shell E14-1 builds (decision 0035); the access rule and the
+module are shared.

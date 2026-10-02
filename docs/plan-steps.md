@@ -58,7 +58,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
 
-## Phase 3. R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027)
+## Phase 3. R1 build, fourteen epics in order (about 44 sessions, 22 weeks, to about end of March 2027)
 
 Each epic: stories written, Mihai answers questions, Claude builds story by story, the reviewer
 audits, Mihai accepts each story with a note. Estimates are sessions at two per week.
@@ -78,6 +78,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry and the lawyer at the launch gate | none until launch | 2 | open |
 | E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai | none | 3 | open |
 | E13 Analytics for us | Event catalogue and log, admin page with funnel and usage per workspace, Plausible on the landing page and the PM app (decision 0030) | Plausible at the launch gate (step 11); ADMIN_EMAILS in .env.local | 2 | open |
+| E14 Admin and support | Admin shell and audit log, workspaces with their settings and the support actions, people and their sign-in, read-only view of a workspace (decision 0035) | ADMIN_EMAILS in .env.local | 3 | open |
 
 Launch gate: Mihai decides the product is worth a domain. Then: name, domain, personal Vercel
 and Neon, Resend, Sentry, Plausible, legal pages confirmed, deploy. After that, one organisation
