@@ -4,9 +4,9 @@
 // stays dismissed, E4-4), and areaBy "ai" where the model chose the area. An item the PM
 // moved (areaBy "pm") keeps its area; its rationale follows that area's new wording when the
 // area is still there. The set records the areas with their rationale, the run count and
-// the time. The set row and the item rows are read under a lock, so a move landing between
-// the read and the update is not lost. moveItem is the PM's move: area and rationale set,
-// areaBy "pm", nothing else touched. db.transaction and `.for("update")` as in importCommit.ts.
+// the time. The set row and the item rows are read under a lock, and moveItem reads its row
+// under one too, so a run and a move never write over each other's read. moveItem is the
+// PM's move: area and rationale set, areaBy "pm", nothing else touched. db.transaction and `.for("update")` as in importCommit.ts.
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { item, itemSet } from "@/db/schema";
@@ -14,7 +14,7 @@ import type { ItemFlags, ShapeArea, WorkspaceId } from "@/db/types";
 import type { ItemSet } from "./itemSets";
 import type { Item } from "./items";
 
-export type Placement = { itemId: string; area: string; byAi: boolean; reader: string; ambiguity: string | null; duplicateOf: string | null };
+export type Placement = { itemId: string; area: string; byAi: boolean; importedArea: string | null; reader: string; ambiguity: string | null; duplicateOf: string | null };
 
 export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, areas: ShapeArea[], placements: Placement[]): Promise<ItemSet | null> {
   return db.transaction(async (tx) => {
@@ -34,6 +34,7 @@ export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, 
       delete next.duplicateOf;
       if (p.ambiguity) next.ambiguity = p.ambiguity;
       if (p.duplicateOf) next.duplicateOf = p.duplicateOf;
+      if (p.importedArea) next.importedArea = p.importedArea;
       if (!moved) {
         if (p.byAi) next.areaBy = "ai";
         else delete next.areaBy;
@@ -53,9 +54,11 @@ export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, 
 }
 
 export async function moveItem(workspaceId: WorkspaceId, itemId: string, area: string, rationale: string | null): Promise<Item | null> {
-  const [row] = await db.select().from(item).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId)));
-  if (!row) return null;
-  const flags: ItemFlags = { ...(row.flags ?? {}), areaBy: "pm" };
-  const [updated] = await db.update(item).set({ area, areaRationale: rationale, flags }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).returning();
-  return updated ?? null;
+  return db.transaction(async (tx) => {
+    const [row] = await tx.select().from(item).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).for("update");
+    if (!row) return null;
+    const flags: ItemFlags = { ...(row.flags ?? {}), areaBy: "pm" };
+    const [updated] = await tx.update(item).set({ area, areaRationale: rationale, flags }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).returning();
+    return updated ?? null;
+  });
 }

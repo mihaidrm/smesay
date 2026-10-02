@@ -129,7 +129,7 @@ describe("shapeSet", () => {
     expect(hadImportedAreas(rows)).toBe(true);
     expect(rows.map((r) => [r.position, r.area, r.flags?.areaBy ?? null, r.readerStatus])).toEqual([[1, "Submitting", null, "suggested"], [2, "Approving", null, "suggested"], [3, "Paying", null, "suggested"], [4, "Submitting", "ai", "suggested"], [5, "Submitting", "ai", "suggested"]]);
     expect(rows[0].areaRationale).toBe("Then, because submitting.");
-    expect(rows[1].flags).toEqual({ ambiguity: "Which email." });
+    expect(rows[1].flags).toEqual({ ambiguity: "Which email.", importedArea: "Approving" });
     // duplicateOf: "4" names an unknown ref and is dropped; "5" names the earlier 4 and stays.
     expect(rows[3].flags).toEqual({ areaBy: "ai" });
     expect(rows[4].flags).toEqual({ areaBy: "ai", duplicateOf: "4" });
@@ -162,7 +162,7 @@ describe("shapeSet", () => {
     const { fetch, calls } = transport(answer([{ name: "Submitting", items: ["1", "5"] }, { name: "Approving", items: ["2"] }, { name: "Paying", items: ["3", "4"] }], ["1", "2", "3", "4", "5"]));
     const again = await shapeSet(a, withAreas, { fetch });
     if ("error" in again) throw new Error(again.error);
-    expect(body(calls[0]).messages[0].content[0].text).toContain("[4] (area: Paying) Travel advances");
+    expect(body(calls[0]).messages[0].content[0].text).toContain("[4] (keep in: Paying) Travel advances");
     expect(body(calls[0]).messages[0].content[0].text).toContain("[5] Per diem");
     expect(again.set.shapeRuns).toBe(2);
     expect(again.set.areas?.map((x) => x.name)).toEqual(["Submitting", "Approving", "Paying"]);
@@ -170,6 +170,11 @@ describe("shapeSet", () => {
     expect(after.find((r) => r.position === 4)).toMatchObject({ area: "Paying", flags: { areaBy: "pm" } });
     expect(after.find((r) => r.position === 5)).toMatchObject({ area: "Submitting", flags: { areaBy: "ai" } });
     expect(areaNames(again.set, after)).toEqual(["Submitting", "Approving", "Paying"]);
+    // An imported item the PM moves keeps where it came from, so the pills stay on.
+    const receipts = after.find((r) => r.position === 1)!;
+    const movedImported = await moveItemTo(a, withAreas, receipts.id, "Approving");
+    expect("item" in movedImported && movedImported.item.flags).toEqual({ areaBy: "pm", importedArea: "Submitting" });
+    expect(hadImportedAreas(await items.forSet(a.ws, set.id))).toBe(true);
     // An emptied area keeps its rationale on the set, so a later move back finds it.
     const perDiem = after.find((r) => r.position === 5)!;
     const back = await moveItemTo(a, withAreas, perDiem.id, "Approving");
@@ -194,6 +199,21 @@ describe("shapeSet", () => {
     expect(body(fresh.calls[0]).messages[0].content[0].text).not.toContain("AREAS");
     expect(body(fresh.calls[0]).messages[0].content[0].text).not.toContain("(area:");
     expect(again.set.areas?.map((x) => x.name)).toEqual(["Before the trip", "During", "After"]);
+    // After a move, the next run is told to keep that area and the item in it, and may still
+    // regroup the rest; an answer without the kept area is refused.
+    const rows2 = await items.forSet(a.ws, result.set.id);
+    const approval = rows2.find((r) => r.position === 2)!;
+    const moved = await moveItemTo(a, plain, approval.id, "During");
+    if ("error" in moved) throw new Error(moved.error);
+    const dropped = transport(answer([{ name: "Start", items: ["1", "2"] }, { name: "Middle", items: ["3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]));
+    expect(await shapeSet(a, plain, dropped)).toEqual({ error: AI_COPY.invalid, retry: true });
+    expect(body(dropped.calls[0]).messages[0].content[0].text).not.toContain("AREAS");
+    expect(body(dropped.calls[0]).messages[0].content[0].text).toContain("[2] (keep in: During) Approval");
+    const regrouped = transport(answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]));
+    const third = await shapeSet(a, plain, regrouped);
+    if ("error" in third) throw new Error(third.error);
+    expect(third.set.areas?.map((x) => x.name)).toEqual(["Start", "During", "End"]);
+    expect((await items.forSet(a.ws, result.set.id)).find((r) => r.position === 2)).toMatchObject({ area: "During", flags: { areaBy: "pm" } });
   });
 
   it("refuses the sample, a project without a list, a move before shaping, and another workspace's project", async () => {
@@ -220,6 +240,10 @@ describe("shapeSet", () => {
     const big = (await projects.create(a.ws, { name: "Big", createdBy: a.userId })).id;
     await importList(a, big, Array.from({ length: 401 }, (_, i) => `- Item ${i + 1}`));
     expect(await shapeSet(a, big, { fetch })).toEqual({ error: SHAPE_COPY.tooManyItems(401), retry: false });
+    const wide = (await projects.create(a.ws, { name: "Wide", createdBy: a.userId })).id;
+    await importList(a, wide, Array.from({ length: 300 }, (_, i) => `- Item ${i + 1} ${"x".repeat(1700)}`));
+    const refusal = await shapeSet(a, wide, { fetch });
+    expect("error" in refusal && refusal.error.startsWith("This list has 5") && refusal.error.endsWith("characters of item text, more than one AI call can take. Shorten the longest items, or split the list.")).toBe(true);
     expect(calls).toHaveLength(0);
   });
 
@@ -227,7 +251,7 @@ describe("shapeSet", () => {
     const set = (await latestSet(a.ws, withAreas))!;
     const [first] = await items.forSet(a.ws, set.id);
     expect(await items.forSet(b.ws, set.id)).toEqual([]);
-    expect(await applyShaping(b.ws, set.id, [{ name: "X", rationale: "Y" }], [{ itemId: first.id, area: "X", byAi: true, reader: "r", ambiguity: null, duplicateOf: null }])).toBeNull();
+    expect(await applyShaping(b.ws, set.id, [{ name: "X", rationale: "Y" }], [{ itemId: first.id, area: "X", byAi: true, importedArea: null, reader: "r", ambiguity: null, duplicateOf: null }])).toBeNull();
     expect(await moveItem(b.ws, first.id, "X", null)).toBeNull();
     expect((await items.forSet(a.ws, set.id))[0]).toEqual(first);
   });

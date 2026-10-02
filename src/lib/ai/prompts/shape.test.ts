@@ -24,6 +24,12 @@ describe("buildShapePrompt", () => {
     expect(p.data).toContain("[1] (area: Submitting) Receipts by phone");
     expect(p.data).toContain("[3] Travel advances");
   });
+  it("marks a PM-placed item as keep in, which is not an imported area", () => {
+    const p = buildShapePrompt([{ ref: "1", text: "a", area: null, keep: "Paying" }, { ref: "2", text: "b", area: null }]);
+    expect(p.importedAreas).toBeNull();
+    expect(p.data).toBe("ITEMS (2)\n[1] (keep in: Paying) a\n[2] b");
+    expect(p.instructions).toContain("(keep in: name)");
+  });
   it("folds whitespace inside an imported area name", () => {
     const p = buildShapePrompt([{ ref: "1", text: "a", area: "Two\nlines " }, { ref: "2", text: "b", area: null }]);
     expect(p.importedAreas).toEqual(["Two lines"]);

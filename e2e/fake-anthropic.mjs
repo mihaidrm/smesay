@@ -3,7 +3,8 @@
 // it with ANTHROPIC_BASE_URL. POST /v1/messages reads the list from the data block the app
 // sends ("[ref] (area: name) text" lines, src/lib/ai/prompts/shape.ts) and answers with a
 // message in the API's shape: imported areas kept with the loose items in the first one, or
-// three areas by thirds when the list has none. GET /health says it is up.
+// three areas by thirds when the list has none; an item marked (keep in: name) stays in that
+// area. GET /health says it is up.
 import http from "node:http";
 
 const PORT = Number(process.env.FAKE_ANTHROPIC_PORT ?? 4010);
@@ -11,19 +12,22 @@ const PORT = Number(process.env.FAKE_ANTHROPIC_PORT ?? 4010);
 function shape(data) {
   const items = [];
   for (const line of data.split("\n")) {
-    const m = /^\[(\d+)\](?: \(area: (.+?)\))? (.*)$/.exec(line);
-    if (m) items.push({ ref: m[1], area: m[2] ?? null, text: m[3] });
+    const m = /^\[(\d+)\](?: \((area|keep in): (.+?)\))? (.*)$/.exec(line);
+    if (m) items.push({ ref: m[1], area: m[2] === "area" ? m[3] : null, keep: m[2] === "keep in" ? m[3] : null, text: m[4] });
   }
   const imported = [];
   for (const it of items) if (it.area && !imported.includes(it.area)) imported.push(it.area);
   let areas;
   if (imported.length > 0) {
-    areas = imported.map((name) => ({ name, items: items.filter((it) => it.area === name).map((it) => it.ref) }));
-    areas[0].items.push(...items.filter((it) => !it.area).map((it) => it.ref));
+    areas = imported.map((name) => ({ name, items: items.filter((it) => it.area === name || it.keep === name).map((it) => it.ref) }));
+    areas[0].items.push(...items.filter((it) => !it.area && !it.keep).map((it) => it.ref));
   } else {
     const names = ["Submitting", "Approving", "Paying"];
-    const size = Math.ceil(items.length / 3);
-    areas = names.map((name, i) => ({ name, items: items.slice(i * size, (i + 1) * size).map((it) => it.ref) })).filter((a) => a.items.length > 0);
+    const loose = items.filter((it) => !it.keep);
+    const size = Math.ceil(loose.length / 3);
+    areas = names.map((name, i) => ({ name, items: loose.slice(i * size, (i + 1) * size).map((it) => it.ref) }));
+    for (const it of items.filter((it) => it.keep)) (areas.find((a) => a.name === it.keep) ?? areas[areas.push({ name: it.keep, items: [] }) - 1]).items.push(it.ref);
+    areas = areas.filter((a) => a.items.length > 0);
   }
   return {
     areas: areas.map((a, i) => ({ ...a, rationale: i === 0 ? `First, because ${a.name.toLowerCase()} starts it.` : `Then, ${a.name.toLowerCase()}.` })),

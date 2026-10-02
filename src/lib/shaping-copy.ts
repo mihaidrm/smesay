@@ -23,5 +23,6 @@ export const SHAPE_COPY = {
   tooManyAreas: (n: number) => `This list has ${n} areas in its area column. Shape works with up to 12. Merge some in the file and import it again.`,
   longArea: (n: number) => `An area name in the list is ${n} characters long. Shape works with names up to 60. Shorten it in the file and import it again.`,
   tooManyItems: (n: number) => `This list has ${n} items. Shape works on lists up to 400 items for now. Split the list, or come back when larger lists are supported.`,
+  tooLong: (n: number) => `This list has ${n.toLocaleString("en-GB")} characters of item text, more than one AI call can take. Shorten the longest items, or split the list.`,
   tryAgain: AI_COPY.tryAgain,
 } as const;

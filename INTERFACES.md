@@ -43,7 +43,9 @@ the check constraints use them). Change this file first.
   duplicates folded into this item), areaBy?: "ai" | "pm" (E4-2: who put the item in its
   area; "ai" the model, placed again on a re-run and, when the import had an area column,
   shown as "Placed by AI"; "pm" a move, left alone by a re-run; absent, the area came with
-  the import and the model may not move it) }
+  the import and the model may not move it), importedArea?: string (E4-2: the area the item
+  came with, written at the first run and kept whatever happens to item.area, so a moved
+  item still says where it came from and the pills know the import had areas) }
 - ShapeState (E4-2, on item_set): areas jsonb ShapeArea[] = { name, rationale }[] (the areas
   in the model's order, each with its one-sentence rationale; an area the PM has emptied
   stays until the next run; null until shaped), shape_runs integer (how many times shaping
@@ -126,11 +128,12 @@ The app checks on top of the schema (src/lib/shaping.ts, checkShape): every item
 appears in exactly one area and in items once; no unknown ref in areas or items; area names
 trimmed, none blank, no two the same (case folded); when the import carried an area column,
 the area names are the imported ones, unchanged, and every item that came with an area is
-still in it; when it did not, 3 to 8 areas. A failed check is E4-1's "invalid" refusal. A
+still in it; when it did not, 3 to 8 areas, among them every area the PM moved an item into
+(the item is sent as "keep in" and stays there). A failed check is E4-1's "invalid" refusal. A
 duplicateOf that names an unknown ref, the item itself or a later item is dropped, not
 refused (E4-4, acceptance 4). Before the call: more than 12 imported areas, an imported area
-name over 60 characters, or more than 400 items are refused with their own messages
-(docs/copy/errors.md, Shaping).
+name over 60 characters, more than 400 items, or a prompt over E4-1's 500,000 characters are
+refused with their own messages (docs/copy/errors.md, Shaping).
 The route (E4-1): `runModel({ ws, projectId, purpose, instructions, data, schema, check,
 maxOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
 ANTHROPIC_API_KEY or imports the SDK (lint rule smesay/ai-sdk, which also keeps the module

@@ -9,7 +9,7 @@ import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { ShapeArea } from "@/db/types";
 import { AI_COPY } from "@/lib/ai/copy";
-import { runModel, type RunDeps } from "@/lib/ai/client";
+import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
 import { buildShapePrompt } from "@/lib/ai/prompts/shape";
 import { AREAS_MAX, AREAS_MIN, ShapeOutput } from "@/lib/ai/shape-schema";
 import { NotFoundError } from "@/lib/errors";
@@ -33,8 +33,9 @@ const fold = (s: string) => s.replace(/\s+/g, " ").trim();
 
 // The checks on top of the schema (INTERFACES.md, AI shaping output). The reason carries
 // counts, never item text (E4-1: the detail goes to the server log). importedOf maps a ref
-// to the area it came with, when the import had an area column.
-export function checkShape(out: ShapeOutput, refs: string[], importedAreas: string[] | null, importedOf: Map<string, string> = new Map()): string | null {
+// to the area it came with, when the import had an area column; kept lists the areas the PM
+// moved items into, which the answer must name.
+export function checkShape(out: ShapeOutput, refs: string[], importedAreas: string[] | null, importedOf: Map<string, string> = new Map(), kept: string[] = []): string | null {
   const known = new Set(refs);
   const seen = new Map<string, number>();
   for (const a of out.areas) for (const r of a.items) seen.set(r, (seen.get(r) ?? 0) + 1);
@@ -60,8 +61,10 @@ export function checkShape(out: ShapeOutput, refs: string[], importedAreas: stri
     let strayed = 0;
     for (const a of out.areas) for (const r of a.items) { const came = importedOf.get(r); if (came && came !== fold(a.name)) strayed += 1; }
     if (strayed > 0) return `${strayed} item(s) moved out of the area they came with`;
-  } else if (out.areas.length < AREAS_MIN || out.areas.length > AREAS_MAX) {
-    return `${out.areas.length} areas, expected ${AREAS_MIN} to ${AREAS_MAX}`;
+  } else {
+    if (out.areas.length < AREAS_MIN || out.areas.length > AREAS_MAX) return `${out.areas.length} areas, expected ${AREAS_MIN} to ${AREAS_MAX}`;
+    const lost = kept.filter((k) => !names.includes(k)).length;
+    if (lost > 0) return `${lost} area(s) the PM moved items into missing`;
   }
   return null;
 }
@@ -88,18 +91,23 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   const rows = await itemQueries.forSet(actor.ws, set.id);
   if (rows.length === 0) return { error: SHAPE_COPY.noSet, retry: false };
   if (rows.length > ITEMS_MAX) return { error: SHAPE_COPY.tooManyItems(rows.length), retry: false };
-  // An area the model gave on an earlier run is not an imported one: the re-run places the
-  // item again. An area the PM chose stays (acceptance 4) and is sent as given.
-  const given = (it: Item) => (it.flags?.areaBy === "ai" ? null : it.area);
-  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: given(it) })));
+  // What the model is told about each item's area: the one it came with (kept from the
+  // first run on as flags.importedArea), or the one the PM moved it to (sent as "keep in").
+  // An area the model gave on an earlier run is sent as none, so the re-run places the item
+  // again (acceptance 4).
+  const imported = (it: Item) => it.flags?.importedArea ?? (it.flags?.areaBy === undefined ? it.area : null);
+  const kept = (it: Item) => (it.flags?.areaBy === "pm" ? it.area : null);
+  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: imported(it), keep: kept(it) })));
   if (prompt.importedAreas) {
     if (prompt.importedAreas.length > IMPORTED_AREAS_MAX) return { error: SHAPE_COPY.tooManyAreas(prompt.importedAreas.length), retry: false };
     const long = prompt.importedAreas.find((a) => a.length > AREA_NAME_MAX);
     if (long) return { error: SHAPE_COPY.longArea(long.length), retry: false };
   }
+  if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: SHAPE_COPY.tooLong(rows.reduce((n, it) => n + it.originalText.length, 0)), retry: false };
   const refs = rows.map(ref);
-  const importedOf = new Map(rows.filter((it) => given(it) && it.flags?.areaBy !== "pm").map((it) => [ref(it), fold(given(it)!)]));
-  const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "shape", instructions: prompt.instructions, data: prompt.data, schema: ShapeOutput, check: (out) => checkShape(out, refs, prompt.importedAreas, importedOf) }, deps);
+  const importedOf = new Map(rows.filter((it) => imported(it) && !kept(it)).map((it) => [ref(it), fold(imported(it)!)]));
+  const keptAreas = [...new Set(rows.map(kept).filter((k): k is string => k !== null).map(fold))];
+  const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "shape", instructions: prompt.instructions, data: prompt.data, schema: ShapeOutput, check: (out) => checkShape(out, refs, prompt.importedAreas, importedOf, keptAreas) }, deps);
   if (!result.ok) {
     if (result.reason === "invalid") console.error(`Shaping refused the answer for set ${set.id}: ${result.detail}.`);
     return { error: result.message, retry: result.reason === "failed" || result.reason === "invalid" };
@@ -114,7 +122,8 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
       const answer = readers.get(r)!;
       placements.push({
         itemId: it.id, area: fold(area.name),
-        byAi: given(it) === null,
+        byAi: imported(it) === null,
+        importedArea: imported(it) ? fold(imported(it)!) : null,
         reader: answer.reader, ambiguity: answer.flags.ambiguity, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
       });
     }
@@ -163,7 +172,8 @@ export function groupByArea(set: Pick<ItemSet, "areas">, rows: Item[]): AreaGrou
 }
 
 // "Placed by AI" is shown only when the import had an area column: an item the model placed
-// among areas the PM gave (acceptance 2).
+// among areas the PM gave (acceptance 2). Before the first run the imported area is item.area
+// of an item nobody has placed; from then on it is flags.importedArea, moves included.
 export function hadImportedAreas(rows: Item[]): boolean {
-  return rows.some((it) => it.area !== null && it.flags?.areaBy === undefined);
+  return rows.some((it) => it.flags?.importedArea !== undefined || (it.area !== null && it.flags?.areaBy === undefined));
 }

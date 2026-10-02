@@ -7,9 +7,11 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number; unrecognisedValues: number; duplicateRefs: { kept: string; folded: string[] }[] };
 // foldedRefs (E3-5): the references of the exact duplicates folded into this item at import.
 // areaBy (E4-2): who put the item in its area, "ai" (the model; a re-run places it again) or
-// "pm" (a move; a re-run leaves it); absent, the area came with the import. duplicateOf and
-// the refs in it are item positions in the set, as strings (E4-4 shows the source reference).
-export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean; foldedRefs?: string[]; areaBy?: "ai" | "pm" };
+// "pm" (a move; a re-run leaves it); absent, the area came with the import. importedArea
+// (E4-2): the area the item came with, kept from the first run on, whatever happens to
+// item.area. duplicateOf and the refs in it are item positions in the set, as strings (E4-4
+// shows the source reference).
+export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean; foldedRefs?: string[]; areaBy?: "ai" | "pm"; importedArea?: string };
 // ShapeArea (E4-2, item_set.areas): an area in the model's order with its rationale.
 export type ShapeArea = { name: string; rationale: string };
 export type ResponseFields = { [key: string]: string };
