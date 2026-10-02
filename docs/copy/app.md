@@ -30,13 +30,35 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Switch page line when the current workspace was removed | The workspace you were in is no longer available to you. Pick another one to work in. |
 | Signed-in line under both pages | Signed in as [EMAIL]. |
 
+## Settings, brand and budget (E2-5)
+
+| Where | Text |
+|---|---|
+| Page line | Name, logo and accent appear on every instrument created after you save. |
+| Card title | Brand on the respondent side |
+| Name field label | Workspace name |
+| Logo label and line | Logo. PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark. |
+| Logo file button | Choose file |
+| Logo remove button | Remove logo |
+| Accent label | Accent colour |
+| Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter, the progress bar, the focus ring and links. Buttons stay ink. |
+| Accent line, none set | No accent set. The respondent page uses teal. |
+| Save button | Save |
+| Line after saving | Saved. Instruments created from now on carry the new name, logo and accent. |
+| Budget card title | AI budget |
+| Budget line | EUR [BUDGET] per month, EUR [SPENT] used this month |
+| Budget note | The budget is not editable on the Free plan. A run that would exceed it is refused and shows the shortfall. |
+| Plan card title and value | Plan, Free |
+| Plan pill | While we build it with the first users |
+| Plan note | Paid plans come later. Nothing you build now is lost or locked. |
+
 ## Settings, Members (E2-4)
 
 | Where | Text |
 |---|---|
 | Sidebar link beside the workspace name | Settings |
 | Page title | Workspace settings |
-| Page line (until E2-5 adds the rest) | Who can work in this workspace. |
+| Page line | Name, logo and accent appear on every instrument created after you save. |
 | Section title | Members |
 | Section line | Owners manage the workspace and its members. Members can do everything else. |
 | Table headers | Name, Email, Role, Joined |

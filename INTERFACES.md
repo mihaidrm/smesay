@@ -42,7 +42,12 @@ ownerUserId), update(ws, patch) (name, slug, accent, logo, budget only), markDel
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
-into memberships. Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
+into memberships. Brand (E2-5): workspaces.publicBrand(workspaceId) gives name, accent and logo key to public
+pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effectiveAccent()`
+in src/lib/brand-rules.ts is what the respondent side uses; the logo is at
+/brand/[workspaceId]/logo. Object storage: putObject, getObject, deleteObject in
+src/lib/storage.ts, keyed by path; nothing else touches the bucket.
+Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
 Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
 createWorkspaceWithSample(data, ownerUserId) in src/db/queries/onboarding.ts, imported by
 name (not in the barrel), creates the workspace with its owner and its own copy of the sample.

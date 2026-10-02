@@ -26,6 +26,16 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
+      # The S3-compatible store for the logo upload (stories/E2-5), the compose RustFS
+      # (decision 0025); the app creates the bucket on first use.
+      rustfs:
+        image: rustfs/rustfs:1.0.0
+        env:
+          RUSTFS_ACCESS_KEY: smesay
+          RUSTFS_SECRET_KEY: smesay-local
+          RUSTFS_ADDRESS: ":9000"
+        ports:
+          - 9000:9000
     env:
       CI: "true"
       DATABASE_URL: postgres://smesay:smesay@localhost:5432/smesay
@@ -34,6 +44,10 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       MAIL_SMTP_URL: smtp://localhost:1025
       EMAIL_FROM: SMEsay <sign-in@localhost>
+      S3_ENDPOINT: http://localhost:9000
+      S3_BUCKET: uploads
+      S3_ACCESS_KEY_ID: smesay
+      S3_SECRET_ACCESS_KEY: smesay-local
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

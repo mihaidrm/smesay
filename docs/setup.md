@@ -17,7 +17,8 @@ npm run db:seed          # the Marlow Group test fixture (stories/E1-4); a secon
                          # workspace, with its own sample project, is made on your first sign-in (stories/E2-3)
 # Sign in (stories/E2-1): open http://localhost:3000/sign-in, enter any address, open the email at
 # http://localhost:8025 (Mailpit) and click Sign in. Needs BETTER_AUTH_SECRET, BETTER_AUTH_URL,
-# MAIL_SMTP_URL and EMAIL_FROM in .env.local (.env.example has the local values). The secret is
+# MAIL_SMTP_URL, EMAIL_FROM and the four S3_* values in .env.local (.env.example has the local
+# values; the logo upload in Settings creates the bucket in RustFS on first use). The secret is
 # the one value you type: paste the output of the next line into BETTER_AUTH_SECRET= (crypto.randomBytes,
 # nodejs.org/api/crypto.html).
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
