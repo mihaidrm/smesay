@@ -58,7 +58,15 @@ export function createAuth({ baseURL, secret }: AuthEnv, options: { disableOrigi
     baseURL,
     secret,
     database: drizzleAdapter(db, { provider: "pg", schema }),
-    session: { expiresIn: SESSION_DAYS * DAY, updateAge: DAY },
+    session: {
+      expiresIn: SESSION_DAYS * DAY,
+      updateAge: DAY,
+      // The current workspace lives on the session row (stories/E2-3, acceptance 4): never set
+      // from a request body (input: false), only by src/lib/current-workspace.ts after the
+      // membership check. Extending the session schema: better-auth.com/docs/concepts/database,
+      // "Extending core schema"; the column is session.current_workspace_id (migration 0002).
+      additionalFields: { currentWorkspaceId: { type: "string", required: false, input: false } },
+    },
     advanced: { disableOriginCheck: options.disableOriginCheck },
     plugins: [
       magicLink({

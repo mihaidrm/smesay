@@ -1,0 +1,1 @@
+ALTER TABLE "session" ADD COLUMN "current_workspace_id" uuid;

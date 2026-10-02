@@ -35,6 +35,10 @@ Done so far:
   src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
   /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
   docs/copy/app.md.
+- Workspace (stories/E2-3, built 2026-10-02): the first sign-in names a workspace and gets its
+  own copy of the sample project; the current workspace is on the session row and checked
+  against the memberships on every request (src/lib/current-workspace.ts); the shell under
+  src/app/app/(shell) shows the switcher, the member count and the project list.
 - Workspace scoping (stories/E1-3, built 2026-10-02): src/db/queries/ holds every query, each
   taking a WorkspaceId that only requireWorkspace() in src/lib/workspace.ts produces from the
   session; lint (eslint-rules/db-access.mjs) refuses the database by any import path outside
@@ -55,8 +59,8 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E2 in story order (stories/backlog.md), E2-3 before E2-2 because the
-developer accounts for E2-2 come later (decision 0031). Every story exists (67 in 13 epics); a story is rewritten when Mihai
+Next tasks for Claude: E2-4 (members and roles), then E2-5 (settings); E2-2 when the
+developer accounts exist (decision 0031). Every story exists (67 in 13 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
@@ -77,7 +81,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.5 PC setup: done.
 Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 0 of 13 steps. Left: 13 steps
 - E1 Foundation: building.
-- E2 Accounts: open.
+- E2 Accounts: building.
 - E3 Import: open.
 - E4 AI shaping: open.
 - E5 Instrument builder: open.

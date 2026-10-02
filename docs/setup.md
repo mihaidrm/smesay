@@ -13,7 +13,8 @@ cp .env.example .env.local
 docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 8025 (SMTP 1025)
 npm install
 npm run db:migrate       # creates the tables (drizzle/, stories/E1-2); a second run changes nothing
-npm run db:seed          # the Marlow Group sample workspace (stories/E1-4); a second run changes nothing
+npm run db:seed          # the Marlow Group test fixture (stories/E1-4); a second run changes nothing. Your own
+                         # workspace, with its own sample project, is made on your first sign-in (stories/E2-3)
 # Sign in (stories/E2-1): open http://localhost:3000/sign-in, enter any address, open the email at
 # http://localhost:8025 (Mailpit) and click Sign in. Needs BETTER_AUTH_SECRET, BETTER_AUTH_URL,
 # MAIL_SMTP_URL and EMAIL_FROM in .env.local (.env.example has the local values). The secret is

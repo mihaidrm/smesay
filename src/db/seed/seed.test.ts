@@ -9,7 +9,7 @@ import { ensureTestDatabase } from "../test-db";
 import { aiRuns, answers, insights, invites, items, members, missingItems, projects, responses } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
-import { seedSample } from "./sample-seed";
+import { seedSample, seedSampleInto, SAMPLE_PROJECT_NAME } from "./sample-seed";
 import { SAMPLE_WORKSPACE_ID, expected } from "./sample";
 
 let sql: ReturnType<typeof postgres>;
@@ -81,5 +81,25 @@ describe("npm run db:seed", () => {
     expect(record.map((r) => [r.name, r.confidence, new Date(r.submitted_at as string).toISOString()])).toEqual([
       ["Ioana Marin", 4, "2026-10-07T14:05:00.000Z"], ["Tom Reyes", 3, "2026-10-08T08:41:00.000Z"], ["Dana Okafor", 5, "2026-10-08T09:12:00.000Z"],
       ["Lukas Berg", 4, "2026-10-09T16:30:00.000Z"], ["Priya Nair", 3, "2026-10-12T08:55:00.000Z"]]);
+  });
+});
+
+describe("seedSampleInto", () => {
+  it("puts an own copy of the sample, with fresh tokens, into another workspace", async () => {
+    const other = await internal.createEmptyWorkspace({ name: "Second", slug: `second-${Date.now()}` });
+    const ws2 = unsafeWorkspaceId(other.id);
+    try {
+      await seedSampleInto(ws2, SAMPLE_PROJECT_NAME);
+      const [project] = await projects.list(ws2);
+      expect(project).toMatchObject({ name: SAMPLE_PROJECT_NAME, isSample: true, workspaceId: other.id });
+      expect(await items.count(ws2)).toBe(expected.items);
+      expect(await answers.count(ws2)).toBe(expected.answers);
+      expect(await insights.count(ws2)).toBe(expected.insights);
+      const fixture = new Set((await invites.list(ws)).map((i) => i.token));
+      for (const invite of await invites.list(ws2)) expect(fixture.has(invite.token)).toBe(false);
+      expect(await items.count(ws)).toBe(expected.items);
+    } finally {
+      await internal.hardDeleteWorkspace(other.id);
+    }
   });
 });

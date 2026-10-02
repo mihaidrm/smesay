@@ -4,6 +4,7 @@
 // the rules every later epic relies on. migrate() from drizzle-orm/postgres-js/migrator
 // (node_modules/drizzle-orm/postgres-js/migrator.d.ts); the CI job also runs `npm run db:migrate`
 // twice on its own database.
+import { readdirSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -59,7 +60,8 @@ describe("migrations", () => {
     const after = await sql`select count(*)::int as n, max(created_at) as last from drizzle.__drizzle_migrations`;
     expect(after[0].n).toBe(before[0].n);
     expect(after[0].last).toBe(before[0].last);
-    expect(after[0].n).toBe(2);
+    // One row per migration file in drizzle/, whatever the count is by now.
+    expect(after[0].n).toBe(readdirSync("drizzle").filter((f) => f.endsWith(".sql")).length);
   });
 });
 
