@@ -12,7 +12,7 @@ const PURPOSE = {
   workspace: 'organisation: members, AI budget, branding defaults (accent and logo); deleted_at starts the 24-hour removal (E11)',
   workspace_member: 'who belongs to a workspace and as what (owner, member); user_id is better-auth\'s',
   workspace_invite: 'an open invitation by email (E2-4); becomes a workspace_member row on the invitee\'s first signed-in request',
-  upload: 'a file a PM uploaded for a project (E3-2): the object key under the workspace prefix, the sheet and header row chosen, a ten-row preview in jsonb',
+  upload: 'a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview in jsonb',
   project: 'one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample',
   item_set: 'one imported or pasted version of the list (decision 0010); version is unique per project',
   item: 'one requirement: original_text is never overwritten, reader_text sits beside it (E4); area, proposed value, custom fields, flags',

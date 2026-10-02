@@ -317,7 +317,7 @@ Checks: ai_run_purpose_check: purpose in ('shape', 'insights').
 
 ## upload
 
-a file a PM uploaded for a project (E3-2): the object key under the workspace prefix, the sheet and header row chosen, a ten-row preview in jsonb.
+a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview in jsonb.
 
 | Column | Type | Notes |
 |---|---|---|

@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { projects, uploads, workspaces } from "@/db/queries";
+import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
@@ -38,6 +39,12 @@ beforeAll(async () => {
   projectB = (await projects.create(wsB, { name: "List B", createdBy: me.id })).id;
 }, 60_000);
 
+const pick = async (...args: Parameters<typeof rechoose>) => {
+  const result = await rechoose(...args);
+  if ("error" in result) throw new Error(result.error);
+  return result.upload;
+};
+
 describe("saveUpload", () => {
   it("refuses a file that is not xlsx or csv, before storing anything", async () => {
     const result = await saveUpload(a, projectA, { name: "list.pdf", bytes: new Uint8Array([1, 2, 3]) });
@@ -46,14 +53,32 @@ describe("saveUpload", () => {
   });
   it("refuses a file over 5 MB with its size and the limit", async () => {
     const result = await saveUpload(a, projectA, { name: "big.csv", bytes: new Uint8Array(5 * 1024 * 1024 + 1) });
-    expect(result).toEqual({ error: "This file is 5 MB. The limit is 5 MB. Remove sheets or columns you do not need and upload again." });
+    expect(result).toEqual({ error: "This file is 5,121 KB. The limit is 5 MB. Remove sheets or columns you do not need and upload again." });
+    expect(UPLOAD_COPY.tooBig(7 * 1024 * 1024)).toContain("This file is 7 MB.");
   });
   it("refuses a csv with over 2,000 data rows", async () => {
     const text = "Ref,Requirement\n" + Array.from({ length: 2001 }, (_, i) => `R-${i},Requirement number ${i} with some text`).join("\n");
     const result = await saveUpload(a, projectA, { name: "long.csv", bytes: new TextEncoder().encode(text) });
-    expect(result).toEqual({ error: "This file has over 2,000 rows. The limit is 2,000. Split the list and upload the first part." });
+    expect(result).toEqual({ error: "This file has 2,001 rows. The limit is 2,000. Split the list and upload the first part." });
     const ok = await saveUpload(a, projectA, { name: "edge.csv", bytes: new TextEncoder().encode(text.split("\n").slice(0, 2001).join("\n")) });
     expect("upload" in ok && ok.upload.preview.rowsRead).toBe(2000);
+    // "No header row" would make 2,001 rows: refused, the stored choice stays.
+    const none = await rechoose(a.ws, (ok as { upload: { id: string } }).upload.id, { headerRow: 0 });
+    expect(none).toEqual({ error: "This file has 2,001 rows. The limit is 2,000. Split the list and upload the first part." });
+    expect((await uploads.get(a.ws, (ok as { upload: { id: string } }).upload.id))?.headerRow).toBe(1);
+  });
+  it("checks every sheet of a workbook, not only the first", async () => {
+    const result = await saveUpload(a, projectA, { name: "big-sheet.xlsx", bytes: fixture("big-second-sheet.xlsx") });
+    expect(result).toEqual({ error: "Sheet Big has 2,001 rows. The limit is 2,000. Split the list and upload the first part." });
+  });
+  it("refuses the sample project and a project of another workspace", async () => {
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample);
+    expect(sample).toBeUndefined();
+    const ws = await createWorkspaceWithSample({ name: "With sample", slug: `with-sample-${Date.now()}` }, a.userId);
+    const sampleProject = (await projects.list(ws.id as WorkspaceId)).find((p) => p.isSample)!;
+    expect(await saveUpload({ ws: ws.id as WorkspaceId, userId: a.userId }, sampleProject.id, { name: "clean.csv", bytes: fixture("clean.csv") })).toEqual({ error: UPLOAD_COPY.sample });
+    await expect(saveUpload(b, projectA, { name: "clean.csv", bytes: fixture("clean.csv") })).rejects.toBeInstanceOf(NotFoundError);
+    expect((await uploads.list(b.ws)).filter((u) => u.projectId === projectA)).toHaveLength(0);
   });
   it("refuses a file that is not a workbook", async () => {
     const result = await saveUpload(a, projectA, { name: "fake.xlsx", bytes: new TextEncoder().encode("%PDF-1.4") });
@@ -82,11 +107,11 @@ describe("saveUpload", () => {
     expect(result.upload.headerRow).toBeNull();
     expect(result.upload.preview.columns.map((c) => c.name)).toEqual(["", "", "", ""]);
     expect(result.upload.preview.rowsRead).toBe(6);
-    const chosen = await rechoose(b.ws, result.upload.id, { headerRow: 1 });
+    const chosen = await pick(b.ws, result.upload.id, { headerRow: 1 });
     expect(chosen.headerRow).toBe(1);
     expect(chosen.preview.columns.map((c) => c.name)).toEqual(["CL-01", "OCR receipt capture via mobile (auto-fill amt/date/vendor).", "Submitting", "Must"]);
     expect(chosen.preview.rowsRead).toBe(5);
-    const none = await rechoose(b.ws, result.upload.id, { headerRow: 0 });
+    const none = await pick(b.ws, result.upload.id, { headerRow: 0 });
     expect(none.headerRow).toBeNull();
     expect(none.preview.rowsRead).toBe(6);
   });
@@ -96,7 +121,7 @@ describe("saveUpload", () => {
     expect(result.upload.preview.sheets).toEqual(["Notes", "Requirements", "Old"]);
     expect(result.upload.sheet).toBe("Notes");
     expect(result.upload.headerRow).toBeNull();
-    const chosen = await rechoose(b.ws, result.upload.id, { sheet: "Requirements" });
+    const chosen = await pick(b.ws, result.upload.id, { sheet: "Requirements" });
     expect(chosen.sheet).toBe("Requirements");
     expect(chosen.headerRow).toBe(1);
     expect(chosen.preview.rowsRead).toBe(6);

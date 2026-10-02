@@ -32,5 +32,6 @@ within 24 hours and emails a confirmation.
 - None.
 
 ## Technical notes
-workspace.deleted_at (docs/schema.md). Object deletion lists the workspace prefix in the
-bucket. The job is idempotent and logs counts.
+workspace.deleted_at (docs/schema.md). Object deletion lists the workspace's segment under
+each prefix in the bucket: logos/<workspace id>/ (E2-5) and uploads/<workspace id>/ (E3-2);
+a new prefix adds a line here. The job is idempotent and logs counts.

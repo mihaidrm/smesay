@@ -6,6 +6,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { UPLOAD_COPY } from "@/lib/import/copy";
 import { SIZE_MAX, formatBytes } from "@/lib/import/limits";
 import { uploadAction, type ProjectFormState } from "../../actions";
 
@@ -19,7 +20,7 @@ export function UploadForm({ projectId, hasUpload }: { projectId: string; hasUpl
       const file = input?.files?.[0];
       if (file && file.size > SIZE_MAX) {
         e.preventDefault();
-        setClientError(`This file is ${formatBytes(file.size)}. The limit is ${formatBytes(SIZE_MAX)}. Remove sheets or columns you do not need and upload again.`);
+        setClientError(UPLOAD_COPY.tooBig(file.size));
       } else setClientError(null);
     }}>
       <input type="hidden" name="projectId" value={projectId} />

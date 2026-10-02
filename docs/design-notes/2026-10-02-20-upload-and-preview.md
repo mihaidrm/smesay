@@ -24,10 +24,10 @@ tests address the id). The card is not shown on the sample project, which is rea
 The title "Preview" and the board's summary line, then the pickers in one row: "Sheet" with
 "Show sheet" (only when the workbook has more than one sheet) and "Header row" with "Use this
 row" (always; "No header row" and Row 1 to Row 20 at most). Both are native selects, 36 px,
-hairline-strong border, radius 6, next to a secondary pill, because a change must go to the
-server (the preview is rebuilt from the stored file) and a form with a button does that without
-script. When no header row was found, the errors.md message sits above the pickers in the danger
-colour.
+hairline-strong border, radius 6, next to a secondary pill that shows the loading state while
+the server re-reads the stored file; a pick the row limit refuses shows its message under the
+pickers (id pick-error). When no header row was found, the errors.md message sits above the
+pickers in the danger colour.
 
 The table is the design system's table: in each header cell the column letter in muted and the
 column name beside it (the letter alone when there is no header), then the first ten data rows,

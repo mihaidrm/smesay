@@ -19,8 +19,7 @@
 // so the header detection and the preview see one shape for both kinds of file.
 import Papa from "papaparse";
 import readXlsxFile, { InvalidInputError, InvalidSpreadsheetError } from "read-excel-file/node";
-import { ROWS_MAX, SIZE_MAX } from "./limits";
-import { SEARCH_ROWS } from "./header";
+import { SIZE_MAX } from "./limits";
 
 export type UploadKind = "xlsx" | "csv";
 export type ParsedSheet = { name: string; rows: string[][] };
@@ -45,9 +44,9 @@ export function extensionOf(filename: string): string {
 export async function parseFile(kind: UploadKind, bytes: Uint8Array): Promise<ParsedFile> {
   if (bytes.byteLength > SIZE_MAX) throw new Error(`parseFile refuses ${bytes.byteLength} bytes; check the size before calling it.`);
   const sheets = kind === "xlsx" ? await parseXlsx(bytes) : [parseCsv(bytes)];
-  // Enough rows for the row limit to be checked after the header (which sits within the first
-  // SEARCH_ROWS rows), not more: a 5 MB csv of one-word lines is not read whole.
-  return { kind, sheets: sheets.map((s) => ({ name: s.name, rows: s.rows.slice(0, ROWS_MAX + SEARCH_ROWS + 1) })) };
+  // Every row is kept: both libraries parse the whole file anyway, and the row limit
+  // (src/lib/uploads.ts) needs the real count for its message.
+  return { kind, sheets };
 }
 
 async function parseXlsx(bytes: Uint8Array): Promise<ParsedSheet[]> {

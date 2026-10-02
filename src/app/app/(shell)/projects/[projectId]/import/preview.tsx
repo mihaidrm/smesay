@@ -2,16 +2,12 @@
 // the board ("expense-requirements.xlsx, 6 rows read, header found on row 1."), a sheet picker
 // when the workbook has several sheets, a header row picker (always available; opened by the
 // message when no row was found), then the first ten data rows under the column letters and
-// names. Server component; the pickers are plain forms on chooseAction.
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+// names. Server component; the pickers are pickers.tsx.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Upload } from "@/db/queries/uploads";
 import { PREVIEW_ROWS } from "@/lib/import/limits";
-import { UPLOAD_COPY } from "@/lib/uploads";
-import { chooseAction } from "../../actions";
-
-const select = "h-9 rounded-md border border-hairline-strong bg-white px-2 text-sm";
+import { UPLOAD_COPY } from "@/lib/import/copy";
+import { Pickers } from "./pickers";
 
 export function UploadPreview({ upload }: { upload: Upload }) {
   const { preview } = upload;
@@ -23,33 +19,7 @@ export function UploadPreview({ upload }: { upload: Upload }) {
         <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{UPLOAD_COPY.summary(upload.filename, preview.rowsRead, preview.headerRow)}</p>
       </div>
       {preview.headerRow === null && <p id="preview-error" role="alert" className="text-sm text-danger">{UPLOAD_COPY.noHeader}</p>}
-      <div className="flex flex-wrap items-end gap-4">
-        {preview.sheets.length > 1 && (
-          <form action={chooseAction} className="flex items-end gap-2">
-            <input type="hidden" name="projectId" value={upload.projectId} />
-            <input type="hidden" name="uploadId" value={upload.id} />
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="pick-sheet" className="text-[13px]">Sheet</Label>
-              <select id="pick-sheet" name="sheet" defaultValue={preview.sheet ?? ""} className={select}>
-                {preview.sheets.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <Button type="submit" variant="secondary">Show sheet</Button>
-          </form>
-        )}
-        <form action={chooseAction} className="flex items-end gap-2">
-          <input type="hidden" name="projectId" value={upload.projectId} />
-          <input type="hidden" name="uploadId" value={upload.id} />
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="pick-row" className="text-[13px]">Header row</Label>
-            <select id="pick-row" name="headerRow" defaultValue={preview.headerRow ?? 0} className={select}>
-              <option value={0}>No header row</option>
-              {rowOptions.map((r) => <option key={r} value={r}>Row {r}</option>)}
-            </select>
-          </div>
-          <Button type="submit" variant="secondary">Use this row</Button>
-        </form>
-      </div>
+      <Pickers projectId={upload.projectId} uploadId={upload.id} sheets={preview.sheets} sheet={preview.sheet} headerRow={preview.headerRow} rowOptions={rowOptions} />
       {preview.rows.length === 0 ? (
         <p className="text-sm text-ink-muted">This sheet has no rows. Pick another sheet, or upload another file.</p>
       ) : (

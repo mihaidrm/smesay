@@ -112,7 +112,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Preview card title | Preview |
 | Summary line (the board's wording) | [FILE], [N] rows read, header found on row [N]. (no header: [FILE], [N] rows read, no header row found.) |
 | Sheet picker | Sheet; Show sheet |
-| Header row picker | Header row; No header row, Row [N]; Use this row |
+| Header row picker | Header row; No header row, Row [N]; Use this row (both pickers show a loading button while the file is re-read) |
 | Column headers | [LETTER] [NAME] (the letter alone when there is no header) |
 | Line under the rows | The first 10 of [N] rows. |
 | Empty sheet | This sheet has no rows. Pick another sheet, or upload another file. |

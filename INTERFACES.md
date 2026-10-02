@@ -56,6 +56,15 @@ Projects (E3-1): projects.summaries(ws, { archived }) (each project with items, 
 invites and the links its status derives from), projects.setArchived(ws, id, archived),
 projects.deleteSample(ws, id); the status rule is projectStatus() in src/lib/project-status.ts,
 the context rule src/lib/project-context.ts.
+Uploads (E3-2): uploads, the scoped six over upload plus uploads.latestForProject(ws, projectId)
+(the draft the Import step shows); `saveUpload(actor, projectId, { name, bytes })` and
+`rechoose(ws, uploadId, { sheet, headerRow })` in src/lib/uploads.ts, each returning
+{ error } or { upload }; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
+client can use it). upload.preview is UploadPreview (above): rowsRead counts the data rows
+below the chosen header row of the chosen sheet (every row when there is no header), at most
+2,000 after the checks; rows holds the first ten of them. Objects are at
+uploads/<workspace id>/<16 hex>.<xlsx|csv>, logos at logos/<workspace id>/..., so a workspace's
+objects are its segment under each of the two prefixes (E11-2 lists both).
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
 aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.

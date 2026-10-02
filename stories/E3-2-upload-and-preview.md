@@ -55,23 +55,36 @@ Built 2026-10-02.
 - src/lib/uploads.ts: the checks in order (extension, size, readable, rows), then the object
   under uploads/<workspace id>/<16 hex>.<xlsx|csv> (never the PM's file name), then the row in
   the upload table (migration 0005, docs/schema.md): a file that fails a check is never written,
-  a store failure leaves no row. rechoose() rebuilds the preview from the stored object when the
-  PM picks a sheet or a header row. An empty or short file in the form data is the interrupted
-  case and gets the errors.md banner text inline. Uploads to the sample project are refused on
-  the server. The server action's body limit is 6 MB (next.config.ts) and the browser checks
-  the 5 MB before sending.
+  a store failure leaves no row, a failed insert removes the object again. The row limit is
+  checked on every sheet (each with its own detected header) at upload, and again on the sheet
+  and header row picked in rechoose(), which rebuilds the preview from the stored object and
+  refuses a pick over the limit (the stored choice stays); the message carries the real count,
+  so parseFile() keeps every row. Upload with no file chosen gets its own message; a connection
+  that drops mid-upload never reaches the action and lands on the signed-in error page with
+  nothing stored (errors.md names the wording for E11-6). Uploads to the sample project and to a
+  project of another workspace are refused on the server (tested). Earlier uploads of a project
+  keep their rows and objects until the workspace deletion (E11-2). The server action's body
+  limit is 6 MB (next.config.ts) and the browser checks the 5 MB before sending. Messages live
+  in src/lib/import/copy.ts, shared by the server and the upload form.
 - The Import page shows the upload card and the preview of the latest upload (design note 20);
   the preview rows are stored in the row, so the page does not parse the file again. The
   mapping (E3-3) reads upload.preview.columns and the stored object.
 - Fixtures under src/lib/import/fixtures/ are invented (decision 0002), written by a script
   with Python's zipfile (no spreadsheet program in the session): clean.csv, no-header.csv,
   header-row-3.csv, semicolons.csv, utf16.csv, title-row.xlsx, plus two-sheets.xlsx for the
-  sheet picker; e2e/fixtures/expense-requirements.xlsx is the Marlow list with 12 rows so the
+  sheet picker, and big-second-sheet.xlsx (a two-row first sheet, 2,001 rows on the second) for
+  the row limit; e2e/fixtures/expense-requirements.xlsx is the Marlow list with 12 rows so the
   preview shows ten.
 - Tests: src/lib/import/header.test.ts (the six fixtures and the cell rules, acceptance 5),
   src/lib/uploads.test.ts (the checks, the stored object and row, another workspace refused,
   the pickers), e2e/import.spec.ts (acceptance 6: a pdf refused, the Marlow fixture, four
   columns, ten rows, the row picker, reload).
-- Not in this story: the mapping card (E3-3), paste (E3-4), the import itself (E3-5), the
-  worker SECURITY.md mentions for parsing (the parse runs in the server action; a file is at
-  most 5 MB and 2,020 rows are read).
+- Not in this story: the mapping card (E3-3), paste (E3-4), the import itself (E3-5).
+- Open: SECURITY.md says uploads are "parsed server-side in a worker". Here the parse runs in
+  the server action's process (a file is at most 5 MB; read-excel-file unzips the workbook in
+  memory). Whether a worker is needed before launch is Mihai's decision (asked 2026-10-02);
+  until then this line stays open and the audit's finding stays recorded here.
+- Open: acceptance 2's rule accepts a one-column header; the code asks for at least two filled
+  cells in the header row (MIN_FILLED), so a one-column list gets the picker. And the noHeader
+  message says "tell us which column is the requirement", a control E3-3 adds. Both asked
+  2026-10-02.
