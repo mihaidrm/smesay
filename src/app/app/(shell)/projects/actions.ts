@@ -14,7 +14,8 @@ import { commitUpload } from "@/lib/imports";
 import { moveItemTo, shapeSet } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
-export type ProjectFormState = { error: string | null; saved: boolean };
+// retry (E4-2): the error is worth a "Try again" button.
+export type ProjectFormState = { error: string | null; saved: boolean; retry?: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
 
 export async function createProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
@@ -161,7 +162,7 @@ export async function shapeAction(_previous: ProjectFormState, formData: FormDat
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await shapeSet({ ws: current.ws, userId: session.user.id }, projectId);
-    if ("error" in result) return { ...NONE, error: result.error };
+    if ("error" in result) return { ...NONE, error: result.error, retry: result.retry };
     revalidatePath(`/app/projects/${projectId}`, "layout");
     return { ...NONE, saved: true };
   } catch (error) {

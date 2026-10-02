@@ -31,12 +31,12 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
   return (
     <div className="flex flex-col gap-4" data-testid="shape-board" aria-busy={pending}>
       {state.error && <p id="move-error" role="alert" className="text-sm text-danger">{state.error}</p>}
-      {groups.map((group) => {
+      {groups.map((group, g) => {
         const target = !readOnly && areas.includes(group.name);
         return (
           <section
             key={group.name}
-            aria-labelledby={`area-${slug(group.name)}`}
+            aria-labelledby={`area-${g}`}
             data-testid="area"
             data-area={group.name}
             className={cn("rounded-md border border-hairline", over === group.name && "ring-2 ring-teal-700 ring-offset-2")}
@@ -45,7 +45,7 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
             onDrop={target ? (e) => { e.preventDefault(); setOver(null); const id = e.dataTransfer.getData("text/plain"); if (id) drop(id, group.name); } : undefined}
           >
             <div className="flex flex-wrap items-baseline gap-3 rounded-t-md border-b border-hairline bg-grey-50 px-4 py-2.5">
-              <h3 id={`area-${slug(group.name)}`} className="font-medium">{group.name}</h3>
+              <h3 id={`area-${g}`} className="font-medium">{group.name}</h3>
               {group.rationale && <div className="text-[13px] text-ink-muted" data-testid="rationale">{group.rationale}</div>}
             </div>
             {group.items.map((it) => (
@@ -66,7 +66,7 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
                     <form action={(data) => start(() => action(data))} className="flex items-center gap-1.5">
                       <input type="hidden" name="projectId" value={projectId} />
                       <input type="hidden" name="itemId" value={it.id} />
-                      <label htmlFor={`move-${it.id}`} className="sr-only">{`${SHAPE_COPY.moveTo} for ${it.ref ?? it.position}`}</label>
+                      <label htmlFor={`move-${it.id}`} className="sr-only">{SHAPE_COPY.moveLabel(it.ref ?? String(it.position))}</label>
                       <select id={`move-${it.id}`} name="area" defaultValue={group.name} disabled={pending} className="h-8 rounded-md border border-hairline-strong bg-white px-2 text-[13px]">
                         {areas.map((a) => <option key={a} value={a}>{a}</option>)}
                       </select>
@@ -83,4 +83,3 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
   );
 }
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");

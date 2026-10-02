@@ -173,10 +173,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Group of items without an area, before a run | Not shaped yet |
 | Pill on an item the model placed (the import had an area column and the item none) | Placed by AI |
 | Pill on an item the PM moved | Moved by you |
-| Per item: the select and its button (the keyboard path; dragging an item onto an area does the same) | Move to [area], Move |
-| Move refused: the area is not one of the set's | That area does not exist. Pick one from the list. |
+| Per item: the select (its label is visually hidden) and its button; the keyboard path, dragging an item onto an area does the same | Move [ref] to [area], Move |
 | Empty state, no list yet | Import a list first. Shape works on the latest version. [Link: Go to Import] |
-| Refusals from the model call | docs/copy/errors.md, Shaping; shown beside the button with Try again |
+| Refusals, from the model call and from the size checks | docs/copy/errors.md, Shaping; shown beside the button, with Try again where a second try can help |
 
 ## Import, column mapping (E3-3)
 

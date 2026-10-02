@@ -116,7 +116,7 @@ one imported or pasted version of the list (decision 0010); version is unique pe
 | imported_by | text | fk user.id, on delete set null |
 | upload_id | uuid | fk upload.id with workspace_id, unique |
 | imported_at | timestamp with time zone | not null, default now() |
-| area_order | jsonb |  |
+| areas | jsonb |  |
 | shape_runs | integer | not null, default 0 |
 | shaped_at | timestamp with time zone |  |
 

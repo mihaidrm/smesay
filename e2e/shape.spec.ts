@@ -42,10 +42,8 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await page.getByRole("button", { name: "Import 6 items" }).click();
   await expect(page.getByTestId("imported-line")).toContainText("Imported 6 items as version 1 on");
 
-  // Shape is the current step after an import, so the stepper shows it as the ink pill, not
-  // a link (E3-1); the page is reached by its address.
-  await expect(page.getByRole("navigation", { name: "Steps" })).toContainText("Shape");
-  await page.goto(`${projectUrl}/shape`);
+  await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ }).click();
+  await expect(page).toHaveURL(/\/shape$/);
   await expect(page.getByRole("heading", { name: "Shape the list" })).toBeVisible();
   // Before the run: the imported areas and the loose items, read-only.
   await expect(page.getByTestId("area")).toHaveCount(4);
@@ -79,7 +77,8 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("area").nth(2).getByTestId("item").filter({ hasText: "Travel advances" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(1).getByTestId("item").filter({ hasText: "Mileage" })).toHaveCount(1);
 
-  // Run again: the model would put every loose item back in Submitting; the moved ones stay.
+  // Run again: the items the model placed are sent without an area, so the stand-in puts the
+  // loose ones back in Submitting; the two the PM moved are sent with their area and stay.
   await page.getByRole("button", { name: "Run again" }).click();
   await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas.");
   await expect(page.getByTestId("area").nth(2).getByTestId("item").filter({ hasText: "Travel advances" })).toHaveCount(1);

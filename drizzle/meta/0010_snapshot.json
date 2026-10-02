@@ -1,5 +1,5 @@
 {
-  "id": "fbf5e070-7041-4a92-8f05-109507cf544f",
+  "id": "69b3a2e6-e510-41a5-b491-519f2a3ded0e",
   "prevId": "1c357271-9d58-46fb-b59b-3d391e69e108",
   "version": "7",
   "dialect": "postgresql",
@@ -1185,8 +1185,8 @@
           "notNull": true,
           "default": "now()"
         },
-        "area_order": {
-          "name": "area_order",
+        "areas": {
+          "name": "areas",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

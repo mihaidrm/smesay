@@ -19,7 +19,9 @@ export default defineConfig({
   },
   // Two servers (webServer as an array: test.d.ts): the stand-in for the Anthropic API
   // (e2e/fake-anthropic.mjs), then the app pointed at it, so no browser test reaches the real
-  // API (stories/E4-1, acceptance 6). The key is a made-up string the stand-in ignores.
+  // API (stories/E4-1, acceptance 6). The key is a made-up string the stand-in ignores. The
+  // app server is never reused: a dev server started by hand would carry the real key from
+  // .env.local and spend money. Stop `npm run dev` before `npm run test:e2e`.
   webServer: [
     {
       command: "node e2e/fake-anthropic.mjs",
@@ -35,7 +37,7 @@ export default defineConfig({
       // block has em dashes and the pre-commit hook refuses it. webServer.env: test.d.ts.
       env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "", ANTHROPIC_BASE_URL: "http://localhost:4010", ANTHROPIC_API_KEY: "e2e-fake-key-for-the-stand-in" },
       url: "http://localhost:3000",
-      reuseExistingServer: !CI,
+      reuseExistingServer: false,
       timeout: 120_000,
     },
   ],

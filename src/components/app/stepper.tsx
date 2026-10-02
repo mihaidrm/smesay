@@ -2,7 +2,8 @@
 // 2026-10-01): Import, Shape, Build, Share, Results as pills on a grey track (4 px padding,
 // radius 999, grey 50, hairline border, PmApp.dc.html). The current step is an ink pill with a
 // white circle and an ink number; a done step has an ink circle with a white number; a coming
-// step is muted with a hairline-strong circle. A step with no page yet is not a link. New to
+// step is muted with a hairline-strong circle. A step with no page yet is not a link; one
+// with a page is, current or not. New to
 // the design system, recorded in design note 19.
 import Link from "next/link";
 import { cn } from "cn";
@@ -32,8 +33,10 @@ export function Stepper({ current, done, href }: { current: StepKey; done: StepK
           <span aria-hidden="true" className={cn("inline-block size-[22px] rounded-full border text-center text-xs leading-5",
             active ? "border-white bg-white text-ink" : finished ? "border-ink bg-ink text-white" : "border-hairline-strong bg-transparent text-ink-muted")}>{i + 1}</span>
         );
-        return target && !active
-          ? <Link key={step.key} href={target} className={className}>{number}<span>{step.label}</span></Link>
+        // The current step is a link too once its page exists (E4-2: Shape is the current
+        // step from the import on, and the only way to it is this pill).
+        return target
+          ? <Link key={step.key} href={target} aria-current={active ? "step" : undefined} className={className}>{number}<span>{step.label}</span></Link>
           : <span key={step.key} aria-current={active ? "step" : undefined} className={className}>{number}<span>{step.label}</span></span>;
       })}
     </nav>

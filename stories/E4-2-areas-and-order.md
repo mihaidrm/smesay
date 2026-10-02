@@ -30,4 +30,6 @@ the PM can move items between areas.
 Output schema in evals/schema.json (INTERFACES.md, AI shaping output): `{ areas: [{ name,
 rationale, items: [ref] }], items: [{ ref, reader, flags }] }`. Area names are stored on
 item.area and item.area_rationale per item in v1; an areas table is not needed until R2.
-Drag and drop through a keyboard-accessible library chosen with the CLAUDE.md research check.
+Drag and drop: the browser's own API with a "Move to" select as the keyboard path, no library
+(design note 27 has the research check on dnd-kit; Mihai decides whether a library comes with
+E5's builder). One answer carries at most 400 items (design note 27).
