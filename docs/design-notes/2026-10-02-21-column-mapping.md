@@ -7,13 +7,13 @@ headers, the Import button at the bottom right).
 
 ## The card
 
-A hairline card with a header row ("Column mapping" left, "Mapping remembered from [DATE]"
-right when the workspace already had a mapping for these headers), one row per column (140 px
-label column with the header in weight 500 and "Column A" in 12 px muted, "maps to" in muted,
-the native select 36 px with the hairline-strong border and radius 6), then a footer row with
-the board's line on the left and the primary "Import [N] items" pill on the right. The sixth
-"Custom field" option is disabled and carries its reason in the option text, because a native
-option cannot show a tooltip on every platform.
+"Mapping remembered from [DATE]" as a muted line above the card when the workspace already
+had a mapping for these headers (acceptance 3), then a hairline card: the "Column mapping"
+header, one row per column (140 px label column with the header in weight 500 and "Column A"
+in 12 px muted, "maps to" in muted, the native select 36 px with the hairline-strong border
+and radius 6), then the board's footer line. The primary "Import [N] items" pill joins the
+footer row with E3-5. The sixth "Custom field" option is disabled and carries its reason in
+the option text, because a native option cannot show a tooltip on every platform.
 
 ## Decisions taken here
 
@@ -24,6 +24,7 @@ option cannot show a tooltip on every platform.
   and five custom fields at most, and the row re-renders from what was saved. No Save button.
 - The default mapping is guessed from the header names (Ref, Requirement, Module, Priority
   and the usual synonyms, src/lib/import/mapping.ts); unknown headers start as "Do not
-  import". Without a header row, column A starts as the item text.
-- The Import button is rendered here at 40 percent when no text column is mapped (acceptance
-  1) and does nothing until E3-5 wires the check report and the commit; its title says so.
+  import". Without a header row, column A starts as the item text. A guess with a text column
+  is remembered for the workspace at once, so accepting it counts as mapping.
+- Two columns with the same header are told apart by their letter in the key and in the
+  label ("Requirement (B)"); the audit of 2026-10-02 found them collapsing into one row.

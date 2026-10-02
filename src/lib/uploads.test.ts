@@ -18,6 +18,7 @@ import { requireWorkspace } from "@/lib/workspace";
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const fixture = (name: string) => new Uint8Array(readFileSync(`src/lib/import/fixtures/${name}`));
 let a: { ws: WorkspaceId; userId: string }; let b: { ws: WorkspaceId; userId: string }; let projectA: string; let projectB: string;
+let signedIn: { id: string; headers: Headers };
 
 // As in src/lib/projects.test.ts: sign in through the handler, then two workspaces of one user.
 async function signIn(email: string) {
@@ -32,12 +33,12 @@ async function signIn(email: string) {
 beforeAll(async () => {
   await prepareTestDatabase();
   const stamp = Date.now();
-  const me = await signIn(`uploads-${stamp}@example.com`);
-  const wsA = await requireWorkspace(me.headers, (await workspaces.create({ name: "Uploads A", slug: `uploads-a-${stamp}` }, me.id)).id);
-  const wsB = await requireWorkspace(me.headers, (await workspaces.create({ name: "Uploads B", slug: `uploads-b-${stamp}` }, me.id)).id);
-  a = { ws: wsA, userId: me.id }; b = { ws: wsB, userId: me.id };
-  projectA = (await projects.create(wsA, { name: "List A", createdBy: me.id })).id;
-  projectB = (await projects.create(wsB, { name: "List B", createdBy: me.id })).id;
+  signedIn = await signIn(`uploads-${stamp}@example.com`);
+  const wsA = await requireWorkspace(signedIn.headers, (await workspaces.create({ name: "Uploads A", slug: `uploads-a-${stamp}` }, signedIn.id)).id);
+  const wsB = await requireWorkspace(signedIn.headers, (await workspaces.create({ name: "Uploads B", slug: `uploads-b-${stamp}` }, signedIn.id)).id);
+  a = { ws: wsA, userId: signedIn.id }; b = { ws: wsB, userId: signedIn.id };
+  projectA = (await projects.create(wsA, { name: "List A", createdBy: signedIn.id })).id;
+  projectB = (await projects.create(wsB, { name: "List B", createdBy: signedIn.id })).id;
 }, 60_000);
 
 const pick = async (...args: Parameters<typeof rechoose>) => {
@@ -129,24 +130,38 @@ describe("saveUpload", () => {
   });
 
   it("guesses the mapping from the headers, saves changes and remembers them for the same headers (stories/E3-3)", async () => {
-    const first = await saveUpload(a, projectA, { name: "first.xlsx", bytes: fixture("title-row.xlsx") });
+    // A workspace of its own, so no earlier upload in this file has remembered these headers.
+    const wsC = await requireWorkspace(signedIn.headers, (await workspaces.create({ name: "Uploads C", slug: `uploads-c-${Date.now()}` }, signedIn.id)).id);
+    const c = { ws: wsC, userId: signedIn.id };
+    const projectC = (await projects.create(wsC, { name: "List C", createdBy: signedIn.id })).id;
+    const first = await saveUpload(c, projectC, { name: "first.xlsx", bytes: fixture("title-row.xlsx") });
     if (!("upload" in first)) throw new Error(first.error);
     expect(first.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
-    expect(await rememberedFrom(a.ws, first.upload)).toBeNull();
-    const changed = await saveMapping(a.ws, first.upload.id, { "Ref": "ref", "Requirement": "skip", "Module": "custom", "Priority": "value" });
+    expect(await rememberedFrom(c.ws, first.upload)).toBeNull();
+    // The guess is remembered at once (it has a text column), so a PM who accepts it finds it.
+    const sameAgain = await saveUpload(c, projectC, { name: "again.xlsx", bytes: fixture("title-row.xlsx") });
+    expect("upload" in sameAgain && (await rememberedFrom(c.ws, sameAgain.upload))).not.toBeNull();
+    const changed = await saveMapping(c.ws, first.upload.id, { "Ref": "ref", "Requirement": "skip", "Module": "custom", "Priority": "value" });
     expect(changed.error).toBe(MAPPING_COPY.noText);
     expect(changed.upload.mapping).toEqual({ Ref: "ref", Requirement: "skip", Module: "custom", Priority: "value" });
-    const fixed = await saveMapping(a.ws, first.upload.id, { "Ref": "ref", "Requirement": "text", "Module": "custom", "Priority": "value" });
+    // A mapping without a text column is kept on the upload but not remembered.
+    const afterBad = await saveUpload(c, projectC, { name: "after-bad.xlsx", bytes: fixture("title-row.xlsx") });
+    expect("upload" in afterBad && afterBad.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
+    const fixed = await saveMapping(c.ws, first.upload.id, { "Ref": "ref", "Requirement": "text", "Module": "custom", "Priority": "value" });
     expect(fixed.error).toBeNull();
-    await new Promise((r) => setTimeout(r, 20));
     // The same headers in a csv, in another order: the remembered mapping applies.
-    const second = await saveUpload(a, projectA, { name: "second.csv", bytes: new TextEncoder().encode("Priority,Module,Requirement,Ref\nMust,Paying,Pay people on time with the right amount,CL-9\nShould,Paying,Export the payment file,CL-10\n") });
+    const second = await saveUpload(c, projectC, { name: "second.csv", bytes: new TextEncoder().encode("Priority,Module,Requirement,Ref\nMust,Paying,Pay people on time with the right amount,CL-9\nShould,Paying,Export the payment file,CL-10\n") });
     if (!("upload" in second)) throw new Error(second.error);
     expect(second.upload.mapping).toEqual({ Priority: "value", Module: "custom", Requirement: "text", Ref: "ref" });
-    expect(await rememberedFrom(a.ws, second.upload)).not.toBeNull();
+    expect(await rememberedFrom(c.ws, second.upload)).not.toBeNull();
     // Another workspace has its own memory.
     const theirs = await saveUpload(b, projectB, { name: "theirs.xlsx", bytes: fixture("title-row.xlsx") });
-    expect("upload" in theirs && theirs.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
+    if (!("upload" in theirs)) throw new Error(theirs.error);
+    expect(theirs.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
     await expect(saveMapping(b.ws, first.upload.id, { Ref: "text" })).rejects.toBeInstanceOf(NotFoundError);
+    // B's save leaves C's memory untouched.
+    await saveMapping(b.ws, theirs.upload.id, { Ref: "skip", Requirement: "text", Module: "skip", Priority: "skip" });
+    const cAgain = await saveUpload(c, projectC, { name: "c-again.xlsx", bytes: fixture("title-row.xlsx") });
+    expect("upload" in cAgain && cAgain.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "custom", Priority: "value" });
   });
 });

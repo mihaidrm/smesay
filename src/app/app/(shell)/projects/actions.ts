@@ -76,17 +76,16 @@ export async function uploadAction(_previous: ProjectFormState, formData: FormDa
   try {
     const result = await saveUpload({ ws: current.ws, userId: session.user.id }, projectId, { name: file.name, bytes });
     if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${result.upload.projectId}/import`);
+    return { ...NONE, saved: true };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
-  revalidatePath(`/app/projects/${projectId}/import`);
-  return { ...NONE, saved: true };
 }
 
 export async function chooseAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
   const { current } = await requireCurrentWorkspace("/app");
-  const projectId = String(formData.get("projectId") ?? "");
   const uploadId = String(formData.get("uploadId") ?? "");
   const sheet = formData.has("sheet") ? String(formData.get("sheet")) : undefined;
   // 0 is "no header row"; anything that is not a whole number is treated as "find it again".
@@ -94,25 +93,25 @@ export async function chooseAction(_previous: ProjectFormState, formData: FormDa
   try {
     const result = await rechoose(current.ws, uploadId, { sheet, headerRow });
     if ("error" in result) return { ...NONE, error: result.error };
+    // The path comes from the row, not the form (E3-3 audit, finding 10).
+    revalidatePath(`/app/projects/${result.upload.projectId}/import`);
+    return { ...NONE, saved: true };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
-  revalidatePath(`/app/projects/${projectId}/import`);
-  return { ...NONE, saved: true };
 }
 
 // The mapping card (stories/E3-3): every select of the card is in the form, named by the
 // column key; the server cleans the set (src/lib/import/mapping.ts) and saves it.
 export async function mapAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
   const { current } = await requireCurrentWorkspace("/app");
-  const projectId = String(formData.get("projectId") ?? "");
   const uploadId = String(formData.get("uploadId") ?? "");
   const raw: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) if (key.startsWith("col:")) raw[key.slice(4)] = value;
   try {
     const result = await saveMapping(current.ws, uploadId, raw);
-    revalidatePath(`/app/projects/${projectId}/import`);
+    revalidatePath(`/app/projects/${result.upload.projectId}/import`);
     return { ...NONE, error: result.error, saved: result.error === null };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

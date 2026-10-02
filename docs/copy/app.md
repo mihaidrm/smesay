@@ -125,9 +125,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Row | [HEADER] (or Column [LETTER] without a header), Column [LETTER], maps to |
 | Roles | Item text, Area, Proposed value, Reference, Custom field, Do not import (the board's wording; the story said Ignore) |
 | Sixth custom field | Custom field (up to five custom fields), disabled |
-| Remembered line | Mapping remembered from [DATE] |
+| Remembered line, above the card | Mapping remembered from [DATE] |
 | Footer line | This mapping is remembered for files with the same headers. |
-| Import button | Import [N] items (disabled at 40 percent without a text column; the import itself is E3-5) |
 
 ## Signed-in shell (E2-1, E2-3)
 

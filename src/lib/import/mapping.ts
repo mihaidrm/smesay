@@ -24,13 +24,21 @@ export const MAPPING_COPY = {
 
 export type Column = { letter: string; name: string };
 
-// The key of a column in a mapping: its header, or its letter when the header is empty.
-export function columnKey(column: Column): string {
-  return column.name.trim() || column.letter;
+// The key of each column in a mapping: its header, or its letter when the header is empty. A
+// header that repeats, or that reads like another column's letter, gets its own letter added
+// ("Requirement (B)"), so two columns never share a key (E3-3 audit, finding 1).
+export function columnKeys(columns: Column[]): string[] {
+  const plain = columns.map((c) => c.name.trim() || c.letter);
+  return plain.map((key, i) => {
+    // An unnamed column keeps its letter; a named one that clashes with another key gets its
+    // letter added.
+    const clash = columns[i].name.trim() !== "" && plain.some((other, j) => j !== i && other === key);
+    return clash ? `${key} (${columns[i].letter})` : key;
+  });
 }
 
 export function headersKey(columns: Column[]): string {
-  return [...columns.map(columnKey)].sort((a, b) => a.localeCompare(b)).join("\u001f");
+  return [...columnKeys(columns)].sort((a, b) => a.localeCompare(b)).join("\u001f");
 }
 
 // A first guess from the header names, so the usual file maps itself; anything unrecognised is
@@ -44,17 +52,17 @@ const GUESSES: { role: ColumnRole; test: RegExp }[] = [
 
 export function guessMapping(columns: Column[]): ColumnMapping {
   const mapping: ColumnMapping = {};
+  const keys = columnKeys(columns);
   const taken = new Set<ColumnRole>();
-  for (const column of columns) {
+  columns.forEach((column, i) => {
     const name = column.name.trim();
     const guess = name ? GUESSES.find((g) => g.test.test(name) && !taken.has(g.role))?.role : undefined;
     const role: ColumnRole = guess ?? "skip";
     if (guess) taken.add(guess);
-    mapping[columnKey(column)] = role;
-  }
-  // A file whose only text-like column was not named: the longest-looking header is not known
-  // here, so the first unmapped column of a headerless file is the text.
-  if (!Object.values(mapping).includes("text") && columns.length > 0 && columns.every((c) => !c.name.trim())) mapping[columnKey(columns[0])] = "text";
+    mapping[keys[i]] = role;
+  });
+  // A headerless file: the first column is the text until the PM says otherwise.
+  if (!Object.values(mapping).includes("text") && columns.length > 0 && columns.every((c) => !c.name.trim())) mapping[keys[0]] = "text";
   return mapping;
 }
 
@@ -64,8 +72,7 @@ export function cleanMapping(columns: Column[], raw: Record<string, unknown>): C
   const mapping: ColumnMapping = {};
   const taken = new Set<ColumnRole>();
   let custom = 0;
-  for (const column of columns) {
-    const key = columnKey(column);
+  for (const key of columnKeys(columns)) {
     const value = raw[key];
     let role: ColumnRole = ROLES.some((r) => r.value === value) ? (value as ColumnRole) : "skip";
     if (SINGLE_ROLES.includes(role)) {
@@ -93,6 +100,6 @@ export function mappingError(mapping: ColumnMapping): string | null {
 // there are dropped, columns it does not know are skipped.
 export function applyMapping(columns: Column[], remembered: ColumnMapping): ColumnMapping {
   const mapping: ColumnMapping = {};
-  for (const column of columns) mapping[columnKey(column)] = remembered[columnKey(column)] ?? "skip";
+  for (const key of columnKeys(columns)) mapping[key] = remembered[key] ?? "skip";
   return mapping;
 }

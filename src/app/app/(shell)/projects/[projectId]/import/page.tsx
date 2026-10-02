@@ -41,7 +41,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       )}
       {upload && <UploadPreview upload={upload} />}
       {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <MappingCard key={upload.id} projectId={project.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} rowsRead={upload.preview.rowsRead} />
+        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} />
       )}
     </div>
   );

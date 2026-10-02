@@ -3,7 +3,7 @@
 // header, its letter and a select of the roles; a change submits the whole form, so the server
 // keeps one column per single role and at most five custom fields (src/lib/import/mapping.ts).
 // The sixth Custom field option is disabled with its reason. The missing-text message sits
-// under the rows; the Import button (E3-5) is disabled at 40 percent while it shows.
+// under the rows; the Import button comes with the check report (E3-5).
 // The selects are uncontrolled, each keyed by its saved role: React resets a form's fields
 // after its action completes (react.dev/reference/react-dom/components/form, "form will be
 // reset"), so a controlled select fell back to its first option; with defaultValue from the
@@ -13,27 +13,26 @@
 // react.dev/reference/react/useActionState.
 import { useActionState, useRef } from "react";
 import type { ColumnMapping } from "@/db/types";
-import { Button } from "@/components/ui/button";
-import { columnKey, CUSTOM_MAX, customCount, MAPPING_COPY, mappingError, ROLES, type Column } from "@/lib/import/mapping";
+import { columnKeys, CUSTOM_MAX, customCount, MAPPING_COPY, mappingError, ROLES, type Column } from "@/lib/import/mapping";
 import { mapAction, type ProjectFormState } from "../../actions";
 
-export function MappingCard({ projectId, uploadId, columns, mapping, rememberedFrom, rowsRead }: { projectId: string; uploadId: string; columns: Column[]; mapping: ColumnMapping; rememberedFrom: string | null; rowsRead: number }) {
+export function MappingCard({ uploadId, columns, mapping, rememberedFrom }: { uploadId: string; columns: Column[]; mapping: ColumnMapping; rememberedFrom: string | null }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(mapAction, { error: null, saved: false });
   const form = useRef<HTMLFormElement>(null);
   const custom = customCount(mapping);
-  const hasText = mappingError(mapping) === null;
+  const keys = columnKeys(columns);
   const error = pending ? null : state.error ?? mappingError(mapping);
   return (
+    <div className="flex flex-col gap-2">
+      {rememberedFrom && <p data-testid="mapping-remembered" className="text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</p>}
     <section className="flex flex-col rounded-md border border-hairline" aria-labelledby="mapping-title">
-      <div className="flex items-center justify-between gap-4 border-b border-hairline px-4 py-3">
+      <div className="border-b border-hairline px-4 py-3">
         <h3 id="mapping-title" className="font-medium">Column mapping</h3>
-        {rememberedFrom && <span data-testid="mapping-remembered" className="text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</span>}
       </div>
       <form ref={form} action={action} className="flex flex-col">
-        <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="uploadId" value={uploadId} />
-        {columns.map((column) => {
-          const key = columnKey(column);
+        {columns.map((column, i) => {
+          const key = keys[i];
           const role = mapping[key] ?? "skip";
           const id = `map-${column.letter}`;
           return (
@@ -53,12 +52,10 @@ export function MappingCard({ projectId, uploadId, columns, mapping, rememberedF
             </div>
           );
         })}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <span className="text-[13px] text-ink-muted">{MAPPING_COPY.footer}</span>
-          <Button type="button" disabled={!hasText} title="Importing comes with the check report (E3-5)." className={hasText ? "" : "opacity-40"}>Import {rowsRead.toLocaleString("en-GB")} {rowsRead === 1 ? "item" : "items"}</Button>
-        </div>
+        <div className="px-4 py-3 text-[13px] text-ink-muted">{MAPPING_COPY.footer}</div>
         {error && <p id="mapping-error" role="alert" className="px-4 pb-3 text-sm text-danger">{error}</p>}
       </form>
     </section>
+    </div>
   );
 }

@@ -50,8 +50,10 @@ Built 2026-10-02.
   uploads.test.ts (the guess, a change, the same headers in another order in a csv, another
   workspace's own memory, another workspace refused).
 - The card is src/app/app/(shell)/projects/[projectId]/import/mapping.tsx (design note 21);
-  a select change submits the form to mapAction. The Import button is disabled at 40 percent
-  without a text column and does nothing until E3-5.
+  a select change submits the form to mapAction. The Import button, with its disabled state
+  from acceptance 1, comes with the check report and the commit (E3-5), which also owns the
+  import click of acceptance 5 and the `{ [header]: value }` shape of acceptance 2; until then
+  the card shows the missing-text message alone.
 - Custom values land in item.custom as `{ [header]: value }` at the commit (E3-5), which reads
   upload.mapping; nothing writes items in this story.
 - Playwright: e2e/import.spec.ts continues from the E3-2 path: the guess, a change, the
@@ -59,4 +61,16 @@ Built 2026-10-02.
   "import" between the two uploads in acceptance 5 joins the test with E3-5, since the memory
   does not depend on it.
 - Wording: the last role is the board's "Do not import", not the story's "Ignore" (design note
-  21); Mihai asked 2026-10-02.
+  21); Mihai asked 2026-10-02, acceptance 1 and the Stories board keep "Ignore" until he
+  answers.
+- Audit of 2026-10-02 (fresh context, 13 findings), closed in the story's PR: two columns with
+  the same header (or a header that reads like another column's letter) collapsed into one key,
+  so the file could not be mapped (keys now carry the letter, "Requirement (B)", tested); a
+  guessed mapping the PM accepted was never remembered (a guess with a text column is now
+  remembered once the upload row exists; a mapping without one is never remembered); the
+  remembered line sits above the card as acceptance 3 says; the Import button and its title
+  text left for E3-5; the revalidated path comes from the row, not the form; both timestamps of
+  "remembered from" come from the database clock; a test that one workspace's save leaves
+  another's memory untouched. Open: picking a single role another column holds reverts the
+  pick to "Do not import" without a message (the first column in file order keeps it); noted
+  for E3-5's card.

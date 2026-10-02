@@ -47,7 +47,7 @@ export async function saveUpload(actor: { ws: WorkspaceId; userId: string }, pro
   const over = overRowLimit(parsed);
   if (over) return { error: over };
   const preview = buildPreview(parsed);
-  const mapping = await initialMapping(actor.ws, preview);
+  const { mapping, remember } = await initialMapping(actor.ws, preview);
   const objectKey = `uploads/${actor.ws}/${randomBytes(8).toString("hex")}.${kind}`;
   await putObject(objectKey, file.bytes, CONTENT_TYPES[kind]);
   try {
@@ -55,6 +55,7 @@ export async function saveUpload(actor: { ws: WorkspaceId; userId: string }, pro
       projectId, objectKey, filename: file.name.slice(0, 255), kind, byteSize: file.bytes.byteLength,
       sheet: preview.sheet, headerRow: preview.headerRow, preview, mapping, createdBy: actor.userId,
     });
+    if (remember && mapping) await workspaceMappings.upsert(actor.ws, headersKey(preview.columns), mapping);
     return { upload };
   } catch (error) {
     await deleteObject(objectKey).catch(() => undefined);
@@ -81,16 +82,23 @@ export async function rechoose(ws: WorkspaceId, uploadId: string, choice: { shee
   const sheetChanged = choice.sheet !== undefined && choice.sheet !== current.sheet;
   const preview: UploadPreview = buildPreview(parsed, { sheet: choice.sheet ?? current.sheet, headerRow: sheetChanged ? null : choice.headerRow });
   if (preview.rowsRead > ROWS_MAX) return { error: UPLOAD_COPY.tooManyRows(preview.rowsRead, current.kind === "xlsx" ? preview.sheet : null) };
-  const mapping = await initialMapping(ws, preview);
+  const { mapping, remember } = await initialMapping(ws, preview);
   const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, preview, mapping });
   if (!updated) throw new NotFoundError();
+  if (remember && mapping) await workspaceMappings.upsert(ws, headersKey(preview.columns), mapping);
   return { upload: updated };
 }
 
-async function initialMapping(ws: WorkspaceId, preview: UploadPreview): Promise<ColumnMapping | null> {
-  if (preview.columns.length === 0) return null;
+// Remembered for the headers when the workspace has one, else guessed; a guess with a text
+// column is remembered too (after the upload row exists, so it does not read as remembered
+// from before), so a PM who accepts it finds it on the next file (E3-3 audit, finding 7). A
+// mapping without a text column is never remembered.
+async function initialMapping(ws: WorkspaceId, preview: UploadPreview): Promise<{ mapping: ColumnMapping | null; remember: boolean }> {
+  if (preview.columns.length === 0) return { mapping: null, remember: false };
   const remembered = await workspaceMappings.getByHeaders(ws, headersKey(preview.columns));
-  return remembered ? applyMapping(preview.columns, remembered.mapping) : guessMapping(preview.columns);
+  if (remembered) return { mapping: applyMapping(preview.columns, remembered.mapping), remember: false };
+  const guess = guessMapping(preview.columns);
+  return { mapping: guess, remember: mappingError(guess) === null };
 }
 
 // The mapping as the form sent it, cleaned (src/lib/import/mapping.ts), stored on the upload
@@ -102,12 +110,14 @@ export async function saveMapping(ws: WorkspaceId, uploadId: string, raw: Record
   const mapping = cleanMapping(current.preview.columns, raw);
   const updated = await uploads.update(ws, uploadId, { mapping });
   if (!updated) throw new NotFoundError();
-  await workspaceMappings.upsert(ws, headersKey(current.preview.columns), mapping);
-  return { upload: updated, error: mappingError(mapping) };
+  const error = mappingError(mapping);
+  if (error === null) await workspaceMappings.upsert(ws, headersKey(current.preview.columns), mapping);
+  return { upload: updated, error };
 }
 
 // "Mapping remembered from [DATE]": the workspace mapping for this upload's headers when it
 // existed before the upload (acceptance 3); null when the mapping was guessed or made here.
+// Both timestamps come from the database clock (defaultNow() and now() in the upsert).
 export async function rememberedFrom(ws: WorkspaceId, upload: Upload): Promise<Date | null> {
   if (upload.preview.columns.length === 0) return null;
   const row = await workspaceMappings.getByHeaders(ws, headersKey(upload.preview.columns));
