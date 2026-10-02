@@ -23,7 +23,7 @@ Outcome: enter an email, click the link in the email, be signed in; nothing else
 6. Playwright: request a link, read it from Mailpit's API, open it, land on the app, sign out.
 
 ## Out of scope
-- Google and Microsoft sign-in: E2-2. Workspace creation on first sign-in: E2-3.
+- Google sign-in: E2-2 (Microsoft and Apple after launch, decision 0034). Workspace creation on first sign-in: E2-3.
 - The five-attempt limit on auth routes: E11-1 (SECURITY.md names it; the story that builds
   rate limiting covers it).
 - Sending through Resend: the launch gate (decision 0006). The transport is behind one
@@ -86,7 +86,7 @@ Built 2026-10-02.
   /api/v1/message/{ID}); CI runs a Mailpit service container for it. Variables: BETTER_AUTH_SECRET
   (generated into .env.local, never shared), BETTER_AUTH_URL, MAIL_SMTP_URL, EMAIL_FROM
   (.env.example); the Vitest and CI values are placeholders for throwaway databases.
-- Not in this story: the five-attempt auth limit (E11-1), Google and Microsoft (E2-2), the
+- Not in this story: the five-attempt auth limit (E11-1), Google (E2-2), the
   quickstart after the first sign-in (E12-2), the workspace (E2-3).
 - Audit of 2026-10-02 (fresh context, 19 findings): the four blocking ones (a tab in `next`
   resolving to another host, Secure unproven, library text on screen, EMAIL_FROM defined twice

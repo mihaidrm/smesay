@@ -26,7 +26,7 @@ const PURPOSE = {
   ai_run: 'every call to the model: purpose, tokens, cost in euro cents, duration (E4 budget)',
   user: 'better-auth: the signed-in person',
   session: 'better-auth: a browser session',
-  account: 'better-auth: a sign-in method (magic link, Google, Microsoft) attached to a user',
+  account: 'better-auth: a sign-in method (magic link, Google; Microsoft and Apple after launch, decision 0034) attached to a user',
   verification: 'better-auth: one-time tokens for magic links and email checks',
 };
 

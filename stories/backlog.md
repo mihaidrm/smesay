@@ -1,7 +1,7 @@
 # R1 backlog: thirteen epics, in build order
 
 E1  Foundation: repo, CI, schema v1, migrations, workspace scoping, local Docker Postgres and RustFS, seed; deploy deferred to the launch gate (decision 0006). Stories E1-1 to E1-5 written 2026-10-01.
-E2  Accounts and workspaces: magic link, Google, Microsoft; workspace on first sign-in and switcher; members, owner and member roles; settings (name, logo, accent, AI budget); plan table and usage counters (decision 0008). Stories E2-1 to E2-6.
+E2  Accounts and workspaces: magic link, Google (Microsoft and Apple after launch, decision 0034); workspace on first sign-in and switcher; members, owner and member roles; settings (name, logo, accent, AI budget); plan table and usage counters (decision 0008). Stories E2-1 to E2-6.
 E3  Import: project list and the project context box (decision 0020); xlsx and csv, header detection, ten-row preview; column mapping remembered per workspace; type or paste a list (decision 0010); check report and commit; set versioning and the import log. Stories E3-1 to E3-6.
 E4  AI shaping: server route with budget; group into areas and order; reader version per item with original kept; duplicate and ambiguity flags; project context in the prompts (decision 0011); golden set runner in CI. Stories E4-1 to E4-6.
 E5  Instrument builder: intro and respondent fields; scoring method templates with the proposed value shown or hidden; layout templates (chapters by default, one item per screen, single long page; decision 0016); perspective filter; closing (free-text question, confidence, missing-item form, sign-off text); live preview on every builder step (desktop default, phone toggle, rings what the step changes; decision 0021). Stories E5-1 to E5-6.
