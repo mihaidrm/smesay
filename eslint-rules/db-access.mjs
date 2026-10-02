@@ -98,5 +98,38 @@ export const noDbReexport = {
   },
 };
 
-const plugin = { rules: { "db-access": dbAccess, "no-db-reexport": noDbReexport } };
+// The Anthropic SDK is imported in src/lib/ai/ only (stories/E4-1, acceptance 1), by any
+// spelling: import, export from, import(), require. And src/lib/ai/client.ts, the module
+// that holds the key, is never imported from a file that starts with "use client": that
+// file's imports go into a client bundle. Tested by src/lib/ai/lint-rule.test.ts.
+const AI_DIR = path.join(SRC, "lib", "ai");
+const SDK = "The Anthropic SDK is used in src/lib/ai/ only (stories/E4-1).";
+const CLIENT_FILE = "A client component never imports src/lib/ai/client (stories/E4-1): call it from a server action or a route.";
+const isSdk = (spec) => typeof spec === "string" && (spec === "@anthropic-ai/sdk" || spec.startsWith("@anthropic-ai/sdk/"));
+const isAiClient = (spec, fromFile) => {
+  const abs = typeof spec === "string" ? resolve(spec, fromFile) : null;
+  return abs !== null && abs.replace(/\.(m|c)?(t|j)sx?$/, "") === path.join(AI_DIR, "client");
+};
+export const aiSdk = {
+  meta: { type: "problem", docs: { description: "the Anthropic SDK only in src/lib/ai/" }, messages: { sdk: SDK, client: CLIENT_FILE }, schema: [] },
+  create: (context) => {
+    const file = context.filename ?? context.getFilename();
+    const inAi = !path.relative(AI_DIR, file).startsWith("..") && !path.isAbsolute(path.relative(AI_DIR, file));
+    const body = context.sourceCode.ast.body;
+    const useClient = body.length > 0 && body[0].type === "ExpressionStatement" && body[0].directive === "use client";
+    const check = (node, value) => {
+      if (isSdk(value) && !inAi) context.report({ node, messageId: "sdk" });
+      if (useClient && isAiClient(value, file)) context.report({ node, messageId: "client" });
+    };
+    return {
+      ImportDeclaration: (n) => check(n.source, n.source.value),
+      ExportNamedDeclaration: (n) => n.source && check(n.source, n.source.value),
+      ExportAllDeclaration: (n) => check(n.source, n.source.value),
+      ImportExpression: (n) => check(n.source, literalOf(n.source)),
+      CallExpression: (n) => { if (n.callee.type === "Identifier" && n.callee.name === "require") check(n.arguments[0], literalOf(n.arguments[0])); },
+    };
+  },
+};
+
+const plugin = { rules: { "db-access": dbAccess, "no-db-reexport": noDbReexport, "ai-sdk": aiSdk } };
 export default plugin;

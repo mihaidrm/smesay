@@ -14,7 +14,7 @@ import { ForbiddenError } from "@/lib/errors";
 import { memoryOutbox } from "@/lib/mail";
 import { requireWorkspace } from "@/lib/workspace";
 import { AI_COPY } from "./copy";
-import { OUTPUT_TOKENS_MAX, runModel } from "./client";
+import { INPUT_CHARS_MAX, OUTPUT_TOKENS_MAX, runModel } from "./client";
 import { costEurCents, DEFAULT_MODEL } from "./prices";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -102,7 +102,7 @@ describe("runModel", () => {
     const { fetch } = answer({ ...good, note: "added by the model" });
     const before = await aiRuns.count(ws);
     const result = await runModel(input(), { fetch });
-    expect(result).toMatchObject({ ok: false, reason: "invalid", message: AI_COPY.failed });
+    expect(result).toMatchObject({ ok: false, reason: "invalid", message: AI_COPY.invalid, detail: "schema: unrecognized_keys at root" });
     expect(await aiRuns.count(ws)).toBe(before + 1);
   });
 
@@ -118,38 +118,65 @@ describe("runModel", () => {
     expect(result).toMatchObject({ ok: false, reason: "invalid", detail: "the answer was not JSON" });
   });
 
-  it("refuses over budget before any call, counting the month's spend", async () => {
+  it("refuses over budget before any call, counting the month's spend and not last month's", async () => {
     const { fetch, calls } = answer(good);
     await workspaces.update(ws, { aiBudgetEur: 1 });
+    const now = new Date("2026-10-15T12:00:00Z");
     await aiRuns.create(ws, { projectId, purpose: "shape", model: DEFAULT_MODEL, tokensIn: 10, tokensOut: 10, costEurCents: 90, durationMs: 1 });
     const before = await aiRuns.count(ws);
     // The estimate for this call is 15 cents (the whole output allowance at 10 dollars per
     // million tokens, converted); 90 + 15 is over 100.
-    const result = await runModel(input(), { fetch });
+    const result = await runModel(input(), { fetch, now });
     expect(result).toMatchObject({ ok: false, reason: "budget", message: AI_COPY.budget });
     expect(calls).toHaveLength(0);
     expect(await aiRuns.count(ws)).toBe(before);
     // Under the cap by a smaller allowance, the call goes through.
-    const again = await runModel(input({ maxOutputTokens: 1000 }), { fetch });
-    expect(again.ok).toBe(true);
+    expect((await runModel(input({ maxOutputTokens: 1000 }), { fetch, now })).ok).toBe(true);
+    // Next month the 90 cents are gone and the full allowance fits again.
+    expect((await runModel(input(), { fetch, now: new Date("2026-11-01T00:00:00Z") })).ok).toBe(true);
+    // A budget of zero refuses the smallest call.
+    await workspaces.update(ws, { aiBudgetEur: 0 });
+    expect(await runModel(input({ maxOutputTokens: 1 }), { fetch, now })).toMatchObject({ ok: false, reason: "budget" });
   });
 
-  it("turns a 429 into the rate limit message without a row", async () => {
+  it("turns a 429 into the rate limit message and logs a zero-token row", async () => {
     const { fetch } = answer(good, { status: 429 });
     const before = await aiRuns.count(ws);
     const result = await runModel(input(), { fetch });
     expect(result).toMatchObject({ ok: false, reason: "rateLimited", message: AI_COPY.rateLimited });
-    expect(await aiRuns.count(ws)).toBe(before);
+    expect(await aiRuns.count(ws)).toBe(before + 1);
+    const [last] = (await aiRuns.list(ws)).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    expect(last).toMatchObject({ tokensIn: 0, tokensOut: 0, costEurCents: 0, purpose: "shape" });
   });
 
-  it("gives up after the timeout with the failed message and no row", async () => {
-    const hang = ((_url: string | URL | Request, init?: RequestInit) => new Promise<Response>((_, reject) => init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted"))))) as unknown as typeof globalThis.fetch;
+  it("names a refused key and a provider error in the detail, with a row each", async () => {
     const before = await aiRuns.count(ws);
-    const started = Date.now();
-    const result = await runModel(input(), { fetch: hang, timeoutMs: 100 });
-    expect(Date.now() - started).toBeLessThan(5000);
-    expect(result).toMatchObject({ ok: false, reason: "failed", message: AI_COPY.failed });
-    expect(await aiRuns.count(ws)).toBe(before);
+    expect(await runModel(input(), { fetch: answer(good, { status: 401 }).fetch })).toMatchObject({ ok: false, reason: "failed", message: AI_COPY.failed, detail: "401 from the provider: the key was refused. Check ANTHROPIC_API_KEY in .env.local" });
+    expect(await runModel(input(), { fetch: answer(good, { status: 500 }).fetch })).toMatchObject({ ok: false, reason: "failed", detail: "InternalServerError 500" });
+    expect(await aiRuns.count(ws)).toBe(before + 2);
+  });
+
+  it("gives up after the timeout, whether the headers never come or the body stalls", async () => {
+    const hang = ((_url: string | URL | Request, init?: RequestInit) => new Promise<Response>((_, reject) => init?.signal?.addEventListener("abort", () => reject(init.signal?.reason ?? new Error("aborted"))))) as unknown as typeof globalThis.fetch;
+    // Headers at once, then a body that never ends (what a stalled stream looks like).
+    const stall = (async (_url: string | URL | Request, init?: RequestInit) => new Response(new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode("{")); init?.signal?.addEventListener("abort", () => controller.error(init.signal?.reason ?? new Error("aborted"))); } }), { status: 200, headers: { "content-type": "application/json" } })) as unknown as typeof globalThis.fetch;
+    for (const fetch of [hang, stall]) {
+      const before = await aiRuns.count(ws);
+      const started = Date.now();
+      const result = await runModel(input(), { fetch, timeoutMs: 100 });
+      expect(Date.now() - started).toBeLessThan(5000);
+      expect(result).toMatchObject({ ok: false, reason: "failed", message: AI_COPY.failed, detail: "timeout after 60 seconds or less" });
+      expect(await aiRuns.count(ws)).toBe(before + 1);
+    }
+  });
+
+  it("refuses a loose schema and an input over the ceilings before any call", async () => {
+    const { fetch, calls } = answer(good);
+    await expect(runModel(input({ schema: z.object({ areas: z.array(z.strictObject({ name: z.string(), items: z.array(z.string()) })) }) as unknown as typeof Shape }), { fetch })).rejects.toThrow("not strict at root");
+    await expect(runModel(input({ schema: z.strictObject({ areas: z.array(z.object({ name: z.string(), items: z.array(z.string()) })) }) as unknown as typeof Shape }), { fetch })).rejects.toThrow("not strict at root.areas[]");
+    await expect(runModel(input({ data: "x".repeat(INPUT_CHARS_MAX) }), { fetch })).rejects.toThrow("over 500000 characters");
+    await expect(runModel(input({ maxOutputTokens: OUTPUT_TOKENS_MAX + 1 }), { fetch })).rejects.toThrow("over 16000");
+    expect(calls).toHaveLength(0);
   });
 
   it("treats a refusal or a cut-off answer as failed, and still logs the tokens", async () => {

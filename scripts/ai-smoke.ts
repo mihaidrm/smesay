@@ -1,7 +1,8 @@
 // One real call to the model with the key in .env.local (stories/E4-1, acceptance 6):
 // `npm run ai:smoke`. Picks the first project that is not the sample in the oldest workspace,
 // asks for a one-field JSON object, prints the tokens, the cost and the ai_run row. Costs a
-// fraction of a cent. The script runs outside src/, so it may read the database directly.
+// cent at most, and the row counts as one shaping run of that project in usage (E2-6). The
+// script runs outside src/, so it may read the database directly.
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -21,6 +22,7 @@ async function main() {
     instructions: "Answer with a JSON object with one field, greeting: a short hello in plain English that names the product in the user message.",
     data: "SMEsay",
     schema: z.strictObject({ greeting: z.string() }),
+    check: (out) => (out.greeting.includes("SMEsay") ? null : "the greeting does not name the product"),
     maxOutputTokens: 256,
   });
   if (!result.ok) throw new Error(`${result.reason}: ${result.detail}. Shown to the user as: ${result.message}`);
