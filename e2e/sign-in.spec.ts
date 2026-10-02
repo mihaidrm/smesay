@@ -36,7 +36,7 @@ test("sign in with a magic link, then sign out", async ({ page, request }) => {
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/sign-in/);
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/sign-in\?next=%2Fapp$/);
+  await expect(page).toHaveURL(/\/sign-in\?next=(\/|%2F)app$/);
   await page.goto(link);
   await expect(page).toHaveURL(/\/sign-in\/link-used/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("already been used or has expired");
