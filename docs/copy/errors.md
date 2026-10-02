@@ -73,7 +73,7 @@ of the content; page means it replaces the screen.
 | Banner, Shape | The area column has more than 12 distinct areas (E4-2) | This list has [N] areas in its area column. Shape works with up to 12. Merge some in the file and import it again. |
 | Banner, Shape | An imported area name is over 60 characters (E4-2) | An area name in the list is [N] characters long. Shape works with names up to 60. Shorten it in the file and import it again. |
 | Banner, Shape | More than 400 items in the set (E4-2; the ceiling of one answer, see design note 27) | This list has [N] items. Shape works on lists up to 400 items for now. Split the list, or come back when larger lists are supported. |
-| Banner, Shape | The prompt would pass E4-1's 500,000 characters (E4-2) | This list has [N] characters of item text, more than one AI call can take. Shorten the longest items, or split the list. |
+| Banner, Shape | The prompt would pass E4-1's 500,000 characters (E4-2; N counts the list and the context as sent) | This list and its context come to [N] characters, more than one AI call can take. Shorten the longest items, or split the list. |
 | Inline, Shape | Move to an area that is not one of the set's, through the server (E4-2) | That area does not exist. Pick one from the list. |
 | Inline, Shape | Move before the first run, through the server (E4-2) | Run Shape with AI first. Items can be moved once the areas exist. |
 | Inline, Shape | Move on the sample project, through the server (E4-2) | The sample project cannot be edited. |

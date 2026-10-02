@@ -10,13 +10,13 @@
 import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { item, itemSet } from "@/db/schema";
-import type { ItemFlags, ShapeArea, WorkspaceId } from "@/db/types";
+import type { ItemFlags, ProjectContext, ShapeArea, WorkspaceId } from "@/db/types";
 import type { ItemSet } from "./itemSets";
 import type { Item } from "./items";
 
 export type Placement = { itemId: string; area: string; byAi: boolean; importedArea: string | null; reader: string; ambiguity: string | null; duplicateOf: string | null };
 
-export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, areas: ShapeArea[], placements: Placement[]): Promise<ItemSet | null> {
+export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, areas: ShapeArea[], placements: Placement[], contextUsed: ProjectContext = { goal: null, terms: null }): Promise<ItemSet | null> {
   return db.transaction(async (tx) => {
     const [locked] = await tx.select().from(itemSet).where(and(eq(itemSet.workspaceId, workspaceId), eq(itemSet.id, itemSetId))).for("update");
     if (!locked) return null;
@@ -48,7 +48,7 @@ export async function applyShaping(workspaceId: WorkspaceId, itemSetId: string, 
         flags: Object.keys(next).length > 0 ? next : null,
       }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, row.id)));
     }
-    const [updated] = await tx.update(itemSet).set({ areas, shapeRuns: sql`${itemSet.shapeRuns} + 1`, shapedAt: new Date() }).where(and(eq(itemSet.workspaceId, workspaceId), eq(itemSet.id, itemSetId))).returning();
+    const [updated] = await tx.update(itemSet).set({ areas, shapeRuns: sql`${itemSet.shapeRuns} + 1`, shapedAt: new Date(), contextUsed }).where(and(eq(itemSet.workspaceId, workspaceId), eq(itemSet.id, itemSetId))).returning();
     return updated ?? null;
   });
 }

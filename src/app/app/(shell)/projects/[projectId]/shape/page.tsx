@@ -11,9 +11,8 @@ import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
-import { hasContext } from "@/lib/ai/context";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
-import { areaNames, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
+import { areaNames, contextLine, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
 import { FlagBanners } from "./flags";
 import { ReaderAll } from "./reader-all";
@@ -48,6 +47,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
             </div>
           )}
         </div>
+        {set && rows.length > 0 && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={project.isSample ? null : `/app/projects/${project.id}/import#about-title`} />}
         {showReaders ? (
           <p className="text-ink-muted" data-testid="grouped-line">
             {shaped && <>{SHAPE_COPY.grouped(rows.length, set.areas?.length ?? 0)} </>}
@@ -58,18 +58,6 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
       </div>
-      {set && rows.length > 0 && (
-        <p className="text-[13px] text-ink-muted" data-testid="context-line">
-          {hasContext({ goal: project.contextGoal, terms: project.contextTerms }) ? (
-            <>
-              <span className="font-medium text-ink">{SHAPE_COPY.contextUsed}</span> {project.contextGoal?.trim() || ""}
-              {project.contextTerms?.trim() ? <> <span className="font-medium text-ink">{SHAPE_COPY.keptAsWritten}</span> {project.contextTerms.trim()}</> : null}
-            </>
-          ) : (
-            <>{SHAPE_COPY.noContext} {!project.isSample && <Link href={`/app/projects/${project.id}/import#about-title`} className="underline underline-offset-4">{SHAPE_COPY.noContextLink}</Link>}</>
-          )}
-        </p>
-      )}
       <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
         <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-hairline-strong p-6" data-testid="shape-empty">
@@ -80,5 +68,20 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
         <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
       )}
     </div>
+  );
+}
+
+// The context line (stories/E4-5; the board's ctxLine): 13 px under the title, the label in
+// ink, the rest muted.
+function ContextLine({ line, importHref }: { line: ReturnType<typeof contextLine>; importHref: string | null }) {
+  if (line.kind === "none") {
+    return <p className="text-[13px] text-ink-muted" data-testid="context-line">{SHAPE_COPY.noContext} {importHref && <Link href={importHref} className="underline underline-offset-4">{SHAPE_COPY.noContextLink}</Link>}</p>;
+  }
+  return (
+    <p className="text-[13px] text-ink-muted" data-testid="context-line">
+      <span className="font-medium text-ink">{line.kind === "used" ? SHAPE_COPY.contextUsed : SHAPE_COPY.contextNext}</span> {SHAPE_COPY.sentence(line.goal)}
+      {line.terms ? ` ${SHAPE_COPY.keptAsWritten} ${line.terms}.` : ""}
+      {line.changed && line.kind === "used" ? <> <span data-testid="context-changed">{SHAPE_COPY.contextChanged}</span></> : null}
+    </p>
   );
 }

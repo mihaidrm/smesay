@@ -217,7 +217,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </div>
 <div style="color: #5B6069">AI grouped 6 items into 3 areas and wrote a readable version of each. {{shapeCount}}</div>
-<div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">Context used:</span> {{ctxLine}}</div>
+<div style="font-size: 13px; color: #5B6069"><span style="font-weight: 500; color: #16181C">{{ctxLabel}}</span> {{ctxLine}}</div>
 </div>
 <sc-if value="{{flagOpen}}" hint-placeholder-val="{{true}}">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-radius: 6px; background: #EEE8FA; color: #3B2475">
@@ -1037,7 +1037,8 @@ projects: projects, members: members,
 wsName: s.wsName, setWsName: (e) => this.setState({ wsName: e.target.value }),
 ctxGoal: s.ctxGoal, setCtxGoal: (e) => this.setState({ ctxGoal: e.target.value }), ctxTerms: s.ctxTerms, setCtxTerms: (e) => this.setState({ ctxTerms: e.target.value }),
 ctxCount: (s.ctxGoal.length + s.ctxTerms.length) + ' of 2,000 characters',
-ctxLine: (s.ctxGoal.trim() || 'none given') + (s.ctxTerms.trim() ? ' Kept as written: ' + s.ctxTerms.trim() + '.' : ''),
+ctxLabel: (s.ctxGoal.trim() || s.ctxTerms.trim()) ? 'Context used:' : '',
+ctxLine: (s.ctxGoal.trim() || s.ctxTerms.trim()) ? (s.ctxGoal.trim() || 'none given') + '.' + (s.ctxTerms.trim() ? ' Kept as written: ' + s.ctxTerms.trim() + '.' : '') : 'No project context given. Add one on Import so the AI keeps your names and terms.',
 inviteEmail: s.inviteEmail, setInviteEmail: (e) => this.setState({ inviteEmail: e.target.value, invited: false }),
 inviteDisabled: !inviteOk, inviteOpacity: inviteOk ? 1 : 0.4, invite: () => this.setState({ invited: true, inviteEmail: '' }), inviteNote: s.invited,
 exports: exports, disagreeList: disagreeList,

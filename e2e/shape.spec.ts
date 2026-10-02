@@ -31,12 +31,6 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("shape-empty")).toContainText("Import a list first.");
   await page.getByRole("link", { name: "Go to Import" }).click();
 
-  // The project context (E4-5): typed on Import, shown on Shape as what the AI was given.
-  await page.getByLabel("What is this about?").fill("Replace the expense tool for 400 staff.");
-  await page.getByLabel("Terms to keep as written, optional").fill("Marlow, per diem");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
-
   await page.getByRole("button", { name: "Paste a list instead" }).click();
   await page.getByLabel("Paste a list").fill([
     "1. Receipts captured by phone | Submitting | Must",
@@ -53,7 +47,16 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ }).click();
   await expect(page).toHaveURL(/\/shape$/);
   await expect(page.getByRole("heading", { name: "Shape the list" })).toBeVisible();
-  await expect(page.getByTestId("context-line")).toHaveText("Context used: Replace the expense tool for 400 staff. Kept as written: Marlow, per diem");
+  // The project context (E4-5): none yet, with the way to add one; typed on Import, then
+  // shown as what the next run will use, and after the run as what it used.
+  await expect(page.getByTestId("context-line")).toHaveText("No project context given. Add one on Import so the AI keeps your names and terms. Add it on Import");
+  await page.getByTestId("context-line").getByRole("link", { name: "Add it on Import" }).click();
+  await page.getByLabel("What is this about?").fill("Replace the expense tool for 400 staff");
+  await page.getByLabel("Terms to keep as written, optional").fill("Marlow, per diem");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+  await page.goto(`${projectUrl}/shape`);
+  await expect(page.getByTestId("context-line")).toHaveText("Context the AI will use: Replace the expense tool for 400 staff. Kept as written: Marlow, per diem.");
   // Before the run: the imported areas and the loose items, read-only.
   await expect(page.getByTestId("area")).toHaveCount(4);
   await expect(page.getByTestId("area").last()).toContainText("Not shaped yet");
@@ -61,6 +64,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
 
   await page.getByRole("button", { name: "Shape with AI" }).click();
   await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas and wrote a readable version of each.");
+  await expect(page.getByTestId("context-line")).toHaveText("Context used: Replace the expense tool for 400 staff. Kept as written: Marlow, per diem.");
   const areas = page.getByTestId("area");
   await expect(areas).toHaveCount(3);
   await expect(areas.nth(0)).toContainText("Submitting");

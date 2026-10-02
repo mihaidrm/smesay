@@ -23,7 +23,7 @@ export const SHAPE_COPY = {
   tooManyAreas: (n: number) => `This list has ${n} areas in its area column. Shape works with up to 12. Merge some in the file and import it again.`,
   longArea: (n: number) => `An area name in the list is ${n} characters long. Shape works with names up to 60. Shorten it in the file and import it again.`,
   tooManyItems: (n: number) => `This list has ${n} items. Shape works on lists up to 400 items for now. Split the list, or come back when larger lists are supported.`,
-  tooLong: (n: number) => `This list has ${n.toLocaleString("en-GB")} characters of item text, more than one AI call can take. Shorten the longest items, or split the list.`,
+  tooLong: (n: number) => `This list and its context come to ${n.toLocaleString("en-GB")} characters, more than one AI call can take. Shorten the longest items, or split the list.`,
   tryAgain: AI_COPY.tryAgain,
   // Reader versions (stories/E4-3; docs/copy/app.md, Shape).
   counter: (accepted: number, total: number) => `${accepted} of ${total} reader ${total === 1 ? "version" : "versions"} accepted.`,
@@ -44,9 +44,13 @@ export const SHAPE_COPY = {
   acceptAllConfirm: (n: number) => `Accept all ${n} suggested reader ${n === 1 ? "version" : "versions"}?`,
   rejectAllConfirm: (n: number) => `Reject all ${n} suggested reader ${n === 1 ? "version" : "versions"} and keep the originals?`,
   noReader: "This item has no reader version. Run Shape with AI first.",
-  // The context line (stories/E4-5, acceptance 2; PM app board, ctxLine).
+  // The context line (stories/E4-5, acceptance 2; PM app board, ctxLine). sentence() gives
+  // the goal its full stop; the terms get one after them.
   contextUsed: "Context used:",
+  contextNext: "Context the AI will use:",
   keptAsWritten: "Kept as written:",
+  noGoal: "none given",
+  contextChanged: "The context on Import has changed since this run; Run again to use it.",
   noContext: "No project context given. Add one on Import so the AI keeps your names and terms.",
   noContextLink: "Add it on Import",
   // Flags (stories/E4-4; docs/copy/errors.md, Shaping).

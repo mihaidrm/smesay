@@ -7,7 +7,8 @@ import { items as itemQueries, projects } from "@/db/queries";
 import { applyShaping, dismissItemFlags, moveItem, setReaderStatus, setReaderStatusForItems, type Placement } from "@/db/queries/shaping";
 import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
-import type { ShapeArea } from "@/db/types";
+import type { ProjectContext, ShapeArea } from "@/db/types";
+import { contextOf } from "@/lib/ai/context";
 import { AI_COPY } from "@/lib/ai/copy";
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
 import { buildShapePrompt } from "@/lib/ai/prompts/shape";
@@ -100,13 +101,14 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   // again (acceptance 4).
   const imported = (it: Item) => it.flags?.importedArea ?? (it.flags?.areaBy === undefined ? it.area : null);
   const kept = (it: Item) => (it.flags?.areaBy === "pm" ? it.area : null);
-  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: imported(it), keep: kept(it) })), { goal: project.contextGoal, terms: project.contextTerms });
+  const context = contextOf({ goal: project.contextGoal, terms: project.contextTerms });
+  const prompt = buildShapePrompt(rows.map((it) => ({ ref: ref(it), text: it.originalText, area: imported(it), keep: kept(it) })), context);
   if (prompt.importedAreas) {
     if (prompt.importedAreas.length > IMPORTED_AREAS_MAX) return { error: SHAPE_COPY.tooManyAreas(prompt.importedAreas.length), retry: false };
     const long = prompt.importedAreas.find((a) => a.length > AREA_NAME_MAX);
     if (long) return { error: SHAPE_COPY.longArea(long.length), retry: false };
   }
-  if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: SHAPE_COPY.tooLong(rows.reduce((n, it) => n + it.originalText.length, 0)), retry: false };
+  if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: SHAPE_COPY.tooLong(prompt.data.length), retry: false };
   const refs = rows.map(ref);
   const importedOf = new Map(rows.filter((it) => imported(it) && !kept(it)).map((it) => [ref(it), fold(imported(it)!)]));
   const keptAreas = [...new Set(rows.map(kept).filter((k): k is string => k !== null).map(fold))];
@@ -131,7 +133,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
       });
     }
   }
-  const updated = await applyShaping(actor.ws, set.id, areas, placements);
+  const updated = await applyShaping(actor.ws, set.id, areas, placements, context);
   if (!updated) throw new NotFoundError();
   return { set: updated, items: rows.length, areas: areas.length };
 }
@@ -269,4 +271,21 @@ export async function dismissFlag(actor: Actor, projectId: string, itemId: strin
   const item = await dismissItemFlags(actor.ws, own.item.id);
   if (!item) throw new NotFoundError();
   return { item };
+}
+
+// The context line (stories/E4-5, acceptance 2): after a run, what that run was given; before
+// one, what the next run will be given; and a note when the project's context changed since
+// the last run. Copy: docs/copy/app.md (Shape).
+export type ContextLine = { kind: "none" } | { kind: "used" | "next"; goal: string; terms: string | null; changed: boolean };
+
+export function contextLine(set: Pick<ItemSet, "shapedAt" | "contextUsed">, project: ProjectContext): ContextLine {
+  const now = contextOf(project);
+  if (set.shapedAt && set.contextUsed) {
+    const used = contextOf(set.contextUsed);
+    const changed = used.goal !== now.goal || used.terms !== now.terms;
+    if (!used.goal && !used.terms) return changed ? { kind: "next", goal: now.goal ?? SHAPE_COPY.noGoal, terms: now.terms, changed: true } : { kind: "none" };
+    return { kind: "used", goal: used.goal ?? SHAPE_COPY.noGoal, terms: used.terms, changed };
+  }
+  if (!now.goal && !now.terms) return { kind: "none" };
+  return { kind: "next", goal: now.goal ?? SHAPE_COPY.noGoal, terms: now.terms, changed: false };
 }

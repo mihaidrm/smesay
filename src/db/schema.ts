@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, ShapeArea, UploadPreview } from "./types";
+import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
 
@@ -154,6 +154,9 @@ export const itemSet = pgTable("item_set", {
   areas: jsonb("areas").$type<ShapeArea[]>(),
   shapeRuns: integer("shape_runs").notNull().default(0),
   shapedAt: ts("shaped_at"),
+  // The project context the last run was given (stories/E4-5), so the page says what was
+  // used, not what the project says now.
+  contextUsed: jsonb("context_used").$type<ProjectContext>(),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   // No delete action: "set null" on a composite key would null workspace_id too (E3-4 audit,

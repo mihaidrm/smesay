@@ -14,6 +14,9 @@ export type ImportReport = { emptyRows: number; exactDuplicates: number; overLim
 export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean; foldedRefs?: string[]; areaBy?: "ai" | "pm"; importedArea?: string };
 // ShapeArea (E4-2, item_set.areas): an area in the model's order with its rationale.
 export type ShapeArea = { name: string; rationale: string };
+// ProjectContext (E4-5, item_set.context_used): the goal and the terms a run was given,
+// null fields when the project had none.
+export type ProjectContext = { goal: string | null; terms: string | null };
 export type ResponseFields = { [key: string]: string };
 // Column roles of an import (stories/E3-3): one column is the item text, at most one each the
 // area, the proposed value and the reference, up to five custom fields, the rest not imported.
