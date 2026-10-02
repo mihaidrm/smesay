@@ -5,6 +5,7 @@
 // scan() is tested by scripts/check-ai-bundle.test.mjs.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const NEEDLES = ["ANTHROPIC_API_KEY", "@anthropic-ai/sdk"];
 
@@ -29,7 +30,10 @@ export function scan(root) {
   return { files, hits };
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === new URL(import.meta.url).pathname) {
+// Run directly (not imported by the test): the two paths compare as the platform writes them
+// (fileURLToPath, nodejs.org/api/url.html#urlfileurltopathurl-options), so Windows and a
+// folder with a space in its name work too.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.join(process.cwd(), ".next", "static");
   try {
     statSync(root);

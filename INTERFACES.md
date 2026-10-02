@@ -112,7 +112,7 @@ out of "use client" files). It returns `{ ok: true, output, run }` (run: id, mod
 tokensOut, costEurCents, durationMs) or `{ ok: false, reason: "budget" | "plan" |
 "rateLimited" | "failed" | "invalid", message, detail }`; message is what the screen shows
 (AI_COPY in src/lib/ai/copy.ts, no database import), detail is for the server log (codes and
-paths, no text from the list or the answer). The instructions are the system prompt; data is
+paths from the route, plus the caller's check reason, which the caller keeps free of list text). The instructions are the system prompt; data is
 its own content block of the user message; every object in the schema is a z.strictObject
 (checked at the call, src/lib/ai/strict.ts) and the answer is validated against it after the
 API's structured output; check(output), required, returns the reason to refuse or null.

@@ -54,9 +54,10 @@ afterEach(async () => {
 const Shape = z.strictObject({ areas: z.array(z.strictObject({ name: z.string(), items: z.array(z.string()) })) });
 type Shape = z.infer<typeof Shape>;
 const refs = ["CL-01", "CL-02"];
+// The reason is a count, not the refs: the detail goes to the server log.
 const onlyKnownRefs = (out: Shape) => {
   const unknown = out.areas.flatMap((a) => a.items).filter((ref) => !refs.includes(ref));
-  return unknown.length ? `unknown refs ${unknown.join(", ")}` : null;
+  return unknown.length ? `${unknown.length} unknown ref(s)` : null;
 };
 const input = (over: Partial<Parameters<typeof runModel<Shape>>[0]> = {}) => ({ ws, projectId, purpose: "shape" as const, instructions: "Group the items.", data: "CL-01 Receipts\nCL-02 Limits", schema: Shape, check: onlyKnownRefs, ...over });
 
@@ -109,7 +110,7 @@ describe("runModel", () => {
   it("refuses an answer that invents an item", async () => {
     const { fetch } = answer({ areas: [{ name: "Claiming", items: ["CL-01", "CL-02", "CL-99"] }] });
     const result = await runModel(input(), { fetch });
-    expect(result).toMatchObject({ ok: false, reason: "invalid", detail: "check: unknown refs CL-99" });
+    expect(result).toMatchObject({ ok: false, reason: "invalid", detail: "check: 1 unknown ref(s)" });
   });
 
   it("refuses an answer that is not JSON", async () => {
@@ -179,10 +180,10 @@ describe("runModel", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("treats a refusal or a cut-off answer as failed, and still logs the tokens", async () => {
+  it("treats a refusal or a cut-off answer as unusable, and still logs the tokens", async () => {
     const before = await aiRuns.count(ws);
-    expect(await runModel(input(), { fetch: answer(good, { stop: "refusal" }).fetch })).toMatchObject({ ok: false, reason: "failed", detail: "stop_reason refusal" });
-    expect(await runModel(input(), { fetch: answer(good, { stop: "max_tokens" }).fetch })).toMatchObject({ ok: false, reason: "failed", detail: "stop_reason max_tokens" });
+    expect(await runModel(input(), { fetch: answer(good, { stop: "refusal" }).fetch })).toMatchObject({ ok: false, reason: "invalid", message: AI_COPY.invalid, detail: "stop_reason refusal" });
+    expect(await runModel(input(), { fetch: answer(good, { stop: "max_tokens" }).fetch })).toMatchObject({ ok: false, reason: "invalid", detail: "stop_reason max_tokens" });
     expect(await aiRuns.count(ws)).toBe(before + 2);
   });
 

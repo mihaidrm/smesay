@@ -4,8 +4,8 @@
 // (eslint-rules/db-access.mjs); scripts/check-ai-bundle.mjs greps the client bundles after
 // the build for the key name and the package name (acceptance 1).
 //
-// SDK: @anthropic-ai/sdk 0.131.0 (MIT, released 2026-10-01; 22 open issues on
-// github.com/anthropics/anthropic-sdk-typescript the same day). Client options from
+// SDK: @anthropic-ai/sdk 0.131.0 (MIT, released 2026-10-01; 22 open issues, read from the
+// public page github.com/anthropics/anthropic-sdk-typescript the same day). Client options from
 // node_modules/@anthropic-ai/sdk/client.d.ts: apiKey, fetch, timeout (milliseconds),
 // maxRetries; per-request `signal` from internal/request-options.d.ts. messages.create and
 // output_config.format from resources/messages/messages.d.ts; zodOutputFormat from
@@ -62,10 +62,10 @@ export type Refusal = "budget" | "plan" | "rateLimited" | "failed" | "invalid";
 export type RunResult<T> =
   | { ok: true; output: T; run: Run }
   // budget: the euro cap, refused before the call. plan: the plan's run cap, the same. rateLimited:
-  // the provider answered 429. failed: timeout, provider error, refusal or a cut-off answer.
-  // invalid: the answer failed the schema or the caller's check (acceptance 5). The message
-  // is what the screen shows; detail is for the server log and carries no text from the
-  // uploaded list or the answer, only codes, counts and paths.
+  // the provider answered 429. failed: timeout or provider error, no answer. invalid: an answer
+  // the app cannot use: a refusal, a cut-off, a schema or check failure (acceptance 5). The
+  // message is what the screen shows; detail is for the server log: codes, counts and paths
+  // from this file, plus the caller's check reason, which the caller keeps free of list text.
   | { ok: false; reason: Refusal; message: string; detail: string };
 
 const MESSAGE: Record<Refusal, string> = { budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
@@ -146,13 +146,14 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   try {
     row = await aiRuns.create(input.ws, { projectId: input.projectId, purpose: input.purpose, model, tokensIn, tokensOut, costEurCents: costEurCents(model, tokensIn, tokensOut), durationMs });
   } catch (error) {
-    console.error(`The AI run could not be logged: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`The AI run could not be logged: ${error instanceof Error ? error.constructor.name : "unknown error"}.`);
     return refused("failed", "the run could not be logged");
   }
   if (failure || !message) return failure ?? refused("failed", "no answer");
   const run: Run = { id: row.id, model, tokensIn, tokensOut, costEurCents: row.costEurCents, durationMs };
 
-  if (message.stop_reason !== "end_turn") return refused("failed", `stop_reason ${message.stop_reason}`);
+  // A refusal or a cut-off answer: the model answered, but not with something usable.
+  if (message.stop_reason !== "end_turn") return refused("invalid", `stop_reason ${message.stop_reason}`);
   const text = message.content.filter((block): block is Anthropic.TextBlock => block.type === "text").map((block) => block.text).join("");
   let parsed: unknown;
   try {

@@ -40,9 +40,10 @@ all eight are in the second commit of PR 40 and listed below where they changed 
   (node_modules/@anthropic-ai/sdk/client.js, the audit's probe); an AbortController cuts the
   body read at the same deadline, tested with a fetch whose body never ends.
 - The plan's run cap has its own message ("used its AI runs for the month on its plan"), since
-  raising the euro budget would not lift it; and an answer the app could not use has its own
-  ("The AI answered in a form the app could not use"), since "did not answer" was untrue
-  there. Both rows are new in docs/copy/errors.md for Mihai to accept.
+  raising the euro budget would not lift it; and an answer the app could not use (a refusal,
+  a cut-off, a schema or check failure) has its own ("The AI answered in a form the app could
+  not use"), since "did not answer" was untrue there. Both rows are new in docs/copy/errors.md
+  for Mihai to accept.
 - Per-request ceilings (SECURITY.md): 500,000 input characters, 16,000 output tokens. A
   caller over them is a bug and gets an Error, not a clipped call.
 - The project is required: usage() counts a run against the budget only through its project
@@ -51,8 +52,10 @@ all eight are in the second commit of PR 40 and listed below where they changed 
   edits on it.
 - Structured output is requested from the API (output_config.format from the zod schema) and
   the answer is validated again in the app with the same schema. Every object in the schema
-  must be strict: src/lib/ai/strict.ts walks the zod definition at the call and throws on a
-  loose object anywhere, so an extra field fails rather than being stripped. The caller's
+  must be strict: src/lib/ai/strict.ts walks the zod definition at the call, through arrays,
+  records, maps, sets, tuples, intersections, pipes, lazy, optional and union, and throws on a
+  loose object anywhere, so an extra field fails rather than being stripped (tested kind by
+  kind in strict.test.ts). The caller's
   check is required and refuses content the schema cannot see, such as an item the input does
   not have.
 - The SDK's retries are off (maxRetries 0): a 429 reaches the user as its own message at once,
@@ -64,8 +67,9 @@ all eight are in the second commit of PR 40 and listed below where they changed 
   scripts/check-ai-bundle.mjs is a CI step after `next build` that fails when a file under
   .next/static carries the key name or the package name (its scan is tested).
 - The server log names the SDK error class and status (the SDK's classes do not set `name`);
-  a 401 says to check ANTHROPIC_API_KEY. The log line never carries text from the list or the
-  answer: schema failures are logged as codes and paths.
+  a 401 says to check ANTHROPIC_API_KEY. The route's own detail lines carry codes, counts and
+  paths, never text from the list or the answer; the caller's check reason is the caller's,
+  and E4-2's check returns counts.
 - The acceptance run is `npm run ai:smoke` on Mihai's PC (docs/accounts.md step 9): one call
   on his first project of his own, printing the tokens, the cost and the row id.
 
@@ -81,6 +85,11 @@ all eight are in the second commit of PR 40 and listed below where they changed 
   row list times out, E4-2 chunks the list.
 - Cache tokens are priced at the base input rate; caching is off in R1.
 - The smoke run is logged as a shaping run on Mihai's project, one row.
+- The plan's run cap path has no test: no plan carries a cap (E2-6), so there is nothing to
+  hit it with until one does.
+- A "use client" file that imports a server module which imports runModel is caught by the
+  bundle check in CI, not by lint. `import "server-only"` would catch it at build time but
+  throws under vitest and tsx; left out.
 
 ## Open for Mihai
 
