@@ -9,6 +9,7 @@ import type { WorkspaceId } from "./scoped";
 
 export type Member = typeof workspaceMember.$inferSelect;
 export type MemberWithUser = Member & { name: string; email: string };
+export type KeepOwner = { ok: true; row: Member } | { ok: false; reason: "missing" | "last-owner" };
 
 const oneRow = (workspaceId: WorkspaceId, userId: string) => and(eq(workspaceMember.workspaceId, workspaceId), eq(workspaceMember.userId, userId));
 
@@ -27,6 +28,29 @@ export const members = {
     (await db.select().from(workspaceMember).where(oneRow(workspaceId, userId)).limit(1))[0] ?? null,
   add: async (workspaceId: WorkspaceId, userId: string, role: MemberRole): Promise<Member> =>
     (await db.insert(workspaceMember).values({ workspaceId, userId, role }).returning())[0],
+  // Removal and role change that keep at least one owner (stories/E2-4, acceptance 4), in one
+  // transaction with the workspace's member rows locked (select ... for update,
+  // orm.drizzle.team/docs/rqb#select-for-update is the query builder's `.for("update")`,
+  // node_modules/drizzle-orm/pg-core/query-builders/select.d.ts), so two owners demoting each
+  // other at once cannot leave none. "missing" when the person is not a member any more.
+  removeKeepingOwner: async (workspaceId: WorkspaceId, userId: string): Promise<KeepOwner> =>
+    db.transaction(async (tx) => {
+      const rows = await tx.select().from(workspaceMember).where(eq(workspaceMember.workspaceId, workspaceId)).for("update");
+      const target = rows.find((m) => m.userId === userId);
+      if (!target) return { ok: false, reason: "missing" };
+      if (target.role === "owner" && rows.filter((m) => m.role === "owner").length <= 1) return { ok: false, reason: "last-owner" };
+      await tx.delete(workspaceMember).where(oneRow(workspaceId, userId));
+      return { ok: true, row: target };
+    }),
+  setRoleKeepingOwner: async (workspaceId: WorkspaceId, userId: string, role: MemberRole): Promise<KeepOwner> =>
+    db.transaction(async (tx) => {
+      const rows = await tx.select().from(workspaceMember).where(eq(workspaceMember.workspaceId, workspaceId)).for("update");
+      const target = rows.find((m) => m.userId === userId);
+      if (!target) return { ok: false, reason: "missing" };
+      if (target.role === "owner" && role === "member" && rows.filter((m) => m.role === "owner").length <= 1) return { ok: false, reason: "last-owner" };
+      const [row] = await tx.update(workspaceMember).set({ role }).where(oneRow(workspaceId, userId)).returning();
+      return { ok: true, row };
+    }),
   setRole: async (workspaceId: WorkspaceId, userId: string, role: MemberRole): Promise<Member | null> =>
     (await db.update(workspaceMember).set({ role }).where(oneRow(workspaceId, userId)).returning())[0] ?? null,
   remove: async (workspaceId: WorkspaceId, userId: string): Promise<Member | null> =>

@@ -13,6 +13,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { workspaces } from "@/db/queries";
 import { acceptPendingInvites } from "@/db/queries/onboarding";
+import { INVITE_VALID_MINUTES } from "@/lib/invites";
 import type { Workspace } from "@/db/queries/workspaces";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
@@ -26,7 +27,7 @@ export type AppContext = { session: Session; memberships: Workspace[]; current: 
 export const getAppContext = cache(async (nextPath: string): Promise<AppContext> => {
   const session = await requireSession(nextPath);
   // An open invitation for the signed-in address becomes a membership first (stories/E2-4).
-  await acceptPendingInvites(session.user.id, session.user.email);
+  await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES);
   const memberships = await workspaces.listForUser(session.user.id);
   const storedId = session.session.currentWorkspaceId ?? null;
   const choice = chooseWorkspace(memberships, storedId);

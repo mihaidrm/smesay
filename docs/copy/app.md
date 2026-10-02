@@ -43,6 +43,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Row of a person without a name | No name yet |
 | Marker on the signed-in person's row | you |
 | Role control values | Owner, Member |
+| Role control label for screen readers | Role of [EMAIL] |
 | Row of an open invitation, name column | Invited |
 | Remove button | Remove |
 | Field label and placeholder | Invite by email, name@company.example |

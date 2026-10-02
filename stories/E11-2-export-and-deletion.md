@@ -8,7 +8,8 @@ within 24 hours and emails a confirmation.
 ## Acceptance criteria
 1. Settings, Data: "Export everything" produces one zip with every project's JSON export
    (E10-2), the workspace settings, the members list and the logo; the download is logged.
-2. "Delete this workspace": owner only; a confirm that asks the workspace name to be typed;
+2. "Delete this workspace": owner only through `can()` (E2-4, workspace.delete; a test calls
+   it as a member and gets 403); a confirm that asks the workspace name to be typed;
    sets deleted_at, signs every member out of it, and shows the page "This workspace was
    deleted on [DATE]. Its data is removed within 24 hours. Contact [OWNER EMAIL] if you did not
    expect this." to anyone opening it (docs/copy/errors.md).
