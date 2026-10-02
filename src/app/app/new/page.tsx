@@ -1,0 +1,26 @@
+// Name the workspace (stories/E2-3, acceptance 1): the first sign-in with no membership lands
+// here; the name defaults to the part of the email after the @, capitalised. A person who
+// already has a workspace is sent back to the app. Same column as the sign-in page, so a link
+// opened on a phone works. Copy: docs/copy/app.md.
+import { redirect } from "next/navigation";
+import { Lockup } from "@/components/brand/mark";
+import { getAppContext } from "@/lib/current-workspace";
+import { defaultWorkspaceName } from "@/lib/workspace-name";
+import { SignedInFooter } from "../signed-in-footer";
+import { WorkspaceForm } from "./workspace-form";
+
+export default async function NewWorkspacePage() {
+  const { session, memberships } = await getAppContext("/app/new");
+  if (memberships.length > 0) redirect("/app");
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-4 py-12">
+      <Lockup />
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-medium tracking-tight">Name your workspace</h1>
+        <p className="text-ink-muted">The sample project comes with it, so there is something to look at.</p>
+      </div>
+      <WorkspaceForm defaultName={defaultWorkspaceName(session.user.email)} />
+      <SignedInFooter email={session.user.email} />
+    </main>
+  );
+}

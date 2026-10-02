@@ -18,9 +18,10 @@ workspace holding the sample project, so there is something to look at from day 
    the watermark (CLAUDE.md, dashboard rules) and "Delete sample" can remove it.
 3. Running the seed twice does not duplicate anything: it exits 0 and says the sample already
    exists.
-4. The seed never creates a user account: the workspace has no members until E2 signs the
-   first user in and attaches them (the seed stores the sample under a fixed workspace id, and
-   E2's first sign-in becomes its owner).
+4. The seed never creates a user account or a membership: the seeded workspace is the test
+   fixture under a fixed id, read by the tests of E8 and E10. Every workspace made in the app
+   gets its own copy of the sample at creation (E2-3, built 2026-10-02; amended from "E2's
+   first sign-in becomes its owner").
 5. docs/setup.md "Run it" includes the seed step and Mihai has run it on his PC (open until
    Mihai does; the step is in docs/setup.md).
 

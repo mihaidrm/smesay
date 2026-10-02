@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, uuid } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -29,6 +29,10 @@ export const session = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    // The workspace the person is working in (stories/E2-3, acceptance 4): a better-auth
+    // additional field (src/lib/auth.ts), set only after a membership check and checked again
+    // on every request, so no foreign key: a stale id is simply not current any more.
+    currentWorkspaceId: uuid("current_workspace_id"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );

@@ -17,15 +17,37 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Link-used page line | Ask for a new one. |
 | Link-used page button | Send a new link |
 
-## Signed-in shell (E2-1, filled in by E2-3)
+## Workspace step (E2-3)
+
+| Where | Text |
+|---|---|
+| Create page title | Name your workspace |
+| Create page line | The sample project comes with it, so there is something to look at. |
+| Field label | Workspace name |
+| Button | Create workspace |
+| Switch page title | Choose a workspace |
+| Switch page line | Pick the workspace to work in. You can switch any time from the sidebar. |
+| Switch page line when the current workspace was removed | The workspace you were in is no longer available to you. Pick another one to work in. |
+| Signed-in line under both pages | Signed in as [EMAIL]. |
+
+## Signed-in shell (E2-1, E2-3)
 
 | Where | Text |
 |---|---|
 | Sidebar, workspace block label | Workspace |
-| Sidebar, no membership yet | No workspace yet |
+| Sidebar, member count | 1 member / [N] members |
+| Sidebar, projects label and link | Projects, All |
+| Sidebar and list, sample pill | Sample |
 | Sidebar footer button | Sign out |
-| Landing title until E2-3 | Signed in |
-| Landing line until E2-3 | You are signed in as [EMAIL]. |
+| Projects page breadcrumb | [WORKSPACE NAME] |
+| Projects page title | Projects |
+| Projects page line | One project per validation. |
+| Table headers | Project, Status, Updated |
+| Status of the sample | Sample |
+| Status of a project before E3-1 | Draft |
+| Updated line of the sample | Created with the workspace |
+| Empty state title | No projects yet |
+| Empty state line | Your workspace has no projects. |
 | Loading state of any page | Loading. |
 | Error state of any page, title | The server could not finish this request. |
 | Error state of any page, line | It has been logged. Try again in a minute. |

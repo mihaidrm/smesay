@@ -1,11 +1,15 @@
 // Inserts the Marlow Group sample (stories/E1-4) through the E1-3 helpers, so the seed is also
-// the first caller of every insert. Runs once: a second run finds the workspace and changes
-// nothing. A failure half way removes the workspace again (the cascades take the rest), so the
-// next run starts clean.
+// the first caller of every insert. seedSampleInto(ws, projectName) puts one copy of the sample
+// into any workspace: `npm run db:seed` calls it for the fixture workspace with the fixed id
+// (seedSample, runs once; a second run finds the workspace and changes nothing), and every new
+// workspace gets its own copy named "Sample project" at creation (stories/E2-3, acceptance 2;
+// src/db/queries/onboarding.ts). A failure half way removes the fixture workspace again (the
+// cascades take the rest), so the next run starts clean.
 import { randomBytes } from "node:crypto";
 import { aiRuns, answers, insights, instruments, invites, itemSets, items, missingItems, projects, responses } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
+import type { WorkspaceId } from "@/db/types";
 import * as sample from "./sample";
 
 // Every token is fresh per seed run (CLAUDE.md: crypto.randomBytes(16) or stronger), so two
@@ -15,6 +19,8 @@ const token = () => randomBytes(16).toString("hex");
 export type SeedResult = { status: "created" | "exists"; workspaceId: string };
 
 const VALUE_FOR_DISAGREE = "W";
+export const FIXTURE_PROJECT_NAME = sample.project.name;
+export const SAMPLE_PROJECT_NAME = "Sample project";
 
 export async function seedSample(): Promise<SeedResult> {
   const existing = await internal.getWorkspaceById(sample.SAMPLE_WORKSPACE_ID);
@@ -26,7 +32,19 @@ export async function seedSample(): Promise<SeedResult> {
   const created = await internal.createEmptyWorkspace(sample.workspace);
   const ws = unsafeWorkspaceId(created.id);
   try {
-    const project = await projects.create(ws, sample.project);
+    await seedSampleInto(ws, FIXTURE_PROJECT_NAME);
+    return { status: "created", workspaceId: ws };
+  } catch (error) {
+    await internal.hardDeleteWorkspace(ws);
+    throw error;
+  }
+}
+
+// One copy of the sample under the given workspace. Throws half way on a failure; the caller
+// decides what to remove.
+export async function seedSampleInto(ws: WorkspaceId, projectName: string): Promise<void> {
+  {
+    const project = await projects.create(ws, { ...sample.project, name: projectName });
     const set = await itemSets.create(ws, { projectId: project.id, version: 1, source: "xlsx", sourceFilename: sample.sourceFilename, importReport: sample.importReport });
     const itemIds = new Map<number, string>();
     for (const it of sample.items) {
@@ -76,9 +94,5 @@ export async function seedSample(): Promise<SeedResult> {
       await insights.create(ws, { projectId: project.id, title: ins.title, why: ins.why, citedAnswerIds: cited, state: "open", model: "sample" });
     }
     for (const run of sample.aiRuns) await aiRuns.create(ws, { projectId: project.id, ...run });
-    return { status: "created", workspaceId: ws };
-  } catch (error) {
-    await internal.hardDeleteWorkspace(ws);
-    throw error;
   }
 }

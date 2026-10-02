@@ -39,7 +39,12 @@ return null when the row is not in that workspace or the id is not a uuid; creat
 keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uuid parent id
 with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
 ownerUserId), update(ws, patch) (name, slug, accent, logo, budget only), markDeleted(ws).
-Members: list, get, add, setRole, remove by (ws, userId). src/db/queries/internal.ts
+Members: list, get, add, setRole, remove by (ws, userId). Onboarding (E2-3):
+createWorkspaceWithSample(data, ownerUserId) in src/db/queries/onboarding.ts, imported by
+name (not in the barrel), creates the workspace with its owner and its own copy of the sample.
+The session row carries currentWorkspaceId (uuid, nullable, migration 0002), set only by
+src/lib/current-workspace.ts after a membership check and read back on every request; the
+current workspace is never taken from a URL alone. src/db/queries/internal.ts
 (getWorkspaceById, createEmptyWorkspace, hardDeleteWorkspace, requireWorkspaceForUser) takes
 no session and is importable only from src/db and src/lib/workspace.ts. Importing "@/db",
 "@/db/schema", drizzle-orm or postgres outside src/db/ fails lint for every import spelling

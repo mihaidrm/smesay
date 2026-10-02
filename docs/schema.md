@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-01 (the date of the latest migration, 0001_item_text_and_version_immutable).
+v1, 2026-10-02 (the date of the latest migration, 0002_current_workspace).
 
-Generated from the snapshot of the 2 migrations in drizzle/ (0001_snapshot.json) by
+Generated from the snapshot of the 3 migrations in drizzle/ (0002_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -326,6 +326,7 @@ better-auth: a browser session.
 | ip_address | text |  |
 | user_agent | text |  |
 | user_id | text | fk user.id, on delete cascade, not null |
+| current_workspace_id | uuid |  |
 
 Unique: session_token_unique on token.
 
