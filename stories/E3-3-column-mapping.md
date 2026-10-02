@@ -1,7 +1,7 @@
 # E3-3 Column mapping, remembered per workspace
 
 User: a PM telling the import which column is which
-Status: ready
+Status: built
 Outcome: the requirement text, area, proposed value, reference and up to five custom fields
 are mapped once, and the next file with the same headers maps itself.
 
@@ -29,6 +29,48 @@ are mapped once, and the next file with the same headers maps itself.
 - None.
 
 ## Technical notes
-Table workspace_mapping (workspace_id, headers_key, mapping jsonb, updated_at) in migration
-0002; INTERFACES.md gets ColumnMapping before the migration. The recognised proposed values
-are the ScoringMethod scales (INTERFACES.md).
+Built 2026-10-02.
+
+- Table workspace_mapping (workspace_id, headers_key, mapping jsonb, updated_at; unique per
+  workspace and headers) and upload.mapping in migration 0007 (0002 had gone to E2-3);
+  ColumnRole and ColumnMapping in INTERFACES.md and src/db/types.ts. The mapping is keyed by
+  the column's header (its letter without one), so the same headers in another order still
+  map; the headers key is the sorted headers.
+- src/lib/import/mapping.ts: the roles, the guess from header names, the cleaning of a form
+  mapping (one column per text, area, value and ref; five custom fields; unknown roles
+  skipped), the missing-text message, the remembered mapping applied to another file's
+  columns. Tested in mapping.test.ts.
+- src/lib/import/values.ts: the proposed value scale (acceptance 4): MoSCoW words and letters,
+  Not needed, 1 to 5 (fit), keep, change, drop (kcd); anything else kept as written with
+  scale null, which E3-5 counts as "not recognised". Tested in values.test.ts. Nothing stores
+  the normalised value yet; E3-5's commit writes it to item.proposed_value.
+- src/lib/uploads.ts: saveUpload() and rechoose() set upload.mapping (remembered for the
+  headers, else guessed); saveMapping() cleans, stores and remembers; rememberedFrom() gives
+  the date for the line when the workspace mapping predates the upload. Tested in
+  uploads.test.ts (the guess, a change, the same headers in another order in a csv, another
+  workspace's own memory, another workspace refused).
+- The card is src/app/app/(shell)/projects/[projectId]/import/mapping.tsx (design note 21);
+  a select change submits the form to mapAction. The Import button, with its disabled state
+  from acceptance 1, comes with the check report and the commit (E3-5), which also owns the
+  import click of acceptance 5 and the `{ [header]: value }` shape of acceptance 2; until then
+  the card shows the missing-text message alone.
+- Custom values land in item.custom as `{ [header]: value }` at the commit (E3-5), which reads
+  upload.mapping; nothing writes items in this story.
+- Playwright: e2e/import.spec.ts continues from the E3-2 path: the guess, a change, the
+  missing-text message, a second copy of the file opening with "Mapping remembered from". The
+  "import" between the two uploads in acceptance 5 joins the test with E3-5, since the memory
+  does not depend on it.
+- Wording: the last role is the board's "Do not import", not the story's "Ignore" (design note
+  21); Mihai asked 2026-10-02, acceptance 1 and the Stories board keep "Ignore" until he
+  answers.
+- Audit of 2026-10-02 (fresh context, 13 findings), closed in the story's PR: two columns with
+  the same header (or a header that reads like another column's letter) collapsed into one key,
+  so the file could not be mapped (keys now carry the letter, "Requirement (B)", tested); a
+  guessed mapping the PM accepted was never remembered (a guess with a text column is now
+  remembered once the upload row exists; a mapping without one is never remembered); the
+  remembered line sits above the card as acceptance 3 says; the Import button and its title
+  text left for E3-5; the revalidated path comes from the row, not the form; both timestamps of
+  "remembered from" come from the database clock; a test that one workspace's save leaves
+  another's memory untouched. Open: picking a single role another column holds reverts the
+  pick to "Do not import" without a message (the first column in file order keeps it); noted
+  for E3-5's card.

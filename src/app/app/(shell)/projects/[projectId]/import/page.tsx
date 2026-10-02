@@ -1,12 +1,17 @@
 // Import (stories/E3-1, acceptance 3; stories/E3-2; decision 0020): the "About this project"
-// card, then the upload card and the preview of the latest upload; the mapping comes with E3-3.
+// card, then the upload card, the preview of the latest upload and its column mapping
+// (stories/E3-3); the check report and the import come with E3-5.
 // The sample project has no upload card (it is read-only, stories/E8-8). Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import { projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { rememberedFrom } from "@/lib/uploads";
 import { ContextForm } from "./context-form";
+import { MappingCard } from "./mapping";
 import { UploadPreview } from "./preview";
 import { UploadForm } from "./upload-form";
+
+const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 export default async function ImportPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -14,6 +19,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();
   const upload = project.isSample ? null : await uploads.latestForProject(current.ws, project.id);
+  const remembered = upload ? await rememberedFrom(current.ws, upload) : null;
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-normal">Import the list</h2>
@@ -34,6 +40,9 @@ export default async function ImportPage({ params }: { params: Promise<{ project
         </section>
       )}
       {upload && <UploadPreview upload={upload} />}
+      {upload && upload.mapping && upload.preview.columns.length > 0 && (
+        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} />
+      )}
     </div>
   );
 }

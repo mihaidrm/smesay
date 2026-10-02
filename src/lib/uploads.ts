@@ -6,16 +6,20 @@
 // checked on every sheet with its own detected header at upload, and again on the sheet and
 // header row the PM picks in rechoose(), which rebuilds the preview from the stored object; a
 // pick over the limit is refused and the stored choice stays. Earlier uploads of a project keep
-// their rows and objects until the workspace deletion (stories/E11-2). Messages:
-// src/lib/import/copy.ts.
+// their rows and objects until the workspace deletion (stories/E11-2). The column mapping
+// (stories/E3-3) rides on the upload row: remembered for the headers when the workspace has
+// one, guessed from the header names otherwise, saved on every change by saveMapping(), which
+// also remembers it for the workspace. Messages: src/lib/import/copy.ts and
+// src/lib/import/mapping.ts.
 import { randomBytes } from "node:crypto";
-import { projects, uploads } from "@/db/queries";
+import { projects, uploads, workspaceMappings } from "@/db/queries";
 import type { Upload } from "@/db/queries/uploads";
-import type { UploadPreview, WorkspaceId } from "@/db/types";
+import type { ColumnMapping, UploadPreview, WorkspaceId } from "@/db/types";
 import type { ParsedFile } from "@/lib/import/parse";
 import { NotFoundError } from "@/lib/errors";
 import { UPLOAD_COPY } from "@/lib/import/copy";
 import { ROWS_MAX, SIZE_MAX } from "@/lib/import/limits";
+import { applyMapping, cleanMapping, guessMapping, headersKey, mappingError } from "@/lib/import/mapping";
 import { UnreadableFileError, extensionOf, kindOf, parseFile } from "@/lib/import/parse";
 import { buildPreview } from "@/lib/import/preview";
 import { deleteObject, getObject, putObject } from "@/lib/storage";
@@ -43,13 +47,15 @@ export async function saveUpload(actor: { ws: WorkspaceId; userId: string }, pro
   const over = overRowLimit(parsed);
   if (over) return { error: over };
   const preview = buildPreview(parsed);
+  const { mapping, remember } = await initialMapping(actor.ws, preview);
   const objectKey = `uploads/${actor.ws}/${randomBytes(8).toString("hex")}.${kind}`;
   await putObject(objectKey, file.bytes, CONTENT_TYPES[kind]);
   try {
     const upload = await uploads.create(actor.ws, {
       projectId, objectKey, filename: file.name.slice(0, 255), kind, byteSize: file.bytes.byteLength,
-      sheet: preview.sheet, headerRow: preview.headerRow, preview, createdBy: actor.userId,
+      sheet: preview.sheet, headerRow: preview.headerRow, preview, mapping, createdBy: actor.userId,
     });
+    if (remember && mapping) await workspaceMappings.upsert(actor.ws, headersKey(preview.columns), mapping);
     return { upload };
   } catch (error) {
     await deleteObject(objectKey).catch(() => undefined);
@@ -76,7 +82,44 @@ export async function rechoose(ws: WorkspaceId, uploadId: string, choice: { shee
   const sheetChanged = choice.sheet !== undefined && choice.sheet !== current.sheet;
   const preview: UploadPreview = buildPreview(parsed, { sheet: choice.sheet ?? current.sheet, headerRow: sheetChanged ? null : choice.headerRow });
   if (preview.rowsRead > ROWS_MAX) return { error: UPLOAD_COPY.tooManyRows(preview.rowsRead, current.kind === "xlsx" ? preview.sheet : null) };
-  const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, preview });
+  const { mapping, remember } = await initialMapping(ws, preview);
+  const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, preview, mapping });
   if (!updated) throw new NotFoundError();
+  if (remember && mapping) await workspaceMappings.upsert(ws, headersKey(preview.columns), mapping);
   return { upload: updated };
+}
+
+// Remembered for the headers when the workspace has one, else guessed; a guess with a text
+// column is remembered too (after the upload row exists, so it does not read as remembered
+// from before), so a PM who accepts it finds it on the next file (E3-3 audit, finding 7). A
+// mapping without a text column is never remembered.
+async function initialMapping(ws: WorkspaceId, preview: UploadPreview): Promise<{ mapping: ColumnMapping | null; remember: boolean }> {
+  if (preview.columns.length === 0) return { mapping: null, remember: false };
+  const remembered = await workspaceMappings.getByHeaders(ws, headersKey(preview.columns));
+  if (remembered) return { mapping: applyMapping(preview.columns, remembered.mapping), remember: false };
+  const guess = guessMapping(preview.columns);
+  return { mapping: guess, remember: mappingError(guess) === null };
+}
+
+// The mapping as the form sent it, cleaned (src/lib/import/mapping.ts), stored on the upload
+// and remembered for the workspace under the headers; the error names a missing text column
+// but the mapping is saved either way, so the PM can fix one select at a time.
+export async function saveMapping(ws: WorkspaceId, uploadId: string, raw: Record<string, unknown>): Promise<{ upload: Upload; error: string | null }> {
+  const current = await uploads.get(ws, uploadId);
+  if (!current) throw new NotFoundError();
+  const mapping = cleanMapping(current.preview.columns, raw);
+  const updated = await uploads.update(ws, uploadId, { mapping });
+  if (!updated) throw new NotFoundError();
+  const error = mappingError(mapping);
+  if (error === null) await workspaceMappings.upsert(ws, headersKey(current.preview.columns), mapping);
+  return { upload: updated, error };
+}
+
+// "Mapping remembered from [DATE]": the workspace mapping for this upload's headers when it
+// existed before the upload (acceptance 3); null when the mapping was guessed or made here.
+// Both timestamps come from the database clock (defaultNow() and now() in the upsert).
+export async function rememberedFrom(ws: WorkspaceId, upload: Upload): Promise<Date | null> {
+  if (upload.preview.columns.length === 0) return null;
+  const row = await workspaceMappings.getByHeaders(ws, headersKey(upload.preview.columns));
+  return row && row.updatedAt < upload.createdAt ? row.updatedAt : null;
 }

@@ -28,6 +28,10 @@ then one click creates the items.
 - None.
 
 ## Technical notes
+Owns, from E3-3: the "Import [N] items" button (disabled at 40 percent without a text column,
+E3-3 acceptance 1), the import click between the two uploads of E3-3 acceptance 5 in
+e2e/import.spec.ts, and the `{ [header]: value }` shape of item.custom (E3-3 acceptance 2).
+From E3-4: the import click of its acceptance 5.
 ImportReport gains `unrecognisedValues: number` and `duplicateRefs: { kept: string, folded:
 string[] }[]`; INTERFACES.md first (CLAUDE.md). The report is computed once on preview and
 stored with the set so the import log (E3-6) shows the same numbers.

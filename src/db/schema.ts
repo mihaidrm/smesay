@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import type { ClosingSpec, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, UploadPreview } from "./types";
+import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, RespondentFieldSpec, ResponseFields, UploadPreview } from "./types";
 
 export * from "./auth-schema";
 
@@ -111,12 +111,28 @@ export const upload = pgTable("upload", {
   sheet: text("sheet"),
   headerRow: integer("header_row"),
   preview: jsonb("preview").$type<UploadPreview>().notNull(),
+  // The mapping of this upload's columns (stories/E3-3), ColumnMapping in INTERFACES.md; null
+  // until the preview has columns.
+  mapping: jsonb("mapping").$type<ColumnMapping>(),
   createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "upload_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   index("upload_project_idx").on(t.projectId),
   check("upload_kind_check", oneOf("kind", UPLOAD_KINDS)),
+]);
+
+// A column mapping remembered per workspace (stories/E3-3, acceptance 3), keyed by the sorted
+// list of headers (src/lib/import/mapping.ts, headersKey): the next file with the same headers
+// maps itself.
+export const workspaceMapping = pgTable("workspace_mapping", {
+  id: id(),
+  workspaceId: wsRef(),
+  headersKey: text("headers_key").notNull(),
+  mapping: jsonb("mapping").$type<ColumnMapping>().notNull(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("workspace_mapping_headers_idx").on(t.workspaceId, t.headersKey),
 ]);
 
 export const itemSet = pgTable("item_set", {
