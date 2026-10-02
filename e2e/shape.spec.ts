@@ -53,7 +53,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByRole("button", { name: "Move" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Shape with AI" }).click();
-  await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas.");
+  await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas and wrote a readable version of each.");
   const areas = page.getByTestId("area");
   await expect(areas).toHaveCount(3);
   await expect(areas.nth(0)).toContainText("Submitting");
@@ -82,7 +82,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   // Run again: the items the model placed are sent without an area, so the stand-in puts the
   // loose ones back in Submitting; the two the PM moved are sent with their area and stay.
   await page.getByRole("button", { name: "Run again" }).click();
-  await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas.");
+  await expect(page.getByTestId("grouped-line")).toContainText("AI grouped 6 items into 3 areas and wrote a readable version of each.");
   await expect(page.getByTestId("area").nth(2).getByTestId("item").filter({ hasText: "Travel advances" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(1).getByTestId("item").filter({ hasText: "Mileage" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(0).getByTestId("item")).toHaveCount(2);
