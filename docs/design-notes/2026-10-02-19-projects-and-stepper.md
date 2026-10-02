@@ -24,12 +24,17 @@ The breadcrumb, "New project", one line, the Project name field (448 px) and "Cr
 ## The project frame and the stepper
 
 Breadcrumb "[Workspace]" (the sample: "[Workspace] · sample project"), the project name at
-24 px weight 400 with an "Archived" pill when archived, and on the right a small secondary
-"Archive project" or "Unarchive" (the board's header menu has one entry so far). Under it the
-stepper, new to the design system: five pills, 36 px, radius 999, each a 22 px numbered circle
-and a label. The current step is ink with a white circle; a done step has an ink circle with a
-white number and ink text; a coming step is grey with a hairline-strong circle. A step with no
-page yet is not a link. Component: src/components/app/stepper.tsx.
+20 px weight 500 with an "Archived" pill when archived, the stepper in the same header row to
+its right, and a small secondary "Archive project" or "Unarchive" at the end (the board's
+header menu has one entry so far). The stepper, new to the design system: five pills, 36 px,
+radius 999, on a grey 50 track with 4 px padding and a hairline border, each pill a 22 px
+numbered circle and a label. The current step is an ink pill with a white circle and an ink
+number; a done step has an ink circle with a white number and ink text; a coming step is muted
+with a hairline-strong circle. A step with no page yet is not a link. Component:
+src/components/app/stepper.tsx. The first build (2026-10-02, before the audit) had the title at
+24 px weight 400 and the stepper on its own row without the track; the audit's finding 9
+brought it back to the board the same day. Delete sample on the list shows a confirm line
+(errors.md) with Cancel before the real button.
 
 ## Import (/app/projects/[id]/import)
 

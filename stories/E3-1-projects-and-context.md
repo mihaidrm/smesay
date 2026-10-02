@@ -52,10 +52,21 @@ Built 2026-10-02.
 - Archive and unarchive are a button in the project header (the board's header menu has one
   entry so far); archived projects are hidden and listed behind "Show archived" (?archived=1).
   "Delete sample" on the sample's row is stories/E8-8 acceptance 3, built here because the row
-  carries it: responses first, then the project, in one transaction (decision 0028); the sample
-  cannot be edited (its About card is read-only), the rest of E8-8 stays with E8-8.
+  carries it: a confirm line first, then responses, then the project, in one transaction that
+  rolls back if the row is not the sample (decision 0028); the sample cannot be edited (its
+  About card is read-only, and the server refuses a context save or an archive on it), the rest
+  of E8-8 stays with E8-8.
 - The empty state "No projects yet" with New project sits under the table while the workspace
-  has no project of its own; the sample row stays above it.
+  has no project of its own, archived ones included; the sample row stays above it.
+- project.updated_at (migration 0006) is set by the context save, archive and unarchive and is
+  the list's Updated column. The invite, response and item counts are SQL counts per
+  instrument or set; link rows are read for the listed projects only.
+- Audit of 2026-10-02 (fresh context, 17 findings): the blocking one (a Playwright locator on a
+  div) was closed in the story's own PR; findings 2, 3, 4, 7, 8, 9, 10 and the notes 11 to 16
+  are closed by the audit-fix PR of the same day. Two stay open for Mihai's decision: decision
+  0028 says the app deletes nothing in R1 while Delete sample is a hard delete of the sample
+  (an exception line in 0028, or no button until E8-8), and a link with an open date in the
+  future makes the project read Closed (Draft, or a new value).
 - Tests: src/lib/project-status.test.ts, src/lib/project-context.test.ts, src/lib/projects.test.ts
   (the sample copy summarised as 6 items, 5 of 7, Sample; a draft; the latest set's items and
   Open from an open link; the context saved, trimmed and refused above 2,000; archive and

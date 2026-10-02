@@ -1,7 +1,9 @@
 // The project stepper (stories/E3-1, acceptance 2; the PM app board after the canvas comment of
-// 2026-10-01): Import, Shape, Build, Share, Results as pills. The current step is filled ink
-// with a white number; done steps have an ink number; coming steps are grey. A step with no
-// page yet is not a link. New to the design system, recorded in design note 19.
+// 2026-10-01): Import, Shape, Build, Share, Results as pills on a grey track (4 px padding,
+// radius 999, grey 50, hairline border, PmApp.dc.html). The current step is an ink pill with a
+// white circle and an ink number; a done step has an ink circle with a white number; a coming
+// step is muted with a hairline-strong circle. A step with no page yet is not a link. New to
+// the design system, recorded in design note 19.
 import Link from "next/link";
 import { cn } from "cn";
 
@@ -17,7 +19,7 @@ export type StepKey = (typeof STEPS)[number]["key"];
 export function Stepper({ current, done, href }: { current: StepKey; done: StepKey[]; href: (step: StepKey) => string | null }) {
   const currentIndex = STEPS.findIndex((s) => s.key === current);
   return (
-    <nav aria-label="Steps" className="flex flex-wrap gap-1">
+    <nav aria-label="Steps" className="flex flex-wrap gap-1 rounded-full border border-hairline bg-grey-50 p-1">
       {STEPS.map((step, i) => {
         const active = step.key === current;
         const finished = done.includes(step.key) || i < currentIndex;

@@ -78,7 +78,7 @@ Built 2026-10-02.
 - Copy: docs/copy/app.md (Workspace step, Signed-in shell) and errors.md (the name error).
 - Not in this story: members and invites (E2-4), settings (E2-5), the quickstart after naming
   (E12-2, named in acceptance 1), the watermark (E8-8, named in acceptance 2), the project
-  counts and New project (E3-1), deleting the sample (E8-8). Each workspace's sample carries
+  counts, New project and Delete sample on the list (E3-1), the rest of the sample's rules (E8-8). Each workspace's sample carries
   working invite tokens; E7-1 and E8-8 keep them closed to outsiders.
 - Audit of 2026-10-02 (fresh context, 14 findings): the blocking one (acceptance 4 had no test)
   and the should-fix ones (a fresh session sent a one-workspace person to the chooser; the create

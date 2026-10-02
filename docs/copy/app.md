@@ -80,12 +80,12 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Projects page title, archived view | Projects, Archived projects |
 | Projects page line | One project per validation. |
 | New project button | New project |
-| Table headers | Project, Items, Responses, Status, Updated |
+| Table headers | Project, Items, Responses, Status, Updated (project.updated_at: the last context save, archive or unarchive) |
 | Responses cell | [N] of [N] |
 | Status values | Draft, Open, Closed, Sample |
 | Updated cell of the sample | Created with the workspace |
-| Row buttons | Open, Delete sample |
-| Empty state when only the sample exists | No projects yet. Start one and import your list. [New project] |
+| Row buttons | Open, Delete sample (then the confirm line from errors.md with Cancel and Delete sample) |
+| Empty state when the workspace has no project of its own, archived ones included | No projects yet. Start one and import your list. [New project] |
 | Empty state of the archived view | No archived projects. Archived projects appear here. |
 | Links under the table | Show archived, Back to projects |
 | New project title and line | New project. A name is enough. The list comes on the next step. |

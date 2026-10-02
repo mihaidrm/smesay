@@ -33,7 +33,10 @@ export async function saveContextAction(_previous: ProjectFormState, formData: F
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
-  revalidatePath(`/app/projects/${projectId}`, "layout");
+  // A literal path takes no type (node_modules/next/dist/docs/01-app/03-api-reference/
+  // 04-functions/revalidatePath.md: "If path is a literal path like /product/1, omit type").
+  revalidatePath(`/app/projects/${projectId}/import`);
+  revalidatePath("/app");
   return { ...NONE, saved: true };
 }
 

@@ -79,6 +79,18 @@ describe("the context", () => {
     expect((await projects.get(ws, project.id))?.contextGoal).toBe("We replace the expense tool.");
     await expect(saveContext(other, project.id, "x", "")).rejects.toMatchObject({ status: 404 });
   });
+
+  it("moves updated_at on a save, and refuses the sample on the server", async () => {
+    const { project } = (await createProject({ ws, userId }, "Dated")) as { project: { id: string; updatedAt: Date } };
+    await new Promise((r) => setTimeout(r, 20));
+    const saved = await saveContext(ws, project.id, "Later", "");
+    expect("project" in saved && saved.project.updatedAt.getTime()).toBeGreaterThan(project.updatedAt.getTime());
+    const sample = (await projects.summaries(ws)).find((r) => r.isSample)!;
+    expect(await saveContext(ws, sample.id, "Changed", "")).toEqual({ error: PROJECTS_COPY.sample });
+    expect((await projects.get(ws, sample.id))?.contextGoal).toBe(sample.contextGoal);
+    await expect(setArchived(ws, sample.id, true)).rejects.toMatchObject({ status: 403 });
+    expect((await projects.get(ws, sample.id))?.archivedAt).toBeNull();
+  });
 });
 
 describe("archive and the sample", () => {
