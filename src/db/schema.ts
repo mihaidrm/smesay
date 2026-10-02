@@ -86,6 +86,9 @@ export const project = pgTable("project", {
   isSample: boolean("is_sample").notNull().default(false),
   createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
   createdAt: ts("created_at").notNull().defaultNow(),
+  // Set by the helpers that change the project (stories/E3-1 audit, finding 7): the list's
+  // Updated column reads it.
+  updatedAt: ts("updated_at").notNull().defaultNow(),
   archivedAt: ts("archived_at"),
 }, (t) => [
   index("project_workspace_idx").on(t.workspaceId),

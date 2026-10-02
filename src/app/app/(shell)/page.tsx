@@ -4,12 +4,11 @@
 // "Show archived". Copy: docs/copy/app.md, errors.md. Status: src/lib/project-status.ts.
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/banner";
-import { Button } from "@/components/ui/button";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import { projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { projectStatus, type ProjectStatus } from "@/lib/project-status";
-import { deleteSampleAction } from "./projects/actions";
+import { DeleteSample } from "./delete-sample";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -23,7 +22,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const { archived } = await searchParams;
   const showArchived = archived === "1";
   const rows = await projects.summaries(current.ws, { archived: showArchived });
-  const own = rows.filter((r) => !r.isSample);
+  // The empty state is for a workspace with no project of its own at all, archived ones included.
+  const own = showArchived ? rows : (await projects.list(current.ws)).filter((r) => !r.isSample);
   return (
     <main className="flex flex-col gap-5 px-8 py-6">
       <div className="flex items-end justify-between gap-4">
@@ -55,13 +55,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 <div className="w-[80px] font-mono text-sm">{p.items}</div>
                 <div className="w-[110px] font-mono text-sm">{p.submitted} of {p.invites}</div>
                 <div className="w-[110px]"><Status status={status} /></div>
-                <div className="w-[200px] text-ink-muted">{p.isSample ? "Created with the workspace" : DATE.format(p.archivedAt ?? p.createdAt)}</div>
-                <div className="flex w-[130px] justify-end gap-2">
+                <div className="w-[200px] text-ink-muted">{p.isSample ? "Created with the workspace" : DATE.format(p.updatedAt)}</div>
+                <div className="flex min-w-[130px] justify-end gap-2">
                   {p.isSample ? (
-                    <form action={deleteSampleAction}>
-                      <input type="hidden" name="projectId" value={p.id} />
-                      <Button type="submit" variant="secondary" size="small">Delete sample</Button>
-                    </form>
+                    <DeleteSample projectId={p.id} />
                   ) : (
                     <Link href={`/app/projects/${p.id}/import`} className="inline-flex h-8 items-center rounded-full border border-hairline-strong bg-white px-3.5 text-[13px] font-medium">Open</Link>
                   )}

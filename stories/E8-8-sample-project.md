@@ -23,8 +23,10 @@ marked everywhere as a sample, and one click deletes it.
 ## Technical notes
 Acceptance 3 (Delete sample on the project list, responses first then the project in one
 transaction) is built by E3-1 (projects.deleteSample in src/db/queries/projects.ts, tested);
-this story adds the confirm text, the button on the sample header and the Playwright check.
-The sample's About card is read-only since E3-1.
+this story adds the button on the sample header and the Playwright check; the confirm line
+(acceptance 3) is on the list since the E3-1 audit fixes. The sample's About card is read-only
+since E3-1, and the server refuses a context save or an archive on the sample since the E3-1
+audit fixes (src/lib/projects.ts); acceptance 4 (the helpers refuse the column) stays here.
 The sample's invite tokens are real 128-bit tokens, one set per workspace (E2-3); acceptance 2
 is what keeps them closed to outsiders, and E7-1 refuses them until then.
 
@@ -34,6 +36,5 @@ is what keeps them closed to outsiders, and E7-1 refuses them until then.
 ## Open questions
 - None.
 
-## Technical notes
 project.is_sample (docs/schema.md). The band is one component used by the layout when the
 project is a sample; exports read the same flag.
