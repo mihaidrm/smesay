@@ -1,7 +1,7 @@
 # E1-3 Workspace scoping and the cross-workspace test
 
 User: Claude, writing every query after this; the reviewer, auditing against SECURITY.md
-Status: ready
+Status: built
 Outcome: no query can reach another workspace's rows, and a test proves it on every run.
 
 ## Acceptance criteria
@@ -32,12 +32,32 @@ Outcome: no query can reach another workspace's rows, and a test proves it on ev
 - None.
 
 ## Technical notes
-Helpers return plain objects, not Drizzle rows, so later layers do not depend on the ORM
-shape. One file per table (workspaces.ts, projects.ts, itemSets.ts, items.ts, instruments.ts,
-invites.ts, responses.ts, answers.ts, insights.ts). Counting and aggregation stay in SQL
-(CLAUDE.md, dashboard rules). CI already runs a Postgres 16 service and `npm run db:migrate`
-(E1-2). Database tests run on `<database>_test`; src/db/schema.test.ts drops and recreates
-that database's schemas, so the helper tests either run in the same file order with
-`fileParallelism: false` in vitest.config.mts (vitest.dev/config, fileParallelism) or use
-their own transaction-per-test setup on a database the schema test does not touch. Decide in
-the story's first session and record it here.
+Built 2026-10-02.
+
+- src/db/queries/scoped.ts is the one place the workspace filter is written: `scoped(table)`
+  returns list, get, count, create, update and remove, each with `where workspace_id = $1`
+  (get, update and remove add the id). One file per table builds on it: projects, itemSets,
+  items, instruments, invites, responses, answers, missingItems, insights, aiRuns. Later
+  epics add their specific queries to these files. Rows are Drizzle's plain objects, typed
+  `typeof table.$inferSelect`.
+- workspaces.ts is scoped by membership (list and get take the user id and join
+  workspace_member; deleted_at hides a workspace everywhere); members.ts is keyed by
+  (workspace_id, user_id). `workspaces.create` inserts the workspace and its owner in one
+  transaction.
+- src/lib/workspace.ts: `requireWorkspace(userId, workspaceId)` checks membership and throws
+  NotFoundError (404) for a non-member or a missing workspace, SignedOutError (401) for no
+  user. `requireWorkspaceFromRequest(headers, workspaceId)` reads the session with better-auth's
+  `auth.api.getSession({ headers })` (better-auth.com/docs/integrations/next) and calls it; E2
+  wires the routes and the Playwright test of the signed-in path.
+- The lint rule is in eslint.config.mjs: no-restricted-imports with a regex for "@/db",
+  "@/db/schema", "@/db/auth-schema" and their relative forms, and a group for drizzle-orm and
+  postgres, on src/**/*.{ts,tsx} except src/db/** and src/lib/auth.ts (the adapter needs the
+  client). "@/db/queries/*" and "@/db/types" stay allowed. src/db/queries/lint-rule.test.ts
+  proves it with ESLint's Node API (lintText).
+- Tests: vitest.config.mts points every test at "<database>_test" (DATABASE_URL rewritten,
+  the given value kept as DATABASE_ADMIN_URL to create the test database) and runs test files
+  one at a time (`fileParallelism: false`, vitest.dev/config/fileparallelism), because
+  src/db/schema.test.ts drops and recreates the schema. src/db/test-db.ts refuses a database
+  whose name does not end in _test or whose host is not local. src/db/queries/scoping.test.ts
+  builds workspace A and B with one row in every table (through the helpers, their first
+  caller) and checks every helper with A's id, then B's rows for equality; 14 tests.

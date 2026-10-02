@@ -28,6 +28,16 @@ the check constraints use them). Change this file first.
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean }
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
 
+## Query helpers (database -> every route and page)
+Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
+Code: src/db/queries/. Every helper takes the workspace id first, from `requireWorkspace()`
+(src/lib/workspace.ts), never from a request body. Each table exports list(ws), get(ws, id),
+count(ws), create(ws, data), update(ws, id, patch), remove(ws, id); get, update and remove
+return null when the row is not in that workspace. Workspaces: listForUser(userId),
+getForUser(userId, workspaceId), create(data, ownerUserId), update(workspaceId, patch).
+Members: list, get, add, setRole, remove by (workspaceId, userId). Importing "@/db",
+"@/db/schema" or drizzle-orm outside src/db/ fails lint.
+
 ## Response schema (runtime -> dashboard, runtime -> exports)
 Owner: runtime. Consumers: dashboard, exports, offline import.
 Status: to be written in E7, on top of the E1-2 shapes.

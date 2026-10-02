@@ -1,25 +1,14 @@
-// Schema v1 acceptance (stories/E1-2-schema-v1.md, decision 0027). Runs against its own test
-// database, "<database>_test" on the server DATABASE_URL names, created when missing, so the
-// database DATABASE_URL names is never touched. Drops and recreates the public and drizzle
-// schemas there, applies the migrations twice, then checks the rules every later epic relies
-// on. migrate() from drizzle-orm/postgres-js/migrator (node_modules/drizzle-orm/postgres-js/
-// migrator.d.ts); the CI job also runs `npm run db:migrate` twice on its own database.
+// Schema v1 acceptance (stories/E1-2-schema-v1.md, decision 0027). Runs against the test
+// database (vitest.config.mts: "<database>_test", never the database DATABASE_URL named), drops
+// and recreates the public and drizzle schemas there, applies the migrations twice, then checks
+// the rules every later epic relies on. migrate() from drizzle-orm/postgres-js/migrator
+// (node_modules/drizzle-orm/postgres-js/migrator.d.ts); the CI job also runs `npm run db:migrate`
+// twice on its own database.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL is not set; the schema tests need a Postgres to run against.");
-const parsed = new URL(url);
-const namedDb = parsed.pathname.replace(/^\//, "");
-const testDb = namedDb + "_test";
-// new URL("postgres://u:p@[::1]:5432/x").hostname is "[::1]", brackets included.
-const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]", "postgres", "db"];
-if (!LOCAL_HOSTS.includes(parsed.hostname)) {
-  throw new Error(`Refusing to run schema tests against ${parsed.hostname}: only a local or CI database (${LOCAL_HOSTS.join(", ")}) is allowed.`);
-}
-const testUrl = new URL(url); testUrl.pathname = "/" + testDb;
+import { ensureTestDatabase } from "./test-db";
 
 let sql: ReturnType<typeof postgres>;
 let db: ReturnType<typeof drizzle>;
@@ -50,11 +39,8 @@ async function tableNames(): Promise<string[]> {
 }
 
 beforeAll(async () => {
-  const admin = postgres(url, { max: 1 });
-  const exists = await admin`select 1 from pg_database where datname = ${testDb}`;
-  if (exists.length === 0) await admin.unsafe(`create database "${testDb}"`);
-  await admin.end();
-  sql = postgres(testUrl.toString(), { max: 1 });
+  const testUrl = await ensureTestDatabase();
+  sql = postgres(testUrl, { max: 1 });
   db = drizzle(sql);
   await sql.unsafe("drop schema if exists public cascade; create schema public; drop schema if exists drizzle cascade;");
   await migrate(db, { migrationsFolder: "drizzle" });

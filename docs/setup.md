@@ -21,7 +21,7 @@ npm run lint             # ESLint, next/core-web-vitals and next/typescript
 npm run typecheck        # tsc --noEmit
 npm run scan:copy        # WRITING.md scan over docs, stories, evals, src, e2e, scripts
 npm run check:status     # status, retired terms, references (decision 0022)
-npm test                 # Vitest: logic, and the database tests against smesay_test on the compose Postgres (created by the test)
+npm test                 # Vitest: logic, and the database tests against smesay_test on the compose Postgres (created by the tests, never the dev database)
 npm run build
 npm run test:e2e         # Playwright, one test per user-facing flow
 ```
