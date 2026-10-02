@@ -153,8 +153,13 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
 
 ## Step 7. Microsoft sign-in (before E2)
 
-1. Go to https://entra.microsoft.com and sign in with a Microsoft account. If you have no
-   tenant, Microsoft creates a free one.
+1. Go to https://entra.microsoft.com and sign in with an account that belongs to a tenant: a
+   work or school Microsoft 365 account with rights to register apps, or an account that has an
+   Azure subscription (the free one at azure.microsoft.com/free asks for a phone number and a
+   card for identity checks; Claude has not verified whether a tenant can be had without a
+   card). A personal account alone gets "AADSTS50020 ... does not exist in tenant 'Microsoft
+   Services'" (seen 2026-10-02) and cannot open the portal. Until a tenant exists, E2-2 ships
+   with Google only (decision 0031).
 2. Open "App registrations", click "New registration". Name: the product name.
 3. Supported account types: "Accounts in any organizational directory and personal Microsoft
    accounts".
