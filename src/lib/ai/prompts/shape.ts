@@ -42,7 +42,8 @@ export function buildShapePrompt(items: PromptItem[]): ShapePrompt {
     "Answer with JSON matching the schema and nothing else.",
   ].join("\n\n");
   const head = importedAreas ? `AREAS: ${importedAreas.map((a) => JSON.stringify(a)).join(", ")}\n` : "";
-  const mark = (it: PromptItem) => (it.area && fold(it.area) ? ` (area: ${fold(it.area)})` : it.keep && fold(it.keep) ? ` (keep in: ${fold(it.keep)})` : "");
+  // A hand-placed item is marked by where it is now, even when it came with another area.
+  const mark = (it: PromptItem) => (it.keep && fold(it.keep) ? ` (keep in: ${fold(it.keep)})` : it.area && fold(it.area) ? ` (area: ${fold(it.area)})` : "");
   const lines = items.map((it) => `[${it.ref}]${mark(it)} ${fold(it.text)}`);
   return { instructions, data: `${head}ITEMS (${items.length})\n${lines.join("\n")}`, importedAreas };
 }
