@@ -21,6 +21,9 @@ of the content; page means it replaces the screen.
 | Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |
 | Page | Google or Microsoft sign-in cancelled or refused | Sign-in with [PROVIDER] did not complete. Try again, or use the email link. |
 | Inline, invite field | Member invite to an address already in the workspace | [EMAIL] is already a member of this workspace. |
+| Inline, invite field | Member invite to text that is not an address | [TEXT] is not an email address. Check it and try again. |
+| Inline, member row | Removing or demoting the last owner | This workspace needs at least one owner. Make someone else an owner first. |
+| Inline, member row or invite field | A member tries an owner action (the server answers 403) | Only an owner of this workspace can do this. |
 | Banner, settings | Accent colour under 4.5:1 on white | This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours. |
 | Page | Workspace deleted by its owner | This workspace was deleted on [DATE]. Its data is removed within 24 hours. Contact [OWNER EMAIL] if you did not expect this. |
 

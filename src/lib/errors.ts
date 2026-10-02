@@ -11,3 +11,10 @@ export class SignedOutError extends Error {
   readonly status = 401;
   constructor(message = "You are signed out. Sign in again to continue.") { super(message); this.name = "SignedOutError"; }
 }
+
+// An action the person's role does not allow (stories/E2-4, acceptance 3): the server refuses,
+// whatever the UI showed.
+export class ForbiddenError extends Error {
+  readonly status = 403;
+  constructor(message = "Only an owner of this workspace can do this.") { super(message); this.name = "ForbiddenError"; }
+}

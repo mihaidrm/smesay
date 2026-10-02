@@ -21,9 +21,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Lockup />
         <div className="flex flex-col gap-1">
           <div className="text-xs text-ink-muted">Workspace</div>
-          {memberships.length > 1
-            ? <WorkspaceSwitcher current={current.workspace.id} options={memberships.map((w) => ({ id: w.id, name: w.name }))} />
-            : <div className="font-medium">{current.workspace.name}</div>}
+          <div className="flex items-center justify-between gap-2">
+            {memberships.length > 1
+              ? <WorkspaceSwitcher current={current.workspace.id} options={memberships.map((w) => ({ id: w.id, name: w.name }))} />
+              : <div className="font-medium">{current.workspace.name}</div>}
+            <Link href="/app/settings" className="shrink-0 px-2 text-[13px] font-medium text-teal-700">Settings</Link>
+          </div>
           <div className="text-xs text-ink-muted">{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</div>
         </div>
         <div className="flex flex-col gap-1">

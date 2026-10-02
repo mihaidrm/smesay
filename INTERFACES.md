@@ -39,7 +39,11 @@ return null when the row is not in that workspace or the id is not a uuid; creat
 keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uuid parent id
 with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
 ownerUserId), update(ws, patch) (name, slug, accent, logo, budget only), markDeleted(ws).
-Members: list, get, add, setRole, remove by (ws, userId). Onboarding (E2-3):
+Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
+(ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
+(userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
+into memberships. Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
+Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
 createWorkspaceWithSample(data, ownerUserId) in src/db/queries/onboarding.ts, imported by
 name (not in the barrel), creates the workspace with its owner and its own copy of the sample.
 The session row carries currentWorkspaceId (uuid, nullable, migration 0002), set only by

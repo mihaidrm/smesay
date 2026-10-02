@@ -10,7 +10,7 @@ import { ensureTestDatabase } from "../test-db";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import * as queries from "./index";
-import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, workspaces } from "./index";
+import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, workspaceInvites, workspaces } from "./index";
 import { unsafeWorkspaceId, type WorkspaceId } from "./scoped";
 import { internal, requireWorkspaceForUser } from "./internal";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
@@ -34,7 +34,7 @@ const isCheckable = (v: unknown): v is Checkable =>
 const PATCHES: Record<string, Record<string, unknown>> = {
   projects: { name: "renamed" }, itemSets: { sourceFilename: "other.csv" }, items: { readerText: "rewritten" },
   instruments: { title: "renamed" }, invites: { name: "renamed" }, responses: { confidence: 3 }, answers: { comment: "changed" },
-  missingItems: { text: "changed" }, insights: { title: "changed" }, aiRuns: { durationMs: 9 },
+  missingItems: { text: "changed" }, insights: { title: "changed" }, aiRuns: { durationMs: 9 }, workspaceInvites: { role: "owner" },
 };
 const HELPERS = Object.entries(queries).filter(([, v]) => isCheckable(v)).map(([name, helper]) => ({ name, helper: helper as Checkable }));
 
@@ -44,6 +44,7 @@ async function fixture(label: string): Promise<Fixture> {
   const ws = unsafeWorkspaceId((await workspaces.create({ name: "Scoping " + label, slug: "scoping-" + randomUUID() }, userId)).id);
   const rows: Rows = {};
   rows.projects = (await projects.create(ws, { name: "P " + label })).id;
+  rows.workspaceInvites = (await workspaceInvites.create(ws, { email: `invitee-${randomUUID()}@example.com`, invitedBy: userId })).id;
   rows.itemSets = (await itemSets.create(ws, { projectId: rows.projects, version: 1, source: "csv" })).id;
   rows.items = (await items.create(ws, { itemSetId: rows.itemSets, position: 1, originalText: "Item " + label })).id;
   rows.instruments = (await instruments.create(ws, { projectId: rows.projects, itemSetId: rows.itemSets, title: "I " + label })).id;
@@ -96,7 +97,7 @@ afterAll(async () => {
 describe("every scoped helper, called with A's id", () => {
   it("is in the list and has a patch", () => {
     expect(HELPERS.map((h) => h.name).sort()).toEqual(Object.keys(PATCHES).sort());
-    expect(HELPERS.length).toBe(10);
+    expect(HELPERS.length).toBe(11);
   });
 
   for (const h of HELPERS) {
