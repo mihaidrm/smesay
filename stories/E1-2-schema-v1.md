@@ -142,9 +142,10 @@ unique on invite; (instrument_id, submitted_at), invite_id and device_token uniq
 response; (response_id, item_id) unique and item_id on answer; response_id on missing_item;
 project_id on insight and ai_run; created_by on project; user_id on workspace_member.
 
-Test: src/db/schema.test.ts connects to `<database>_test` on the server DATABASE_URL names
-(always the suffixed name, created when missing; refuses hosts other than localhost,
-127.0.0.1, [::1], postgres, db), drops and recreates the public and drizzle schemas there,
+Test: src/db/schema.test.ts runs on `<database>_test` (vitest.config.mts derives it from
+DATABASE_URL and src/db/test-db.ts creates it when missing, refusing a name without the
+suffix or a host other than localhost, 127.0.0.1, [::1], postgres, db; E1-3), drops and
+recreates the public and drizzle schemas there,
 runs the migrations twice through drizzle-orm's `migrate()`, checks from pg_constraint that
 every parent reference is a composite key with workspace_id, and checks every rule above with
 real inserts. `npm run db:migrate` (drizzle-kit migrate, the same drizzle/ folder and journal)

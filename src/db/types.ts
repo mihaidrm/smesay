@@ -5,3 +5,5 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number };
 export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean };
 export type ResponseFields = { [key: string]: string };
+
+export type MemberRole = "owner" | "member";
