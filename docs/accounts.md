@@ -131,8 +131,9 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
    domain, then "DNS", and add each record exactly as shown. Set the proxy switch to "DNS only".
 4. Back in Resend click "Verify". It can take up to an hour.
 5. Open "API Keys", click "Create API Key". Permission: "Sending access". Copy the key once.
-6. Paste it in `.env.local` after `RESEND_API_KEY=`. Set `EMAIL_FROM=` to an address on the mail
-   subdomain, for example `hello@mail.yourdomain`.
+6. Set `MAIL_SMTP_URL=smtps://resend:THE_KEY@smtp.resend.com:465` in `.env.local` and in the
+   host's settings (resend.com/docs/send-with-smtp; the app sends over SMTP, stories/E2-1), and
+   `EMAIL_FROM=` to an address on the mail subdomain, for example `sign-in@mail.yourdomain`.
 
 ## Step 6. Google sign-in (before E2)
 

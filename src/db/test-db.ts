@@ -3,6 +3,8 @@
 // refuses anything that is not a local test database, for both urls. postgres-js: the tagged
 // template runs a parameterised query and sql.unsafe() a raw string (github.com/porsager/postgres,
 // README sections "Queries" and "Unsafe raw string queries").
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
 // "postgres" and "db" are the compose and CI service names, not public hosts.
@@ -19,6 +21,15 @@ export function testDatabaseUrl(): string {
   if (!url) throw new Error("DATABASE_URL is not set; the database tests need a Postgres to run against.");
   const parsed = localHost(url, "the test database");
   if (!parsed.pathname.endsWith("_test")) throw new Error(`Refusing to run database tests against ${parsed.pathname.slice(1)}: the name must end in _test (vitest.config.mts derives it).`);
+  return url;
+}
+
+// For tests outside src/db (they may not import the ORM): the test database, created and
+// migrated, ready for the app code under test.
+export async function prepareTestDatabase(): Promise<string> {
+  const url = await ensureTestDatabase();
+  const sql = postgres(url, { max: 1 });
+  try { await migrate(drizzle(sql), { migrationsFolder: "drizzle" }); } finally { await sql.end(); }
   return url;
 }
 

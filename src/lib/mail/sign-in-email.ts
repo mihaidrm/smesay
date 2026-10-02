@@ -1,0 +1,34 @@
+// Email 1 of docs/copy/emails.md (the sign-in link), rendered as the plain-text part and a
+// one-column HTML part on the design system's email rules (docs/design-system.md: 600 px wide,
+// the system font stack, one ink button, the link as plain text under it, the footer). E12-3
+// turns the four emails into shared templates and Mihai checks them in real clients.
+export const SIGN_IN_LINK_MINUTES = 15;
+
+const FOOTER = "SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]";
+
+export function signInEmail(url: string): { subject: string; text: string; html: string } {
+  const minutes = SIGN_IN_LINK_MINUTES;
+  const subject = "Your sign-in link for SMEsay";
+  const text = [
+    "Hi,", "",
+    `Here is your link to sign in to SMEsay. It works once and stops working in ${minutes} minutes.`, "",
+    url, "",
+    "If you did not ask for this link, ignore this email. Nobody can sign in without it.", "",
+    FOOTER,
+  ].join("\n");
+  const safeUrl = url.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  const html = `<!doctype html><html><body style="margin:0;background:#F6F6F4;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#16181C">
+<span style="display:none;max-height:0;overflow:hidden">Works once, for ${minutes} minutes.</span>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:32px 16px">
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#FFFFFF;border:1px solid #E6E4DF;border-radius:12px"><tr><td style="padding:32px">
+<div style="font-weight:600;letter-spacing:-0.03em;margin-bottom:24px">S<span style="color:#0E6B63">ME</span>say</div>
+<p style="margin:0 0 16px">Hi,</p>
+<p style="margin:0 0 24px">Here is your link to sign in to SMEsay. It works once and stops working in ${minutes} minutes.</p>
+<a href="${safeUrl}" style="display:inline-block;background:#16181C;color:#FFFFFF;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:500">Sign in</a>
+<p style="margin:24px 0 0;word-break:break-all;color:#5B6069;font-size:14px;line-height:20px">${safeUrl}</p>
+<p style="margin:24px 0 0">If you did not ask for this link, ignore this email. Nobody can sign in without it.</p>
+</td></tr></table>
+<p style="margin:24px 0 0;color:#5B6069;font-size:13px;line-height:18px">${FOOTER}<br><a href="/legal/privacy" style="color:#0E6B63">Privacy policy</a></p>
+</td></tr></table></body></html>`;
+  return { subject, text, html };
+}
