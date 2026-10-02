@@ -1,14 +1,19 @@
 // Shape (stories/E4-2; PM app board, Shape): the title with "Shape with AI" or "Run again",
 // the grouped line, then the areas in the model's order, each with its rationale and its
-// items; an item can be dragged to another area or moved with "Move to". Without a set the
-// page points to Import. The sample is read-only (E8-8). Copy: docs/copy/app.md (Shape).
+// items; an item can be dragged to another area or moved with "Move to". Each item shows
+// its reader version with Accept, Edit, Reject and Undo, and the title row has Accept all
+// and Reject all with the counter under it (stories/E4-3). Without a set the page points to
+// Import. The sample is read-only (E8-8): its reader versions are shown as accepted, with no
+// controls. Copy: docs/copy/app.md (Shape).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
+import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
 import { areaNames, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
+import { ReaderAll } from "./reader-all";
 import { ShapeButton } from "./shape-button";
 
 export default async function ShapePage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -21,15 +26,28 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const groups = set ? groupByArea(set, rows) : [];
   const shaped = set !== null && set.shapedAt !== null;
   const imported = hadImportedAreas(rows);
+  const counts = readerCounts(rows);
+  const suggested = rows.filter((it) => hasReaderVersion(it) && it.readerStatus === "suggested").length;
+  // The sample's reader versions are accepted in the seed; it shows them without a run.
+  const showReaders = shaped || project.isSample;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-normal">{SHAPE_COPY.title}</h2>
-          {set && rows.length > 0 && !project.isSample && <ShapeButton projectId={project.id} shaped={shaped} />}
+          {set && rows.length > 0 && !project.isSample && (
+            <div className="flex flex-wrap items-center gap-2">
+              {shaped && <ReaderAll key={suggested} projectId={project.id} suggested={suggested} />}
+              <ShapeButton projectId={project.id} shaped={shaped} />
+            </div>
+          )}
         </div>
-        {shaped ? (
-          <p className="text-ink-muted" data-testid="grouped-line">{SHAPE_COPY.grouped(rows.length, set.areas?.length ?? 0)} <span className="text-[13px]">{SHAPE_COPY.runAgainHint}</span></p>
+        {showReaders ? (
+          <p className="text-ink-muted" data-testid="grouped-line">
+            {shaped && <>{SHAPE_COPY.grouped(rows.length, set.areas?.length ?? 0)} </>}
+            <span data-testid="reader-counter">{SHAPE_COPY.counter(counts.accepted, counts.total)}</span>
+            {shaped && <> <span className="text-[13px]">{SHAPE_COPY.runAgainHint}</span></>}
+          </p>
         ) : (
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
@@ -40,7 +58,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm" })) }))} readOnly={project.isSample || !shaped} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) } })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 # E4-3 A reader version per item, the original kept and shown; Accept and Reject
 
 User: a PM turning jargon into sentences their experts will read
-Status: ready
+Status: built
 Outcome: each item gets a plain-words version beside its original; nothing changes until the
 PM presses Accept.
 

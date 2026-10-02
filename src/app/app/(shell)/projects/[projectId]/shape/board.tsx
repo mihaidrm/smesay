@@ -5,19 +5,22 @@
 // drop), no library (design note 27). The keyboard path is "Move to": a select of the areas
 // and a Move button per item, a form on moveAction. Both call the same action, so a move is
 // saved within the round trip and the page re-renders from the database. Before shaping the
-// list is read-only: the imported areas, or one "Not shaped yet" group.
+// list is read-only: the imported areas, or one "Not shaped yet" group. Each row also shows
+// the reader version with its pill and buttons (stories/E4-3, reader-row.tsx); readerOnly
+// (the sample) keeps the pills and drops every control.
 import { useActionState, useState, useTransition } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
 import { moveAction, type ProjectFormState } from "../../actions";
+import { ReaderControls, ReaderText, type ReaderState } from "./reader-row";
 
-export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean };
+export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState };
 export type BoardGroup = { name: string; rationale: string | null; items: BoardItem[] };
 const NONE: ProjectFormState = { error: null, saved: false };
 
-export function Board({ projectId, areas, groups, readOnly }: { projectId: string; areas: string[]; groups: BoardGroup[]; readOnly: boolean }) {
+export function Board({ projectId, areas, groups, readOnly, readerOnly }: { projectId: string; areas: string[]; groups: BoardGroup[]; readOnly: boolean; readerOnly: boolean }) {
   const [state, action] = useActionState<ProjectFormState, FormData>(moveAction, NONE);
   const [pending, start] = useTransition();
   const [over, setOver] = useState<string | null>(null);
@@ -55,11 +58,14 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
                 data-item-id={it.id}
                 draggable={!readOnly}
                 onDragStart={!readOnly ? (e) => { e.dataTransfer.setData("text/plain", it.id); e.dataTransfer.effectAllowed = "move"; } : undefined}
-                className={cn("flex items-center gap-4 border-b border-grey-100 px-4 py-3 last:border-b-0", !readOnly && "cursor-grab active:cursor-grabbing")}
+                className={cn("flex items-start gap-4 border-b border-grey-100 px-4 py-3 last:border-b-0", !readOnly && "cursor-grab active:cursor-grabbing")}
               >
-                <div className="w-14 shrink-0 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
-                <div className="min-w-0 flex-grow text-[15px]">{it.text}</div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="w-14 shrink-0 pt-0.5 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
+                <div className="min-w-0 flex-grow"><ReaderText item={it.reader} original={it.text} /></div>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  {/* Keyed by what the server holds, so a saved decision or edit closes the controls' own state. */}
+                  <ReaderControls key={`${it.reader.status}:${it.reader.reader}`} projectId={projectId} itemId={it.id} ref={it.ref ?? String(it.position)} item={it.reader} readOnly={readOnly || readerOnly} />
+                  <div className="flex items-center gap-2">
                   {it.placedByAi && <NeutralPill data-testid="placed-pill">{SHAPE_COPY.placedByAi}</NeutralPill>}
                   {it.moved && <NeutralPill data-testid="moved-pill">{SHAPE_COPY.movedByYou}</NeutralPill>}
                   {!readOnly && (
@@ -73,6 +79,7 @@ export function Board({ projectId, areas, groups, readOnly }: { projectId: strin
                       <Button type="submit" variant="secondary" size="small" disabled={pending}>{SHAPE_COPY.move}</Button>
                     </form>
                   )}
+                  </div>
                 </div>
               </div>
             ))}

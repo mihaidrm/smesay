@@ -149,3 +149,13 @@ Ceilings: 500,000 input characters and 16,000 output tokens; a caller over them 
 Error. Every call is an ai_run row, answered or not (zero tokens when not; usage() counts
 them). The price table, the default model and the euro rate, with the dates they were read,
 are in src/lib/ai/prices.ts; costEurCents(model, tokensIn, tokensOut) rounds up to the cent.
+Shaping (E4-2): `shapeSet(actor, projectId)`, `moveItemTo(actor, projectId, itemId, area)`,
+`groupByArea(set, rows)`, `areaNames(set, rows)` in src/lib/shaping.ts; `applyShaping` and
+`moveItem` in src/db/queries/shaping.ts; `items.forSet(ws, setId)`. Reader versions (E4-3):
+`decideReader(actor, projectId, itemId, "accept" | "reject" | "undo")`, `editReader(actor,
+projectId, itemId, text)` (accepts the edited text, blank refused), `decideAllReaders(actor,
+projectId, "accept" | "reject")` over the latest set's suggested versions in one update;
+`textFor(item)` in src/lib/item-text.ts (no database import) is the one rule for which text
+an item shows: the reader version only where reader_status is accepted, else the original;
+`hasReaderVersion`, `readerIsOriginal`, `readerCounts` beside it. The respondent side (E7)
+and the preview (E5-6) read textFor().

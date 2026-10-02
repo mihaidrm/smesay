@@ -4,7 +4,7 @@
 // src/lib/shaping-copy.ts (no database import, so the client components use it);
 // docs/copy/app.md (Shape) and docs/copy/errors.md (Shaping).
 import { items as itemQueries, projects } from "@/db/queries";
-import { applyShaping, moveItem, type Placement } from "@/db/queries/shaping";
+import { applyShaping, moveItem, setReaderStatus, setReaderStatusForItems, type Placement } from "@/db/queries/shaping";
 import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { ShapeArea } from "@/db/types";
@@ -14,6 +14,7 @@ import { buildShapePrompt } from "@/lib/ai/prompts/shape";
 import { AREAS_MAX, AREAS_MIN, ShapeOutput } from "@/lib/ai/shape-schema";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
+import { hasReaderVersion, READER_MAX, readerIsOriginal } from "@/lib/item-text";
 import { requireRole, type Actor } from "@/lib/members";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
@@ -51,6 +52,8 @@ export function checkShape(out: ShapeOutput, refs: string[], importedAreas: stri
   if (new Set(itemRefs).size !== itemRefs.length) return "a ref appears twice in items";
   const itemMissing = refs.filter((r) => !itemRefs.includes(r)).length;
   if (itemMissing > 0) return `${itemMissing} item(s) without a reader version`;
+  const blankReaders = out.items.filter((i) => fold(i.reader) === "").length;
+  if (blankReaders > 0) return `${blankReaders} blank reader version(s)`;
   const names = out.areas.map((a) => fold(a.name));
   if (names.some((n) => n === "")) return "a blank area name";
   if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) return "an area name appears twice";
@@ -124,7 +127,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
         itemId: it.id, area: fold(area.name),
         byAi: imported(it) === null,
         importedArea: imported(it) ? fold(imported(it)!) : null,
-        reader: answer.reader, ambiguity: answer.flags.ambiguity, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
+        reader: fold(answer.reader), ambiguity: answer.flags.ambiguity, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
       });
     }
   }
@@ -176,4 +179,61 @@ export function groupByArea(set: Pick<ItemSet, "areas">, rows: Item[]): AreaGrou
 // of an item nobody has placed; from then on it is flags.importedArea, moves included.
 export function hadImportedAreas(rows: Item[]): boolean {
   return rows.some((it) => it.flags?.importedArea !== undefined || (it.area !== null && it.flags?.areaBy === undefined));
+}
+
+// Reader versions (stories/E4-3): Accept, Reject, Undo per item (acceptance 1), the edit
+// that accepts its own text (acceptance 7), and Accept all or Reject all over a set's
+// suggested versions in one update (the count comes back for the line that confirms it).
+// Nothing here touches original_text; the respondent side reads textFor() (src/lib/item-text.ts).
+export type ReaderMove = "accept" | "reject" | "undo";
+
+async function ownItem(actor: Actor, projectId: string, itemId: string): Promise<{ error: string } | { set: ItemSet; item: Item }> {
+  await requireRole(actor, "projects.shape");
+  const project = await projects.get(actor.ws, projectId);
+  if (!project) throw new NotFoundError();
+  if (project.isSample) return { error: PROJECTS_COPY.sample };
+  const set = await latestSet(actor.ws, project.id);
+  if (!set) throw new NotFoundError();
+  const item = (await itemQueries.forSet(actor.ws, set.id)).find((it) => it.id === itemId);
+  if (!item) throw new NotFoundError();
+  return { set, item };
+}
+
+// Accept and Reject apply to a suggested version, Undo to a decided one; a decision made on
+// a page that no longer matches the row changes nothing and the page shows the current state.
+export async function decideReader(actor: Actor, projectId: string, itemId: string, move: ReaderMove): Promise<{ error: string } | { item: Item }> {
+  const own = await ownItem(actor, projectId, itemId);
+  if ("error" in own) return own;
+  if (readerIsOriginal(own.item)) return { error: SHAPE_COPY.sameAsOriginal };
+  if (!hasReaderVersion(own.item)) return { error: SHAPE_COPY.noReader };
+  const item = await setReaderStatus(actor.ws, own.item.id, move === "accept" ? "accepted" : move === "reject" ? "rejected" : "suggested", move === "undo" ? ["accepted", "rejected"] : ["suggested"]);
+  return { item: item ?? own.item };
+}
+
+// An edit that writes the original back is a rejection: the original is kept, the model's
+// wording stays as the suggestion for Undo.
+export async function editReader(actor: Actor, projectId: string, itemId: string, rawText: unknown): Promise<{ error: string } | { item: Item }> {
+  const own = await ownItem(actor, projectId, itemId);
+  if ("error" in own) return own;
+  if (!hasReaderVersion(own.item)) return { error: SHAPE_COPY.noReader };
+  const text = typeof rawText === "string" ? fold(rawText) : "";
+  if (text === "") return { error: SHAPE_COPY.blankEdit };
+  if (text.length > READER_MAX) return { error: SHAPE_COPY.longEdit(text.length) };
+  const same = text === fold(own.item.originalText);
+  const item = same
+    ? await setReaderStatus(actor.ws, own.item.id, "rejected", ["suggested", "accepted", "rejected"])
+    : await setReaderStatus(actor.ws, own.item.id, "accepted", ["suggested", "accepted", "rejected"], text);
+  if (!item) throw new NotFoundError();
+  return { item };
+}
+
+export async function decideAllReaders(actor: Actor, projectId: string, move: "accept" | "reject"): Promise<{ error: string } | { count: number }> {
+  await requireRole(actor, "projects.shape");
+  const project = await projects.get(actor.ws, projectId);
+  if (!project) throw new NotFoundError();
+  if (project.isSample) return { error: PROJECTS_COPY.sample };
+  const set = await latestSet(actor.ws, project.id);
+  if (!set) throw new NotFoundError();
+  const ids = (await itemQueries.forSet(actor.ws, set.id)).filter((it) => it.readerStatus === "suggested" && hasReaderVersion(it)).map((it) => it.id);
+  return { count: await setReaderStatusForItems(actor.ws, set.id, ids, move === "accept" ? "accepted" : "rejected") };
 }

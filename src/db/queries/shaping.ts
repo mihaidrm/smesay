@@ -7,7 +7,7 @@
 // the time. The set row and the item rows are read under a lock, and moveItem reads its row
 // under one too, so a run and a move never write over each other's read. moveItem is the
 // PM's move: area and rationale set, areaBy "pm", nothing else touched. db.transaction and `.for("update")` as in importCommit.ts.
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { item, itemSet } from "@/db/schema";
 import type { ItemFlags, ShapeArea, WorkspaceId } from "@/db/types";
@@ -61,4 +61,25 @@ export async function moveItem(workspaceId: WorkspaceId, itemId: string, area: s
     const [updated] = await tx.update(item).set({ area, areaRationale: rationale, flags }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).returning();
     return updated ?? null;
   });
+}
+
+// Reader versions (stories/E4-3): one item's decision, or the suggested items of a set the
+// library names, in one update (Accept all, Reject all, acceptance 1). An edit (acceptance
+// 7) sets the text and accepts it; the original is never touched (E1-2's trigger). Undo
+// returns the item to suggested with whatever text it carries.
+export type ReaderDecision = "suggested" | "accepted" | "rejected";
+
+// from: the status the PM saw; the update applies only while the row still has it, so a
+// decision made on a stale page changes nothing (the page shows the current state after).
+export async function setReaderStatus(workspaceId: WorkspaceId, itemId: string, status: ReaderDecision, from: ReaderDecision[], text?: string): Promise<Item | null> {
+  const [updated] = await db.update(item).set({ readerStatus: status, ...(text !== undefined ? { readerText: text } : {}) }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId), isNotNull(item.readerText), inArray(item.readerStatus, from))).returning();
+  return updated ?? null;
+}
+
+// The ids come from the library (hasReaderVersion over the set's suggested items, the same
+// rule the page counts with), so the confirmed count and the update agree; one statement.
+export async function setReaderStatusForItems(workspaceId: WorkspaceId, itemSetId: string, ids: string[], status: "accepted" | "rejected"): Promise<number> {
+  if (ids.length === 0) return 0;
+  const rows = await db.update(item).set({ readerStatus: status }).where(and(eq(item.workspaceId, workspaceId), eq(item.itemSetId, itemSetId), inArray(item.id, ids), eq(item.readerStatus, "suggested"))).returning({ id: item.id });
+  return rows.length;
 }
