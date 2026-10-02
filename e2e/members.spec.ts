@@ -5,8 +5,18 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
+// CI runs the production server, where better-auth rate-limits the magic link paths to 5 per
+// minute per client address, and with no forwarded address every test shares one bucket
+// (node_modules/better-auth/dist/api/rate-limiter/index.mjs; the plugin's rule in
+// node_modules/better-auth/dist/plugins/magic-link/index.mjs). Each spec file therefore sends
+// its own x-forwarded-for, the header better-auth reads by default, so files do not count
+// against each other. E11-1 sets the real limits. extraHTTPHeaders: node_modules/playwright/
+// types/test.d.ts.
+const CLIENT = { "x-forwarded-for": "10.0.0.3" };
+test.use({ extraHTTPHeaders: CLIENT });
+
 async function signInFresh(browser: Browser, email: string): Promise<Page> {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ extraHTTPHeaders: CLIENT });
   const page = await context.newPage();
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
