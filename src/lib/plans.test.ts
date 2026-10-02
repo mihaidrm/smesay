@@ -67,5 +67,7 @@ describe("withinPlan", () => {
     expect(await withinPlan(ws, "aiRuns", now)).toBe(true);
     expect((await workspaces.setPlan(ws, "free"))?.plan).toBe("free");
     expect(await withinPlan(ws, "responses", now)).toBe(true);
-  });
+    // 500 inserts, one round trip each: 5.7 s on the CI runner once (run 37006617543), over
+    // vitest's 5 s default.
+  }, 30_000);
 });
