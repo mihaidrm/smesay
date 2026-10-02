@@ -21,7 +21,8 @@ workspace holding the sample project, so there is something to look at from day 
 4. The seed never creates a user account: the workspace has no members until E2 signs the
    first user in and attaches them (the seed stores the sample under a fixed workspace id, and
    E2's first sign-in becomes its owner).
-5. docs/setup.md "Run it" includes the seed step and Mihai has run it on his PC.
+5. docs/setup.md "Run it" includes the seed step and Mihai has run it on his PC (open until
+   Mihai does; the step is in docs/setup.md).
 
 ## Out of scope
 - Rendering the sample on any screen: E8 (dashboard) and E5 (builder).
@@ -45,6 +46,18 @@ Counts: the prototype board stored Priya Nair's answer on CL-06 as "changed to N
 under decision 0018 Not needed is Disagree, so the seed stores it as disagree and the totals
 are 19 agree, 7 changed, 2 not needed, 2 unclear over the 30 submitted answers (63 percent
 agree); the board, the landing page fragment and story E8-1 were corrected to these numbers
-the same day. Agree answers carry the proposed value as their value; unclear answers carry the
-question in `reason`. src/db/seed/seed.test.ts runs the seed twice on the test database and
-checks the counts in SQL (3 tests).
+the same day (decision 0033). Sign-off times and confidences are the landing page's sign-off
+record; the opens and closes instants are the boards' 09:00 and 18:00 in Romania's October
+time (UTC+3); the import report is the Import step's (6 rows, header on row 1, nothing
+skipped, expense-requirements.xlsx). Tokens are fresh from crypto.randomBytes(16) on every
+run, so nothing in the repository opens a link and two workspaces seeded with the sample
+(E8-8) never collide. The fourth action cites a missing item, for which schema v1 has no
+column until E9-1 adds cited_missing_item_ids (decision 0033): it is seeded without a
+citation until then. "Office
+manager" was added to the respondent board's role list (respondent-generator.py, both boards
+regenerated) so Sam Hill's role exists. Agree answers carry the proposed value as their value;
+unclear answers carry the question in `reason`. A seed killed half way (no thrown error)
+leaves a partial workspace; the next run sees fewer than 6 items, removes it and starts over.
+src/db/seed/seed.test.ts runs the seed twice on the test database and checks the counts, the
+sign-off record and every citation in SQL (4 tests). tsx: open issue count unverified, the
+GitHub API for repositories outside the project is not reachable from the session.

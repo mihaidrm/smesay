@@ -6,7 +6,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
-import { aiRuns, answers, insights, invites, items, members, missingItems, projects, responses, workspaces } from "@/db/queries";
+import { aiRuns, answers, insights, invites, items, members, missingItems, projects, responses } from "@/db/queries";
+import { internal } from "@/db/queries/internal";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { seedSample } from "./sample-seed";
 import { SAMPLE_WORKSPACE_ID, expected } from "./sample";
@@ -18,11 +19,11 @@ beforeAll(async () => {
   const url = await ensureTestDatabase();
   sql = postgres(url, { max: 1 });
   await migrate(drizzle(sql), { migrationsFolder: "drizzle" });
-  await workspaces.hardDelete(SAMPLE_WORKSPACE_ID);
+  await internal.hardDeleteWorkspace(SAMPLE_WORKSPACE_ID);
 }, 60_000);
 
 afterAll(async () => {
-  await workspaces.hardDelete(SAMPLE_WORKSPACE_ID);
+  await internal.hardDeleteWorkspace(SAMPLE_WORKSPACE_ID);
   await sql.end();
 });
 
@@ -47,7 +48,22 @@ describe("npm run db:seed", () => {
     expect(await missingItems.count(ws)).toBe(expected.missing);
     expect(await insights.count(ws)).toBe(expected.insights);
     expect(await aiRuns.count(ws)).toBe(expected.aiRuns);
-    for (const ins of await insights.list(ws)) expect(ins.citedAnswerIds.length).toBeGreaterThan(0);
+    const tokens = [...(await invites.list(ws)).map((i) => i.token), ...(await responses.list(ws)).map((r) => r.deviceToken)];
+    expect(new Set(tokens).size).toBe(tokens.length);
+    for (const t of tokens) expect(t).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it("cites, in each action, the answers its text names", async () => {
+    const byRef = Object.fromEntries((await items.list(ws)).map((i) => [i.sourceRef, i.id]));
+    const byName = Object.fromEntries((await responses.list(ws)).map((r) => [(r.fields as { name: string }).name, r.id]));
+    const all = await answers.list(ws);
+    const answerId = (ref: string, name: string) => all.find((a) => a.itemId === byRef[ref] && a.responseId === byName[name])!.id;
+    const list = await insights.list(ws);
+    const cited = (title: string) => list.find((i) => i.title.startsWith(title))!.citedAnswerIds.sort();
+    expect(cited("Decide whether policy flags")).toEqual([answerId("CL-04", "Ioana Marin"), answerId("CL-04", "Tom Reyes")].sort());
+    expect(cited("Answer two open questions")).toEqual([answerId("CL-02", "Tom Reyes"), answerId("CL-06", "Lukas Berg")].sort());
+    expect(cited("Rewrite CL-06")).toEqual([answerId("CL-06", "Priya Nair"), answerId("CL-06", "Lukas Berg")].sort());
+    expect(cited("Consider adding mileage")).toEqual([]);
   });
 
   it("adds up to the numbers on the PM app board, over submitted responses", async () => {
@@ -61,6 +77,9 @@ describe("npm run db:seed", () => {
       where workspace_id = ${SAMPLE_WORKSPACE_ID} and submitted_at is not null`;
     expect(submitted).toBe(expected.submitted);
     expect(avg).toBe(expected.confidenceAverage);
-    expect(expected.agree + expected.change + expected.disagree + expected.unclear).toBe(expected.submittedAnswers);
+    const record = await sql`select fields->>'name' as name, confidence, submitted_at from response where workspace_id = ${SAMPLE_WORKSPACE_ID} and submitted_at is not null order by submitted_at`;
+    expect(record.map((r) => [r.name, r.confidence, new Date(r.submitted_at as string).toISOString()])).toEqual([
+      ["Ioana Marin", 4, "2026-10-07T14:05:00.000Z"], ["Tom Reyes", 3, "2026-10-08T08:41:00.000Z"], ["Dana Okafor", 5, "2026-10-08T09:12:00.000Z"],
+      ["Lukas Berg", 4, "2026-10-09T16:30:00.000Z"], ["Priya Nair", 3, "2026-10-12T08:55:00.000Z"]]);
   });
 });

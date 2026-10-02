@@ -12,7 +12,7 @@ import { user } from "@/db/schema";
 import * as queries from "./index";
 import { aiRuns, answers, insights, instruments, invites, itemSets, items, members, missingItems, projects, responses, workspaces } from "./index";
 import { unsafeWorkspaceId, type WorkspaceId } from "./scoped";
-import { requireWorkspaceForUser } from "@/lib/workspace";
+import { internal, requireWorkspaceForUser } from "./internal";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
 
 type Rows = Record<string, string>;
@@ -124,6 +124,17 @@ describe("every scoped helper, called with A's id", () => {
     expect(renamed).toMatchObject({ id: A.ws, name: "Scoping A renamed" });
   });
 
+  it("drops keys that are not columns and refuses a non-uuid parent id", async () => {
+    expect(await projects.update(A.ws, A.rows.projects, { workspace_id: B.ws, nothing: 1 } as never)).toMatchObject({ id: A.rows.projects, workspaceId: A.ws });
+    await expect(itemSets.create(A.ws, { projectId: "not-a-uuid", version: 3, source: "csv" })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(instruments.update(A.ws, A.rows.instruments, { itemSetId: "not-a-uuid" })).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("the internal helpers are not reachable through the barrel", () => {
+    expect("internal" in queries).toBe(false);
+    expect(typeof internal.hardDeleteWorkspace).toBe("function");
+  });
+
   it("ignores id on create and refuses a parent from another workspace", async () => {
     const created = await projects.create(A.ws, { name: "fresh", id: B.rows.projects } as never);
     expect(created.id).not.toBe(B.rows.projects);
@@ -174,7 +185,7 @@ describe("workspaces and membership", () => {
   });
 
   it("a deleted workspace is not handed out", async () => {
-    await workspaces.update(B.ws, { deletedAt: new Date() } as never);
+    await workspaces.markDeleted(B.ws);
     expect(await workspaces.getForUser(B.userId, B.ws)).toBeNull();
     expect((await workspaces.listForUser(B.userId)).length).toBe(0);
     await expect(requireWorkspaceForUser(B.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);

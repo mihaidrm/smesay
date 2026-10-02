@@ -1,8 +1,9 @@
 // Workspace helpers (stories/E1-3). A workspace has no workspace_id of its own: it is scoped by
 // membership, so the reads a request can make take the user id and join workspace_member. A
 // deleted workspace (deleted_at set, E11-2) is not returned here, so requireWorkspace() never
-// hands out its id and no helper is reached with it. db.transaction:
-// orm.drizzle.team/docs/transactions.
+// hands out its id and no helper is reached with it. The helpers that take no session (the
+// seed's, the removal job's) are in internal.ts, which lint keeps out of routes.
+// db.transaction: orm.drizzle.team/docs/transactions.
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { workspace, workspaceMember } from "@/db/schema";
@@ -30,21 +31,20 @@ export const workspaces = {
       return row;
     }),
   // The owner-only check is E2-4's (src/lib/permissions.ts); the id comes from requireWorkspace().
+  // Only the columns a PM edits can change here: name, slug, accent, logo, budget.
   update: async (workspaceId: WorkspaceId, patch: Partial<NewWorkspace>): Promise<Workspace | null> => {
-    const values = { ...patch } as Record<string, unknown>;
-    delete values.id;
+    const values = pickEditable(patch);
     if (Object.keys(values).length === 0) return (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
-    return (await db.update(workspace).set(values as Partial<NewWorkspace>).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null;
+    return (await db.update(workspace).set(values).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null;
   },
-  // No membership check: the seed (is the sample there?) and E11-2's removal job only.
-  getById: async (workspaceId: string): Promise<Workspace | null> =>
-    isUuid(workspaceId) ? (await db.select().from(workspace).where(eq(workspace.id, workspaceId)).limit(1))[0] ?? null : null,
-  // A workspace with no member yet: the seed's sample workspace (stories/E1-4, acceptance 4),
-  // whose owner is attached by E2's first sign-in. Every other caller uses create().
-  createEmpty: async (data: NewWorkspace & { id?: string }): Promise<Workspace> =>
-    (await db.insert(workspace).values(data).returning())[0],
-  // Removes the workspace and, through the cascades of schema v1, everything in it. Used by the
-  // seed when it fails half way and by E11-2's removal job; never by a request handler.
-  hardDelete: async (workspaceId: string): Promise<boolean> =>
-    isUuid(workspaceId) && (await db.delete(workspace).where(eq(workspace.id, workspaceId)).returning()).length > 0,
+  // Starts the 24-hour removal (E11-2): the workspace disappears from every read at once.
+  markDeleted: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
+    (await db.update(workspace).set({ deletedAt: new Date() }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
 };
+
+const EDITABLE = ["name", "slug", "accentHex", "logoObjectKey", "aiBudgetEur"] as const;
+function pickEditable(patch: Partial<NewWorkspace>): Partial<NewWorkspace> {
+  const out: Record<string, unknown> = {};
+  for (const key of EDITABLE) if (key in patch) out[key] = (patch as Record<string, unknown>)[key];
+  return out as Partial<NewWorkspace>;
+}

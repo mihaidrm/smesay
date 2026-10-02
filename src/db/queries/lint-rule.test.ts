@@ -36,8 +36,13 @@ describe("db-access", () => {
     ['import { db } from "@/db";', "src/app/w/route.js"],
     ['import { db } from "@/db";', "src/app/w/page.jsx"],
     ['import { db } from "@/db";', "src/app/w/route.mts"],
-    ['import { requireWorkspaceForUser } from "@/lib/workspace";', "src/app/w/route.ts"],
-    ['import { requireWorkspaceForUser } from "../../lib/workspace";', "src/app/w/route.ts"],
+    ['import { internal } from "@/db/queries/internal";', "src/app/w/route.ts"],
+    ['import { requireWorkspaceForUser } from "../db/queries/internal";', "src/lib/thing.ts"],
+    ['export async function f() { return import(`@/db`); }', "src/app/w/route.ts"],
+    ['import { createRequire } from "node:module";', "src/app/w/route.ts"],
+    ['declare const module: { require: (s: string) => unknown }; export const x = module.require("@/db");', "src/app/w/route.ts"],
+    ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/app/w/route.ts"],
+    ['import { projects } from "@/db/queries/projects"; export const p = projects.list("abc" as never);', "src/app/w/route.ts"],
   ];
   it.each(refused)("refuses %s in %s", async (code, filePath) => {
     expect(await access(code + "\nexport const keep = 1;\n", filePath)).toBeGreaterThan(0);
@@ -52,6 +57,8 @@ describe("db-access", () => {
     ['import { db } from "@/db";', "src/db/queries/thing.ts"],
     ['import { db } from "@/db";', "src/db/seed/thing.ts"],
     ['import { db } from "@/db";', "src/lib/auth.ts"],
+    ['import { requireWorkspaceForUser } from "@/db/queries/internal";', "src/lib/workspace.ts"],
+    ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/db/queries/x.test.ts"],
   ];
   it.each(allowed)("allows %s in %s", async (code, filePath) => {
     expect(await access(code + "\nexport const keep = 1;\n", filePath)).toBe(0);
@@ -63,6 +70,9 @@ describe("no-db-reexport inside src/db/queries/", () => {
     expect(await reexport('export { db } from "@/db";\n', "src/db/queries/thing.ts")).toBe(1);
     expect(await reexport('export * from "@/db";\n', "src/db/queries/thing.ts")).toBe(1);
     expect(await reexport('import { db as client } from "@/db";\nexport const db = client;\n', "src/db/queries/thing.ts")).toBe(1);
+    expect(await reexport('import { db } from "@/db";\nexport { db as client };\n', "src/db/queries/thing.ts")).toBe(1);
+    expect(await reexport('import { db } from "@/db";\nexport const client = db;\n', "src/db/queries/thing.ts")).toBe(1);
+    expect(await reexport('import { db } from "@/db";\nexport default db;\n', "src/db/queries/thing.ts")).toBe(1);
   });
   it("allows the helpers", async () => {
     expect(await reexport('export { projects } from "./projects";\nexport * from "./members";\n', "src/db/queries/thing.ts")).toBe(0);

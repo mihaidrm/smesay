@@ -8,7 +8,8 @@ recommend"), on Claude's proposals in stories/E1-2 and E1-4.
    and recreates the test database on every run. drizzle-kit has no down-migration command,
    and a hand-written down script would be untested code on the critical path.
 2. The seed carries the full Marlow Group sample: items, instrument, invites, the 7 responses
-   with answers, reasons, questions and confidences, the missing item and the 4 insights. The
+   with answers, reasons, questions and confidences, the missing item and the 4 insights.
+   (Built as 6 response rows: the seventh invitee never opened the link; decision 0033.) The
    dashboard (E8) and the exports (E10) are tested against these rows, and the reconciliation
    rule ("every number matches the CSV to the row") needs real rows.
 

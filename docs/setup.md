@@ -1,7 +1,9 @@
 # Setup: how to run the app and what the scaffold contains
 
-Written 2026-10-01 (plan step 2.2). The app is empty: one placeholder page, no tables, no
-sign-in. Everything below runs on a machine with Node 22 or newer and Docker (decision 0006).
+Written 2026-10-01 (plan step 2.2), updated 2026-10-02. The app has its tables (E1-2), the
+query helpers (E1-3) and the sample seed (E1-4); sign-in comes with E2. Everything below runs on
+a machine with Node 22.9 or newer (the seed uses --env-file-if-exists, nodejs.org/api/cli.html)
+and Docker (decision 0006).
 
 ## Run it
 
