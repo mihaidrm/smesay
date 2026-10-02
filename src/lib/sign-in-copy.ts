@@ -7,6 +7,11 @@ import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
 export const WAIT_MINUTES = 1;
 
 export const SIGN_IN_COPY = {
+  or: "or",
+  google: "Continue with Google",
+  googleFailedTitle: "Sign-in with Google did not complete.",
+  googleFailedLine: "Try again, or use the email link.",
+  googleFailedButton: "Back to sign-in",
   badAddress: "Enter the email address you signed up with.",
   tooMany: `Too many sign-in attempts. Wait ${WAIT_MINUTES} ${WAIT_MINUTES === 1 ? "minute" : "minutes"}, then try again.`,
   notSent: "The link was not sent. Try again in a minute.",

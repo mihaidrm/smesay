@@ -73,8 +73,8 @@ The evals key comes when E4-6 is built. The trademark search waits for the launc
 (decisions 0012, 0014).
 
 Next tasks for Claude: E4-1 onwards in story order, after Mihai's go (he asked for a pause
-after E3 on 2026-10-02); E2-2 with Google only (decision 0034; the Google values exist since 2026-10-02). E2 is
-complete but for E2-2; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
+after E3 on 2026-10-02; E2-2 was built the same day with Google only, decision 0034, and Mihai
+checks the real Google flow on his PC). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
 the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
 link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (67 in 13 epics); a story is rewritten when Mihai
@@ -96,9 +96,9 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 2 of 13 steps. Left: 11 steps
+Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 3 of 13 steps. Left: 10 steps
 - E1 Foundation: done.
-- E2 Accounts: building.
+- E2 Accounts: done.
 - E3 Import: done.
 - E4 AI shaping: open.
 - E5 Instrument builder: open.

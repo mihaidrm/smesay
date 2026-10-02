@@ -1,6 +1,9 @@
 // The main path of sign-in (stories/E2-1, acceptance 6): ask for a link, read it from Mailpit's
 // API (e2e/mailpit.ts), open it, land in the app (the workspace step on a first sign-in,
-// stories/E2-3), sign out, and see the used link refused.
+// stories/E2-3), sign out, and see the used link refused. Then stories/E2-2, acceptance 5: the
+// Google button sends the browser towards Google with the client id and the callback URI; the
+// request to accounts.google.com is answered by a stub in the test, so nothing reaches Google
+// and the placeholder values in CI are never used for a real sign-in.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -36,4 +39,23 @@ test("sign in with a magic link, then sign out", async ({ page, request }) => {
   await page.goto(link);
   await expect(page).toHaveURL(/\/sign-in\/link-used/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("already been used or has expired");
+
+  // The Google steps run where the app has Google values (CI's placeholders, or a PC with
+  // .env.local filled in); the expected client id and callback come from the same environment.
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  test.skip(!clientId || !process.env.GOOGLE_CLIENT_SECRET, "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not set, so the button is hidden");
+  await page.goto("/sign-in");
+  // Google itself is not loaded: the request to accounts.google.com is answered here, so the
+  // test reads the URL the app sent the browser to and nothing leaves the runner
+  // (page.route: node_modules/playwright-core/types/types.d.ts).
+  await page.route("https://accounts.google.com/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<title>Google stub</title>" }));
+  await page.getByRole("button", { name: "Continue with Google" }).click();
+  await page.waitForURL(/accounts\.google\.com/);
+  const google = new URL(page.url());
+  expect(google.searchParams.get("client_id")).toBe(clientId);
+  expect(google.searchParams.get("redirect_uri")).toBe(`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/api/auth/callback/google`);
+  expect(google.searchParams.get("code_challenge_method")).toBe("S256");
+  await page.goto("/sign-in/google-failed");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign-in with Google did not complete.");
 });
+

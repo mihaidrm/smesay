@@ -1,5 +1,5 @@
-// better-auth server instance (stories/E2-1). Magic link sign-in only in E2-1; Google and
-// Google comes with E2-2 (Microsoft and Apple after launch, decision 0034). Sources: betterAuth and the drizzle adapter,
+// better-auth server instance (stories/E2-1, E2-2). Magic link sign-in (E2-1) and "Continue
+// with Google" (E2-2; Microsoft and Apple after launch, decision 0034). Sources: betterAuth and the drizzle adapter,
 // better-auth.com/docs/installation and /docs/adapters/drizzle; the magic link plugin and its
 // options (expiresIn in seconds, sendMagicLink, storeToken "hashed" so a database read does not
 // yield working links), better-auth.com/docs/plugins/magic-link and node_modules/better-auth/
@@ -14,6 +14,26 @@
 // http one unless it is localhost: without a base URL the magic link and the trusted origin
 // would follow the request's Host header (node_modules/better-auth/dist/auth/base.mjs,
 // getBaseURL from the request).
+//
+// Google (stories/E2-2): socialProviders.google with clientId and clientSecret
+// (node_modules/@better-auth/core/src/social-providers/google.ts, GoogleOptions); better-auth
+// sends state and a PKCE code verifier itself and checks them on the callback
+// (node_modules/better-auth/dist/api/routes/callback.mjs, parseState). The provider is
+// configured only when both variables exist; without them the button is hidden and the server
+// log names the variable (acceptance 4). One email is one user row (acceptance 2): better-auth
+// links a Google sign-in to the existing user when Google's email_verified claim is true and
+// the local row's email is verified (node_modules/better-auth/dist/oauth2/link-account.mjs,
+// handleOAuthUserInfo; the magic link marks the email verified, dist/plugins/magic-link/
+// index.mjs). An unverified Google email is refused in both directions (acceptance 3): for
+// an existing user, better-auth answers account_not_linked; for a new email, the
+// databaseHooks.user.create.before hook below returns false (init-options.d.mts: "if the hook
+// returns false, the user will not be created"), so no row and no session exist, and the
+// provider's requireEmailVerification (node_modules/@better-auth/core/src/oauth2/
+// oauth-provider.ts) withholds the session as a second guard. Every refusal, a cancel at
+// Google (access_denied) and a state error (state_mismatch, state_not_found) land on
+// GOOGLE_ERROR_PATH: the first two through errorCallbackURL (dist/oauth2/errors.mjs,
+// redirectOnError), the state errors through onAPIError.errorURL (dist/api/routes/
+// callback.mjs, defaultErrorURL). The ?error code is not shown.
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
@@ -26,9 +46,11 @@ import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/sign-in-email";
 const DAY = 60 * 60 * 24;
 export const SESSION_DAYS = 30;
 
-export type AuthEnv = { baseURL: string; secret: string };
+export type AuthEnv = { baseURL: string; secret: string; google: { clientId: string; clientSecret: string } | null };
 
-export type EnvLike = { BETTER_AUTH_URL?: string; BETTER_AUTH_SECRET?: string; NODE_ENV?: string };
+export type EnvLike = { BETTER_AUTH_URL?: string; BETTER_AUTH_SECRET?: string; NODE_ENV?: string; GOOGLE_CLIENT_ID?: string; GOOGLE_CLIENT_SECRET?: string };
+
+export const GOOGLE_ERROR_PATH = "/sign-in/google-failed";
 
 export function readAuthEnv(env: EnvLike = process.env): AuthEnv {
   const baseURL = env.BETTER_AUTH_URL;
@@ -41,7 +63,17 @@ export function readAuthEnv(env: EnvLike = process.env): AuthEnv {
   if (env.NODE_ENV === "production" && !baseURL!.startsWith("https://") && !isLocalhost(baseURL!)) {
     throw new Error("BETTER_AUTH_URL must start with https:// in production, so the session cookie is Secure.");
   }
-  return { baseURL: baseURL!, secret: secret! };
+  return { baseURL: baseURL!, secret: secret!, google: readGoogleEnv(env) };
+}
+
+// Both Google variables, or neither: a half-filled pair is treated as missing and named once.
+export function readGoogleEnv(env: EnvLike = process.env, log: (line: string) => void = (line) => console.warn(line)): AuthEnv["google"] {
+  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+  if (clientId && clientSecret) return { clientId, clientSecret };
+  const missing = [!clientId && "GOOGLE_CLIENT_ID", !clientSecret && "GOOGLE_CLIENT_SECRET"].filter(Boolean).join(" and ");
+  log(`${missing} not set: the Google sign-in button is hidden (docs/accounts.md step 6).`);
+  return null;
 }
 
 function isLocalhost(url: string): boolean {
@@ -53,11 +85,23 @@ function isLocalhost(url: string): boolean {
   }
 }
 
-export function createAuth({ baseURL, secret }: AuthEnv, options: { disableOriginCheck?: boolean } = {}) {
+export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disableOriginCheck?: boolean } = {}) {
   return betterAuth({
     baseURL,
     secret,
     database: drizzleAdapter(db, { provider: "pg", schema }),
+    socialProviders: google ? { google: { clientId: google.clientId, clientSecret: google.clientSecret, requireEmailVerification: true } } : undefined,
+    account: { accountLinking: { enabled: true } },
+    onAPIError: { errorURL: `${baseURL}${GOOGLE_ERROR_PATH}` },
+    databaseHooks: {
+      user: {
+        create: {
+          // A user row needs a verified email: the magic link verifies it on creation; a social
+          // sign-in with an unverified claim creates nothing (stories/E2-2, acceptance 3).
+          before: async (user) => (user.emailVerified === true ? undefined : false),
+        },
+      },
+    },
     session: {
       expiresIn: SESSION_DAYS * DAY,
       updateAge: DAY,
