@@ -44,4 +44,16 @@ export const SHAPE_COPY = {
   acceptAllConfirm: (n: number) => `Accept all ${n} suggested reader ${n === 1 ? "version" : "versions"}?`,
   rejectAllConfirm: (n: number) => `Reject all ${n} suggested reader ${n === 1 ? "version" : "versions"} and keep the originals?`,
   noReader: "This item has no reader version. Run Shape with AI first.",
+  // Flags (stories/E4-4; docs/copy/errors.md, Shaping).
+  // The banners read "Ambiguity in [REF]. [What the item does not say]. Respondents may mark
+  // it unclear." and "[REF] may duplicate [REF]." with the refs as links (flags.tsx).
+  mayMarkUnclear: "Respondents may mark it unclear.",
+  // The model's sentence as one sentence: whitespace folded, one full stop unless it ends in
+  // a question or exclamation mark.
+  sentence: (what: string) => { const t = what.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, ""); return t === "" ? "" : /[?!]$/.test(t) ? t : `${t}.`; },
+  duplicateNote: "If they ask for the same thing, remove one in the file and import it again.",
+  dismiss: "Dismiss",
+  ambiguityNote: (what: string) => `Ambiguity: ${what}`,
+  duplicateItemNote: (other: string) => `May duplicate ${other}.`,
+  noFlag: "This item has no flag to dismiss. Reload the page to see the flags as they are now.",
 } as const;

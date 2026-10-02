@@ -177,6 +177,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Item pills (E4-3; pushed back, agree and disagree tints) | Suggested / Reader version used / Original kept |
 | Item buttons (E4-3) | Accept, Edit, Reject while suggested; Undo once decided; Save and Cancel in the edit, whose field is labelled "Readable version of [ref]". Saving the original's own words back counts as Reject: the original is kept and the suggestion stays for Undo. |
 | Item without a reader version, through the server (E4-3) | This item has no reader version. Run Shape with AI first. |
+| Flag banners above the areas, one per flag (an item with both has two; Dismiss hides both), the refs as links to the rows (E4-4) | Ambiguity in [REF]. [What the item does not say]. Respondents may mark it unclear. [Dismiss] / [REF] may duplicate [REF]. If they ask for the same thing, remove one in the file and import it again. [Dismiss] |
+| Item notes under the text, one line per flag (E4-4) | Ambiguity: [what the item does not say]. / May duplicate [REF]. |
+| Dismiss on an item without a flag, through the server (E4-4) | This item has no flag to dismiss. Reload the page to see the flags as they are now. |
 | Area header | [Name] [rationale, the model's one sentence] |
 | Group of items without an area, before a run | Not shaped yet |
 | Pill on an item the model placed (the import had an area column and the item none) | Placed by AI |

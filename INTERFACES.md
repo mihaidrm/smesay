@@ -39,7 +39,9 @@ the check constraints use them). Change this file first.
   foldedRefs }.
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string (E4-4; the position of the other item
   in the set, as a string, shown by its source reference), ambiguity?: string (up to 300
-  characters), dismissed?: boolean, foldedRefs?: string[] (E3-5: the references of the exact
+  characters, whitespace folded), dismissed?: boolean (E4-4: the PM dismissed the item's
+  flags; it stays whatever the model says on later runs, so a later flag on that item is
+  not shown), foldedRefs?: string[] (E3-5: the references of the exact
   duplicates folded into this item), areaBy?: "ai" | "pm" (E4-2: who put the item in its
   area; "ai" the model, placed again on a re-run and, when the import had an area column,
   shown as "Placed by AI"; "pm" a move, left alone by a re-run; absent, the area came with
@@ -158,4 +160,7 @@ projectId, "accept" | "reject")` over the latest set's suggested versions in one
 `textFor(item)` in src/lib/item-text.ts (no database import) is the one rule for which text
 an item shows: the reader version only where reader_status is accepted, else the original;
 `hasReaderVersion`, `readerIsOriginal`, `readerCounts` beside it. The respondent side (E7)
-and the preview (E5-6) read textFor().
+and the preview (E5-6) read textFor(). Flags (E4-4): `flagsFor(rows)` (one ItemFlag per
+flag, an item with both has two; dismissed items and duplicates whose target left the set
+dropped), `dismissFlag(actor, projectId, itemId)` on `dismissItemFlags`. The ambiguity text
+is stored with its whitespace folded and dropped when blank.

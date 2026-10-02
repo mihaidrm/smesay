@@ -16,7 +16,8 @@ import { NotFoundError } from "@/lib/errors";
 import { commitUpload, latestSet } from "@/lib/imports";
 import { memoryOutbox } from "@/lib/mail";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
-import { areaNames, checkShape, cleanDuplicateOf, decideAllReaders, decideReader, editReader, groupByArea, hadImportedAreas, moveItemTo, SHAPE_COPY, shapeSet } from "@/lib/shaping";
+import { areaNames, checkShape, cleanDuplicateOf, decideAllReaders, decideReader, dismissFlag, editReader, flagsFor, groupByArea, hadImportedAreas, moveItemTo, SHAPE_COPY, shapeSet } from "@/lib/shaping";
+import { dismissItemFlags } from "@/db/queries/shaping";
 import { readerCounts, textFor } from "@/lib/item-text";
 import { setReaderStatus, setReaderStatusForItems } from "@/db/queries/shaping";
 import { savePaste } from "@/lib/uploads";
@@ -354,5 +355,54 @@ describe("reader versions (stories/E4-3)", () => {
     const after = await items.forSet(a.ws, set.id);
     expect(after[0]).toMatchObject({ readerStatus: "suggested", readerText: "New reader 1" });
     expect(after[1]).toMatchObject({ readerStatus: "rejected", readerText: "Reader 2" });
+  });
+});
+
+describe("flags (stories/E4-4)", () => {
+  it("lists the model's flags by item, with refs the PM knows, and drops a duplicate whose target is gone", async () => {
+    const set = (await latestSet(a.ws, plain))!;
+    const rows = await items.forSet(a.ws, set.id);
+    const { fetch } = transport({ ...answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]), items: ["1", "2", "3", "4"].map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "1" ? "Which phone." : null, duplicateOf: r === "4" ? "1" : r === "3" ? "9" : null } })) });
+    const result = await shapeSet(a, plain, { fetch });
+    if ("error" in result) throw new Error(result.error);
+    const after = await items.forSet(a.ws, set.id);
+    const flags = flagsFor(after);
+    expect(flags).toEqual([
+      { kind: "ambiguity", itemId: rows[0].id, ref: "1", what: "Which phone." },
+      { kind: "duplicate", itemId: rows[3].id, ref: "4", otherId: rows[0].id, otherRef: "1" },
+    ]);
+    // A duplicateOf that points nowhere is not shown.
+    expect(flagsFor([{ ...after[3], flags: { duplicateOf: "77" } }])).toEqual([]);
+    // The source reference is the ref when there is one.
+    expect(flagsFor([{ ...after[0], sourceRef: "CL-01" }])[0]).toMatchObject({ ref: "CL-01" });
+  });
+
+  it("dismisses an item's flags, and the dismissal survives a re-run; nothing from another workspace", async () => {
+    const set = (await latestSet(a.ws, plain))!;
+    const rows = await items.forSet(a.ws, set.id);
+    const first = rows[0];
+    // Its own run, so the test stands alone: a question mark and a blank ambiguity among the flags.
+    const seed = transport({ ...answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]), items: ["1", "2", "3", "4"].map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "1" ? " Which  phone." : r === "2" ? "   " : r === "3" ? "..." : null, duplicateOf: r === "4" ? "1" : null } })) });
+    if ("error" in (await shapeSet(a, plain, seed))) throw new Error("seed run failed");
+    expect((await items.get(a.ws, first.id))?.flags).toMatchObject({ ambiguity: "Which phone." });
+    expect((await items.get(a.ws, rows[1].id))?.flags?.ambiguity).toBeUndefined();
+    expect((await items.get(a.ws, rows[2].id))?.flags?.ambiguity).toBeUndefined();
+    expect(SHAPE_COPY.sentence("Which phone?")).toBe("Which phone?");
+    expect(SHAPE_COPY.sentence(" ... ")).toBe("");
+    expect(SHAPE_COPY.sentence(" Which phone . ")).toBe("Which phone.");
+    expect(await dismissFlag(a, plain, rows[1].id)).toEqual({ error: SHAPE_COPY.noFlag });
+    const dismissed = await dismissFlag(a, plain, first.id);
+    expect("item" in dismissed && dismissed.item.flags).toMatchObject({ dismissed: true, ambiguity: "Which phone." });
+    expect(flagsFor(await items.forSet(a.ws, set.id)).map((f) => f.itemId)).toEqual([rows[3].id]);
+    await expect(dismissFlag(b, plain, rows[3].id)).rejects.toBeInstanceOf(NotFoundError);
+    expect(await dismissItemFlags(b.ws, rows[3].id)).toBeNull();
+    expect((await items.get(a.ws, rows[3].id))?.flags?.dismissed).toBeUndefined();
+    expect(await dismissFlag(sampleWs, sampleProject, (await items.list(sampleWs.ws))[0].id)).toEqual({ error: PROJECTS_COPY.sample });
+    const { fetch } = transport({ ...answer([{ name: "Start", items: ["1"] }, { name: "During", items: ["2", "3"] }, { name: "End", items: ["4"] }], ["1", "2", "3", "4"]), items: ["1", "2", "3", "4"].map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "1" ? "Which phone, again." : null, duplicateOf: r === "4" ? "1" : null } })) });
+    const again = await shapeSet(a, plain, { fetch });
+    if ("error" in again) throw new Error(again.error);
+    const after = await items.forSet(a.ws, set.id);
+    expect(after[0].flags).toMatchObject({ dismissed: true, ambiguity: "Which phone, again." });
+    expect(flagsFor(after).map((f) => f.itemId)).toEqual([rows[3].id]);
   });
 });
