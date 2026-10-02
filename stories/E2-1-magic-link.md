@@ -1,7 +1,7 @@
 # E2-1 Sign in with a magic link
 
 User: a PM signing in for the first time or again, with nothing to remember
-Status: ready
+Status: built
 Outcome: enter an email, click the link in the email, be signed in; nothing else to set up.
 
 ## Acceptance criteria
@@ -34,11 +34,38 @@ Outcome: enter an email, click the link in the email, be signed in; nothing else
   unless Mihai objects.
 
 ## Technical notes
-better-auth with the magic link plugin (better-auth.com/docs/plugins/magic-link; the page is
-read when the story starts and the expiry option name confirmed then, unverified until then).
-The route handler at src/app/api/auth/[...all]/route.ts (better-auth.com/docs/installation).
-Email transport in src/lib/mail.ts: `sendMail({ to, subject, text, html })` with a Mailpit SMTP
-driver (localhost:1025, docker-compose.yml) and a Resend driver chosen by `MAIL_PROVIDER`;
-missing variables are named and the app refuses to send. Templates for the four emails are
-E12-3's; this story ships the sign-in email as plain text plus a minimal HTML version using the
-design system's email rules (600 px, system stack). The session rules are SECURITY.md's.
+Built 2026-10-02.
+
+- src/lib/auth.ts: better-auth with the magic link plugin (better-auth.com/docs/plugins/magic-
+  link; options in node_modules/better-auth/dist/plugins/magic-link/index.d.mts: `expiresIn`
+  in seconds, set to 15 minutes; `sendMagicLink` gets email and url; the plugin's own rate limit
+  of 5 requests per minute applies until E11-1 sets the auth limits) and `nextCookies()`.
+  Sessions last 30 days and refresh once a day (`session.expiresIn`, `updateAge`, in
+  node_modules/@better-auth/core/dist/types/init-options.d.mts); the cookie is httpOnly and
+  SameSite=Lax, Secure in production (better-auth.com/docs/concepts/cookies). The route handler
+  is src/app/api/auth/[...all]/route.ts through `toNextJsHandler(auth)`
+  (node_modules/better-auth/dist/integrations/next-js.d.mts). better-auth's verify endpoint
+  consumes a token atomically on the first use (index.d.mts, allowedAttempts note), so a link
+  works once; a second use is sent to /sign-in/link-used through errorCallbackURL.
+- One transport, SMTP through nodemailer 10.0.13 (MIT-0, released 2026-09-30, own types in
+  dist/esm; open issue count unverified, the GitHub API outside the project is not reachable).
+  `MAIL_SMTP_URL` points at the compose Mailpit locally and at Resend's SMTP endpoint at the
+  launch gate (resend.com/docs/send-with-smtp), so the switch is a variable, not a driver.
+  `memory:` keeps messages in an outbox for the unit test. The sign-in email is email 1 of
+  docs/copy/emails.md with N = 15, as text and a one-column HTML (src/lib/mail/sign-in-email.ts);
+  E12-3 makes the four emails shared templates and Mihai checks them in real clients.
+- Screens: /sign-in (one field, one button, the inline message and the "Check your email"
+  status box), /sign-in/link-used (the used-or-expired page with "Send a new link"), and the
+  signed-in shell under /app: a 240 px sidebar with the lockup, the workspace block (E2-3 fills
+  it), the signed-in email and Sign out. A signed-out visit to /app goes to /sign-in?next=/app
+  and comes back after the link; `next` must be a path inside the site (src/lib/safe-path.ts).
+  Design note 15 has the screenshots.
+- Tests: src/lib/auth.test.ts runs the sign-in through better-auth's handler on the test
+  database with the memory outbox (link once, cookie flags, second use refused, 15 and 30 day
+  values); e2e/sign-in.spec.ts does the whole path in a browser against Mailpit's API
+  (mailpit.axllent.org/docs/api-v1: GET /api/v1/search?query=to:address, GET
+  /api/v1/message/{ID}); CI runs a Mailpit service container for it. Variables: BETTER_AUTH_SECRET
+  (generated into .env.local, never shared), BETTER_AUTH_URL, MAIL_SMTP_URL, EMAIL_FROM
+  (.env.example); the Vitest and CI values are placeholders for throwaway databases.
+- Not in this story: the five-attempt auth limit (E11-1), Google and Microsoft (E2-2), the
+  quickstart after the first sign-in (E12-2), the workspace (E2-3).

@@ -14,6 +14,9 @@ docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 80
 npm install
 npm run db:migrate       # creates the tables (drizzle/, stories/E1-2); a second run changes nothing
 npm run db:seed          # the Marlow Group sample workspace (stories/E1-4); a second run changes nothing
+# Sign in (stories/E2-1): open http://localhost:3000/sign-in, enter any address, open the email at
+# http://localhost:8025 (Mailpit) and click Sign in. Needs BETTER_AUTH_SECRET, MAIL_SMTP_URL and
+# EMAIL_FROM in .env.local (.env.example has the local values; the secret is generated for you).
 npm run dev              # http://localhost:3000
 ```
 

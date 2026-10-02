@@ -30,6 +30,8 @@ Done so far:
   fails when it is stale). Every test runs against `smesay_test`, never the dev database.
 - Seed (stories/E1-4, built 2026-10-02): `npm run db:seed` inserts the Marlow Group sample
   workspace through the helpers; src/db/seed/sample.ts holds the facts and the expected counts.
+- Sign-in (stories/E2-1, built 2026-10-02): magic link through better-auth, mail over SMTP to
+  the compose Mailpit (Resend's SMTP endpoint at the gate), the signed-in shell under /app.
 - Workspace scoping (stories/E1-3, built 2026-10-02): src/db/queries/ holds every query, each
   taking a WorkspaceId that only requireWorkspace() in src/lib/workspace.ts produces from the
   session; lint (eslint-rules/db-access.mjs) refuses the database by any import path outside
@@ -50,8 +52,8 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E1-3 workspace scoping and E1-4 seed, then E2 in story order
-(stories/backlog.md). Every story exists (67 in 13 epics); a story is rewritten when Mihai
+Next tasks for Claude: E2 in story order (stories/backlog.md), E2-3 before E2-2 because the
+developer accounts for E2-2 come later (decision 0031). Every story exists (67 in 13 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->

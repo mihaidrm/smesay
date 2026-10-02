@@ -21,9 +21,19 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
     env:
       CI: "true"
       DATABASE_URL: postgres://smesay:smesay@localhost:5432/smesay
+      # The CI session secret is for the throwaway CI database only; it is no secret.
+      BETTER_AUTH_SECRET: ci-only-secret-for-the-throwaway-database
+      BETTER_AUTH_URL: http://localhost:3000
+      MAIL_SMTP_URL: smtp://localhost:1025
+      EMAIL_FROM: SMEsay <sign-in@localhost>
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

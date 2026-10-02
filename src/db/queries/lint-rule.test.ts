@@ -37,6 +37,7 @@ describe("db-access", () => {
     ['import { db } from "@/db";', "src/app/w/page.jsx"],
     ['import { db } from "@/db";', "src/app/w/route.mts"],
     ['import { internal } from "@/db/queries/internal";', "src/app/w/route.ts"],
+    ['import { prepareTestDatabase } from "@/db/test-db";', "src/app/w/route.ts"],
     ['import { requireWorkspaceForUser } from "../db/queries/internal";', "src/lib/thing.ts"],
     ['export async function f() { return import(`@/db`); }', "src/app/w/route.ts"],
     ['import { createRequire } from "node:module";', "src/app/w/route.ts"],
@@ -58,6 +59,7 @@ describe("db-access", () => {
     ['import { db } from "@/db";', "src/db/seed/thing.ts"],
     ['import { db } from "@/db";', "src/lib/auth.ts"],
     ['import { requireWorkspaceForUser } from "@/db/queries/internal";', "src/lib/workspace.ts"],
+    ['import { prepareTestDatabase } from "@/db/test-db";', "src/lib/thing.test.ts"],
     ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/db/queries/x.test.ts"],
   ];
   it.each(allowed)("allows %s in %s", async (code, filePath) => {

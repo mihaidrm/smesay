@@ -19,6 +19,12 @@ export default defineConfig({
     env: {
       DATABASE_URL: testUrl.toString(),
       DATABASE_ADMIN_URL: given,
+      // better-auth needs a secret and a base url to run; this value is for the tests only and
+      // is no secret. Mail goes to the memory outbox (src/lib/mail.ts).
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? "vitest-only-secret-not-used-anywhere-else",
+      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+      MAIL_SMTP_URL: "memory:",
+      EMAIL_FROM: "SMEsay <sign-in@localhost>",
     },
   },
 });
