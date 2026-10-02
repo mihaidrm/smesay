@@ -149,6 +149,11 @@ export const itemSet = pgTable("item_set", {
   importedBy: text("imported_by").references(() => user.id, { onDelete: "set null" }),
   uploadId: uuid("upload_id"),
   importedAt: ts("imported_at").notNull().defaultNow(),
+  // Shaping (stories/E4-2; ShapeState in INTERFACES.md): the areas in the model's order, how
+  // many runs, when the last one was.
+  areaOrder: jsonb("area_order").$type<string[]>(),
+  shapeRuns: integer("shape_runs").notNull().default(0),
+  shapedAt: ts("shaped_at"),
 }, (t) => [
   foreignKey({ name: "item_set_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   // No delete action: "set null" on a composite key would null workspace_id too (E3-4 audit,

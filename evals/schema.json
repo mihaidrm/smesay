@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "areas": {
+      "minItems": 1,
+      "maxItems": 12,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "The area's name, two to four words, as a reader would see it"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "One sentence on why this area comes here, such as: First, because every claim starts here."
+          },
+          "items": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The refs of the items in this area, in reading order"
+          }
+        },
+        "required": [
+          "name",
+          "rationale",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Every item in exactly one area, the areas in reading order"
+    },
+    "items": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "type": "string",
+            "description": "The item's ref as given"
+          },
+          "reader": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The item in plain words a non-expert reads in one go, keeping every number, name and negative"
+          },
+          "flags": {
+            "type": "object",
+            "properties": {
+              "ambiguity": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "What the item does not say, when a respondent could not rate it without asking; else null"
+              },
+              "duplicateOf": {
+                "description": "The ref of an earlier item this one says the same as; else null",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "ambiguity",
+              "duplicateOf"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "ref",
+          "reader",
+          "flags"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "areas",
+    "items"
+  ],
+  "additionalProperties": false
+}

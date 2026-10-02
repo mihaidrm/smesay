@@ -1,7 +1,7 @@
 # E4-2 Group items into areas and order the areas, with a one-line rationale each
 
 User: a PM whose list has no structure, or a structure that does not read well
-Status: ready
+Status: built
 Outcome: every item lands in exactly one area, the areas are ordered with a reason each, and
 the PM can move items between areas.
 

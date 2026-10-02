@@ -38,7 +38,14 @@ the check constraints use them). Change this file first.
   and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
   foldedRefs }.
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string, ambiguity?: string, dismissed?: boolean,
-  foldedRefs?: string[] (E3-5: the references of the exact duplicates folded into this item) }
+  foldedRefs?: string[] (E3-5: the references of the exact duplicates folded into this item),
+  placedByAi?: boolean (E4-2: the import carried an area column and this item had none, so
+  the model placed it), areaMoved?: boolean (E4-2: the PM moved it; a re-run of shaping
+  leaves it where it is) }
+- ShapeState (E4-2, on item_set): area_order jsonb string[] (the areas in the model's order,
+  one entry per distinct item.area; null until shaped), shape_runs integer (how many times
+  shaping ran on this set, default 0), shaped_at timestamp (the last run, null until shaped).
+  The rationale of an area sits on each of its items as item.area_rationale.
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
@@ -104,7 +111,18 @@ Status: to be written in E7, on top of the E1-2 shapes.
 
 ## AI shaping output (ai -> builder)
 Owner: ai route. Consumer: builder review view.
-Status: JSON schema in evals/schema.json, to be written with E4-2.
+Version 1, 2026-10-02 (E4-2). The zod schema is ShapeOutput in src/lib/ai/shape-schema.ts;
+evals/schema.json is written from it (`npm run evals:schema`, and a test fails when they
+differ). Every object strict. Refs are the item positions in the set as decimal strings
+("1", "2", ...), never the source reference, which can repeat or be missing.
+{ areas: [{ name: string (1 to 60 chars), rationale: string (1 to 200 chars), items: string[]
+(refs, at least one) }] (1 to 12 areas), items: [{ ref: string, reader: string (1 to 1,000
+chars, the plain-words version, E4-3), flags: { ambiguity?: string (what the item does not
+say, E4-4), duplicateOf?: string (a ref, E4-4) } }] }
+The app checks on top of the schema (src/lib/shaping.ts, checkShape): every item of the set
+appears in exactly one area and in items once; no unknown ref anywhere; when the import
+carried an area column, the area names are the imported ones, unchanged; when it did not,
+3 to 8 areas. A failed check is E4-1's "invalid" refusal.
 The route (E4-1): `runModel({ ws, projectId, purpose, instructions, data, schema, check,
 maxOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
 ANTHROPIC_API_KEY or imports the SDK (lint rule smesay/ai-sdk, which also keeps the module
