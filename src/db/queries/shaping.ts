@@ -7,7 +7,7 @@
 // the time. The set row and the item rows are read under a lock, and moveItem reads its row
 // under one too, so a run and a move never write over each other's read. moveItem is the
 // PM's move: area and rationale set, areaBy "pm", nothing else touched. db.transaction and `.for("update")` as in importCommit.ts.
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { item, itemSet } from "@/db/schema";
 import type { ItemFlags, ShapeArea, WorkspaceId } from "@/db/types";
@@ -61,4 +61,20 @@ export async function moveItem(workspaceId: WorkspaceId, itemId: string, area: s
     const [updated] = await tx.update(item).set({ area, areaRationale: rationale, flags }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId))).returning();
     return updated ?? null;
   });
+}
+
+// Reader versions (stories/E4-3): one item's decision, or every suggested item of a set in
+// one update (Accept all, Reject all, acceptance 1). An edit (acceptance 7) sets the text and
+// accepts it; the original is never touched (E1-2's trigger). Undo returns the item to
+// suggested with whatever text it carries.
+export type ReaderDecision = "suggested" | "accepted" | "rejected";
+
+export async function setReaderStatus(workspaceId: WorkspaceId, itemId: string, status: ReaderDecision, text?: string): Promise<Item | null> {
+  const [updated] = await db.update(item).set({ readerStatus: status, ...(text !== undefined ? { readerText: text } : {}) }).where(and(eq(item.workspaceId, workspaceId), eq(item.id, itemId), isNotNull(item.readerText))).returning();
+  return updated ?? null;
+}
+
+export async function setReaderStatusForSet(workspaceId: WorkspaceId, itemSetId: string, status: "accepted" | "rejected"): Promise<number> {
+  const rows = await db.update(item).set({ readerStatus: status }).where(and(eq(item.workspaceId, workspaceId), eq(item.itemSetId, itemSetId), eq(item.readerStatus, "suggested"), isNotNull(item.readerText), ne(item.readerText, item.originalText))).returning({ id: item.id });
+  return rows.length;
 }

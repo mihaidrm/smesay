@@ -168,7 +168,15 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Button, before the first run | Shape with AI |
 | Button, while running | Shaping... |
 | Button, after a run | Run again |
-| Grouped line, after a run | AI grouped [N] items into [M] areas. Run again replaces the areas the AI chose. Items you moved stay where they are. |
+| Grouped line, after a run | AI grouped [N] items into [M] areas and wrote a readable version of each. [A] of [R] reader versions accepted. Run again replaces the areas the AI chose. Items you moved stay where they are. |
+| Counter alone, on the sample (E4-3) | [A] of [R] reader versions accepted. |
+| Title row, while suggested versions exist (E4-3) | Accept all, Reject all |
+| Confirm lines for the two (E4-3) | Accept all [N] suggested reader versions? / Reject all [N] suggested reader versions and keep the originals? [Buttons: Accept all or Reject all, Cancel] |
+| Item: the reader version, then the original under it (E4-3) | [reader version] / Original: [original] |
+| Item: the reader version is the original again (E4-3) | The readable version is the same as the original, so there is nothing to accept. (no pill, no buttons) |
+| Item pills (E4-3; pushed back, agree and disagree tints) | Suggested / Reader version used / Original kept |
+| Item buttons (E4-3) | Accept, Edit, Reject while suggested; Undo once decided; Save and Cancel in the edit, whose field is labelled "Readable version of [ref]" |
+| Item without a reader version, through the server (E4-3) | This item has no reader version. Run Shape with AI first. |
 | Area header | [Name] [rationale, the model's one sentence] |
 | Group of items without an area, before a run | Not shaped yet |
 | Pill on an item the model placed (the import had an area column and the item none) | Placed by AI |

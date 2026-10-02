@@ -1,7 +1,9 @@
 // The main path of E4-2: paste a list where three items carry an area and three do not,
 // import it, open Shape, run the AI (the stand-in in e2e/fake-anthropic.mjs answers), see the
 // three imported areas kept with their rationale and the loose items marked "Placed by AI",
-// move one item with "Move to" and one by dragging, reload, run again: both stay.
+// move one item with "Move to" and one by dragging, reload, run again: both stay. Then the
+// reader versions (E4-3): Accept, Undo, Edit with a blank refused, Reject all with its
+// confirm line, and the counter.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -84,4 +86,30 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("area").nth(2).getByTestId("item").filter({ hasText: "Travel advances" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(1).getByTestId("item").filter({ hasText: "Mileage" })).toHaveCount(1);
   await expect(page.getByTestId("area").nth(0).getByTestId("item")).toHaveCount(2);
+
+  // Reader versions (E4-3): every item has a suggested one from the stand-in.
+  await expect(page.getByTestId("reader-counter")).toHaveText("0 of 6 reader versions accepted.");
+  await expect(page.getByTestId("reader-pill")).toHaveCount(6);
+  const receipts = page.getByTestId("item").filter({ hasText: "Receipts captured by phone" });
+  await expect(receipts.getByTestId("reader-text")).toHaveText("Receipts captured by phone (in plain words)");
+  await expect(receipts.getByTestId("original-text")).toHaveText("Original: Receipts captured by phone");
+  await receipts.getByRole("button", { name: "Accept" }).click();
+  await expect(receipts.getByTestId("reader-pill")).toHaveText("Reader version used");
+  await expect(page.getByTestId("reader-counter")).toHaveText("1 of 6 reader versions accepted.");
+  await receipts.getByRole("button", { name: "Undo" }).click();
+  await expect(receipts.getByTestId("reader-pill")).toHaveText("Suggested");
+  await receipts.getByRole("button", { name: "Edit" }).click();
+  await receipts.getByLabel(/Readable version of/).fill("   ");
+  await receipts.getByRole("button", { name: "Save" }).click();
+  await expect(receipts.getByRole("alert")).toHaveText("Write the readable version, or reject the suggestion to keep the original.");
+  await receipts.getByLabel(/Readable version of/).fill("Take a photo of the receipt with your phone.");
+  await receipts.getByRole("button", { name: "Save" }).click();
+  await expect(receipts.getByTestId("reader-text")).toHaveText("Take a photo of the receipt with your phone.");
+  await expect(receipts.getByTestId("reader-pill")).toHaveText("Reader version used");
+  await page.getByRole("button", { name: "Reject all" }).click();
+  await expect(page.getByTestId("reader-all-confirm")).toContainText("Reject all 5 suggested reader versions and keep the originals?");
+  await page.getByTestId("reader-all-confirm").getByRole("button", { name: "Reject all" }).click();
+  await expect(page.getByTestId("reader-pill").filter({ hasText: "Original kept" })).toHaveCount(5);
+  await expect(page.getByTestId("reader-counter")).toHaveText("1 of 6 reader versions accepted.");
+  await expect(page.getByRole("button", { name: "Accept all" })).toHaveCount(0);
 });

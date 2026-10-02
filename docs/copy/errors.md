@@ -84,6 +84,8 @@ of the content; page means it replaces the screen.
 | Inline, About this project | Save on the sample project, through the server | The sample project cannot be edited. |
 | Banner, Shape (already on the board) | Ambiguity flag | Ambiguity in [REF]. [What the item does not say]. Respondents may mark it unclear. [Dismiss] |
 | Inline, Shape | Reader version identical to the original | The readable version is the same as the original, so there is nothing to accept. |
+| Inline, Shape | A blank edit of a reader version (E4-3, decision 0031 item 8) | Write the readable version, or reject the suggestion to keep the original. |
+| Inline, Shape | Accept, Reject, Undo or Edit on an item without a reader version, through the server (E4-3) | This item has no reader version. Run Shape with AI first. |
 
 ## Build and Share (E5, E6)
 
