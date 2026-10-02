@@ -18,7 +18,9 @@ visible.
    progress bar only; buttons stay ink (decision 0016). "Powered by SMEsay" stays on the Free
    plan (design system, Identity).
 4. Every field validates on the server (CLAUDE.md, PM side): name 1 to 80 characters, hex
-   colour as #RRGGBB, logo type and size by content, not extension.
+   colour as #RRGGBB, logo type and size by content, not extension. Saving is owner-only through
+   `can()` (E2-4, src/lib/permissions.ts: workspace.rename, workspace.accent, workspace.logo,
+   workspace.budget); a test calls the save as a member and gets 403.
 5. Playwright: change the accent, open the sample instrument preview, see the colour on the
    chapter row.
 

@@ -6,7 +6,7 @@ Outcome: a member can create and run projects; only an owner can change the work
 
 ## Acceptance criteria
 1. Settings, Members (PM app board): a list of name, email, role, joined date; an email field
-   with "Invite"; the button is disabled at 40 percent until the field holds an address. An
+   with "Send invite"; the button is disabled at 40 percent until the field holds an address. An
    address already in the workspace shows "[EMAIL] is already a member of this workspace."
 2. An invited address gets a sign-in link (E2-1's email) and, on sign-in, joins the workspace
    as a member. Until then the row shows "Invited". The invite expires with the link; inviting
@@ -42,9 +42,12 @@ Built 2026-10-02.
   is keyed by a user id and the invitee has none until they sign in. One open invitation per
   address and workspace; inviting again replaces the row and sends a new link. The invite email
   is E2-1's, sent through `auth.api.signInMagicLink` (node_modules/better-auth/dist/plugins/
-  magic-link/index.d.mts). An invitation is valid for 15 minutes, as long as the link
-  (`INVITE_VALID_MINUTES` in src/lib/invites.ts); after that the "Invited" row is gone
-  and the owner invites again.
+  magic-link/index.d.mts). That server call bypasses better-auth's own rate limiter, which runs
+  in the request handler only, so a workspace sends at most 5 invitations per 10 minutes
+  (src/lib/invites.ts); above that the form says so. An invitation is valid for 15 minutes, as
+  long as the link (`INVITE_VALID_MINUTES` in src/lib/invites.ts); after that the "Invited" row
+  is gone and the owner invites again. Open for Mihai (raised 2026-10-02): a longer validity
+  and a dedicated invite email; both are one constant and one entry in docs/copy/emails.md.
 - On the invitee's first signed-in request, `acceptPendingInvites()` (src/db/queries/
   onboarding.ts, called from src/lib/current-workspace.ts with the session's own email) turns
   every open invitation for that address into a membership in one transaction; with one
@@ -55,11 +58,28 @@ Built 2026-10-02.
   address, the same zod rule as the server), a native select for the role and Remove on each row
   for owners; the last owner's row has neither. A member sees the list only. E2-5 adds the rest
   of the settings page above the section; a second owner is made by changing a role here.
+- The last owner is kept inside one transaction with the workspace's member rows locked
+  (members.removeKeepingOwner and setRoleKeepingOwner, src/db/queries/members.ts), so two
+  owners demoting each other at once cannot leave none. Of the nine owner-only actions, this
+  story enforces the three it builds (invite, remove, role); rename, accent, logo and budget
+  are enforced by E2-5, delete by E11-2 and billing by R3, each through can() with a test that
+  calls the action as a member and gets 403 (the criterion is in those stories).
 - Tests: src/lib/permissions.test.ts; src/lib/members.test.ts (invite writes the row and sends
-  the email; bad and duplicate addresses as messages; 403 for a member on all three actions;
-  404 for an outsider; acceptance once and an expired invitation ignored; the last owner kept;
-  a removed person has no workspace on the next request); scoping.test.ts covers the new table;
-  e2e/members.spec.ts (owner invites from Settings, the invitee signs in through Mailpit and
-  lands in the workspace, appears as a member, is removed and lands on the create page).
-  Design note 17 has the screenshots.
+  the email; empty, bad and duplicate addresses as messages; a repeated invite replaces the
+  row; the limit; 403 for a member on all three actions; 404 for an outsider; acceptance once
+  and an expired invitation ignored; the last owner kept; a removed person has no workspace on
+  the next request and is "no longer a member" to a second removal); scoping.test.ts covers the
+  new table; e2e/members.spec.ts (owner invites from Settings, the invitee opens the link from
+  the invite email, lands in the workspace, appears as a member, is removed and lands on the
+  create page). Design note 17 has the screenshots.
+- Audit of 2026-10-02 (fresh context, 14 findings): the blocking one (the invite bypassed
+  better-auth's rate limiter) and the should-fix ones (the last owner only kept between
+  sequential actions; emails.md still said the sign-in email went to nobody else; the browser
+  test did not open the invite email; six owner-only actions had no story carrying the 403
+  rule; refusals other than 403 became the error page; copy and field details) were closed the
+  same day in the pull request after the story's. Left open for Mihai: the 15 minute validity
+  and the invite email (above); whether SECURITY.md's "rotation on privilege change" covers a
+  workspace role (roles are read from the database on every action, so nothing goes stale);
+  an invitation is accepted on any signed-in request of the invited address, not only at
+  sign-in, which matters more if the validity grows.
 - Copy: docs/copy/app.md (Settings, Members) and errors.md.

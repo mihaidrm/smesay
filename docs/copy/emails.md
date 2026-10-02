@@ -14,7 +14,8 @@ SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]
 
 ## 1. Sign-in link
 
-Sent by E2 when someone enters their email on the sign-in page. Nothing else is sent to a PM.
+Sent by E2 when someone enters their email on the sign-in page, and to an address an owner
+invites from Settings, Members (E2-4). Nothing else is sent to a PM.
 
 From: SMEsay <sign-in@[DOMAIN]>
 Subject: Your sign-in link for SMEsay

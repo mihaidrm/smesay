@@ -11,7 +11,9 @@ import { prepareTestDatabase } from "@/db/test-db";
 import { auth } from "@/lib/auth";
 import { ForbiddenError } from "@/lib/errors";
 import { memoryOutbox } from "@/lib/mail";
-import { inviteMember, isOpenInvite, listMembersAndInvites, MEMBERS_COPY, removeMember, setMemberRole } from "@/lib/members";
+import { INVITE_LIMIT, INVITE_VALID_MINUTES } from "@/lib/invites";
+import { inviteMember, isOpenInvite, listMembersAndInvites, removeMember, setMemberRole } from "@/lib/members";
+import { MEMBERS_COPY } from "@/lib/members-copy";
 import { requireWorkspace } from "@/lib/workspace";
 import type { WorkspaceId } from "@/db/types";
 
@@ -52,9 +54,26 @@ describe("invite", () => {
     expect(invited.map((i) => i.email)).toEqual([invitee.email]);
   });
 
-  it("refuses a bad address and an address already in the workspace, as a message", async () => {
+  it("refuses an empty or bad address and an address already in the workspace, as a message", async () => {
+    expect(await inviteMember({ ws, userId: owner.id }, "  ")).toEqual({ error: MEMBERS_COPY.emptyAddress });
     expect(await inviteMember({ ws, userId: owner.id }, "not an address")).toEqual({ error: MEMBERS_COPY.badAddress("not an address") });
     expect(await inviteMember({ ws, userId: owner.id }, member.email)).toEqual({ error: MEMBERS_COPY.alreadyMember(member.email) });
+  });
+
+  it("replaces an earlier invitation to the same address instead of adding a row", async () => {
+    const again = `again-${stamp}@example.com`;
+    await inviteMember({ ws, userId: owner.id }, again);
+    await inviteMember({ ws, userId: owner.id }, again.toUpperCase());
+    expect((await workspaceInvites.list(ws)).filter((i) => i.email === again)).toHaveLength(1);
+  });
+
+  it("stops after the workspace's limit within the window", async () => {
+    const before = memoryOutbox.length;
+    const sent = (await workspaceInvites.countSince(ws, 10));
+    let refused: unknown = null;
+    for (let i = sent; i <= INVITE_LIMIT; i++) refused = await inviteMember({ ws, userId: owner.id }, `many-${i}-${stamp}@example.com`);
+    expect(refused).toEqual({ error: MEMBERS_COPY.tooMany });
+    expect(memoryOutbox.length - before).toBe(INVITE_LIMIT - sent);
   });
 
   it("as a member is refused with 403, as are remove and role change", async () => {
@@ -80,11 +99,11 @@ describe("invite", () => {
 describe("accepting", () => {
   it("turns the open invitation into a membership on the invitee's signed-in request, once", async () => {
     expect((await workspaces.listForUser(invitee.id)).map((w) => w.id)).toEqual([]);
-    expect(await acceptPendingInvites(invitee.id, invitee.email.toUpperCase())).toBe(1);
+    expect(await acceptPendingInvites(invitee.id, invitee.email.toUpperCase(), INVITE_VALID_MINUTES)).toBe(1);
     expect((await workspaces.listForUser(invitee.id)).map((w) => w.id)).toEqual([ws]);
     expect((await members.get(ws, invitee.id))?.role).toBe("member");
-    expect(await acceptPendingInvites(invitee.id, invitee.email)).toBe(0);
-    expect((await listMembersAndInvites(ws)).invited).toEqual([]);
+    expect(await acceptPendingInvites(invitee.id, invitee.email, INVITE_VALID_MINUTES)).toBe(0);
+    expect((await listMembersAndInvites(ws)).invited.map((i) => i.email)).not.toContain(invitee.email);
   });
 
   it("ignores an expired invitation", async () => {
@@ -93,7 +112,7 @@ describe("accepting", () => {
     await workspaceInvites.update(ws, row.id, { invitedAt: new Date(Date.now() - 16 * 60 * 1000) });
     const stale = (await workspaceInvites.get(ws, row.id))!;
     expect(isOpenInvite(stale)).toBe(false);
-    expect(await acceptPendingInvites(`user-${randomUUID()}`, late)).toBe(0);
+    expect(await acceptPendingInvites(`user-${randomUUID()}`, late, INVITE_VALID_MINUTES)).toBe(0);
     expect((await listMembersAndInvites(ws)).invited.map((i) => i.email)).not.toContain(late);
   });
 });
@@ -111,6 +130,7 @@ describe("roles and removal", () => {
     expect(await removeMember({ ws, userId: owner.id }, invitee.id)).toEqual({ removed: true });
     expect((await workspaces.listForUser(invitee.id)).map((w) => w.id)).toEqual([]);
     await expect(requireWorkspace(invitee.headers, ws)).rejects.toMatchObject({ status: 404 });
-    await expect(removeMember({ ws, userId: owner.id }, invitee.id)).rejects.toMatchObject({ status: 404 });
+    expect(await removeMember({ ws, userId: owner.id }, invitee.id)).toEqual({ error: MEMBERS_COPY.gone });
+    expect(await setMemberRole({ ws, userId: owner.id }, invitee.id, "owner")).toEqual({ error: MEMBERS_COPY.gone });
   });
 });

@@ -15,13 +15,17 @@ import { latestLink } from "./mailpit";
 const CLIENT = { "x-forwarded-for": "10.0.0.3" };
 test.use({ extraHTTPHeaders: CLIENT });
 
-async function signInFresh(browser: Browser, email: string): Promise<Page> {
+// A person in their own browser context. The owner asks for a link; the invitee opens the
+// link the invite email carries, so the main path of acceptance 5 is the one tested.
+async function person(browser: Browser, email: string, request: boolean): Promise<Page> {
   const context = await browser.newContext({ extraHTTPHeaders: CLIENT });
   const page = await context.newPage();
-  await page.goto("/sign-in");
-  await page.getByLabel("Email").fill(email);
-  await page.getByRole("button", { name: "Send me a link" }).click();
-  await expect(page.getByRole("status")).toBeVisible();
+  if (request) {
+    await page.goto("/sign-in");
+    await page.getByLabel("Email").fill(email);
+    await page.getByRole("button", { name: "Send me a link" }).click();
+    await expect(page.getByRole("status")).toBeVisible();
+  }
   await page.goto(await latestLink(await context.request, email));
   return page;
 }
@@ -31,7 +35,7 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   const ownerEmail = `e2e-owner-${stamp}@marlow.example`;
   const inviteeEmail = `e2e-invitee-${stamp}@marlow.example`;
 
-  const owner = await signInFresh(browser, ownerEmail);
+  const owner = await person(browser, ownerEmail, true);
   await expect(owner).toHaveURL(/\/app\/new$/);
   await owner.getByLabel("Workspace name").fill("Marlow Group");
   await owner.getByRole("button", { name: "Create workspace" }).click();
@@ -53,7 +57,7 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await expect(owner.getByTestId("invited-row")).toHaveCount(1);
   await expect(owner.getByTestId("invited-row").first()).toContainText(inviteeEmail);
 
-  const invitee = await signInFresh(browser, inviteeEmail);
+  const invitee = await person(browser, inviteeEmail, false);
   await expect(invitee).toHaveURL(/\/app$/);
   await expect(invitee.getByTestId("breadcrumb")).toHaveText("Marlow Group");
   await invitee.goto("/app/settings");

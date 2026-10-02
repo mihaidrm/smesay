@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { INVITE_VALID_MINUTES } from "@/lib/invites";
+import { MEMBERS_COPY } from "@/lib/members-copy";
 import { inviteAction, removeAction, roleAction, type MembersState } from "./actions";
 
 const EMAIL = z.email();
@@ -18,9 +18,14 @@ export function InviteForm() {
   const [email, setEmail] = useState("");
   const [state, action, pending] = useActionState<MembersState, FormData>(inviteAction, INITIAL);
   const ok = EMAIL.safeParse(email.trim()).success;
+  // The field empties after a sent invite only; a refused address stays for correcting. State
+  // adjusted during render, as React documents for a value that follows another
+  // (react.dev/learn/you-might-not-need-an-effect, "Adjusting some state when a prop changes").
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) { setSeen(state); if (state.sent) setEmail(""); }
   return (
     <div className="flex flex-col gap-3 px-4 py-3">
-      <form action={action} noValidate className="flex items-end gap-3" onSubmit={() => setEmail("")}>
+      <form action={action} noValidate className="flex items-end gap-3">
         <div className="flex flex-grow flex-col gap-2">
           <Label htmlFor="invite-email">Invite by email</Label>
           <Input id="invite-email" name="email" type="email" autoComplete="off" placeholder="name@company.example" value={email}
@@ -29,7 +34,7 @@ export function InviteForm() {
         <Button type="submit" loading={pending} disabled={!ok} className={ok ? undefined : "opacity-40"}>Send invite</Button>
       </form>
       {state.error && <p id="invite-error" role="alert" className="text-sm text-danger">{state.error}</p>}
-      {!state.error && state.sent && <p role="status" className="text-[13px] text-agree-text">Invite sent. They get a sign-in link that works once and expires in {INVITE_VALID_MINUTES} minutes.</p>}
+      {!state.error && state.sent && <p role="status" className="text-[13px] text-agree-text">{MEMBERS_COPY.sent}</p>}
     </div>
   );
 }
@@ -39,6 +44,10 @@ export function MemberRow({ userId, name, email, role, joined, manage, self, las
 }) {
   const [roleState, changeRole, rolePending] = useActionState<MembersState, FormData>(roleAction, INITIAL);
   const [removeState, remove, removePending] = useActionState<MembersState, FormData>(removeAction, INITIAL);
+  const [shown, setShown] = useState(role);
+  // A refused change puts the select back to the role the server kept (same pattern as above).
+  const [seenRole, setSeenRole] = useState(roleState);
+  if (roleState !== seenRole) { setSeenRole(roleState); if (roleState.error) setShown(role); }
   const error = roleState.error ?? removeState.error;
   return (
     <div data-testid="member-row" className="border-b border-grey-100 px-4 py-2">
@@ -49,7 +58,7 @@ export function MemberRow({ userId, name, email, role, joined, manage, self, las
           {manage && !lastOwner ? (
             <form action={changeRole}>
               <input type="hidden" name="userId" value={userId} />
-              <select name="role" defaultValue={role} aria-label={`Role of ${email}`} disabled={rolePending} onChange={(e) => e.currentTarget.form?.requestSubmit()}
+              <select name="role" value={shown} aria-label={`Role of ${email}`} disabled={rolePending} onChange={(e) => { setShown(e.target.value as "owner" | "member"); e.currentTarget.form?.requestSubmit(); }}
                 className="h-8 rounded-md border border-hairline-strong bg-white px-2 text-sm">
                 <option value="owner">Owner</option>
                 <option value="member">Member</option>
