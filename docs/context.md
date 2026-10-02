@@ -72,8 +72,12 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E3-2 onwards in story order; E2-2 when the developer accounts exist
-(decision 0031). E2 is complete but for E2-2. Every story exists (67 in 13 epics); a story is rewritten when Mihai
+Next tasks for Claude: E4-1 onwards in story order, after Mihai's go (he asked for a pause
+after E3 on 2026-10-02); E2-2 when the developer accounts exist (decision 0031). E2 is
+complete but for E2-2; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
+these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
+the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
+link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (67 in 13 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
