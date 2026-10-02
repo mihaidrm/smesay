@@ -1,16 +1,36 @@
 // The first sign-in (stories/E2-3, acceptance 1 and 2): the workspace, its owner and its own
-// copy of the sample project in one call. Not in the index barrel, because the seed imports the
-// barrel and this file imports the seed; src/lib/onboarding.ts imports it by name. The
-// workspace and the membership are one transaction (workspaces.create); the sample rows follow
-// through the scoped helpers, and if any of them fails the workspace is removed again, so a
-// person never lands in a half-made workspace.
+// copy of the sample project in one call, from src/app/app/actions.ts. Not in the index barrel,
+// because the seed imports the barrel and this file imports the seed. The workspace and the
+// membership are one transaction (workspaces.create); the sample rows follow through the scoped
+// helpers, and if any of them fails the workspace is removed again, so a person never lands in
+// a half-made workspace. The slug is the name's (src/lib/workspace-name.ts); a taken one fails
+// with unique_violation, SQLSTATE 23505 (postgresql.org/docs/current/errcodes-appendix.html),
+// which Drizzle wraps in its own error with the PostgresError as `cause`
+// (node_modules/drizzle-orm/errors.js, DrizzleQueryError), and the next try adds a 4 character
+// suffix; three tries, then the error is thrown.
+import { randomBytes } from "node:crypto";
 import { internal } from "./internal";
 import { unsafeWorkspaceId } from "./scoped";
-import { workspaces, type NewWorkspace, type Workspace } from "./workspaces";
+import { workspaces, type Workspace } from "./workspaces";
 import { SAMPLE_PROJECT_NAME, seedSampleInto } from "@/db/seed/sample-seed";
 
-export async function createWorkspaceWithSample(data: NewWorkspace, ownerUserId: string): Promise<Workspace> {
-  const created = await workspaces.create(data, ownerUserId);
+export function isUniqueViolation(error: unknown): boolean {
+  for (let e = error, depth = 0; typeof e === "object" && e !== null && depth < 5; e = (e as { cause?: unknown }).cause, depth++) {
+    if ((e as { code?: unknown }).code === "23505") return true;
+  }
+  return false;
+}
+
+export async function createWorkspaceWithSample({ name, slug }: { name: string; slug: string }, ownerUserId: string): Promise<Workspace> {
+  let created: Workspace | null = null;
+  for (let attempt = 0; created === null; attempt++) {
+    const candidate = attempt === 0 ? slug : `${slug}-${randomBytes(2).toString("hex")}`;
+    try {
+      created = await workspaces.create({ name, slug: candidate }, ownerUserId);
+    } catch (error) {
+      if (!isUniqueViolation(error) || attempt === 2) throw error;
+    }
+  }
   try {
     await seedSampleInto(unsafeWorkspaceId(created.id), SAMPLE_PROJECT_NAME);
   } catch (error) {

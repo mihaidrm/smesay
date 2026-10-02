@@ -18,6 +18,7 @@ line from docs/copy/errors.md. A phone layout because the magic link often opens
 
 Same column: "Choose a workspace", one line (a different one when the workspace the person was
 in is no longer theirs), the workspaces as full-width secondary buttons, the signed-in footer.
+A fresh session with one membership never sees it: that workspace is selected without asking.
 
 ## The shell and the project list (/app)
 
@@ -27,9 +28,12 @@ stripped to the name and the chevron, 32 px, no border; the list opens below); "
 "Projects" with "All" in teal; one row per project with the Sample pill. Footer: the email and
 Sign out. Content: the workspace name as the 12 px breadcrumb, "Projects" at 24 px weight 400,
 one line, then the table: Project (name plus the Sample pill), Status, Updated. Header 32 on
-white at 12 px muted (the board's), rows 36. The sample's status pill and the Sample pill use
-a new neutral token, grey-100 (#F0F0EE, the board's pill fill; the same hex as the Disagree
-tint), with ink-soft text. Empty state per the design system when no project is left.
+grey-50 at 12 px muted (docs/design-system.md, Table), rows 36. The sample's status pill and the
+Sample pill are the new NeutralPill (src/components/ui/status-pill.tsx): a new neutral token,
+grey-100 (#F0F0EE, the board's pill fill; the same hex as the Disagree tint), with ink-soft
+text; the token has its row in docs/design-system.md. Empty state per the design system when no
+project is left. The 404 page (src/app/not-found.tsx) and the error and loading states of the
+/app segment use the sign-in column.
 
 E3-1 adds New project, the Items and Responses columns, Open and the per-row actions; E2-5
 adds the Settings link beside the workspace name.

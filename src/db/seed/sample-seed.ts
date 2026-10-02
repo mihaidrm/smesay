@@ -43,56 +43,54 @@ export async function seedSample(): Promise<SeedResult> {
 // One copy of the sample under the given workspace. Throws half way on a failure; the caller
 // decides what to remove.
 export async function seedSampleInto(ws: WorkspaceId, projectName: string): Promise<void> {
-  {
-    const project = await projects.create(ws, { ...sample.project, name: projectName });
-    const set = await itemSets.create(ws, { projectId: project.id, version: 1, source: "xlsx", sourceFilename: sample.sourceFilename, importReport: sample.importReport });
-    const itemIds = new Map<number, string>();
-    for (const it of sample.items) {
-      const area = sample.areas.find((a) => a.name === it.area);
-      const row = await items.create(ws, {
-        itemSetId: set.id, position: it.n, sourceRef: it.ref, originalText: it.original, readerText: it.reader, readerStatus: "accepted",
-        area: it.area, areaRationale: area?.rationale ?? null, proposedValue: it.proposed, custom: { Details: it.details },
-      });
-      itemIds.set(it.n, row.id);
-    }
-    const instrument = await instruments.create(ws, { projectId: project.id, itemSetId: set.id, ...sample.instrument });
-    const publicInvite = await invites.create(ws, { instrumentId: instrument.id, kind: "public", token: token(), opensAt: sample.instrument.opensAt, closesAt: sample.instrument.closesAt });
-    const responseIds = new Map<number, string>();
-    for (const p of sample.people) {
-      let inviteId = publicInvite.id;
-      if (p.invite === "personal") {
-        const email = p.name.toLowerCase().replace(/ /g, ".") + "@marlow.example";
-        const personal = await invites.create(ws, {
-          instrumentId: instrument.id, kind: "personal", token: token(), email, name: p.name, roleHint: p.role,
-          opensAt: sample.instrument.opensAt, closesAt: sample.instrument.closesAt, remindersSent: p.reminders,
-          lastReminderAt: p.reminders ? new Date("2026-10-10T08:00:00Z") : null,
-        });
-        inviteId = personal.id;
-      }
-      if (p.status === "invited") continue;
-      const response = await responses.create(ws, {
-        instrumentId: instrument.id, itemSetId: set.id, inviteId, deviceToken: token(),
-        fields: { name: p.name, role: p.role }, confidence: p.confidence, signedOff: p.status === "submitted",
-        submittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
-      });
-      responseIds.set(p.n, response.id);
-    }
-    const answerIds = new Map<string, string>();
-    for (const it of sample.items) {
-      for (const [personKey, a] of Object.entries(sample.answers[it.n] ?? {})) {
-        const personN = Number(personKey);
-        const responseId = responseIds.get(personN);
-        if (!responseId) continue;
-        const value = a.kind === "agree" ? it.proposed : a.kind === "change" ? a.value : a.kind === "disagree" ? VALUE_FOR_DISAGREE : null;
-        const row = await answers.create(ws, { responseId, itemSetId: set.id, itemId: itemIds.get(it.n)!, kind: a.kind, value, reason: a.kind === "agree" ? null : a.reason });
-        answerIds.set(`${it.n}:${personN}`, row.id);
-      }
-    }
-    await missingItems.create(ws, { responseId: responseIds.get(sample.missingItem.person)!, text: sample.missingItem.text, suggestedArea: sample.missingItem.suggestedArea });
-    for (const ins of sample.insights) {
-      const cited = ins.cites.map(([i, p]) => answerIds.get(`${i}:${p}`)!);
-      await insights.create(ws, { projectId: project.id, title: ins.title, why: ins.why, citedAnswerIds: cited, state: "open", model: "sample" });
-    }
-    for (const run of sample.aiRuns) await aiRuns.create(ws, { projectId: project.id, ...run });
+  const project = await projects.create(ws, { ...sample.project, name: projectName });
+  const set = await itemSets.create(ws, { projectId: project.id, version: 1, source: "xlsx", sourceFilename: sample.sourceFilename, importReport: sample.importReport });
+  const itemIds = new Map<number, string>();
+  for (const it of sample.items) {
+    const area = sample.areas.find((a) => a.name === it.area);
+    const row = await items.create(ws, {
+      itemSetId: set.id, position: it.n, sourceRef: it.ref, originalText: it.original, readerText: it.reader, readerStatus: "accepted",
+      area: it.area, areaRationale: area?.rationale ?? null, proposedValue: it.proposed, custom: { Details: it.details },
+    });
+    itemIds.set(it.n, row.id);
   }
+  const instrument = await instruments.create(ws, { projectId: project.id, itemSetId: set.id, ...sample.instrument });
+  const publicInvite = await invites.create(ws, { instrumentId: instrument.id, kind: "public", token: token(), opensAt: sample.instrument.opensAt, closesAt: sample.instrument.closesAt });
+  const responseIds = new Map<number, string>();
+  for (const p of sample.people) {
+    let inviteId = publicInvite.id;
+    if (p.invite === "personal") {
+      const email = p.name.toLowerCase().replace(/ /g, ".") + "@marlow.example";
+      const personal = await invites.create(ws, {
+        instrumentId: instrument.id, kind: "personal", token: token(), email, name: p.name, roleHint: p.role,
+        opensAt: sample.instrument.opensAt, closesAt: sample.instrument.closesAt, remindersSent: p.reminders,
+        lastReminderAt: p.reminders ? new Date("2026-10-10T08:00:00Z") : null,
+      });
+      inviteId = personal.id;
+    }
+    if (p.status === "invited") continue;
+    const response = await responses.create(ws, {
+      instrumentId: instrument.id, itemSetId: set.id, inviteId, deviceToken: token(),
+      fields: { name: p.name, role: p.role }, confidence: p.confidence, signedOff: p.status === "submitted",
+      submittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
+    });
+    responseIds.set(p.n, response.id);
+  }
+  const answerIds = new Map<string, string>();
+  for (const it of sample.items) {
+    for (const [personKey, a] of Object.entries(sample.answers[it.n] ?? {})) {
+      const personN = Number(personKey);
+      const responseId = responseIds.get(personN);
+      if (!responseId) continue;
+      const value = a.kind === "agree" ? it.proposed : a.kind === "change" ? a.value : a.kind === "disagree" ? VALUE_FOR_DISAGREE : null;
+      const row = await answers.create(ws, { responseId, itemSetId: set.id, itemId: itemIds.get(it.n)!, kind: a.kind, value, reason: a.kind === "agree" ? null : a.reason });
+      answerIds.set(`${it.n}:${personN}`, row.id);
+    }
+  }
+  await missingItems.create(ws, { responseId: responseIds.get(sample.missingItem.person)!, text: sample.missingItem.text, suggestedArea: sample.missingItem.suggestedArea });
+  for (const ins of sample.insights) {
+    const cited = ins.cites.map(([i, p]) => answerIds.get(`${i}:${p}`)!);
+    await insights.create(ws, { projectId: project.id, title: ins.title, why: ins.why, citedAnswerIds: cited, state: "open", model: "sample" });
+  }
+  for (const run of sample.aiRuns) await aiRuns.create(ws, { projectId: project.id, ...run });
 }

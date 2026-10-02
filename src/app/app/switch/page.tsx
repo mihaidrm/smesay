@@ -1,6 +1,7 @@
 // Choose a workspace (stories/E2-3, acceptance 3 and 5): shown when the person belongs to
-// workspaces but none is current, which happens on the first visit after an invite and when
-// the current one was removed. With no membership at all the create page is the place. Copy:
+// workspaces but none is current: a fresh session with several memberships, or the current
+// one removed (a fresh session with one membership selects it without asking, src/lib/
+// workspace-choice.ts). With no membership at all the create page is the place. Copy:
 // docs/copy/app.md.
 import { redirect } from "next/navigation";
 import { Lockup } from "@/components/brand/mark";
@@ -18,7 +19,7 @@ export default async function SwitchWorkspacePage() {
       <Lockup />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-medium tracking-tight">Choose a workspace</h1>
-        <p className="text-ink-muted">{removed ? "The workspace you were in is no longer available to you. Pick another one to work in." : "Pick the workspace to work in. You can switch any time from the sidebar."}</p>
+        <p className="text-ink-muted">{removed ? "The workspace you were in is no longer available to you. Pick another one to work in." : "Pick the workspace to work in."}</p>
       </div>
       <ul className="flex flex-col gap-2">
         {memberships.map((w) => (

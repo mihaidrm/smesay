@@ -2,8 +2,9 @@
 
 User: Mihai, opening the app on his PC; Claude, testing every later story against known data
 Status: built
-Outcome: `docker compose up -d` and `npm run dev` give a running app with one seeded
-workspace holding the sample project, so there is something to look at from day one.
+Outcome: `docker compose up -d`, `npm run dev` and the first sign-in give a running app with a
+workspace holding the sample project, so there is something to look at from day one; the seed
+itself fills the test fixture the later epics' tests read (amended with E2-3).
 
 ## Acceptance criteria
 1. `npm run db:seed` on a migrated, empty database creates the workspace "Marlow Group" with

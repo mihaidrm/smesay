@@ -59,14 +59,29 @@ Built 2026-10-02.
   workspace (src/app/app/(shell)/workspace-switcher.tsx; picking submits `switchWorkspace`, whose
   id is checked by `requireWorkspace()`, so another workspace's id is 404), the member count, the
   project list; the content column carries the workspace name as the breadcrumb and the Projects
-  table (name, Sample pill, status, "Created with the workspace"). src/app/app/switch is the
-  chooser for a membership without a current workspace (first visit after an invite, or the
-  current one removed, with its own line); no membership at all goes to the create page.
-- Tests: src/lib/workspace-name.test.ts (default name, slug, validation); src/db/seed/
-  seed.test.ts (a second workspace gets its own copy with fresh tokens; the fixture keeps its
-  numbers); src/lib/auth.test.ts and src/db/queries/scoping.test.ts run on migration 0002;
+  table (name, Sample pill, status, "Created with the workspace"). Every sign-in starts a new
+  session row, so a fresh session with one membership selects it without asking
+  (src/lib/workspace-choice.ts); src/app/app/switch is the chooser for a fresh session with
+  several memberships and for a current workspace that was removed (with its own line); no
+  membership at all goes to the create page, and the create action refuses a person who already
+  has one. Error and loading states sit at the /app segment (so the shell's own layout is
+  covered) and src/app/not-found.tsx carries the 404 copy until E11-6.
+- Tests: src/lib/workspace-name.test.ts (default name, slug, validation);
+  src/lib/workspace-choice.test.ts (which workspace a request works in);
+  src/lib/current-workspace.test.ts (acceptance 4: the field is set only by the app, refused by
+  better-auth's public update-session endpoint, and another workspace's id is 404 with the
+  session's own cookie); src/db/queries/onboarding.test.ts (owner, sample copy, the suffixed slug
+  on a taken one); src/db/seed/seed.test.ts (a second workspace gets its own copy with fresh
+  tokens; the fixture keeps its numbers); src/lib/auth.test.ts and scoping.test.ts on migration 0002;
   e2e/workspace.spec.ts (sign in, the default name, the server-side error, create, the sample
   row, the create page sends a member back). Screenshots in design note 16.
 - Copy: docs/copy/app.md (Workspace step, Signed-in shell) and errors.md (the name error).
-- Not in this story: members and invites (E2-4), settings (E2-5), the quickstart (E12-2),
-  the project counts and New project (E3-1), deleting the sample (E8-8).
+- Not in this story: members and invites (E2-4), settings (E2-5), the quickstart after naming
+  (E12-2, named in acceptance 1), the watermark (E8-8, named in acceptance 2), the project
+  counts and New project (E3-1), deleting the sample (E8-8). Each workspace's sample carries
+  working invite tokens; E7-1 and E8-8 keep them closed to outsiders.
+- Audit of 2026-10-02 (fresh context, 14 findings): the blocking one (acceptance 4 had no test)
+  and the should-fix ones (a fresh session sent a one-workspace person to the chooser; the create
+  action did not check for an existing membership on the server; no error, loading or 404 state
+  outside the shell; two wrong citations; the design system had no grey-100 row; no test of the
+  slug retry) were closed the same day in the pull request after the story's.
