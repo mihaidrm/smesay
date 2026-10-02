@@ -168,6 +168,8 @@ describe("magic link", () => {
       const part = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
       return `${part({ alg: "none", typ: "JWT" })}.${part(claims)}.`;
     };
+    // The sub (Google's account id) is unique per run: better-auth finds an existing account
+    // by provider and account id first, so a reused sub would sign in an earlier run's user.
     async function googleSignIn(profile: { email: string; email_verified: boolean; sub: string }, callbackURL = "/app") {
       const started = await withGoogle.handler(new Request(`${base}/api/auth/sign-in/social`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ provider: "google", callbackURL, errorCallbackURL: GOOGLE_ERROR_PATH, disableRedirect: true }) }));
       const { url } = (await started.json()) as { url: string };
@@ -201,7 +203,7 @@ describe("magic link", () => {
       await magicLinkSignIn(email);
       const before = await userFor(email);
       expect(before?.user.emailVerified).toBe(true);
-      const res = await googleSignIn({ email, email_verified: true, sub: "g-1" });
+      const res = await googleSignIn({ email, email_verified: true, sub: `g-1-${Date.now()}` });
       expect(res.status).toBe(302);
       expect(res.headers.get("location")).toMatch(/^(http:\/\/localhost:3000)?\/app$/);
       const cookie = sessionCookie(res);
@@ -215,7 +217,7 @@ describe("magic link", () => {
 
     it("refuses an unverified Google email for a new address: no user, no session, the refusal page (acceptance 3)", async () => {
       const email = `google-unverified-${Date.now()}@example.com`;
-      const res = await googleSignIn({ email, email_verified: false, sub: "g-2" });
+      const res = await googleSignIn({ email, email_verified: false, sub: `g-2-${Date.now()}` });
       expect(res.status).toBe(302);
       expect(res.headers.get("location")).toContain(GOOGLE_ERROR_PATH);
       expect(res.headers.getSetCookie().some((c) => c.includes("session_token=") && !c.includes("session_token=;"))).toBe(false);
@@ -225,7 +227,7 @@ describe("magic link", () => {
     it("refuses an unverified Google email for an existing user, and sends a state error to the same page", async () => {
       const email = `google-existing-${Date.now()}@example.com`;
       await magicLinkSignIn(email);
-      const res = await googleSignIn({ email, email_verified: false, sub: "g-3" });
+      const res = await googleSignIn({ email, email_verified: false, sub: `g-3-${Date.now()}` });
       expect(res.status).toBe(302);
       expect(res.headers.get("location")).toContain(GOOGLE_ERROR_PATH);
       expect((await userFor(email))?.user.emailVerified).toBe(true);
