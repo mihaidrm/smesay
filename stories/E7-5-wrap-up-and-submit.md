@@ -38,6 +38,8 @@ confirms, and submits once; a second submit updates.
 - None. The receipt lists counts only, with the link (decision 0031).
 
 ## Technical notes
+Submission calls `withinPlan(ws, "responses")` (E2-6) before marking the response submitted;
+always true on the free entry.
 missing_item (text, suggested_area, and a suggested value column added in migration 0002
 with the closing answer column on response, `closing_answer`); INTERFACES.md first. The tally
 and sections reuse the respondent board's bucket rules.

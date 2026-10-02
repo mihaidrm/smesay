@@ -29,6 +29,8 @@ projects shows where each one stands.
 - None.
 
 ## Technical notes
+Project creation calls `withinPlan(ws, "projects")` (E2-6) before inserting; always true on the
+free entry.
 Columns project.context_goal and project.context_terms (docs/schema.md). The stepper is one
 component (src/components/app/stepper.tsx) used by every step page. Status is derived: Draft
 until an instrument is published, Open while a link is open, Closed after the close date or

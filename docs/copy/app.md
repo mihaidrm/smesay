@@ -48,6 +48,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Budget card title | AI budget |
 | Budget line | EUR [BUDGET] per month, EUR [SPENT] used this month |
 | Budget note | The budget is not editable on the Free plan. A run that would exceed it is refused and shows the shortfall. |
+| Usage line under the budget (E2-6) | [N] projects, [N] responses this month, [N] AI runs this month. |
 | Plan card title and value | Plan, Free |
 | Plan pill | While we build it with the first users |
 | Plan note | Paid plans come later. Nothing you build now is lost or locked. |

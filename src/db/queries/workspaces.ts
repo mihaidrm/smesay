@@ -7,6 +7,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { workspace, workspaceMember } from "@/db/schema";
+import type { PlanKey } from "@/db/types";
 import { isUuid, type WorkspaceId } from "./scoped";
 
 export type Workspace = typeof workspace.$inferSelect;
@@ -37,6 +38,9 @@ export const workspaces = {
     if (Object.keys(values).length === 0) return (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
     return (await db.update(workspace).set(values).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null;
   },
+  // The workspace a request works in, by its checked id (stories/E2-6 reads the plan from it).
+  getById: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
+    (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null,
   // The brand of a workspace for a public page (stories/E2-5): the respondent side and the logo
   // route show the name, logo and accent to people with no session. Only those three fields;
   // a non-uuid or unknown id is null, so nothing else is learned about a workspace.
@@ -45,6 +49,10 @@ export const workspaces = {
     return (await db.select({ name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey })
       .from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
   },
+  // Switches a workspace's plan (stories/E2-6, acceptance 4): a column change, with no screen
+  // until R3; the id is the session's as everywhere.
+  setPlan: async (workspaceId: WorkspaceId, plan: PlanKey): Promise<Workspace | null> =>
+    (await db.update(workspace).set({ plan }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
   // Starts the 24-hour removal (E11-2): the workspace disappears from every read at once.
   markDeleted: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
     (await db.update(workspace).set({ deletedAt: new Date() }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
