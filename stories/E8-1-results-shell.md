@@ -18,8 +18,16 @@ before the first answer.
    results.ts), computed in the database, not in the browser (CLAUDE.md, dashboard rules), and
    reconciles with E10-1's items CSV to the row; the reconciliation test is written here
    against the seed and extended in E10.
-5. The sample project shows the same page with the watermark (E8-8).
-6. Playwright: open the seeded project's Results, see "5 of 7" and 67%.
+5. Unsubmitted answers (decision 0030): the answers of a respondent who has not submitted
+   appear in every number, register and detail, marked as not submitted (the respondent's
+   status pill and a "not submitted" mark on the row). A switch at the top of Results,
+   "Include unsubmitted answers", defaults on; off removes them from the headline strip, the
+   charts, the tally, the registers and the item detail, and the setting is kept per PM. A
+   test checks the strip with the switch on and off against the seed (the in-progress
+   respondent has 4 answers).
+6. The sample project shows the same page with the watermark (E8-8).
+7. Playwright: open the seeded project's Results, see "5 of 7" and 67% with the switch off,
+   and the counts including the 4 unsubmitted answers with it on.
 
 ## Out of scope
 - Each tab's content: E8-2 to E8-6. Live updates: E8-7.
@@ -28,6 +36,7 @@ before the first answer.
 - None.
 
 ## Technical notes
-Agreement counts only submitted responses (E7-1's recommendation; changes if Mihai decides
-otherwise). "Pushed back" is kind change; "disagreed" is kind disagree (decision 0014 keeps
-them apart); the Pushed back tab shows both registers.
+The include-unsubmitted switch is one parameter on every results query
+(src/db/queries/results.ts), so the CSV export (E10-1) takes the same parameter and the
+reconciliation holds in both positions. "Pushed back" is kind change; "disagreed" is kind
+disagree (decision 0014 keeps them apart); the Pushed back tab shows both registers.

@@ -25,10 +25,9 @@ item, a missed item or a changed meaning.
 - Evals for insights (E9): their own small set, written in E9-1.
 
 ## Open questions
-- The repository secret. Decision 0006 keeps accounts personal until the launch gate; a key
-  in GitHub Actions is a personal key on Mihai's account. Recommend: Mihai adds his key as a
-  repository secret with the EUR 50 limit set in the Console; until then the job skips and
-  Mihai runs `npm run evals` on his PC before accepting E4. Mihai decides.
+- None. Mihai provides the key when this story is built and a real run is needed (decision
+  0030); Claude reminds him then. Until then the CI job skips and the runner is tested with
+  the fake transport.
 
 ## Technical notes
 run.ts uses the E4-1 client with purpose "shape" against a throwaway workspace id so the

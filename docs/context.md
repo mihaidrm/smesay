@@ -37,8 +37,8 @@ Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
 
 Waiting on Mihai:
-1. Partial responses: do unsubmitted answers reach the PM, and how are they marked? And may a
-   closed public link show any per-device state? (reviewer findings 26 and 33, note 12.)
+1. May a closed public link show any per-device state? (note 12, finding 33; recommended: no.)
+   Partial responses are decided (decision 0030).
 2. Colour: whether the PM app and marketing move primary actions and selection to teal, or stay
    ink (raised 2026-10-01; recommendation in the session log).
 3. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
@@ -51,14 +51,15 @@ Waiting on Mihai:
 6. From the stories written on 2026-10-01 (decision 0029), each with a recommendation in the
    story file: E2-2 whether to create the Google and Microsoft developer accounts now; E3-6 the
    new-version banner copy in docs/copy/errors.md; E4-3 hand editing of a reader version in R1;
-   E4-6 an Anthropic key as a repository secret for the evals job; E6-2 reply-to and sender
-   name on invites; E7-5 receipt with counts only or the answers; E8-4 "Add as item" in R1 or
-   not; E8-6 the small-group threshold (3); E12-4 whether the sample instrument stores
-   nothing. E7-1 carries item 1 above.
+   E6-2 reply-to and sender name on invites; E7-5 receipt with counts only or the answers;
+   E8-4 "Add as item" in R1 or not; E8-6 the small-group threshold (3); E12-4 whether the
+   visitors' sample instrument keeps their answers anonymously or stores nothing. The evals
+   key (E4-6) is not open: Mihai provides it when E4-6 is built (decision 0030).
 The trademark search waits for the launch gate (decisions 0012, 0014).
 
 Next tasks for Claude: E1-3 workspace scoping and E1-4 seed, then E2 in story order
-(stories/backlog.md). Every story exists; a story is rewritten when Mihai sends a direction.
+(stories/backlog.md). Every story exists (67 in 13 epics); a story is rewritten when Mihai
+sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):
@@ -76,7 +77,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about early March 2027): Done 0 of 12 steps. Left: 12 steps
+Phase 3, R1 build, thirteen epics in order (about 41 sessions, 20 weeks, to about mid March 2027): Done 0 of 13 steps. Left: 13 steps
 - E1 Foundation: building.
 - E2 Accounts: open.
 - E3 Import: open.
@@ -89,6 +90,7 @@ Phase 3, R1 build, twelve epics in order (about 39 sessions, 19 weeks, to about 
 - E10 Exports: open.
 - E11 Trust: open.
 - E12 Landing and onboarding: open.
+- E13 Analytics for us: open.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;

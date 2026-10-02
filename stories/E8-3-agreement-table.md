@@ -15,7 +15,7 @@ Outcome: a table per area with a stacked bar per item that matches the CSV expor
 3. Coverage per perspective (E5-4): a column "answered of could see" when perspectives exist.
 4. Every count equals the row in the items CSV (E10-1) and every per-item sum equals the
    answers CSV filtered to that item: a test exports both on the seed and on 600 generated
-   responses and compares every cell.
+   responses and compares every cell, with the include-unsubmitted switch (E8-1) on and off.
 5. Aggregates run in SQL (group by item and kind); the 600-response case stays under 500 ms.
 6. Clicking an item opens the item detail (E8-5).
 

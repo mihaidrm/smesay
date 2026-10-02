@@ -13,7 +13,8 @@ Outcome: one table of every respondent with filters by respondent field and by p
    perspective (E5-4). Filters are in the URL so a filtered view can be shared within the
    workspace.
 3. Public-link responses with no name field show "Anonymous [N]" in order of first answer.
-4. In-progress rows show the count answered and are not counted in agreement (E8-1 note).
+4. In-progress rows show the count answered; their answers count in the numbers while the
+   include-unsubmitted switch is on (E8-1, decision 0030).
 5. Sort by any column; 500 rows render under 500 ms from the SQL query (measured in a test
    against generated rows, decision 0004 keeps it to one measurement).
 6. Playwright: filter the seeded project by role Sales, see three rows.

@@ -29,10 +29,9 @@ fields the PM asked for, and Start lands on the first chapter.
 - Rating: E7-2. Autosave: E7-3. Theming details beyond logo and accent: E7-7.
 
 ## Open questions
-- Partial responses and the closed page (docs/context.md, Waiting on Mihai item 1): whether
-  unsubmitted answers reach the PM and how they are marked. Recommend: they reach the
-  dashboard marked "In progress" with the count answered, never counted in agreement until
-  submitted, and the closed public page says nothing about them. E8-2 follows the answer.
+- Whether a closed public link shows any per-device state (note 12, finding 33). Recommend:
+  it shows nothing. Partial responses themselves are decided (decision 0030): unsubmitted
+  answers reach the dashboard, marked as not submitted, with a PM switch to exclude them.
 
 ## Technical notes
 The respondent app lives under src/app/r/[token]/ and never imports the PM app's session

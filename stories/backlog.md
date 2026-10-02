@@ -1,4 +1,4 @@
-# R1 backlog: twelve epics, in build order
+# R1 backlog: thirteen epics, in build order
 
 E1  Foundation: repo, CI, schema v1, migrations, workspace scoping, local Docker Postgres and RustFS, seed; deploy deferred to the launch gate (decision 0006). Stories E1-1 to E1-5 written 2026-10-01.
 E2  Accounts and workspaces: magic link, Google, Microsoft; workspace on first sign-in and switcher; members, owner and member roles; settings (name, logo, accent, AI budget); plan table and usage counters (decision 0008). Stories E2-1 to E2-6.
@@ -10,10 +10,11 @@ E7  Respondent experience: link landing and states, rating with mandatory reason
 E8  Dashboard: results shell, tracker, agreement per item and area, registers, item detail, conflict view, live updates, sample project. Stories E8-1 to E8-8.
 E9  Insights: actions with citations, done or dismissed, cost per run. Stories E9-1 to E9-3.
 E10 Exports: CSV, JSON export and import, PDF summary. Stories E10-1 to E10-3.
-E11 Trust and compliance: rate limiting, export and deletion, legal pages, backups, Sentry and Plausible with security headers, error pages. Stories E11-1 to E11-6.
+E11 Trust and compliance: rate limiting, export and deletion, legal pages, backups, Sentry and security headers, error pages. Stories E11-1 to E11-6.
 E12 Landing and onboarding: landing page, quickstart, transactional emails, the sample instrument for visitors. Stories E12-1 to E12-4.
+E13 Analytics for us: product event catalogue and log, an admin page with the funnel and usage per workspace, visitor analytics on the landing page and the PM app (decision 0030). Stories E13-1 to E13-3.
 
-All 64 stories were written on 2026-10-01 (decision 0029) from docs/business-plan.pdf pages 9 to
+64 stories were written on 2026-10-01 (decision 0029) and E13's three on 2026-10-02 (decision 0030), from docs/business-plan.pdf pages 9 to
 15, the decisions, the design notes, the prototype boards and docs/copy/. A story is rewritten
 when an earlier epic changes what it depends on; Mihai sends the direction. Open questions from
 the stories are listed in docs/context.md.
