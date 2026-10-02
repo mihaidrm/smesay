@@ -52,7 +52,8 @@ time (UTC+3); the import report is the Import step's (6 rows, header on row 1, n
 skipped, expense-requirements.xlsx). Tokens are fresh from crypto.randomBytes(16) on every
 run, so nothing in the repository opens a link and two workspaces seeded with the sample
 (E8-8) never collide. The fourth action cites a missing item, for which schema v1 has no
-column: it is seeded without a citation until decision 0033 part 2 is answered. "Office
+column until E9-1 adds cited_missing_item_ids (decision 0033): it is seeded without a
+citation until then. "Office
 manager" was added to the respondent board's role list (respondent-generator.py, both boards
 regenerated) so Sam Hill's role exists. Agree answers carry the proposed value as their value;
 unclear answers carry the question in `reason`. A seed killed half way (no thrown error)

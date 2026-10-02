@@ -82,9 +82,9 @@ export const answers: Record<number, Record<number, A>> = {
 
 export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in.", suggestedArea: "Submitting" };
 
-// Four actions; cites are (item, person) answer pairs. The fourth action cites the missing item,
-// for which schema v1 has no column (decision 0033, waiting for Mihai): it is seeded without a
-// citation until then.
+// Four actions; cites are (item, person) answer pairs. The fourth action cites the missing item;
+// its column (cited_missing_item_ids) arrives with E9-1 (decision 0033), so it is seeded without
+// a citation until then.
 export const insights = [
   { n: 1, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][] },
   { n: 2, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][] },

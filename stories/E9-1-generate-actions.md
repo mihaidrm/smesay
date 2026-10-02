@@ -12,7 +12,8 @@ it comes from; an action without a citation is never shown.
 2. The model receives the items, the registers (pushed back, disagree, unclear, missing) and
    the project context (E4-5) as data, and returns actions of four kinds: items to rewrite,
    group conflicts, follow-ups (open questions), low-coverage areas. Output validated against
-   a JSON schema; a cited answer id that does not exist drops the action (SECURITY.md, AI).
+   a JSON schema; a cited answer or missing-item id that does not exist drops the action
+   (SECURITY.md, AI).
 3. An action without at least one valid citation is dropped before display (business plan
    E9); a test feeds an uncited action and sees it gone.
 4. Actions are stored as insight rows with cited_answer_ids, model, tokens and cost
@@ -31,6 +32,8 @@ it comes from; an action without a citation is never shown.
 - None.
 
 ## Technical notes
-Prompt in src/lib/ai/prompts/insights.md; the citation ids are answer ids and missing_item
-ids; INTERFACES.md gets InsightOutput before the first run. The four seeded actions (E1-4)
-are the fixture for tests.
+Prompt in src/lib/ai/prompts/insights.md. Citations are two lists: answer ids in
+insight.cited_answer_ids and missing-item ids in insight.cited_missing_item_ids (uuid[], added
+in migration 0002 by this story; decision 0033). INTERFACES.md gets InsightOutput with both
+before the first run. The four seeded actions (E1-4) are the fixture for tests; the seed fills
+the fourth action's missing-item citation once the column exists.
