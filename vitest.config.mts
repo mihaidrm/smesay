@@ -25,6 +25,11 @@ export default defineConfig({
       BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
       MAIL_SMTP_URL: "memory:",
       EMAIL_FROM: "SMEsay <sign-in@localhost>",
+      // Objects go to the memory store (src/lib/storage.ts); the other S3 values are unused then.
+      S3_ENDPOINT: "memory:",
+      S3_BUCKET: "uploads",
+      S3_ACCESS_KEY_ID: "unused",
+      S3_SECRET_ACCESS_KEY: "unused",
     },
   },
 });

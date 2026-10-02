@@ -37,6 +37,14 @@ export const workspaces = {
     if (Object.keys(values).length === 0) return (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
     return (await db.update(workspace).set(values).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null;
   },
+  // The brand of a workspace for a public page (stories/E2-5): the respondent side and the logo
+  // route show the name, logo and accent to people with no session. Only those three fields;
+  // a non-uuid or unknown id is null, so nothing else is learned about a workspace.
+  publicBrand: async (workspaceId: string): Promise<{ name: string; accentHex: string | null; logoObjectKey: string | null } | null> => {
+    if (!isUuid(workspaceId)) return null;
+    return (await db.select({ name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey })
+      .from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
+  },
   // Starts the 24-hour removal (E11-2): the workspace disappears from every read at once.
   markDeleted: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
     (await db.update(workspace).set({ deletedAt: new Date() }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,

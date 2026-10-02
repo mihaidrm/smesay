@@ -35,6 +35,9 @@ Done so far:
   src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
   /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
   docs/copy/app.md.
+- Settings (stories/E2-5, built 2026-10-02): name, logo (object store through
+  src/lib/storage.ts, served at /brand/[workspaceId]/logo) and accent with the contrast rule
+  (src/lib/brand-rules.ts); the respondent side applies them with E7-1.
 - Members (stories/E2-4, built 2026-10-02): Settings, Members with invite (a workspace_invite
   row plus E2-1's link, accepted on the invitee's first request), roles and removal; the
   permission check is can() in src/lib/permissions.ts, enforced in src/lib/members.ts.
@@ -62,7 +65,7 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key comes when E4-6 is built. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E2-5 (settings), then E2-6; E2-2 when the developer accounts exist
+Next tasks for Claude: E2-6, then E3 in story order; E2-2 when the developer accounts exist
 (decision 0031). Every story exists (67 in 13 epics); a story is rewritten when Mihai
 sends a direction. Remind Mihai for the Anthropic key when E4-6 is built.
 

@@ -34,6 +34,10 @@ fields the PM asked for, and Start lands on the first chapter.
   0030).
 
 ## Technical notes
+The header's logo and accent come from E2-5: `workspaces.publicBrand()`, the logo at
+/brand/[workspaceId]/logo (24 px) and `effectiveAccent()` in src/lib/brand-rules.ts, which
+falls back to teal under 4.5:1 on white (E2-5, acceptance 2 and 3; its Playwright test of the
+colour on the chapter row belongs here).
 Every workspace's sample project (E2-3) carries working invite tokens and an instrument with
 fixed dates (src/db/seed/sample.ts); this story must not let those links collect answers from
 outsiders: the sample instrument is treated as not published to the public (E8-8, acceptance 2).

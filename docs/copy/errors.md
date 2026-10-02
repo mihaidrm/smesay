@@ -29,6 +29,13 @@ of the content; page means it replaces the screen.
 | Inline, member row | Removing or demoting the last owner | This workspace needs at least one owner. Make someone else an owner first. |
 | Inline, member row or invite field | A member tries an owner action (the server answers 403) | Only an owner of this workspace can do this. |
 | Banner, settings | Accent colour under 4.5:1 on white | This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours. |
+| Inline, settings name | Workspace name empty or over 80 characters | Enter a name for your workspace, up to 80 characters. |
+| Inline, settings accent | Accent not a hex colour | Enter the colour as six hex digits, like #1F4F7A. |
+| Inline, settings logo | File over 1 MB | The logo is over 1 MB. Export a smaller PNG or SVG and try again. |
+| Inline, settings logo | File is not a PNG or an SVG by content | The file is not a PNG or an SVG. Export the logo as one of those and try again. |
+| Inline, settings logo | SVG with a script or an event handler | The SVG contains a script or an event handler, so it was refused. Export it again without them. |
+| Inline, settings logo | Upload pressed with no file | Choose a PNG or SVG file first. |
+| Banner, settings | Save by a member (the server answers 403) | Only an owner of this workspace can do this. |
 | Page | Workspace deleted by its owner | This workspace was deleted on [DATE]. Its data is removed within 24 hours. Contact [OWNER EMAIL] if you did not expect this. |
 
 ## Import (E3)
