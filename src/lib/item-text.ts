@@ -9,17 +9,20 @@ export type ReaderFields = { originalText: string; readerText: string | null; re
 
 const fold = (s: string) => s.replace(/\s+/g, " ").trim();
 
+export const READER_MAX = 1000;
+
 export function textFor(item: ReaderFields): string {
-  return item.readerStatus === "accepted" && item.readerText ? item.readerText : item.originalText;
+  return item.readerStatus === "accepted" && item.readerText && fold(item.readerText) !== "" ? item.readerText : item.originalText;
 }
 
 export function readerIsOriginal(item: ReaderFields): boolean {
   return item.readerText !== null && fold(item.readerText) === fold(item.originalText);
 }
 
-// An item with a reader version worth a decision: one exists and differs from the original.
+// An item with a reader version worth a decision: one exists, is not blank and differs from
+// the original.
 export function hasReaderVersion(item: ReaderFields): boolean {
-  return item.readerText !== null && !readerIsOriginal(item);
+  return item.readerText !== null && fold(item.readerText) !== "" && !readerIsOriginal(item);
 }
 
 export function readerCounts(items: ReaderFields[]): { accepted: number; total: number } {

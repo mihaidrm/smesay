@@ -37,7 +37,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <h2 className="text-xl font-normal">{SHAPE_COPY.title}</h2>
           {set && rows.length > 0 && !project.isSample && (
             <div className="flex flex-wrap items-center gap-2">
-              {shaped && <ReaderAll projectId={project.id} suggested={suggested} />}
+              {shaped && <ReaderAll key={suggested} projectId={project.id} suggested={suggested} />}
               <ShapeButton projectId={project.id} shaped={shaped} />
             </div>
           )}

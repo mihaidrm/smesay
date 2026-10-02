@@ -19,6 +19,9 @@ describe("textFor", () => {
     expect(hasReaderVersion({ originalText: original, readerText: original, readerStatus: "suggested" })).toBe(false);
     expect(hasReaderVersion({ originalText: original, readerText: reader, readerStatus: "suggested" })).toBe(true);
     expect(hasReaderVersion({ originalText: original, readerText: null, readerStatus: null })).toBe(false);
+    // A blank version is no version, and never what an item shows.
+    expect(hasReaderVersion({ originalText: original, readerText: "  ", readerStatus: "suggested" })).toBe(false);
+    expect(textFor({ originalText: original, readerText: " ", readerStatus: "accepted" })).toBe(original);
   });
   it("counts accepted of those worth a decision", () => {
     expect(readerCounts([

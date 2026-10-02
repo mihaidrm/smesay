@@ -175,7 +175,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Item: the reader version, then the original under it (E4-3) | [reader version] / Original: [original] |
 | Item: the reader version is the original again (E4-3) | The readable version is the same as the original, so there is nothing to accept. (no pill, no buttons) |
 | Item pills (E4-3; pushed back, agree and disagree tints) | Suggested / Reader version used / Original kept |
-| Item buttons (E4-3) | Accept, Edit, Reject while suggested; Undo once decided; Save and Cancel in the edit, whose field is labelled "Readable version of [ref]" |
+| Item buttons (E4-3) | Accept, Edit, Reject while suggested; Undo once decided; Save and Cancel in the edit, whose field is labelled "Readable version of [ref]". Saving the original's own words back counts as Reject: the original is kept and the suggestion stays for Undo. |
 | Item without a reader version, through the server (E4-3) | This item has no reader version. Run Shape with AI first. |
 | Area header | [Name] [rationale, the model's one sentence] |
 | Group of items without an area, before a run | Not shaped yet |

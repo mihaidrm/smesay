@@ -18,7 +18,7 @@ import { memoryOutbox } from "@/lib/mail";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { areaNames, checkShape, cleanDuplicateOf, decideAllReaders, decideReader, editReader, groupByArea, hadImportedAreas, moveItemTo, SHAPE_COPY, shapeSet } from "@/lib/shaping";
 import { readerCounts, textFor } from "@/lib/item-text";
-import { setReaderStatus, setReaderStatusForSet } from "@/db/queries/shaping";
+import { setReaderStatus, setReaderStatusForItems } from "@/db/queries/shaping";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 
@@ -277,8 +277,21 @@ describe("reader versions (stories/E4-3)", () => {
     const edited = await editReader(a, withAreas, first.id, "  Receipts  by phone, in\nplain words ");
     expect("item" in edited && edited.item).toMatchObject({ readerStatus: "accepted", readerText: "Receipts by phone, in plain words", originalText: first.originalText });
     await expect(decideReader(b, withAreas, first.id, "accept")).rejects.toBeInstanceOf(NotFoundError);
-    expect(await setReaderStatus(b.ws, first.id, "rejected")).toBeNull();
+    await expect(editReader(b, withAreas, first.id, "x")).rejects.toBeInstanceOf(NotFoundError);
+    expect(await setReaderStatus(b.ws, first.id, "rejected", ["accepted"])).toBeNull();
     expect((await items.get(a.ws, first.id))?.readerStatus).toBe("accepted");
+    // Undo after an edit keeps the edited text as the suggestion.
+    const undoneEdit = await decideReader(a, withAreas, first.id, "undo");
+    expect("item" in undoneEdit && undoneEdit.item).toMatchObject({ readerStatus: "suggested", readerText: "Receipts by phone, in plain words" });
+    // Accept applies to a suggested version only: on a decided one it changes nothing.
+    await decideReader(a, withAreas, first.id, "reject");
+    expect(await setReaderStatus(a.ws, first.id, "accepted", ["suggested"])).toBeNull();
+    expect((await items.get(a.ws, first.id))?.readerStatus).toBe("rejected");
+    // An edit over 1,000 characters is refused; one that writes the original back rejects.
+    expect(await editReader(a, withAreas, first.id, "x".repeat(1001))).toEqual({ error: SHAPE_COPY.longEdit(1001) });
+    const sameAgain = await editReader(a, withAreas, first.id, `  ${first.originalText}  `);
+    expect("item" in sameAgain && sameAgain.item).toMatchObject({ readerStatus: "rejected", readerText: "Receipts by phone, in plain words" });
+    await editReader(a, withAreas, first.id, "Receipts by phone, in plain words");
   });
 
   it("refuses the sample and an item without a reader version", async () => {
@@ -295,30 +308,51 @@ describe("reader versions (stories/E4-3)", () => {
   it("accepts all and rejects all over the suggested ones of the latest set, in one update each", async () => {
     const set = (await latestSet(a.ws, withAreas))!;
     const before = await items.forSet(a.ws, set.id);
-    // Item 1 is accepted by the edit above; the other four are suggested.
-    expect(readerCounts(before)).toEqual({ accepted: 1, total: 5 });
-    expect(await decideAllReaders(a, withAreas, "accept")).toEqual({ count: 4 });
-    expect(readerCounts(await items.forSet(a.ws, set.id))).toEqual({ accepted: 5, total: 5 });
+    // Item 1 is accepted by the edit above; item 5's version is the original again, give or
+    // take whitespace, so it is nothing to accept; items 2, 3 and 4 are suggested.
+    const fifth = before.find((r) => r.position === 5)!;
+    await setReaderStatus(a.ws, fifth.id, "suggested", ["suggested"], `  ${fifth.originalText.replace(" ", "  ")} `);
+    const rows = await items.forSet(a.ws, set.id);
+    expect(readerCounts(rows)).toEqual({ accepted: 1, total: 4 });
+    expect(await decideReader(a, withAreas, fifth.id, "accept")).toEqual({ error: SHAPE_COPY.sameAsOriginal });
+    expect(await decideAllReaders(a, withAreas, "accept")).toEqual({ count: 3 });
+    const after = await items.forSet(a.ws, set.id);
+    expect(readerCounts(after)).toEqual({ accepted: 4, total: 4 });
+    expect(after.find((r) => r.position === 5)?.readerStatus).toBe("suggested");
     expect(await decideAllReaders(a, withAreas, "reject")).toEqual({ count: 0 });
     const second = before.find((r) => r.position === 2)!;
     await decideReader(a, withAreas, second.id, "undo");
     expect(await decideAllReaders(a, withAreas, "reject")).toEqual({ count: 1 });
     expect((await items.get(a.ws, second.id))?.readerStatus).toBe("rejected");
-    expect(await setReaderStatusForSet(b.ws, set.id, "accepted")).toBe(0);
+    // An older version of the same project is left alone.
+    const older = before.map((r) => r.id);
+    const newer = await importList(a, withAreas, ["- Only one | Submitting | Must", "- And two | Paying | Should"]);
+    const { fetch } = transport(answer([{ name: "Submitting", items: ["1"] }, { name: "Paying", items: ["2"] }], ["1", "2"]));
+    const shaped = await shapeSet(a, withAreas, { fetch });
+    if ("error" in shaped) throw new Error(shaped.error);
+    expect(shaped.set.id).toBe(newer.id);
+    expect(await decideAllReaders(a, withAreas, "accept")).toEqual({ count: 2 });
+    expect((await items.forSet(a.ws, set.id)).map((r) => [r.id, r.readerStatus])).toEqual(after.map((r) => [r.id, r.id === second.id ? "rejected" : r.readerStatus]));
+    expect(older.every((id) => after.some((r) => r.id === id))).toBe(true);
+    expect(await setReaderStatusForItems(b.ws, newer.id, (await items.forSet(a.ws, newer.id)).map((r) => r.id), "rejected")).toBe(0);
     await expect(decideAllReaders(b, withAreas, "accept")).rejects.toBeInstanceOf(NotFoundError);
   });
 
-  it("a re-run replaces suggested reader versions and leaves accepted and rejected ones", async () => {
+  it("a re-run replaces suggested reader versions and leaves accepted and rejected ones, and refuses a blank one", async () => {
     const set = (await latestSet(a.ws, withAreas))!;
     const rows = await items.forSet(a.ws, set.id);
-    const third = rows.find((r) => r.position === 3)!;
-    await decideReader(a, withAreas, third.id, "undo");
-    const { fetch } = transport({ ...answer([{ name: "Submitting", items: ["1", "5"] }, { name: "Approving", items: ["2", "6"].filter((r) => rows.some((x) => String(x.position) === r)) }, { name: "Paying", items: ["3", "4"] }], ["1", "2", "3", "4", "5"]), items: ["1", "2", "3", "4", "5"].map((r) => ({ ref: r, reader: `New reader ${r}`, flags: { ambiguity: null, duplicateOf: null } })) });
+    expect(rows).toHaveLength(2);
+    const [one, two] = rows;
+    await decideReader(a, withAreas, one.id, "undo");
+    await decideReader(a, withAreas, two.id, "undo");
+    await decideReader(a, withAreas, two.id, "reject");
+    const blank = transport({ ...answer([{ name: "Submitting", items: ["1"] }, { name: "Paying", items: ["2"] }], ["1", "2"]), items: [{ ref: "1", reader: "  ", flags: { ambiguity: null, duplicateOf: null } }, { ref: "2", reader: "x", flags: { ambiguity: null, duplicateOf: null } }] });
+    expect(await shapeSet(a, withAreas, blank)).toEqual({ error: AI_COPY.invalid, retry: true });
+    const { fetch } = transport({ ...answer([{ name: "Submitting", items: ["1"] }, { name: "Paying", items: ["2"] }], ["1", "2"]), items: ["1", "2"].map((r) => ({ ref: r, reader: `  New   reader ${r} `, flags: { ambiguity: null, duplicateOf: null } })) });
     const again = await shapeSet(a, withAreas, { fetch });
     if ("error" in again) throw new Error(again.error);
     const after = await items.forSet(a.ws, set.id);
-    expect(after.find((r) => r.position === 1)).toMatchObject({ readerStatus: "accepted", readerText: "Receipts by phone, in plain words" });
-    expect(after.find((r) => r.position === 2)).toMatchObject({ readerStatus: "rejected", readerText: "Reader 2" });
-    expect(after.find((r) => r.position === 3)).toMatchObject({ readerStatus: "suggested", readerText: "New reader 3" });
+    expect(after[0]).toMatchObject({ readerStatus: "suggested", readerText: "New reader 1" });
+    expect(after[1]).toMatchObject({ readerStatus: "rejected", readerText: "Reader 2" });
   });
 });

@@ -33,28 +33,32 @@ export function ReaderText({ item, original }: { item: ReaderState; original: st
   );
 }
 
+// The edit form is its own component, mounted while editing, so Cancel drops its state and
+// a reopened form starts clean.
+function ReaderEdit({ projectId, itemId, ref, text, onCancel }: { projectId: string; itemId: string; ref: string; text: string; onCancel: () => void }) {
+  const [editState, editAction, editPending] = useActionState<ProjectFormState, FormData>(editReaderAction, NONE);
+  return (
+    <form action={editAction} className="flex w-full flex-col gap-2" data-testid="reader-edit">
+      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="itemId" value={itemId} />
+      <label htmlFor={`reader-${itemId}`} className="sr-only">{SHAPE_COPY.editLabel(ref)}</label>
+      <Textarea id={`reader-${itemId}`} name="text" defaultValue={text} rows={2} maxLength={1200} className="min-h-14 text-[15px]" />
+      {editState.error && <p id={`reader-error-${itemId}`} role="alert" className="text-sm text-danger">{editState.error}</p>}
+      <div className="flex gap-1.5">
+        <Button type="submit" size="small" loading={editPending}>{SHAPE_COPY.save}</Button>
+        <Button type="button" size="small" variant="secondary" onClick={onCancel} disabled={editPending}>{SHAPE_COPY.cancel}</Button>
+      </div>
+    </form>
+  );
+}
+
 export function ReaderControls({ projectId, itemId, ref, item, readOnly }: { projectId: string; itemId: string; ref: string; item: ReaderState; readOnly: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(readerAction, NONE);
-  const [editState, editAction, editPending] = useActionState<ProjectFormState, FormData>(editReaderAction, NONE);
   const [editing, setEditing] = useState(false);
   if (item.reader === null || item.same || item.status === null) return null;
   const pill = <span data-testid="reader-pill" className={cn("inline-flex h-5 items-center rounded-full px-2.5 text-xs font-medium leading-none", PILL[item.status])}>{SHAPE_COPY.pill[item.status]}</span>;
   if (readOnly) return pill;
-  if (editing) {
-    return (
-      <form action={editAction} className="flex w-full flex-col gap-2" data-testid="reader-edit">
-        <input type="hidden" name="projectId" value={projectId} />
-        <input type="hidden" name="itemId" value={itemId} />
-        <label htmlFor={`reader-${itemId}`} className="sr-only">{SHAPE_COPY.editLabel(ref)}</label>
-        <Textarea id={`reader-${itemId}`} name="text" defaultValue={item.reader} rows={2} className="min-h-14 text-[15px]" />
-        {editState.error && <p id={`reader-error-${itemId}`} role="alert" className="text-sm text-danger">{editState.error}</p>}
-        <div className="flex gap-1.5">
-          <Button type="submit" size="small" loading={editPending}>{SHAPE_COPY.save}</Button>
-          <Button type="button" size="small" variant="secondary" onClick={() => setEditing(false)} disabled={editPending}>{SHAPE_COPY.cancel}</Button>
-        </div>
-      </form>
-    );
-  }
+  if (editing) return <ReaderEdit projectId={projectId} itemId={itemId} ref={ref} text={item.reader} onCancel={() => setEditing(false)} />;
   const move = (name: "accept" | "reject" | "undo") => (
     <form action={action} className="inline-flex">
       <input type="hidden" name="projectId" value={projectId} />

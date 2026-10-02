@@ -38,6 +38,7 @@ export const SHAPE_COPY = {
   cancel: "Cancel",
   editLabel: (ref: string) => `Readable version of ${ref}`,
   blankEdit: "Write the readable version, or reject the suggestion to keep the original.",
+  longEdit: (n: number) => `The readable version is ${n.toLocaleString("en-GB")} characters. Keep it to 1,000 or fewer.`,
   acceptAll: "Accept all",
   rejectAll: "Reject all",
   acceptAllConfirm: (n: number) => `Accept all ${n} suggested reader ${n === 1 ? "version" : "versions"}?`,
