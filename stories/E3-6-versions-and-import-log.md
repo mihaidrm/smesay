@@ -34,8 +34,8 @@ E3-4 and E3-5; 0002 had gone to E2-3).
 
 Built 2026-10-02.
 
-- A new version is the same flow (acceptance 1): another upload or paste on Import, its
-  mapping and check, then Import; commitImport (src/db/queries/importCommit.ts) takes the
+- A new version is the same flow (acceptance 1): "Import a new version" in the imported line
+  jumps to the upload card; another upload or paste, its mapping and check, then Import; commitImport (src/db/queries/importCommit.ts) takes the
   project row's lock and writes version max + 1, never renumbered.
 - The import log (acceptance 2) is the Versions card on Import (design note 24):
   itemSets.versions() in src/db/queries/itemSets.ts (every set of the project with a SQL item
@@ -50,3 +50,6 @@ Built 2026-10-02.
 - Playwright (acceptance 5): e2e/import.spec.ts imports a second copy of the Marlow fixture
   with CL-05 reworded (e2e/fixtures/expense-requirements-v2.xlsx) and sees "Version 1 to 2:
   11 items unchanged, 1 changed, 0 new, 0 gone." and the read-only version 1.
+- Audit of 2026-10-02 (with E3-5): the Versions card moved under the imported line as design
+  note 24 says; tests for the log from another workspace; E5-1 and E6-1 now name what E3-6
+  hands them; exact Playwright locators for "Version 1".

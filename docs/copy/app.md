@@ -140,7 +140,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Rows under a count | Row [N]; Row [N], same as row [N]; Row [N]: [VALUE] |
 | Import button | Import [N] items (disabled at 40 percent without a text column or with nothing to import) |
 | After the import, in the check card | Imported as version [N]. |
-| Under the Import title, once a set exists | Imported [N] items as version [N] on [DATE]. |
+| Under the Import title, once a set exists | Imported [N] items as version [N] on [DATE]. Import a new version (a link to the upload card) |
+| Check card without a text column | Pick the column that holds the item text above, and the check appears here. |
 
 ## Import, versions (E3-6)
 
@@ -150,7 +151,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Table headers | Version, Source, File, Imported, Items, Checks, By |
 | Version cell | Version [N] (a link to the read-only version) |
 | File cell of a pasted list | Pasted list |
-| Checks cell | [N] empty, [N] duplicates, [N] long, [N] values |
+| Checks cell | [N] empty, [N] duplicates, [N] long, [N] values (singular at 1) |
 | Diff line under the table | Version [N] to [N]: [N] items unchanged, [N] changed, [N] new, [N] gone. |
 | Version page title and line | Version [N]. [FILE], imported [DATE], [N] items. Read-only. Back to Import |
 | Version page headers | #, Ref, Item, Area, Proposed value |

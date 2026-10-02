@@ -2,7 +2,8 @@
 // file (the preview holds ten rows only), applies the upload's mapping and runs the pure
 // check (src/lib/import/report.ts); commitUpload() runs the same check again and writes the
 // set in one transaction (src/db/queries/importCommit.ts), so the stored report is the one
-// the PM saw. Messages: docs/copy/app.md and errors.md, Import.
+// the PM saw. An upload is imported once: commitUpload() refuses one that already has a set,
+// and item_set.upload_id is unique (migration 0009). Messages: docs/copy/app.md and errors.md.
 import { items, itemSets, uploads } from "@/db/queries";
 import type { ItemSetVersion } from "@/db/queries/itemSets";
 import { diffLine, diffVersions, type DiffCounts } from "@/lib/import/diff";
@@ -20,7 +21,10 @@ export const IMPORT_COPY = {
   logTitle: "Versions",
   diff: (text: string, from: number, to: number) => `Version ${from} to ${to}: ${text}.`,
   button: (n: number) => `Import ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}`,
-  nothing: "Nothing to import: every row is empty in the item text column.",
+  nothing: "Nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file.",
+  already: (version: number) => `This file is already imported as version ${version}. Upload or paste the next version to import again.`,
+  noCheck: "Pick the column that holds the item text above, and the check appears here.",
+  newVersion: "Import a new version",
   imported: (n: number, version: number, date: string) => `Imported ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"} as version ${version} on ${date}.`,
   counts: (r: { emptyRows: number; exactDuplicates: number; overLimit: number; unrecognisedValues: number }) => ({
     empty: `${r.emptyRows.toLocaleString("en-GB")} empty ${r.emptyRows === 1 ? "row" : "rows"}, skipped.`,
@@ -44,13 +48,15 @@ export async function checkUpload(upload: Upload): Promise<CheckResult | null> {
 export async function commitUpload(ws: WorkspaceId, uploadId: string, userId: string): Promise<{ error: string } | { set: ItemSet }> {
   const upload = await uploads.get(ws, uploadId);
   if (!upload) throw new NotFoundError();
+  const already = (await itemSets.list(ws)).find((set) => set.uploadId === upload.id);
+  if (already) return { error: IMPORT_COPY.already(already.version) };
   const check = await checkUpload(upload);
   if (!check) return { error: mappingError(upload.mapping ?? {}) ?? IMPORT_COPY.nothing };
   if (check.items.length === 0) return { error: IMPORT_COPY.nothing };
   const set = await commitImport(ws, {
     projectId: upload.projectId, uploadId: upload.id, source: upload.kind, filename: upload.kind === "pasted" ? null : upload.filename,
     report: check.report, userId,
-    items: check.items.map((it) => ({ ref: it.ref, text: it.text, area: it.area, value: it.value, custom: it.custom })),
+    items: check.items.map((it) => ({ ref: it.ref, text: it.text, area: it.area, value: it.value, custom: it.custom, foldedRefs: it.foldedRefs })),
   });
   if (!set) throw new NotFoundError();
   return { set };

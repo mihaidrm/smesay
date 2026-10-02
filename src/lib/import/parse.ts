@@ -10,8 +10,7 @@
 //   (types/InvalidSpreadsheetError.d.ts).
 // - papaparse 5.7.0 for csv: Papa.parse(text, { delimiter: "" }) guesses the delimiter from
 //   the first rows (node_modules/@types/papaparse/index.d.ts, `delimiter`: "Leave blank to
-//   auto-detect from a list of most common delimiters"), skipEmptyLines drops blank lines
-//   (ibid.), and meta.delimiter reports the one it chose.
+//   auto-detect from a list of most common delimiters"); blank lines are kept as empty rows.
 // The text decoding is ours: a UTF-16 byte order mark (FF FE or FE FF) picks that encoding,
 // a UTF-8 mark is dropped by TextDecoder's default (developer.mozilla.org/docs/Web/API/
 // TextDecoder/TextDecoder: ignoreBOM false strips it), anything else is read as UTF-8.
@@ -63,7 +62,9 @@ async function parseXlsx(bytes: Uint8Array): Promise<ParsedSheet[]> {
 
 function parseCsv(bytes: Uint8Array): ParsedSheet {
   const text = decode(bytes);
-  const result = Papa.parse<string[]>(text, { delimiter: "", skipEmptyLines: true });
+  // Blank lines stay (skipEmptyLines false, the default), so a row number on the check card is
+  // the line in the file and a blank line counts as an empty row; trailing ones are dropped.
+  const result = Papa.parse<string[]>(text, { delimiter: "" });
   return { name: "csv", rows: trimTrailing(result.data.map((row) => row.map((c) => (c ?? "").trim()))) };
 }
 

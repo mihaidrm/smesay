@@ -32,3 +32,7 @@ respondents fill in, and the preview refuses to start until the mandatory ones a
 instrument.respondent_fields as RespondentFieldSpec[] (INTERFACES.md), with `type: "email"`
 added to the union before the migration. Field keys are slugs of the label, unique per
 instrument.
+
+Owed from E3-6 (acceptance 3, recorded 2026-10-02): "Build on version N+1" when a newer set
+exists than the one the instrument was built from, creating a new instrument draft; the old
+instrument keeps its version. The "Version N" header on Results belongs to E8's results page.

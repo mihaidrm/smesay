@@ -5,7 +5,8 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 // The check before import (stories/E3-5): counts over the data rows, headerRow 0 when the
 // file had none, the folded duplicates by reference (E3-3's unrecognised values too).
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number; unrecognisedValues: number; duplicateRefs: { kept: string; folded: string[] }[] };
-export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean };
+// foldedRefs (E3-5): the references of the exact duplicates folded into this item at import.
+export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean; foldedRefs?: string[] };
 export type ResponseFields = { [key: string]: string };
 // Column roles of an import (stories/E3-3): one column is the item text, at most one each the
 // area, the proposed value and the reference, up to five custom fields, the rest not imported.

@@ -3,15 +3,17 @@
 // who imported, the upload it came from) and its items with position, source_ref,
 // original_text, area, proposed value and custom fields. A failure anywhere rolls the whole
 // set back, so nothing is imported. The version row of the project is read under a lock
-// (`for update` on the project row: orm.drizzle.team/docs/rqb#select-for-update, and
-// db.transaction: orm.drizzle.team/docs/transactions) so two commits at once get two numbers.
+// (`.for("update")`: node_modules/drizzle-orm/pg-core/query-builders/select.d.ts, `for(strength:
+// LockStrength)`, and db.transaction: orm.drizzle.team/docs/transactions) so two commits at once
+// get two numbers. The references of folded duplicates go on the kept item as
+// item.flags.foldedRefs (ItemFlags in INTERFACES.md; stories/E3-5, acceptance 2).
 import { and, eq, max } from "drizzle-orm";
 import { db } from "@/db";
 import { item, itemSet, project } from "@/db/schema";
 import type { ImportReport, WorkspaceId } from "@/db/types";
 import type { ItemSet } from "./itemSets";
 
-export type CommitItem = { ref: string | null; text: string; area: string | null; value: string | null; custom: { [header: string]: string } | null };
+export type CommitItem = { ref: string | null; text: string; area: string | null; value: string | null; custom: { [header: string]: string } | null; foldedRefs?: string[] };
 export type CommitInput = { projectId: string; uploadId: string | null; source: "xlsx" | "csv" | "pasted"; filename: string | null; report: ImportReport; items: CommitItem[]; userId: string };
 
 export async function commitImport(workspaceId: WorkspaceId, input: CommitInput): Promise<ItemSet | null> {
@@ -27,6 +29,7 @@ export async function commitImport(workspaceId: WorkspaceId, input: CommitInput)
       await tx.insert(item).values(input.items.map((it, i) => ({
         workspaceId, itemSetId: set.id, position: i + 1, sourceRef: it.ref, originalText: it.text,
         area: it.area, proposedValue: it.value, custom: it.custom,
+        flags: it.foldedRefs && it.foldedRefs.length > 0 ? { foldedRefs: it.foldedRefs } : null,
       })));
     }
     return set;

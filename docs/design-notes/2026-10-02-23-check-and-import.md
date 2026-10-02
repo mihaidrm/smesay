@@ -25,6 +25,9 @@ the cards still in place: another upload or paste starts the next version (E3-6)
 
 - The commit runs the check again on the server and stores that report; the card and the
   import log (E3-6) therefore show the same numbers.
-- "The Results step shows 0 of 0 responses" (acceptance 5) is the Responses cell of the
-  project list, which already counts the new set's instruments; the Results pill has no
-  count of its own.
+- "The Results step shows 0 of 0 responses" (acceptance 5) is not built: the Results pill
+  has no count, and the project list's Responses cell showed "0 of 0" before this story.
+  Whether the pill should carry a count is a question for Mihai (asked 2026-10-02).
+- Without a text column the check card shows one muted line ("Pick the column that holds the
+  item text above, and the check appears here.") and the disabled button, so the mapping
+  card's message is not repeated.

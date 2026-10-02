@@ -35,8 +35,14 @@ export default async function ImportPage({ params }: { params: Promise<{ project
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-normal">Import the list</h2>
-        {set && <p data-testid="imported-line" className="text-ink-muted">{IMPORT_COPY.imported(setItems, set.version, DATE.format(set.importedAt))}</p>}
+        {set && (
+          <p data-testid="imported-line" className="text-ink-muted">
+            {IMPORT_COPY.imported(setItems, set.version, DATE.format(set.importedAt))}{" "}
+            <a href="#upload-title" className="underline underline-offset-4">{IMPORT_COPY.newVersion}</a>
+          </p>
+        )}
       </div>
+      <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
       <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">
           <h3 id="about-title" className="font-medium">About this project</h3>
@@ -58,9 +64,8 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {upload && upload.mapping && upload.preview.columns.length > 0 && (
         <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} />
       )}
-      <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
       {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <CheckCard uploadId={upload.id} check={check} mappingError={mappingError(upload.mapping)} importedVersion={set && set.uploadId === upload.id ? set.version : null} />
+        <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} />
       )}
     </div>
   );

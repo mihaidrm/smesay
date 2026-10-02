@@ -59,3 +59,12 @@ Built 2026-10-02.
 - Playwright: e2e/import.spec.ts (the Marlow fixture: the counts, the import, the imported
   line, the stepper) and e2e/paste.spec.ts (six pasted lines imported), which also close the
   import clicks owed to E3-3 and E3-4.
+- Audit of 2026-10-02 (fresh context, 21 findings), closed in the story's PR: the same upload
+  could be committed again and again (now refused on the server with a message, and
+  item_set.upload_id is unique, migration 0009; tested); the folded references were not on
+  the kept item (item.flags.foldedRefs, shown on the version page); the item text was stored
+  collapsed (now the cell's text, collapsed only for the duplicate key); csv blank lines were
+  dropped so row numbers drifted (kept now); the header rule change recorded in E3-2; the
+  "nothing to import" message has a next step; INTERFACES.md lists the helpers; the
+  citation for `.for("update")` points at the drizzle types. Open for Mihai: acceptance 5's
+  "Results step shows 0 of 0 responses" (design note 23).

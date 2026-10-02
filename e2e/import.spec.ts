@@ -62,10 +62,11 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.locator("#mapping-error")).toHaveCount(0);
 
   // E3-5: the check card and the import.
-  await expect(page.getByTestId("check-card")).toContainText("0 empty rows, skipped.");
-  await expect(page.getByTestId("check-card")).toContainText("0 exact duplicates, imported once.");
+  await expect(page.getByTestId("check-card").getByText("0 empty rows, skipped.", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("check-card").getByText("0 exact duplicates, imported once.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Import 12 items" }).click();
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
+  await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();
   await expect(page.getByTestId("imported-version")).toHaveText("Imported as version 1.");
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Shape/);
 
@@ -79,7 +80,7 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 2 on");
   await expect(page.getByTestId("version-row")).toHaveCount(2);
   await expect(page.getByTestId("version-diff")).toHaveText("Version 1 to 2: 11 items unchanged, 1 changed, 0 new, 0 gone.");
-  await page.getByRole("link", { name: "Version 1" }).click();
-  await expect(page.getByRole("heading", { name: "Version 1" })).toBeVisible();
+  await page.getByRole("link", { name: "Version 1", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Version 1", exact: true })).toBeVisible();
   await expect(page.getByTestId("version-items").getByRole("row")).toHaveCount(13);
 });

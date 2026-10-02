@@ -1,5 +1,6 @@
 // A version of the list, read-only (stories/E3-6, acceptance 2): the set's line and its items
-// in position order. A set outside the workspace or the project is 404.
+// in position order, the references of folded duplicates beside the kept item's reference. A
+// set outside the workspace or the project is 404.
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,7 +26,7 @@ export default async function VersionPage({ params }: { params: Promise<{ projec
         <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Ref</TableHead><TableHead>Item</TableHead><TableHead>Area</TableHead><TableHead>Proposed value</TableHead></TableRow></TableHeader>
         <TableBody>
           {rows.map((i) => (
-            <TableRow key={i.id}><TableCell className="font-mono text-sm">{i.position}</TableCell><TableCell className="font-mono text-sm">{i.sourceRef ?? ""}</TableCell><TableCell>{i.originalText}</TableCell><TableCell>{i.area ?? ""}</TableCell><TableCell>{i.proposedValue ?? ""}</TableCell></TableRow>
+            <TableRow key={i.id}><TableCell className="font-mono text-sm">{i.position}</TableCell><TableCell className="font-mono text-sm">{i.sourceRef ?? ""}{i.flags?.foldedRefs?.length ? <span className="text-ink-muted"> (also {i.flags.foldedRefs.join(", ")})</span> : null}</TableCell><TableCell>{i.originalText}</TableCell><TableCell>{i.area ?? ""}</TableCell><TableCell>{i.proposedValue ?? ""}</TableCell></TableRow>
           ))}
         </TableBody>
       </Table>

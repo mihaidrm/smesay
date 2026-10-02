@@ -18,7 +18,7 @@ function Rows({ label, rows }: { label: string; rows: string[] }) {
   );
 }
 
-export function CheckCard({ uploadId, check, mappingError, importedVersion }: { uploadId: string; check: CheckResult | null; mappingError: string | null; importedVersion: number | null }) {
+export function CheckCard({ uploadId, check, importedVersion }: { uploadId: string; check: CheckResult | null; importedVersion: number | null }) {
   const counts = check ? IMPORT_COPY.counts(check.report) : null;
   const n = check?.items.length ?? 0;
   return (
@@ -31,7 +31,7 @@ export function CheckCard({ uploadId, check, mappingError, importedVersion }: { 
           <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
         </div>
       ) : (
-        <div className="px-4 py-3 text-sm text-ink-muted">{mappingError}</div>
+        <div className="px-4 py-3 text-sm text-ink-muted">{IMPORT_COPY.noCheck}</div>
       )}
       {check && counts && check.report.unrecognisedValues > 0 && (
         <div className="border-t border-grey-100"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>

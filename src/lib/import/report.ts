@@ -1,7 +1,8 @@
 // The check before import (stories/E3-5, acceptance 1 and 2): over the data rows of an upload
 // with their mapping, the rows that become items and the counts the card shows: empty rows
 // (no item text) skipped, exact duplicates (same text after trimming and collapsing
-// whitespace, case kept) folded into the first with their references listed on it, items over
+// whitespace, case kept; the item keeps its own text) folded into the first with their
+// references listed on it (item.flags.foldedRefs at the commit), items over
 // ITEM_LIMIT characters imported whole, proposed values not recognised (src/lib/import/
 // values.ts) kept as written. Pure, computed once and stored with the set as ImportReport
 // (INTERFACES.md), so the import log (E3-6) shows the same numbers. Tested in report.test.ts.
@@ -47,10 +48,11 @@ export function checkRows(columns: Column[], mapping: ColumnMapping, rows: strin
   const emptyRows: number[] = []; const duplicateRows: { row: number; keptRow: number }[] = []; const longRows: number[] = []; const unrecognisedRows: { row: number; value: string }[] = [];
   rows.forEach((r, i) => {
     const row = firstRow + i;
-    const text = collapse(cell(r, textAt));
-    if (text === "") { emptyRows.push(row); return; }
+    const text = cell(r, textAt);
+    const key = collapse(text);
+    if (key === "") { emptyRows.push(row); return; }
     const ref = cell(r, refAt) || null;
-    const kept = seen.get(text);
+    const kept = seen.get(key);
     if (kept) {
       duplicateRows.push({ row, keptRow: kept.row });
       kept.foldedRefs.push(ref ?? `row ${row}`);
@@ -59,10 +61,12 @@ export function checkRows(columns: Column[], mapping: ColumnMapping, rows: strin
     const rawValue = cell(r, valueAt);
     if (rawValue && !isRecognised(rawValue)) unrecognisedRows.push({ row, value: rawValue });
     if (text.length > ITEM_LIMIT) longRows.push(row);
+    // The item keeps the cell's text (E1-2: original_text is never changed); the collapsed
+    // form is the duplicate key only.
     const custom: { [header: string]: string } = {};
     for (const i of customAt) if (cell(r, i)) custom[keys[i]] = cell(r, i);
     const item: ImportRow = { row, ref, text, area: cell(r, areaAt) || null, value: rawValue ? normaliseValue(rawValue).value : null, custom: customAt.length ? custom : null, foldedRefs: [] };
-    seen.set(text, item);
+    seen.set(key, item);
     items.push(item);
   });
   const report: ImportReport = {

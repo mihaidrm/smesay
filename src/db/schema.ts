@@ -157,6 +157,9 @@ export const itemSet = pgTable("item_set", {
   foreignKey({ name: "item_set_upload_fk", columns: [t.uploadId, t.workspaceId], foreignColumns: [upload.id, upload.workspaceId] }),
   index("item_set_workspace_idx").on(t.workspaceId),
   uniqueIndex("item_set_project_version_idx").on(t.projectId, t.version),
+  // One set per upload (stories/E3-5; E3-5 audit, finding 1): a replayed Import form cannot
+  // write a second, identical version.
+  uniqueIndex("item_set_upload_idx").on(t.uploadId),
   unique("item_set_id_workspace_uq").on(t.id, t.workspaceId),
   unique("item_set_id_project_uq").on(t.id, t.projectId),
   check("item_set_source_check", oneOf("source", ITEM_SET_SOURCES)),

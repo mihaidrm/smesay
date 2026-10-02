@@ -6,7 +6,7 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
-import { checkUpload, commitUpload, IMPORT_COPY, latestSet } from "@/lib/imports";
+import { checkUpload, commitUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
 import { memoryOutbox } from "@/lib/mail";
 import { savePaste, saveUpload, saveMapping } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -50,7 +50,13 @@ describe("checkUpload and commitUpload", () => {
     const rows = (await items.list(a.ws)).filter((i) => i.itemSetId === committed.set.id).sort((x, y) => x.position - y.position);
     expect(rows.map((r) => [r.sourceRef, r.originalText, r.area, r.proposedValue])).toEqual([["CL-01", "OCR receipt capture", "Submitting", "Must"], ["CL-03", "Approve from email", "Approving", "High"], ["CL-04", "Pay by payroll", "Paying", "Should"]]);
     expect((await latestSet(a.ws, projectA))?.id).toBe(committed.set.id);
+    expect(rows[0].flags).toEqual({ foldedRefs: ["CL-02"] });
+    expect(rows[1].flags).toBeNull();
     await expect(commitUpload(b.ws, saved.upload.id, b.userId)).rejects.toBeInstanceOf(NotFoundError);
+    // The same upload is imported once (audit finding 1): a replayed form is refused.
+    expect(await commitUpload(a.ws, saved.upload.id, a.userId)).toEqual({ error: IMPORT_COPY.already(1) });
+    expect((await importLog(a.ws, projectA)).versions).toHaveLength(1);
+    expect((await importLog(b.ws, projectA)).versions).toHaveLength(0);
   });
   it("refuses without a text column and with nothing to import; a pasted list commits as pasted with version 2", async () => {
     const pasted = await savePaste(a, projectA, "One thing\nAnother thing | Paying | Must");

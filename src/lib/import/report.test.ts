@@ -26,7 +26,8 @@ describe("checkRows", () => {
     expect(result.longRows).toEqual([7]);
     expect(result.unrecognisedRows).toEqual([{ row: 5, value: "High" }]);
   });
-  it("keeps the first of the duplicates with the folded references, case kept, whitespace collapsed", () => {
+  it("keeps the first of the duplicates with the folded references, case kept, the kept text as written", () => {
+    expect(checkRows([{ letter: "A", name: "Item" }], { Item: "text" }, [["Two  spaces\nand a break"], ["Two spaces and a break"]], 1, null).items.map((i) => i.text)).toEqual(["Two  spaces\nand a break"]);
     expect(result.items.map((i) => [i.ref, i.text.slice(0, 20), i.value, i.area])).toEqual([
       ["CL-01", "OCR receipt capture", "Must", "Submitting"],
       ["CL-03", "Approve from email", "High", "Approving"],
