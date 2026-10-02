@@ -9,8 +9,10 @@ Never invent a function, a parameter or a package. If a compile or test fails on
 MISTAKES.md with what caught it.
 
 Tests are basic (decision 0004): unit tests for logic, one Playwright test for the main path of
-each user-facing flow. Run `npm test` and `npx playwright test` before any handoff. Report the
-numbers and the command. "Tests pass" is not a report. Mihai tests real devices and mail clients.
+each user-facing flow. CI runs lint, typecheck, the scans, the tests, the build and Playwright on
+every push; the session runs only the fast checks and the test file it just wrote (decision
+0032). Report the CI result with numbers. "Tests pass" is not a report. Mihai tests real devices
+and mail clients.
 
 Secrets are never printed, committed or included in a prompt. If an environment variable is
 missing, name it and stop. You never create accounts or enter payment details. Account setup

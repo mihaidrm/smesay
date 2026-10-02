@@ -28,9 +28,12 @@ Done so far:
 - Schema v1 (stories/E1-2, accepted 2026-10-02): 12 application tables plus 4 better-auth tables, two migrations in
   drizzle/, docs/schema.md generated from them by scripts/schema-doc.mjs (the pre-commit hook
   fails when it is stale). Every test runs against `smesay_test`, never the dev database.
+- Seed (stories/E1-4, built 2026-10-02): `npm run db:seed` inserts the Marlow Group sample
+  workspace through the helpers; src/db/seed/sample.ts holds the facts and the expected counts.
 - Workspace scoping (stories/E1-3, built 2026-10-02): src/db/queries/ holds every query, each
-  with the workspace id first; requireWorkspace() in src/lib/workspace.ts; lint refuses "@/db"
-  outside src/db/; the cross-workspace test runs in CI.
+  taking a WorkspaceId that only requireWorkspace() in src/lib/workspace.ts produces from the
+  session; lint (eslint-rules/db-access.mjs) refuses the database by any import path outside
+  src/db/; the cross-workspace test runs in CI.
 
 Machine check on 2026-10-01 (Mihai's Windows PC, decision 0005): Node v26.10.0, Docker 29.8.1
 running; docker compose up, lint, test and build pass there (step 2.5). The Claude Code cloud

@@ -32,32 +32,50 @@ Outcome: no query can reach another workspace's rows, and a test proves it on ev
 - None.
 
 ## Technical notes
-Built 2026-10-02.
+Built 2026-10-02; hardened the same day after the reviewer's audit (16 findings, 3 blocking:
+a patch could move a row to another workspace, nothing tied the id to the session, the lint
+rule had bypass spellings).
 
 - src/db/queries/scoped.ts is the one place the workspace filter is written: `scoped(table)`
   returns list, get, count, create, update and remove, each with `where workspace_id = $1`
-  (get, update and remove add the id). One file per table builds on it: projects, itemSets,
-  items, instruments, invites, responses, answers, missingItems, insights, aiRuns. Later
-  epics add their specific queries to these files. Rows are Drizzle's plain objects, typed
-  `typeof table.$inferSelect`.
-- workspaces.ts is scoped by membership (list and get take the user id and join
-  workspace_member; deleted_at hides a workspace everywhere); members.ts is keyed by
-  (workspace_id, user_id). `workspaces.create` inserts the workspace and its owner in one
-  transaction.
-- src/lib/workspace.ts: `requireWorkspace(userId, workspaceId)` checks membership and throws
-  NotFoundError (404) for a non-member or a missing workspace, SignedOutError (401) for no
-  user. `requireWorkspaceFromRequest(headers, workspaceId)` reads the session with better-auth's
-  `auth.api.getSession({ headers })` (better-auth.com/docs/integrations/next) and calls it; E2
-  wires the routes and the Playwright test of the signed-in path.
-- The lint rule is in eslint.config.mjs: no-restricted-imports with a regex for "@/db",
-  "@/db/schema", "@/db/auth-schema" and their relative forms, and a group for drizzle-orm and
-  postgres, on src/**/*.{ts,tsx} except src/db/** and src/lib/auth.ts (the adapter needs the
-  client). "@/db/queries/*" and "@/db/types" stay allowed. src/db/queries/lint-rule.test.ts
-  proves it with ESLint's Node API (lintText).
+  (get, update and remove add the id). Create and update drop `id` and `workspaceId` from what
+  they are given at runtime, so a request body cannot move a row or plant one under another
+  workspace; a parent id of another workspace is refused by the composite keys (E1-2). An id
+  that is not a uuid returns null instead of a database error. One file per table builds on
+  it: projects, itemSets, items, instruments, invites, responses, answers, missingItems,
+  insights, aiRuns. Later epics add their specific queries to these files. Rows are the plain
+  objects Drizzle's select returns, typed `typeof table.$inferSelect` (the ready story's
+  "plain objects, not Drizzle rows" meant exactly this: no ORM entity, no lazy loading).
+- The workspace id is `WorkspaceId` (src/db/types.ts), a branded string that only
+  src/lib/workspace.ts produces from the session, so a route cannot hand a URL or body value
+  to a helper without a type error. `unsafeWorkspaceId()` in scoped.ts exists for the seed
+  and the tests; lint refuses importing scoped.ts anywhere outside src/db.
+- workspaces.ts is scoped by membership (listForUser and getForUser join workspace_member and
+  skip deleted_at, so requireWorkspace never hands out a deleted workspace's id); update takes
+  a WorkspaceId and drops `id`; the owner-only role check is E2-4's. members.ts is keyed by
+  (WorkspaceId, user_id). `workspaces.create` inserts the workspace and its owner in one
+  transaction (orm.drizzle.team/docs/transactions).
+- src/lib/workspace.ts: `requireWorkspace(headers, workspaceId)` reads the session with
+  better-auth's `auth.api.getSession({ headers })` (better-auth.com/docs/integrations/next),
+  checks membership and returns the WorkspaceId; NotFoundError (404) for a non-member, a
+  missing workspace or a non-uuid id, SignedOutError (401) for no session. E2 maps the errors
+  to responses and adds the Playwright test of the signed-in path.
+  `requireWorkspaceForUser(userId, workspaceId)` is the same check for the tests; lint refuses
+  the import outside src/db.
+- The lint rules are a local plugin, eslint-rules/db-access.mjs: `db-access` resolves every
+  import, export-from, dynamic import and require against the importing file and refuses
+  anything that lands in src/db/ (except src/db/queries/<table>, src/db/queries and
+  src/db/types), plus drizzle-orm and postgres, on src/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}
+  outside src/db/** and src/lib/auth.ts; `no-db-reexport` refuses `export { db }` and
+  `export * from "@/db"` inside src/db/queries/. src/db/queries/lint-rule.test.ts tries 23
+  refused and 8 allowed spellings through ESLint's lintText.
 - Tests: vitest.config.mts points every test at "<database>_test" (DATABASE_URL rewritten,
   the given value kept as DATABASE_ADMIN_URL to create the test database) and runs test files
   one at a time (`fileParallelism: false`, vitest.dev/config/fileparallelism), because
-  src/db/schema.test.ts drops and recreates the schema. src/db/test-db.ts refuses a database
-  whose name does not end in _test or whose host is not local. src/db/queries/scoping.test.ts
-  builds workspace A and B with one row in every table (through the helpers, their first
-  caller) and checks every helper with A's id, then B's rows for equality; 14 tests.
+  src/db/schema.test.ts drops and recreates the schema. src/db/index.ts refuses any database
+  not named *_test while VITEST is set; src/db/test-db.ts also checks both hosts are local.
+  src/db/queries/scoping.test.ts finds every scoped helper exported from index.ts by shape (a
+  helper added later is checked, and needs a patch entry), builds workspace A and B with one
+  row in every table through the helpers, snapshots every table of B, checks every helper with
+  A's id (list, get, count, update, remove, non-uuid ids, a patch carrying id and workspaceId,
+  create with a foreign parent, members), and compares B's snapshot afterwards; 22 tests.

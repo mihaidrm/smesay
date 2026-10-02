@@ -7,7 +7,7 @@ before the first answer.
 
 ## Acceptance criteria
 1. Results (PM app board): the headline strip with submitted of invited ("5 of 7"), agreement
-   ("67%, 20 of 30"), pushed back, disagreed, unclear, missing items; then tabs Agreement,
+   ("63%, 19 of 30"), pushed back, disagreed, unclear, missing items; then tabs Agreement,
    Pushed back (n), Questions and gaps (n), Responses, Actions (n), Export.
 2. Empty state before any answer: "No answers yet. The link is [open until DATE / not
    published]. Share it, or open the sample project to see what results look like." with the
@@ -26,7 +26,7 @@ before the first answer.
    test checks the strip with the switch on and off against the seed (the in-progress
    respondent has 4 answers).
 6. The sample project shows the same page with the watermark (E8-8).
-7. Playwright: open the seeded project's Results, see "5 of 7" and 67% with the switch off,
+7. Playwright: open the seeded project's Results, see "5 of 7" and 63% with the switch off,
    and the counts including the 4 unsubmitted answers with it on.
 
 ## Out of scope

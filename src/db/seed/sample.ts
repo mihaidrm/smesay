@@ -1,0 +1,105 @@
+// The Marlow Group sample (decisions 0005, 0027): the same facts as the prototype boards
+// (docs/design-notes/prototype-01/PmApp.dc.html data(), Respondent.dc.html items()) and the
+// landing page. Fixed ids so tests and later stories can reference the rows. Nothing here comes
+// from a client engagement (decision 0002).
+
+// One fixed id, the workspace's (the helpers ignore ids on create, E1-3). Every other sample
+// row is found by a natural key: the item reference, the invite token, the respondent's name.
+export const SAMPLE_WORKSPACE_ID = "00000001-0000-4000-8000-000000000001";
+
+// Tokens are 32 hex characters (E1-2 check). These are fixed because the sample is public data
+// and the links are the sample instrument's (E12-4); every real token comes from crypto.
+export const SAMPLE_PUBLIC_TOKEN = "5a3f1c8e2b7d4960a1c3e5f7b9d2468a";
+const personalToken = (n: number) => `9e${String(n).padStart(2, "0")}c7b2d4f6a8e0b1c3d5f7a9e2b4c6d8f1`.slice(0, 32);
+const deviceToken = (n: number) => `d3${String(n).padStart(2, "0")}b8a1c6e4f2d0a9b7c5e3f1d8a6b4c2e0`.slice(0, 32);
+
+export const workspace = { id: SAMPLE_WORKSPACE_ID, name: "Marlow Group", slug: "marlow-group", accentHex: "#1F4F7A" };
+
+export const project = {
+  name: "New expense tool",
+  contextGoal: "We are replacing the expense tool for all 400 staff. The list is what the new tool should do; Sales, Finance, HR and the engineering managers answer.",
+  contextTerms: "Marlow Group, cost centre, policy limit",
+  isSample: true,
+};
+
+export const areas = [
+  { name: "Submitting", rationale: "First, because every claim starts here." },
+  { name: "Approving", rationale: "Second, what happens to a claim once it is in." },
+  { name: "Paying", rationale: "Last, the money." },
+];
+
+// position, reference, area, proposed value (M, S, C, W), reader text, original text, details.
+export const items = [
+  { n: 1, ref: "CL-01", area: "Submitting", proposed: "M", reader: "Photograph a receipt and the amount, date and merchant are filled in automatically.", original: "OCR receipt capture via mobile (auto-fill amt/date/vendor).", details: "Covers paper receipts and PDFs. Out of scope: receipts in a language the OCR does not read." },
+  { n: 2, ref: "CL-02", area: "Submitting", proposed: "S", reader: "Split one receipt across two projects or cost centres.", original: "Multi-allocation of single expense line to 2+ cost centres/projects.", details: "Split by amount or by percentage. Each part follows its own approval chain." },
+  { n: 3, ref: "CL-03", area: "Approving", proposed: "M", reader: "Managers approve or reject from the email, without logging in.", original: "Approval actionable from notification email (no login).", details: "The email shows the amount, the category and the receipt thumbnail. Links expire after seven days." },
+  { n: 4, ref: "CL-04", area: "Approving", proposed: "S", reader: "Expenses over the policy limit are flagged before they reach the approver.", original: "Policy engine: auto-flag out-of-policy claims pre-approval.", details: "Limits per category and per role. A flagged claim still reaches the approver, with the flag." },
+  { n: 5, ref: "CL-05", area: "Paying", proposed: "M", reader: "Approved expenses are paid with the next salary run.", original: "Reimbursement via payroll integration, next cycle.", details: "Cut-off is the 20th of the month. Claims approved after the cut-off go into the following run." },
+  { n: 6, ref: "CL-06", area: "Paying", proposed: "C", reader: "Employees can request a cash advance before a trip.", original: "Travel advance request workflow (pre-trip).", details: "Advance is reconciled against the trip claims. The spreadsheet does not say who repays an advance if the trip is cancelled." },
+];
+
+export const importReport = { emptyRows: 2, exactDuplicates: 1, overLimit: 0, rowsRead: 9, headerRow: 1 };
+export const sourceFilename = "Expense tool requirements v3 FINAL (2).xlsx";
+
+export const instrument = {
+  title: "New expense tool",
+  intro: "We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.",
+  method: "moscow" as const,
+  showProposed: true,
+  layout: "chapters" as const,
+  respondentFields: [
+    { key: "name", label: "Name", type: "text" as const, mandatory: true },
+    { key: "role", label: "Role", type: "dropdown" as const, mandatory: true, options: ["Sales", "Finance", "Engineering manager", "HR", "Office manager"] },
+  ],
+  closing: { confidence: true as const, missingForm: true, signOffText: "I confirm these answers reflect my view as of today." },
+  opensAt: new Date("2026-10-06T07:00:00Z"),
+  closesAt: new Date("2026-10-20T16:00:00Z"),
+};
+
+// Seven respondents: six personal invites and one person who came through the public link.
+// status: submitted (date), progress (answers so far), invited (never opened).
+export const people = [
+  { n: 1, name: "Ioana Marin", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-07T09:12:00Z", confidence: 4, reminders: 0 },
+  { n: 2, name: "Tom Reyes", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-08T14:40:00Z", confidence: 4, reminders: 1 },
+  { n: 3, name: "Dana Okafor", role: "Finance", invite: "public", status: "submitted", submittedAt: "2026-10-08T16:05:00Z", confidence: 4, reminders: 0 },
+  { n: 4, name: "Lukas Berg", role: "Engineering manager", invite: "personal", status: "submitted", submittedAt: "2026-10-09T11:30:00Z", confidence: 3, reminders: 0 },
+  { n: 5, name: "Priya Nair", role: "HR", invite: "personal", status: "submitted", submittedAt: "2026-10-12T08:55:00Z", confidence: 4, reminders: 1 },
+  { n: 6, name: "Sam Hill", role: "Office manager", invite: "personal", status: "progress", submittedAt: null, confidence: null, reminders: 1 },
+  { n: 7, name: "Elena Costa", role: "Sales", invite: "personal", status: "invited", submittedAt: null, confidence: null, reminders: 1 },
+] as const;
+
+export const personalTokenFor = (n: number) => personalToken(n);
+export const deviceTokenFor = (n: number) => deviceToken(n);
+
+// Answers per item and person (decisions 0014 and 0018): agree; change with the value picked and
+// the reason; disagree (Not needed) with the reason; unclear with the question in `reason`.
+type A = { kind: "agree" } | { kind: "change"; value: string; reason: string } | { kind: "disagree"; reason: string } | { kind: "unclear"; reason: string };
+const agree: A = { kind: "agree" };
+export const answers: Record<number, Record<number, A>> = {
+  1: { 1: agree, 2: agree, 3: { kind: "change", value: "S", reason: "Half our receipts are PDFs from suppliers, not paper. Upload matters more than the camera." }, 4: agree, 5: agree, 6: agree },
+  2: { 1: agree, 2: { kind: "unclear", reason: "Does this include splitting between two clients on one trip?" }, 3: { kind: "change", value: "M", reason: "Finance re-keys about thirty split claims a month by hand." }, 4: { kind: "change", value: "M", reason: "My team bills two projects on almost every trip." }, 5: agree, 6: agree },
+  3: { 1: agree, 2: { kind: "change", value: "S", reason: "Approving from email means approving without seeing the receipt." }, 3: agree, 4: agree, 5: agree, 6: agree },
+  4: { 1: { kind: "change", value: "M", reason: "I find out I was over the limit three weeks later, after I have paid." }, 2: { kind: "change", value: "M", reason: "Sales gets most of the rejections, and always after the fact." }, 3: agree, 4: agree, 5: { kind: "disagree", reason: "Flagging after submission is too late. The limit should block the claim at entry." }, 6: agree },
+  5: { 1: agree, 2: agree, 3: agree, 4: agree, 5: agree },
+  6: { 1: agree, 2: agree, 3: { kind: "change", value: "S", reason: "New starters ask for an advance every month. It is a real need." }, 4: { kind: "unclear", reason: "Would the advance be deducted from salary if the trip is cancelled?" }, 5: { kind: "disagree", reason: "Advances are taxable income if not reconciled in time. Payroll would have to police it." } },
+};
+
+export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in.", suggestedArea: "Submitting" };
+
+// Four actions; cites are (item, person) answer pairs or the missing item.
+export const insights = [
+  { n: 1, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][] },
+  { n: 2, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][] },
+  { n: 3, title: "Rewrite CL-06 to say who repays an advance if the trip is cancelled.", why: "HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.", cites: [[6, 5], [6, 4]] as [number, number][] },
+  { n: 4, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][], citesMissingItem: true },
+];
+
+// Two model calls, invented numbers in the shape E4 logs (euro cents).
+export const aiRuns = [
+  { purpose: "shape" as const, model: "sample", tokensIn: 4120, tokensOut: 1630, costEurCents: 4, durationMs: 9800 },
+  { purpose: "insights" as const, model: "sample", tokensIn: 6890, tokensOut: 910, costEurCents: 5, durationMs: 7400 },
+];
+
+// What the dashboard must show for this sample (E8 tests read these). The answer counts are
+// over submitted responses only; the in-progress response adds 4 more rows.
+export const expected = { items: 6, invites: 7, responses: 6, submitted: 5, answers: 34, submittedAnswers: 30, agree: 19, change: 7, disagree: 2, unclear: 2, missing: 1, insights: 4, aiRuns: 2, confidenceAverage: 3.8 };

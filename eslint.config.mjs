@@ -3,28 +3,25 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import smesay from "./eslint-rules/db-access.mjs";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // Data access goes through src/db/queries/ (stories/E1-3): outside src/db/, nothing imports
-  // the database client, the schema or the ORM. src/lib/auth.ts is the one exception, it hands
-  // the client to better-auth's adapter. Rule options (patterns, group, message):
-  // eslint.org/docs/latest/rules/no-restricted-imports.
+  // the database client, the schema or the ORM, by any path. src/lib/auth.ts is the one
+  // exception, it hands the client to better-auth's adapter. The rules are in
+  // eslint-rules/db-access.mjs and tested by src/db/queries/lint-rule.test.ts.
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     ignores: ["src/db/**", "src/lib/auth.ts"],
-    rules: {
-      "no-restricted-imports": ["error", {
-        patterns: [
-          // "@/db", "@/db/schema", "@/db/auth-schema" and their relative forms; "@/db/queries/*"
-          // and "@/db/types" stay allowed. A gitignore-style group would match the whole folder,
-          // so this one is a regex.
-          { regex: "^(@|\\.\\.|\\.\\./\\.\\.)/db(/(index|schema|auth-schema))?$", message: "Data access goes through src/db/queries/ (stories/E1-3). Import the helper, not the database." },
-          { group: ["drizzle-orm", "postgres"], message: "Queries are written in src/db/queries/ only (stories/E1-3)." },
-        ],
-      }],
-    },
+    plugins: { smesay },
+    rules: { "smesay/db-access": "error" },
+  },
+  {
+    files: ["src/db/queries/**/*.{ts,tsx}"],
+    plugins: { smesay },
+    rules: { "smesay/no-db-reexport": "error" },
   },
   globalIgnores([
     ".next/**",
