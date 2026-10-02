@@ -127,7 +127,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
         itemId: it.id, area: fold(area.name),
         byAi: imported(it) === null,
         importedArea: imported(it) ? fold(imported(it)!) : null,
-        reader: fold(answer.reader), ambiguity: answer.flags.ambiguity, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
+        reader: fold(answer.reader), ambiguity: answer.flags.ambiguity ? fold(answer.flags.ambiguity) || null : null, duplicateOf: cleanDuplicateOf(r, answer.flags.duplicateOf, refs),
       });
     }
   }
@@ -239,9 +239,10 @@ export async function decideAllReaders(actor: Actor, projectId: string, move: "a
 }
 
 // Flags (stories/E4-4): what the Shape page shows for the model's ambiguity and duplicate
-// flags. One entry per flagged item, in position order, dismissed ones left out; a
-// duplicateOf whose target is not in the set is dropped here too (acceptance 4). Refs are
-// the source reference when there is one, else the position.
+// flags. One entry per flag, in item order (an item with both has two), dismissed items
+// left out; a duplicateOf whose target is not in the set is dropped here too (acceptance
+// 4). Refs are the source reference when there is one, else the position; two items with
+// the same source reference read the same, and only the links tell them apart.
 export type ItemFlag =
   | { kind: "ambiguity"; itemId: string; ref: string; what: string }
   | { kind: "duplicate"; itemId: string; ref: string; otherId: string; otherRef: string };

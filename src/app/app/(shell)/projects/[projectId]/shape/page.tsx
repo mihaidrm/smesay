@@ -33,11 +33,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const showReaders = shaped || project.isSample;
   // Flags (stories/E4-4): the banners above the areas and the note on each flagged item.
   const flags = flagsFor(rows);
-  const noteFor = (id: string) => {
-    const own = flags.filter((f) => f.itemId === id);
-    const parts = own.map((f) => (f.kind === "ambiguity" ? `${SHAPE_COPY.ambiguityNote} ${f.what}` : SHAPE_COPY.duplicateItemNote(f.otherRef)));
-    return parts.length ? parts.join(" ") : null;
-  };
+  const notesFor = (id: string) => flags.filter((f) => f.itemId === id).map((f) => (f.kind === "ambiguity" ? SHAPE_COPY.ambiguityNote(SHAPE_COPY.sentence(f.what)) : SHAPE_COPY.duplicateItemNote(f.otherRef)));
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -67,7 +63,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, note: noteFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
       )}
     </div>
   );

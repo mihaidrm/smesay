@@ -16,8 +16,8 @@ import { SHAPE_COPY } from "@/lib/shaping-copy";
 import { moveAction, type ProjectFormState } from "../../actions";
 import { ReaderControls, ReaderText, type ReaderState } from "./reader-row";
 
-// note (E4-4): the item's own line under its text, the ambiguity or the duplicate it may be.
-export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; note: string | null };
+// notes (E4-4): the item's own lines under its text, the ambiguity and the duplicate it may be.
+export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; notes: string[] };
 export type BoardGroup = { name: string; rationale: string | null; items: BoardItem[] };
 const NONE: ProjectFormState = { error: null, saved: false };
 
@@ -65,7 +65,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                 <div className="w-14 shrink-0 pt-0.5 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
                 <div className="min-w-0 flex-grow">
                   <ReaderText item={it.reader} original={it.text} />
-                  {it.note && <div className="mt-1 text-xs text-unclear-text" data-testid="item-note">{it.note}</div>}
+                  {it.notes.map((note) => <div key={note} className="mt-1 text-xs text-unclear-text" data-testid="item-note">{note}</div>)}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {/* Keyed by what the server holds, so a saved decision or edit closes the controls' own state. */}

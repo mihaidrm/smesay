@@ -3,20 +3,28 @@
 // teal 300 action, the toast shadow (docs/design-system.md, Components).
 import { cn } from "cn"
 
+// action (E4-4): a node drawn in the Dismiss pill's place, for a Dismiss that is a form; the
+// pill's own classes are exported as bannerButtonClass for it.
+export const bannerButtonClass = "h-8 shrink-0 rounded-full border border-[#B7A6E3] bg-white px-3.5 text-[13px] font-medium text-unclear-text outline-none hover:bg-grey-50 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2 disabled:opacity-40"
+
 export function Banner({
   children,
   onDismiss,
   dismissLabel = "Dismiss",
+  action,
   className,
+  ...props
 }: {
   children: React.ReactNode
   onDismiss?: () => void
   dismissLabel?: string
+  action?: React.ReactNode
   className?: string
-}) {
+} & Omit<React.ComponentProps<"div">, "children" | "className">) {
   return (
-    <div role="status" className={cn("flex items-center justify-between gap-4 rounded-lg bg-unclear-tint px-4 py-3 text-unclear-text", className)}>
+    <div role="status" className={cn("flex items-center justify-between gap-4 rounded-lg bg-unclear-tint px-4 py-3 text-unclear-text", className)} {...props}>
       <div>{children}</div>
+      {action ?? null}
       {onDismiss ? (
         <button
           type="button"

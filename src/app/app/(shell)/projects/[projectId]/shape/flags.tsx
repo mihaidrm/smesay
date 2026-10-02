@@ -1,10 +1,11 @@
 "use client";
 // The flag banners (stories/E4-4, acceptance 1 and 2; PM app board, Shape): one per flagged
-// item, stacked above the areas, in the unclear tint with a Dismiss pill (the Banner of the
-// design system). An ambiguity banner names the item and what it does not say; a duplicate
+// flag, stacked above the areas (an item with both flags has two), in the unclear tint with
+// a Dismiss pill (the Banner of the design system, with its action slot). An ambiguity banner names the item and what it does not say; a duplicate
 // banner names both items. The refs link to the rows. Dismiss is a form on dismissFlagAction;
 // the sample shows its banners without it.
 import { useActionState } from "react";
+import { Banner, bannerButtonClass } from "@/components/ui/banner";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
 import type { ItemFlag } from "@/lib/shaping";
 import { dismissFlagAction, type ProjectFormState } from "../../actions";
@@ -23,21 +24,19 @@ export function FlagBanners({ projectId, flags, readOnly }: { projectId: string;
 
 function FlagBanner({ projectId, flag, readOnly }: { projectId: string; flag: ItemFlag; readOnly: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(dismissFlagAction, NONE);
+  const dismiss = !readOnly && (
+    <form action={action}>
+      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="itemId" value={flag.itemId} />
+      <button type="submit" disabled={pending} className={bannerButtonClass}>{SHAPE_COPY.dismiss}</button>
+    </form>
+  );
   return (
-    <div role="status" data-testid={`flag-${flag.kind}`} className="flex items-center justify-between gap-4 rounded-lg bg-unclear-tint px-4 py-3 text-unclear-text">
-      <div>
-        {flag.kind === "ambiguity"
-          ? <><span className="font-medium">Ambiguity in {link(flag.itemId, flag.ref)}.</span> {flag.what.endsWith(".") ? flag.what : `${flag.what}.`} {SHAPE_COPY.mayMarkUnclear}</>
-          : <><span className="font-medium">{link(flag.itemId, flag.ref)} may duplicate {link(flag.otherId, flag.otherRef)}.</span> {SHAPE_COPY.duplicateNote}</>}
-        {state.error && <span role="alert" className="ml-2 text-danger">{state.error}</span>}
-      </div>
-      {!readOnly && (
-        <form action={action}>
-          <input type="hidden" name="projectId" value={projectId} />
-          <input type="hidden" name="itemId" value={flag.itemId} />
-          <button type="submit" disabled={pending} className="h-8 shrink-0 rounded-full border border-[#B7A6E3] bg-white px-3.5 text-[13px] font-medium text-unclear-text outline-none hover:bg-grey-50 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2 disabled:opacity-40">{SHAPE_COPY.dismiss}</button>
-        </form>
-      )}
-    </div>
+    <Banner data-testid={`flag-${flag.kind}`} action={dismiss || undefined}>
+      {flag.kind === "ambiguity"
+        ? <><span className="font-medium">Ambiguity in {link(flag.itemId, flag.ref)}.</span> {SHAPE_COPY.sentence(flag.what)} {SHAPE_COPY.mayMarkUnclear}</>
+        : <><span className="font-medium">{link(flag.itemId, flag.ref)} may duplicate {link(flag.otherId, flag.otherRef)}.</span> {SHAPE_COPY.duplicateNote}</>}
+      {state.error && <span role="alert" className="ml-2 text-danger">{state.error}</span>}
+    </Banner>
   );
 }

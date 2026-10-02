@@ -84,6 +84,8 @@ of the content; page means it replaces the screen.
 | Inline, About this project | Save on the sample project, through the server | The sample project cannot be edited. |
 | Banner, Shape (already on the board) | Ambiguity flag | Ambiguity in [REF]. [What the item does not say]. Respondents may mark it unclear. [Dismiss] |
 | Banner, Shape | Duplicate flag (E4-4) | [REF] may duplicate [REF]. If they ask for the same thing, remove one in the file and import it again. [Dismiss] |
+| Inline, Shape | Dismiss on an item without a flag, through the server (E4-4) | This item has no flag to dismiss. Reload the page to see the flags as they are now. |
+| Inline, Shape | Dismiss on the sample project, through the server (E4-4) | The sample project cannot be edited. |
 | Inline, Shape | Reader version identical to the original | The readable version is the same as the original, so there is nothing to accept. |
 | Inline, Shape | A blank edit of a reader version (E4-3, decision 0031 item 8) | Write the readable version, or reject the suggestion to keep the original. |
 | Inline, Shape | An edit over 1,000 characters (E4-3; the model's versions have the same cap) | The readable version is [N] characters. Keep it to 1,000 or fewer. |

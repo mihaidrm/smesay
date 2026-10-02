@@ -95,7 +95,12 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("flag-ambiguity")).toHaveCount(1);
   await expect(page.getByTestId("flag-ambiguity")).toContainText("Ambiguity in 5. Which countries, and who sets the rate. Respondents may mark it unclear.");
   await expect(page.getByTestId("flag-duplicate")).toContainText("6 may duplicate 1.");
-  await expect(page.getByTestId("item").filter({ hasText: "Per diem" }).getByTestId("item-note")).toHaveText("Ambiguity: Which countries, and who sets the rate");
+  await expect(page.getByTestId("item").filter({ hasText: "Per diem" }).getByTestId("item-note")).toHaveText("Ambiguity: Which countries, and who sets the rate.");
+  await expect(page.getByTestId("item").filter({ hasText: "Mileage" }).getByTestId("item-note")).toHaveText("May duplicate 1.");
+  // The refs are links to the rows.
+  const refLink = page.getByTestId("flag-duplicate").getByRole("link", { name: "1" });
+  await expect(refLink).toHaveAttribute("href", /^#item-[0-9a-f-]{36}$/);
+  await expect(page.locator(await refLink.getAttribute("href") as string)).toContainText("Receipts captured by phone");
   await page.getByTestId("flag-duplicate").getByRole("button", { name: "Dismiss" }).click();
   await expect(page.getByTestId("flag-duplicate")).toHaveCount(0);
   await page.reload();
