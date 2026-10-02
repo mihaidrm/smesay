@@ -23,6 +23,17 @@ const eslintConfig = defineConfig([
     plugins: { smesay },
     rules: { "smesay/no-db-reexport": "error" },
   },
+  // The Anthropic SDK is imported in src/lib/ai/ only (stories/E4-1, acceptance 1): the key
+  // and every call stay in one place, out of every client bundle. no-restricted-imports with
+  // patterns and a message: eslint.org/docs/latest/rules/no-restricted-imports. Tested by
+  // src/lib/ai/lint-rule.test.ts.
+  {
+    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    ignores: ["src/lib/ai/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [{ group: ["@anthropic-ai/sdk", "@anthropic-ai/sdk/*"], message: "The Anthropic SDK is used in src/lib/ai/ only (stories/E4-1)." }] }],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

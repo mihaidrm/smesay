@@ -16,6 +16,8 @@
     "test:e2e": "playwright test",
     "scan:copy": "node scripts/scan-copy.mjs docs stories evals src e2e scripts README.md CLAUDE.md INTERFACES.md SECURITY.md MISTAKES.md",
     "check:status": "node scripts/sync-status.mjs",
+    "check:bundle": "node scripts/check-ai-bundle.mjs",
+    "ai:smoke": "node --env-file-if-exists=.env.local --import tsx scripts/ai-smoke.ts",
     "sync:status": "node scripts/sync-status.mjs --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -24,6 +26,7 @@
     "hooks": "git config core.hooksPath scripts/githooks"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@aws-sdk/client-s3": "^3.1145.0",
     "@base-ui/react": "^1.8.0",
     "better-auth": "^1.7.7",

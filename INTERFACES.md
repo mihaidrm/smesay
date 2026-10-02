@@ -104,4 +104,16 @@ Status: to be written in E7, on top of the E1-2 shapes.
 
 ## AI shaping output (ai -> builder)
 Owner: ai route. Consumer: builder review view.
-Status: JSON schema in evals/schema.json, to be written with E4.
+Status: JSON schema in evals/schema.json, to be written with E4-2.
+The route (E4-1): `runModel({ ws, projectId, purpose, instructions, data, schema, check?,
+maxOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
+ANTHROPIC_API_KEY or imports the SDK (eslint no-restricted-imports). It returns
+`{ ok: true, output, run }` (run: id, model, tokensIn, tokensOut, costEurCents, durationMs)
+or `{ ok: false, reason: "budget" | "rateLimited" | "failed" | "invalid", message, detail }`;
+message is what the screen shows (AI_COPY in src/lib/ai/copy.ts, no database import), detail
+is for the server log. The instructions are the system prompt; data is its own content block
+of the user message; the schema is a z.strictObject and the answer is validated against it
+after the API's structured output; check(output) returns the reason to refuse or null. Every
+answered call is an ai_run row (usage() counts them). The price table, the default model and
+the euro rate, with the dates they were read, are in src/lib/ai/prices.ts; costEurCents(model,
+tokensIn, tokensOut) rounds up to the cent.
