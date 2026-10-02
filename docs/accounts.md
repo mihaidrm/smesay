@@ -165,6 +165,14 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
    (24 months). Copy the Value (not the Secret ID) into `MICROSOFT_CLIENT_SECRET=`.
 7. Put the expiry date in your calendar. Sign-in with Microsoft stops when the secret expires.
 
+### Checking steps 6, 7 and 9 without showing a value
+
+Put the same names and values into the repository as GitHub secrets (github.com, the
+repository, Settings, "Secrets and variables", Actions, "New repository secret"). Then open
+the Actions tab, pick "Secrets check" on the left, press "Run workflow". The run prints one
+line per name, "set" or "missing", and never a value (.github/workflows/secrets-check.yml).
+Claude can start the run and read the result; it cannot read the secrets themselves.
+
 ## Step 8. Cloudflare R2, file storage (before E3)
 
 1. In the Cloudflare dashboard open "R2 Object Storage". Cloudflare asks for a card even on the
