@@ -36,6 +36,9 @@ export const workspaces = {
     if (Object.keys(values).length === 0) return (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
     return (await db.update(workspace).set(values as Partial<NewWorkspace>).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null;
   },
+  // No membership check: the seed (is the sample there?) and E11-2's removal job only.
+  getById: async (workspaceId: string): Promise<Workspace | null> =>
+    isUuid(workspaceId) ? (await db.select().from(workspace).where(eq(workspace.id, workspaceId)).limit(1))[0] ?? null : null,
   // A workspace with no member yet: the seed's sample workspace (stories/E1-4, acceptance 4),
   // whose owner is attached by E2's first sign-in. Every other caller uses create().
   createEmpty: async (data: NewWorkspace & { id?: string }): Promise<Workspace> =>

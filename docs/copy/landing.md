@@ -69,7 +69,7 @@ for.
 How sure they were. Confidence, 1 to 5, given at sign-off. Average 3.8. Low confidence on a
 high-agreement item is worth a second look.
 
-Disagreement register. 8 push-backs, 2 questions, 1 missing item. Sortable by item or by
+Disagreement register. 9 push-backs, 2 questions, 1 missing item. Sortable by item or by
 person. Rows read "[Name], [Role] says [Priority]: [reason]" or "marked it Unclear: [question]".
 The priority a respondent picks is Must have, Should have, Could have or Not needed, the same
 words they see on the card.
@@ -142,7 +142,7 @@ Privacy policy, Terms, DPA and subprocessors. © Alerty S.R.L. 2026.
   (decision 0006). Keep the line, confirm the region at the gate.
 - "Export or delete everything yourself, at any time": E10 and E11 deliver this. Do not launch
   the page before they ship.
-- "Average 3.8", "5 of 7", "8 push-backs": Marlow example numbers inside product screens, not
+- "Average 3.8", "5 of 7", "9 push-backs", "63%": Marlow example numbers inside product screens (the seed, stories/E1-4), not
   claims about the product. They match the PM app board and the respondent board.
 - The legal links point to pages E11 writes; every one carries the lawyer markers.
 

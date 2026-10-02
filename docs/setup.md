@@ -11,6 +11,7 @@ cp .env.example .env.local
 docker compose up -d     # Postgres 5432, RustFS 9000 (console 9001), Mailpit 8025 (SMTP 1025)
 npm install
 npm run db:migrate       # creates the tables (drizzle/, stories/E1-2); a second run changes nothing
+npm run db:seed          # the Marlow Group sample workspace (stories/E1-4); a second run changes nothing
 npm run dev              # http://localhost:3000
 ```
 
