@@ -16,7 +16,7 @@ test("create a project and keep its context", async ({ page, request }) => {
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByRole("heading", { name: "No projects yet" })).toBeVisible();
+  await expect(page.getByText("No projects yet")).toBeVisible();
   await expect(page.getByTestId("project-row")).toHaveCount(1);
 
   await page.getByRole("link", { name: "New project" }).first().click();
@@ -47,5 +47,5 @@ test("create a project and keep its context", async ({ page, request }) => {
   await expect(rows.nth(1)).toContainText("0 of 0");
   await expect(rows.first().getByTestId("project-status")).toHaveText("Sample");
   await expect(rows.first()).toContainText("5 of 7");
-  await expect(page.getByRole("heading", { name: "No projects yet" })).toHaveCount(0);
+  await expect(page.getByText("No projects yet")).toHaveCount(0);
 });
