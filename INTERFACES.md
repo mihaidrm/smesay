@@ -20,6 +20,11 @@ the check constraints use them). Change this file first.
   live in src/lib/plans.ts, the one place in the code that names a limit (decision 0008).
 - MemberRole: owner, member.
 - ItemSetSource: xlsx, csv, pasted.
+- ColumnRole (E3-3): text, area, value, ref, custom, skip. ColumnMapping (jsonb,
+  upload.mapping and workspace_mapping.mapping): { [column]: ColumnRole }, keyed by the
+  column's header, or its letter when the file has no header; one column per text, area, value
+  and ref, up to five custom. workspace_mapping is keyed by the sorted headers joined with
+  U+001F (headersKey in src/lib/import/mapping.ts).
 - AiPurpose: shape, insights.
 - RespondentFieldSpec (jsonb, instrument.respondent_fields, array):
   { key: string, label: string, type: "text" | "dropdown", mandatory: boolean, options?: string[] }

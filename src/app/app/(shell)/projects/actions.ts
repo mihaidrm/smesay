@@ -10,7 +10,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
-import { rechoose, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { rechoose, saveMapping, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 export type ProjectFormState = { error: string | null; saved: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
@@ -100,4 +100,22 @@ export async function chooseAction(_previous: ProjectFormState, formData: FormDa
   }
   revalidatePath(`/app/projects/${projectId}/import`);
   return { ...NONE, saved: true };
+}
+
+// The mapping card (stories/E3-3): every select of the card is in the form, named by the
+// column key; the server cleans the set (src/lib/import/mapping.ts) and saves it.
+export async function mapAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const uploadId = String(formData.get("uploadId") ?? "");
+  const raw: Record<string, unknown> = {};
+  for (const [key, value] of formData.entries()) if (key.startsWith("col:")) raw[key.slice(4)] = value;
+  try {
+    const result = await saveMapping(current.ws, uploadId, raw);
+    revalidatePath(`/app/projects/${projectId}/import`);
+    return { ...NONE, error: result.error, saved: result.error === null };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
 }

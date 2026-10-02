@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-02 (the date of the latest migration, 0006_project_updated_at).
+v1, 2026-10-02 (the date of the latest migration, 0007_column_mapping).
 
-Generated from the snapshot of the 7 migrations in drizzle/ (0006_snapshot.json) by
+Generated from the snapshot of the 8 migrations in drizzle/ (0007_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -318,7 +318,7 @@ Checks: ai_run_purpose_check: purpose in ('shape', 'insights').
 
 ## upload
 
-a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview in jsonb.
+a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview and the column mapping in jsonb.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -332,6 +332,7 @@ a file a PM uploaded for a project (E3-2): the object key under uploads/<workspa
 | sheet | text |  |
 | header_row | integer |  |
 | preview | jsonb | not null |
+| mapping | jsonb |  |
 | created_by | text | fk user.id, on delete set null |
 | created_at | timestamp with time zone | not null, default now() |
 
@@ -339,6 +340,20 @@ Foreign keys: upload_project_fk (project_id, workspace_id) references project (i
 
 Indexes: upload_project_idx on project_id.
 Checks: upload_kind_check: kind in ('xlsx', 'csv').
+
+## workspace_mapping
+
+a column mapping remembered per workspace (E3-3), keyed by the sorted headers; the next file with the same headers maps itself.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade, not null |
+| headers_key | text | not null |
+| mapping | jsonb | not null |
+| updated_at | timestamp with time zone | not null, default now() |
+
+Indexes: workspace_mapping_headers_idx (unique) on workspace_id, headers_key.
 
 ## user
 

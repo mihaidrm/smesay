@@ -5,6 +5,12 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number };
 export type ItemFlags = { duplicateOf?: string; ambiguity?: string; dismissed?: boolean };
 export type ResponseFields = { [key: string]: string };
+// Column roles of an import (stories/E3-3): one column is the item text, at most one each the
+// area, the proposed value and the reference, up to five custom fields, the rest not imported.
+// A ColumnMapping is keyed by the column's header (its letter when the file has no header).
+export type ScoringMethod = "moscow" | "fit" | "kcd";
+export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";
+export type ColumnMapping = { [column: string]: ColumnRole };
 // What the server found in an upload (stories/E3-2): the sheets, the chosen sheet, the header
 // row (1-based, null when none qualified), the columns with their letters and names, the first
 // ten data rows, the number of data rows.

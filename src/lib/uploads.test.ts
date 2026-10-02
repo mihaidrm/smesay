@@ -11,7 +11,8 @@ import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { memoryOutbox } from "@/lib/mail";
 import { getObject } from "@/lib/storage";
-import { rechoose, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { rechoose, rememberedFrom, saveMapping, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { MAPPING_COPY } from "@/lib/import/mapping";
 import { requireWorkspace } from "@/lib/workspace";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -125,5 +126,27 @@ describe("saveUpload", () => {
     expect(chosen.sheet).toBe("Requirements");
     expect(chosen.headerRow).toBe(1);
     expect(chosen.preview.rowsRead).toBe(6);
+  });
+
+  it("guesses the mapping from the headers, saves changes and remembers them for the same headers (stories/E3-3)", async () => {
+    const first = await saveUpload(a, projectA, { name: "first.xlsx", bytes: fixture("title-row.xlsx") });
+    if (!("upload" in first)) throw new Error(first.error);
+    expect(first.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
+    expect(await rememberedFrom(a.ws, first.upload)).toBeNull();
+    const changed = await saveMapping(a.ws, first.upload.id, { "Ref": "ref", "Requirement": "skip", "Module": "custom", "Priority": "value" });
+    expect(changed.error).toBe(MAPPING_COPY.noText);
+    expect(changed.upload.mapping).toEqual({ Ref: "ref", Requirement: "skip", Module: "custom", Priority: "value" });
+    const fixed = await saveMapping(a.ws, first.upload.id, { "Ref": "ref", "Requirement": "text", "Module": "custom", "Priority": "value" });
+    expect(fixed.error).toBeNull();
+    await new Promise((r) => setTimeout(r, 20));
+    // The same headers in a csv, in another order: the remembered mapping applies.
+    const second = await saveUpload(a, projectA, { name: "second.csv", bytes: new TextEncoder().encode("Priority,Module,Requirement,Ref\nMust,Paying,Pay people on time with the right amount,CL-9\nShould,Paying,Export the payment file,CL-10\n") });
+    if (!("upload" in second)) throw new Error(second.error);
+    expect(second.upload.mapping).toEqual({ Priority: "value", Module: "custom", Requirement: "text", Ref: "ref" });
+    expect(await rememberedFrom(a.ws, second.upload)).not.toBeNull();
+    // Another workspace has its own memory.
+    const theirs = await saveUpload(b, projectB, { name: "theirs.xlsx", bytes: fixture("title-row.xlsx") });
+    expect("upload" in theirs && theirs.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
+    await expect(saveMapping(b.ws, first.upload.id, { Ref: "text" })).rejects.toBeInstanceOf(NotFoundError);
   });
 });

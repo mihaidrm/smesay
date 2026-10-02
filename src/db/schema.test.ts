@@ -18,7 +18,7 @@ const TOKEN = "0123456789abcdef0123456789abcdef";
 // Tables without workspace_id: the identity tables better-auth owns (a user exists before any
 // workspace; decision 0028, accepted 2026-10-02).
 const AUTH_TABLES = ["user", "session", "account", "verification"];
-const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload"];
+const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping"];
 // Columns that reference a user, not a workspace parent.
 const USER_COLUMNS = ["user_id", "created_by"];
 
@@ -176,6 +176,7 @@ describe("rules in the database", () => {
     await sql`insert into insight (workspace_id, project_id, title) values (${ws}, ${p}, 'Do this')`;
     await sql`insert into ai_run (workspace_id, project_id, purpose, model) values (${ws}, ${p}, 'shape', 'test')`;
     await sql`insert into upload (workspace_id, project_id, object_key, filename, kind, byte_size, preview) values (${ws}, ${p}, 'uploads/x/y.csv', 'list.csv', 'csv', 10, '{}')`;
+    await sql`insert into workspace_mapping (workspace_id, headers_key, mapping) values (${ws}, 'Ref', '{"Ref": "ref"}')`;
     await sql`delete from workspace where id = ${ws}`;
     for (const t of APP_TABLES.filter((t) => t !== "workspace" && t !== "workspace_member")) {
       const [{ n }] = await sql.unsafe(`select count(*)::int as n from "${t}" where workspace_id = '${ws}'`);
