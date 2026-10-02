@@ -70,8 +70,11 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(areas.nth(2).getByTestId("item").filter({ hasText: "Travel advances" }).getByTestId("moved-pill")).toHaveText("Moved by you");
   await expect(page.getByTestId("placed-pill")).toHaveCount(2);
 
-  // Drag and drop (the HTML Drag and Drop API through Playwright's dragTo).
+  // Drag and drop (the HTML Drag and Drop API through Playwright's dragTo). The target is
+  // scrolled into view first: with the reader rows the page is taller than the viewport and
+  // a drop on an off-screen area lands nowhere.
   const mileage = page.getByTestId("item").filter({ hasText: "Mileage from a start" });
+  await areas.nth(1).scrollIntoViewIfNeeded();
   await mileage.dragTo(areas.nth(1));
   await expect(areas.nth(1).getByTestId("item").filter({ hasText: "Mileage" })).toHaveCount(1);
 
