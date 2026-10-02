@@ -5,7 +5,7 @@
 // refuses what the UI hides (src/lib/brand.ts, src/lib/members.ts). Copy: docs/copy/app.md,
 // errors.md.
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { accentContrast } from "@/lib/brand-rules";
+import { accentContrast, BRAND_COPY } from "@/lib/brand-rules";
 import { listMembersAndInvites } from "@/lib/members";
 import { can } from "@/lib/permissions";
 import { members } from "@/db/queries";
@@ -21,6 +21,7 @@ export default async function SettingsPage() {
   const { session, current } = await requireCurrentWorkspace("/app/settings");
   const me = await members.get(current.ws, session.user.id);
   const manage = me !== null && can(me.role, "members.invite");
+  const brandManage = me !== null && can(me.role, "workspace.rename");
   const { members: rows, invited } = await listMembersAndInvites(current.ws);
   const owners = rows.filter((m) => m.role === "owner").length;
   const used = await usage(current.ws);
@@ -34,17 +35,17 @@ export default async function SettingsPage() {
       <div className="flex flex-col gap-1">
         <div className="text-xs text-ink-muted" data-testid="breadcrumb">{workspace.name}</div>
         <h1 className="text-2xl font-normal">Workspace settings</h1>
-        <p className="text-ink-muted">Name, logo and accent appear on every instrument created after you save.</p>
+        <p className="text-ink-muted">Name, logo and accent appear on every instrument.</p>
       </div>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-md border border-hairline" aria-labelledby="brand-title">
           <h2 id="brand-title" className="border-b border-hairline px-4 py-3 font-medium">Brand on the respondent side</h2>
-          {manage ? <BrandForm name={workspace.name} accentHex={workspace.accentHex} logoUrl={logoUrl} /> : (
+          {brandManage ? <BrandForm name={workspace.name} accentHex={workspace.accentHex} logoUrl={logoUrl} /> : (
             <dl className="flex flex-col gap-3 px-4 py-4 text-sm">
               <div><dt className="text-xs text-ink-muted">Workspace name</dt><dd className="font-medium">{workspace.name}</dd></div>
               {/* eslint-disable-next-line @next/next/no-img-element -- the app's own route at 40 px */}
               <div><dt className="text-xs text-ink-muted">Logo</dt><dd>{logoUrl ? <img src={logoUrl} alt="" width={40} height={40} className="size-10 rounded-lg object-contain" /> : "No logo yet"}</dd></div>
-              <div><dt className="text-xs text-ink-muted">Accent colour</dt><dd className="flex items-center gap-2">{workspace.accentHex ? <><span className="block size-5 rounded border border-hairline" style={{ background: workspace.accentHex }} aria-hidden="true" /><span className="font-mono">{workspace.accentHex}</span>{ratio !== null && <span className="text-xs text-ink-muted">Contrast on white {ratio.toFixed(2)}:1</span>}</> : "No accent set. The respondent page uses teal."}</dd></div>
+              <div><dt className="text-xs text-ink-muted">Accent colour</dt><dd className="flex items-center gap-2">{workspace.accentHex ? <><span className="block size-5 rounded border border-hairline" style={{ background: workspace.accentHex }} aria-hidden="true" /><span className="font-mono">{workspace.accentHex}</span>{ratio !== null && <span className="text-xs text-ink-muted">Contrast on white {ratio.toFixed(2)}:1</span>}</> : BRAND_COPY.noAccent}</dd></div>
             </dl>
           )}
         </section>
@@ -54,7 +55,7 @@ export default async function SettingsPage() {
             <div className="flex flex-col gap-2 px-4 py-4 text-sm">
               <div className="font-mono" data-testid="budget-line">{`EUR ${workspace.aiBudgetEur.toFixed(2)} per month, ${EUR(spentCents)} used this month`}</div>
               <div className="h-1.5 rounded-full bg-greige"><div className="h-1.5 rounded-full bg-ink" style={{ width: `${Math.min(100, Math.max(1, (spentCents / 100) / workspace.aiBudgetEur * 100))}%`, minWidth: 4 }} /></div>
-              <div className="text-xs text-ink-muted">The budget is not editable on the Free plan. A run that would exceed it is refused and shows the shortfall.</div>
+              <div className="text-xs text-ink-muted">The budget is not editable on the Free plan.</div>
               <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month.`}</div>
             </div>
           </section>

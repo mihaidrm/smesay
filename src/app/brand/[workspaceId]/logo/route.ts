@@ -15,6 +15,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ wor
   if (!object) return new Response(null, { status: 404 });
   // A Blob carries the bytes whatever buffer backs them (BodyInit in lib.dom.d.ts).
   return new Response(new Blob([object.body as BlobPart]), {
-    headers: { "content-type": object.contentType, "cache-control": "public, max-age=86400", "content-security-policy": "sandbox", "x-content-type-options": "nosniff" },
+    headers: { "content-type": object.contentType, "cache-control": "public, max-age=3600", "content-security-policy": "default-src 'none'; sandbox", "x-content-type-options": "nosniff" },
   });
 }

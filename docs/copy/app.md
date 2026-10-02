@@ -34,20 +34,20 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Page line | Name, logo and accent appear on every instrument created after you save. |
+| Page line | Name, logo and accent appear on every instrument. |
 | Card title | Brand on the respondent side |
 | Name field label | Workspace name |
 | Logo label and line | Logo. PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark. |
-| Logo file button | Choose file |
-| Logo remove button | Remove logo |
+| Logo, none yet (a member's view) | No logo yet |
+| Logo remove checkbox | Remove logo |
 | Accent label | Accent colour |
-| Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter, the progress bar, the focus ring and links. Buttons stay ink. |
+| Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter and the progress bar. Buttons stay ink. |
 | Accent line, none set | No accent set. The respondent page uses teal. |
 | Save button | Save |
-| Line after saving | Saved. Instruments created from now on carry the new name, logo and accent. |
+| Line after saving | Saved. Your instruments carry the new name, logo and accent. |
 | Budget card title | AI budget |
 | Budget line | EUR [BUDGET] per month, EUR [SPENT] used this month |
-| Budget note | The budget is not editable on the Free plan. A run that would exceed it is refused and shows the shortfall. |
+| Budget note | The budget is not editable on the Free plan. |
 | Usage line under the budget (E2-6) | [N] projects, [N] responses this month, [N] AI runs this month. |
 | Plan card title and value | Plan, Free |
 | Plan pill | While we build it with the first users |

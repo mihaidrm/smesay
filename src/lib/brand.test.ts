@@ -7,10 +7,10 @@ import { randomUUID } from "node:crypto";
 import { members, workspaces } from "@/db/queries";
 import { prepareTestDatabase } from "@/db/test-db";
 import { auth } from "@/lib/auth";
-import { accentContrast, BRAND_COPY, DEFAULT_ACCENT, effectiveAccent, isReadableAccent, saveBrand } from "@/lib/brand";
+import { accentContrast, BRAND_COPY, DEFAULT_ACCENT, effectiveAccent, FALLBACK_ACCENT, isReadableAccent, saveBrand } from "@/lib/brand";
 import { ForbiddenError } from "@/lib/errors";
 import { LOGO_COPY } from "@/lib/logo";
-import { ONE_PIXEL_PNG } from "@/lib/logo.test";
+import { ONE_PIXEL_PNG } from "@/lib/logo-fixture";
 import { memoryOutbox } from "@/lib/mail";
 import { getObject } from "@/lib/storage";
 import { requireWorkspace } from "@/lib/workspace";
@@ -43,13 +43,15 @@ beforeAll(async () => {
 const base = { name: "Marlow Group", accentHex: "#1F4F7A", logo: null, removeLogo: false };
 
 describe("accent", () => {
-  it("measures contrast on white and falls back under 4.5:1", () => {
+  it("measures contrast on white, uses teal when none is set and falls back to ink under 4.5:1", () => {
     expect(accentContrast("#1F4F7A")!.toFixed(2)).toBe("8.54");
     expect(isReadableAccent("#1F4F7A")).toBe(true);
     expect(isReadableAccent("#FFD500")).toBe(false);
-    expect(effectiveAccent("#FFD500")).toBe(DEFAULT_ACCENT);
+    expect(effectiveAccent("#FFD500")).toBe(FALLBACK_ACCENT);
+    expect(FALLBACK_ACCENT).toBe("#16181C");
     expect(effectiveAccent("#1f4f7a")).toBe("#1F4F7A");
     expect(effectiveAccent(null)).toBe(DEFAULT_ACCENT);
+    expect(effectiveAccent("")).toBe(DEFAULT_ACCENT);
     expect(accentContrast("not a colour")).toBeNull();
   });
 });

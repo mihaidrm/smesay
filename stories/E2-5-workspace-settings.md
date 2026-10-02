@@ -2,8 +2,8 @@
 
 User: the workspace owner making instruments carry the company's name and colour
 Status: built
-Outcome: logo and colour appear on every instrument created after saving; the AI budget is
-visible.
+Outcome: logo and colour appear on every instrument of the workspace as soon as they are
+saved; the AI budget is visible.
 
 ## Acceptance criteria
 1. Settings (PM app board): workspace name; logo upload (PNG or SVG, up to 1 MB, stored in the
@@ -34,18 +34,23 @@ visible.
 ## Technical notes
 Built 2026-10-02, with acceptance 3 and the respondent half of acceptance 5 deferred: the
 respondent page and the preview do not exist yet (E7-1, E5-6), so this story ships the
-settings, the storage and the rule, and E7-1 applies the accent and the logo on the respondent
-side (its story names `effectiveAccent()` and the logo route). The Playwright test of this
-story covers the settings page itself: rename, upload, accent, the contrast line, the banner,
-the logo served by the route.
+settings, the storage and the rule; the respondent side applies them where each part lives:
+the header logo in E7-1, the selected answer in E7-2, the chapter row and the progress bar
+with the Playwright check of the colour in E7-4, the fallback in E7-7, the preview in E5-6
+(each story carries its criterion). The deferral waits for Mihai's acceptance (raised
+2026-10-02). The Playwright test of this story covers the settings page itself: rename, upload,
+accent, the contrast line, the banner, the logo served by the route.
 
 - Columns on workspace: accent_hex, logo_object_key, ai_budget_eur (docs/schema.md). The save
   is `saveBrand()` in src/lib/brand.ts: owner-only through can() (workspace.rename,
   workspace.accent, workspace.logo; src/lib/brand.test.ts calls it as a member and gets 403),
   every field validated on the server (name 1 to 80, accent as #RRGGBB or empty, the logo by
-  content). The accent is stored as typed; `effectiveAccent()` in src/lib/brand-rules.ts gives
-  the respondent side the accent when it reaches 4.5:1 on white (src/lib/contrast.ts) and the
-  design system's teal otherwise, and Settings shows the banner from docs/copy/errors.md.
+  content). The accent is stored as typed, upper-cased; `effectiveAccent()` in
+  src/lib/brand-rules.ts gives the respondent side the accent when it reaches 4.5:1 on white
+  (src/lib/contrast.ts), teal when none is set, and ink when it is too light (acceptance 2,
+  decision 0016, Brand 06), and Settings shows the banner from docs/copy/errors.md. The brand
+  lives on the workspace row, so a save applies to every instrument at once, published ones
+  included.
 - Uploads go through src/lib/storage.ts: @aws-sdk/client-s3 3.1145.0 (Apache-2.0, released
   2026-10-01; open issue count unverified, the GitHub API outside the project is not reachable
   from the session) against RustFS locally and in CI (a service container in ci.yml) and
@@ -54,16 +59,29 @@ the logo served by the route.
   logos/<workspace id>/<16 hex>.<png|svg>; the old object is removed after a save.
 - The logo is served by a public route, /brand/[workspaceId]/logo (src/app/brand/.../route.ts),
   not a signed URL: the respondent page shows it to people with no session, the route reveals
-  nothing but the logo, and a day of caching with a version in the URL keeps it fast. The
-  alternative, signed URLs from the store, would tie the respondent page to the store's
-  signing scheme.
+  nothing but the logo, and an hour of caching with a version in the URL keeps it fast. It is
+  served under "default-src 'none'; sandbox" with nosniff, so a file runs and loads nothing
+  when opened directly. The alternative, signed URLs from the store, would tie the respondent
+  page to the store's signing scheme. E11-1 adds the route to the rate-limited set.
 - Logo validation (src/lib/logo.ts, tested): the PNG signature; an SVG root element after an
-  optional declaration, comments or doctype; an SVG with a script element, an event handler
-  attribute, a javascript: reference or a foreignObject is refused, not cleaned, so the person
-  always gets the file they uploaded. Up to 1 MB.
+  optional declaration, comments or doctype; an SVG with a script element in any namespace, an
+  event handler attribute, a javascript: or data: reference, a foreignObject or an animation
+  aimed at an href, after numeric character references are decoded, is refused, not cleaned,
+  so the person always gets the file they uploaded. It is a text filter, not a parser; the
+  route's policy is what makes the served file inert. Up to 1 MB, checked in the browser before
+  the upload and on the server; the server action's body cap is raised to 2 MB in next.config.ts
+  so the file reaches the app's own message.
 - Settings (src/app/app/(shell)/settings): the brand card with the form for owners (the
   contrast line follows the field as typed) and the values for members, the AI budget card
   ("EUR 50.00 per month, EUR [SPENT] used this month" from ai_run.cost_eur_cents this month,
   aiRuns.costThisMonthCents) and the Plan card, above the Members section of E2-4.
 - Copy: docs/copy/app.md (Settings, brand and budget) and errors.md. Design note 18 has the
   screenshots.
+- Audit of 2026-10-02 (fresh context, 18 findings): the two blocking ones (the fallback was teal
+  where every source says ink; a logo over 1 MB hit Next's body cap before the app's message)
+  and the should-fix ones (the sample's AI runs counted as spent, closed by E2-6's usage();
+  the SVG filter missed namespaced scripts and character references; a failed bucket check
+  stayed cached; copy that described E4-1 and a save that only applied to new instruments; the
+  deferred criteria had no story) were closed the same day in the pull request after E2-6's.
+  Open for Mihai: the deferral itself; the board's 28 px logo against the story's 24 px; whether
+  "falls back to ink" and errors.md's "uses the default" should say the same word.

@@ -23,7 +23,13 @@ function env(name: "S3_ENDPOINT" | "S3_BUCKET" | "S3_ACCESS_KEY_ID" | "S3_SECRET
   return value;
 }
 
-const isMemory = () => env("S3_ENDPOINT") === "memory:";
+// "memory:" is for tests and the dev server only: a production process would lose every
+// object on restart, so it refuses, as src/lib/auth.ts refuses an http base URL.
+function isMemory(): boolean {
+  const memoryMode = env("S3_ENDPOINT") === "memory:";
+  if (memoryMode && process.env.NODE_ENV === "production") throw new Error("S3_ENDPOINT=memory: is for tests only. Set the bucket's address in production (docs/accounts.md step 8).");
+  return memoryMode;
+}
 
 function s3(): S3Client {
   client ??= new S3Client({
@@ -35,16 +41,24 @@ function s3(): S3Client {
   return client;
 }
 
+// HeadBucket answers NotFound (404) for a missing bucket (node_modules/@aws-sdk/client-s3/
+// dist-types/commands/HeadBucketCommand.d.ts); any other failure (wrong credentials, the store
+// not up yet) is thrown as it is, and a failed attempt is not cached, so the next call tries
+// again.
 async function ensureBucket(): Promise<void> {
-  bucketReady ??= (async () => {
+  if (bucketReady) return bucketReady;
+  const attempt = (async () => {
     const Bucket = env("S3_BUCKET");
     try {
       await s3().send(new HeadBucketCommand({ Bucket }));
-    } catch {
-      await s3().send(new CreateBucketCommand({ Bucket }));
+    } catch (error) {
+      const name = typeof error === "object" && error !== null ? (error as { name?: string; $metadata?: { httpStatusCode?: number } }) : {};
+      if (name.name === "NotFound" || name.$metadata?.httpStatusCode === 404) await s3().send(new CreateBucketCommand({ Bucket }));
+      else throw error;
     }
   })();
-  await bucketReady;
+  bucketReady = attempt.catch((error) => { bucketReady = null; throw error; });
+  return bucketReady;
 }
 
 export async function putObject(key: string, body: Uint8Array, contentType: string): Promise<void> {

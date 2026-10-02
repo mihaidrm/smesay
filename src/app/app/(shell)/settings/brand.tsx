@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { accentContrast, BRAND_COPY, HEX, MIN_CONTRAST } from "@/lib/brand-rules";
-import { LOGO_MAX_BYTES } from "@/lib/logo";
+import { LOGO_COPY, LOGO_MAX_BYTES } from "@/lib/logo";
 import { saveBrandAction, type BrandState } from "./actions";
 
 export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHex: string | null; logoUrl: string | null }) {
   const [state, action, pending] = useActionState<BrandState, FormData>(saveBrandAction, { error: null, field: null, saved: false, tooLight: false });
   const [accent, setAccent] = useState(accentHex ?? "");
+  // The size is checked here before the upload too (the server repeats it), so an over-size
+  // file never leaves the browser.
+  const [fileError, setFileError] = useState<string | null>(null);
   const ratio = accentContrast(accent.trim() || null);
   const valid = accent.trim() === "" || HEX.test(accent.trim());
   const initial = name.trim().charAt(0).toUpperCase() || "W";
@@ -37,9 +40,10 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-logo">Logo</Label>
           <span className="text-xs text-ink-muted">PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark.</span>
-          <input id="ws-logo" name="logo" type="file" accept="image/png,image/svg+xml" className="text-sm" data-max-bytes={LOGO_MAX_BYTES}
-            aria-invalid={state.field === "logo" ? true : undefined} aria-describedby={state.field === "logo" ? "ws-logo-error" : undefined} />
-          {state.field === "logo" && <p id="ws-logo-error" className="text-sm text-danger">{state.error}</p>}
+          <input id="ws-logo" name="logo" type="file" accept="image/png,image/svg+xml" className="text-sm"
+            onChange={(e) => setFileError((e.target.files?.[0]?.size ?? 0) > LOGO_MAX_BYTES ? LOGO_COPY.tooBig : null)}
+            aria-invalid={fileError || state.field === "logo" ? true : undefined} aria-describedby={fileError || state.field === "logo" ? "ws-logo-error" : undefined} />
+          {(fileError || state.field === "logo") && <p id="ws-logo-error" className="text-sm text-danger">{fileError ?? state.error}</p>}
           {logoUrl && <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="removeLogo" value="1" /> Remove logo</label>}
         </div>
       </div>
@@ -51,12 +55,12 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
             aria-invalid={state.field === "accentHex" ? true : undefined} aria-describedby="ws-accent-line" />
           <p id="ws-accent-line" className={`text-xs ${ratio !== null && ratio < MIN_CONTRAST ? "text-danger" : "text-ink-muted"}`} data-testid="accent-line">
             {state.field === "accentHex" ? state.error
-              : ratio === null ? "No accent set. The respondent page uses teal."
-              : `Contrast on white ${ratio.toFixed(2)}:1. Used on the selected answer, the active chapter, the progress bar, the focus ring and links. Buttons stay ink.`}
+              : ratio === null ? BRAND_COPY.noAccent
+              : `Contrast on white ${ratio.toFixed(2)}:1. ${BRAND_COPY.accentUse}`}
           </p>
         </div>
       </div>
-      <div className="flex justify-end"><Button type="submit" loading={pending}>Save</Button></div>
+      <div className="flex justify-end"><Button type="submit" loading={pending} disabled={fileError !== null}>Save</Button></div>
     </form>
   );
 }

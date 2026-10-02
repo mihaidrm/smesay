@@ -22,6 +22,10 @@ Wrap up tells unrated from skipped.
 5. Playwright: rate one of two items in a chapter, go to Wrap up through the row, see "1 still
    to finish" naming the item.
 
+6. The chapter row and the progress bar take `effectiveAccent()` from the workspace (E2-5,
+   acceptance 3); Playwright: with a workspace accent set, the active chapter and the bar show
+   that colour (the check E2-5 deferred here).
+
 ## Out of scope
 - A "skip this item" button: not in R1. Recorded as a candidate in stories/backlog.md.
 

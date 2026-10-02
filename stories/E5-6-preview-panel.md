@@ -27,6 +27,9 @@ stores a response (decision 0021).
    true size, scrolling inside the panel.
 6. Playwright: on Build, switch the method, see the pills change in the preview.
 
+7. The preview shows the workspace's current brand (E2-5): the logo in the header and
+   `effectiveAccent()` where the respondent app uses it, so a PM sees the colour before sharing.
+
 ## Out of scope
 - A preview on Results: nothing there changes the instrument (decision 0021).
 

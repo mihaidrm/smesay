@@ -17,11 +17,12 @@ line "PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place o
 the file input and, once a logo exists, a "Remove logo" checkbox; the accent row with a 40 px
 swatch that follows the field, the "Accent colour" field (mono, 160 px) and the contrast line
 under it, which reads "Contrast on white [RATIO]:1. Used on the selected answer, the active
-chapter, the progress bar, the focus ring and links. Buttons stay ink." in muted ink, turns
+chapter and the progress bar. Buttons stay ink." in muted ink, turns
 danger red under 4.5:1, and "No accent set. The respondent page uses teal." when empty; the
-primary "Save" on the right. After a save the green line "Saved. Instruments created from now
-on carry the new name, logo and accent." appears at the top, or the banner from errors.md when
-the accent is too light (the colour is kept; the respondent side falls back to teal). A member
+primary "Save" on the right. After a save the green line "Saved. Your instruments carry the new
+name, logo and accent." appears at the top, or the banner from errors.md when the accent is too
+light (the colour is kept; the respondent side falls back to ink). A file over 1 MB is refused
+in the browser before the upload, with the same line the server would give. A member
 sees the three values as a list, no form.
 
 AI budget: the mono line "EUR 50.00 per month, EUR [SPENT] used this month", a 6 px greige
@@ -30,7 +31,8 @@ Free plan, and (E2-6) the usage line "[N] projects, [N] responses this month, [N
 month." in muted ink. Plan: "Free" with the teal pill "While we build it with the first users" and one
 line.
 
-The board's logo line says 28 px; the story and the design system say 24, so 24 it is.
+The board's logo line says 28 px; the story and the design system say 24. Built at 24; the
+board waits for Mihai's word before it changes (decision 0017).
 
 ## Checked
 
