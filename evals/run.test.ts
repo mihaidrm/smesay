@@ -8,7 +8,7 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { costEurCents, DEFAULT_MODEL } from "@/lib/ai/prices";
 import type { ShapeOutput } from "@/lib/ai/shape-schema";
-import { evalsWorkspace, loadExpected, runSpec } from "./run";
+import { evalsWorkspace, exitCode, loadExpected, PASS_BAR, runSpec } from "./run";
 import { areaNamesMatch, line, refOfPosition, score, type Expected } from "./score";
 
 let ws: WorkspaceId;
@@ -72,6 +72,11 @@ describe("the golden set runner", () => {
     expect(areaNamesMatch("Client and Animal Files", "Client and animal file")).toBe(true);
     expect(areaNamesMatch("Gate and site", "Billing")).toBe(false);
     expect(areaNamesMatch("Reporting and Monitoring", "Reporting")).toBe(true);
+    // The bar of decision 0038: seven of ten is green, six is not.
+    expect(PASS_BAR).toBe(7);
+    expect(exitCode(10)).toBe(0);
+    expect(exitCode(7)).toBe(0);
+    expect(exitCode(6)).toBe(1);
   });
 
   it("passes a run whose answer matches the expectation, in two logged calls, and prints the line", async () => {

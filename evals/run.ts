@@ -1,7 +1,8 @@
 // The golden set runner (stories/E4-6): `npm run evals`. Feeds each spec's rows (decision 0037)
 // through the shaping prompt and the E4-1 client, asks the judge about every reader version
 // that differs from its row (evals/judge.md), scores with evals/score.ts, prints one line per
-// spec and the cost, writes evals/results/latest.json and exits 1 when a spec fails. Runs
+// spec and the cost, writes evals/results/latest.json and exits 1 when fewer than PASS_BAR
+// specs pass (decision 0038). Runs
 // against a throwaway workspace "evals" so every call is an ai_run row like any other. The
 // script runs outside src/, so it may read the database directly.
 import { readdirSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
@@ -42,6 +43,12 @@ export function loadExpected(dir = HERE + "expected"): Expected[] {
 }
 
 export type SpecRun = { score: SpecScore; costCents: number; model: string; tokensIn: number; tokensOut: number; error?: string };
+
+// The bar (decision 0038, point 3): the run is green when at least this many specs pass.
+// The model is not deterministic, so one spec near a line can fail in one run and pass in
+// the next; a run under the bar is a real change.
+export const PASS_BAR = 7;
+export const exitCode = (passed: number): number => (passed >= PASS_BAR ? 0 : 1);
 
 // One spec: the shaping call, the judge call, the score. deps.fetch answers in place of the
 // network in the test; the real run passes none.
@@ -119,8 +126,9 @@ export async function main(): Promise<number> {
   const model = runs.find((r) => r.model)?.model ?? "";
   mkdirSync(HERE + "results", { recursive: true });
   writeFileSync(HERE + "results/latest.json", JSON.stringify({ ranAt: new Date().toISOString(), model, costCents: cost, passed: runs.length - failed, failed, runs }, null, 2) + "\n");
-  console.log(`${runs.length - failed} of ${runs.length} specs pass, ${cost} euro cent(s) on ${model || "no model"}. Results in evals/results/latest.json.`);
-  return failed > 0 ? 1 : 0;
+  const passed = runs.length - failed;
+  console.log(`${passed} of ${runs.length} specs pass (the bar is ${PASS_BAR}), ${cost} euro cent(s) on ${model || "no model"}. Results in evals/results/latest.json.`);
+  return exitCode(passed);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

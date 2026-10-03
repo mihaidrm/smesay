@@ -123,6 +123,17 @@ only); positions are exact strings; stale "accepts it merged" notes rewritten; S
 names the scripts outside src/ that read the database. Two rules the build changed from the
 story are now open questions in the story and below, not choices.
 
+## The eighth run, the first with the new prompt (0c8c6a8, CI run 37107240046, 36 cents)
+
+7 of 10 under the bar of decision 0038, and the first run with no content failure: 134 of
+134 rows found, 0 invented, 0 changed meaning, glossary 11 of 11 kept, ambiguity flags 0 to 4
+per spec (17 raised in all, 8 of the 10 expected among them, against 54 in the first run).
+Areas given: 3 to 6, against 5 to 8 before. The three failures were area counts: 05 gave 6
+for 3 expected, 07 gave 5 for 3, 09 gave 3 for 5, with tolerance 1. Recorded as acceptance 5.
+The expected area counts came from the set's author on 2026-10-01; whether 09's five areas
+or 05's three are the right number is a reading of the specs, not of the model, and can be
+revisited when the set is next edited. run.ts exits 0 at 7 passing specs or more (PASS_BAR).
+
 ## Decided (decision 0038, the same day)
 
 Mihai went with the recommendations: the prompt keeps ambiguous wording, prefers the fewest

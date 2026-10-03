@@ -73,9 +73,10 @@ The evals key is in the repository secrets since 2026-10-03. The trademark searc
 (decisions 0012, 0014).
 
 Next tasks for Claude: none until Mihai says so. E4 is complete (E4-1 to E4-5 merged, PRs
-40 to 44; E4-6 built 2026-10-03 on decision 0037) and Mihai asked for a pause after it. E5-1
-is next in line when he gives the go. The first real golden set run (E4-6, acceptance 5) is
-read from the evals job of PR 49 and recorded in the story.
+40 to 44; E4-6 built 2026-10-03 on decisions 0037 and 0038, PR 49) and Mihai asked for a
+pause after it, with a design pass on the boards before E5-1 (his question of 2026-10-03;
+recommended and agreed in the chat, no decision file yet). The golden set's eighth run met
+the bar (7 of 10, no content failure) and is recorded in story E4-6.
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at

@@ -94,7 +94,8 @@ duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro 
   the list is safe. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
   an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
-Exit 1 when any spec fails. CI runs the job on a pull request, and on main, when a file under
+Exit 1 when fewer than 7 of the 10 specs pass (PASS_BAR in run.ts, decision 0038, point 3:
+the model is not deterministic, and one spec near a line moves between runs). CI runs the job on a pull request, and on main, when a file under
 src/lib/ai/, src/lib/shaping.ts or evals/ changed (.github/workflows/evals.yml), with the
 repository secret ANTHROPIC_API_KEY scoped to the two steps that need it; without it the job
 prints that it skipped and passes. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
