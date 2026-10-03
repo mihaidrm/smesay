@@ -229,8 +229,8 @@ describe("perspectives (stories/E5-4)", () => {
     expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
     await savePerspectives(a.ws, project.id, instrument.id, "Finance\nSales");
     await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance"]));
-    await tagItem(a.ws, project.id, second.id, JSON.stringify(["Finance"]));
     await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
     // An item of another project of the same workspace, through this project's id, is 404;
     // the sample's items through a plain project id too.
     const other = await projects.create(a.ws, { name: "Other", createdBy: a.userId });
