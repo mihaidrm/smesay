@@ -45,6 +45,9 @@ item, a missed item, a changed meaning or a glossary term not kept.
      failed on "a technician" read as an added party by a judge that did not see the
      project context naming technicians (the judge gets a CONTEXT line since 76e422f); spec
      08 again on "receipts monthly".
+   - 76e422f, CI run 37106473558: 9 of 10 for 38 cents. Spec 02 failed on G02-02, whose
+     row put "30 for birds and reptiles" after the vaccination length and the model read it
+     as visits only (the row now says it next to the visit, 69e353e). Spec 08 passed.
    The first green run goes here when a run gives it; what to change in the prompt is
    Mihai's call (design note 32, Open for Mihai).
 

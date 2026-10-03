@@ -92,6 +92,14 @@ the context makes plain is not an addition. Spec 08 failed again on G08-06, the 
 "receipts by email, invoices for companies with CUI, monthly" as monthly receipts: the same
 drift as the second run, and the case for the prompt line in Open for Mihai.
 
+## The fourth run (CI run 37106473558 on 76e422f, 38 cents)
+
+9 of 10. The one failure was the set's: G02-02's row said "a visit takes 20 minutes, a
+vaccination 10, 30 for birds and reptiles", and the model attached the 30 to visits only
+where the judge read it as open. The row now reads "a visit takes 20 minutes (30 for birds
+and reptiles), a vaccination 10" (69e353e, the second audit's finding). G08-06 passed this
+time; the drift of the second and third runs did not repeat.
+
 ## Audit of 2026-10-03
 
 23 findings in fresh context, 10 blocking. Fixed the same day: a row with no source line
@@ -146,5 +154,5 @@ story are now open questions in the story and below, not choices.
   raise the bar in the prompt ("only when a respondent could not rate the item at all without
   asking") and watch the matched count in the next run; the dismissal and the one-banner-per-
   flag choice (decision 0037) stay.
-- Five runs so far, 1 to 8 of 10; the next green run is acceptance 5. E4 is complete after
+- Six runs so far, 1 to 9 of 10; the next green run is acceptance 5. E4 is complete after
   this; the pause you asked for starts.
