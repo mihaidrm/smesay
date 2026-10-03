@@ -33,6 +33,9 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((error: unknown) => {
-    console.error("The smoke call did not go through. " + (error instanceof Error ? error.message : String(error)));
+    // A query error from drizzle names the query; the reason is in its cause.
+    const cause = error instanceof Error && error.cause instanceof Error ? ` Cause: ${error.cause.message}` : "";
+    console.error("The smoke call did not go through. " + (error instanceof Error ? error.message : String(error)) + cause);
+    console.error("Check that Docker is up (docker compose up -d), the database is migrated (npm run db:migrate) and ANTHROPIC_API_KEY is in .env.local.");
     process.exit(1);
   });
