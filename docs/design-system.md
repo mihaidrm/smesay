@@ -142,7 +142,9 @@ Mail (decision 0004).
   dropped on, the selected item). No left-edge-only borders. No two-tone borders.
 - Widths: marketing column 1120 in 1440; app sidebar 248 plus fluid content to 1440; respondent
   390 with 20 px gutters; email 600. Table header 36, rows 40 (the project list 52). Respondent
-  tap targets 48.
+  tap targets 48 for buttons, inputs and the chapter pills; the rating pills are 38 (decision
+  0018 item 4 said 36 and left Mihai free to change it; the design system took 38 on
+  2026-10-01 so five or six fit the 260 px card with their captions and the details slot).
 
 ## Motion
 

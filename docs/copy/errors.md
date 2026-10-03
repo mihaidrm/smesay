@@ -111,7 +111,8 @@ of the content; page means it replaces the screen.
 | Inline, scoring (E5-2) | A label over 20 characters | Each label is 1 to 20 characters. Leave one empty to keep the default. |
 | Inline, scoring (E5-2) | Two values with the same label, or a label "Unclear" | Each value needs its own label, and Unclear is taken. |
 | Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
-| Inline, scoring (E5-2) | Save on a published instrument (a link or an invite exists) | Published instruments keep their method. Build a new instrument to change it. |
+| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch or label then and saves the layout only (E5-3) | Published instruments keep their method. Build a new instrument to change it. |
+| Inline, scoring (E5-3) | A layout that is not one of the three, through the server | Pick one of the three layouts: chapters, one item per screen, or a single long page. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |

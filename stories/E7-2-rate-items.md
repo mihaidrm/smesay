@@ -21,7 +21,9 @@ count as answered until its reason or question is written.
    your question.") or "Saved" (docs/copy/errors.md, Respondent answering). A card counts as
    answered only when complete (the respondent board's `complete()` rule).
 4. The three layouts (E5-3) render here: chapters, one item per screen with "Item 1 of 2 in
-   [AREA]", single page with every area and no chapter row.
+   [AREA]", single page with every area and no chapter row. A Playwright test at 375 by 667
+   opens each layout on the sample instrument and checks the document width and the
+   smallest pill height (E5-3's acceptance 3, moved here from the preview).
 5. Typed text is kept when the respondent switches between answers on the same card (note 12,
    finding 4).
 6. Playwright: on the sample link, answer one card with Change and a reason, see Saved;

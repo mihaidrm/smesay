@@ -45,7 +45,8 @@ Built 2026-10-03 (design note 41, decision 0044):
   (migration 0013, ScaleLabels in INTERFACES.md); the stored value is always the code;
   labelFor() gives the word to cards, registers and exports.
 - Acceptance 4: a draft changes method freely; isPublished() (a link or an invite exists)
-  locks the card with the line from errors.md, on the server too.
+  locks the method, the switch and the labels with the line from errors.md, on the server
+  too (the layout on the same card stays editable, E5-3).
 - Acceptance 5: src/lib/scoring.test.ts maps every (method, shown, picked) pair; the
   instrument test saves, refuses and locks on the test database.
 - Playwright: e2e/build.spec.ts switches to 1 to 5 fit and sees the pills change, renames

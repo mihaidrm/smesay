@@ -37,8 +37,8 @@ Done so far:
   src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
   /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
   docs/copy/app.md.
-- Scoring (stories/E5-2, built 2026-10-03): the method, the proposal switch and the labels
-  on Build, locked once published; src/lib/scoring.ts is the one mapping to the answer kinds,
+- Scoring and layout (stories/E5-2 and E5-3, built 2026-10-03): the method, the proposal
+  switch, the labels and the layout on Build, the first three locked once published; src/lib/scoring.ts is the one mapping to the answer kinds,
   shared with E7-2 and E8; the respondent card and rating row components in
   src/components/respondent/ draw the preview's Items screen.
 - Build (stories/E5-1, built 2026-10-03): the instrument draft on the latest set
@@ -86,7 +86,7 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: the stories in epic order, E5-3 (layouts) next, under decision 0044. E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
+Next tasks for Claude: the stories in epic order, E5-4 (perspectives) next, under decision 0044. E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
 0037 and 0038, PR 49). Design v2 (decision 0041, note 33, boards Brand07, LandingF, PmAppV2,
 RespondentV2) is in the code since 2026-10-03 (notes 34 to 37, PRs 56 to 63; Mihai: "Yeah
 looks good"), and E5-1 was built on it the same day (note 38); the asset list he buys from

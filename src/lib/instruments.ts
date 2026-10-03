@@ -18,7 +18,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
-import { isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
+import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
 
@@ -104,19 +104,29 @@ export async function isPublished(ws: WorkspaceId, instrumentId: string): Promis
   return invites.anyForInstrument(ws, instrumentId);
 }
 
-// The scoring card (stories/E5-2): the method, whether the proposed value is shown, and
-// the PM's labels for the method's values, validated here.
-export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+// The scoring card (stories/E5-2 and E5-3): the method, whether the proposed value is
+// shown, the PM's labels for the method's values, and the layout, validated here. Once
+// published the method, the switch and the labels are locked (answers depend on them) and
+// whatever is posted for them is ignored; the layout still changes, since it only shapes
+// the screens.
+export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown, rawLayout: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  if (await isPublished(ws, instrumentId)) return { error: SCORING_ERRORS.locked };
+  if (!isLayout(rawLayout)) return { error: SCORING_ERRORS.badLayout };
+  // Published: only the layout is read; the form's locked controls post nothing (a disabled
+  // fieldset is left out of the form data) and a stale tab's values are ignored, not applied.
+  if (await isPublished(ws, instrumentId)) {
+    const instrument = await instruments.update(ws, instrumentId, { layout: rawLayout });
+    if (!instrument) throw new NotFoundError();
+    return { instrument };
+  }
   if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
   const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
   let parsedJson: unknown;
   try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
   const labels = parseScaleLabels(rawMethod, parsedJson);
   if ("error" in labels) return { error: labels.error };
-  const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels });
+  const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels, layout: rawLayout });
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }

@@ -3,7 +3,8 @@
 // board), the "Show the proposed value" switch (decision 0003), and one label input per
 // value of the chosen method (up to 20 characters, empty keeps the default). The server
 // applies the rule again (saveScoring in src/lib/instruments.ts). Locked once the
-// instrument is published: every control disabled with the line. "Saved." until the next
+// instrument is published: the method, the switch and the labels disabled with the line;
+// the layout (stories/E5-3, three radio cards) still changes. "Saved." until the next
 // change; Save is secondary like the other Build cards (design note 38). The section
 // headings are plain blocks named through aria-labelledby, not legends: a legend sits
 // outside the fieldset's flex flow and loses the gap (Mihai, 2026-10-03: "there is
@@ -12,18 +13,19 @@ import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ScaleLabels, ScoringMethod } from "@/db/types";
+import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
-import { LABEL_MAX, METHODS, SCALES } from "@/lib/scoring";
+import { LABEL_MAX, LAYOUTS_META, METHODS, SCALES } from "@/lib/scoring";
 import { cn } from "cn";
 import { saveScoringAction, type ProjectFormState } from "../../actions";
 
-export function ScoringForm({ projectId, instrumentId, method: initialMethod, showProposed: initialShow, labels: initialLabels, locked }: {
-  projectId: string; instrumentId: string; method: ScoringMethod; showProposed: boolean; labels: ScaleLabels | null; locked: boolean;
+export function ScoringForm({ projectId, instrumentId, method: initialMethod, showProposed: initialShow, labels: initialLabels, layout: initialLayout, locked }: {
+  projectId: string; instrumentId: string; method: ScoringMethod; showProposed: boolean; labels: ScaleLabels | null; layout: Layout; locked: boolean;
 }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveScoringAction, { error: null, saved: false });
   const [method, setMethod] = useState<ScoringMethod>(initialMethod);
   const [showProposed, setShowProposed] = useState(initialShow);
+  const [layout, setLayout] = useState<Layout>(initialLayout);
   // Labels per method: MoSCoW and keep, change, drop share the code C, so a word typed for
   // Could must not surface under Change (audit of 2026-10-03). Only the chosen method's
   // labels are posted.
@@ -60,8 +62,8 @@ export function ScoringForm({ projectId, instrumentId, method: initialMethod, sh
         </div>
         <Toggle checked={showProposed} onChange={(next) => { setShowProposed(next); touch(); }} disabled={locked} aria-labelledby={`${id}-proposed`} aria-describedby={`${id}-proposed-line`} />
       </div>
-      <fieldset disabled={locked} aria-labelledby={`${id}-labels`} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-0.5"><span id={`${id}-labels`} className="text-sm font-semibold">{BUILD_COPY.labelsTitle}</span><span className="text-[13px] text-ink-muted">{BUILD_COPY.labelsLine}</span></div>
+      <fieldset disabled={locked} aria-labelledby={`${id}-labels`} aria-describedby={`${id}-labels-line`} className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0.5"><span id={`${id}-labels`} className="text-sm font-semibold">{BUILD_COPY.labelsTitle}</span><span id={`${id}-labels-line`} className="text-[13px] text-ink-muted">{BUILD_COPY.labelsLine}</span></div>
         <div className="grid grid-cols-5 gap-2" data-testid="scale-labels">
           {SCALES[method].map((v) => (
             <div key={v.code} className="flex flex-col gap-1">
@@ -72,9 +74,24 @@ export function ScoringForm({ projectId, instrumentId, method: initialMethod, sh
         </div>
       </fieldset>
       {locked && <p className="text-[13px] text-ink-muted" data-testid="scoring-locked">{BUILD_COPY.locked}</p>}
+      <fieldset aria-labelledby={`${id}-layout`} aria-describedby={`${id}-layout-line`} className="flex flex-col gap-2">
+        <div className="flex flex-col gap-0.5"><span id={`${id}-layout`} className="text-sm font-semibold">{BUILD_COPY.layoutLabel}</span><span id={`${id}-layout-line`} className="text-[13px] text-ink-muted">{BUILD_COPY.layoutLine}</span></div>
+        <div className="grid grid-cols-3 gap-2">
+          {LAYOUTS_META.map((l) => {
+            const active = layout === l.key;
+            return (
+              <label key={l.key} className={cn("flex cursor-pointer flex-col gap-0.5 rounded-xl border px-3.5 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-surface", active ? "border-violet bg-violet-soft" : "border-hairline-strong bg-surface hover:bg-tint")}>
+                <input type="radio" name="layout" value={l.key} checked={active} onChange={() => { setLayout(l.key); touch(); }} className="sr-only" />
+                <span className="text-sm font-semibold">{l.label}</span>
+                <span className="text-[13px] text-ink-muted">{l.hint}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
       {state.error && !dirty && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       {!state.error && !dirty && state.saved && <p role="status" className="text-[13px] text-agree-text">{BUILD_COPY.saved}</p>}
-      {!locked && <div className="flex justify-end"><Button type="submit" variant="secondary" loading={pending}>{BUILD_COPY.save}</Button></div>}
+      <div className="flex justify-end"><Button type="submit" variant="secondary" loading={pending}>{BUILD_COPY.save}</Button></div>
     </form>
   );
 }

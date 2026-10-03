@@ -1,9 +1,9 @@
 // Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
 // "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
-// card (method, show proposed, labels; locked once published) and the Respondent fields
-// card, and on the right the preview panel showing the About you page or the first
-// chapter's cards as the draft stands (the panel's shell from design note 13; E5-6 fills
-// it in). Without a set the page
+// card (method, show proposed, labels, locked once published; the layout, E5-3) and the
+// Respondent fields card, and on the right the preview panel showing the About you page or
+// the items in the chosen layout as the draft stands (the panel's shell from design note
+// 13; E5-6 fills it in). Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
 // not edited. Copy: docs/copy/app.md (Build).
 import Link from "next/link";
@@ -14,8 +14,8 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
-import { labelFor, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
-import { areaNames } from "@/lib/shaping";
+import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
+import { areaNames, groupByArea } from "@/lib/shaping";
 import { BuildOn } from "./build-on";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
@@ -51,12 +51,20 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   // The first chapter's cards for the preview (stories/E5-2): the reader text when accepted,
   // the details from the first custom column or the original text, the proposed value as
   // a code of the method (null when the import's word is not one of the scale's).
-  const chapterRows = firstChapter ? rows.filter((it) => it.area === firstChapter) : rows;
-  const cards = chapterRows.slice(0, PREVIEW_CARDS).map((it) => {
+  const toCard = (it: (typeof rows)[number]) => {
     const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, string>).find((v) => typeof v === "string" && v.trim()) : undefined;
     const title = textFor(it);
     return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent };
-  });
+  };
+  // Every area in the list's order (one unnamed chapter when the set has no areas), ten
+  // cards in all across them (stories/E5-3: the single page lists every area).
+  // Every area in the list's order, then the items with no area under the Shape page's
+  // name for them (groupByArea), so the page layout's count matches what is drawn.
+  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name, rows: g.items })) : [{ name: null, rows }];
+  const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[] }[] }>((acc, c) => {
+    const cards = c.rows.slice(0, acc.left).map(toCard);
+    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards }] };
+  }, { left: PREVIEW_CARDS, out: [] }).out;
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
     <div className="flex flex-col gap-5">
@@ -88,10 +96,11 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <ul className="flex flex-col text-sm" data-testid="scoring-list">
                 <li className="flex justify-between gap-4 py-2.5"><span>{BUILD_COPY.methodLabel}</span><span className="text-ink-muted">{methodLabel}: {scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label).join(", ")}, {labelFor(instrument.method, null, "unclear")}</span></li>
                 <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.showProposedTitle}</span><span className="text-ink-muted">{instrument.showProposed ? BUILD_COPY.on : BUILD_COPY.off}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.layoutLabel}</span><span className="text-ink-muted">{LAYOUTS_META.find((l) => l.key === instrument.layout)?.label ?? instrument.layout}</span></li>
                 <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
               </ul>
             ) : (
-              <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} locked={locked} />
+              <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} layout={instrument.layout} locked={locked} />
             )}
           </section>
           <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
@@ -113,7 +122,8 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         <PreviewPanel
           key={instrument.id}
           about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, firstChapter }}
-          chapter={{ name: firstChapter, count: chapterRows.length, cards }}
+          chapters={chapters}
+          layout={instrument.layout}
           total={rows.length}
         />
       </div>

@@ -1,7 +1,7 @@
 # E5-3 Layout templates: chapters, one item per screen, single long page
 
 User: a PM choosing how dense the respondent journey is
-Status: ready
+Status: built
 Outcome: the three layouts render the same instrument and all pass the phone check at 375 px.
 
 ## Acceptance criteria
@@ -26,3 +26,26 @@ Outcome: the three layouts render the same instrument and all pass the phone che
 ## Technical notes
 instrument.layout (INTERFACES.md Layout: chapters, item, page). The respondent board
 (docs/design-notes/prototype-01/Respondent.dc.html) is the reference for all three.
+
+Built 2026-10-03 (design note 42, decision 0044):
+- Acceptance 1: the Layout cards on the Scoring card of Build (scoring-form.tsx), chapters
+  first and default, with the board's three names; saved by saveScoring with the server
+  rule; the layout still changes once the instrument is published (only the method, the
+  switch and the labels are locked, E5-2 acceptance 4), since answers do not depend on it.
+- Acceptance 2: the preview's Items screen (preview-panel.tsx) renders the three: chapters
+  with the chapter row (About you, every area with the first active, Wrap up) and the first
+  area's cards; one item per screen with the chapter row, one card and "Item 1 of [N] in
+  [AREA]"; the single page with every area in order, "All [N] on one page" and no chapter
+  row. Free navigation between chapters and the two card columns on desktop are not in the
+  preview (phone-only, a picture): E7-4 and E7-2 build them (docs/review-list.md).
+- Acceptance 3: the check runs in the preview frame (390 px, the respondent app does not
+  exist yet) on a fresh project: no side scroll in any layout (the frame's scrollWidth), and
+  every pill at least 38 px high. The pills are 38 px by docs/design-system.md (decision 0018
+  item 4 said 36 and left the size open), not the 48 px this line asked for; the Back and
+  Continue buttons are 48 (docs/review-list.md). E7-2 repeats the check at 375 by 667 on
+  the real screens of the sample instrument (its acceptance 4).
+- Acceptance 4: the chapter row carries the violet ring on the Items screen, with the
+  rating rows (decision 0021).
+- Playwright: e2e/build.spec.ts switches through the three layouts and checks the note, the
+  card count, the chapter row, the side scroll and the pill heights.
+
