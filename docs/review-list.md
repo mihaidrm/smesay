@@ -31,4 +31,7 @@ a change.
 | 2026-10-03 | The preview's chapter row is a picture (About you, the areas, Wrap up); free navigation and the two desktop card columns come with E7-4 and E7-2 | build/preview-panel.tsx | The preview is phone-only. |
 | 2026-10-03 | The ring on the chapter row is always on in the chapters and item layouts; the page layout has no row to ring | build/preview-panel.tsx | Decision 0021 says "rings the chapter row when the layout changes". |
 | 2026-10-03 | On a draft, the Scoring card saves the method, the switch, the labels and the layout together; a stale tab that changes only the layout writes its old method back (last write wins) | src/lib/instruments.ts saveScoring | Two PMs on the same draft at once. |
+| 2026-10-03 | Items are tagged with perspectives on Shape only; Build holds the names and the tagged count with a link to Shape | stories/E5-4, shape/perspective-tags.tsx | The story said "on Shape and Build"; a second list of every item on Build would repeat Shape. |
+| 2026-10-03 | Removing a perspective name drops it from every item that carried it; an item left untagged goes to everyone; allowed after publishing | src/lib/instruments.ts savePerspectives | A PM who removes a name mid-run widens who sees those items. |
+| 2026-10-03 | With no perspective picked, a respondent sees the untagged items only | src/lib/perspectives.ts visibleItems | Should "none picked" mean "everything" instead? |
 

@@ -9,7 +9,7 @@
 // controls. Copy: docs/copy/app.md (Shape).
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { items, projects } from "@/db/queries";
+import { instruments, items, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
@@ -26,6 +26,10 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   if (!project) notFound();
   const set = await latestSet(current.ws, project.id);
   const rows = set ? await items.forSet(current.ws, set.id) : [];
+  // The perspectives (stories/E5-4) come from the newest instrument, when it is built on
+  // this set; tagging on an older instrument's set is not offered.
+  const instrument = set ? await instruments.latestForProject(current.ws, project.id) : null;
+  const perspectives = instrument && instrument.itemSetId === set?.id ? instrument.perspectives : [];
   const groups = set ? groupByArea(set, rows) : [];
   const shaped = set !== null && set.shapedAt !== null;
   const imported = hadImportedAreas(rows);
@@ -66,7 +70,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} perspectives={perspectives} />
       )}
     </div>
   );

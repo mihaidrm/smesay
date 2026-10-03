@@ -169,6 +169,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Button, after a run | Run again |
 | Grouped line, after a run | AI grouped [N] items into [M] areas and wrote a readable version of each. [A] of [R] reader versions accepted. Run again replaces the areas the AI chose. Items you moved stay where they are. |
 | Counter alone, on the sample (E4-3) | [A] of [R] reader versions accepted. |
+| Perspective chips under an item (E5-4; a group named "Perspectives of [REF]") | one chip per perspective of the newest instrument, pressed when the item carries it; none while the instrument has none |
 | Title row, while suggested versions exist (E4-3) | Accept all, Reject all |
 | Confirm lines for the two (E4-3) | Accept all [N] suggested reader versions? / Reject all [N] suggested reader versions and keep the originals? [Buttons: Accept all or Reject all, Cancel] |
 | Item: the reader version, then the original under it (E4-3) | [reader version] / Original: [original] |
@@ -208,6 +209,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Layout cards (E5-3; the board's three, chapters first and default) | Layout. How the list is split into screens. Chapters are the default; a published instrument can still change its layout. Chapters (One area per screen, compact cards); One item per screen (One card at a time, with the chapter row); Single long page (Every area in order, no chapter row) |
 | Items preview per layout (E5-3) | The chapter row: About you, every area (the first active), Wrap up, fading at the right edge when long. One item per screen: "Item 1 of [N] in [AREA]" (the instrument's title when the list has no areas) over one card; Single long page: "All [N] on one page", every area with its heading (items without an area under "Not shaped yet", as on Shape), no chapter row; Chapters: the chapter row and the first area's cards. Under an area with fewer cards drawn than it holds: "The first [N] of [M] items. The rest follow in the same way." |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
+| Perspectives card (E5-4) | Perspectives. Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone. Field: Perspectives, one per line. Under it: "[N] of [M] items carry a perspective. Tag items on Shape. Go to Shape" or "No perspectives yet. Every item goes to everyone." |
+| Perspectives card on the sample | [NAMES] or "No perspectives yet. Every item goes to everyone." then The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |
 | Dropdown options | Options, one per line |
@@ -239,6 +242,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
+| Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
 ## Import, column mapping (E3-3)

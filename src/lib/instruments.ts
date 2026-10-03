@@ -9,8 +9,9 @@
 // refused with a message, so a draft that was replaced (and, from E6, published) keeps its
 // title, intro and field keys. The sample is read-only on the server too (stories/E8-8,
 // acceptance 2). Words: src/lib/build-copy.ts.
-import { instruments, invites, itemSets, projects } from "@/db/queries";
+import { instruments, invites, items, itemSets, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
+import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
 import type { WorkspaceId } from "@/db/types";
@@ -18,6 +19,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
+import { keptTags, parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
@@ -129,5 +131,40 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
   const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels, layout: rawLayout });
   if (!instrument) throw new NotFoundError();
   return { instrument };
+}
+
+// The Perspectives card (stories/E5-4): the names, one per line; a name removed is dropped
+// from every item of the instrument's set that carried it, so no item points at a name
+// respondents cannot pick. Allowed on a published instrument: a new name changes nothing
+// stored, and a removed one only widens who sees an item.
+export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const parsed = parsePerspectives(rawNames);
+  if ("error" in parsed) return { error: parsed.error };
+  const instrument = await instruments.update(ws, instrumentId, { perspectives: parsed.names });
+  if (!instrument) throw new NotFoundError();
+  for (const it of await items.forSet(ws, instrument.itemSetId)) {
+    const kept = keptTags(it.perspectives, parsed.names);
+    if (kept.length !== it.perspectives.length) await items.update(ws, it.id, { perspectives: kept });
+  }
+  return { instrument };
+}
+
+// The chips on an item on Shape (stories/E5-4): the item's tags, each a name of the
+// project's newest instrument; the item must be on that instrument's set.
+export async function tagItem(ws: WorkspaceId, projectId: string, itemId: string, rawTags: unknown): Promise<{ error: string } | { item: Item }> {
+  const project = await projects.get(ws, projectId);
+  const target = await items.get(ws, itemId);
+  if (!project || !target) throw new NotFoundError();
+  if (project.isSample) return { error: BUILD_COPY.sample };
+  const instrument = await instruments.latestForProject(ws, project.id);
+  if (!instrument || instrument.itemSetId !== target.itemSetId) throw new NotFoundError();
+  if (instrument.perspectives.length === 0) return { error: PERSPECTIVES_COPY.noneDefined };
+  const parsed = parseTags(rawTags, instrument.perspectives);
+  if ("error" in parsed) return { error: parsed.error };
+  const item = await items.update(ws, itemId, { perspectives: parsed.tags });
+  if (!item) throw new NotFoundError();
+  return { item };
 }
 

@@ -1,7 +1,7 @@
 // Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
 // "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
-// card (method, show proposed, labels, locked once published; the layout, E5-3) and the
-// Respondent fields card, and on the right the preview panel showing the About you page or
+// card (method, show proposed, labels, locked once published; the layout, E5-3), the
+// Perspectives card (E5-4; items are tagged on Shape) and the Respondent fields card, and on the right the preview panel showing the About you page or
 // the items in the chosen layout as the draft stands (the panel's shell from design note
 // 13; E5-6 fills it in). Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
@@ -19,6 +19,7 @@ import { areaNames, groupByArea } from "@/lib/shaping";
 import { BuildOn } from "./build-on";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
+import { PerspectivesForm } from "./perspectives-form";
 import { PreviewPanel } from "./preview-panel";
 import { ScoringForm } from "./scoring-form";
 
@@ -54,16 +55,17 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   const toCard = (it: (typeof rows)[number]) => {
     const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, string>).find((v) => typeof v === "string" && v.trim()) : undefined;
     const title = textFor(it);
-    return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent };
+    return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent, perspectives: it.perspectives };
   };
+  const tagged = rows.filter((it) => it.perspectives.length > 0).length;
   // Every area in the list's order (one unnamed chapter when the set has no areas), ten
   // cards in all across them (stories/E5-3: the single page lists every area).
   // Every area in the list's order, then the items with no area under the Shape page's
   // name for them (groupByArea), so the page layout's count matches what is drawn.
   const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name, rows: g.items })) : [{ name: null, rows }];
-  const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[] }[] }>((acc, c) => {
+  const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[]; tags: string[][] }[] }>((acc, c) => {
     const cards = c.rows.slice(0, acc.left).map(toCard);
-    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards }] };
+    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards, tags: c.rows.map((it) => it.perspectives) }] };
   }, { left: PREVIEW_CARDS, out: [] }).out;
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
@@ -103,6 +105,17 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} layout={instrument.layout} locked={locked} />
             )}
           </section>
+          <section className="card flex flex-col gap-3" aria-labelledby="build-perspectives-title">
+            <div className="flex flex-col gap-0.5">
+              <h3 id="build-perspectives-title" className="text-[15px] font-bold">{BUILD_COPY.perspectivesCard}</h3>
+              <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
+            </div>
+            {readOnly ? (
+              <p className="text-sm text-ink-muted" data-testid="perspectives-list">{instrument.perspectives.length === 0 ? BUILD_COPY.perspectivesNone : instrument.perspectives.join(", ")} {BUILD_COPY.sample}</p>
+            ) : (
+              <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} />
+            )}
+          </section>
           <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3>
@@ -124,7 +137,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, firstChapter }}
           chapters={chapters}
           layout={instrument.layout}
-          total={rows.length}
+          perspectives={instrument.perspectives}
         />
       </div>
     </div>

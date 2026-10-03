@@ -14,14 +14,17 @@ import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
 import { moveAction, type ProjectFormState } from "../../actions";
+import { PerspectiveTags } from "./perspective-tags";
 import { ReaderControls, ReaderText, type ReaderState } from "./reader-row";
 
 // notes (E4-4): the item's own lines under its text, the ambiguity and the duplicate it may be.
-export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; notes: string[] };
+export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; notes: string[]; tags: string[] };
 export type BoardGroup = { name: string; rationale: string | null; items: BoardItem[] };
 const NONE: ProjectFormState = { error: null, saved: false };
 
-export function Board({ projectId, areas, groups, readOnly, readerOnly }: { projectId: string; areas: string[]; groups: BoardGroup[]; readOnly: boolean; readerOnly: boolean }) {
+// perspectives (stories/E5-4): the newest instrument's names, chips under every item; none
+// while the instrument has none, and never on the sample (readerOnly).
+export function Board({ projectId, areas, groups, readOnly, readerOnly, perspectives }: { projectId: string; areas: string[]; groups: BoardGroup[]; readOnly: boolean; readerOnly: boolean; perspectives: string[] }) {
   const [state, action] = useActionState<ProjectFormState, FormData>(moveAction, NONE);
   const [pending, start] = useTransition();
   const [over, setOver] = useState<string | null>(null);
@@ -67,6 +70,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                 <div className="min-w-0 flex-grow">
                   <ReaderText item={it.reader} original={it.text} />
                   {it.notes.map((note) => <div key={note} className="mt-1 text-xs text-unclear-text" data-testid="item-note">{note}</div>)}
+                  {!readerOnly && <PerspectiveTags key={it.tags.join("|")} projectId={projectId} itemId={it.id} reference={it.ref ?? String(it.position)} names={perspectives} tags={it.tags} />}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {/* Keyed by what the server holds, so a saved decision or edit closes the controls' own state. */}

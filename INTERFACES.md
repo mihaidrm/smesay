@@ -35,6 +35,13 @@ the check constraints use them). Change this file first.
   case; src/lib/respondent-fields.ts is the code twin of the rule).
 - ClosingSpec (jsonb, instrument.closing):
   { confidence: true, missingForm: boolean, signOffText: string }
+- Perspectives (E5-4, 2026-10-03): instrument.perspectives jsonb string[] (the names
+  respondents pick from, up to 10, each 1 to 30 characters, unique ignoring case; empty
+  means About you asks nothing); item.perspectives text[] (the names this item is shown
+  to; empty means everyone; every name is one of its instrument's); response.perspectives
+  text[] (what the respondent picked). The visible set is visibleItems() in
+  src/lib/perspectives.ts: the items with no perspective plus those sharing one with the
+  respondent's picks; E7 and E8 use it.
 - ScaleLabels (jsonb, instrument.scale_labels, nullable; E5-2, 2026-10-03): { [code]: label }
   for the codes of the instrument's method (moscow: M, S, C, W; fit: 1, 2, 3, 4, 5; kcd: K,
   C, D), each label 1 to 20 characters; a code not present keeps the default label; null

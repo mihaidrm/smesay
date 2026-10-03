@@ -4,7 +4,8 @@
 // the title and the intro, the fields the PM configured (a dropdown is a native select at
 // 48 px, E7-1 acceptance 2), Start disabled at 40 percent until every required field is
 // filled, with the hint under it (aria-describedby on Start, aria-required on the fields;
-// the wording by decision 0043), and the footer. One component for the Build preview and
+// the wording by decision 0043), the perspectives question as checkboxes when the
+// instrument has perspectives (stories/E5-4), and the footer. One component for the Build preview and
 // the real page, so the two cannot drift (stories/E5-6, acceptance 3). In preview mode the
 // header says nothing is saved and Start does nothing (E5-6, acceptance 4). Phone first:
 // the column is the screen width; on desktop E7-1 puts it in the 560 px column.
@@ -26,6 +27,11 @@ export type AboutYouProps = {
   fields: RespondentFieldSpec[];
   // The first chapter's name for the Start label; null while the list has no areas.
   firstChapter: string | null;
+  // The perspectives to pick from (stories/E5-4); none means the question is not asked.
+  // Controlled from the preview panel, which filters the items by the picks.
+  perspectives?: string[];
+  picked?: string[];
+  onPickPerspectives?: (picked: string[]) => void;
   preview?: boolean;
   // h1 on its own page; a lower level inside the Build page, which has its own h1 (E5-6
   // moves the preview into an iframe, its own document).
@@ -38,8 +44,15 @@ export type AboutYouProps = {
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function AboutYou({ workspaceName, accent, title, intro, fields, firstChapter, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
+export function AboutYou({ workspaceName, accent, title, intro, fields, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({});
+  const [ownPicks, setOwnPicks] = useState<string[]>([]);
+  const picks = picked ?? ownPicks;
+  const togglePick = (name: string) => {
+    const next = picks.includes(name) ? picks.filter((p) => p !== name) : [...picks, name];
+    setOwnPicks(next);
+    onPickPerspectives?.(next);
+  };
   const prefix = useId();
   const missing = missingMandatory(fields, values);
   const disabled = missing.length > 0;
@@ -75,6 +88,21 @@ export function AboutYou({ workspaceName, accent, title, intro, fields, firstCha
             );
           })}
         </div>
+        {perspectives.length > 0 && (
+          <fieldset className="flex flex-col gap-2" data-testid="about-you-perspectives">
+            <legend className="float-left mb-1 w-full text-sm font-semibold">{ABOUT_YOU_COPY.perspectivesQuestion}</legend>
+            <div className="clear-both text-[13px] text-ink-muted">{ABOUT_YOU_COPY.perspectivesHint}</div>
+            {perspectives.map((name) => {
+              const id = `${prefix}-p-${name.replace(/[^a-z0-9]+/gi, "-")}`;
+              return (
+                <label key={name} htmlFor={id} className="flex min-h-12 items-center gap-3 rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground">
+                  <input id={id} type="checkbox" checked={picks.includes(name)} onChange={() => togglePick(name)} className="size-5 shrink-0 accent-[var(--violet)]" />
+                  <span>{name}</span>
+                </label>
+              );
+            })}
+          </fieldset>
+        )}
         <p className="text-sm text-ink-muted">{ABOUT_YOU_COPY.footer(workspaceName)}</p>
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </div>

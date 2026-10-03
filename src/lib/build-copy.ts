@@ -46,6 +46,13 @@ export const BUILD_COPY = {
   labelsTitle: "Labels, optional",
   labelsLine: "Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters.",
   labelFor: "Label for",
+  // Perspectives (stories/E5-4).
+  perspectivesCard: "Perspectives",
+  perspectivesLine: "Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone.",
+  perspectivesLabel: "Perspectives, one per line",
+  perspectivesTagged: (tagged: number, total: number) => `${tagged} of ${total} items carry a perspective. Tag items on Shape.`,
+  perspectivesTaggedLink: "Go to Shape",
+  perspectivesNone: "No perspectives yet. Every item goes to everyone.",
   // The layout (stories/E5-3; the PM app board, Build).
   layoutLabel: "Layout",
   layoutLine: "How the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
@@ -75,4 +82,7 @@ export const ABOUT_YOU_COPY = {
   footer: (workspace: string) => `Your answers go to the project team at ${workspace}. They are saved as you go on this device, so you can close this page and come back.`,
   poweredBy: "Powered by",
   previewNote: "Preview: nothing you enter here is saved",
+  // Perspectives (stories/E5-4): the question on About you, shown only when some exist.
+  perspectivesQuestion: "Which of these describe you?",
+  perspectivesHint: "Pick every one that fits. You see the items for your perspectives and the ones for everyone.",
 } as const;

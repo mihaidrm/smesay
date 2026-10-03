@@ -5,14 +5,15 @@
 // make one draft; the sample refuses edits; another workspace reads nothing and its ids are 404.
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { instruments, invites, projects, workspaces } from "@/db/queries";
+import { instruments, invites, items, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, saveScoring } from "@/lib/instruments";
+import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
@@ -190,6 +191,36 @@ describe("saveScoring (stories/E5-2)", () => {
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
     await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("perspectives (stories/E5-4)", () => {
+  it("saves the names, tags items with them, drops tags of removed names, and refuses the rest", async () => {
+    const project = await projects.create(a.ws, { name: "Perspectives", createdBy: a.userId });
+    const set = await importList(a.ws, a.userId, project.id, ["Cash advances", "Mileage"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    const [first, second] = await items.forSet(a.ws, set.id);
+    expect(instrument.perspectives).toEqual([]);
+    expect(await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.noneDefined });
+    expect(await savePerspectives(a.ws, project.id, instrument.id, "Finance\nfinance")).toEqual({ error: PERSPECTIVES_COPY.sameName });
+    const saved = await savePerspectives(a.ws, project.id, instrument.id, "Finance\n\nSales\n");
+    expect("instrument" in saved && saved.instrument.perspectives).toEqual(["Finance", "Sales"]);
+    expect(await tagItem(a.ws, project.id, first.id, JSON.stringify(["Legal"]))).toEqual({ error: PERSPECTIVES_COPY.unknownTag });
+    expect(await tagItem(a.ws, project.id, first.id, "nope")).toEqual({ error: PERSPECTIVES_COPY.badShape });
+    const tagged = await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance", "Sales"]));
+    expect("item" in tagged && tagged.item.perspectives).toEqual(["Finance", "Sales"]);
+    await tagItem(a.ws, project.id, second.id, JSON.stringify(["Sales"]));
+    // Removing Sales drops it from both items; Finance stays on the first.
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["Finance"]);
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    // The sample and another workspace.
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const sampleDraft = (await openDraft(a.ws, sample))!;
+    expect(await savePerspectives(a.ws, sample.id, sampleDraft.instrument.id, "Finance")).toEqual({ error: BUILD_COPY.sample });
+    await expect(savePerspectives(b.ws, project.id, instrument.id, "Finance")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(tagItem(b.ws, project.id, first.id, JSON.stringify(["Finance"]))).rejects.toBeInstanceOf(NotFoundError);
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["Finance"]);
   });
 });
 
