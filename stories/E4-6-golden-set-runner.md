@@ -37,7 +37,10 @@ item, a missed item, a changed meaning or a glossary term not kept.
    reader version each: G06-13 kept the 12 m/s the row still carried next to its correction
    (the row now applies it), G07-06 and G08-06 shifted a condition ("until a meeting with the
    student"; "receipts monthly" for "invoices monthly"), G07-08 added who sets the finance
-   flag. Those three are the model's, not the set's. The first green run goes here when a
+   flag. Those three are the model's, not the set's. Third run, CI run 37106214401 on
+   c760886: 8 of 10, 34 cents; spec 06 failed because the judge read "a technician" as an
+   added party without the project context that names technicians (the judge now gets the
+   context line), spec 08 again on "receipts monthly". The first green run goes here when a
    run gives it; what to change in the prompt is Mihai's call (design note 32).
 
 ## Out of scope

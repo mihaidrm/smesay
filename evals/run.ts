@@ -65,7 +65,10 @@ export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: st
   const verdicts = new Map<string, Verdict>();
   const toJudge = needsJudge(expected, shaped.output);
   if (toJudge.length > 0) {
-    const data = toJudge.map((j) => `[${j.ref}]\nORIGINAL: ${j.row}\nMEANING: ${j.meaning}\nREADER: ${j.reader}`).join("\n\n");
+    // The judge sees the project context the shaping call saw, so a party the context makes
+    // plain (the technicians of spec 06) is not read as an addition.
+    const contextLine = expected.context ? `CONTEXT: ${expected.context.goal} ${expected.context.audience}\n\n` : "";
+    const data = contextLine + toJudge.map((j) => `[${j.ref}]\nORIGINAL: ${j.row}\nMEANING: ${j.meaning}\nREADER: ${j.reader}`).join("\n\n");
     const wanted = toJudge.map((j) => j.ref);
     const judged = await runModel({
       ws, projectId, purpose: "shape", instructions: readFileSync(HERE + "judge.md", "utf8"), data, schema: JudgeOutput,

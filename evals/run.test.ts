@@ -109,6 +109,11 @@ describe("the golden set runner", () => {
     const run = await runSpec(ski, ws, projectId, { fetch: transport(shape).fetch });
     expect(run.score).toMatchObject({ pass: false, glossaryTerms: 5, glossaryMissing: 1, areasNamed: 4 });
     expect(run.score.failures).toEqual(["1 glossary term(s) not kept"]);
+    // The judge gets the project context before the pairs; a spec without one gets none.
+    const { fetch, calls } = transport(perfect(ski));
+    await runSpec(ski, ws, projectId, { fetch });
+    expect(calls[1].data.startsWith("CONTEXT: Replace the lift ticket system")).toBe(true);
+    expect(calls[0].data).toContain("PROJECT CONTEXT");
     // Spec 01: a flag on the earlier item pointing at the later one is dropped (cleanDuplicateOf), so it counts as not raised.
     const bakery = spec("01");
     const reversed = perfect(bakery);

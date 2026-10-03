@@ -81,6 +81,15 @@ plainer words (an advisor's hold "until a meeting with the student"; "receipts m
 the source says invoices monthly), and one addition (who sets the finance flag). Those are
 the model's, and the shaping prompt is the place to change them; see Open for Mihai.
 
+## The third run (CI run 37106214401 on c760886, 34 cents)
+
+8 of 10. Spec 06 failed on two "added" verdicts for "a technician" and "the technician":
+the spec's context says the app is one technicians use, and the judge saw only the pairs. The
+judge now gets a CONTEXT line (goal and audience) before the pairs, and judge.md says a party
+the context makes plain is not an addition. Spec 08 failed again on G08-06, the model reading
+"receipts by email, invoices for companies with CUI, monthly" as monthly receipts: the same
+drift as the second run, and the case for the prompt line in Open for Mihai.
+
 ## Audit of 2026-10-03
 
 23 findings in fresh context, 10 blocking. Fixed the same day: a row with no source line
