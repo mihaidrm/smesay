@@ -1,6 +1,8 @@
 // TypeScript twins of the INTERFACES.md jsonb shapes (section "Schema v1 enums and shapes").
 // Change INTERFACES.md first, then this file. The enum arrays live in schema.ts.
-export type RespondentFieldSpec = { key: string; label: string; type: "text" | "dropdown"; mandatory: boolean; options?: string[] };
+// E5-1: email is the field type the submission receipt goes to (docs/copy/emails.md, 4);
+// the rule on labels, keys and options is in src/lib/respondent-fields.ts (INTERFACES.md).
+export type RespondentFieldSpec = { key: string; label: string; type: "text" | "dropdown" | "email"; mandatory: boolean; options?: string[] };
 export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText: string };
 // The check before import (stories/E3-5): counts over the data rows, headerRow 0 when the
 // file had none, the folded duplicates by reference (E3-3's unrecognised values too).

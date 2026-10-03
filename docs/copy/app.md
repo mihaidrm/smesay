@@ -188,6 +188,38 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Empty state, no list yet | Import a list first. Shape works on the latest version. [Link: Go to Import] |
 | Refusals, from the model call and from the size checks | docs/copy/errors.md, Shaping; shown beside the button, with Try again where a second try can help |
 
+## Build (E5-1)
+
+| Where | Text |
+|---|---|
+| Title | Build the instrument |
+| Line under the title | What respondents see, from version [N] of the list. The preview on the right follows every save. |
+| Empty state, no list yet | Import a list first. Build works on the latest version. Go to Import |
+| Newer version card (E3-6, acceptance 3) | Version [N] of the list was imported after this instrument was built on version [M]. The instrument keeps version [M] until you build on the new one; the intro and the fields are copied over. [Button: Build on version [N]] |
+| Intro card title and fields | Intro; Title (the project name by default), Intro |
+| Intro hint, while the intro is empty | Write one or two lines so respondents know what the list is for. They see this first. |
+| Intro count | [N] of 1,000 characters |
+| Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
+| Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove |
+| Dropdown options | Options, one per line |
+| Buttons | Add a field (disabled at 8), Save; Saved. |
+| Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
+| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in. |
+
+## About you (the respondent instrument, E5-1 preview and E7-1)
+
+| Where | Text |
+|---|---|
+| Preview strip (E5-6, acceptance 4) | Preview: nothing you enter here is saved |
+| Header | [WORKSPACE INITIALS] [WORKSPACE NAME] |
+| Title and intro | [INSTRUMENT TITLE], [INTRO] |
+| Field label | [LABEL] (an optional field: [LABEL] (optional)) |
+| Dropdown first option | Choose one |
+| Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
+| Powered by | Powered by SMEsay |
+| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
+| Hint under a disabled Start | Fill in your name and role to start. |
+
 ## Import, column mapping (E3-3)
 
 | Where | Text |

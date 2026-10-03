@@ -37,6 +37,12 @@ Done so far:
   src/proxy.ts sends a signed-out request under /app to the sign-in page; every page under
   /app calls requireSession() (src/lib/session.ts). Copy for the signed-in side lives in
   docs/copy/app.md.
+- Build (stories/E5-1, built 2026-10-03): the instrument draft on the latest set
+  (src/lib/instruments.ts), the intro and the respondent fields with the server rule
+  (src/lib/respondent-fields.ts), "Build on version N" after a new import, and the About you
+  page (src/components/respondent/about-you.tsx) in the preview panel; E7-1 mounts the same
+  component at /r/[token]. Design note 38 holds the two questions for Mihai (the hint under
+  Start, Role as text by default).
 - Projects (stories/E3-1, built 2026-10-02): the list with counts and the derived status
   (src/lib/project-status.ts), New project, the project frame with the stepper
   (src/components/app/stepper.tsx), the About this project card on Import, archive, and Delete
@@ -74,7 +80,7 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: none until Mihai says so. E4 is complete (E4-1 to E4-5 merged, PRs
+Next tasks for Claude: E5-2 (scoring methods) once E5-1 is merged. E4 is complete (E4-1 to E4-5 merged, PRs
 40 to 44; E4-6 built 2026-10-03 on decisions 0037 and 0038, PR 49) and Mihai asked for a
 pause after it, with a design pass on the boards before E5-1: design v2 (decision 0041, note
 33, boards Brand07, LandingF, PmAppV2, RespondentV2) is proposed and waits for Mihai's review;

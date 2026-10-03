@@ -1,7 +1,7 @@
 "use server";
 // Server actions of the project pages (stories/E3-1): create, save the context, archive,
-// unarchive, delete the sample; and of the upload (stories/E3-2): upload a file, pick a sheet
-// or a header row. The workspace comes from the session (requireCurrentWorkspace);
+// unarchive, delete the sample; of the upload (stories/E3-2): upload a file, pick a sheet
+// or a header row; and of Build (stories/E5-1), at the end of the file. The workspace comes from the session (requireCurrentWorkspace);
 // the project id from the form is only ever looked up inside that workspace, so another
 // workspace's id is 404. Server Functions and useActionState: node_modules/next/dist/docs/
 // 01-app/01-getting-started/07-mutating-data.md.
@@ -11,6 +11,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { commitUpload } from "@/lib/imports";
+import { buildOnLatest, saveFields, saveIntro } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
@@ -247,4 +248,49 @@ export async function dismissFlagAction(_previous: ProjectFormState, formData: F
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
+}
+
+// Build (stories/E5-1): the intro card, the fields card and "Build on version N". The
+// instrument id from the form is looked up inside the workspace and checked against the
+// project (src/lib/instruments.ts), so neither id can reach another workspace's rows.
+export async function saveIntroAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await saveIntro(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("title"), formData.get("intro"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  return { ...NONE, saved: true };
+}
+
+export async function saveFieldsAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await saveFields(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("fields"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  return { ...NONE, saved: true };
+}
+
+export async function buildOnLatestAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await buildOnLatest(current.ws, projectId, String(formData.get("instrumentId") ?? ""));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}`, "layout");
+  return { ...NONE, saved: true };
 }

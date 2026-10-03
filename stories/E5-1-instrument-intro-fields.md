@@ -1,7 +1,7 @@
 # E5-1 Create an instrument from a set version; intro text; respondent fields
 
 User: a PM deciding what respondents are asked before they rate
-Status: ready
+Status: built
 Outcome: an instrument draft exists on the current set version with an intro and the fields
 respondents fill in, and the preview refuses to start until the mandatory ones are filled.
 
@@ -36,3 +36,30 @@ instrument.
 Owed from E3-6 (acceptance 3, recorded 2026-10-02): "Build on version N+1" when a newer set
 exists than the one the instrument was built from, creating a new instrument draft; the old
 instrument keeps its version. The "Version N" header on Results belongs to E8's results page.
+
+Built 2026-10-03 (design note 38):
+- Acceptance 1: /app/projects/[id]/build (src/app/app/(shell)/projects/[projectId]/build/)
+  opens the newest instrument of the project, or creates one on the latest set with the
+  project's name as its title (openDraft in src/lib/instruments.ts); the Intro card has the
+  title and the intro with the errors.md hint while it is empty. "Build on version N" is the
+  card above the forms when a newer set exists; it copies the draft onto that set.
+- Acceptance 2: the Respondent fields card, one row per field with Label, Type (Text,
+  Dropdown with its options one per line, Email), the Required switch and Remove; Add a field
+  up to eight; Remove refused on the last one with the line. Name and Role, both text and
+  required, are the defaults (Role as text: nothing can guess a PM's roles).
+- Acceptance 3: the preview panel on the right (the 460 px shell of design note 13, the
+  Desktop toggle and "Open full size" wait for E5-6) renders the About you page from
+  src/components/respondent/about-you.tsx, the component E7-1 will mount at /r/[token]:
+  Start disabled at 40 percent with "Fill in your name and role to start." until every
+  required field is filled.
+- Acceptance 4: parseFields in src/lib/respondent-fields.ts (label 1 to 60, 1 to 8 fields,
+  dropdown 2 to 20 different options; keys are label slugs, -2, -3 on a clash), with
+  src/lib/respondent-fields.test.ts (6 tests) and src/lib/instruments.test.ts (4 tests: one
+  draft per project, the rule on the server, the sample and another workspace refused, Build
+  on version 2).
+- Acceptance 5: e2e/build.spec.ts adds a Team dropdown with three options and sees the select
+  with "Choose one, Sales, Finance, HR" in the preview, then fills Name and Role and sees
+  Start enabled.
+- `type: "email"` is in INTERFACES.md and src/db/types.ts; the column is jsonb with no check
+  on the type, so no migration was needed.
+

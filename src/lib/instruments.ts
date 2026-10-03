@@ -1,0 +1,84 @@
+// The instrument draft (stories/E5-1): Build opens the newest instrument of the project, or
+// creates one on the latest set with the project's name as its title and Name and Role as
+// its fields; the intro and the fields are saved with the server-side rule
+// (src/lib/respondent-fields.ts); a newer set than the one the instrument is built on gets
+// "Build on version N" (owed from E3-6, acceptance 3), which copies the draft onto that set.
+// The WorkspaceId comes from the session; the project and the instrument ids from the form
+// are only ever looked up inside it, so another workspace's id is 404. The sample is
+// read-only on the server too (stories/E8-8, acceptance 2). Words: src/lib/build-copy.ts.
+import { instruments, itemSets, projects } from "@/db/queries";
+import type { Instrument } from "@/db/queries/instruments";
+import type { ItemSet } from "@/db/queries/itemSets";
+import type { Project } from "@/db/queries/projects";
+import type { WorkspaceId } from "@/db/types";
+import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
+import { NotFoundError } from "@/lib/errors";
+import { latestSet } from "@/lib/imports";
+import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
+
+export { BUILD_COPY };
+
+export type Draft = { instrument: Instrument; builtOn: ItemSet; newer: ItemSet | null };
+
+// The draft Build shows. Null when the project has no set yet (the empty state). A project
+// with a set and no instrument gets one here, on first open (acceptance 1); the sample
+// always has one from the seed, so it is never created here.
+export async function openDraft(ws: WorkspaceId, project: Project): Promise<Draft | null> {
+  const latest = await latestSet(ws, project.id);
+  if (!latest) return null;
+  let instrument = await instruments.latestForProject(ws, project.id);
+  if (!instrument) {
+    if (project.isSample) return null;
+    instrument = await instruments.create(ws, { projectId: project.id, itemSetId: latest.id, title: project.name, respondentFields: DEFAULT_FIELDS });
+  }
+  const builtOn = instrument.itemSetId === latest.id ? latest : await itemSets.get(ws, instrument.itemSetId);
+  if (!builtOn) throw new NotFoundError();
+  return { instrument, builtOn, newer: builtOn.id === latest.id ? null : latest };
+}
+
+async function own(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ project: Project; instrument: Instrument }> {
+  const project = await projects.get(ws, projectId);
+  const instrument = await instruments.get(ws, instrumentId);
+  if (!project || !instrument || instrument.projectId !== project.id) throw new NotFoundError();
+  return { project, instrument };
+}
+
+export async function saveIntro(ws: WorkspaceId, projectId: string, instrumentId: string, rawTitle: unknown, rawIntro: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const { project } = await own(ws, projectId, instrumentId);
+  if (project.isSample) return { error: BUILD_COPY.sample };
+  const title = String(rawTitle ?? "").trim();
+  const intro = String(rawIntro ?? "").trim();
+  if (title.length < 1 || title.length > TITLE_MAX) return { error: BUILD_COPY.badTitle };
+  if (intro.length > INTRO_MAX) return { error: BUILD_COPY.longIntro };
+  const instrument = await instruments.update(ws, instrumentId, { title, intro: intro || null });
+  if (!instrument) throw new NotFoundError();
+  return { instrument };
+}
+
+// rawFields is the form's JSON (one object per row, see FieldInput); parseFields applies
+// the rule and writes the keys.
+export async function saveFields(ws: WorkspaceId, projectId: string, instrumentId: string, rawFields: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const { project } = await own(ws, projectId, instrumentId);
+  if (project.isSample) return { error: BUILD_COPY.sample };
+  let parsedJson: unknown;
+  try { parsedJson = typeof rawFields === "string" ? JSON.parse(rawFields) : rawFields; } catch { parsedJson = null; }
+  const parsed = parseFields(parsedJson);
+  if ("error" in parsed) return { error: parsed.error };
+  const instrument = await instruments.update(ws, instrumentId, { respondentFields: parsed.fields });
+  if (!instrument) throw new NotFoundError();
+  return { instrument };
+}
+
+// A new draft on the latest set, carrying the old one's title, intro, fields and settings;
+// the old instrument stays on its version with its responses (E3-6, acceptance 3).
+export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ error: string } | { instrument: Instrument }> {
+  const { project, instrument: previous } = await own(ws, projectId, instrumentId);
+  if (project.isSample) return { error: BUILD_COPY.sample };
+  const latest = await latestSet(ws, project.id);
+  if (!latest || latest.id === previous.itemSetId) return { error: BUILD_COPY.alreadyLatest };
+  const instrument = await instruments.create(ws, {
+    projectId: project.id, itemSetId: latest.id, title: previous.title, intro: previous.intro, method: previous.method,
+    showProposed: previous.showProposed, layout: previous.layout, respondentFields: previous.respondentFields, closing: previous.closing,
+  });
+  return { instrument };
+}

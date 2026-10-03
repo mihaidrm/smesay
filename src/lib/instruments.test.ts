@@ -1,0 +1,119 @@
+// The instrument draft (stories/E5-1, acceptance 1, 2 and 4, and the line owed from E3-6)
+// on the test database: Build creates one draft per project on the latest set, titled after
+// the project with Name and Role; the intro and the fields save with the rule; a newer set
+// gets "Build on version 2", which copies the draft; the sample refuses edits; another
+// workspace's ids are 404.
+import { beforeAll, describe, expect, it } from "vitest";
+import { instruments, projects, workspaces } from "@/db/queries";
+import { createWorkspaceWithSample } from "@/db/queries/onboarding";
+import { prepareTestDatabase } from "@/db/test-db";
+import type { WorkspaceId } from "@/db/types";
+import { auth } from "@/lib/auth";
+import { NotFoundError } from "@/lib/errors";
+import { commitUpload } from "@/lib/imports";
+import { BUILD_COPY, buildOnLatest, openDraft, saveFields, saveIntro } from "@/lib/instruments";
+import { memoryOutbox } from "@/lib/mail";
+import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
+import { savePaste } from "@/lib/uploads";
+import { requireWorkspace } from "@/lib/workspace";
+
+const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+let a: { ws: WorkspaceId; userId: string }; let b: { ws: WorkspaceId; userId: string };
+
+async function signIn(email: string) {
+  const before = memoryOutbox.length;
+  await auth.handler(new Request(`${BASE}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "content-type": "application/json", origin: BASE }, body: JSON.stringify({ email, callbackURL: "/app" }) }));
+  const link = memoryOutbox[before].text.split("\n").find((l) => l.startsWith(BASE + "/api/auth/magic-link/verify"))!;
+  const verified = await auth.handler(new Request(link, { redirect: "manual" }));
+  const headers = new Headers({ cookie: verified.headers.getSetCookie().find((c) => c.includes("session_token="))!.split(";")[0] });
+  return { id: (await auth.api.getSession({ headers }))!.user.id, headers };
+}
+
+async function importList(ws: WorkspaceId, userId: string, projectId: string, lines: string[]) {
+  const pasted = await savePaste({ ws, userId }, projectId, lines.join("\n"));
+  if (!("upload" in pasted)) throw new Error(pasted.error);
+  const committed = await commitUpload(ws, pasted.upload.id, userId);
+  if (!("set" in committed)) throw new Error(committed.error);
+  return committed.set;
+}
+
+beforeAll(async () => {
+  await prepareTestDatabase();
+  const stamp = Date.now();
+  const signedIn = await signIn(`instruments-${stamp}@example.com`);
+  const wsA = await requireWorkspace(signedIn.headers, (await createWorkspaceWithSample({ name: "Instruments A", slug: `instruments-a-${stamp}` }, signedIn.id)).id);
+  const wsB = await requireWorkspace(signedIn.headers, (await workspaces.create({ name: "Instruments B", slug: `instruments-b-${stamp}` }, signedIn.id)).id);
+  a = { ws: wsA, userId: signedIn.id }; b = { ws: wsB, userId: signedIn.id };
+}, 60_000);
+
+describe("openDraft", () => {
+  it("is null without a set, then one draft per project on the latest set", async () => {
+    const project = await projects.create(a.ws, { name: "Expense tool", createdBy: a.userId });
+    expect(await openDraft(a.ws, project)).toBeNull();
+    const set = await importList(a.ws, a.userId, project.id, ["Receipts by phone | Submitting | Must", "Approval by email | Approving | Should"]);
+    const first = await openDraft(a.ws, project);
+    expect(first?.instrument.itemSetId).toBe(set.id);
+    expect(first?.instrument.title).toBe("Expense tool");
+    expect(first?.instrument.respondentFields).toEqual(DEFAULT_FIELDS);
+    expect(first?.newer).toBeNull();
+    const again = await openDraft(a.ws, project);
+    expect(again?.instrument.id).toBe(first?.instrument.id);
+    expect((await instruments.list(a.ws)).filter((i) => i.projectId === project.id).length).toBe(1);
+  });
+});
+
+describe("saveIntro and saveFields", () => {
+  it("saves with the rule and refuses outside it", async () => {
+    const project = await projects.create(a.ws, { name: "Intro", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    expect(await saveIntro(a.ws, project.id, instrument.id, "", "x")).toEqual({ error: BUILD_COPY.badTitle });
+    expect(await saveIntro(a.ws, project.id, instrument.id, "T", "x".repeat(1001))).toEqual({ error: BUILD_COPY.longIntro });
+    const saved = await saveIntro(a.ws, project.id, instrument.id, " Rate the list ", " Six things. ");
+    expect("instrument" in saved && saved.instrument.intro).toBe("Six things.");
+    expect("instrument" in saved && saved.instrument.title).toBe("Rate the list");
+    expect(await saveFields(a.ws, project.id, instrument.id, "[]")).toEqual({ error: FIELDS_COPY.lastField });
+    expect(await saveFields(a.ws, project.id, instrument.id, "not json")).toEqual({ error: FIELDS_COPY.badShape });
+    const fields = await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Name", type: "text", mandatory: true }, { label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }, { label: "Email", type: "email", mandatory: false }]));
+    expect("instrument" in fields && fields.instrument.respondentFields).toEqual([
+      { key: "name", label: "Name", type: "text", mandatory: true },
+      { key: "role", label: "Role", type: "dropdown", mandatory: true, options: ["Sales", "Finance"] },
+      { key: "email", label: "Email", type: "email", mandatory: false },
+    ]);
+  });
+  it("refuses the sample and another workspace", async () => {
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const draft = (await openDraft(a.ws, sample))!;
+    expect(await saveIntro(a.ws, sample.id, draft.instrument.id, "T", "x")).toEqual({ error: BUILD_COPY.sample });
+    expect(await saveFields(a.ws, sample.id, draft.instrument.id, JSON.stringify(DEFAULT_FIELDS))).toEqual({ error: BUILD_COPY.sample });
+    await expect(saveIntro(b.ws, sample.id, draft.instrument.id, "T", "x")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(saveFields(b.ws, sample.id, draft.instrument.id, "[]")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(buildOnLatest(b.ws, sample.id, draft.instrument.id)).rejects.toBeInstanceOf(NotFoundError);
+    // An instrument of one project named with another project of the same workspace: 404.
+    const other = await projects.create(a.ws, { name: "Other", createdBy: a.userId });
+    await expect(saveIntro(a.ws, other.id, draft.instrument.id, "T", "x")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("buildOnLatest", () => {
+  it("offers version 2 after a new import and copies the draft onto it", async () => {
+    const project = await projects.create(a.ws, { name: "Versions", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const v1 = (await openDraft(a.ws, project))!;
+    await saveIntro(a.ws, project.id, v1.instrument.id, "Versions", "Kept across versions.");
+    expect(await buildOnLatest(a.ws, project.id, v1.instrument.id)).toEqual({ error: BUILD_COPY.alreadyLatest });
+    const set2 = await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
+    const stillV1 = (await openDraft(a.ws, project))!;
+    expect(stillV1.instrument.id).toBe(v1.instrument.id);
+    expect(stillV1.builtOn.version).toBe(1);
+    expect(stillV1.newer?.id).toBe(set2.id);
+    const built = await buildOnLatest(a.ws, project.id, v1.instrument.id);
+    if (!("instrument" in built)) throw new Error(built.error);
+    expect(built.instrument.itemSetId).toBe(set2.id);
+    expect(built.instrument.intro).toBe("Kept across versions.");
+    const v2 = (await openDraft(a.ws, project))!;
+    expect(v2.instrument.id).toBe(built.instrument.id);
+    expect(v2.newer).toBeNull();
+    expect((await instruments.get(a.ws, v1.instrument.id))?.itemSetId).not.toBe(set2.id);
+  });
+});
