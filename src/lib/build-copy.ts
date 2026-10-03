@@ -34,7 +34,7 @@ export const BUILD_COPY = {
   alreadyLatest: "This instrument is already built on the latest version of the list.",
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
   preview: "Preview",
-  previewCaption: "Highlighted: what this step changes. The fields respondents fill in, and the rating row.",
+  previewCaption: "Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row.",
   previewDevice: "Phone",
   previewScreens: { about: "About you", items: "Items" },
   // The scoring card (stories/E5-2; the PM app board, Build).
@@ -56,6 +56,7 @@ export const BUILD_COPY = {
   previewItems: (n: number) => `${n} ${n === 1 ? "item" : "items"}`,
   previewMore: (shown: number, total: number) => `The first ${shown} of ${total} items. The rest follow in the same way.`,
   previewEmptyChapter: "No items in this chapter yet.",
+  previewWrapUp: "Wrap up",
   on: "On",
   off: "Off",
   locked: "Published instruments keep their method. Build a new instrument to change it.",

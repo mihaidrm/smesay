@@ -206,14 +206,14 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, named "Label for [VALUE]", the default as placeholder) |
 | Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (the method, the switch and the labels disabled; the layout stays) |
 | Layout cards (E5-3; the board's three, chapters first and default) | Layout. How the list is split into screens. Chapters are the default; a published instrument can still change its layout. Chapters (One area per screen, compact cards); One item per screen (One card at a time, with the chapter row); Single long page (Every area in order, no chapter row) |
-| Items preview per layout (E5-3) | One item per screen: "Item 1 of [N] in [AREA]" over one card; Single long page: "All [N] on one page", every area with its heading, no chapter row; Chapters: the chapter row and the first area's cards |
+| Items preview per layout (E5-3) | The chapter row: About you, every area (the first active), Wrap up, fading at the right edge when long. One item per screen: "Item 1 of [N] in [AREA]" (the instrument's title when the list has no areas) over one card; Single long page: "All [N] on one page", every area with its heading (items without an area under "Not shaped yet", as on Shape), no chapter row; Chapters: the chapter row and the first area's cards. Under an area with fewer cards drawn than it holds: "The first [N] of [M] items. The rest follow in the same way." |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |
 | Dropdown options | Options, one per line |
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
-| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, and the rating row. |
+| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. |
 | Preview screen switch (E5-2; the control is named "Preview screen") | About you, Items (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
 
 ## Respondent card (E5-2 preview and E7-2)

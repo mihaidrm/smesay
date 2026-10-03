@@ -15,7 +15,7 @@ import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
-import { areaNames } from "@/lib/shaping";
+import { areaNames, groupByArea } from "@/lib/shaping";
 import { BuildOn } from "./build-on";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
@@ -58,8 +58,9 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   };
   // Every area in the list's order (one unnamed chapter when the set has no areas), ten
   // cards in all across them (stories/E5-3: the single page lists every area).
-  const names = areaNames(builtOn, rows);
-  const grouped = names.length ? names.map((name) => ({ name, rows: rows.filter((it) => it.area === name) })) : [{ name: null as string | null, rows }];
+  // Every area in the list's order, then the items with no area under the Shape page's
+  // name for them (groupByArea), so the page layout's count matches what is drawn.
+  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name, rows: g.items })) : [{ name: null, rows }];
   const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[] }[] }>((acc, c) => {
     const cards = c.rows.slice(0, acc.left).map(toCard);
     return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards }] };

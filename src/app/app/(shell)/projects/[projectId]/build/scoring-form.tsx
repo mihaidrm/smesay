@@ -62,8 +62,8 @@ export function ScoringForm({ projectId, instrumentId, method: initialMethod, sh
         </div>
         <Toggle checked={showProposed} onChange={(next) => { setShowProposed(next); touch(); }} disabled={locked} aria-labelledby={`${id}-proposed`} aria-describedby={`${id}-proposed-line`} />
       </div>
-      <fieldset disabled={locked} aria-labelledby={`${id}-labels`} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-0.5"><span id={`${id}-labels`} className="text-sm font-semibold">{BUILD_COPY.labelsTitle}</span><span className="text-[13px] text-ink-muted">{BUILD_COPY.labelsLine}</span></div>
+      <fieldset disabled={locked} aria-labelledby={`${id}-labels`} aria-describedby={`${id}-labels-line`} className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0.5"><span id={`${id}-labels`} className="text-sm font-semibold">{BUILD_COPY.labelsTitle}</span><span id={`${id}-labels-line`} className="text-[13px] text-ink-muted">{BUILD_COPY.labelsLine}</span></div>
         <div className="grid grid-cols-5 gap-2" data-testid="scale-labels">
           {SCALES[method].map((v) => (
             <div key={v.code} className="flex flex-col gap-1">
@@ -74,8 +74,8 @@ export function ScoringForm({ projectId, instrumentId, method: initialMethod, sh
         </div>
       </fieldset>
       {locked && <p className="text-[13px] text-ink-muted" data-testid="scoring-locked">{BUILD_COPY.locked}</p>}
-      <fieldset aria-labelledby={`${id}-layout`} className="flex flex-col gap-2">
-        <div className="flex flex-col gap-0.5"><span id={`${id}-layout`} className="text-sm font-semibold">{BUILD_COPY.layoutLabel}</span><span className="text-[13px] text-ink-muted">{BUILD_COPY.layoutLine}</span></div>
+      <fieldset aria-labelledby={`${id}-layout`} aria-describedby={`${id}-layout-line`} className="flex flex-col gap-2">
+        <div className="flex flex-col gap-0.5"><span id={`${id}-layout`} className="text-sm font-semibold">{BUILD_COPY.layoutLabel}</span><span id={`${id}-layout-line`} className="text-[13px] text-ink-muted">{BUILD_COPY.layoutLine}</span></div>
         <div className="grid grid-cols-3 gap-2">
           {LAYOUTS_META.map((l) => {
             const active = layout === l.key;

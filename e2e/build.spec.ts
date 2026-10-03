@@ -142,8 +142,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   // scrolls sideways in the 390 px frame and every pill keeps its 38 px height.
   const frame = page.getByTestId("preview-frame");
   const noSideScroll = async () => expect(await frame.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
-  const pillsTall = async () => { for (const h of await chapter.getByRole("radio").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) expect(h).toBeGreaterThanOrEqual(38); };
+  const pillsTall = async () => { const hs = await chapter.getByRole("radio").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height)); expect(hs.length).toBeGreaterThan(0); for (const h of hs) expect(h).toBeGreaterThanOrEqual(38); };
   await expect(chapter.getByTestId("chapter-row")).toBeVisible();
+  await expect(chapter.getByTestId("chapter-row")).toHaveText("About youSubmittingApprovingWrap up");
   await noSideScroll(); await pillsTall();
   await page.getByText("One item per screen", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();

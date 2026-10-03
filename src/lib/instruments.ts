@@ -106,25 +106,26 @@ export async function isPublished(ws: WorkspaceId, instrumentId: string): Promis
 
 // The scoring card (stories/E5-2 and E5-3): the method, whether the proposed value is
 // shown, the PM's labels for the method's values, and the layout, validated here. Once
-// published the method, the switch and the labels are locked (answers depend on them); the
-// layout still changes, since it only shapes the screens.
+// published the method, the switch and the labels are locked (answers depend on them) and
+// whatever is posted for them is ignored; the layout still changes, since it only shapes
+// the screens.
 export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown, rawLayout: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
   if (!isLayout(rawLayout)) return { error: SCORING_ERRORS.badLayout };
+  // Published: only the layout is read; the form's locked controls post nothing (a disabled
+  // fieldset is left out of the form data) and a stale tab's values are ignored, not applied.
+  if (await isPublished(ws, instrumentId)) {
+    const instrument = await instruments.update(ws, instrumentId, { layout: rawLayout });
+    if (!instrument) throw new NotFoundError();
+    return { instrument };
+  }
+  if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
   const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
   let parsedJson: unknown;
   try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
   const labels = parseScaleLabels(rawMethod, parsedJson);
   if ("error" in labels) return { error: labels.error };
-  if (await isPublished(ws, instrumentId)) {
-    const same = owned.instrument.method === rawMethod && owned.instrument.showProposed === showProposed && JSON.stringify(owned.instrument.scaleLabels ?? null) === JSON.stringify(labels.labels);
-    if (!same) return { error: SCORING_ERRORS.locked };
-    const instrument = await instruments.update(ws, instrumentId, { layout: rawLayout });
-    if (!instrument) throw new NotFoundError();
-    return { instrument };
-  }
   const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels, layout: rawLayout });
   if (!instrument) throw new NotFoundError();
   return { instrument };

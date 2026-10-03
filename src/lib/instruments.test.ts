@@ -171,16 +171,22 @@ describe("saveScoring (stories/E5-2)", () => {
     if (!("instrument" in defaults)) throw new Error(defaults.error);
     expect(defaults.instrument.scaleLabels).toBeNull();
     expect(defaults.instrument.showProposed).toBe(true);
-    // A link makes it published (E6-1 creates the row): the method is locked.
+    // Two labels stored (jsonb returns its keys in its own order), then a link makes it
+    // published (E6-1 creates the row): the method, the switch and the labels are locked.
+    expect("instrument" in (await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", JSON.stringify({ M: "Essential", C: "Nice" }), "chapters"))).toBe(true);
     expect(await isPublished(a.ws, instrument.id)).toBe(false);
     await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
     expect(await isPublished(a.ws, instrument.id)).toBe(true);
-    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}", "page")).toEqual({ error: SCORING_ERRORS.locked });
-    expect((await instruments.get(a.ws, instrument.id))?.method).toBe("moscow");
-    // The layout still changes on a published instrument when the rest is unchanged (E5-3).
-    const relaid = await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "{}", "item");
+    // Published: the layout still changes (E5-3); the method, the switch and the labels
+    // posted with it are ignored, including the null the locked form posts for the method.
+    await saveScoring(a.ws, project.id, instrument.id, "moscow", "1", JSON.stringify({ M: "Essential", C: "Nice" }), "page").catch(() => undefined);
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}", "page")).toMatchObject({ instrument: { method: "moscow", layout: "page" } });
+    const relaid = await saveScoring(a.ws, project.id, instrument.id, null, null, null, "item");
     expect("instrument" in relaid && relaid.instrument.layout).toBe("item");
     expect("instrument" in relaid && relaid.instrument.method).toBe("moscow");
+    expect("instrument" in relaid && relaid.instrument.showProposed).toBe(true);
+    expect("instrument" in relaid && relaid.instrument.scaleLabels).toEqual({ M: "Essential", C: "Nice" });
+    expect(await saveScoring(a.ws, project.id, instrument.id, null, null, null, "grid")).toEqual({ error: SCORING_ERRORS.badLayout });
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
     await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);

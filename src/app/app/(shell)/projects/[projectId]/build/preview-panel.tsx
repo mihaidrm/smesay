@@ -6,10 +6,14 @@
 // it changes). The items screen follows the layout (decision 0016): chapters shows the
 // first area's cards under the chapter row; one item per screen shows one card with "Item
 // 1 of N in [AREA]"; the single page lists every area in order with no chapter row and
-// "All N on one page". The screen choice lives in this component, keyed on the instrument
-// alone, so a save of any card keeps the screen; the About you page re-mounts on its own
-// key and the cards on theirs, which clears a pick made in the preview (nothing is stored
-// there). At most ten cards are drawn (a set can hold 2,000 rows); a line says so.
+// "All N on one page". The chapter row shows About you, every area (the first active) and
+// Wrap up, fading at the right edge when it is longer than the frame (the board's mask);
+// it is a picture, not navigation (free movement is E7-4's). The screen choice lives in
+// this component, keyed on the instrument alone, so a save of any card keeps the screen;
+// the About you page re-mounts on its own key and the cards on theirs (the layout in the
+// key), which clears a pick made in the preview (nothing is stored there). At most ten
+// cards are drawn across the areas (a set can hold 2,000 rows); each area with fewer cards
+// drawn than it holds says so under them.
 import { useState } from "react";
 import { cn } from "cn";
 import { AboutYou, type AboutYouProps } from "@/components/respondent/about-you";
@@ -21,13 +25,11 @@ import { BUILD_COPY } from "@/lib/build-copy";
 type Screen = "about" | "items";
 export type PreviewChapter = { name: string | null; count: number; cards: Omit<ItemCardProps, "ring">[] };
 
-const cardKey = (card: Omit<ItemCardProps, "ring">, i: number) => `${i}-${card.method}-${card.showProposed}-${JSON.stringify(card.labels)}`;
+const cardKey = (card: Omit<ItemCardProps, "ring">, i: number, layout: Layout) => `${i}-${layout}-${card.method}-${card.showProposed}-${JSON.stringify(card.labels)}`;
 
 export function PreviewPanel({ about, chapters, layout, total }: { about: Omit<AboutYouProps, "preview" | "heading" | "ring">; chapters: PreviewChapter[]; layout: Layout; total: number }) {
   const [screen, setScreen] = useState<Screen>("about");
   const first = chapters[0] ?? { name: null, count: 0, cards: [] };
-  const drawn = layout === "page" ? chapters.reduce((n, c) => n + c.cards.length, 0) : layout === "item" ? Math.min(1, first.cards.length) : first.cards.length;
-  const shownOf = layout === "page" ? total : first.count;
   return (
     <aside className="flex w-[460px] shrink-0 flex-col gap-3 rounded-2xl border border-hairline bg-surface p-4" aria-labelledby="preview-title" data-testid="preview-panel">
       <div className="flex items-center justify-between gap-3">
@@ -47,9 +49,10 @@ export function PreviewPanel({ about, chapters, layout, total }: { about: Omit<A
             </div>
             <div className="flex flex-col gap-3 px-5 pt-3.5 pb-5">
               {layout !== "page" && (
-                <div className="flex gap-1.5 overflow-hidden rounded-full ring-2 ring-violet ring-offset-4 ring-offset-ground" data-testid="chapter-row">
+                <div className="flex gap-1.5 overflow-hidden rounded-full ring-2 ring-violet ring-offset-4 ring-offset-ground [mask-image:linear-gradient(90deg,#000_82%,transparent)]" data-testid="chapter-row">
                   <span className="h-[30px] shrink-0 rounded-full border border-hairline-strong px-3 text-xs leading-[28px] font-semibold text-ink-muted">{BUILD_COPY.previewScreens.about}</span>
                   {chapters.map((c, i) => c.name && <span key={c.name} className={cn("h-[30px] shrink-0 rounded-full px-3 text-xs leading-[30px] font-semibold whitespace-nowrap", i === 0 ? "bg-violet-soft text-violet-text" : "border border-hairline-strong leading-[28px] text-ink-muted")}>{c.name}</span>)}
+                  <span className="h-[30px] shrink-0 rounded-full border border-hairline-strong px-3 text-xs leading-[28px] font-semibold text-ink-muted">{BUILD_COPY.previewWrapUp}</span>
                 </div>
               )}
               {layout === "page" ? (
@@ -59,7 +62,8 @@ export function PreviewPanel({ about, chapters, layout, total }: { about: Omit<A
                     <section key={c.name ?? "all"} className="flex flex-col gap-3">
                       <h4 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{c.name ?? about.title} <span className="text-sm font-medium text-ink-muted">{BUILD_COPY.previewItems(c.count)}</span></h4>
                       {c.count === 0 && <p className="text-sm text-ink-muted">{BUILD_COPY.previewEmptyChapter}</p>}
-                      {c.cards.map((card, i) => <ItemCard key={cardKey(card, i)} {...card} ring />)}
+                      {c.cards.map((card, i) => <ItemCard key={cardKey(card, i, layout)} {...card} ring />)}
+                      {c.count > c.cards.length && <p className="text-[13px] text-ink-muted">{BUILD_COPY.previewMore(c.cards.length, c.count)}</p>}
                     </section>
                   ))}
                 </>
@@ -68,10 +72,10 @@ export function PreviewPanel({ about, chapters, layout, total }: { about: Omit<A
                   <h4 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{first.name ?? about.title} <span className="text-sm font-medium text-ink-muted">{BUILD_COPY.previewItems(first.count)}</span></h4>
                   {first.count === 0 && <p className="text-sm text-ink-muted">{BUILD_COPY.previewEmptyChapter}</p>}
                   {layout === "item" && first.count > 0 && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(1, first.count, first.name ?? about.title)}</p>}
-                  {(layout === "item" ? first.cards.slice(0, 1) : first.cards).map((card, i) => <ItemCard key={cardKey(card, i)} {...card} ring />)}
+                  {(layout === "item" ? first.cards.slice(0, 1) : first.cards).map((card, i) => <ItemCard key={cardKey(card, i, layout)} {...card} ring />)}
+                  {layout === "chapters" && first.count > first.cards.length && <p className="text-[13px] text-ink-muted">{BUILD_COPY.previewMore(first.cards.length, first.count)}</p>}
                 </>
               )}
-              {shownOf > drawn && layout !== "item" && <p className="text-[13px] text-ink-muted">{BUILD_COPY.previewMore(drawn, shownOf)}</p>}
             </div>
           </div>
         )}

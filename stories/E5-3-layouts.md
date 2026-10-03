@@ -33,15 +33,17 @@ Built 2026-10-03 (design note 42, decision 0044):
   rule; the layout still changes once the instrument is published (only the method, the
   switch and the labels are locked, E5-2 acceptance 4), since answers do not depend on it.
 - Acceptance 2: the preview's Items screen (preview-panel.tsx) renders the three: chapters
-  with the chapter row (About you and every area, the first active) and the first area's
-  cards; one item per screen with the chapter row, one card and "Item 1 of [N] in [AREA]";
-  the single page with every area in order, "All [N] on one page" and no chapter row. The
-  respondent side builds the real screens in E7-2 and E7-4 from the same components.
+  with the chapter row (About you, every area with the first active, Wrap up) and the first
+  area's cards; one item per screen with the chapter row, one card and "Item 1 of [N] in
+  [AREA]"; the single page with every area in order, "All [N] on one page" and no chapter
+  row. Free navigation between chapters and the two card columns on desktop are not in the
+  preview (phone-only, a picture): E7-4 and E7-2 build them (docs/review-list.md).
 - Acceptance 3: the check runs in the preview frame (390 px, the respondent app does not
-  exist yet): no side scroll in any layout, and every pill at least 38 px high. The pills are
-  38 px by decision 0018 item 4 and docs/design-system.md, not the 48 px this line asked
-  for; the Back and Continue buttons are 48 (docs/review-list.md). E7-2 repeats the check at
-  375 by 667 on the real screens.
+  exist yet) on a fresh project: no side scroll in any layout (the frame's scrollWidth), and
+  every pill at least 38 px high. The pills are 38 px by docs/design-system.md (decision 0018
+  item 4 said 36 and left the size open), not the 48 px this line asked for; the Back and
+  Continue buttons are 48 (docs/review-list.md). E7-2 repeats the check at 375 by 667 on
+  the real screens of the sample instrument (its acceptance 4).
 - Acceptance 4: the chapter row carries the violet ring on the Items screen, with the
   rating rows (decision 0021).
 - Playwright: e2e/build.spec.ts switches through the three layouts and checks the note, the
