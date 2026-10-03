@@ -38,8 +38,16 @@ placeholder until then. Landing page E and its phone board are superseded.
 - The move to /: Mihai's call, one line in src/app/page.tsx when he gives it.
 
 ## Open questions
-- None. Primary actions on the page are the violet gradient (design v2); on the respondent
-  side they stay ink (decision 0031, 0016).
+- The page describes the R1 product as planned (the public link, the respondent instrument,
+  the live dashboard, the CSV export, the legal pages, the smesay.app address), which
+  conflicts with the copy rule "do not describe a feature the product does not have"
+  (CLAUDE.md). Raised by the audit of 2026-10-03. Until Mihai answers, the page is served at
+  /landing-page and linked from nowhere; docs/copy/landing.md lists every such line under
+  "Claims to check before launch". Options for Mihai: keep the planned copy and treat the
+  landing as launch-gate material (the lines come true with E5 to E7, E10, E11 before the
+  page moves to /), or cut the page to what exists today and grow it story by story.
+- Primary actions on the page are the violet gradient (design v2); on the respondent side
+  they stay ink (decision 0031, 0016).
 
 ## Technical notes
 src/app/landing-page/page.tsx with the sections inline, two client components
@@ -51,6 +59,11 @@ app's mode, so its colours are written out rather than read from the mode tokens
 ## Build record, 2026-10-03
 
 Built on design v2 the day the design merged. Playwright e2e/landing.spec.ts covers
-acceptance 6. Lighthouse on the production build, mobile preset, Chromium 1194:
-performance 98, accessibility 100, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 50 ms (a first run before the main landmark was added read accessibility 98).. Acceptance 4 holds in its amended form (static Marlow markup) until E5
-and E6. Design note 36.
+acceptance 6 (1 test, passed locally and in CI). Lighthouse CLI 13.5.0 on the production
+build at http://localhost:3000/landing-page, mobile form factor, Chromium 1194:
+performance 98, accessibility 100, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 50 ms.
+Lighthouse sees the page as loaded, where the sections below the fold are still hidden by
+the reveal-on-scroll, so axe-core 4 was run through Playwright over the whole page after
+scrolling it: the result is in design note 36. Acceptance 4 holds in its amended form
+(static Marlow markup) until E5 and E6. The audit of 2026-10-03 (6 blocking, 11 minor) and
+what it changed: design note 36.

@@ -1,10 +1,15 @@
 "use client";
 // The cursor light of the dark marketing sections (design note 33, Motion; decision 0041): a
 // 760 px radial glow follows the pointer over the section, moved with a transform inside
-// requestAnimationFrame, one element and no gradient repaint. The system cursor stays. Not
-// rendered on a touch screen (hover: none) and left at its resting place under reduced
-// motion; both read through matchMedia on the client, so the server render carries the
-// resting glow and nothing else.
+// requestAnimationFrame (developer.mozilla.org/docs/Web/API/Window/requestAnimationFrame),
+// one element and no gradient repaint, moved on pointermove
+// (developer.mozilla.org/docs/Web/API/Element/pointermove_event). The system cursor stays.
+// Hidden on a touch screen by CSS (the hover media feature, developer.mozilla.org/docs/Web/
+// CSS/@media/hover; the landing-cursor-light rule in src/app/globals.css) and left at its
+// resting place under reduced motion (developer.mozilla.org/docs/Web/CSS/@media/
+// prefers-reduced-motion); both are read again through matchMedia
+// (developer.mozilla.org/docs/Web/API/Window/matchMedia) before the listeners attach, so
+// the server render carries the resting glow and nothing else.
 import { useEffect, useRef, useState } from "react";
 
 export function CursorLight({ restX = 980, restY = 300 }: { restX?: number; restY?: number }) {
@@ -42,7 +47,7 @@ export function CursorLight({ restX = 980, restY = 300 }: { restX?: number; rest
       ref={ref}
       aria-hidden="true"
       data-testid="cursor-light"
-      className="pointer-events-none absolute top-0 left-0 -mt-[380px] -ml-[380px] size-[760px] rounded-full bg-[radial-gradient(circle,rgba(155,134,255,0.26)_0%,rgba(255,138,120,0.10)_34%,rgba(0,0,0,0)_62%)] transition-opacity duration-500 will-change-transform"
+      className="landing-cursor-light pointer-events-none absolute top-0 left-0 -mt-[380px] -ml-[380px] size-[760px] rounded-full bg-[radial-gradient(circle,rgba(155,134,255,0.26)_0%,rgba(255,138,120,0.10)_34%,rgba(0,0,0,0)_62%)] transition-opacity duration-500 will-change-transform"
       style={{ transform: `translate(${restX}px, ${restY}px)`, opacity: live ? undefined : 1 }}
     />
   );

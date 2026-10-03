@@ -1,6 +1,6 @@
 # E12-4 A sample instrument visitors can answer
 
-User: a visitor pressing "Try the sample as a respondent" on the landing page
+User: a visitor pressing "See the sample" on the landing page (the button says "Try the sample as a respondent" and goes to the sample instrument once this story is built; until then it goes to the app)
 Status: ready
 Outcome: a public link to the Marlow instrument that anyone can go through on their phone
 without creating anything in anyone's workspace.

@@ -4,7 +4,10 @@
 // staggered by 120 ms. The hiding class is set on the client only, after the component has
 // checked for IntersectionObserver and for reduced motion, so a page without JavaScript or
 // with reduced motion shows everything at rest (developer.mozilla.org/docs/Web/API/
-// IntersectionObserver).
+// IntersectionObserver; matchMedia: developer.mozilla.org/docs/Web/API/Window/matchMedia;
+// the query: developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion). Print shows
+// everything too (the print rule in src/app/globals.css). The reduced-motion setting is read
+// once, on mount.
 import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 

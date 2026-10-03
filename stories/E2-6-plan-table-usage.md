@@ -21,7 +21,7 @@ entry, and every workspace's usage is counted from day one.
 
 ## Out of scope
 - Charging money, Stripe, plan upgrade screens: R3.
-- Showing plans on the landing page beyond the one free line: decision 0008.
+- Showing plans on the landing page beyond the one Free card: decision 0008, amended with design v2.
 
 ## Open questions
 - None.

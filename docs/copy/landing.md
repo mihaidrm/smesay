@@ -81,19 +81,35 @@ link.
 SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · hello@smesay.app.
 The legal links go live with E11; until then they are text.
 
+## Page metadata
+
+Title: SMEsay: send the list as a link. Description: Your experts go through the list item by
+item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list
+written by AI, and the CSV.
+
 ## Claims to check before launch
 
-- "Data hosted in the EU": true only once the launch-gate hosting is in fra1 or equivalent
-  (decision 0006). Keep the line, confirm the region at the gate.
-- "Export or delete everything yourself, at any time": E10 and E11 deliver this. Do not launch
-  the page before they ship.
-- "5 of 7", "72%", "14 of 40", "31 of 40", "81%", "64%", "92%": Marlow example numbers inside
-  product screens (the seed, stories/E1-4), not claims about the product.
-- The legal links point to pages E11 writes; every one carries the lawyer markers.
+The page describes the R1 product as planned, not only what is built on the day it was coded
+(2026-10-03: sign-in, workspaces, projects, import, AI shaping). That conflicts with the copy
+rule "do not describe a feature the product does not have"; it is recorded in stories/E12-1
+as an open question for Mihai, and the page is linked from nowhere until he answers. Lines
+that are claims about the product rather than the Marlow example inside a product screen:
 
-## Changed in this pass, 2026-10-01
+- The hero chip "Live: 5 of 7 experts answering right now" (outside the live card), "Send
+  the list as a link", "go through it item by item", "a dashboard, a to-do list written by
+  AI, and the CSV", "No account for the experts. Nothing to install.": the public link (E7),
+  the respondent instrument (E5), the dashboard and the CSV (E6, E10).
+- Step 3 "Send one link" and "Experts open it on a phone, no account. Answers arrive live;
+  the dashboard, the to-do list and the CSV are yours": E5 to E7, E10.
+- "Every number to the row" with the Export CSV pill: E10.
+- The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
+  on the link" (the logo and colour settings exist, E2-5; the link does not until E7).
+- The footer: "Privacy · Terms" are pages E11 writes (every one carries the lawyer markers),
+  and hello@smesay.app is a domain the plan buys at the launch gate (docs/accounts.md); until
+  then both are text, not links.
 
-- The disagreement register used the MoSCoW word for the fourth priority where the respondent
-  card says "Not needed" (decision 0018). The register, the PM app (item detail, action text,
-  the MoSCoW hint) and the respondent wrap-up now all say Not needed. The MoSCoW word is in
-  docs/retired-terms.md, so the hook catches it if it comes back.
+True on the day: the upload and shaping lines (E3, E4) and the free lines (decision 0008).
+
+Numbers inside product screens, the Marlow example (the seed, stories/E1-4), not claims:
+"72%", "14 of 40" (the agreement chip), "31 of 40", "81%", "64%", "92%" (agreement by area),
+the live card's answers, "Cites 2 answers".

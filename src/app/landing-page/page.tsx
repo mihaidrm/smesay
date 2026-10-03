@@ -8,7 +8,11 @@
 // whatever the app's mode (decision 0041, point 2), so its colours are written out, not read
 // from the mode tokens. The product fragments are the Marlow example as static markup until
 // the respondent and dashboard components exist (E5, E6); they are swapped for the real
-// components then (acceptance 4, amended).
+// components then (acceptance 4, amended). The page describes the R1 product as planned, not
+// only what is built today; that conflict with the copy rule is recorded in the story as an
+// open question for Mihai, and the page is linked from nowhere until he answers.
+// Small text on the dark hero is #C9C4E0 or lighter so it keeps 4.5 over the aurora and the
+// cursor light; the two card labels on light use the text colours of their hues.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MascotPlaceholder } from "@/components/app/mascot";
@@ -24,6 +28,7 @@ export const metadata: Metadata = {
 
 const NAVY = "#16152A";
 const ghost = "inline-flex h-[50px] items-center justify-center rounded-full border border-[#46445F] bg-white/[0.03] px-[26px] text-[16px] font-bold text-[#F3F1FA] transition-[transform,border-color,background-color] duration-150 ease-out hover:-translate-y-0.5 hover:border-[#9B86FF] hover:bg-[#9B86FF]/15 motion-reduce:hover:translate-y-0 outline-none focus-visible:ring-2 focus-visible:ring-[#9B86FF] focus-visible:ring-offset-2 focus-visible:ring-offset-[#16152A]";
+const navLink = "hidden rounded-sm transition-colors duration-150 outline-none hover:text-[#F3F1FA] focus-visible:ring-2 focus-visible:ring-[#9B86FF] focus-visible:ring-offset-2 focus-visible:ring-offset-[#16152A] md:inline";
 const primary = buttonVariants({ variant: "primary", className: "h-[50px] px-[26px] text-[16px] focus-visible:ring-offset-[#16152A]" });
 
 function Avatar({ initials, tint, text }: { initials: string; tint: string; text: string }) {
@@ -79,22 +84,22 @@ export default function LandingPage() {
         <div className="relative mx-auto flex h-[76px] w-full max-w-[1200px] items-center justify-between px-5 md:px-8">
           <Link href="/landing-page" className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#9B86FF]"><Lockup text={18} onInk /></Link>
           <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] md:gap-[30px]">
-            <a href="#how" className="hidden transition-colors duration-150 hover:text-[#F3F1FA] md:inline">How it works</a>
-            <a href="#outputs" className="hidden transition-colors duration-150 hover:text-[#F3F1FA] md:inline">What you get</a>
-            <a href="#pricing" className="hidden transition-colors duration-150 hover:text-[#F3F1FA] md:inline">Pricing</a>
+            <a href="#how" className={navLink}>How it works</a>
+            <a href="#outputs" className={navLink}>What you get</a>
+            <a href="#pricing" className={navLink}>Pricing</a>
             <Link href="/sign-in" className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</Link>
           </nav>
         </div>
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-start gap-12 px-5 pt-10 pb-16 md:px-8 lg:flex-row lg:items-center lg:justify-between lg:pt-6 lg:pb-14">
           <div className="landing-rise flex w-full max-w-[560px] flex-col items-start">
-            <div className="inline-flex h-[30px] items-center gap-2 rounded-full border border-[#46445F] bg-white/[0.04] pr-3 pl-2 text-[13px] text-[#C9C4E0]"><span className="landing-pulse block size-2 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Live: 5 of 7 experts answering right now</div>
+            <div className="inline-flex h-[30px] items-center gap-2 rounded-full border border-[#46445F] bg-white/[0.04] pr-3 pl-2 text-[13px] text-[#D4D0E4]"><span className="landing-pulse block size-2 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Live: 5 of 7 experts answering right now</div>
             <h1 className="mt-[22px] text-[40px] leading-[44px] font-extrabold tracking-[-0.04em] md:text-[66px] md:leading-[68px]">Send the list as a link. <span className="bg-[linear-gradient(90deg,#B8A8FF_0%,#FF8A78_60%,#FFD36E_100%)] bg-clip-text text-transparent">Get back who agrees, and why.</span></h1>
             <p className="mt-[26px] max-w-[520px] text-[17px] leading-[26px] text-[#C9C4E0] md:text-[19px] md:leading-[30px]">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</p>
             <div className="mt-[34px] flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center">
               <Link href="/sign-in" className={primary}>Start free<span aria-hidden="true" className="ml-2 transition-transform duration-150 group-hover/button:translate-x-[3px]">→</span></Link>
               <Link href="/app" className={ghost}>See the sample</Link>
             </div>
-            <div className="mt-[26px] flex items-center gap-3.5 text-[13px] text-[#A8A4BE]">
+            <div className="mt-[26px] flex items-center gap-3.5 text-[13px] text-[#C9C4E0]">
               <div className="flex" aria-hidden="true">
                 {["#FF8A78", "#5FD3B3", "#FFD36E", "#9B86FF"].map((c, i) => <span key={c} className="size-[26px] rounded-full border-2" style={{ background: c, borderColor: NAVY, marginLeft: i ? -8 : 0 }} />)}
               </div>
@@ -167,8 +172,8 @@ export default function LandingPage() {
               </div>
             </Reveal>
             <div className="flex flex-col gap-4">
-              <Reveal delay={120} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#1F9D7A]">To do, written by AI</div><div className="text-[16px] leading-[22px] font-semibold">Decide whether policy flags move to Must have.</div><div className="text-[13px] text-[#5E5A72]">Cites 2 answers · Ana, Radu</div></Reveal>
-              <Reveal delay={240} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#FF6B57]">Where groups disagree</div><div className="text-[16px] leading-[22px] font-semibold">Finance and sales split on cash advances.</div><div className="mt-1 flex h-2 gap-1.5" aria-hidden="true"><div className="w-[80%] rounded-full bg-[#6D4CF5]" /><div className="w-[35%] rounded-full bg-[#B8A8FF]" /></div></Reveal>
+              <Reveal delay={120} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#166A52]">To do, written by AI</div><div className="text-[16px] leading-[22px] font-semibold">Decide whether policy flags move to Must have.</div><div className="text-[13px] text-[#5E5A72]">Cites 2 answers · Ana, Radu</div></Reveal>
+              <Reveal delay={240} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#9E3321]">Where groups disagree</div><div className="text-[16px] leading-[22px] font-semibold">Finance and sales split on cash advances.</div><div className="mt-1 flex h-2 gap-1.5" aria-hidden="true"><div className="w-[80%] rounded-full bg-[#6D4CF5]" /><div className="w-[35%] rounded-full bg-[#B8A8FF]" /></div></Reveal>
               <Reveal delay={360} className="flex items-center justify-between gap-3 rounded-[20px] border border-[#E6E3F0] bg-white px-[22px] py-[18px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><span className="text-[15px] font-semibold">Every number to the row</span><span className="rounded-full border border-[#CFCBE0] bg-white px-3.5 py-1.5 text-[13px] font-bold text-[#15131F]">Export CSV</span></Reveal>
             </div>
           </div>
