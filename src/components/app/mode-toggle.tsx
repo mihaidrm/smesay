@@ -3,7 +3,8 @@
 // sidebar). The default follows the system setting; a press stores the choice in
 // localStorage ("smesay-mode") and flips the html class, which every token reads
 // (src/app/globals.css). The script in src/app/layout.tsx applies the stored choice before the
-// first paint. The component reads the class through useSyncExternalStore with a
+// first paint. A press sweeps the new mode in from the top left corner (design note 35).
+// The component reads the class through useSyncExternalStore with a
 // MutationObserver as the subscription (react.dev/reference/react/useSyncExternalStore), so
 // the state follows the class and the server render says off until the client knows.
 // A switch named by its visible label "Dark mode" (the label is the accessible name, WCAG
@@ -27,8 +28,20 @@ export function ModeToggle() {
   const labelId = useId();
   const flip = () => {
     const next = !dark;
-    document.documentElement.classList.toggle("dark", next);
-    try { localStorage.setItem(KEY, next ? "dark" : "light"); } catch { /* private mode: the choice lasts this page only */ }
+    const apply = () => {
+      document.documentElement.classList.toggle("dark", next);
+      try { localStorage.setItem(KEY, next ? "dark" : "light"); } catch { /* private mode: the choice lasts this page only */ }
+    };
+    // The sweep (design note 35): a view transition wipes the new mode in from the top left
+    // corner to the bottom right over 1.4 s (src/app/globals.css, mode-sweep). The html class
+    // scopes the CSS to this transition. Browsers without startViewTransition and people who
+    // asked for reduced motion get the plain switch
+    // (developer.mozilla.org/docs/Web/API/Document/startViewTransition).
+    const root = document.documentElement;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || typeof document.startViewTransition !== "function") { apply(); return; }
+    root.classList.add("mode-sweep");
+    document.startViewTransition(apply).finished.finally(() => root.classList.remove("mode-sweep"));
   };
   return (
     <div className="flex items-center justify-between gap-3 px-2.5 text-xs text-ink-muted">

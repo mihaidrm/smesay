@@ -66,6 +66,7 @@ the design system and where the code departs from the boards, with the reason.
   dot, since the board only drew it on dark; on dark it is the same card on the dark gradient
   through the tokens.
 - The mode toggle has two states, light and dark, and no "follow the system" position; the
+  sweep that animates the flip is design note 35. The
   system setting applies until the first press. A reset would be a third control for a
   choice that is made once; it can be added if asked.
 
