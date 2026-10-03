@@ -19,7 +19,7 @@ export const INVITEES_COPY = {
   sent: (n: number) => `${n} ${n === 1 ? "invite" : "invites"} sent.`,
   linkClosed: "The public link is closed. Move its close date to send invites.",
   linkRevoked: "The public link is revoked. Publish again to send invites.",
-  linkReplaced: "A newer version of the list was published while you were sending. Reload the page, then send again: the invites go with the newer version's link.",
+  linkReplaced: "A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link.",
   headers: { person: "Person", status: "Status", reminders: "Reminders" },
   status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent" },
   notSentHint: "Paste the address again to send it. A send in progress holds the address for 15 minutes.",

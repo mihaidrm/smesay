@@ -156,6 +156,11 @@ describe("sendInvites", () => {
     expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server] [server] at 10:30, code 5.1.1") }] });
     expect(cutServers("user:secret@mail.example:587 refused; login failed for user:hunter2@relay.corp.example; see https://x.example/help (host.example).")).toBe("[server] refused; login failed for [server] see [server] [server]");
     expect(cutServers("550 5.1.1 Node.js Code:550 try 10:30 x")).toBe("550 5.1.1 [server] [server] try 10:30 x");
+    expect(cutServers("mail.example.com[192.0.2.1]:25: <unknown[192.0.2.1]>: [10.0.0.5] 10.0.0.5/24 mail.example?")).toBe("[server] [server] [server] [server] [server]");
+    expect(cutServers("connect ECONNREFUSED ::1:587 [2001:db8::1]:587 fd00::5 (::1) refused.Please")).toBe("connect ECONNREFUSED [server] [server] [server] [server] [server]");
+    expect(cutServers("(".repeat(5000) + "x")).toBe("(".repeat(5000) + "x");
+    const only = await sendInvites(a.ws, project.id, instrument.id, "gus3@x.example", sender, BASE, now, async () => { throw new Error("mail.internal:25"); });
+    expect(only).toEqual({ outcomes: [{ email: "gus3@x.example", line: "gus3@x.example", sent: false, error: INVITEES_ERRORS.notSent("gus3@x.example", "the mail server refused it, and its reason named only servers") }] });
     // A long reason is cut to 200 characters before the patterns run, in bounded time.
     const started = Date.now();
     const long = await sendInvites(a.ws, project.id, instrument.id, "gus2@x.example", sender, BASE, now, async () => { throw new Error("a:".repeat(5000)); });
@@ -163,7 +168,7 @@ describe("sendInvites", () => {
     if (!("outcomes" in long)) throw new Error(long.error);
     expect(long.outcomes[0].error!.length).toBeLessThan(320);
     await expect(sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
-    const ed = (await listInvitees(a.ws, instrument.id))[5];
+    const ed = (await listInvitees(a.ws, instrument.id))[6];
     expect([ed.email, inviteStatus(ed), ed.sendError]).toEqual(["ed@x.example", "notSent", null]);
     // A row with no outcome yet is in flight for 15 minutes, then can be sent again; two
     // resends of one failed row at once send one email.
@@ -198,8 +203,8 @@ describe("sendInvites", () => {
     // The daily limit says how many can still go.
     expect(INVITEES_ERRORS.tooManyToday(0)).toBe("This workspace sent 500 invites in the last 24 hours. Try again later.");
     expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite right now (500 in any 24 hours). Shorten the list, or try again later.");
-    // The sample's 6 and this test's 8 so far (ana, bo, dee, gil, gus2, ed, fay, hal).
-    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(14);
+    // The sample's 6 and this test's 9 so far (ana, bo, dee, gil, gus2, gus3, ed, fay, hal).
+    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(15);
     expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date(Date.now() + 48 * 60 * 60 * 1000))).toBe(0);
     expect(await invites.countPersonalSince(b.ws, 24 * 60, new Date())).toBe(6);
     // The personal links follow the public link's dates and carry the open date in the
