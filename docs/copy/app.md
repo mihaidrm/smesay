@@ -204,7 +204,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Method cards (E5-2; the board's three) | Method: MoSCoW (Must, Should, Could, Not needed); 1 to 5 fit (How well the item fits the need); Keep, change, drop (For reviewing an existing list) |
 | Proposed value switch (E5-2, decision 0003) | Show the proposed value to respondents. On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard. |
 | Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, named "Label for [VALUE]", the default as placeholder) |
-| Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (every control disabled) |
+| Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (the method, the switch and the labels disabled; the layout stays) |
+| Layout cards (E5-3; the board's three, chapters first and default) | Layout. How the list is split into screens. Chapters are the default; a published instrument can still change its layout. Chapters (One area per screen, compact cards); One item per screen (One card at a time, with the chapter row); Single long page (Every area in order, no chapter row) |
+| Items preview per layout (E5-3) | One item per screen: "Item 1 of [N] in [AREA]" over one card; Single long page: "All [N] on one page", every area with its heading, no chapter row; Chapters: the chapter row and the first area's cards |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |

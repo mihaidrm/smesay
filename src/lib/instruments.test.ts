@@ -120,7 +120,7 @@ describe("buildOnLatest", () => {
     await importList(a.ws, a.userId, project.id, ["One", "Two"]);
     const v1 = (await openDraft(a.ws, project))!;
     await saveIntro(a.ws, project.id, v1.instrument.id, "Versions", "Kept across versions.");
-    await saveScoring(a.ws, project.id, v1.instrument.id, "moscow", "1", JSON.stringify({ M: "Essential" }));
+    await saveScoring(a.ws, project.id, v1.instrument.id, "moscow", "1", JSON.stringify({ M: "Essential" }), "chapters");
     expect(await buildOnLatest(a.ws, project.id, v1.instrument.id)).toEqual({ error: BUILD_COPY.alreadyLatest });
     const set2 = await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
     const stillV1 = (await openDraft(a.ws, project))!;
@@ -153,19 +153,21 @@ describe("saveScoring (stories/E5-2)", () => {
     expect(instrument.method).toBe("moscow");
     expect(instrument.showProposed).toBe(true);
     expect(instrument.scaleLabels).toBeNull();
-    expect(await saveScoring(a.ws, project.id, instrument.id, "stars", "1", "{}")).toEqual({ error: SCORING_ERRORS.badMethod });
-    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", JSON.stringify({ "1": "x".repeat(21) }))).toEqual({ error: SCORING_ERRORS.badLabel });
-    const saved = await saveScoring(a.ws, project.id, instrument.id, "kcd", "0", JSON.stringify({ D: " Remove ", K: "Keep", M: "ignored" }));
+    expect(await saveScoring(a.ws, project.id, instrument.id, "stars", "1", "{}", "chapters")).toEqual({ error: SCORING_ERRORS.badMethod });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", JSON.stringify({ "1": "x".repeat(21) }), "chapters")).toEqual({ error: SCORING_ERRORS.badLabel });
+    const saved = await saveScoring(a.ws, project.id, instrument.id, "kcd", "0", JSON.stringify({ D: " Remove ", K: "Keep", M: "ignored" }), "item");
     if (!("instrument" in saved)) throw new Error(saved.error);
     expect(saved.instrument.method).toBe("kcd");
     expect(saved.instrument.showProposed).toBe(false);
     expect(saved.instrument.scaleLabels).toEqual({ D: "Remove" });
-    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "not json")).toEqual({ error: SCORING_ERRORS.badShape });
-    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", JSON.stringify({ M: "Should" }))).toEqual({ error: SCORING_ERRORS.sameLabel });
+    expect(saved.instrument.layout).toBe("item");
+    expect(await saveScoring(a.ws, project.id, instrument.id, "kcd", "0", "{}", "grid")).toEqual({ error: SCORING_ERRORS.badLayout });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "not json", "chapters")).toEqual({ error: SCORING_ERRORS.badShape });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", JSON.stringify({ M: "Should" }), "chapters")).toEqual({ error: SCORING_ERRORS.sameLabel });
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
     const sampleDraft = (await openDraft(a.ws, sample))!;
-    expect(await saveScoring(a.ws, sample.id, sampleDraft.instrument.id, "fit", "1", "{}")).toEqual({ error: BUILD_COPY.sample });
-    const defaults = await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "{}");
+    expect(await saveScoring(a.ws, sample.id, sampleDraft.instrument.id, "fit", "1", "{}", "chapters")).toEqual({ error: BUILD_COPY.sample });
+    const defaults = await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "{}", "page");
     if (!("instrument" in defaults)) throw new Error(defaults.error);
     expect(defaults.instrument.scaleLabels).toBeNull();
     expect(defaults.instrument.showProposed).toBe(true);
@@ -173,11 +175,15 @@ describe("saveScoring (stories/E5-2)", () => {
     expect(await isPublished(a.ws, instrument.id)).toBe(false);
     await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
     expect(await isPublished(a.ws, instrument.id)).toBe(true);
-    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}")).toEqual({ error: SCORING_ERRORS.locked });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}", "page")).toEqual({ error: SCORING_ERRORS.locked });
     expect((await instruments.get(a.ws, instrument.id))?.method).toBe("moscow");
+    // The layout still changes on a published instrument when the rest is unchanged (E5-3).
+    const relaid = await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "{}", "item");
+    expect("instrument" in relaid && relaid.instrument.layout).toBe("item");
+    expect("instrument" in relaid && relaid.instrument.method).toBe("moscow");
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
-    await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);
   });
 });
 

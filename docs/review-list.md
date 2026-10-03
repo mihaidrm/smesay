@@ -25,4 +25,6 @@ a change.
 | 2026-10-03 | The selected pill takes the PM's accent as given; the dark-mode lift of the accent (design system, Respondent theming) is left to E7-7 | rating-row.tsx | On dark, a PM accent that fell back to ink shows the selection by its white text only until E7-7. |
 | 2026-10-03 | The publish check and the scoring save are two statements; a publish landing between them lets one change through; E6-1 makes the save conditional | src/lib/instruments.ts saveScoring | Nothing to see until E6-1. |
 | 2026-10-03 | The scoring refusals use the story's wording: "Pick one of the three methods..." and "Published instruments keep their method. Build a new instrument to change it." | docs/copy/errors.md | A new instrument comes from a re-import plus "Build on version N"; is the line clear enough? |
+| 2026-10-03 | The respondent pills stay 38 px high (decision 0018 item 4, the design system), not the 48 px E5-3's acceptance 3 asked for; the buttons are 48 | src/components/respondent/rating-row.tsx, stories/E5-3 | Six pills at 48 px would not fit a 390 px row; tap the pills on your phone when E7-2 is built. |
+| 2026-10-03 | The layout of a published instrument can still be changed; only the method, the switch and the labels lock | src/lib/instruments.ts saveScoring | A layout change mid-run changes what a returning respondent sees, not what is stored. |
 

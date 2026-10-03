@@ -3,7 +3,8 @@
 // page with Start disabled and its hint, add a dropdown field with its options, save, see the
 // select with the options in the preview and the hint naming the required fields (decision
 // 0043); fill the required fields in the preview and see Start enabled; the scoring card
-// (E5-2): the method switch, a label and the proposal switch seen on the Items screen;
+// (E5-2): the method switch, a label and the proposal switch seen on the Items screen; the
+// three layouts (E5-3) with the side-scroll and pill-height checks in the frame;
 // Remove refused on the last field.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -136,6 +137,33 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
   await expect(row.locator("[data-proposed]")).toHaveText("Essential");
+
+  // Layouts (stories/E5-3): one item per screen, the single page, back to chapters; none
+  // scrolls sideways in the 390 px frame and every pill keeps its 38 px height.
+  const frame = page.getByTestId("preview-frame");
+  const noSideScroll = async () => expect(await frame.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  const pillsTall = async () => { for (const h of await chapter.getByRole("radio").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) expect(h).toBeGreaterThanOrEqual(38); };
+  await expect(chapter.getByTestId("chapter-row")).toBeVisible();
+  await noSideScroll(); await pillsTall();
+  await page.getByText("One item per screen", { exact: true }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(chapter).toHaveAttribute("data-layout", "item");
+  await expect(chapter.getByTestId("layout-note")).toHaveText("Item 1 of 1 in Submitting");
+  await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  await noSideScroll(); await pillsTall();
+  await page.getByText("Single long page", { exact: true }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(chapter).toHaveAttribute("data-layout", "page");
+  await expect(chapter.getByTestId("chapter-row")).toHaveCount(0);
+  await expect(chapter.getByTestId("layout-note")).toHaveText("All 2 on one page");
+  await expect(chapter.getByTestId("item-card")).toHaveCount(2);
+  await noSideScroll(); await pillsTall();
+  await page.getByText("Chapters", { exact: true }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(chapter.getByTestId("chapter-row")).toBeVisible();
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
   // Removing the last field is refused (acceptance 2).

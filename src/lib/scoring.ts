@@ -6,7 +6,7 @@
 // A value picked that equals the proposal is agree; the lowest value (Not needed, Drop, 1
 // no fit) is disagree; any other value is change; without a proposal every value is pick
 // (decision 0014; docs/review-list.md for the fit rule). Unclear is its own answer.
-import type { AnswerKind, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { AnswerKind, Layout, ScaleLabels, ScoringMethod } from "@/db/types";
 import { normaliseValue } from "@/lib/import/values";
 
 export const LABEL_MAX = 20;
@@ -40,6 +40,14 @@ export const SCALES: Record<ScoringMethod, ScaleValue[]> = {
     { code: "D", label: "Drop" },
   ],
 };
+
+// The three layouts (stories/E5-3, decision 0016), chapters first and default.
+export const LAYOUTS_META: { key: Layout; label: string; hint: string }[] = [
+  { key: "chapters", label: "Chapters", hint: "One area per screen, compact cards" },
+  { key: "item", label: "One item per screen", hint: "One card at a time, with the chapter row" },
+  { key: "page", label: "Single long page", hint: "Every area in order, no chapter row" },
+];
+export const isLayout = (value: unknown): value is Layout => value === "chapters" || value === "item" || value === "page";
 
 // The code that means "not needed" per method: the disagree answer (decision 0014).
 export const DISAGREE_CODE: Record<ScoringMethod, string> = { moscow: "W", fit: "1", kcd: "D" };
@@ -95,6 +103,7 @@ export function classify(input: { method: ScoringMethod; showProposed: boolean; 
 
 export const SCORING_ERRORS = {
   badMethod: "Pick one of the three methods: MoSCoW, 1 to 5 fit, or keep, change, drop.",
+  badLayout: "Pick one of the three layouts: chapters, one item per screen, or a single long page.",
   badLabel: `Each label is 1 to ${LABEL_MAX} characters. Leave one empty to keep the default.`,
   sameLabel: "Each value needs its own label, and Unclear is taken.",
   badShape: "The labels did not reach the server as a list. Reload the page and try again.",

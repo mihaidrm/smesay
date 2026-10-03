@@ -46,6 +46,11 @@ export const BUILD_COPY = {
   labelsTitle: "Labels, optional",
   labelsLine: "Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters.",
   labelFor: "Label for",
+  // The layout (stories/E5-3; the PM app board, Build).
+  layoutLabel: "Layout",
+  layoutLine: "How the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
+  previewItemOf: (n: number, total: number, area: string) => `Item ${n} of ${total} in ${area}`,
+  previewAllOnOne: (n: number) => `All ${n} on one page`,
   previewScreenSwitch: "Preview screen",
   previewProgress: (answered: number, total: number) => `${answered} of ${total}`,
   previewItems: (n: number) => `${n} ${n === 1 ? "item" : "items"}`,

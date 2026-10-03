@@ -28,6 +28,9 @@ export type ResponseFields = { [key: string]: string };
 // area, the proposed value and the reference, up to five custom fields, the rest not imported.
 // A ColumnMapping is keyed by the column's header (its letter when the file has no header).
 export type ScoringMethod = "moscow" | "fit" | "kcd";
+// The respondent journey's shape (decision 0016; INTERFACES.md Layout): one area per screen,
+// one item per screen, or every area on one page.
+export type Layout = "chapters" | "item" | "page";
 // The four answers and the rate-blind pick (decisions 0014, 0018; INTERFACES.md AnswerKind).
 export type AnswerKind = "agree" | "change" | "disagree" | "unclear" | "pick";
 export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";

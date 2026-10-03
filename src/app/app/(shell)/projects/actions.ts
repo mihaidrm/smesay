@@ -301,7 +301,7 @@ export async function saveScoringAction(_previous: ProjectFormState, formData: F
   const { current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
-    const result = await saveScoring(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("method"), formData.get("showProposed"), formData.get("labels"));
+    const result = await saveScoring(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("method"), formData.get("showProposed"), formData.get("labels"), formData.get("layout"));
     if ("error" in result) return { ...NONE, error: result.error };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
