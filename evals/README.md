@@ -95,10 +95,11 @@ duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro 
   an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
 Exit 1 when fewer than 7 of the 10 specs pass (PASS_BAR in run.ts, decision 0038, point 3:
-the model is not deterministic, and one spec near a line moves between runs). CI runs the job on a pull request, and on main, when a file under
-src/lib/ai/, src/lib/shaping.ts or evals/ changed (.github/workflows/evals.yml), with the
+the model is not deterministic, and one spec near a line moves between runs). The Evals job
+(.github/workflows/evals.yml) is started by hand only, from the Actions tab, by Mihai
+(decision 0039): it spends his API credit, so no push or pull request starts it. It uses the
 repository secret ANTHROPIC_API_KEY scoped to the two steps that need it; without it the job
-prints that it skipped and passes. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
+prints that it skipped and passes. Claude never runs `npm run evals` or `npm run ai:smoke`. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
 other call, in a throwaway workspace with a fixed id (EVALS_WORKSPACE_ID in run.ts)
 and a project "Golden set" that the runner creates once and reuses; it has no members, so it
 is not on anyone's screen. The cost printed per spec is read from that workspace's ai_run

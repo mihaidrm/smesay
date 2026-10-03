@@ -17,11 +17,11 @@ item, a missed item, a changed meaning or a glossary term not kept.
    judge's own output is schema-validated. (As built: a reader version identical to its row
    needs no call; every other one goes to one judge call per spec, every ref answered once;
    a missing token is counted and printed and the judge decides; decision 0038, point 4.)
-3. CI runs the evals job only on a pull request, or a push to main, that changed a file the
-   shaping result depends on: src/lib/ai/, src/lib/shaping.ts or evals/ (paths filter on its
-   own workflow), with ANTHROPIC_API_KEY from the repository's secrets scoped to the steps
+3. The Evals job in CI is started by hand only (workflow_dispatch, decision 0039): Mihai
+   runs it from the Actions tab when a prompt, the schema or evals/ changed and he wants the
+   real numbers; it uses ANTHROPIC_API_KEY from the repository's secrets scoped to the steps
    that need it; the job is skipped, not failed, when the secret is absent, and the skip is
-   printed.
+   printed. Nothing starts it on a push or a pull request.
 4. A run writes evals/results/latest.json (ignored by git) and the cost of the run in euro
    cents to the console.
 5. The first green run on all ten specs is recorded in this story with the date and the
@@ -62,7 +62,13 @@ item, a missed item, a changed meaning or a glossary term not kept.
    failure: 134 of 134 rows found, 0 invented, 0 meaning changed, every glossary term kept,
    ambiguity flags down to 0 to 4 per spec from 4 to 10. The three failures were area counts
    only: 05 gave 6 areas for 3 expected, 07 gave 5 for 3, 09 gave 3 for 5. That run meets the
-   bar of decision 0038 and is recorded as acceptance 5. Eight jobs in all, 2 euro 95 cents.
+   bar of decision 0038 and is recorded as acceptance 5. The ninth run (ffc3d55, CI run
+   37107518921, the merge): 8 of 10 for 40 cents, no content failure, two area counts. The
+   tenth, started by the merge to main itself (18544f0, CI run 37107761265, 39 cents, the
+   last automatic run under decision 0039): 6 of 10, under the bar because the judge's note
+   on one item of spec 01 ran to 201 characters against a 200 limit, which refused the whole
+   judge answer and counted 15 items as changed; the limit is 400 now and an unusable judge
+   answer gets one more try. Ten jobs in all, about 3 euro 70.
 
 ## Out of scope
 - Evals for insights (E9): their own small set, written in E9-1.
