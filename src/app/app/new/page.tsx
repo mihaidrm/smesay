@@ -13,7 +13,7 @@ export default async function NewWorkspacePage() {
   const { session, memberships } = await getAppContext("/app/new");
   if (memberships.length > 0) redirect("/app");
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-4 py-12">
+    <main className="auth-frame">
       <Lockup />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-medium tracking-tight">Name your workspace</h1>

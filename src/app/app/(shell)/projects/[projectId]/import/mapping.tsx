@@ -25,9 +25,9 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom }: { up
   return (
     <div className="flex flex-col gap-2">
       {rememberedFrom && <p data-testid="mapping-remembered" className="text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</p>}
-    <section className="flex flex-col rounded-md border border-hairline" aria-labelledby="mapping-title">
+    <section className="flex flex-col card" aria-labelledby="mapping-title">
       <div className="border-b border-hairline px-4 py-3">
-        <h3 id="mapping-title" className="font-medium">Column mapping</h3>
+        <h3 id="mapping-title" className="font-semibold">Column mapping</h3>
       </div>
       <form ref={form} action={action} className="flex flex-col">
         <input type="hidden" name="uploadId" value={uploadId} />
@@ -36,13 +36,13 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom }: { up
           const role = mapping[key] ?? "skip";
           const id = `map-${column.letter}`;
           return (
-            <div key={key} className="flex items-center gap-4 border-b border-grey-100 px-4 py-2.5">
+            <div key={key} className="flex items-center gap-4 border-b border-hairline px-4 py-2.5">
               <div className="flex w-[140px] shrink-0 flex-col">
                 <label htmlFor={id} className="truncate font-medium" title={column.name}>{column.name || `Column ${column.letter}`}</label>
                 <span className="text-xs text-ink-muted">Column {column.letter}</span>
               </div>
               <span className="text-ink-muted">maps to</span>
-              <select key={role} id={id} name={`col:${key}`} defaultValue={role} disabled={pending} className="h-9 min-w-[200px] flex-grow rounded-md border border-hairline-strong bg-white px-2 text-sm"
+              <select key={role} id={id} name={`col:${key}`} defaultValue={role} disabled={pending} className="h-9 min-w-[200px] flex-grow rounded-md border border-hairline-strong bg-surface px-2 text-sm"
                 onChange={() => form.current?.requestSubmit()}>
                 {ROLES.map((r) => {
                   const customFull = r.value === "custom" && role !== "custom" && custom >= CUSTOM_MAX;

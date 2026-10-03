@@ -1,8 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="64" viewBox="0 0 200 32" role="img" aria-label="SMEsay, provisional lockup">
-  <!-- Provisional lockup: mark B plus wordmark D (the ME in teal), Geist 600. Falls back to a system font when Geist is not installed. -->
-  <rect width="32" height="32" rx="8" fill="#0E6B63"/>
+  <!-- Provisional lockup: mark B plus wordmark D (the ME in violet), weight 800. Falls back to a system font when Plus Jakarta Sans is not installed. -->
+  <rect width="32" height="32" rx="9" fill="#6D4CF5"/>
   <path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"/>
   <path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
-  <text x="42" y="22" font-family="Geist, 'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="600" letter-spacing="-0.2" fill="#16181C">S<tspan fill="#0E6B63">ME</tspan>say</text>
+  <text x="42" y="22" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="-0.2" fill="#15131F">S<tspan fill="#5A3BE0">ME</tspan>say</text>
 </svg>

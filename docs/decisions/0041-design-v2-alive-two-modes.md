@@ -37,3 +37,8 @@ Amended the same day after Mihai's third look at the boards: a soft light follow
 over the dark marketing sections (the system cursor stays visible; off on touch and under
 reduced motion), and every button has a hover state (a 2 px lift, a deeper glow on the
 primary, a fill on the secondary). Design note 33, Motion.
+
+Approved by Mihai on 2026-10-03 ("Yeah looks good") and built the same day on the PM side and
+sign-in: design note 34 lists the files, the components added and the departures from the
+boards. The landing page (E12) and the respondent side (E5) are built on v2 when their
+stories come up.

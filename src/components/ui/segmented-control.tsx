@@ -1,8 +1,9 @@
 "use client"
 
-// Segmented control: greige track, radius 999, 3 px padding, 28 px options at 13 px weight
-// 500; the active option is a white pill with ink text, the others ink-muted. One is always
-// active (docs/design-system.md, Components). A group of toggle buttons with aria-pressed.
+// Segmented control: tint track, radius 999, 3 px padding, 28 px options at 13 px weight
+// 600; the active option is a surface pill with ink text and the card shadow, the others
+// muted. One is always active (docs/design-system.md, Components). A group of toggle buttons
+// with aria-pressed.
 import { cn } from "cn"
 
 export type Segment<T extends string> = { value: T; label: string }
@@ -21,7 +22,7 @@ export function SegmentedControl<T extends string>({
   className?: string
 }) {
   return (
-    <div role="group" aria-label={label} className={cn("inline-flex rounded-full bg-greige p-[3px]", className)}>
+    <div role="group" aria-label={label} className={cn("inline-flex rounded-full border border-hairline bg-tint p-[3px]", className)}>
       {options.map((o) => {
         const active = o.value === value
         return (
@@ -31,8 +32,8 @@ export function SegmentedControl<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              "h-7 rounded-full px-3 text-[13px] font-medium transition-colors duration-150 ease-out outline-none focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2",
-              active ? "bg-white text-ink" : "text-ink-muted hover:text-ink"
+              "h-7 rounded-full px-3 text-[13px] font-semibold transition-colors duration-150 ease-out outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+              active ? "bg-surface text-ink shadow-card" : "text-ink-muted hover:text-ink"
             )}
           >
             {o.label}

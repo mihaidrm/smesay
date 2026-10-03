@@ -83,5 +83,5 @@ Built 2026-10-02.
 - Audit of 2026-10-02 (fresh context, 14 findings): the blocking one (acceptance 4 had no test)
   and the should-fix ones (a fresh session sent a one-workspace person to the chooser; the create
   action did not check for an existing membership on the server; no error, loading or 404 state
-  outside the shell; two wrong citations; the design system had no grey-100 row; no test of the
+  outside the shell; two wrong citations; the design system had no row for the neutral pill fill; no test of the
   slug retry) were closed the same day in the pull request after the story's.

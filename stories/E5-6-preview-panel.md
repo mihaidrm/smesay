@@ -12,7 +12,7 @@ stores a response (decision 0021).
    (desktop first), "Open full size" which opens the respondent app for the chosen device in
    a new tab, in preview mode.
 2. The caption under the toggle names what the step changes, and the same parts carry the
-   teal 300 ring: Import rings the chapter row and the cards; Shape rings the card wording;
+   violet ring (design v2): Import rings the chapter row and the cards; Shape rings the card wording;
    Build rings the rating row (and the chapter row when the layout changes); Share rings the
    open and close note and shows the withdrawn page when the link is revoked (decision 0021
    item 3).

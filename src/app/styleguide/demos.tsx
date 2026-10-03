@@ -46,11 +46,11 @@ export function Demos() {
         <Button disabled>Publish</Button>
         <Button variant="secondary" disabled>Reject all</Button>
       </Row>
-      <Row title="Buttons, respondent (48)" note="Height 48 on the respondent side and marketing.">
-        <Button size="respondent">Start with Submitting</Button>
+      <Row title="Buttons, respondent (48)" note="Height 48 on the respondent side and marketing. On the respondent side the primary is ink, never the PM's accent (decision 0016); the violet gradient is the PM app's and marketing's.">
+        <Button size="respondent" className="bg-none bg-ink text-ground shadow-none hover:shadow-none hover:brightness-110">Start with Submitting</Button>
         <Button size="respondent" variant="secondary">Back</Button>
       </Row>
-      <Row title="Inputs" note="40 high, hairline-strong, radius 6. Error: red border and a message that says what to do.">
+      <Row title="Inputs" note="40 high, hairline-strong, radius 12. Error: red border and a message that says what to do.">
         <div className="flex w-full max-w-[360px] flex-col gap-1.5">
           <Label htmlFor="sg-name">Project name</Label>
           <Input id="sg-name" placeholder="New expense tool" className="h-10 px-3 text-sm" />
@@ -65,7 +65,7 @@ export function Demos() {
           <Textarea id="sg-ctx" rows={2} placeholder="A few words on what the list is for and who answers." />
         </div>
       </Row>
-      <Row title="Status pills" note="Tint fill, text from the table, 12 px weight 500. Always with the word.">
+      <Row title="Status pills" note="Tint fill, text from the table, 12 px weight 600. Always with the word.">
         <StatusPill status="agree" />
         <StatusPill status="pushedBack" />
         <StatusPill status="unclear" />
@@ -73,7 +73,7 @@ export function Demos() {
         <StatusPill status="disagree" />
         <NotAnsweredPill />
       </Row>
-      <Row title="Toggle and segmented control" note="Toggle ink when on. Segmented control: greige track, white active pill.">
+      <Row title="Toggle and segmented control" note="Toggle violet when on. Segmented control: tint track, surface active pill.">
         <div className="flex items-center gap-3">
           <Switch id="sg-proposed" checked={proposed} onCheckedChange={(v) => setProposed(!!v)} className="data-[size=default]:h-5 data-[size=default]:w-9" />
           <Label htmlFor="sg-proposed">Show the proposed value to respondents</Label>
@@ -85,15 +85,15 @@ export function Demos() {
           options={[{ value: "desktop", label: "Desktop" }, { value: "phone", label: "Phone" }]}
         />
       </Row>
-      <Row title="Progress" note="4 px, ink fill, label and mono count above.">
+      <Row title="Progress" note="4 px, violet fill, label and mono count above.">
         <div className="flex w-full max-w-[360px] flex-col gap-1.5">
           <div className="flex justify-between text-[13px]"><span>Answered</span><span className="font-mono text-xs text-ink-muted">4 of 6</span></div>
-          <div role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={4} aria-label="Items answered" className="h-1 bg-greige">
-            <div className="h-1 bg-ink" style={{ width: "66.7%" }} />
+          <div role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={4} aria-label="Items answered" className="h-1 overflow-hidden rounded-full bg-tint">
+            <div className="h-1 rounded-full bg-violet" style={{ width: "66.7%" }} />
           </div>
         </div>
       </Row>
-      <Row title="Tabs" note="14 px, active ink with a 2 px ink underline.">
+      <Row title="Tabs" note="14 px, active ink with a 2 px violet underline.">
         <Tabs defaultValue="agreement" className="w-full">
           <TabsList variant="line">
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
@@ -105,7 +105,7 @@ export function Demos() {
           <TabsContent value="questions" className="pt-3 text-[13px] text-ink-muted">Open questions and missing items.</TabsContent>
         </Tabs>
       </Row>
-      <Row title="Banner" note="The ambiguity flag: unclear tint and text, a Dismiss pill.">
+      <Row title="Banner" note="The ambiguity flag: a card on the soft violet gradient with a sun dot, a Dismiss pill.">
         {flag ? (
           <Banner onDismiss={() => setFlag(false)} className="w-full">
             <span className="font-medium">Ambiguity in CL-06.</span> The item does not say who repays a cash advance if the trip is cancelled.
@@ -114,36 +114,36 @@ export function Demos() {
           <Button variant="secondary" size="small" onClick={() => setFlag(true)}>Show the banner again</Button>
         )}
       </Row>
-      <Row title="Toast" note="Ink, white text, teal 300 action.">
+      <Row title="Toast" note="Dark surface, light text, violet 300 action.">
         <Toast action="Undo">Reader version accepted for CL-01.</Toast>
       </Row>
-      <Row title="Empty state" note="Dashed hairline-strong box, a title and one line that says what to do.">
-        <EmptyState title="No answers yet" className="w-full max-w-[560px]">
+      <Row title="Empty state" note="Dashed card, a title, one line that says what to do, the mascot where the screen is a first visit.">
+        <EmptyState title="No answers yet" mascot className="w-full max-w-[560px]">
           The link is not published. Share it, or open the sample project to see what results look like.
         </EmptyState>
       </Row>
-      <Row title="Table" note="Header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50.">
+      <Row title="Table" note="Header 36 at 12 px muted semibold; rows 40; hovered row tint.">
         <div className="w-full max-w-[720px] overflow-x-auto">
         <Table className="min-w-[560px]">
           <TableHeader>
-            <TableRow className="h-8 bg-grey-50 hover:bg-grey-50">
+            <TableRow className="h-8 bg-tint hover:bg-tint">
               <TableHead className="h-8 text-xs text-ink-muted">Respondent</TableHead>
               <TableHead className="h-8 text-xs text-ink-muted">Answer</TableHead>
               <TableHead className="h-8 text-xs text-ink-muted">Reason, question or comment</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow className="h-9 hover:bg-grey-50">
+            <TableRow className="h-9 hover:bg-tint">
               <TableCell>Ioana Marin <span className="text-ink-muted">Sales</span></TableCell>
               <TableCell><StatusPill status="pushedBack" /></TableCell>
               <TableCell>Should be Must have. I find out I was over the limit three weeks later.</TableCell>
             </TableRow>
-            <TableRow className="h-9 hover:bg-grey-50">
+            <TableRow className="h-9 hover:bg-tint">
               <TableCell>Dana Okafor <span className="text-ink-muted">Finance</span></TableCell>
               <TableCell><StatusPill status="agree" /></TableCell>
               <TableCell className="text-ink-muted">Agrees with Should have.</TableCell>
             </TableRow>
-            <TableRow className="h-9 hover:bg-grey-50">
+            <TableRow className="h-9 hover:bg-tint">
               <TableCell>Sam Hill <span className="text-ink-muted">Office manager</span></TableCell>
               <TableCell><NotAnsweredPill /></TableCell>
               <TableCell className="text-ink-muted">In progress, 4 of 6.</TableCell>
@@ -152,10 +152,10 @@ export function Demos() {
         </Table>
         </div>
       </Row>
-      <Row title="Card" note="Radius 12 in the app, hairline, 16 padding, title 14 weight 500.">
-        <Card className="w-full max-w-[360px] rounded-xl border-hairline p-4 shadow-none">
+      <Row title="Card" note="Radius 16, hairline, the card shadow, 16 padding, title 15 weight 700.">
+        <Card className="card w-full max-w-[360px] p-4 ring-0">
           <CardHeader className="p-0">
-            <CardTitle className="text-sm font-medium">Public link</CardTitle>
+            <CardTitle className="text-[15px] font-bold">Public link</CardTitle>
           </CardHeader>
           <CardContent className="p-0 pt-3 text-[13px] text-ink-muted">Not published yet. Nobody can open the link.</CardContent>
         </Card>

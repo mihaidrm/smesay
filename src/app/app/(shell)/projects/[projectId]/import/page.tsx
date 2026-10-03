@@ -34,7 +34,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-normal">Import the list</h2>
+        <h2 className="text-xl font-bold tracking-[-0.02em]">Import the list</h2>
         {set && (
           <p data-testid="imported-line" className="text-ink-muted">
             {IMPORT_COPY.imported(setItems, set.version, DATE.format(set.importedAt))}{" "}
@@ -43,17 +43,17 @@ export default async function ImportPage({ params }: { params: Promise<{ project
         )}
       </div>
       <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
-      <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="about-title">
+      <section className="flex flex-col gap-3 card p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">
-          <h3 id="about-title" className="font-medium">About this project</h3>
+          <h3 id="about-title" className="font-semibold">About this project</h3>
           <p className="text-[13px] text-ink-muted">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</p>
         </div>
         <ContextForm projectId={project.id} goal={project.contextGoal ?? ""} terms={project.contextTerms ?? ""} readOnly={project.isSample} />
       </section>
       {!project.isSample && (
-        <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="upload-title">
+        <section className="flex flex-col gap-3 card p-4" aria-labelledby="upload-title">
           <div className="flex flex-col gap-1">
-            <h3 id="upload-title" className="font-medium">The list</h3>
+            <h3 id="upload-title" className="font-semibold">The list</h3>
             <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
           </div>
           <UploadForm projectId={project.id} hasUpload={upload !== null} />

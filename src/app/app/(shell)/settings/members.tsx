@@ -50,7 +50,7 @@ export function MemberRow({ userId, name, email, role, joined, manage, self, las
   if (roleState !== seenRole) { setSeenRole(roleState); if (roleState.error) setShown(role); }
   const error = roleState.error ?? removeState.error;
   return (
-    <div data-testid="member-row" className="border-b border-grey-100 px-4 py-2">
+    <div data-testid="member-row" className="border-b border-hairline px-4 py-2">
       <div className="flex min-h-9 items-center gap-4">
         <div className="flex-grow font-medium">{name || <span className="font-normal text-ink-muted">No name yet</span>}{self && <span className="ml-2 text-xs font-normal text-ink-muted">you</span>}</div>
         <div className="w-[260px] text-ink-muted">{email}</div>
@@ -59,7 +59,7 @@ export function MemberRow({ userId, name, email, role, joined, manage, self, las
             <form action={changeRole}>
               <input type="hidden" name="userId" value={userId} />
               <select name="role" value={shown} aria-label={`Role of ${email}`} disabled={rolePending} onChange={(e) => { setShown(e.target.value as "owner" | "member"); e.currentTarget.form?.requestSubmit(); }}
-                className="h-8 rounded-md border border-hairline-strong bg-white px-2 text-sm">
+                className="h-8 rounded-md border border-hairline-strong bg-surface px-2 text-sm">
                 <option value="owner">Owner</option>
                 <option value="member">Member</option>
               </select>

@@ -9,7 +9,7 @@ export default async function NewProjectPage() {
     <main className="flex flex-col gap-5 px-8 py-6">
       <div className="flex flex-col gap-1">
         <div className="text-xs text-ink-muted" data-testid="breadcrumb">{current.workspace.name}</div>
-        <h1 className="text-2xl font-normal">New project</h1>
+        <h1 className="text-[30px] font-extrabold leading-9 tracking-[-0.03em]">New project</h1>
         <p className="text-ink-muted">A name is enough. The list comes on the next step.</p>
       </div>
       <NewProjectForm />

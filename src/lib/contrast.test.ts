@@ -18,25 +18,59 @@ describe("contrastRatio", () => {
   });
 });
 
-// The figures printed in docs/design-system.md, Colour. If a token changes, these change.
+// The figures printed in docs/design-system.md, Colour (design v2). If a token changes, these
+// change.
 describe("design system figures", () => {
+  const L = tokens.light;
+  const D = tokens.dark;
   const cases: [string, string, string][] = [
-    [tokens.ink, tokens.white, "17.77"],
-    [tokens.inkMuted, tokens.white, "6.32"],
-    [tokens.inkMuted, tokens.greige, "5.26"],
-    [tokens.teal700, tokens.white, "6.36"],
-    [tokens.teal700, tokens.greige, "5.29"],
-    [tokens.teal300, tokens.ink, "10.02"],
-    [tokens.teal700, tokens.ink, "2.79"],
-    [tokens.hairlineStrong, tokens.white, "1.69"],
+    [L.ink, L.ground, "17.06"],
+    [L.inkMuted, L.surface, "6.60"],
+    [L.inkMuted, L.ground, "6.14"],
+    [L.inkSoft, L.surface, "10.84"],
+    [L.violet, L.surface, "5.25"],
+    [L.violetText, L.surface, "6.69"],
+    ["#FFFFFF", L.violet, "5.25"],
+    [L.violetText, L.violetSoft, "5.69"],
+    [L.coralText, L.coralSoft, "6.12"],
+    [L.mintText, L.mintSoft, "5.75"],
+    [L.sunText, L.sunSoft, "5.37"],
+    [L.danger, L.surface, "7.53"],
+    [L.hairlineStrong, L.surface, "1.58"],
+    [D.ink, D.ground, "15.98"],
+    [D.inkMuted, D.surface, "6.82"],
+    [D.inkMuted, D.raised, "6.07"],
+    [D.violet, D.surface, "5.67"],
+    [D.violetText, D.surface, "7.89"],
+    [D.violetText, D.violetSoft, "6.33"],
+    [D.coralText, D.coralSoft, "6.31"],
+    [D.mintText, D.mintSoft, "7.69"],
+    [D.sunText, D.sunSoft, "9.27"],
+    [D.danger, D.surface, "7.16"],
+    [D.ground, D.violet, "6.17"],
+    // The stepper's active pill and the avatar: on-violet text on the violet, both modes.
+    [L.onViolet, L.violet, "5.25"],
+    [D.onViolet, D.violet, "6.17"],
+    // The primary button: white on the gradient's start and end.
+    ["#FFFFFF", tokens.gradient.start, "4.87"],
+    ["#FFFFFF", tokens.gradient.end, "6.69"],
   ];
   it.each(cases)("%s on %s is %s", (fg, bg, expected) => {
     expect(contrastLabel(fg, bg)).toBe(expected);
   });
 
-  it("every status text passes 4.5 on its tint", () => {
+  it("every text pair of both modes passes 4.5, the strong hairline aside (never text)", () => {
+    for (const [fg, bg] of cases) {
+      if (fg === L.hairlineStrong) continue;
+      expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("every status text passes 4.5 on its tint and, on dark, on the surface", () => {
     for (const s of Object.values(tokens.status)) {
       expect(contrastRatio(s.text, s.tint)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(s.dark.text, s.dark.tint)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(s.dark.text, D.surface)).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -46,5 +80,16 @@ describe("design system figures", () => {
     expect(contrastLabel(tokens.status.unclear.text, tokens.status.unclear.tint)).toBe("8.20");
     expect(contrastLabel(tokens.status.missing.text, tokens.status.missing.tint)).toBe("7.27");
     expect(contrastLabel(tokens.status.disagree.text, tokens.status.disagree.tint)).toBe("7.82");
+    expect(contrastLabel(tokens.status.agree.dark.text, tokens.status.agree.dark.tint)).toBe("6.91");
+    expect(contrastLabel(tokens.status.pushedBack.dark.text, tokens.status.pushedBack.dark.tint)).toBe("6.96");
+    expect(contrastLabel(tokens.status.unclear.dark.text, tokens.status.unclear.dark.tint)).toBe("5.93");
+    expect(contrastLabel(tokens.status.missing.dark.text, tokens.status.missing.dark.tint)).toBe("5.54");
+    expect(contrastLabel(tokens.status.disagree.dark.text, tokens.status.disagree.dark.tint)).toBe("5.94");
+    // The dark solids as text on the surface, as printed in docs/design-system.md.
+    expect(contrastLabel(tokens.status.agree.dark.text, D.surface)).toBe("8.30");
+    expect(contrastLabel(tokens.status.pushedBack.dark.text, D.surface)).toBe("8.69");
+    expect(contrastLabel(tokens.status.unclear.dark.text, D.surface)).toBe("6.71");
+    expect(contrastLabel(tokens.status.missing.dark.text, D.surface)).toBe("6.58");
+    expect(contrastLabel(tokens.status.disagree.dark.text, D.surface)).toBe("7.28");
   });
 });

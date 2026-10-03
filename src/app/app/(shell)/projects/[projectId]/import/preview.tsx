@@ -15,9 +15,9 @@ export function UploadPreview({ upload }: { upload: Upload }) {
   const { preview } = upload;
   const rowOptions = Array.from({ length: Math.min(20, preview.rowsRead + (preview.headerRow ?? 0)) }, (_, i) => i + 1);
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="preview-title">
+    <section className="flex flex-col gap-3 card p-4" aria-labelledby="preview-title">
       <div className="flex flex-col gap-1">
-        <h3 id="preview-title" className="font-medium">Preview</h3>
+        <h3 id="preview-title" className="font-semibold">Preview</h3>
         <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{upload.kind === "pasted" ? PASTE_COPY.summary(preview.rowsRead) : UPLOAD_COPY.summary(upload.filename, preview.rowsRead, preview.headerRow)}</p>
       </div>
       {upload.kind !== "pasted" && preview.headerRow === null && <p id="preview-error" role="alert" className="text-sm text-danger">{UPLOAD_COPY.noHeader}</p>}

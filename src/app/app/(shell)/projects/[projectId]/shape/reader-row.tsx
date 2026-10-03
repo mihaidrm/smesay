@@ -13,7 +13,7 @@ import { editReaderAction, readerAction, type ProjectFormState } from "../../act
 
 export type ReaderState = { reader: string | null; status: "suggested" | "accepted" | "rejected" | null; same: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
-const PILL = { suggested: "bg-pushed-tint text-pushed-text", accepted: "bg-agree-tint text-agree-text", rejected: "bg-disagree-tint text-disagree-text" } as const;
+const PILL = { suggested: "bg-violet-soft text-violet-text", accepted: "bg-mint-soft text-mint-text", rejected: "bg-disagree-tint text-disagree-text" } as const;
 
 export function ReaderText({ item, original }: { item: ReaderState; original: string }) {
   if (item.reader === null) return <div className="text-[15px]">{original}</div>;
@@ -56,7 +56,7 @@ export function ReaderControls({ projectId, itemId, ref, item, readOnly }: { pro
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(readerAction, NONE);
   const [editing, setEditing] = useState(false);
   if (item.reader === null || item.same || item.status === null) return null;
-  const pill = <span data-testid="reader-pill" className={cn("inline-flex h-5 items-center rounded-full px-2.5 text-xs font-medium leading-none", PILL[item.status])}>{SHAPE_COPY.pill[item.status]}</span>;
+  const pill = <span data-testid="reader-pill" className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold leading-none", PILL[item.status])}>{SHAPE_COPY.pill[item.status]}</span>;
   if (readOnly) return pill;
   if (editing) return <ReaderEdit projectId={projectId} itemId={itemId} ref={ref} text={item.reader} onCancel={() => setEditing(false)} />;
   const move = (name: "accept" | "reject" | "undo") => (
@@ -64,7 +64,7 @@ export function ReaderControls({ projectId, itemId, ref, item, readOnly }: { pro
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="itemId" value={itemId} />
       <input type="hidden" name="move" value={name} />
-      <Button type="submit" size="small" variant={name === "accept" ? "primary" : name === "reject" ? "secondary" : "tertiary"} className={name === "undo" ? "text-teal-700" : ""} loading={pending}>{name === "accept" ? SHAPE_COPY.accept : name === "reject" ? SHAPE_COPY.reject : SHAPE_COPY.undo}</Button>
+      <Button type="submit" size="small" variant={name === "accept" ? "primary" : name === "reject" ? "secondary" : "tertiary"} className="" loading={pending}>{name === "accept" ? SHAPE_COPY.accept : name === "reject" ? SHAPE_COPY.reject : SHAPE_COPY.undo}</Button>
     </form>
   );
   return (

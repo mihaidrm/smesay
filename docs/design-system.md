@@ -1,149 +1,200 @@
 # Design system
 
-Version 2 proposed 2026-10-03 (decision 0041, design note 33, board Brand07): two modes, a
-violet accent with coral, mint and sun, Plus Jakarta Sans, floating cards. The v2 tokens are
-in note 33 and on Brand07 and move into this file, src/lib/tokens.ts and globals.css when
-Mihai approves the boards; until then the app runs on v1 below.
-
-Written 2026-10-01 from design notes 01 to 09 and the six brand boards on the canvas
-(Brand01 to Brand06 in docs/design-notes/prototype-01/). The boards are the picture; this file
-is the text the styleguide page and the Tailwind theme are built from. Rendered at /styleguide
-(src/app/styleguide), values in src/lib/tokens.ts, theme in src/app/globals.css (note 14). When
-they disagree, fix all the same day and say so in a design note.
+Version 2, written 2026-10-03 from decision 0041, design note 33 and the boards Brand07,
+LandingF, PmAppV2 and RespondentV2 on the canvas (docs/design-notes/prototype-01/). Two modes,
+a violet accent with coral, mint and sun, Plus Jakarta Sans, cards that float. The boards are
+the picture; this file is the text the styleguide page and the Tailwind theme are built from.
+Rendered at /styleguide (src/app/styleguide), values in src/lib/tokens.ts, theme in
+src/app/globals.css. When they disagree, fix all the same day and say so in a design note.
+Version 1 (teal, Geist, one mode, 2026-10-01) is in the history of this file and in design
+notes 01 to 09 and 14; the implementation note of v2 is design note 34.
 
 ## Identity
 
 - Name: SMEsay, provisional until the trademark database search (decisions 0005, 0012).
-- Wordmark D: "SMEsay" in Geist 600, tracking -0.03em, the ME in teal 700 (teal 300 on ink).
-- Mark B: two speech marks on a shared baseline in a teal rounded square (radius 8 of 32).
+- Wordmark: "SMEsay" in Plus Jakarta Sans 800, tracking -0.02em, the ME in violet text (violet
+  700 on light, violet 300 on dark and on the marketing navy).
+- Mark B: two speech marks in a violet rounded square (radius 9 of 32), no baseline since v2.
 - Lockups: horizontal (mark then wordmark, gap 10 at 24 px text), stacked, mark alone.
-- On white and greige: mark teal, ME teal. On ink: mark white, ME teal 300. On teal: all white.
+- The mark is violet on every ground. On a violet surface it is white with violet marks.
 - Clear space: one mark width on every side. Minimum: lockup 16 px mark with 12 px text; mark
   alone 20 px.
-- Favicon: the two speech marks without the baseline, at 16, 32 and 64. Below 20 px the
-  baseline is thinner than a pixel.
-- Not allowed: rotation, gradients, other colours, outlines, stretching, ME not in teal.
+- Favicon: the two speech marks at 16, 32 and 64 (docs/assets.md, row 6).
+- Not allowed: rotation, gradients on the mark, other colours, outlines, stretching, ME not in
+  violet.
 - One tagline: "What the SMEs say." Footer expands SME once: subject matter expert.
 - Respondent side: the PM's logo and name take the header; SMEsay appears once as "Powered by",
-  smallest lockup, ink and teal. Always shown on the Free plan.
+  smallest lockup. Always shown on the Free plan.
+- The mascot (bought, docs/assets.md row 1) stands in the hero, on sign-in, in the empty states
+  and on the respondent thank-you; until it arrives a violet blob with two eyes and a smile
+  holds the frame (src/components/app/mascot.tsx).
 
 ## Colour
 
-Neutrals
+Every colour is one token with a light and a dark value (src/app/globals.css: `:root` and
+`.dark`). Components use the token name; the mode switches the value. Neutrals:
 
-| Token | Hex | Use |
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| ground | #F7F6FB | #16152A | page background |
+| surface | #FFFFFF | #1E1D33 | cards, the sidebar, inputs, pills |
+| raised | #FFFFFF | #27263F | rows inside a card |
+| tint | #F7F6FB | #27263F | table header, hovered row, the segmented track, the workspace chip |
+| hairline | #E6E3F0 | #343252 | borders, dividers |
+| hairline-strong | #CFCBE0 | #46445F | input borders, secondary buttons, dashed frames |
+| ink | #15131F | #F3F1FA | text |
+| ink-soft | #3E3A54 | #D4D0E4 | body on marketing, neutral pill text |
+| ink-muted | #5E5A72 | #A8A4BE | secondary text |
+| placeholder | #8C88A3 | #7D7996 | placeholder text only |
+| danger | #9B2C2C | #FF8A78 | error text and the destructive button |
+
+The four colours, each as solid (decorative: bars, dots, tiles, the mark), text (reads on the
+surface and on its soft) and soft (a pill or chip fill):
+
+| Token | Light solid, text, soft | Dark solid, text, soft | Use |
+|---|---|---|---|
+| violet | #6D4CF5, #5A3BE0, #EEEAFF | #9B86FF, #B8A8FF, #2E2B55 | the brand: links, focus rings, the selected state, the active nav item, the primary button, the mark |
+| on-violet | #FFFFFF | #16152A | text and the number circle on a violet fill (the stepper's active pill, the avatar): 5.25 and 6.17 |
+| coral | #FF6B57, #9E3321, #FFE9E5 | #FF8A78, #FF8A78, #3A2230 | counts, the disagreement view, what needs attention |
+| mint | #1F9D7A, #166A52, #E1F5EE | #5FD3B3, #5FD3B3, #15302B | saved, agreed, a done step, the reader version used |
+| sun | #F5B740, #8A5A00, #FFF3D6 | #FFD36E, #FFD36E, #3A2F14 | pushed back, the ambiguity dot |
+
+Two gradients and no more: the primary button (135deg #7355F2, #6D4CF5 at 60 percent, #5A3BE0,
+with the glow 0 8px 20px rgba(109,76,245,0.35); white text reads at 4.87 on the start and 6.69
+on the end, so the button keeps white text in both modes) and the marketing hero's aurora (violet, coral
+and sun at low opacity on the navy). The ambiguity banner and the sample card sit on a soft
+violet to surface gradient. Never a gradient on text inside the app. None of the four colours
+is used for data.
+
+Status colours, fixed across the product, each shown with its word, never colour alone. Light
+as v1; on dark the solid lifts to read on the surface and doubles as the pill's text.
+
+| Status | Light solid, tint, text, ratio | Dark solid and text, tint, ratio on tint, on surface |
 |---|---|---|
-| white | #FFFFFF | page background |
-| grey-50 | #F6F6F4 | section background, table header, hovered row |
-| grey-100 | #F0F0EE | neutral pill fill (the Sample pill), the same hex as the Disagree tint |
-| greige | #ECEAE5 | cards holding product fragments |
-| hairline | #E6E4DF | borders, dividers |
-| hairline-strong | #C9C7C1 | input borders, secondary buttons, arrows |
-| ink-muted | #5B6069 | secondary text |
-| ink-soft | #454A52 | body on marketing |
-| ink | #16181C | text, primary buttons |
-| ink-raised | #22252A | cards on ink |
+| Agree | #2F855A, #E6F4EC, #22643F, 6.25 | #6CCB95, #14332A, 6.91, 8.30 |
+| Pushed back | #B7791F, #FBF1DC, #7A5210, 6.15 | #E8B45A, #3A2F14, 6.96, 8.69 |
+| Unclear | #7C3AED, #EEE8FA, #4C2F94, 8.20 | #B794F6, #2E2347, 5.93, 6.71 |
+| Missing | #2B6CB0, #E3EEF9, #1F4F7A, 7.27 | #6FA8E6, #1B2E44, 5.54, 6.58 |
+| Disagree (was not needed, decision 0014) | #718096, #F0F0EE, #454A52, 7.82 | #A0AEC0, #2A2F3A, 5.94, 7.28 |
 
-Teal, the one accent. Steps 50 to 900: #E3F1EF, #CADEDD, #A3C7C4, #7FD1C6, #4CA399, #2A847C,
-#21776F, #0E6B63, #10524E, #123D3C. Teal 700 is the brand: links, focus rings, the mark, the ME,
-the one coloured band on the landing page. Teal 300 replaces it on ink and dark cards. Teal 50 is
-the tint. Primary buttons are ink. Teal is never used for data.
+Not answered (respondent review, tracker): surface fill, dashed strong hairline, muted text. It
+is an absence, not a status, so it never takes a status colour. Solid pushed back and solid
+disagree are never text on light. The reader pills on Shape: Suggested in violet soft and text,
+Reader version used in mint soft and text, Original kept in the disagree tint and text.
 
-Status colours, fixed across the product, each shown with its word, never colour alone.
+Text contrast, computed with src/lib/contrast.ts and asserted in src/lib/contrast.test.ts.
+Light: ink on ground 17.06, muted on surface 6.60, muted on ground 6.14, soft on surface 10.84,
+violet on surface 5.25, violet text on surface 6.69, white on violet 5.25, violet text on its
+soft 5.69, coral text on its soft 6.12, mint text on its soft 5.75, sun text on its soft 5.37,
+danger on surface 7.53. Dark: ink on ground 15.98, muted on surface 6.82, muted on raised 6.07,
+violet on surface 5.67, violet text on surface 7.89, violet text on its soft 6.33, coral on its
+soft 6.31, mint on its soft 7.69, sun on its soft 9.27, danger on surface 7.16, on-violet (the
+dark ground) on the violet 6.17. Hairline-strong is never text (1.58).
 
-| Status | Solid (bars, dots) | Tint (pill fill) | Text on tint | Text on tint ratio |
-|---|---|---|---|---|
-| Agree | #2F855A | #E6F4EC | #22643F | 6.25 |
-| Pushed back | #B7791F | #FBF1DC | #7A5210 | 6.15 |
-| Unclear | #7C3AED | #EEE8FA | #4C2F94 | 8.20 |
-| Missing | #2B6CB0 | #E3EEF9 | #1F4F7A | 7.27 |
-| Disagree (was not needed, decision 0014) | #718096 | #F0F0EE | #454A52 | 7.82 |
-
-Not answered (respondent review, tracker): white fill, dashed hairline-strong border, ink-muted
-text. It is an absence, not a status, so it never takes a status colour.
-
-Solid pushed back (3.64:1) and solid disagree (4.02:1) are never used as text on white.
-Unclear changed from #6B46C1 to #7C3AED on 2026-10-01 so unclear and missing pass the
-colour-vision check (worst adjacent pair 17.3, target 15; note 09).
-
-Text contrast, computed: ink on white 17.77, ink-muted on white 6.32, ink-muted on greige 5.26,
-teal 700 on white 6.36, teal 700 on greige 5.29, white on teal 700 6.36, teal 300 on ink 10.02.
-Hairline-strong is never text (1.69). Teal 700 on ink fails (2.79); use teal 300 there.
-
-Dark mode: v2 builds it on every side (decision 0041, note 33: ground #16152A, surface
-#1E1D33, raised #27263F, hairline #343252, ink #F3F1FA, muted #A8A4BE, violet 400 accent;
-status solids lift to their 300 steps on dark). The v1 mapping (background #111214, surface
-#1A1C1F, hairline #2A2D32, ink #F2F1EE, ink-muted #A3A7AE, accent teal 300) is superseded.
+Modes: the PM app and the admin area follow the system setting with a toggle at the bottom of
+the sidebar (src/components/app/mode-toggle.tsx; the choice is kept in the browser). The
+landing page has a dark hero and pricing with light sections between. The respondent side
+follows the phone's setting; the PM's accent still marks the selected answer, the active
+chapter and the progress bar (decision 0016), lifted two steps on dark. With no accent set the
+respondent side uses violet 600 (src/lib/brand-rules.ts).
 
 ## Type
 
-Geist Sans and Geist Mono, SIL Open Font License, https://github.com/vercel/geist-font. Weights
-400, 500, 600; 600 only in the wordmark. The app self-hosts the font files (E1): no request to
-Google Fonts from product pages. The canvas boards load them from Google Fonts for convenience.
+Plus Jakarta Sans, SIL Open Font License 1.1, loaded through next/font/google and served from
+the app's own build (no request to Google Fonts from product pages). Weights 400, 500, 600,
+700, 800. Geist Mono (SIL OFL) for references, counts, progress, timestamps and dashboard
+numerals, tabular figures. Never mono for labels, buttons, headings or body. Eyebrows in
+sentence case; no uppercase with wide tracking.
 
 | Size | Line height | Tracking | Weight | Use |
 |---|---|---|---|---|
-| 64 | 66 | -0.045em | 500 | marketing headline (40 on a phone) |
-| 40 | 44 | -0.035em | 500 | section heading |
-| 32 | 36 | -0.03em | 500 | page title in the app and on boards |
-| 24 | 30 | -0.02em | 500 | card title, respondent screen title |
-| 20 | 26 | -0.02em | 500 | lead paragraph, step title |
-| 17 | 26 | -0.01em | 400 | respondent body, marketing body; respondent item text in cards at weight 500 with line height 24 |
+| 66 | 68 | -0.04em | 800 | marketing headline (40 on a phone) |
+| 44 | 48 | -0.035em | 800 | section heading |
+| 30 | 36 | -0.03em | 800 | page title in the app, the stat tile's number (mono) |
+| 24 | 30 | -0.03em | 800 | project title, respondent screen title |
+| 20 | 26 | -0.02em | 700 | lead paragraph, step title |
+| 17 | 26 | -0.01em | 400 | respondent body, marketing body; item text in cards at 600, line 23 |
 | 16 | 24 | 0 | 400 | marketing small body, email body |
-| 14 | 20 | 0 | 400 | app body, tables |
-| 13 | 18 | 0 | 400 | app secondary, captions |
-| 12 | 16 | 0 | 400 | labels, mono references, timestamps |
+| 15 | 24 | 0 | 400 | app body; area title at 700 |
+| 14 | 20 | 0 | 400 | tables, controls, item rows; buttons at 600 |
+| 13 | 18 | 0 | 400 | app secondary, captions, breadcrumbs |
+| 12 | 16 | 0 | 400 | labels, mono references, timestamps; pills at 600 |
 
-Bases: PM app 14, respondent 17, marketing 17 and 20. Mono for item references, counts,
-progress, timestamps and dashboard numerals (tabular figures). Never mono for labels, buttons,
-headings or body. Eyebrows in sentence case; no uppercase with wide tracking.
-
-Email stack: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif. Body 16, line
-height 24. Mail clients do not load web fonts reliably; Mihai checks Gmail, Outlook web and
-Apple Mail (decision 0004).
+Bases: PM app 15, respondent 17, marketing 17 and 20. Email stack: -apple-system, "Segoe UI",
+Roboto, Helvetica, Arial, sans-serif, body 16 on 24; Mihai checks Gmail, Outlook web and Apple
+Mail (decision 0004).
 
 ## Space, shape, layout
 
 - Grid 4 px. Steps 4, 8, 12, 16, 24, 32, 48, 64, 96. Inside a component 4 to 12, between
   components 16 and 24, between sections 48 and 64 in the app, 96 on marketing.
-- Radii, four: 6 (PM controls, inputs, rows, menus), 12 (respondent cards and inputs, app
-  cards, banners), 20 (marketing cards, panels, product frames), 999 (buttons, pills, avatars).
-  The prototypes' 10, 16 and 28 move to the nearest of these as they are touched.
-- One shadow: 0 10px 28px rgba(22, 24, 28, 0.08), only on menus, dialogs, toasts and product
-  fragments on greige. Toasts on ink use 0.16.
-- Borders: hairline 1 px; hairline-strong 1 px on inputs and secondary buttons; ink 1.5 px on
-  the one highlighted object on a screen. No left-edge-only borders. No two-tone borders.
-- Widths: marketing column 1120 in 1440; app sidebar 240 plus fluid content to 1440; respondent
-  390 with 20 px gutters; email 600. Table rows 36, table header 32. Respondent tap targets 48.
+- Radii, four: 12 (controls, inputs, rows, nav items, menus), 16 (cards), 20 (marketing cards,
+  panels, the sign-in card), 999 (buttons, pills, the stepper, avatars). Tailwind: rounded-md
+  and rounded-lg are 12, rounded-xl 16, rounded-2xl 20.
+- Shadows: the card, 0 12px 32px rgba(45,32,110,0.10) on light and rgba(0,0,0,0.45) on dark,
+  on every card, the active segment and menus; the glow under the primary button; the toast at
+  0 12px 32px rgba(0,0,0,0.45). A hovered card lifts 2 px with the deeper shadow (marketing:
+  3 px).
+- Borders: hairline 1 px on cards and rows; hairline-strong 1 px on inputs, secondary buttons
+  and dashed frames; violet 1.5 px on the one highlighted object on a screen (a card being
+  dropped on, the selected item). No left-edge-only borders. No two-tone borders.
+- Widths: marketing column 1120 in 1440; app sidebar 248 plus fluid content to 1440; respondent
+  390 with 20 px gutters; email 600. Table header 36, rows 40 (the project list 52). Respondent
+  tap targets 48.
+
+## Motion
+
+Design note 33, Motion: cards lift 2 px on hover; buttons lift 2 px over 150 ms, the primary's
+glow deepens, the secondary fills violet soft, pressed drops back in 60 ms; the live dot pulses
+every 2.2 s; the stepper's active pill and the mode toggle's thumb slide over 150 to 250 ms;
+progress bars fill over 250 ms; a changed dashboard cell fades over 400 ms. On marketing,
+sections rise 18 px once, the mascot floats and a light follows the cursor over the dark
+sections. Everything stops under prefers-reduced-motion. No counters that spin.
 
 ## Components
 
 Built on shadcn/ui restyled to these tokens (decision 0001). Every component has rest, hover,
 focus, loading and disabled, plus empty and error where they apply (build rules).
 
-- Buttons: primary (ink pill, white text), secondary (white pill, hairline-strong), tertiary
-  (underlined text link), destructive (white pill, red #9B2C2C border and text). Height 40 in
-  the app, 48 on the respondent side and marketing. Verbs as labels. One primary per screen.
-- Hover: primary brightens 18 percent; others fill grey-50. Focus: 2 px teal 700 ring, 2 px
-  offset, on keyboard focus (focus-visible) on every control. Loading: a 14 px ring spinner before the
-  label, the label stays. Disabled: the same control at 40 percent opacity, never grey on grey.
-- Inputs: 40 high, hairline-strong, radius 6 (12 on the respondent side), placeholder #8A8E96
-  (placeholder only, never for real text). Focus as buttons. Error: red border and a message in
-  red saying what happened and what to do next.
-- Status pills: tint fill, text colour from the table, 12 px weight 500, radius 999.
-- Toggle 36 by 20, ink when on, hairline-strong when off. Progress bar 4 px, ink fill, label
-  and mono count above. Tabs: 14 px, active ink with a 2 px ink underline.
-- Banner (the ambiguity flag): unclear tint and text, a Dismiss pill. Toast: ink, white text,
-  teal 300 action, one shadow. Empty state: dashed hairline-strong box, a title and one line
-  that says what to do.
-- Table: header 32 on grey-50 at 12 px muted; rows 36; hovered row grey-50. Card: radius 12 in
-  the app, hairline, 16 padding, title 14 weight 500.
-- Segmented control (the preview's Desktop and Phone): greige track, radius 999, 3 px padding,
-  28 high options at 13 px weight 500; the active option is a white pill with ink text, the
-  others ink-muted. One is always active.
-- Preview panel (PM builder, note 13): 460 wide, grey-50, hairline on the left. Highlight ring
-  for "what this step changes": teal 300 box-shadow, 3 px at true size, with a 12 px teal 300
-  square before the caption.
+- Buttons: primary (the violet gradient pill with the glow, white text, weight 600), secondary
+  (surface pill, hairline-strong, fills violet soft on hover), tertiary (underlined link in
+  violet text), destructive (surface pill, danger border and text, coral soft on hover). Height
+  40 in the app, 48 on the respondent side and marketing, 32 small. On the respondent side the
+  primary is ink with the ground as text (RespondentV2; decision 0016: the PM's accent never
+  on buttons). Verbs as labels. One primary per screen.
+- Focus: 2 px violet ring, 2 px offset, on keyboard focus (focus-visible) on every control.
+  Loading: a 14 px ring spinner before the label, the label stays. Disabled: the same control
+  at 40 percent opacity, never grey on grey.
+- Inputs: 40 high, hairline-strong, radius 12, surface fill, placeholder token (placeholder
+  only, never for real text). Focus as buttons. Error: danger border and a message in danger
+  saying what happened and what to do next.
+- Status pills: tint fill, text colour from the table, 12 px weight 600, height 24, radius 999.
+  Neutral pill: tint fill, soft ink. Count badge (nav): coral fill, dark text, 11 px 700.
+- Toggle 44 by 24, violet when on, ink-muted when off, the thumb white on light and the ground
+  on dark, named by its visible label. Progress bar 4 px,
+  violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
+  14 px, active ink with a 2 px violet underline. Segmented control: tint track, the active
+  option a surface pill with the card shadow.
+- Banner (the ambiguity flag): a card on the soft violet gradient with a sun dot, ink text, a
+  secondary Dismiss pill. Toast: dark surface, light text, violet 300 action, the toast shadow.
+  Empty state: a dashed card with a title at 18 px 700, one line that says what to do and the
+  mascot where the screen is a first visit (Projects, Import, Results).
+- Table: header 36 at 12 px muted 600, no fill; rows 40 with a hairline above; hovered row
+  tint. Card: radius 16, hairline, the card shadow, 16 padding, title 15 weight 700 with a mono
+  count beside it when there is one. Item row (Shape, the respondent cards' list form): raised
+  surface, hairline, radius 12, 12 by 14 padding.
+- Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
+  ink or in violet text, mint text or sun text by what it counts (never a solid).
+- Sidebar: 248 wide on the surface; the lockup at 17 px; the workspace chip on the tint with
+  the initials tile (coral to sun); nav items 40 high, radius 12, icon 18 px (Lucide), the
+  current one on violet soft in violet text; the sample card on the soft violet gradient; the
+  mode toggle; the signed-in email and Sign out.
+- Stepper: pills on a surface track, the current step a violet pill with on-violet text and an
+  on-violet circle holding a violet number, a done step a mint circle with a dark tick, a coming
+  step muted with a hairline-strong circle.
+- Tiles: the workspace's initials and a project's colour (one of four gradients picked by the
+  name; the sample a dashed outline) are decoration beside the written name, never the only
+  mark.
 
 ## Respondent columns
 
@@ -158,17 +209,18 @@ on it could not be opened from this environment, so it is recorded here unverifi
 
 ## Rating row (respondent cards)
 
-Decision 0018. Every card has the same size on screen: a 260 px frame (phone and desktop) with
-four fixed parts. Reference in mono 11 and the title at 15/22 weight 500, clamped to two lines
-(the full title is in Details). The label "Your rating" over a five-column grid of pills Must,
-Should, Could, Not needed, Unclear, 36 px high, 12 px text, radius 999, always one row. One
-slot that shows either the details text (grey-50, 13/18, scrolls) or the comment box, never
-both. A 24 px footer with Details, the comment toggle and the status note. The proposed value
-has a dashed #454A52 border and a mono 10 px caption "proposed". The selected pill fills with
-the PM's accent and white text. The comment box (8 px radius, 14/20) takes the slot when
-required; "+ comment" opens it otherwise and closes Details. The card footer holds Details, the comment toggle and
-the status note (Saved in agree green, what is missing in pushed-back amber, Not rated yet in
-ink-muted). Cards sit in one column on a phone and two on desktop, 10 px apart.
+Decision 0018, kept in v2 (RespondentV2). Every card has the same size on screen: a 260 px
+frame (phone and desktop) with four fixed parts, on the surface with the card shadow. Reference
+in mono 11 and the title at 16/23 weight 600, clamped to two lines (the full title is in
+Details). The label "Your rating" over a five-column row of pills Must, Should, Could, Not
+needed, Unclear, 38 px high, 10 px text at 600, radius 999, 2 px apart, always one row. One
+slot that shows either the details text (the ground on light, the raised surface on dark,
+13/18, scrolls) or the comment box, never both. A 24 px footer with Details, the comment
+toggle and the status note. The proposed value has a dashed muted border. The selected pill
+fills with the PM's accent and white text. The comment box (radius 12, 14/20) takes the slot
+when required; "+ comment" opens it otherwise and closes Details. The status note: Saved in
+mint text, what is missing in sun text inside the card, Not rated yet in muted. Cards sit in
+one column on a phone and two on desktop, 12 px apart.
 
 ## Data
 
@@ -178,34 +230,32 @@ series colour, never a pie, never two y-axes.
 
 - Agreement strip per item and per area: agree, pushed back, unclear segments; percent is
   agree over answered, printed as mono text; the number matches the CSV to the row.
-- Confidence at sign-off: one hue (teal 700), five bins, empty bins a 4 px hairline, average
+- Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
-- Where groups disagree: two bars on one scale, teal for the share that agreed, any respondent
-  field as the split, four largest gaps by default.
+- Where groups disagree: two bars on one scale, coral for the share that disagreed, any
+  respondent field as the split, four largest gaps by default.
 - Live update: the changed cell fades over 400 ms. No spinning counters.
-
-## Motion
-
-150 ms ease-out for state changes; 250 ms for page and item transitions and progress fills;
-reveal on scroll on marketing only, 750 ms, rises 22 px, once, cards staggered 120 ms. With
-prefers-reduced-motion everything is off and the content is visible.
 
 ## Respondent theming
 
 The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
 answer, the active chapter and the progress bar (decision 0016; the focus ring and links stay
-teal). Buttons stay ink. Neutrals and type never change. An accent under
-4.5:1 on white falls back to ink and settings says why. v2 gives the respondent side a dark
-mode that follows the phone's setting, with the PM's accent lifted two steps on dark (note 33).
+violet). Buttons stay ink. Neutrals and type never change. An accent under 4.5:1 on white
+falls back to ink and settings says why; with none set the accent is violet 600. The
+respondent side follows the phone's setting for the mode, with the PM's accent lifted two
+steps on dark, and a lifted accent that still fails on the dark surface falls back to violet
+400 (note 33).
 
 ## Email
 
-600 px, white, one column, system stack, the mark as an inline image at 22 px, one ink button,
-hairlines, 28 px side padding. Transactional only: sign-in, invite, reminder, submission receipt.
-Footer: company name, registered address placeholder until the lawyer confirms (E11), privacy
-policy link.
+600 px, white on the lavender ground, one column, system stack, the wordmark in text (the
+mark as an inline image at 22 px once E12-3 hosts it), one violet button (#6D4CF5, white
+text, radius 999), hairlines, 32 px padding, radius 16. Transactional only: sign-in, invite,
+reminder, submission receipt. Footer: company name, registered address placeholder until the
+lawyer confirms (E11), privacy policy link in violet text.
 
 ## Voice
 
 WRITING.md applies to every string. Buttons are verbs. Error messages say what happened and
 what to do next. No exclamation marks. Second person, present tense.
+

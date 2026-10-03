@@ -23,8 +23,8 @@ navy background."
 | # | What | Where it goes | Links | Licence | Price | Status |
 |---|---|---|---|---|---|---|
 | 2 | Spot illustrations, recoloured to violet #6D4CF5 on the site before download: "File sync" or "Add files" (Import empty state), "Data" or "Charts" (Results empty state), "Team" (Projects empty state), "Done" or "Completed" (respondent thank-you, beside the mascot) | Landing "three steps", the three empty states, the thank-you screen | https://undraw.co/illustrations (search the names above; set the colour in the top bar) | https://undraw.co/license : commercial use, no attribution | free | to pick, Claude can pick |
-| 3 | Icon set: Phosphor, Duotone weight, for the sidebar and the stat tiles; Lucide stays for everything else | PM app sidebar, stat tiles, settings cards | https://phosphoricons.com , package https://www.npmjs.com/package/@phosphor-icons/react | MIT | free | Claude installs |
-| 4 | Typeface: Plus Jakarta Sans, weights 400 to 800 | Everything but mono | https://fonts.google.com/specimen/Plus+Jakarta+Sans , loaded by next/font/google | SIL Open Font License 1.1 | free | ready |
+| 3 | Icon set: Lucide, already in the app, for the sidebar and everything else; Phosphor Duotone (https://phosphoricons.com , https://www.npmjs.com/package/@phosphor-icons/react , MIT, last release 2025-05-22) only if a duotone look is wanted later for the stat tiles | PM app sidebar, settings cards | https://lucide.dev | ISC | free | in use (design note 34) |
+| 4 | Typeface: Plus Jakarta Sans, weights 400 to 800 | Everything but mono | https://fonts.google.com/specimen/Plus+Jakarta+Sans , loaded by next/font/google | SIL Open Font License 1.1 | free | placed (design note 34) |
 | 5 | Mono: Geist Mono, already in the app | References, counts, timestamps | https://vercel.com/font | SIL OFL | free | ready |
 | 6 | App icon and favicon, from the mark on Brand01 (no purchase; Claude exports the sizes) | Browser tab, phone home screen | made from docs/design-notes/prototype-01/Logo.dc.html | ours | free | Claude makes |
 | 7 | Social preview image (Open Graph), a product screen on the aurora ground | Links shared in chat and on LinkedIn | made from the landing board | ours | free | Claude makes |
@@ -51,5 +51,5 @@ plan about EUR 20 a month before the first external user; the rest on free tiers
 3. The licence file is listed in docs/accounts.md under step 12, so the paper trail is in one
    place.
 
-Placeholders today: the mascot is a violet blob with the two speech marks (CSS, no file); the
+Placeholders today: the mascot is a violet blob with two eyes and a smile (CSS, no file); the
 spot illustrations are dashed frames with a one-line caption; icons are Lucide.

@@ -2,7 +2,7 @@
 
 The four emails the product sends (docs/design-system.md, Email: sign-in, invite, reminder,
 submission receipt). Layout rules are in the design system: 600 px, one column, the mark at
-22 px, one ink button, footer with the company name, the registered address placeholder and the
+22 px, one violet button, footer with the company name, the registered address placeholder and the
 privacy policy link. Every email also carries the link as plain text under the button, for
 clients that strip buttons. Mihai tests them in Gmail, Outlook and Apple Mail (E12).
 
