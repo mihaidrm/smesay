@@ -113,12 +113,21 @@ describe("remindInvitee and remindAll", () => {
     // Too soon at 71 hours, allowed at 73; a submitted person and a Not sent row refused.
     const h = (hours: number) => new Date(t1.getTime() + hours * 60 * 60 * 1000);
     expect(await remindInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, h(71), keep)).toEqual({ error: "Reminded 2 days ago. The next reminder can go on 8 Oct 2026, 09:00 UTC." });
-    expect(await remindInvitee(a.ws, project.id, instrument.id, cy.id, sender, BASE, h(73), keep)).toEqual({ error: REMINDERS_COPY.refused("cy@x.example") });
-    expect(await remindInvitee(a.ws, project.id, instrument.id, ed.id, sender, BASE, h(73), keep)).toEqual({ error: REMINDERS_COPY.refused("ed@x.example") });
+    expect(await remindInvitee(a.ws, project.id, instrument.id, cy.id, sender, BASE, h(73), keep)).toEqual({ error: REMINDERS_COPY.notDue("cy@x.example") });
+    expect(await remindInvitee(a.ws, project.id, instrument.id, ed.id, sender, BASE, h(73), keep)).toEqual({ error: REMINDERS_COPY.notDue("ed@x.example") });
     expect(await invites.claimReminder(a.ws, ana.id, h(71), REMIND_AFTER_HOURS)).toBeNull();
+    expect(await invites.claimReminder(a.ws, cy.id, h(73), REMIND_AFTER_HOURS)).toBeNull();
     expect(sent).toHaveLength(2);
+    // Exactly 72 hours is allowed by the statement too (Bo, last reminded at t1).
+    const boAt72 = await invites.claimReminder(a.ws, bo.id, h(72), REMIND_AFTER_HOURS);
+    expect(boAt72?.remindersSent).toBe(2);
+    await invites.unclaimReminder(a.ws, bo.id, h(72), t1);
+    expect((await listInvitees(a.ws, instrument.id))[1].remindersSent).toBe(1);
     expect(await remindInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, h(73), keep)).toEqual({ outcome: { email: "ana@x.example", sent: true, error: null } });
     expect((await listInvitees(a.ws, instrument.id))[0].remindersSent).toBe(2);
+    // A missing mail variable is thrown, named, and the claim is given back.
+    await expect(remindInvitee(a.ws, project.id, instrument.id, deeRow.id, sender, BASE, h(73), async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
+    expect([(await listInvitees(a.ws, instrument.id))[3].remindersSent, (await listInvitees(a.ws, instrument.id))[3].lastReminderAt]).toEqual([0, null]);
 
     // A failed email gives the claim back; two presses at once send one.
     const failed = await remindInvitee(a.ws, project.id, instrument.id, deeRow.id, sender, BASE, h(73), async () => { throw new Error("451 try later smtp.internal.example"); });
@@ -132,11 +141,11 @@ describe("remindInvitee and remindAll", () => {
     ]);
     expect(twice.filter((r) => "outcome" in r && r.outcome.sent)).toHaveLength(1);
     // The loser is refused by the claim, or by the rule when it read the row after the win.
-    expect(twice.filter((r) => ("error" in r && (r.error === REMINDERS_COPY.refused("dee@x.example") || r.error.startsWith("Reminded 0 days ago."))) || ("outcome" in r && r.outcome.error === REMINDERS_COPY.refused("dee@x.example")))).toHaveLength(1);
+    expect(twice.filter((r) => ("error" in r && r.error.startsWith("Reminded 0 days ago.")) || ("outcome" in r && r.outcome.error === REMINDERS_COPY.raced("dee@x.example")))).toHaveLength(1);
     expect((await listInvitees(a.ws, instrument.id))[3].remindersSent).toBe(1);
 
-    // Remind everyone at 73 hours after Dee's: Ana and Bo were reminded at h(73), so only
-    // Dee is due at h(74 + 72); Cy submitted, Ed never sent.
+    // Remind everyone 73 hours after Dee's reminder at h(74): Ana (h(73)), Bo (t1) and Dee
+    // are due; Cy submitted, Ed never sent.
     const later = h(74 + 73);
     const all = await remindAll(a.ws, project.id, instrument.id, sender, BASE, later, keep);
     expect(all).toEqual({ outcomes: [{ email: "ana@x.example", sent: true, error: null }, { email: "bo@x.example", sent: true, error: null }, { email: "dee@x.example", sent: true, error: null }] });
@@ -150,6 +159,10 @@ describe("remindInvitee and remindAll", () => {
     await expect(remindInvitee(b.ws, project.id, instrument.id, ana.id, sender, BASE, later, keep)).rejects.toThrow(NotFoundError);
     await expect(remindAll(b.ws, project.id, instrument.id, sender, BASE, later, keep)).rejects.toThrow(NotFoundError);
     expect(await invites.claimReminder(b.ws, ana.id, later, REMIND_AFTER_HOURS)).toBeNull();
+    await invites.unclaimReminder(b.ws, ana.id, later, null);
+    expect(await responses.forInvite(b.ws, bo.id)).toBeNull();
+    expect(await answers.countForResponse(b.ws, boResponse.id)).toBe(0);
+    expect(await answers.countForResponse(a.ws, boResponse.id)).toBe(2);
     expect(sent.length).toBe(sentBefore);
     expect((await listInvitees(a.ws, instrument.id))[0].remindersSent).toBe(3);
   }, 60_000);

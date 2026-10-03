@@ -10,7 +10,7 @@
 import { answers, invites, items, projects, responses, workspaces } from "@/db/queries";
 import type { InviteeRow } from "@/db/queries/invites";
 import type { WorkspaceId } from "@/db/types";
-import { cutServers, INVITEES_COPY, listInvitees, type Sender } from "@/lib/invitees";
+import { INVITEES_COPY, listInvitees, reasonOf, type Sender } from "@/lib/invitees";
 import { reminderEmail } from "@/lib/mail/reminder-email";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
@@ -20,13 +20,6 @@ import { linkState, own } from "@/lib/sharing";
 export { REMINDERS_COPY };
 
 export type RemindOutcome = { email: string; sent: boolean; error: string | null };
-
-// The provider's reason, cut as the invite's is (src/lib/invitees.ts cutServers).
-function reasonOf(error: unknown): string {
-  const text = error instanceof Error ? error.message : String(error);
-  if (/^[A-Z_]+ is not set\./.test(text)) throw error;
-  return cutServers(text.split("\n")[0] ?? "").trim().replace(/\.$/, "") || "the mail server refused it";
-}
 
 type Ready = { error: string } | { pmName: string; projectName: string; itemCount: number; rows: InviteeRow[] };
 
@@ -45,23 +38,27 @@ async function ready(ws: WorkspaceId, projectId: string, instrumentId: string, s
   return { pmName: sender.name?.trim() || sender.email, projectName: project.name, itemCount, rows: await listInvitees(ws, instrumentId) };
 }
 
+// The claim (the rule in one statement, a submit in the same moment included), then the
+// email; anything that fails or throws after the claim gives it back first, a missing
+// mail variable included (reasonOf throws it, named).
 async function remindRow(ws: WorkspaceId, row: InviteeRow, pmName: string, projectName: string, itemCount: number, sender: Sender, baseUrl: string, now: Date, send: (mail: Mail) => Promise<void>): Promise<RemindOutcome> {
   const email = row.email ?? "";
   const claimed = await invites.claimReminder(ws, row.id, now, REMIND_AFTER_HOURS);
-  if (!claimed) return { email, sent: false, error: REMINDERS_COPY.refused(email) };
-  const response = await responses.forInvite(ws, row.id);
-  if (response?.submittedAt) {
-    await invites.unclaimReminder(ws, row.id, row.lastReminderAt);
-    return { email, sent: false, error: REMINDERS_COPY.refused(email) };
-  }
-  const answered = response ? await answers.countForResponse(ws, response.id) : 0;
-  const mail = reminderEmail({ pmName, projectName, respondentName: row.name, answered, itemCount, url: `${baseUrl}/r/${row.token}`, closesAt: claimed.closesAt });
+  if (!claimed) return { email, sent: false, error: canRemind(row, now).ok ? REMINDERS_COPY.raced(email) : REMINDERS_COPY.notDue(email) };
+  let sentOk = false;
   try {
-    await send({ ...mail, to: email, fromName: `${pmName} via SMEsay`, replyTo: sender.email });
-  } catch (error) {
-    const reason = reasonOf(error);
-    await invites.unclaimReminder(ws, row.id, row.lastReminderAt);
-    return { email, sent: false, error: REMINDERS_COPY.notSent(email, reason) };
+    const response = await responses.forInvite(ws, row.id);
+    const answered = response ? await answers.countForResponse(ws, response.id) : 0;
+    const mail = reminderEmail({ pmName, projectName, respondentName: row.name, answered, itemCount, url: `${baseUrl}/r/${row.token}`, closesAt: claimed.closesAt });
+    try {
+      await send({ ...mail, to: email, fromName: `${pmName} via SMEsay`, replyTo: sender.email });
+      sentOk = true;
+    } catch (error) {
+      const reason = reasonOf(error);
+      return { email, sent: false, error: REMINDERS_COPY.notSent(email, reason) };
+    }
+  } finally {
+    if (!sentOk) await invites.unclaimReminder(ws, row.id, now, row.lastReminderAt);
   }
   return { email, sent: true, error: null };
 }
@@ -74,7 +71,7 @@ export async function remindInvitee(ws: WorkspaceId, projectId: string, instrume
   const row = prepared.rows.find((r) => r.id === inviteId);
   if (!row) throw new NotFoundError();
   const check = canRemind(row, now);
-  if (!check.ok) return { error: check.why === "tooSoon" ? tooSoonLine(check) : REMINDERS_COPY.refused(row.email ?? "") };
+  if (!check.ok) return { error: check.why === "tooSoon" ? tooSoonLine(check) : REMINDERS_COPY.notDue(row.email ?? "") };
   return { outcome: await remindRow(ws, row, prepared.pmName, prepared.projectName, prepared.itemCount, sender, baseUrl, now, send) };
 }
 

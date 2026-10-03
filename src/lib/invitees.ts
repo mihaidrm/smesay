@@ -49,7 +49,7 @@ export function cutServers(line: string): string {
   return line.slice(0, REASON_MAX).split(/(\s+)/).map((word) => (word.length > 0 && SERVER_MARKS.some((mark) => mark.test(word)) ? "[server]" : word)).join("");
 }
 const WITHHELD = "the mail server refused it, and its reason named only servers";
-function reasonOf(error: unknown): string {
+export function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   if (/^[A-Z_]+ is not set\./.test(text)) throw error;
   const cut = cutServers(text.split("\n")[0] ?? "").trim().replace(/\.$/, "");

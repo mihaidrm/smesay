@@ -14,7 +14,8 @@ export const REMINDERS_COPY = {
   noneDue: "Nobody is due a reminder.",
   tooSoon: (days: number, next: string) => `Reminded ${days} ${days === 1 ? "day" : "days"} ago. The next reminder can go on ${next}.`,
   notSent: (email: string, reason: string) => `The reminder to ${email} was not sent: ${reason}. Try again later.`,
-  refused: (email: string) => `${email} was reminded by another request just now, or has submitted.`,
+  notDue: (email: string) => `${email} cannot be reminded: the invite was not sent, was revoked, or the person has submitted. Reload the page to see the row as it is.`,
+  raced: (email: string) => `${email} was reminded by another request just now. Reload the page to see the row as it is.`,
 } as const;
 
 export type RemindCheck = { ok: true } | { ok: false; why: "submitted" | "notSent" | "revoked" | "tooSoon"; days: number; next: Date | null };

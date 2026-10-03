@@ -133,21 +133,25 @@ export const invites = {
       .returning();
     return rows[0] ?? null;
   },
-  // Claims a reminder (stories/E6-3): a sent, unrevoked personal invite whose last
-  // reminder is older than `minHours` (or none yet) gets reminders_sent + 1 and
-  // last_reminder_at = now in one statement, so two Remind presses cannot both send; null
-  // when the rule refuses. unclaimReminder puts the row back when the email did not go.
+  // Claims a reminder (stories/E6-3): a sent, unrevoked personal invite with no submitted
+  // response whose last reminder is `minHours` old or more (or none yet) gets
+  // reminders_sent + 1 and last_reminder_at = now in one statement, so two Remind presses
+  // cannot both send and a submit in the same moment is seen; null when the rule refuses.
+  // unclaimReminder puts the row back when the email did not go, only while the claim's
+  // instant is still on the row (another claim cannot land inside minHours, so this is a
+  // guard, not a race today).
   claimReminder: async (workspaceId: WorkspaceId, id: string, now: Date, minHours: number): Promise<Invite | null> => {
     if (!isUuid(id)) return null;
     const before = new Date(now.getTime() - minHours * 60 * 60 * 1000);
+    const submitted = db.select({ id: response.id }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, invite.id), sql`${response.submittedAt} is not null`));
     const rows = await db.update(invite).set({ remindersSent: sql`${invite.remindersSent} + 1`, lastReminderAt: now })
-      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), sql`${invite.sentAt} is not null`, isNull(invite.revokedAt), or(isNull(invite.lastReminderAt), sql`${invite.lastReminderAt} <= ${sql.param(before, invite.lastReminderAt)}`)))
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), sql`${invite.sentAt} is not null`, isNull(invite.revokedAt), sql`not exists ${submitted}`, or(isNull(invite.lastReminderAt), sql`${invite.lastReminderAt} <= ${sql.param(before, invite.lastReminderAt)}`)))
       .returning();
     return rows[0] ?? null;
   },
-  unclaimReminder: async (workspaceId: WorkspaceId, id: string, previous: Date | null): Promise<void> => {
+  unclaimReminder: async (workspaceId: WorkspaceId, id: string, claimedAt: Date, previous: Date | null): Promise<void> => {
     if (!isUuid(id)) return;
-    await db.update(invite).set({ remindersSent: sql`greatest(${invite.remindersSent} - 1, 0)`, lastReminderAt: previous }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id)));
+    await db.update(invite).set({ remindersSent: sql`greatest(${invite.remindersSent} - 1, 0)`, lastReminderAt: previous }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.lastReminderAt, claimedAt)));
   },
   // The personal invites created in the workspace in the `minutes` before `now` (the send
   // limit; the check and the inserts are not one statement, docs/review-list.md).

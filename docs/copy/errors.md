@@ -155,7 +155,9 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-2) | The list did not arrive as text | The list did not reach the server as text. Reload the page and try again. |
 | Inline, invites (E6-3), in place of Remind and as the server's refusal | Reminder too soon (under three days since the last) | Reminded [DAYS] days ago. The next reminder can go on [DATE AND TIME UTC]. |
 | Inline, invites (E6-3), under the count | The reminder's email failed (the claim is given back) | The reminder to [EMAIL] was not sent: [PROVIDER REASON]. Try again later. |
-| Inline, invites (E6-3) | Remind pressed twice at once, or on a person who submitted or was never sent (a stale tab) | [EMAIL] was reminded by another request just now, or has submitted. |
+| Inline, invites (E6-3) | Remind pressed twice at once (the second press, or a submit in the same moment) | [EMAIL] was reminded by another request just now. Reload the page to see the row as it is. |
+| Inline, invites (E6-3) | Remind on a person who submitted, a Not sent row or a revoked invite (a stale tab) | [EMAIL] cannot be reminded: the invite was not sent, was revoked, or the person has submitted. Reload the page to see the row as it is. |
+| Inline, invites (E6-3), under the button | Remind everyone when nobody is due (a stale tab) | Nobody is due a reminder. |
 | Inline, invites (E6-3) | Remind while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
 | Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. ([PROVIDER REASON] is the server's first line, cut to 200 characters, its final period dropped, with every word holding a host, an address or a login cut to "[server]" (SECURITY.md); when nothing but servers was in it: the mail server refused it, and its reason named only servers; when it was empty: the mail server refused it) |
 

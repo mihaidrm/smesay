@@ -155,7 +155,8 @@ projectName, respondentName, itemCount, minutes, intro, url, opensAt when the li
 after the send, closesAt); sendMail() takes fromName and replyTo.
 Reminders (E6-3): invites.claimReminder(ws, id, now, minHours) (one statement: reminders_sent
 + 1 and last_reminder_at = now on a sent, unrevoked personal invite whose last reminder is
-minHours old or none; null when refused), invites.unclaimReminder(ws, id, previous);
+minHours old or none, and no submitted response; null when refused),
+invites.unclaimReminder(ws, id, claimedAt, previous) (only while claimedAt is on the row);
 responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, responseId);
 remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) and
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)

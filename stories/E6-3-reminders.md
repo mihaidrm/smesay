@@ -39,8 +39,9 @@ Built 2026-10-03 (design note 48, decision 0044):
   in one statement (two presses send one); a failed email gives the claim back
   (unclaimReminder); the row reads "[N] sent, last [DATE]" or "None sent".
 - Acceptance 4: nothing sends a reminder but the two buttons; no job, no schedule.
-- Acceptance 5: src/lib/reminders.test.ts refuses at 71 hours and allows at 72 and 73,
-  in canRemind and through remindInvitee against the database.
+- Acceptance 5: src/lib/reminders.test.ts refuses at 71 hours and allows at 72 and 73:
+  canRemind at 71, 72 and 73, remindInvitee at 71 and 73 against the database, and the
+  claim statement at 71 (refused), 72 and 73 (allowed).
 - Playwright: e2e/reminders.spec.ts sends one invite, presses Remind, sees the count, the
   row's reminders cell and the too-soon line, reads email 3 in Mailpit, and sees "Remind
   everyone" off with "Nobody is due a reminder."
