@@ -58,7 +58,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Sidebar link beside the workspace name | Settings |
+| Sidebar nav item (design v2; was a link beside the workspace name) | Settings |
 | Page title | Workspace settings |
 | Page line | Name, logo and accent appear on every instrument created after you save. |
 | Section title | Members |
@@ -205,7 +205,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Sidebar, workspace block label | Workspace |
 | Sidebar, member count | 1 member / [N] members |
-| Sidebar, settings link | Settings |
+| Sidebar, settings nav item | Settings |
 | Sidebar, projects label and link | Projects, All |
 | Sidebar and list, sample pill | Sample |
 | Sidebar footer button | Sign out |

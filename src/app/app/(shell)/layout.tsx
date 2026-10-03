@@ -1,7 +1,7 @@
 // The signed-in shell (stories/E2-1, acceptance 5; stories/E2-3, acceptance 3; the PM app
 // board, design v2, decision 0041): a 248 px sidebar on the surface with the lockup, the
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
-// one, the member count, the Settings link), the nav (Projects, Settings), the project list,
+// one, the member count), the nav (Projects, Settings), the project list,
 // then at the bottom the sample card, the mode toggle and the signed-in email with Sign out.
 // Route group, so /app/new and /app/switch render without it (node_modules/next/dist/docs/
 // 01-app/03-api-reference/03-file-conventions/route-groups.md). Copy: docs/copy/app.md.
@@ -33,10 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             {memberships.length > 1
               ? <WorkspaceSwitcher current={current.workspace.id} options={memberships.map((w) => ({ id: w.id, name: w.name }))} />
               : <div className="truncate font-semibold">{current.workspace.name}</div>}
-            <div className="flex items-center justify-between gap-2 text-xs text-ink-muted">
-              <span>{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</span>
-              <Link href="/app/settings" className="font-semibold text-violet-text">Settings</Link>
-            </div>
+            <div className="text-xs text-ink-muted">{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</div>
           </div>
         </div>
         <NavLink href="/app" exact icon={<LayoutGrid aria-hidden="true" />}>Projects</NavLink>
