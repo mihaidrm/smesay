@@ -89,11 +89,12 @@ export function AboutYou({ workspaceName, accent, title, intro, fields, firstCha
           })}
         </div>
         {perspectives.length > 0 && (
-          <fieldset className="flex flex-col gap-2" data-testid="about-you-perspectives">
+          <fieldset className="flex flex-col gap-2" aria-describedby={`${prefix}-p-hint`} data-testid="about-you-perspectives">
             <legend className="float-left mb-1 w-full text-sm font-semibold">{ABOUT_YOU_COPY.perspectivesQuestion}</legend>
-            <div className="clear-both text-[13px] text-ink-muted">{ABOUT_YOU_COPY.perspectivesHint}</div>
-            {perspectives.map((name) => {
-              const id = `${prefix}-p-${name.replace(/[^a-z0-9]+/gi, "-")}`;
+            <div id={`${prefix}-p-hint`} className="clear-both text-[13px] text-ink-muted">{ABOUT_YOU_COPY.perspectivesHint}</div>
+            {perspectives.map((name, i) => {
+              // The id from the position: a name's characters (any script) do not make one.
+              const id = `${prefix}-p-${i}`;
               return (
                 <label key={name} htmlFor={id} className="flex min-h-12 items-center gap-3 rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground">
                   <input id={id} type="checkbox" checked={picks.includes(name)} onChange={() => togglePick(name)} className="size-5 shrink-0 accent-[var(--violet)]" />

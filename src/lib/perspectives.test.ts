@@ -39,5 +39,6 @@ describe("parsePerspectives and parseTags", () => {
     expect(parseTags("nope", ["Finance"])).toEqual({ error: PERSPECTIVES_COPY.badShape });
     expect(parseTags([1], ["Finance"])).toEqual({ error: PERSPECTIVES_COPY.badShape });
     expect(keptTags(["Finance", "Legal"], ["Finance"])).toEqual(["Finance"]);
+    expect(keptTags(["finance", "Legal"], ["Finance", "Sales"])).toEqual(["Finance"]);
   });
 });

@@ -70,7 +70,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly, perspect
                 <div className="min-w-0 flex-grow">
                   <ReaderText item={it.reader} original={it.text} />
                   {it.notes.map((note) => <div key={note} className="mt-1 text-xs text-unclear-text" data-testid="item-note">{note}</div>)}
-                  {!readerOnly && <PerspectiveTags key={it.tags.join("|")} projectId={projectId} itemId={it.id} reference={it.ref ?? String(it.position)} names={perspectives} tags={it.tags} />}
+                  {!readerOnly && <PerspectiveTags projectId={projectId} itemId={it.id} reference={it.ref ?? String(it.position)} names={perspectives} tags={it.tags} />}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {/* Keyed by what the server holds, so a saved decision or edit closes the controls' own state. */}

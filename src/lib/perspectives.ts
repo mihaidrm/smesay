@@ -2,7 +2,8 @@
 // what a respondent picks on About you, and the one rule for what they see. No database
 // import: Build, Shape, the preview, the respondent app (E7) and Results (E8) share it.
 // A respondent sees the items with no perspective plus every item sharing at least one of
-// their picks; with no picks they see the untagged items only.
+// their picks; with no picks they see the untagged items only. The SQL twin, for E8's
+// counts over 500 rows, is in INTERFACES.md (Perspectives).
 
 export const PERSPECTIVES_MAX = 10;
 export const PERSPECTIVE_NAME_MAX = 30;
@@ -14,6 +15,12 @@ export const PERSPECTIVES_COPY = {
   unknownTag: "That perspective is not on the instrument. Define it on Build first.",
   noneDefined: "Define perspectives on Build first, then tag items here.",
   badShape: "The tags did not reach the server as a list. Reload the page and try again.",
+  locked: "Published instruments keep their perspectives and tags. Build a new instrument to change them.",
+  otherSet: (built: number, latest: number) => `These items are on version ${latest} of the list; the instrument is built on version ${built}. Build on version ${latest} first, then tag items here.`,
+  otherSetLink: "Go to Build",
+  // The respondent's items screen when their picks leave nothing to rate (stories/E5-4;
+  // every state has a screen).
+  nothingVisible: "Nothing to rate for what you picked. Go back to About you and pick a different perspective.",
 } as const;
 
 // The names as the Build form posts them, one per line, trimmed, blank lines dropped.
@@ -47,7 +54,9 @@ export function visibleItems<T extends Tagged>(items: T[], picked: string[]): T[
   return items.filter((it) => isVisible(it, picked));
 }
 
-// The tags that survive a change of the instrument's names: the ones still defined.
+// The tags that survive a change of the instrument's names: the ones still defined, matched
+// ignoring case and spelt as the new names are, so a case-only rename keeps the tags. The
+// code twin of the one statement instruments.setPerspectives runs (src/db/queries).
 export function keptTags(tags: string[], names: string[]): string[] {
-  return tags.filter((t) => names.includes(t));
+  return tags.flatMap((t) => { const n = names.find((name) => name.toLowerCase() === t.toLowerCase()); return n === undefined ? [] : [n]; });
 }

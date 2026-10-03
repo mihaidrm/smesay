@@ -7,8 +7,8 @@ items go to everyone; the dashboard shows coverage per perspective.
 
 ## Acceptance criteria
 1. Build has a Perspectives card: a list of names (up to 10, 1 to 30 characters each). Each
-   item on Shape and Build can carry any number of perspectives; an item with none is shown
-   to everyone.
+   item on Shape can carry any number of perspectives (built on Shape only, not on Build:
+   docs/review-list.md, 2026-10-03); an item with none is shown to everyone.
 2. With at least one perspective defined, About you asks "Which of these describe you?" with
    checkboxes (multi-select); the respondent sees the union of their perspectives' items plus
    the untagged ones. With none defined, the question is not shown.
@@ -28,8 +28,9 @@ items go to everyone; the dashboard shows coverage per perspective.
 - None.
 
 ## Technical notes
-Schema v1 has no perspectives: migration 0002 adds item.perspectives text[] (default empty)
-and response.perspectives text[]; INTERFACES.md records both. The visible-set function lives in
+Schema v1 has no perspectives: migration 0014 adds instrument.perspectives jsonb (the names),
+item.perspectives text[] (default empty) and response.perspectives text[]; INTERFACES.md
+records all three with the SQL form of the rule. The visible-set function lives in
 src/lib/perspectives.ts and is used by E7 and E8.
 
 Built 2026-10-03 (design note 44, decision 0044):
@@ -38,11 +39,15 @@ Built 2026-10-03 (design note 44, decision 0044):
   (migration 0014 with item.perspectives and response.perspectives, INTERFACES.md). Items
   are tagged on Shape, one chip per name under every item (perspective-tags.tsx); Build
   shows how many items carry one and the way to Shape. A removed name is dropped from the
-  items that carried it (docs/review-list.md).
+  items that carried it and a case-only rename keeps them, in one statement under the
+  instrument's lock; the names and the tags lock once published; "Build on version N"
+  copies the names, not the tags (docs/review-list.md).
 - Acceptance 2: About you (src/components/respondent/about-you.tsx) asks "Which of these
   describe you?" as checkboxes when the instrument has perspectives; the preview's Items
   screen narrows to what that respondent would see: the untagged items plus those sharing
-  a pick (visibleItems in src/lib/perspectives.ts).
+  a pick (visibleItems in src/lib/perspectives.ts), a chapter emptied by the picks dropped
+  from the row and the Start label, and a "nothing to rate" screen when nothing is left.
+  The real page and the stored picks are E7-1 and E7-3.
 - Acceptance 3: the preview's "0 of [N]" counts the visible items; the respondent app's
   progress, the Wrap up and the dashboard parts are E7-4, E7-5, E8-2 and E8-3, which read
   the same function.
@@ -50,5 +55,6 @@ Built 2026-10-03 (design note 44, decision 0044):
   instrument with three perspectives, none included; the instrument test saves, tags,
   strips and refuses on the test database.
 - Acceptance 5: e2e/build.spec.ts defines Finance and Sales, tags one item with each on
-  Shape, picks Finance in the preview and sees one item and "0 of 1".
+  Shape, sees the "nothing to rate" screen with no pick, then picks Finance in the preview
+  and sees one item and "0 of 1".
 

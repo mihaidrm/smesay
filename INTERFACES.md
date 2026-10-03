@@ -41,7 +41,10 @@ the check constraints use them). Change this file first.
   to; empty means everyone; every name is one of its instrument's); response.perspectives
   text[] (what the respondent picked). The visible set is visibleItems() in
   src/lib/perspectives.ts: the items with no perspective plus those sharing one with the
-  respondent's picks; E7 and E8 use it.
+  respondent's picks; E7 reads it for one respondent. Its SQL twin, for E8's counts over
+  500 rows (build rule: aggregates in SQL), is
+  `item.perspectives = '{}' OR item.perspectives && response.perspectives`. The names and
+  the tags lock once the instrument is published, like the method.
 - ScaleLabels (jsonb, instrument.scale_labels, nullable; E5-2, 2026-10-03): { [code]: label }
   for the codes of the instrument's method (moscow: M, S, C, W; fit: 1, 2, 3, 4, 5; kcd: K,
   C, D), each label 1 to 20 characters; a code not present keeps the default label; null

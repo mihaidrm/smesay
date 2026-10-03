@@ -11,10 +11,13 @@
 // it is a picture, not navigation (free movement is E7-4's). The screen choice lives in
 // this component, keyed on the instrument alone, so a save of any card keeps the screen;
 // the About you page re-mounts on its own key and the cards on theirs (the layout in the
-// key), which clears a pick made in the preview (nothing is stored there). At most ten
-// cards are drawn across the areas (a set can hold 2,000 rows); each area with fewer cards
-// drawn than it holds says so under them. The perspectives picked on the About you screen
-// narrow the items screen to what that respondent would see (stories/E5-4).
+// key), which clears a pick made in the preview (nothing is stored there). At most
+// PREVIEW_CARDS are drawn across the areas (a set can hold 2,000 rows); each area with
+// fewer cards drawn than it holds says so under them. The perspectives picked on the About
+// you screen narrow the items screen to what that respondent would see (stories/E5-4): the
+// counts over every row (tags carries one entry per row), the cards from the candidates the
+// page sent (by position in the chapter), a chapter emptied by the picks dropped from the
+// row and the Start label, and the "nothing to rate" screen when the picks leave no item.
 import { useState } from "react";
 import { cn } from "cn";
 import { isVisible } from "@/lib/perspectives";
@@ -22,23 +25,31 @@ import { AboutYou, type AboutYouProps } from "@/components/respondent/about-you"
 import { ItemCard, type ItemCardProps } from "@/components/respondent/item-card";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import type { Layout } from "@/db/types";
-import { BUILD_COPY } from "@/lib/build-copy";
+import { BUILD_COPY, PREVIEW_CARDS } from "@/lib/build-copy";
+import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 
 type Screen = "about" | "items";
 export type PreviewCard = Omit<ItemCardProps, "ring"> & { perspectives: string[] };
-export type PreviewChapter = { name: string | null; count: number; cards: PreviewCard[]; tags: string[][] };
+export type PreviewChapter = { name: string | null; tags: string[][]; cards: { index: number; card: PreviewCard }[] };
 
 const cardKey = (card: Omit<ItemCardProps, "ring">, i: number, layout: Layout) => `${i}-${layout}-${card.method}-${card.showProposed}-${JSON.stringify(card.labels)}`;
 
-export function PreviewPanel({ about, chapters: allChapters, layout, perspectives }: { about: Omit<AboutYouProps, "preview" | "heading" | "ring" | "perspectives" | "picked" | "onPickPerspectives">; chapters: PreviewChapter[]; layout: Layout; perspectives: string[] }) {
+export function PreviewPanel({ about, chapters: allChapters, layout, perspectives }: { about: Omit<AboutYouProps, "preview" | "heading" | "ring" | "perspectives" | "picked" | "onPickPerspectives" | "firstChapter">; chapters: PreviewChapter[]; layout: Layout; perspectives: string[] }) {
   const [screen, setScreen] = useState<Screen>("about");
   const [picked, setPicked] = useState<string[]>([]);
-  // What this respondent would see (stories/E5-4): the chapters narrowed by the picks, the
-  // counts over every item of the chapter (tags carries one entry per item), the cards
-  // over the ones drawn.
-  const chapters = allChapters.map((c) => ({ ...c, count: c.tags.filter((t) => isVisible({ perspectives: t }, picked)).length, cards: c.cards.filter((card) => isVisible(card, picked)) }));
+  // What this respondent would see: every chapter with a visible item (or none at all), its
+  // visible count, and the first PREVIEW_CARDS visible cards across the chapters.
+  const chapters = allChapters.reduce<{ left: number; out: { name: string | null; count: number; cards: PreviewCard[] }[] }>((acc, c) => {
+    const visible = c.tags.flatMap((t, i) => (isVisible({ perspectives: t }, picked) ? [i] : []));
+    if (visible.length === 0 && c.tags.length > 0) return acc;
+    const byIndex = new Map(c.cards.map(({ index, card }) => [index, card]));
+    const cards = visible.slice(0, acc.left).flatMap((i) => { const card = byIndex.get(i); return card ? [card] : []; });
+    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: visible.length, cards }] };
+  }, { left: PREVIEW_CARDS, out: [] }).out;
   const total = chapters.reduce((n, c) => n + c.count, 0);
-  const first = chapters[0] ?? { name: null, count: 0, cards: [], tags: [] };
+  const nothingVisible = total === 0 && allChapters.some((c) => c.tags.length > 0);
+  const first = chapters[0] ?? { name: null, count: 0, cards: [] };
+  const firstChapter = chapters[0]?.name ?? null;
   return (
     <aside className="flex w-[460px] shrink-0 flex-col gap-3 rounded-2xl border border-hairline bg-surface p-4" aria-labelledby="preview-title" data-testid="preview-panel">
       <div className="flex items-center justify-between gap-3">
@@ -49,7 +60,7 @@ export function PreviewPanel({ about, chapters: allChapters, layout, perspective
       <SegmentedControl value={screen} onChange={setScreen} label={BUILD_COPY.previewScreenSwitch} options={[{ value: "about", label: BUILD_COPY.previewScreens.about }, { value: "items", label: BUILD_COPY.previewScreens.items }]} className="self-start" />
       <div className="mx-auto h-[720px] w-[390px] overflow-x-hidden overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-frame">
         {screen === "about" ? (
-          <AboutYou key={`${JSON.stringify(about.fields)}-${about.intro}-${about.title}-${perspectives.join("|")}`} {...about} perspectives={perspectives} picked={picked} onPickPerspectives={setPicked} preview heading="h4" ring="fields" />
+          <AboutYou key={`${JSON.stringify(about.fields)}-${about.intro}-${about.title}-${perspectives.join("|")}`} {...about} firstChapter={firstChapter} perspectives={perspectives} picked={picked} onPickPerspectives={setPicked} preview heading="h4" ring="fields" />
         ) : (
           <div className="flex min-h-full flex-col bg-ground text-ink" data-testid="chapter-preview" data-layout={layout}>
             <div className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
@@ -57,6 +68,10 @@ export function PreviewPanel({ about, chapters: allChapters, layout, perspective
               <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
             </div>
             <div className="flex flex-col gap-3 px-5 pt-3.5 pb-5">
+              {nothingVisible ? (
+                <p className="text-sm text-ink-muted" data-testid="nothing-visible">{PERSPECTIVES_COPY.nothingVisible}</p>
+              ) : (
+              <>
               {layout !== "page" && (
                 <div className="flex gap-1.5 overflow-hidden rounded-full ring-2 ring-violet ring-offset-4 ring-offset-ground [mask-image:linear-gradient(90deg,#000_82%,transparent)]" data-testid="chapter-row">
                   <span className="h-[30px] shrink-0 rounded-full border border-hairline-strong px-3 text-xs leading-[28px] font-semibold text-ink-muted">{BUILD_COPY.previewScreens.about}</span>
@@ -84,6 +99,8 @@ export function PreviewPanel({ about, chapters: allChapters, layout, perspective
                   {(layout === "item" ? first.cards.slice(0, 1) : first.cards).map((card, i) => <ItemCard key={cardKey(card, i, layout)} {...card} ring />)}
                   {layout === "chapters" && first.count > first.cards.length && <p className="text-[13px] text-ink-muted">{BUILD_COPY.previewMore(first.cards.length, first.count)}</p>}
                 </>
+              )}
+              </>
               )}
             </div>
           </div>

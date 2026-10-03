@@ -2,7 +2,9 @@
 // The perspective chips on an item on Shape (stories/E5-4, acceptance 1): one toggle per
 // name of the project's newest instrument, pressed when the item carries it; a press posts
 // the item's whole list (tagItemAction), so the server holds one rule for it. Nothing shows
-// while the instrument has no perspectives. A group named "Perspectives of [REF]".
+// while the instrument has no perspectives. A group named "Perspectives of [REF]". While
+// the server answers the chips are aria-disabled and ignore presses, not disabled, so the
+// pressed chip keeps keyboard focus; useOptimistic follows the tags prop once it lands.
 import { useActionState, useOptimistic, useTransition } from "react";
 import { cn } from "cn";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
@@ -14,6 +16,7 @@ export function PerspectiveTags({ projectId, itemId, reference, names, tags }: {
   const [pending, start] = useTransition();
   if (names.length === 0) return null;
   const toggle = (name: string) => {
+    if (pending) return;
     const next = shown.includes(name) ? shown.filter((t) => t !== name) : [...shown, name];
     const data = new FormData();
     data.set("projectId", projectId);
@@ -26,8 +29,8 @@ export function PerspectiveTags({ projectId, itemId, reference, names, tags }: {
       {names.map((name) => {
         const on = shown.includes(name);
         return (
-          <button key={name} type="button" aria-pressed={on} disabled={pending} onClick={() => toggle(name)}
-            className={cn("h-6 rounded-full border px-2.5 text-[11px] font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-60", on ? "border-transparent bg-violet-soft text-violet-text" : "border-hairline-strong text-ink-muted hover:bg-tint")}>
+          <button key={name} type="button" aria-pressed={on} aria-disabled={pending || undefined} onClick={() => toggle(name)}
+            className={cn("h-6 rounded-full border px-2.5 text-xs font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-disabled:opacity-60", on ? "border-transparent bg-violet-soft text-violet-text" : "border-hairline-strong text-ink-muted hover:bg-tint")}>
             {name}
           </button>
         );

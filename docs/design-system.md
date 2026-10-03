@@ -177,6 +177,9 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   saying what happened and what to do next.
 - Status pills: tint fill, text colour from the table, 12 px weight 600, height 24, radius 999.
   Neutral pill: tint fill, soft ink. Count badge (nav): coral fill, dark text, 11 px 700.
+  Toggle chip (the perspective tags on Shape, design note 44): a pill-shaped button with
+  aria-pressed, hairline-strong and muted text when off, violet soft and violet text when
+  on, 12 px 600, height 24, radius 999; aria-disabled at 60 percent while a press saves.
 - Toggle 44 by 24, violet when on, ink-muted when off, the thumb white on light and the ground
   on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:

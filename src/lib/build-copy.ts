@@ -5,6 +5,8 @@ import { FIELDS_COPY } from "@/lib/respondent-fields";
 
 export const INTRO_MAX = 1000;
 export const TITLE_MAX = 80;
+// The preview draws at most this many cards (stories/E5-2; a set can hold 2,000 rows).
+export const PREVIEW_CARDS = 10;
 
 export const BUILD_COPY = {
   title: "Build the instrument",
@@ -29,7 +31,7 @@ export const BUILD_COPY = {
   save: "Save",
   saved: "Saved.",
   // The owed line from E3-6 (acceptance 3): a newer set than the one the instrument is built on.
-  newer: (built: number, latest: number) => `Version ${latest} of the list was imported after this instrument was built on version ${built}. The instrument keeps version ${built} until you build on the new one; the intro and the fields are copied over.`,
+  newer: (built: number, latest: number) => `Version ${latest} of the list was imported after this instrument was built on version ${built}. The instrument keeps version ${built} until you build on the new one; the intro, the fields, the scoring and the perspective names are copied over. Items are tagged again on Shape.`,
   buildOn: (version: number) => `Build on version ${version}`,
   alreadyLatest: "This instrument is already built on the latest version of the list.",
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
@@ -51,6 +53,7 @@ export const BUILD_COPY = {
   perspectivesLine: "Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone.",
   perspectivesLabel: "Perspectives, one per line",
   perspectivesTagged: (tagged: number, total: number) => `${tagged} of ${total} items carry a perspective. Tag items on Shape.`,
+  perspectivesList: (names: string[]) => `${names.join(", ")}.`,
   perspectivesTaggedLink: "Go to Shape",
   perspectivesNone: "No perspectives yet. Every item goes to everyone.",
   // The layout (stories/E5-3; the PM app board, Build).

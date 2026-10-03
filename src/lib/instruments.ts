@@ -19,7 +19,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
-import { keptTags, parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
+import { parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
@@ -81,8 +81,10 @@ export async function saveFields(ws: WorkspaceId, projectId: string, instrumentI
   return { instrument };
 }
 
-// A new draft on the latest set, carrying the old one's title, intro, fields, method, labels and settings;
-// the old instrument stays on its version with its responses (E3-6, acceptance 3). Only the
+// A new draft on the latest set, carrying the old one's title, intro, fields, method, labels,
+// perspective names and settings (not the tags: the new set's items are new rows, tagged
+// again on Shape, docs/review-list.md); the old instrument stays on its version with its
+// responses (E3-6, acceptance 3). Only the
 // newest instrument can be built on (own), and createOnSet returns the existing draft when
 // two presses race, so the project never gets two drafts on one set.
 export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ error: string } | { instrument: Instrument }> {
@@ -94,6 +96,7 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
   const instrument = await instruments.createOnSet(ws, {
     projectId: project.id, itemSetId: latest.id, title: previous.title, intro: previous.intro, method: previous.method,
     showProposed: previous.showProposed, layout: previous.layout, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
+    perspectives: previous.perspectives,
   });
   if (!instrument) throw new NotFoundError();
   return { instrument };
@@ -133,38 +136,45 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
   return { instrument };
 }
 
-// The Perspectives card (stories/E5-4): the names, one per line; a name removed is dropped
-// from every item of the instrument's set that carried it, so no item points at a name
-// respondents cannot pick. Allowed on a published instrument: a new name changes nothing
-// stored, and a removed one only widens who sees an item.
+// The Perspectives card (stories/E5-4): the names, one per line. A name removed is dropped
+// from every item of the instrument's set that carried it, a case-only rename keeps the
+// tags, and both happen in one statement under the instrument's lock (instruments.setPerspectives).
+// Locked once published, like the method (docs/review-list.md): a tag added mid-run would
+// take an item away from respondents who already answered it.
 export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
+  if (await isPublished(ws, instrumentId)) return { error: PERSPECTIVES_COPY.locked };
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.update(ws, instrumentId, { perspectives: parsed.names });
+  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
   if (!instrument) throw new NotFoundError();
-  for (const it of await items.forSet(ws, instrument.itemSetId)) {
-    const kept = keptTags(it.perspectives, parsed.names);
-    if (kept.length !== it.perspectives.length) await items.update(ws, it.id, { perspectives: kept });
-  }
   return { instrument };
 }
 
 // The chips on an item on Shape (stories/E5-4): the item's tags, each a name of the
-// project's newest instrument; the item must be on that instrument's set.
+// project's newest instrument. An item of the project on another set than the newest
+// instrument's (a stale Shape tab after "Build on version N", or an instrument on an older
+// set) gets the message, not a 404; an item outside the project is 404.
 export async function tagItem(ws: WorkspaceId, projectId: string, itemId: string, rawTags: unknown): Promise<{ error: string } | { item: Item }> {
   const project = await projects.get(ws, projectId);
   const target = await items.get(ws, itemId);
   if (!project || !target) throw new NotFoundError();
+  const set = await itemSets.get(ws, target.itemSetId);
+  if (!set || set.projectId !== project.id) throw new NotFoundError();
   if (project.isSample) return { error: BUILD_COPY.sample };
   const instrument = await instruments.latestForProject(ws, project.id);
-  if (!instrument || instrument.itemSetId !== target.itemSetId) throw new NotFoundError();
+  if (!instrument) throw new NotFoundError();
+  if (instrument.itemSetId !== target.itemSetId) {
+    const builtOn = await itemSets.get(ws, instrument.itemSetId);
+    return { error: PERSPECTIVES_COPY.otherSet(builtOn?.version ?? 0, set.version) };
+  }
+  if (await isPublished(ws, instrument.id)) return { error: PERSPECTIVES_COPY.locked };
   if (instrument.perspectives.length === 0) return { error: PERSPECTIVES_COPY.noneDefined };
   const parsed = parseTags(rawTags, instrument.perspectives);
   if ("error" in parsed) return { error: parsed.error };
-  const item = await items.update(ws, itemId, { perspectives: parsed.tags });
-  if (!item) throw new NotFoundError();
-  return { item };
+  const result = await instruments.tagItem(ws, instrument.id, itemId, parsed.tags);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: result.refused === "names" ? PERSPECTIVES_COPY.unknownTag : BUILD_COPY.replaced };
+  return { item: result.item };
 }
-

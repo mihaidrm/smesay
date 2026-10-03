@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { PREVIEW_CARDS } from "@/lib/build-copy";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
@@ -23,8 +24,9 @@ import { PerspectivesForm } from "./perspectives-form";
 import { PreviewPanel } from "./preview-panel";
 import { ScoringForm } from "./scoring-form";
 
-// The preview draws at most this many cards (the set may hold 2,000 rows).
-const PREVIEW_CARDS = 10;
+// The page sends the cards that can be among the first PREVIEW_CARDS a respondent sees
+// whatever they pick: the first ten untagged items and the first ten carrying each name (at
+// most 110 cards for ten names); the panel draws the first ten visible from them (stories/E5-4).
 
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -45,7 +47,6 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   }
   const { instrument, builtOn, newer } = draft;
   const rows = await items.forSet(current.ws, builtOn.id);
-  const firstChapter = areaNames(builtOn, rows)[0] ?? null;
   const readOnly = project.isSample;
   const locked = readOnly || (await isPublished(current.ws, instrument.id));
   const accent = effectiveAccent(current.workspace.accentHex);
@@ -58,15 +59,23 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
     return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent, perspectives: it.perspectives };
   };
   const tagged = rows.filter((it) => it.perspectives.length > 0).length;
-  // Every area in the list's order (one unnamed chapter when the set has no areas), ten
-  // cards in all across them (stories/E5-3: the single page lists every area).
   // Every area in the list's order, then the items with no area under the Shape page's
-  // name for them (groupByArea), so the page layout's count matches what is drawn.
+  // name for them (groupByArea; one unnamed chapter when the set has no areas), so the page
+  // layout's count matches what is drawn. Each chapter carries every row's tags and the
+  // cards of its candidate rows, by position in the chapter.
   const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name, rows: g.items })) : [{ name: null, rows }];
-  const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[]; tags: string[][] }[] }>((acc, c) => {
-    const cards = c.rows.slice(0, acc.left).map(toCard);
-    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards, tags: c.rows.map((it) => it.perspectives) }] };
-  }, { left: PREVIEW_CARDS, out: [] }).out;
+  const left = new Map<string, number>([["", PREVIEW_CARDS], ...instrument.perspectives.map((n): [string, number] => [n, PREVIEW_CARDS])]);
+  const candidate = (it: (typeof rows)[number]) => {
+    const classes = it.perspectives.length === 0 ? [""] : it.perspectives;
+    let keep = false;
+    for (const c of classes) { const n = left.get(c) ?? 0; if (n > 0) { left.set(c, n - 1); keep = true; } }
+    return keep;
+  };
+  const chapters = grouped.map((c) => ({
+    name: c.name,
+    tags: c.rows.map((it) => it.perspectives),
+    cards: c.rows.flatMap((it, index) => (candidate(it) ? [{ index, card: toCard(it) }] : [])),
+  }));
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
     <div className="flex flex-col gap-5">
@@ -111,9 +120,9 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
             </div>
             {readOnly ? (
-              <p className="text-sm text-ink-muted" data-testid="perspectives-list">{instrument.perspectives.length === 0 ? BUILD_COPY.perspectivesNone : instrument.perspectives.join(", ")} {BUILD_COPY.sample}</p>
+              <p className="text-sm text-ink-muted" data-testid="perspectives-list">{instrument.perspectives.length === 0 ? BUILD_COPY.perspectivesNone : BUILD_COPY.perspectivesList(instrument.perspectives)} {BUILD_COPY.sample}</p>
             ) : (
-              <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} />
+              <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
           </section>
           <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
@@ -134,7 +143,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         </div>
         <PreviewPanel
           key={instrument.id}
-          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, firstChapter }}
+          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields }}
           chapters={chapters}
           layout={instrument.layout}
           perspectives={instrument.perspectives}

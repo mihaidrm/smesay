@@ -168,8 +168,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(chapter.getByTestId("chapter-row")).toBeVisible();
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
-  // Perspectives (stories/E5-4): two names on Build, one item tagged on Shape, the
-  // respondent who picks Finance sees one item, the one who picks nothing sees none.
+  // Perspectives (stories/E5-4): two names on Build, one item tagged Finance and one Sales
+  // on Shape, the respondent who picks Finance sees one item; the one who picks nothing
+  // sees none and gets the "nothing to rate" screen.
   await page.getByLabel("Perspectives, one per line").fill("Finance\nSales");
   await page.getByTestId("perspectives-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("perspectives-form").getByRole("status")).toHaveText("Saved.");
@@ -182,11 +183,15 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(firstTags.getByRole("button", { name: "Finance" })).toBeEnabled();
   await page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" }).click();
   await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).toHaveAttribute("aria-pressed", "true");
-  // The chips are disabled while the server answers; the pressed state shows at once.
-  await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).toBeEnabled();
+  // The pressed state shows at once; the chip is aria-disabled until the server answers.
+  await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).not.toHaveAttribute("aria-disabled", "true");
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
   await expect(page.getByTestId("perspectives-tagged")).toContainText("2 of 2 items carry a perspective.");
   await expect(preview.getByTestId("about-you-perspectives")).toContainText("Which of these describe you?");
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
+  await expect(chapter.getByTestId("nothing-visible")).toBeVisible();
+  await expect(chapter.getByTestId("item-card")).toHaveCount(0);
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
   await preview.getByLabel("Finance").check();
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
