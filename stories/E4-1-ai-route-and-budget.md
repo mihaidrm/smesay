@@ -1,6 +1,6 @@
 # E4-1 Server route to Anthropic with a per-workspace budget, logging and timeout
 
-User: Claude building every AI feature on it; the workspace owner watching the budget
+User: Claude building every AI feature on it; Mihai watching the product's spend
 Status: built
 Outcome: one server-side function calls the model, refuses over budget, logs every call, and
 never lets the key near a browser.

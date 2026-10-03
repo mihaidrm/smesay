@@ -9,8 +9,8 @@ saved.
 1. Settings (PM app board): workspace name; logo upload (PNG or SVG, up to 1 MB, stored in the
    S3-compatible bucket, shown at 24 px in the respondent header in place of the mark); accent
    colour as a hex field with a swatch; the Plan card with the usage line (E2-6). The AI
-   budget is not on the page (decision 0036): it is set and seen in the admin area only
-   (E14-2), default 10.
+   budget is not on the page (decision 0036): it will be set and seen in the admin area only
+   (E14-2, not built yet), default 10.
 2. An accent under 4.5:1 on white shows the banner "This colour is too light on white, so the
    respondent page uses the default. Pick a darker one to use yours." and the respondent side
    uses ink (docs/design-system.md, respondent theming; Brand 06). The check uses

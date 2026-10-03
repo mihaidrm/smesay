@@ -65,7 +65,7 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Banner, Shape | AI call failed | The AI did not answer. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
 | Banner, Shape | The product's monthly AI cap reached (ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036) | AI is paused until next month. The list is imported and can be published as it is. |
-| Banner, Shape | Workspace AI budget spent (set in the admin area, decision 0036) | This workspace has used its AI budget for the month. The list is imported and can be published as it is. Come back next month. |
+| Banner, Shape | Workspace AI budget spent (the budget is hidden from the workspace, decision 0036) | This workspace has used its AI budget for the month. The list is imported and can be published as it is. Come back next month. |
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
 | Banner, Shape | Plan's AI run cap reached (E2-6, E4-1; no plan carries a cap today) | This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
 | Banner, Shape | AI answered but the answer is unusable: refused, cut off, or failed the schema or the check (E4-1) | The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |

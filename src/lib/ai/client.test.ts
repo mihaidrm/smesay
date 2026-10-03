@@ -156,7 +156,7 @@ describe("runModel", () => {
     // Workspace B's spend brings the product to 10 cents under the next whole euro; A spent
     // nothing this month in this test. The product cap is what refuses A's call (10 cents
     // left, the estimate is 15), while A's own budget of 10 euro would allow it. The row B
-    // gets is under one euro, so the test database's spend grows slowly across runs.
+    // gets is one euro at most, so the test database's spend grows slowly across runs.
     const spent = await internal.productAiCostCentsThisMonth(now);
     const cap = Math.floor((spent + 10) / 100) + 1;
     const otherProject = (await projects.create(wsB, { name: "B's own" })).id;

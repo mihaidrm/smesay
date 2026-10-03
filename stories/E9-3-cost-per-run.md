@@ -7,8 +7,8 @@ the product's cap is refused before it starts. The budget itself is never shown 
 
 ## Acceptance criteria
 1. Under the actions: "Last run [DATE]: [N] tokens, EUR [COST]. This month: EUR [SPENT]."
-   from the ai_run rows (E4-1). No budget number on the page: the workspace budget is set and
-   seen in the admin area only (decision 0036, E14-2).
+   from the ai_run rows (E4-1). No budget number on the page: the workspace budget is for the
+   admin area only (decision 0036, E14-2).
 2. Before a run, the estimate (from the token count of the inputs and the price table) is
    checked by runModel (E4-1) against the product cap and the workspace budget; a refused run
    shows the E4-1 messages ("AI is paused until next month." or "This workspace has used its

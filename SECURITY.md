@@ -9,7 +9,8 @@ Auth and sessions
 Multi-tenancy
 - Every query scoped by workspace id from the session, never from the request body. The one
   read across workspaces is the product's AI spend sum for its monthly cap (decision 0036), in
-  src/db/queries/internal.ts, reachable from src/lib/ai/client.ts only (lint rule).
+  src/db/queries/internal.ts; outside src/db the lint rule lets only src/lib/workspace.ts
+  (the membership check) and src/lib/ai/client.ts with its test import that module.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
 
 Public links and respondents
