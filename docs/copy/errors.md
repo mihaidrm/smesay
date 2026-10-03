@@ -155,6 +155,8 @@ of the content; page means it replaces the screen.
 | Where | When | Message |
 |---|---|---|
 | Empty state, results | No responses yet | No answers yet. The link is [open until DATE / not published]. Share it, or open the sample project to see what results look like. |
+| Empty state, results (E8-1, 2026-10-03) | A filter matches no answer | No answers match these filters. [Button: Clear filters] |
+| Line under the strip (E8-1) | Any filter on | Showing [N] of [M] responses: [FILTERS]. |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
 | Inline, export | Export failed | The [FORMAT] export did not finish. Try again; if it fails again, export the answers as CSV, which always works. |

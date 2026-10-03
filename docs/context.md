@@ -93,7 +93,7 @@ E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms 
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
 EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33); its
-seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (76 in 15 epics; E15 Onboarding written 2026-10-03, design note 39, four questions for Mihai there); a story is rewritten when Mihai
+seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (76 in 15 epics; E15 Onboarding written 2026-10-03, design note 39, four questions for Mihai there; E8-1 to E8-4 and E10-1 amended the same day for views, filters, tiles and the kind names, design note 40, four questions there); a story is rewritten when Mihai
 sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
 EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 9).
 
