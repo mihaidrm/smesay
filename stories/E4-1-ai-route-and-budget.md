@@ -1,7 +1,7 @@
 # E4-1 Server route to Anthropic with a per-workspace budget, logging and timeout
 
 User: Claude building every AI feature on it; Mihai watching the product's spend
-Status: built
+Status: accepted
 Outcome: one server-side function calls the model, refuses over budget, logs every call, and
 never lets the key near a browser.
 
@@ -28,7 +28,9 @@ never lets the key near a browser.
    test feeds an output with an extra field and an output with an invented item and both are
    refused.
 6. Unit tests use a fake transport; no test calls the real API. One manual run by Mihai with
-   his key on his PC is the acceptance (docs/accounts.md step 9).
+   his key on his PC is the acceptance (docs/accounts.md step 9). Done 2026-10-03:
+   `npm run ai:smoke` answered on claude-sonnet-5-5, 273 tokens in, 25 out, 1 euro cent,
+   2,744 ms, one ai_run row in his workspace.
 
 ## Out of scope
 - The prompts themselves: E4-2 to E4-5. Insights: E9.
