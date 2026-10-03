@@ -13,7 +13,7 @@
 body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#F7F6FB;color:#15131F}
 .mono{font-family:'Geist Mono',monospace}
 .light{--bg:#F7F6FB;--surface:#FFFFFF;--raised:#FFFFFF;--hair:#E6E3F0;--hair2:#CFCBE0;--ink:#15131F;--muted:#5E5A72;--accent:#6D4CF5;--accent-text:#5A3BE0;--accent-soft:#EEEAFF;--coral:#FF6B57;--coral-soft:#FFE9E5;--mint:#1F9D7A;--mint-soft:#E1F5EE;--sun:#F5B740;--sun-soft:#FFF3D6;--sun-text:#8A5A00;--shadow:0 12px 32px rgba(45,32,110,0.10)}
-.dark{--bg:#0F0E17;--surface:#181726;--raised:#201F31;--hair:#2C2A40;--hair2:#3B3854;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#9B86FF;--accent-text:#B8A8FF;--accent-soft:#272249;--coral:#FF8A78;--coral-soft:#3A2230;--mint:#5FD3B3;--mint-soft:#15302B;--sun:#FFD36E;--sun-soft:#3A2F14;--sun-text:#FFD36E;--shadow:0 12px 32px rgba(0,0,0,0.45)}
+.dark{--bg:#16152A;--surface:#1E1D33;--raised:#27263F;--hair:#343252;--hair2:#46445F;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#9B86FF;--accent-text:#B8A8FF;--accent-soft:#2E2B55;--coral:#FF8A78;--coral-soft:#3A2230;--mint:#5FD3B3;--mint-soft:#15302B;--sun:#FFD36E;--sun-soft:#3A2F14;--sun-text:#FFD36E;--shadow:0 12px 32px rgba(0,0,0,0.45)}
 .panel{background:var(--bg);color:var(--ink);padding:36px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:28px}
 .h{font-size:13px;font-weight:600;letter-spacing:0.01em;color:var(--muted)}
 .sw{display:flex;gap:10px;flex-wrap:wrap}
@@ -34,7 +34,7 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 .blob:before{content:"";position:absolute;left:36px;top:34px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:38px 0 0 #fff}
 </style>
 </helmet>
-<div style="width: 1440px; height: 1480px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #F7F6FB">
+<div style="width: 1440px; height: 1340px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #F7F6FB">
 <div style="padding: 28px 40px 0 40px; display: flex; align-items: baseline; gap: 16px">
 <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Design v2: alive, in two modes</div>
 <div style="font-size: 14px; color: #5E5A72">Decision 0041, 3 October 2026. Same tokens, two values each. Plus Jakarta Sans for everything but numbers.</div>
@@ -95,14 +95,14 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div class="dark panel" style="width: 720px">
 <div class="h">DARK. Deep navy ground, raised cards, the same four colours lifted two steps.</div>
 <div class="sw">
-<div style="background: #0F0E17; color: #fff">bg 0F0E17</div>
-<div style="background: #181726; color: #fff">surface</div>
-<div style="background: #2C2A40; color: #fff">hairline</div>
+<div style="background: #16152A; color: #fff">bg 16152A</div>
+<div style="background: #1E1D33; color: #fff">surface</div>
+<div style="background: #343252; color: #fff">hairline</div>
 <div style="background: #F3F1FA">ink F3F1FA</div>
 <div style="background: #A8A4BE">muted</div>
 <div style="background: #9B86FF">violet 400</div>
 <div style="background: #B8A8FF">violet 300 text</div>
-<div style="background: #272249; color: #fff">violet soft</div>
+<div style="background: #2E2B55; color: #fff">violet soft</div>
 <div style="background: #FF8A78">coral 400</div>
 <div style="background: #5FD3B3">mint 300</div>
 <div style="background: #FFD36E">sun 300</div>
@@ -146,12 +146,12 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 </div>
 </div>
 <div style="padding: 18px 40px 24px 40px; font-size: 13px; color: #5E5A72; display: flex; gap: 32px; flex-wrap: wrap">
-<span>Contrast, computed: ink on light bg 17.1; muted 6.1; violet 600 text 4.9; violet 700 text 6.2; white on violet 600 5.3; ink on dark bg 17.1; muted 8.0; violet 400 6.6; coral 400 8.4; mint 300 10.5.</span>
+<span>Contrast, computed: ink on light bg 17.1; muted 6.1; violet 600 text 4.9; violet 700 text 6.2; white on violet 600 5.3; ink on dark bg 16.0; muted 7.4; violet 400 6.2; coral 400 7.8; mint 300 9.8.</span>
 <span>Coral, mint and sun are never text on light; their 700 or 800 steps are.</span>
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1340}}'>
 class Component extends DCLogic {
 renderVals() { return {}; }
 }

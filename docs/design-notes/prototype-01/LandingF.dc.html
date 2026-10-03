@@ -10,14 +10,22 @@
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#0F0E17;color:#F3F1FA}
+body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#16152A;color:#F3F1FA}
 a{color:inherit;text-decoration:none}
-.mono{font-family:'Geist Mono',monospace}
+.mono{font-family:'Geist Mono',monospace;white-space:nowrap}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(95,211,179,0.18)}50%{box-shadow:0 0 0 9px rgba(95,211,179,0.05)}}
+@keyframes floaty{0%,100%{transform:rotate(8deg) translateY(0)}50%{transform:rotate(8deg) translateY(-8px)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.dot{animation:pulse 2.2s ease-in-out infinite}
+.rise{animation:rise 700ms ease-out both}
+.card{transition:transform 180ms ease-out,box-shadow 180ms ease-out}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(45,32,110,0.16)}
+@media (prefers-reduced-motion:reduce){.dot,.rise,.blob{animation:none}.card{transition:none}}
 .btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 26px;border-radius:999px;font-weight:700;font-size:16px}
 .btn.p{background:linear-gradient(135deg,#7A5CFF,#6D4CF5 60%,#5A3BE0);color:#fff;box-shadow:0 10px 26px rgba(109,76,245,0.40)}
-.btn.g{border:1px solid #3B3854;color:#F3F1FA;background:rgba(255,255,255,0.03)}
+.btn.g{border:1px solid #46445F;color:#F3F1FA;background:rgba(255,255,255,0.03)}
 .btn.s{border:1px solid #CFCBE0;color:#15131F;background:#fff}
-.chip{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px 0 8px;border-radius:999px;border:1px solid #3B3854;background:rgba(255,255,255,0.04);font-size:13px;color:#C9C4E0}
+.chip{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px 0 8px;border-radius:999px;border:1px solid #46445F;background:rgba(255,255,255,0.04);font-size:13px;color:#C9C4E0}
 .dot{width:8px;height:8px;border-radius:999px;background:#5FD3B3;box-shadow:0 0 0 4px rgba(95,211,179,0.18)}
 .card{background:#fff;border:1px solid #E6E3F0;border-radius:20px;box-shadow:0 12px 32px rgba(45,32,110,0.10)}
 .step{width:28px;height:28px;border-radius:999px;background:#6D4CF5;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
@@ -29,9 +37,9 @@ a{color:inherit;text-decoration:none}
 .rate span.on{background:#6D4CF5;color:#fff;border-color:#6D4CF5}
 </style>
 </helmet>
-<div style="width: 1440px; height: 3420px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column">
+<div style="width: 1440px; height: 2660px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column">
 
-<div style="position: relative; height: 920px; box-sizing: border-box; overflow: hidden; background: #0F0E17">
+<div style="position: relative; height: 840px; box-sizing: border-box; overflow: hidden; background: #16152A">
 <div style="position: absolute; left: -200px; top: -260px; width: 900px; height: 900px; border-radius: 50%; background: radial-gradient(circle, rgba(109,76,245,0.55), rgba(109,76,245,0) 62%)"></div>
 <div style="position: absolute; right: -160px; top: 120px; width: 760px; height: 760px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,87,0.38), rgba(255,107,87,0) 60%)"></div>
 <div style="position: absolute; left: 520px; top: 520px; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, rgba(245,183,64,0.22), rgba(245,183,64,0) 60%)"></div>
@@ -50,8 +58,8 @@ a{color:inherit;text-decoration:none}
 </div>
 </div>
 
-<div style="position: relative; padding: 70px 120px 0 120px; display: flex; justify-content: space-between; align-items: flex-start">
-<div style="width: 560px; display: flex; flex-direction: column; align-items: flex-start">
+<div style="position: relative; height: 764px; box-sizing: border-box; padding: 0 120px 30px 120px; display: flex; justify-content: space-between; align-items: center">
+<div class="rise" style="width: 560px; display: flex; flex-direction: column; align-items: flex-start">
 <div class="chip"><span class="dot"></span>Live: 5 of 7 experts answering right now</div>
 <h1 style="margin: 22px 0 0 0; font-size: 66px; font-weight: 800; line-height: 68px; letter-spacing: -0.04em">Send the list as a link. <span style="background: linear-gradient(90deg,#B8A8FF 0%,#FF8A78 60%,#FFD36E 100%); -webkit-background-clip: text; background-clip: text; color: transparent">Get back who agrees, and why.</span></h1>
 <div style="margin-top: 26px; font-size: 19px; line-height: 30px; color: #C9C4E0; max-width: 520px">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</div>
@@ -60,13 +68,13 @@ a{color:inherit;text-decoration:none}
 <a href="RespondentV2.dc.html" class="btn g">Try the sample as a respondent</a>
 </div>
 <div style="margin-top: 26px; display: flex; align-items: center; gap: 14px; font-size: 13px; color: #A8A4BE">
-<div style="display: flex"><span style="width: 26px; height: 26px; border-radius: 999px; background: #FF8A78; border: 2px solid #0F0E17"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #5FD3B3; border: 2px solid #0F0E17; margin-left: -8px"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #FFD36E; border: 2px solid #0F0E17; margin-left: -8px"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #9B86FF; border: 2px solid #0F0E17; margin-left: -8px"></span></div>
+<div style="display: flex"><span style="width: 26px; height: 26px; border-radius: 999px; background: #FF8A78; border: 2px solid #16152A"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #5FD3B3; border: 2px solid #16152A; margin-left: -8px"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #FFD36E; border: 2px solid #16152A; margin-left: -8px"></span><span style="width: 26px; height: 26px; border-radius: 999px; background: #9B86FF; border: 2px solid #16152A; margin-left: -8px"></span></div>
 <span>No account for the experts. Nothing to install. Free while we build it.</span>
 </div>
 </div>
 
-<div style="position: relative; width: 600px">
-<div class="card" style="position: relative; width: 560px; padding: 22px; color: #15131F; display: flex; flex-direction: column; gap: 14px; transform: rotate(-1.5deg)">
+<div class="rise" style="position: relative; width: 600px; padding: 40px 0 40px 20px; box-sizing: border-box; animation-delay: 150ms">
+<div class="card" style="position: relative; width: 540px; box-sizing: border-box; padding: 22px; color: #15131F; display: flex; flex-direction: column; gap: 14px; transform: rotate(-1.5deg)">
 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #5E5A72">
 <div class="mono" style="letter-spacing: 0.02em">Approving · CL-04</div>
 <div style="display: flex; align-items: center; gap: 6px"><span class="dot"></span>Arriving now</div>
@@ -80,13 +88,13 @@ a{color:inherit;text-decoration:none}
 <div style="padding: 9px 2px; display: flex; align-items: center; gap: 12px; font-size: 14px"><span style="width: 28px; height: 28px; border-radius: 999px; background: #E1F5EE; color: #166A52; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center">IC</span><span style="flex-grow: 1">Ioana, HR</span><span style="padding: 2px 10px; border-radius: 999px; background: #E1F5EE; color: #166A52; font-size: 12px; font-weight: 600">Agree</span></div>
 </div>
 <div style="display: flex; gap: 4px; height: 8px"><div style="flex-grow: 2; border-radius: 999px; background: #1F9D7A"></div><div style="flex-grow: 2; border-radius: 999px; background: #F5B740"></div><div style="flex-grow: 1; border-radius: 999px; background: #CFCBE0"></div></div>
-<div style="background: linear-gradient(135deg,#1C1A33,#0F0E17); color: #F3F1FA; border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px">
+<div style="background: linear-gradient(135deg,#262450,#16152A); color: #F3F1FA; border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px">
 <div><div style="font-size: 12px; color: #5FD3B3; font-weight: 600">To do, written by AI</div><div style="font-size: 15px; margin-top: 2px">Decide whether policy flags move to Must have.</div></div>
 <div style="font-size: 12px; color: #A8A4BE; white-space: nowrap">From 2 answers</div>
 </div>
 </div>
-<div class="blob" aria-hidden="true" style="position: absolute; right: -10px; top: -46px; transform: rotate(8deg)"></div>
-<div style="position: absolute; left: -36px; bottom: -34px; background: #181726; border: 1px solid #2C2A40; border-radius: 14px; padding: 12px 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 10px; background: #272249; color: #B8A8FF; display: flex; align-items: center; justify-content: center; font-weight: 800">72%</span><div style="font-size: 13px; line-height: 18px"><div style="font-weight: 600">Agreement so far</div><div style="color: #A8A4BE">14 of 40 items rated</div></div></div>
+<div class="blob" aria-hidden="true" style="position: absolute; right: -16px; top: -12px; animation: floaty 6s ease-in-out infinite"></div>
+<div style="position: absolute; left: -20px; bottom: 6px; background: #1E1D33; border: 1px solid #343252; border-radius: 14px; padding: 12px 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 10px; background: #2E2B55; color: #B8A8FF; display: flex; align-items: center; justify-content: center; font-weight: 800">72%</span><div style="font-size: 13px; line-height: 18px"><div style="font-weight: 600">Agreement so far</div><div style="color: #A8A4BE">14 of 40 items rated</div></div></div>
 </div>
 </div>
 </div>
@@ -139,7 +147,7 @@ a{color:inherit;text-decoration:none}
 </div>
 </div>
 
-<div id="pricing" style="position: relative; background: #0F0E17; color: #F3F1FA; padding: 96px 120px; box-sizing: border-box; overflow: hidden">
+<div id="pricing" style="position: relative; background: #16152A; color: #F3F1FA; padding: 96px 120px; box-sizing: border-box; overflow: hidden">
 <div style="position: absolute; right: -200px; bottom: -300px; width: 800px; height: 800px; border-radius: 50%; background: radial-gradient(circle, rgba(109,76,245,0.45), rgba(109,76,245,0) 62%)"></div>
 <div style="position: relative; display: flex; justify-content: space-between; align-items: center">
 <div style="width: 560px">
@@ -147,8 +155,8 @@ a{color:inherit;text-decoration:none}
 <div style="margin-top: 18px; font-size: 17px; line-height: 26px; color: #C9C4E0">Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you build now is lost or locked.</div>
 <div style="margin-top: 30px; display: flex; gap: 14px"><a href="#" class="btn p">Start free</a><a href="RespondentV2.dc.html" class="btn g">See the sample</a></div>
 </div>
-<div style="width: 440px; background: #181726; border: 1px solid #2C2A40; border-radius: 20px; padding: 28px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 20px; font-weight: 700">Free</span><span style="padding: 4px 10px; border-radius: 999px; background: #272249; color: #B8A8FF; font-size: 12px; font-weight: 600">While we build it</span></div>
+<div style="width: 440px; background: #1E1D33; border: 1px solid #343252; border-radius: 20px; padding: 28px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 20px; font-weight: 700">Free</span><span style="padding: 4px 10px; border-radius: 999px; background: #2E2B55; color: #B8A8FF; font-size: 12px; font-weight: 600">While we build it</span></div>
 <div style="font-size: 44px; font-weight: 800; letter-spacing: -0.03em">EUR 0<span style="font-size: 16px; font-weight: 500; color: #A8A4BE"> / month</span></div>
 <div style="display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: #C9C4E0">
 <div><span style="color: #5FD3B3; font-weight: 700">✓</span>  Projects, experts and answers without limits</div>
@@ -160,13 +168,13 @@ a{color:inherit;text-decoration:none}
 </div>
 </div>
 
-<div style="background: #0F0E17; color: #A8A4BE; padding: 32px 120px 40px 120px; border-top: 1px solid #2C2A40; display: flex; justify-content: space-between; font-size: 13px">
+<div style="background: #16152A; color: #A8A4BE; padding: 32px 120px 40px 120px; border-top: 1px solid #343252; display: flex; justify-content: space-between; font-size: 13px">
 <span>SMEsay. What the SMEs say. SME: subject matter expert.</span>
 <span>Privacy · Terms · hello@smesay.app</span>
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3420}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2660}}'>
 class Component extends DCLogic {
 renderVals() { return {}; }
 }

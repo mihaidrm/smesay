@@ -70,8 +70,8 @@ Text contrast, computed: ink on white 17.77, ink-muted on white 6.32, ink-muted 
 teal 700 on white 6.36, teal 700 on greige 5.29, white on teal 700 6.36, teal 300 on ink 10.02.
 Hairline-strong is never text (1.69). Teal 700 on ink fails (2.79); use teal 300 there.
 
-Dark mode: v2 builds it on every side (decision 0041, note 33: ground #0F0E17, surface
-#181726, raised #201F31, hairline #2C2A40, ink #F3F1FA, muted #A8A4BE, violet 400 accent;
+Dark mode: v2 builds it on every side (decision 0041, note 33: ground #16152A, surface
+#1E1D33, raised #27263F, hairline #343252, ink #F3F1FA, muted #A8A4BE, violet 400 accent;
 status solids lift to their 300 steps on dark). The v1 mapping (background #111214, surface
 #1A1C1F, hairline #2A2D32, ink #F2F1EE, ink-muted #A3A7AE, accent teal 300) is superseded.
 

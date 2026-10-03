@@ -10,26 +10,26 @@
 <helmet>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#0F0E17;color:#F3F1FA}
+body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#16152A;color:#F3F1FA}
 .mono{font-family:'Geist Mono',monospace}
 .light{--bg:#F7F6FB;--surface:#FFFFFF;--raised:#FFFFFF;--hair:#E6E3F0;--hair2:#CFCBE0;--ink:#15131F;--muted:#5E5A72;--accent:#1F4F7A;--accent-soft:#E3EEF9;--mint:#1F9D7A;--mint-text:#166A52;--sun-text:#8A5A00;--shadow:0 10px 26px rgba(45,32,110,0.10)}
-.dark{--bg:#0F0E17;--surface:#181726;--raised:#201F31;--hair:#2C2A40;--hair2:#3B3854;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#6FA8E6;--accent-soft:#1B2A3F;--mint:#5FD3B3;--mint-text:#5FD3B3;--sun-text:#FFD36E;--shadow:0 10px 26px rgba(0,0,0,0.45)}
+.dark{--bg:#16152A;--surface:#1E1D33;--raised:#27263F;--hair:#343252;--hair2:#46445F;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#6FA8E6;--accent-soft:#223247;--mint:#5FD3B3;--mint-text:#5FD3B3;--sun-text:#FFD36E;--shadow:0 10px 26px rgba(0,0,0,0.45)}
 .phone{width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;border-radius:36px;border:1px solid var(--hair2)}
 .top{padding:16px 20px 12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--hair);background:var(--surface)}
-.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:10px}
-.rate{display:flex;gap:4px}
-.rate span{flex:1;height:38px;border-radius:999px;border:1px solid var(--hair2);font-size:11.5px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;gap:9px}
+.rate{display:flex;gap:2px}
+.rate span{flex:1;min-width:0;height:38px;border-radius:999px;border:1px solid var(--hair2);font-size:10px;letter-spacing:-0.01em;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--muted);white-space:nowrap;padding:0}
 .rate span.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .rate span.prop{border:1.5px dashed var(--muted);color:var(--ink)}
 .foot{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted)}
 .btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 22px;border-radius:999px;font-weight:700;font-size:16px;font-family:inherit;border:0}
 .btn.p{background:var(--ink);color:var(--bg)}
-.chap{display:flex;gap:6px;overflow:hidden}
+.chap{display:flex;gap:6px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
 .chap span{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--hair2);font-size:12px;font-weight:600;display:flex;align-items:center;color:var(--muted);white-space:nowrap}
 .chap span.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 </style>
 </helmet>
-<div style="width: 900px; height: 960px; box-sizing: border-box; display: flex; gap: 60px; align-items: flex-start; padding: 40px; background: #0F0E17; overflow: hidden">
+<div style="width: 900px; height: 960px; box-sizing: border-box; display: flex; gap: 60px; align-items: flex-start; padding: 40px; background: #16152A; overflow: hidden">
 
 <div class="light" style="display: flex; flex-direction: column; gap: 14px">
 <div style="color: #A8A4BE; font-size: 13px">Light, the PM's accent #1F4F7A on the selected answer, the active chapter and the progress bar (decision 0016).</div>
@@ -45,7 +45,7 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.025em; line-height: 28px">Submitting <span style="font-size: 14px; font-weight: 500; color: var(--muted)">6 items</span></div>
 <div style="font-size: 14px; line-height: 20px; color: var(--muted)">How a claim gets in. Rate each item as you see it from your work.</div>
 </div>
-<div style="padding: 14px 20px 20px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<div style="padding: 14px 20px 8px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; flex: 1 1 0; min-height: 0">
 <div class="card" style="border-color: var(--accent)">
 <div class="mono" style="font-size: 11px; color: var(--muted)">CL-01</div>
 <div style="font-size: 16px; line-height: 23px; font-weight: 600">Photograph a receipt and the amount, date and merchant are filled in automatically.</div>
@@ -62,7 +62,7 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div class="foot"><span>Details</span><span>+ comment</span><span style="margin-left: auto">Not rated yet</span></div>
 </div>
 </div>
-<div style="margin-top: auto; padding: 12px 20px 22px 20px; background: var(--surface); border-top: 1px solid var(--hair); display: flex; align-items: center; justify-content: space-between">
+<div style="flex-shrink: 0; padding: 12px 20px 22px 20px; background: var(--surface); border-top: 1px solid var(--hair); display: flex; align-items: center; justify-content: space-between">
 <span style="font-size: 12px; color: var(--muted)">Saved on this phone.<br>Close the tab and come back.</span>
 <span class="btn p">Next: Approving →</span>
 </div>
@@ -83,12 +83,12 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.025em; line-height: 28px">Submitting <span style="font-size: 14px; font-weight: 500; color: var(--muted)">6 items</span></div>
 <div style="font-size: 14px; line-height: 20px; color: var(--muted)">How a claim gets in. Rate each item as you see it from your work.</div>
 </div>
-<div style="padding: 14px 20px 20px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<div style="padding: 14px 20px 8px 20px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; flex: 1 1 0; min-height: 0">
 <div class="card" style="border-color: var(--accent)">
 <div class="mono" style="font-size: 11px; color: var(--muted)">CL-01</div>
 <div style="font-size: 16px; line-height: 23px; font-weight: 600">Photograph a receipt and the amount, date and merchant are filled in automatically.</div>
 <div style="font-size: 12px; color: var(--muted)">Your rating</div>
-<div class="rate"><span class="on" style="color: #0F0E17">Must</span><span>Should</span><span>Could</span><span>Not needed</span><span>Unclear</span></div>
+<div class="rate"><span class="on" style="color: #16152A">Must</span><span>Should</span><span>Could</span><span>Not needed</span><span>Unclear</span></div>
 <div style="background: var(--raised); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 18px; color: var(--muted)">Covers paper receipts and PDFs. Out of scope: receipts in a language the OCR does not read.</div>
 <div class="foot"><span>Details</span><span>+ comment</span><span style="margin-left: auto; color: var(--mint-text); font-weight: 600">Saved</span></div>
 </div>
@@ -101,7 +101,7 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div class="foot"><span>Details</span><span>+ comment</span><span style="margin-left: auto; color: var(--sun-text); font-weight: 600">Reason missing</span></div>
 </div>
 </div>
-<div style="margin-top: auto; padding: 12px 20px 22px 20px; background: var(--surface); border-top: 1px solid var(--hair); display: flex; align-items: center; justify-content: space-between">
+<div style="flex-shrink: 0; padding: 12px 20px 22px 20px; background: var(--surface); border-top: 1px solid var(--hair); display: flex; align-items: center; justify-content: space-between">
 <span style="font-size: 12px; color: var(--muted)">Saved on this phone.<br>Close the tab and come back.</span>
 <span class="btn p">Next: Approving →</span>
 </div>
