@@ -74,8 +74,9 @@ The evals key is in the repository secrets since 2026-10-03. The trademark searc
 
 Next tasks for Claude: none until Mihai says so. E4 is complete (E4-1 to E4-5 merged, PRs
 40 to 44; E4-6 built 2026-10-03 on decisions 0037 and 0038, PR 49) and Mihai asked for a
-pause after it, with a design pass on the boards before E5-1 (his question of 2026-10-03;
-recommended and agreed in the chat, no decision file yet). The golden set's eighth run met
+pause after it, with a design pass on the boards before E5-1: design v2 (decision 0041, note
+33, boards Brand07, LandingF, PmAppV2, RespondentV2) is proposed and waits for Mihai's review;
+the asset list he buys from is docs/assets.md. The golden set's eighth run met
 the bar (7 of 10, no content failure) and is recorded in story E4-6. Since decision 0039
 nothing Claude runs spends money: the Evals job starts by hand only, and the smoke test and
 `npm run evals` are Mihai's to run.

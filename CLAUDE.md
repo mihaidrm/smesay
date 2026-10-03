@@ -55,7 +55,10 @@ Nothing from any client engagement is read, referenced or reconstructed. Design 
 instrument and the dashboard from stories/, docs/design-notes/ and public tools only. Every design
 session writes a dated note in docs/design-notes/ saying what was decided and why.
 
-Nothing hand-drawn or illustrated. Product screens are the imagery.
+Nothing drawn by hand by Claude. Product screens are the imagery, plus bought or
+free-licensed assets (mascot, spot illustrations, icons) that Mihai buys from the list in
+docs/assets.md and Claude places; a placeholder with the same frame stands in until then
+(decision 0041).
 
 Definition of done for a story: acceptance criteria met and demonstrated with a screenshot or test
 output; unit tests for logic and a Playwright test for the main path of any user-facing flow; no

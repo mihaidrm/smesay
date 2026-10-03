@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PM app, design v2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#0F0E17;color:#F3F1FA}
+.mono{font-family:'Geist Mono',monospace}
+.light{--bg:#F7F6FB;--surface:#FFFFFF;--raised:#FFFFFF;--hair:#E6E3F0;--hair2:#CFCBE0;--ink:#15131F;--muted:#5E5A72;--accent:#6D4CF5;--accent-text:#5A3BE0;--accent-soft:#EEEAFF;--coral:#FF6B57;--coral-soft:#FFE9E5;--coral-text:#9E3321;--mint:#1F9D7A;--mint-soft:#E1F5EE;--mint-text:#166A52;--sun:#F5B740;--sun-soft:#FFF3D6;--sun-text:#8A5A00;--shadow:0 12px 32px rgba(45,32,110,0.10)}
+.dark{--bg:#0F0E17;--surface:#181726;--raised:#201F31;--hair:#2C2A40;--hair2:#3B3854;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#9B86FF;--accent-text:#B8A8FF;--accent-soft:#272249;--coral:#FF8A78;--coral-soft:#3A2230;--coral-text:#FF8A78;--mint:#5FD3B3;--mint-soft:#15302B;--mint-text:#5FD3B3;--sun:#FFD36E;--sun-soft:#3A2F14;--sun-text:#FFD36E;--shadow:0 12px 32px rgba(0,0,0,0.45)}
+.app{background:var(--bg);color:var(--ink);display:flex;height:100%}
+.side{width:248px;box-sizing:border-box;padding:18px 14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--hair);background:var(--surface)}
+.nav{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:12px;font-size:14px;font-weight:500;color:var(--muted)}
+.nav.on{background:var(--accent-soft);color:var(--accent-text)}
+.nav svg{width:18px;height:18px;flex-shrink:0}
+.nav .n{margin-left:auto;background:var(--coral);color:#15131F;font-size:11px;font-weight:700;border-radius:999px;padding:2px 7px}
+.main{flex-grow:1;padding:26px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;overflow:hidden}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;border-radius:999px;font-weight:600;font-size:14px;border:0;font-family:inherit;white-space:nowrap}
+.btn.p{background:linear-gradient(135deg,#7A5CFF,#6D4CF5 60%,#5A3BE0);color:#fff;box-shadow:0 8px 20px rgba(109,76,245,0.35)}
+.btn.s{background:var(--surface);color:var(--ink);border:1px solid var(--hair2)}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.step{display:flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 8px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
+.step i{width:22px;height:22px;border-radius:999px;border:1.5px solid var(--hair2);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:11px}
+.step.done i{background:var(--mint);border-color:var(--mint);color:#0F0E17}
+.step.on{background:var(--accent);color:#fff}.step.on i{background:#fff;border-color:#fff;color:#5A3BE0}
+.row{display:flex;align-items:center;gap:16px;padding:0 18px;height:52px;border-top:1px solid var(--hair);font-size:14px}
+.stat{flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.stat .v{font-size:30px;font-weight:800;letter-spacing:-0.03em}
+.stat .l{font-size:13px;color:var(--muted)}
+.item{display:flex;gap:12px;padding:12px 14px;border:1px solid var(--hair);border-radius:12px;background:var(--raised);font-size:14px;line-height:20px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 2140px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #0F0E17">
+
+<div class="dark app" style="height: 1000px; flex-shrink: 0">
+<div class="side">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px 8px">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#6D4CF5"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path></svg>
+<span style="font-size: 17px; font-weight: 800; letter-spacing: -0.02em">S<span style="color: var(--accent-text)">ME</span>say</span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--raised); margin-bottom: 10px"><span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(135deg,#FF8A78,#FFD36E); color: #15131F; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center">MG</span><div style="font-size: 13px; line-height: 16px"><div style="font-weight: 600">Marlow Group</div><div style="color: var(--muted)">Free · 2 members</div></div></div>
+<div class="nav on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Projects</div>
+<div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>Results<span class="n">3</span></div>
+<div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>Settings</div>
+<div style="margin-top: auto; background: linear-gradient(135deg,#272249,#1C1A33); border: 1px solid var(--hair2); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 700">Try the sample</div>
+<div style="font-size: 12px; color: var(--muted); line-height: 17px">Marlow's expense list, 6 items, 5 of 7 experts answered.</div>
+<span class="btn s" style="height: 32px; font-size: 12px; align-self: flex-start">Open the sample</span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 0 10px; font-size: 12px; color: var(--muted)"><span>Dark</span><span style="width: 36px; height: 20px; border-radius: 999px; background: var(--accent); position: relative"><span style="position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff"></span></span></div>
+</div>
+
+<div class="main">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<div><div style="font-size: 13px; color: var(--muted)">Marlow Group</div><div style="font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-top: 2px">Projects</div></div>
+<div style="display: flex; gap: 10px"><span class="btn s">Show archived</span><span class="btn p">+ New project</span></div>
+</div>
+<div style="display: flex; gap: 14px">
+<div class="card stat"><span class="v">3</span><span class="l">projects, 1 open link</span></div>
+<div class="card stat"><span class="v" style="color: var(--mint)">31</span><span class="l">responses this month</span></div>
+<div class="card stat"><span class="v" style="color: var(--accent-text)">72%</span><span class="l">agreement on the open list</span></div>
+<div class="card stat" style="background: linear-gradient(135deg,#272249,#181726)"><span class="v" style="color: var(--sun)">4</span><span class="l">to-dos written by AI, 1 done</span></div>
+</div>
+<div class="card" style="overflow: hidden">
+<div style="display: flex; align-items: center; gap: 16px; padding: 12px 18px; font-size: 12px; color: var(--muted); font-weight: 600"><span style="flex-grow: 1">Project</span><span style="width: 110px">Status</span><span style="width: 110px">Items</span><span style="width: 130px">Responses</span><span style="width: 110px">Updated</span><span style="width: 90px"></span></div>
+<div class="row"><span style="flex-grow: 1; display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg,#FF8A78,#FFD36E)"></span><span><span style="font-weight: 600">Expense tool, replacement</span><span style="display: block; font-size: 12px; color: var(--muted)">Version 2 imported yesterday</span></span></span><span style="width: 110px"><span class="pill" style="background: var(--mint-soft); color: var(--mint-text)">Open</span></span><span style="width: 110px" class="mono">40</span><span style="width: 130px" class="mono">31 of 40</span><span style="width: 110px; color: var(--muted)">2 Oct</span><span style="width: 90px"><span class="btn s" style="height: 30px; padding: 0 12px; font-size: 12px">Open</span></span></div>
+<div class="row"><span style="flex-grow: 1; display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg,#9B86FF,#5FD3B3)"></span><span><span style="font-weight: 600">Clinic scheduling</span><span style="display: block; font-size: 12px; color: var(--muted)">Shaped, 24 items in 6 areas</span></span></span><span style="width: 110px"><span class="pill" style="background: var(--accent-soft); color: var(--accent-text)">Draft</span></span><span style="width: 110px" class="mono">24</span><span style="width: 130px" class="mono">0 of 0</span><span style="width: 110px; color: var(--muted)">today</span><span style="width: 90px"><span class="btn s" style="height: 30px; padding: 0 12px; font-size: 12px">Open</span></span></div>
+<div class="row"><span style="flex-grow: 1; display: flex; align-items: center; gap: 10px"><span style="width: 32px; height: 32px; border-radius: 10px; background: var(--raised); border: 1px dashed var(--hair2)"></span><span><span style="font-weight: 600">Marlow expense sample</span><span style="display: block; font-size: 12px; color: var(--muted)">Seeded, every screen has data</span></span></span><span style="width: 110px"><span class="pill" style="background: var(--raised); color: var(--muted); border: 1px solid var(--hair2)">Sample</span></span><span style="width: 110px" class="mono">6</span><span style="width: 130px" class="mono">5 of 7</span><span style="width: 110px; color: var(--muted)">1 Oct</span><span style="width: 90px"><span class="btn s" style="height: 30px; padding: 0 12px; font-size: 12px">Open</span></span></div>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px">
+<div><div style="font-size: 13px; color: var(--muted)">Clinic scheduling</div><div style="font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin-top: 2px">Shape the list</div></div>
+<div style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--hair)"><span class="step done"><i>✓</i>Import</span><span class="step on"><i>2</i>Shape</span><span class="step"><i>3</i>Build</span><span class="step"><i>4</i>Share</span><span class="step"><i>5</i>Results</span></div>
+</div>
+<div style="display: flex; gap: 14px; flex-grow: 1; min-height: 0">
+<div class="card" style="flex: 1.1; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 15px; font-weight: 700">Booking <span class="mono" style="font-size: 12px; color: var(--muted); font-weight: 400">6 items</span></span><span style="font-size: 12px; color: var(--muted)">First, because every visit starts here.</span></div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CS-01</span><span>Patients book an appointment online without calling the desk.</span><span class="pill" style="background: var(--mint-soft); color: var(--mint-text); margin-left: auto">Reader used</span></div>
+<div class="item" style="border-color: var(--accent)"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CS-03</span><span>The system refuses a double booking of the same room.</span><span class="pill" style="background: var(--accent-soft); color: var(--accent-text); margin-left: auto">Suggested</span></div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CS-12</span><span>Patients can book online.</span><span class="pill" style="background: var(--coral-soft); color: var(--coral-text); margin-left: auto">Duplicate of CS-01</span></div>
+<div style="font-size: 12px; color: var(--muted); padding: 2px 4px">Move an item by dragging it to another area, or pick the area from its menu.</div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 14px">
+<div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(135deg,#1C1A33,#181726)">
+<div style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--sun)"></span><span style="font-size: 14px; font-weight: 700">Ambiguity in CS-15</span><span class="btn s" style="height: 28px; padding: 0 10px; font-size: 12px; margin-left: auto">Dismiss</span></div>
+<div style="font-size: 14px; line-height: 20px; color: var(--muted)">"The system is fast." does not say what fast means or for whom. Respondents may mark it unclear.</div>
+</div>
+<div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 15px; font-weight: 700">Reminders <span class="mono" style="font-size: 12px; color: var(--muted); font-weight: 400">3 items</span></span><span style="font-size: 12px; color: var(--muted)">Then, the day before.</span></div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CS-04</span><span>Patients get a reminder the day before by SMS and email.</span></div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CS-05</span><span>Patients confirm or cancel from the reminder in one tap.</span></div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: auto"><span class="btn s">Accept all 18 suggestions</span><span class="btn p" style="margin-left: auto">Continue to Build →</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="height: 60px; display: flex; align-items: center; padding: 0 32px; font-size: 13px; color: #A8A4BE; background: #0F0E17; border-top: 1px solid #2C2A40">Same screen in light mode. One toggle in the sidebar; the default follows the system.</div>
+
+<div class="light app" style="height: 1080px; flex-shrink: 0">
+<div class="side">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px 8px">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#6D4CF5"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path></svg>
+<span style="font-size: 17px; font-weight: 800; letter-spacing: -0.02em">S<span style="color: var(--accent-text)">ME</span>say</span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); margin-bottom: 10px"><span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(135deg,#FF6B57,#F5B740); color: #15131F; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center">MG</span><div style="font-size: 13px; line-height: 16px"><div style="font-weight: 600">Marlow Group</div><div style="color: var(--muted)">Free · 2 members</div></div></div>
+<div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Projects</div>
+<div class="nav on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>Results<span class="n">3</span></div>
+<div class="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>Settings</div>
+<div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 0 10px; font-size: 12px; color: var(--muted)"><span>Light</span><span style="width: 36px; height: 20px; border-radius: 999px; background: var(--hair2); position: relative"><span style="position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff"></span></span></div>
+</div>
+<div class="main">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<div><div style="font-size: 13px; color: var(--muted)">Expense tool, replacement</div><div style="font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-top: 2px">Results</div></div>
+<div style="display: flex; gap: 10px; align-items: center"><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted)"><span style="width: 8px; height: 8px; border-radius: 999px; background: var(--mint)"></span>Live</span><span class="btn s">Export CSV</span><span class="btn p">Share link</span></div>
+</div>
+<div style="display: flex; gap: 14px">
+<div class="card stat"><span class="v">31<span style="font-size: 16px; color: var(--muted); font-weight: 500"> of 40</span></span><span class="l">experts answered</span></div>
+<div class="card stat"><span class="v" style="color: var(--mint-text)">72%</span><span class="l">agree over answered</span></div>
+<div class="card stat"><span class="v" style="color: var(--sun-text)">9</span><span class="l">items pushed back</span></div>
+<div class="card stat"><span class="v" style="color: var(--accent-text)">3.8</span><span class="l">confidence at sign-off, of 5</span></div>
+</div>
+<div style="display: flex; gap: 14px; flex-grow: 1; min-height: 0">
+<div class="card" style="flex: 1.3; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 15px; font-weight: 700">Agreement by area</div>
+<div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+<div><div style="display: flex; justify-content: space-between"><span>Submitting</span><span class="mono">81%</span></div><div style="margin-top: 6px; display: flex; gap: 3px; height: 10px"><div style="flex-grow: 8.1; border-radius: 999px; background: #1F9D7A"></div><div style="flex-grow: 1.2; border-radius: 999px; background: #F5B740"></div><div style="flex-grow: 0.7; border-radius: 999px; background: #7C3AED"></div></div></div>
+<div><div style="display: flex; justify-content: space-between"><span>Approving</span><span class="mono">64%</span></div><div style="margin-top: 6px; display: flex; gap: 3px; height: 10px"><div style="flex-grow: 6.4; border-radius: 999px; background: #1F9D7A"></div><div style="flex-grow: 2.6; border-radius: 999px; background: #F5B740"></div><div style="flex-grow: 1; border-radius: 999px; background: #7C3AED"></div></div></div>
+<div><div style="display: flex; justify-content: space-between"><span>Paying</span><span class="mono">92%</span></div><div style="margin-top: 6px; display: flex; gap: 3px; height: 10px"><div style="flex-grow: 9.2; border-radius: 999px; background: #1F9D7A"></div><div style="flex-grow: 0.8; border-radius: 999px; background: #F5B740"></div></div></div>
+<div><div style="display: flex; justify-content: space-between"><span>Reporting</span><span class="mono">58%</span></div><div style="margin-top: 6px; display: flex; gap: 3px; height: 10px"><div style="flex-grow: 5.8; border-radius: 999px; background: #1F9D7A"></div><div style="flex-grow: 3; border-radius: 999px; background: #F5B740"></div><div style="flex-grow: 1.2; border-radius: 999px; background: #7C3AED"></div></div></div>
+</div>
+<div style="display: flex; gap: 14px; font-size: 12px; color: var(--muted)"><span><span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: #1F9D7A; vertical-align: -1px"></span> Agree</span><span><span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: #F5B740; vertical-align: -1px"></span> Pushed back</span><span><span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: #7C3AED; vertical-align: -1px"></span> Unclear</span></div>
+<div style="font-size: 15px; font-weight: 700; margin-top: 6px">Items most pushed back</div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CL-04</span><span>Expenses over the policy limit are flagged before they reach the approver.</span><span class="pill" style="background: var(--sun-soft); color: var(--sun-text); margin-left: auto">5 pushed back</span></div>
+<div class="item"><span class="mono" style="color: var(--muted); font-size: 12px; padding-top: 2px">CL-06</span><span>Employees can request a cash advance before a trip.</span><span class="pill" style="background: var(--sun-soft); color: var(--sun-text); margin-left: auto">4 pushed back</span></div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 14px">
+<div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; border-color: #6D4CF5; box-shadow: 0 16px 40px rgba(109,76,245,0.18)">
+<div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 15px; font-weight: 700">To do, written by AI</span><span class="pill" style="background: var(--accent-soft); color: var(--accent-text)">4 open</span></div>
+<div class="item" style="flex-direction: column; gap: 6px"><span style="font-weight: 600">Decide whether policy flags move to Must have.</span><span style="font-size: 12px; color: var(--muted)">Cites 2 answers · Ana, Radu</span><div style="display: flex; gap: 8px"><span class="btn s" style="height: 28px; padding: 0 10px; font-size: 12px">Done</span><span class="btn s" style="height: 28px; padding: 0 10px; font-size: 12px">Dismiss</span></div></div>
+<div class="item" style="flex-direction: column; gap: 6px"><span style="font-weight: 600">Ask finance who repays a cancelled advance.</span><span style="font-size: 12px; color: var(--muted)">Cites 3 answers</span></div>
+</div>
+<div class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 15px; font-weight: 700; color: var(--coral-text)">Where groups disagree</div>
+<div style="font-size: 14px; line-height: 20px">Finance agrees with 9 of 12 approving items; sales with 4 of 12.</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted)"><div style="display: flex; align-items: center; gap: 8px"><span style="width: 56px">Finance</span><div style="width: 75%; height: 8px; border-radius: 999px; background: #6D4CF5"></div></div><div style="display: flex; align-items: center; gap: 8px"><span style="width: 56px">Sales</span><div style="width: 33%; height: 8px; border-radius: 999px; background: #B8A8FF"></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2140}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

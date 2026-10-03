@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Brand 07: design v2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;background:#F7F6FB;color:#15131F}
+.mono{font-family:'Geist Mono',monospace}
+.light{--bg:#F7F6FB;--surface:#FFFFFF;--raised:#FFFFFF;--hair:#E6E3F0;--hair2:#CFCBE0;--ink:#15131F;--muted:#5E5A72;--accent:#6D4CF5;--accent-text:#5A3BE0;--accent-soft:#EEEAFF;--coral:#FF6B57;--coral-soft:#FFE9E5;--mint:#1F9D7A;--mint-soft:#E1F5EE;--sun:#F5B740;--sun-soft:#FFF3D6;--sun-text:#8A5A00;--shadow:0 12px 32px rgba(45,32,110,0.10)}
+.dark{--bg:#0F0E17;--surface:#181726;--raised:#201F31;--hair:#2C2A40;--hair2:#3B3854;--ink:#F3F1FA;--muted:#A8A4BE;--accent:#9B86FF;--accent-text:#B8A8FF;--accent-soft:#272249;--coral:#FF8A78;--coral-soft:#3A2230;--mint:#5FD3B3;--mint-soft:#15302B;--sun:#FFD36E;--sun-soft:#3A2F14;--sun-text:#FFD36E;--shadow:0 12px 32px rgba(0,0,0,0.45)}
+.panel{background:var(--bg);color:var(--ink);padding:36px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:28px}
+.h{font-size:13px;font-weight:600;letter-spacing:0.01em;color:var(--muted)}
+.sw{display:flex;gap:10px;flex-wrap:wrap}
+.sw div{width:104px;height:72px;border-radius:14px;border:1px solid var(--hair);display:flex;align-items:flex-end;padding:8px;box-sizing:border-box;font-size:11px}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:999px;font-weight:600;font-size:14px;border:0;font-family:inherit}
+.btn.p{background:linear-gradient(135deg,#7A5CFF,#6D4CF5 60%,#5A3BE0);color:#fff;box-shadow:0 8px 20px rgba(109,76,245,0.35)}
+.btn.s{background:var(--surface);color:var(--ink);border:1px solid var(--hair2)}
+.btn.t{background:transparent;color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600}
+.input{height:42px;border:1px solid var(--hair2);border-radius:12px;background:var(--surface);padding:0 14px;display:flex;align-items:center;color:var(--muted);font-size:14px}
+.nav{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:12px;font-size:14px;font-weight:500;color:var(--muted)}
+.nav.on{background:var(--accent-soft);color:var(--accent-text)}
+.nav .ic{width:20px;height:20px;border-radius:6px;background:currentColor;opacity:0.9}
+.nav .n{margin-left:auto;background:var(--coral);color:#15131F;font-size:11px;font-weight:700;border-radius:999px;padding:2px 7px}
+.blob{position:relative;width:120px;height:120px;border-radius:40% 60% 55% 45%/50% 45% 55% 50%;background:radial-gradient(circle at 30% 30%,#B8A8FF,#6D4CF5 55%,#3B2AA6);box-shadow:0 18px 40px rgba(109,76,245,0.35)}
+.blob:after{content:"";position:absolute;left:34px;top:44px;width:52px;height:26px;border-radius:0 0 26px 26px;border:5px solid #fff;border-top:0;box-sizing:border-box}
+.blob:before{content:"";position:absolute;left:36px;top:34px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:38px 0 0 #fff}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1480px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #F7F6FB">
+<div style="padding: 28px 40px 0 40px; display: flex; align-items: baseline; gap: 16px">
+<div style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Design v2: alive, in two modes</div>
+<div style="font-size: 14px; color: #5E5A72">Decision 0041, 3 October 2026. Same tokens, two values each. Plus Jakarta Sans for everything but numbers.</div>
+</div>
+<div style="display: flex; flex-grow: 1; margin-top: 20px">
+<div class="light panel" style="width: 720px">
+<div class="h">LIGHT. Lavender-white ground, white cards, one violet, one coral, one mint, one sun.</div>
+<div class="sw">
+<div style="background: #F7F6FB">bg F7F6FB</div>
+<div style="background: #FFFFFF">surface FFF</div>
+<div style="background: #E6E3F0">hairline</div>
+<div style="background: #15131F; color: #fff">ink 15131F</div>
+<div style="background: #5E5A72; color: #fff">muted</div>
+<div style="background: #6D4CF5; color: #fff">violet 600</div>
+<div style="background: #5A3BE0; color: #fff">violet 700 text</div>
+<div style="background: #EEEAFF">violet soft</div>
+<div style="background: #FF6B57">coral</div>
+<div style="background: #1F9D7A; color: #fff">mint</div>
+<div style="background: #F5B740">sun</div>
+<div style="background: linear-gradient(135deg,#7A5CFF,#FF6B57 70%,#F5B740); color: #fff">aurora</div>
+</div>
+<div class="h">TYPE. Plus Jakarta Sans 400 to 800; headings 700 with tight tracking; Geist Mono for refs and counts.</div>
+<div>
+<div style="font-size: 44px; font-weight: 800; letter-spacing: -0.035em; line-height: 48px">Send the list. Get answers back.</div>
+<div style="font-size: 20px; font-weight: 500; margin-top: 8px">Card title, 20 at 600 or 500</div>
+<div style="font-size: 15px; line-height: 24px; color: var(--muted); margin-top: 6px; max-width: 520px">Body 15 on 24 in the app and on marketing, muted for secondary. <span class="mono" style="color: var(--ink)">CL-01 · 14 of 40</span> in mono.</div>
+</div>
+<div class="h">CONTROLS. Primary is a violet gradient pill with a glow, never ink. Secondary is a bordered pill. Inputs radius 12.</div>
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+<button class="btn p" type="button">Create workspace</button>
+<button class="btn s" type="button">Import a list</button>
+<button class="btn t" type="button">Show archived</button>
+<div class="input" style="width: 240px">Workspace name</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span class="pill" style="background: var(--accent-soft); color: var(--accent-text)">Shaped</span>
+<span class="pill" style="background: var(--mint-soft); color: #166A52">Agree 72%</span>
+<span class="pill" style="background: var(--sun-soft); color: var(--sun-text)">Pushed back</span>
+<span class="pill" style="background: var(--coral-soft); color: #9E3321">Needs a reason</span>
+<span class="pill" style="background: var(--surface); color: var(--muted); border: 1px solid var(--hair2)">Sample</span>
+</div>
+<div class="h">A CARD AND THE NAV. Cards float with one soft violet shadow. The active nav item sits in violet soft; counts are coral.</div>
+<div style="display: flex; gap: 20px">
+<div style="width: 220px; display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 10px">
+<div class="nav on"><span class="ic"></span>Projects</div>
+<div class="nav"><span class="ic"></span>Results<span class="n">3</span></div>
+<div class="nav"><span class="ic"></span>Settings</div>
+</div>
+<div class="card" style="flex-grow: 1; display: flex; gap: 18px; align-items: center">
+<div class="blob" aria-hidden="true"></div>
+<div>
+<div style="font-size: 18px; font-weight: 700">Mascot placeholder</div>
+<div style="font-size: 14px; color: var(--muted); line-height: 20px; margin-top: 4px; max-width: 340px">A violet blob with the two speech marks stands in until the bought mascot arrives (docs/assets.md). Same spot, same 120 px frame, swapped in one commit.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="dark panel" style="width: 720px">
+<div class="h">DARK. Deep navy ground, raised cards, the same four colours lifted two steps.</div>
+<div class="sw">
+<div style="background: #0F0E17; color: #fff">bg 0F0E17</div>
+<div style="background: #181726; color: #fff">surface</div>
+<div style="background: #2C2A40; color: #fff">hairline</div>
+<div style="background: #F3F1FA">ink F3F1FA</div>
+<div style="background: #A8A4BE">muted</div>
+<div style="background: #9B86FF">violet 400</div>
+<div style="background: #B8A8FF">violet 300 text</div>
+<div style="background: #272249; color: #fff">violet soft</div>
+<div style="background: #FF8A78">coral 400</div>
+<div style="background: #5FD3B3">mint 300</div>
+<div style="background: #FFD36E">sun 300</div>
+<div style="background: linear-gradient(135deg,#9B86FF,#FF8A78 70%,#FFD36E)">aurora</div>
+</div>
+<div class="h">TYPE. The same scale; headings may carry the aurora as a text gradient once per page.</div>
+<div>
+<div style="font-size: 44px; font-weight: 800; letter-spacing: -0.035em; line-height: 48px">Send the list. <span style="background: linear-gradient(90deg,#B8A8FF,#FF8A78); -webkit-background-clip: text; background-clip: text; color: transparent">Get answers back.</span></div>
+<div style="font-size: 20px; font-weight: 500; margin-top: 8px">Card title, 20 at 600 or 500</div>
+<div style="font-size: 15px; line-height: 24px; color: var(--muted); margin-top: 6px; max-width: 520px">Body 15 on 24, muted for secondary. <span class="mono" style="color: var(--ink)">CL-01 · 14 of 40</span> in mono.</div>
+</div>
+<div class="h">CONTROLS. The primary keeps its gradient in both modes; everything else reads from the tokens.</div>
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+<button class="btn p" type="button">Create workspace</button>
+<button class="btn s" type="button">Import a list</button>
+<button class="btn t" type="button">Show archived</button>
+<div class="input" style="width: 240px">Workspace name</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span class="pill" style="background: var(--accent-soft); color: var(--accent-text)">Shaped</span>
+<span class="pill" style="background: var(--mint-soft); color: var(--mint)">Agree 72%</span>
+<span class="pill" style="background: var(--sun-soft); color: var(--sun-text)">Pushed back</span>
+<span class="pill" style="background: var(--coral-soft); color: var(--coral)">Needs a reason</span>
+<span class="pill" style="background: var(--raised); color: var(--muted); border: 1px solid var(--hair2)">Sample</span>
+</div>
+<div class="h">A CARD AND THE NAV. Status colours lift to their 300 steps on dark (contrast 7 to 9 to 1).</div>
+<div style="display: flex; gap: 20px">
+<div style="width: 220px; display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 10px">
+<div class="nav on"><span class="ic"></span>Projects</div>
+<div class="nav"><span class="ic"></span>Results<span class="n">3</span></div>
+<div class="nav"><span class="ic"></span>Settings</div>
+</div>
+<div class="card" style="flex-grow: 1; display: flex; gap: 18px; align-items: center">
+<div class="blob" aria-hidden="true"></div>
+<div>
+<div style="font-size: 18px; font-weight: 700">Mascot placeholder</div>
+<div style="font-size: 14px; color: var(--muted); line-height: 20px; margin-top: 4px; max-width: 340px">The bought mascot comes in two files, one per mode, or one with enough contrast on both grounds.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div style="padding: 18px 40px 24px 40px; font-size: 13px; color: #5E5A72; display: flex; gap: 32px; flex-wrap: wrap">
+<span>Contrast, computed: ink on light bg 17.1; muted 6.1; violet 600 text 4.9; violet 700 text 6.2; white on violet 600 5.3; ink on dark bg 17.1; muted 8.0; violet 400 6.6; coral 400 8.4; mint 300 10.5.</span>
+<span>Coral, mint and sun are never text on light; their 700 or 800 steps are.</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
