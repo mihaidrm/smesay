@@ -57,7 +57,7 @@ export function viewOf(link: Link, cookie: string | undefined, now = new Date())
   const archivedAt = link.project.archivedAt;
   if (state === "closed" || archivedAt) {
     const closedAt = state === "closed" ? (link.invite.closesAt ?? now) : null;
-    const earliest = [closedAt, archivedAt].filter((d): d is Date => d !== null).sort((x, y) => x.getTime() - y.getTime())[0] ?? now;
+      const earliest = [closedAt, archivedAt].filter((d): d is Date => d !== null).sort((x, y) => x.getTime() - y.getTime())[0] ?? now;
     return { kind: "closed", link, closedAt: earliest };
   }
   if (state === "revoked" || state === "notOpen") return { kind: state, link };
@@ -74,11 +74,15 @@ export async function viewLink(token: string, cookie: string | undefined, now = 
 // Attempts in this process, two Maps: per link and per link and address, each an entry per
 // key with the count in the current window, each capped at MAP_CAP entries (expired ones go
 // first, then the oldest; a refreshed key moves to the end). A post counts when it starts,
-// so parallel posts count, and a correct passcode gives its count back, so right answers
-// never spend the limit: the count is wrong attempts plus posts in flight.
+// so parallel posts count, and a correct passcode, an unknown token or a link that is not
+// open give the count back; an entry back at zero is removed, so only links with wrong
+// attempts in the window hold an entry and a flood of unknown tokens leaves nothing behind.
+// The token's shape is checked before any Map is touched, and the address is cut to 64
+// characters, so a key is never longer than about 200 characters.
 type Window = { count: number; until: number };
 const perLink = new Map<string, Window>();
 const perAddress = new Map<string, Window>();
+const TOKEN_SHAPE = /^[0-9a-f]{32,128}$/i;
 function take(map: Map<string, Window>, key: string, limit: number, now: number): boolean {
   const entry = map.get(key);
   if (entry && entry.until > now) { entry.count += 1; return entry.count <= limit; }
@@ -92,7 +96,9 @@ function take(map: Map<string, Window>, key: string, limit: number, now: number)
 }
 function release(map: Map<string, Window>, key: string, now: number): void {
   const entry = map.get(key);
-  if (entry && entry.until > now && entry.count > 0) entry.count -= 1;
+  if (!entry) return;
+  if (entry.until <= now || entry.count <= 1) { map.delete(key); return; }
+  entry.count -= 1;
 }
 export function attemptsHeld(): number {
   return perLink.size + perAddress.size;
@@ -108,9 +114,10 @@ export function clearAttempts(): void {
 // so a flood of posts costs one Map lookup each once the link is at its cap; the address
 // count is taken only when the link's passed. Both are given back on a correct passcode.
 export async function checkPasscode(token: string, typed: unknown, address: string, now = new Date()): Promise<{ kind: "ok"; proof: string } | { kind: "wrong" | "limited" | "none" }> {
+  if (!TOKEN_SHAPE.test(token)) return { kind: "none" };
   const at = now.getTime();
-  const linkKey = token;
-  const addressKey = `${token}:${address}`;
+  const linkKey = token.toLowerCase();
+  const addressKey = `${linkKey}:${address.slice(0, 64)}`;
   if (!take(perLink, linkKey, PASSCODE_LINK_ATTEMPTS, at)) return { kind: "limited" };
   if (!take(perAddress, addressKey, PASSCODE_ATTEMPTS, at)) { release(perLink, linkKey, at); return { kind: "limited" }; }
   const giveBack = () => { release(perLink, linkKey, at); release(perAddress, addressKey, at); };

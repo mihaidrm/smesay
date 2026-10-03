@@ -39,8 +39,10 @@ export const invites = {
       const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
       if (!locked) return null;
       // The project row too, the lock updatePublic takes: a save of the older link and the
-      // publish that replaces it cannot interleave (one project, one link in force).
-      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("update");
+      // publish that replaces it cannot interleave (one project, one link in force). NO KEY
+      // UPDATE, so inserts that point at the project (an import, a draft) are not held up
+      // (postgresql.org/docs/current/explicit-locking.html, row-level locks).
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
       const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
       if (existing) return { invite: existing, created: false };
       const [created] = await tx.insert(invite).values({ ...data, workspaceId, instrumentId, kind: "public" }).returning();
@@ -70,7 +72,7 @@ export const invites = {
     return db.transaction(async (tx) => {
       const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
       if (!own) return null;
-      const [locked] = await tx.select({ id: project.id, projectId: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("update");
+      const [locked] = await tx.select({ id: project.id, projectId: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("no key update");
       if (!locked) return null;
       const [live] = await tx.select({ instrumentId: invite.instrumentId }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
         .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))

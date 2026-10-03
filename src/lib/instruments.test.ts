@@ -19,7 +19,7 @@ import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
 import { LINK_ERRORS, publishLink, saveLink, SHARE_COPY } from "@/lib/sharing";
-import { checkPasscode, passcodeProof, proofMatches, viewLink } from "@/lib/link-access";
+import { attemptsHeld, checkPasscode, passcodeProof, proofMatches, viewLink, viewOf } from "@/lib/link-access";
 import { verifyPasscode } from "@/lib/passcode";
 import { projectStatus } from "@/lib/project-status";
 import { savePaste } from "@/lib/uploads";
@@ -285,7 +285,16 @@ describe("publish (stories/E6-1)", () => {
     expect(archivedView.kind).toBe("closed");
     expect(archivedView.kind === "closed" && archivedView.closedAt).toEqual(archivedAt);
     const bothPassed = await viewLink(published.invite.token, undefined, new Date("2026-10-21T00:00:00Z"));
-    expect(bothPassed.kind === "closed" && bothPassed.closedAt).toEqual(archivedAt < new Date("2026-10-20T15:00:00Z") ? archivedAt : new Date("2026-10-20T15:00:00Z"));
+    expect(bothPassed.kind === "closed" && bothPassed.closedAt).toEqual(archivedAt);
+    // The same rule when the close date came first (viewOf is pure, so the row is adjusted).
+    const archivedLater = { ...(await links.byToken(published.invite.token))!, project: { ...link.project, archivedAt: new Date("2026-10-25T00:00:00Z") } };
+    const closeFirst = viewOf(archivedLater, undefined, new Date("2026-10-26T00:00:00Z"));
+    expect(closeFirst.kind === "closed" && closeFirst.closedAt).toEqual(new Date("2026-10-20T15:00:00Z"));
+    // Unknown and malformed tokens hold no limiter entry; a link's wrong attempts do.
+    const before = attemptsHeld();
+    for (let i = 0; i < 20; i++) await checkPasscode("f".repeat(31) + i.toString(16), "x", `10.4.0.${i}`, open);
+    expect((await checkPasscode("not-a-token", "x", "10.4.0.1", open)).kind).toBe("none");
+    expect(attemptsHeld()).toBe(before);
     expect(await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", false, now)).toEqual({ error: SHARE_COPY.archived });
     await projects.setArchived(a.ws, project.id, false);
     // The sample and another workspace.
