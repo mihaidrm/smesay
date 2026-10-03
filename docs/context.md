@@ -88,9 +88,12 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: the stories in epic order, E6-2 (personal invites) next, under
-decision 0044; E5-6 (the preview panel on every step) comes after E7-5, since its iframe
-needs the respondent app (docs/review-list.md). E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
+Next tasks for Claude: paused after E6-1 at Mihai's request (2026-10-03, "pause after 6-1
+and make sure roadmap and stories are updated"); the Roadmap and Stories boards were
+republished to the canvas (version 120) and docs/review-list.md holds every decision taken
+under decision 0044 since E5-4. When Mihai restarts: E6-2 (personal invites) next, then the
+stories in epic order; E5-6 (the preview panel on every step) comes after E7-5, since its
+iframe needs the respondent app (docs/review-list.md). E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
 0037 and 0038, PR 49). Design v2 (decision 0041, note 33, boards Brand07, LandingF, PmAppV2,
 RespondentV2) is in the code since 2026-10-03 (notes 34 to 37, PRs 56 to 63; Mihai: "Yeah
 looks good"), and E5-1 was built on it the same day (note 38); the asset list he buys from
