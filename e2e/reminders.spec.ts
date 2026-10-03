@@ -32,6 +32,8 @@ test("remind one invitee, read email 3, see the three-day rule", async ({ page, 
   await page.goto(`${projectUrl}/build`);
   await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   await page.goto(`${projectUrl}/share`);
+  // The form fills its fields after it mounts (share-form.tsx): wait for the zone line.
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("link-state")).toHaveText("Published");

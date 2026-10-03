@@ -43,6 +43,8 @@ test("publish a public link, open it with the passcode, close it", async ({ page
 
   // A close date before the open date is refused; a close date next month with a short
   // passcode is refused; then it publishes.
+  // The form fills its fields after it mounts (share-form.tsx): wait for the zone line.
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Opens").fill("2027-01-10T09:00");
   await page.getByLabel("Closes").fill("2027-01-05T18:00");
   await page.getByRole("button", { name: "Publish" }).click();
