@@ -48,7 +48,7 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <span className="block size-10 rounded-lg border border-hairline" style={{ background: valid && accent.trim() ? accent.trim() : "#FFFFFF" }} aria-hidden="true" data-testid="accent-swatch" />
+        <span className="block size-10 rounded-[10px] border border-hairline bg-surface" style={{ background: valid && accent.trim() ? accent.trim() : undefined }} aria-hidden="true" data-testid="accent-swatch" />
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-accent">Accent colour</Label>
           <Input id="ws-accent" name="accentHex" value={accent} onChange={(e) => setAccent(e.target.value)} placeholder="#1F4F7A" className="h-9 w-40 font-mono"
