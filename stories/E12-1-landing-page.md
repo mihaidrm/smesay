@@ -52,5 +52,5 @@ app's mode, so its colours are written out rather than read from the mode tokens
 
 Built on design v2 the day the design merged. Playwright e2e/landing.spec.ts covers
 acceptance 6. Lighthouse on the production build, mobile preset, Chromium 1194:
-performance 98, accessibility 98, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 40 ms (the accessibility finding was the missing main landmark, added in the same pass).. Acceptance 4 holds in its amended form (static Marlow markup) until E5
+performance 98, accessibility 100, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 50 ms (a first run before the main landmark was added read accessibility 98).. Acceptance 4 holds in its amended form (static Marlow markup) until E5
 and E6. Design note 36.

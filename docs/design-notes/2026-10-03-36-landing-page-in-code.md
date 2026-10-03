@@ -29,4 +29,4 @@ its placeholder until he moves the landing to /. Story E12-1 amended for it.
 
 ## Numbers
 
-performance 98, accessibility 98, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 40 ms (the accessibility finding was the missing main landmark, added in the same pass). Playwright: e2e/landing.spec.ts.
+performance 98, accessibility 100, best practices 100, SEO 100; LCP 2.5 s, CLS 0, TBT 50 ms (a first run before the main landmark was added read accessibility 98). Playwright: e2e/landing.spec.ts.
