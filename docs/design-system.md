@@ -1,5 +1,10 @@
 # Design system
 
+Version 2 proposed 2026-10-03 (decision 0041, design note 33, board Brand07): two modes, a
+violet accent with coral, mint and sun, Plus Jakarta Sans, floating cards. The v2 tokens are
+in note 33 and on Brand07 and move into this file, src/lib/tokens.ts and globals.css when
+Mihai approves the boards; until then the app runs on v1 below.
+
 Written 2026-10-01 from design notes 01 to 09 and the six brand boards on the canvas
 (Brand01 to Brand06 in docs/design-notes/prototype-01/). The boards are the picture; this file
 is the text the styleguide page and the Tailwind theme are built from. Rendered at /styleguide
@@ -65,9 +70,10 @@ Text contrast, computed: ink on white 17.77, ink-muted on white 6.32, ink-muted 
 teal 700 on white 6.36, teal 700 on greige 5.29, white on teal 700 6.36, teal 300 on ink 10.02.
 Hairline-strong is never text (1.69). Teal 700 on ink fails (2.79); use teal 300 there.
 
-Dark mode: defined as a mapping, not built in R1. background #111214, surface #1A1C1F, hairline
-#2A2D32, ink #F2F1EE, ink-muted #A3A7AE, accent teal 300. Status solids unchanged; tints become
-18 percent of the solid over the surface.
+Dark mode: v2 builds it on every side (decision 0041, note 33: ground #0F0E17, surface
+#181726, raised #201F31, hairline #2C2A40, ink #F3F1FA, muted #A8A4BE, violet 400 accent;
+status solids lift to their 300 steps on dark). The v1 mapping (background #111214, surface
+#1A1C1F, hairline #2A2D32, ink #F2F1EE, ink-muted #A3A7AE, accent teal 300) is superseded.
 
 ## Type
 
@@ -189,7 +195,8 @@ prefers-reduced-motion everything is off and the content is visible.
 The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
 answer, the active chapter and the progress bar (decision 0016; the focus ring and links stay
 teal). Buttons stay ink. Neutrals and type never change. An accent under
-4.5:1 on white falls back to ink and settings says why. No dark mode on the respondent side.
+4.5:1 on white falls back to ink and settings says why. v2 gives the respondent side a dark
+mode that follows the phone's setting, with the PM's accent lifted two steps on dark (note 33).
 
 ## Email
 
