@@ -18,9 +18,10 @@ export const PERSPECTIVES_COPY = {
   locked: "Published instruments keep their perspectives and tags. Build a new instrument to change them.",
   otherSet: (built: number, latest: number) => `These items are on version ${latest} of the list; the instrument is built on version ${built}. Build on version ${latest} first, then tag items here.`,
   otherSetLink: "Go to Build",
+  olderSet: (shown: number, built: number) => `These items are version ${shown} of the list; the instrument is now built on version ${built}. Reload the page to tag the current items.`,
   // The respondent's items screen when their picks leave nothing to rate (stories/E5-4;
-  // every state has a screen).
-  nothingVisible: "Nothing to rate for what you picked. Go back to About you and pick a different perspective.",
+  // every state has a screen), with no pick or with one that matches no item.
+  nothingVisible: "Nothing to rate yet. Go back to About you and pick the perspectives that describe you.",
 } as const;
 
 // The names as the Build form posts them, one per line, trimmed, blank lines dropped.
@@ -54,9 +55,15 @@ export function visibleItems<T extends Tagged>(items: T[], picked: string[]): T[
   return items.filter((it) => isVisible(it, picked));
 }
 
-// The tags that survive a change of the instrument's names: the ones still defined, matched
-// ignoring case and spelt as the new names are, so a case-only rename keeps the tags. The
-// code twin of the one statement instruments.setPerspectives runs (src/db/queries).
-export function keptTags(tags: string[], names: string[]): string[] {
-  return tags.flatMap((t) => { const n = names.find((name) => name.toLowerCase() === t.toLowerCase()); return n === undefined ? [] : [n]; });
+// How a change of the instrument's names rewrites the tags: each old name that survives,
+// matched ignoring case (JavaScript's toLowerCase, the same rule parsePerspectives applies
+// for uniqueness; the database never compares case), paired with its new spelling, so a
+// case-only rename keeps the tags. instruments.setPerspectives (src/db/queries) runs the
+// pairs in one statement; keptTags is the code twin.
+export function renamePairs(oldNames: string[], names: string[]): { from: string; to: string }[] {
+  return oldNames.flatMap((o) => { const n = names.find((name) => name.toLowerCase() === o.toLowerCase()); return n === undefined ? [] : [{ from: o, to: n }]; });
+}
+
+export function keptTags(tags: string[], pairs: { from: string; to: string }[]): string[] {
+  return tags.flatMap((t) => { const p = pairs.find((pair) => pair.from === t); return p === undefined ? [] : [p.to]; });
 }

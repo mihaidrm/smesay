@@ -240,11 +240,19 @@ describe("perspectives (stories/E5-4)", () => {
     const [onV2] = await items.forSet(a.ws, set2.id);
     expect(await tagItem(a.ws, project.id, onV2.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.otherSet(1, 2) });
     expect("item" in (await tagItem(a.ws, project.id, second.id, JSON.stringify(["Finance"])))).toBe(true);
-    // Published: the names and the tags lock.
-    await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
-    expect(await savePerspectives(a.ws, project.id, instrument.id, "Finance\nLegal")).toEqual({ error: PERSPECTIVES_COPY.locked });
-    expect(await tagItem(a.ws, project.id, second.id, JSON.stringify([]))).toEqual({ error: PERSPECTIVES_COPY.locked });
+    // After "Build on version 2" a stale tab on version 1 is told to reload, and the tags
+    // of version 1 stay as they were.
+    const v2 = await buildOnLatest(a.ws, project.id, instrument.id);
+    if (!("instrument" in v2)) throw new Error(v2.error);
+    expect(v2.instrument.perspectives).toEqual(["Finance"]);
+    expect(await tagItem(a.ws, project.id, second.id, JSON.stringify([]))).toEqual({ error: PERSPECTIVES_COPY.olderSet(1, 2) });
     expect((await items.get(a.ws, second.id))?.perspectives).toEqual(["Finance"]);
+    expect((await items.get(a.ws, onV2.id))?.perspectives).toEqual([]);
+    // Published: the names and the tags lock.
+    await invites.create(a.ws, { instrumentId: v2.instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    expect(await savePerspectives(a.ws, project.id, v2.instrument.id, "Finance\nLegal")).toEqual({ error: PERSPECTIVES_COPY.locked });
+    expect(await tagItem(a.ws, project.id, onV2.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.locked });
+    expect((await items.get(a.ws, onV2.id))?.perspectives).toEqual([]);
   });
 });
 

@@ -8,10 +8,12 @@
 // version N" presses, end with one draft: the second finds the first's row and returns it.
 // setPerspectives and tagItem (stories/E5-4) run under the instrument row's lock, so a tag
 // pressed while the names change cannot write a removed name back; the tags of the set's
-// items are rewritten in one statement (unnest WITH ORDINALITY, ARRAY(subquery):
-// postgresql.org/docs/current/functions-srf.html, /sql-expressions.html#SQL-SYNTAX-ARRAY-CONSTRUCTORS;
-// the names arrive as one text[] parameter, which postgres.js serialises from the array:
-// github.com/porsager/postgres#arrays).
+// items are rewritten in one statement (unnest of two arrays WITH ORDINALITY,
+// ARRAY(subquery): postgresql.org/docs/current/functions-srf.html,
+// /sql-expressions.html#SQL-SYNTAX-ARRAY-CONSTRUCTORS). Each array arrives as one
+// parameter: sql.param with the text[] column as the encoder, which Drizzle writes as a
+// Postgres array literal (node_modules/drizzle-orm/pg-core/columns/common.js, PgArray
+// mapToDriverValue, and pg-core/utils/array.js, makePgArray), cast with ::text[].
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, item, project } from "@/db/schema";
@@ -39,10 +41,10 @@ export const instruments = {
       return created;
     });
   },
-  // The names, and every item of the instrument's set rewritten to carry only names still
-  // defined, matched ignoring case and written as the new list spells them (so a case-only
-  // rename keeps the tags). Null when the instrument is not in the workspace.
-  setPerspectives: async (workspaceId: WorkspaceId, instrumentId: string, names: string[]): Promise<Instrument | null> => {
+  // The names, and every item of the instrument's set rewritten by the pairs (an old name
+  // that survives and its new spelling, src/lib/perspectives.ts renamePairs): a tag not in
+  // the pairs is dropped. Null when the instrument is not in the workspace.
+  setPerspectives: async (workspaceId: WorkspaceId, instrumentId: string, names: string[], pairs: { from: string; to: string }[]): Promise<Instrument | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
       const [locked] = await tx.select({ id: instrument.id, itemSetId: instrument.itemSetId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
@@ -50,8 +52,9 @@ export const instruments = {
       const [updated] = await tx.update(instrument).set({ perspectives: names }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).returning();
       // sql.param with the column as the encoder: a bare array in the template would be
       // inlined as a list (drizzle-orm/sql/sql.js, buildQueryFromSourceParams).
-      const list = sql.param(names, item.perspectives);
-      const kept = sql`ARRAY(SELECT n.name FROM unnest(${item.perspectives}) WITH ORDINALITY AS t(tag, i) JOIN unnest(${list}::text[]) AS n(name) ON lower(n.name) = lower(t.tag) ORDER BY t.i)`;
+      const from = sql.param(pairs.map((p) => p.from), item.perspectives);
+      const to = sql.param(pairs.map((p) => p.to), item.perspectives);
+      const kept = sql`ARRAY(SELECT m.new FROM unnest(${item.perspectives}) WITH ORDINALITY AS t(tag, i) JOIN unnest(${from}::text[], ${to}::text[]) AS m(old, new) ON m.old = t.tag ORDER BY t.i)`;
       await tx.update(item).set({ perspectives: kept }).where(and(eq(item.workspaceId, workspaceId), eq(item.itemSetId, locked.itemSetId), sql`${item.perspectives} <> ${kept}`));
       return updated ?? null;
     });

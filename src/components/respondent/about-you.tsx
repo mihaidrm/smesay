@@ -71,7 +71,8 @@ export function AboutYou({ workspaceName, accent, title, intro, fields, firstCha
         </div>
         <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="about-you-fields">
           {fields.map((f) => {
-            const id = `${prefix}-${f.key}`;
+            // "field-" keeps a field's slug apart from the perspective ids (p-0...) and the hints.
+            const id = `${prefix}-field-${f.key}`;
             const label = f.mandatory ? f.label : `${f.label} (${ABOUT_YOU_COPY.optional})`;
             return (
               <div key={f.key} className="flex flex-col gap-1.5">

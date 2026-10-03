@@ -19,7 +19,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
-import { parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
+import { parsePerspectives, parseTags, PERSPECTIVES_COPY, renamePairs } from "@/lib/perspectives";
 import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
@@ -140,22 +140,25 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
 // from every item of the instrument's set that carried it, a case-only rename keeps the
 // tags, and both happen in one statement under the instrument's lock (instruments.setPerspectives).
 // Locked once published, like the method (docs/review-list.md): a tag added mid-run would
-// take an item away from respondents who already answered it.
+// take an item away from respondents who already answered it. The published check runs
+// before the lock, as saveScoring's does; E6-1 takes the instrument lock when it publishes
+// (docs/review-list.md).
 export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   if (await isPublished(ws, instrumentId)) return { error: PERSPECTIVES_COPY.locked };
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
+  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names, renamePairs(owned.instrument.perspectives, parsed.names));
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }
 
 // The chips on an item on Shape (stories/E5-4): the item's tags, each a name of the
 // project's newest instrument. An item of the project on another set than the newest
-// instrument's (a stale Shape tab after "Build on version N", or an instrument on an older
-// set) gets the message, not a 404; an item outside the project is 404.
+// instrument's gets a message, not a 404: on a newer set, build on it first; on an older
+// one (a stale Shape tab after "Build on version N"), reload. An item outside the project
+// is 404.
 export async function tagItem(ws: WorkspaceId, projectId: string, itemId: string, rawTags: unknown): Promise<{ error: string } | { item: Item }> {
   const project = await projects.get(ws, projectId);
   const target = await items.get(ws, itemId);
@@ -167,7 +170,8 @@ export async function tagItem(ws: WorkspaceId, projectId: string, itemId: string
   if (!instrument) throw new NotFoundError();
   if (instrument.itemSetId !== target.itemSetId) {
     const builtOn = await itemSets.get(ws, instrument.itemSetId);
-    return { error: PERSPECTIVES_COPY.otherSet(builtOn?.version ?? 0, set.version) };
+    if (!builtOn) throw new NotFoundError();
+    return { error: set.version > builtOn.version ? PERSPECTIVES_COPY.otherSet(builtOn.version, set.version) : PERSPECTIVES_COPY.olderSet(set.version, builtOn.version) };
   }
   if (await isPublished(ws, instrument.id)) return { error: PERSPECTIVES_COPY.locked };
   if (instrument.perspectives.length === 0) return { error: PERSPECTIVES_COPY.noneDefined };

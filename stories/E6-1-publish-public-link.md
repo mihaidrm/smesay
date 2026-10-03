@@ -43,3 +43,7 @@ device by a cookie scoped to the token path.
 Owed from E3-6 (recorded 2026-10-02): the Import banner "This list is published. Importing a
 new version does not change the published instrument..." (docs/copy/errors.md) once an
 instrument can be published.
+
+Owed from E5-4 (recorded 2026-10-03): publishing takes the instrument row's lock (the one
+instruments.setPerspectives and instruments.tagItem take), so a perspective change in
+flight cannot land after the invite row exists; docs/review-list.md.

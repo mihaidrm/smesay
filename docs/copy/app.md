@@ -245,7 +245,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Powered by | Powered by SMEsay |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
 | Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
-| Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate for what you picked. Go back to About you and pick a different perspective. |
+| Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
 ## Import, column mapping (E3-3)

@@ -2,7 +2,7 @@
 // and the visible set for four respondent combinations, none included; the names and tags
 // parsed with the rule.
 import { describe, expect, it } from "vitest";
-import { keptTags, parsePerspectives, parseTags, PERSPECTIVES_COPY, visibleItems } from "./perspectives";
+import { keptTags, parsePerspectives, parseTags, PERSPECTIVES_COPY, renamePairs, visibleItems } from "./perspectives";
 
 const items = [
   { ref: "A", perspectives: [] as string[] },
@@ -38,7 +38,9 @@ describe("parsePerspectives and parseTags", () => {
     expect(parseTags(JSON.stringify(["Legal"]), ["Finance"])).toEqual({ error: PERSPECTIVES_COPY.unknownTag });
     expect(parseTags("nope", ["Finance"])).toEqual({ error: PERSPECTIVES_COPY.badShape });
     expect(parseTags([1], ["Finance"])).toEqual({ error: PERSPECTIVES_COPY.badShape });
-    expect(keptTags(["Finance", "Legal"], ["Finance"])).toEqual(["Finance"]);
-    expect(keptTags(["finance", "Legal"], ["Finance", "Sales"])).toEqual(["Finance"]);
+    const pairs = renamePairs(["finance", "Legal"], ["Finance", "Sales"]);
+    expect(pairs).toEqual([{ from: "finance", to: "Finance" }]);
+    expect(keptTags(["finance", "Legal"], pairs)).toEqual(["Finance"]);
+    expect(keptTags(["Legal"], renamePairs(["Legal"], []))).toEqual([]);
   });
 });

@@ -11,7 +11,8 @@
 // it is a picture, not navigation (free movement is E7-4's). The screen choice lives in
 // this component, keyed on the instrument alone, so a save of any card keeps the screen;
 // the About you page re-mounts on its own key and the cards on theirs (the layout in the
-// key), which clears a pick made in the preview (nothing is stored there). At most
+// key), which clears the field values typed in the preview (nothing is stored there); the
+// perspective picks live here and survive a save of the names. At most
 // PREVIEW_CARDS are drawn across the areas (a set can hold 2,000 rows); each area with
 // fewer cards drawn than it holds says so under them. The perspectives picked on the About
 // you screen narrow the items screen to what that respondent would see (stories/E5-4): the
