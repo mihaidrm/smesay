@@ -1,6 +1,7 @@
 // Workspace-scoped helpers for the response table (stories/E1-3). Every call takes the workspace id
 // first; see scoped.ts for the rule. Specific queries for later epics are added here, never in
-// routes or pages. forInvite (E6-3): the newest response of an invite.
+// routes or pages. forInvite (E6-3): the newest response of an invite, by its last save
+// then its id, the same order as the invite list and the reminder claim.
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { response } from "@/db/schema";
@@ -12,7 +13,7 @@ export const responses = {
   ...scoped(response),
   forInvite: async (workspaceId: WorkspaceId, inviteId: string): Promise<Response | null> => {
     if (!isUuid(inviteId)) return null;
-    const rows = await db.select().from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, inviteId))).orderBy(desc(response.updatedAt)).limit(1);
+    const rows = await db.select().from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, inviteId))).orderBy(desc(response.updatedAt), desc(response.id)).limit(1);
     return rows[0] ?? null;
   },
 };

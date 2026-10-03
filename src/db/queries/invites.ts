@@ -76,7 +76,7 @@ export const invites = {
     if (rows.length === 0) return [];
     const answers = await db.select({ inviteId: response.inviteId, submittedAt: response.submittedAt, updatedAt: response.updatedAt }).from(response)
       .where(and(eq(response.workspaceId, workspaceId), inArray(response.inviteId, rows.map((r) => r.id))))
-      .orderBy(desc(response.updatedAt));
+      .orderBy(desc(response.updatedAt), desc(response.id));
     const newest = new Map<string, { submittedAt: Date | null; updatedAt: Date }>();
     for (const a of answers) if (!newest.has(a.inviteId)) newest.set(a.inviteId, a);
     return rows.map((r) => {
@@ -144,7 +144,7 @@ export const invites = {
   claimReminder: async (workspaceId: WorkspaceId, id: string, now: Date, minHours: number): Promise<Invite | null> => {
     if (!isUuid(id)) return null;
     const before = new Date(now.getTime() - minHours * 60 * 60 * 1000);
-    const newest = db.select({ submittedAt: response.submittedAt }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, invite.id))).orderBy(desc(response.updatedAt)).limit(1);
+    const newest = db.select({ submittedAt: response.submittedAt }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, invite.id))).orderBy(desc(response.updatedAt), desc(response.id)).limit(1);
     const rows = await db.update(invite).set({ remindersSent: sql`${invite.remindersSent} + 1`, lastReminderAt: now })
       .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), sql`${invite.sentAt} is not null`, isNull(invite.revokedAt), sql`(${newest}) is null`, or(isNull(invite.lastReminderAt), sql`${invite.lastReminderAt} <= ${sql.param(before, invite.lastReminderAt)}`)))
       .returning();

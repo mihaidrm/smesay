@@ -19,7 +19,7 @@ function Outcome({ state }: { state: RemindFormState }) {
   return (
     <div role="status" className="flex flex-col gap-0.5 text-[13px]">
       <p className={state.sent > 0 ? "text-agree-text" : "text-ink-muted"}>{state.sent > 0 ? REMINDERS_COPY.sent(state.sent) : state.failed.length === 0 ? REMINDERS_COPY.noneDue : ""}</p>
-      {state.failed.map((line) => <p key={line} className="text-danger">{line}</p>)}
+      {state.failed.map((line, i) => <p key={`${i}-${line}`} className="text-danger">{line}</p>)}
     </div>
   );
 }

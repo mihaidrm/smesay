@@ -42,8 +42,9 @@ async function ready(ws: WorkspaceId, projectId: string, instrumentId: string, s
 // that landed since the claim started is seen here and the claim given back), then the
 // email; anything that fails or throws after the claim gives it back first, a missing
 // mail variable included (reasonOf throws it, named). A refused claim is read again from
-// the database to say which: the row changed under the PM (not due any more, or too
-// soon), or another request got there first.
+// the database (the instrument's list, two queries) to say which: the row changed under
+// the PM (not due any more, or too soon, with the address in front), or another request
+// changed it and gave it back in between.
 async function remindRow(ws: WorkspaceId, row: InviteeRow, pmName: string, projectName: string, itemCount: number, sender: Sender, baseUrl: string, now: Date, send: (mail: Mail) => Promise<void>): Promise<RemindOutcome> {
   const email = row.email ?? "";
   const claimed = await invites.claimReminder(ws, row.id, now, REMIND_AFTER_HOURS);
@@ -51,7 +52,7 @@ async function remindRow(ws: WorkspaceId, row: InviteeRow, pmName: string, proje
     const fresh = (await listInvitees(ws, row.instrumentId)).find((r) => r.id === row.id);
     const check = fresh ? canRemind(fresh, now) : null;
     if (!check || check.ok) return { email, sent: false, error: REMINDERS_COPY.raced(email) };
-    return { email, sent: false, error: check.why === "tooSoon" ? tooSoonLine(check) : REMINDERS_COPY.notDue(email) };
+    return { email, sent: false, error: check.why === "tooSoon" ? REMINDERS_COPY.tooSoonFor(email, tooSoonLine(check)) : REMINDERS_COPY.notDue(email) };
   }
   let sentOk = false;
   try {

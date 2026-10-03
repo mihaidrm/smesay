@@ -140,9 +140,9 @@ describe("remindInvitee and remindAll", () => {
       remindInvitee(a.ws, project.id, instrument.id, deeRow.id, sender, BASE, h(74), slow),
     ]);
     expect(twice.filter((r) => "outcome" in r && r.outcome.sent)).toHaveLength(1);
-    // The loser is refused by the claim, or by the rule when it read the row after the win.
-    // The loser read the row before or after the win: the too-soon line either way.
-    expect(twice.filter((r) => ("error" in r && r.error.startsWith("Reminded 0 days ago.")) || ("outcome" in r && r.outcome.error?.startsWith("Reminded 0 days ago.")))).toHaveLength(1);
+    // The loser read the row before or after the win: the too-soon line either way, with
+    // the address in front when it comes as an outcome.
+    expect(twice.filter((r) => ("error" in r && r.error.startsWith("Reminded 0 days ago.")) || ("outcome" in r && r.outcome.error?.startsWith("dee@x.example: Reminded 0 days ago.")))).toHaveLength(1);
     // The claim reads the newest response: Bo's older in-progress response with a newer
     // submitted one refuses; a newer in-progress one after an older submitted one allows,
     // as the list shows Remind then (docs/review-list.md).
