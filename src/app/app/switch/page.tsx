@@ -15,7 +15,7 @@ export default async function SwitchWorkspacePage() {
   if (memberships.length === 0) redirect("/app/new");
   const removed = storedId !== null && !memberships.some((w) => w.id === storedId);
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-4 py-12">
+    <main className="auth-frame">
       <Lockup />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-medium tracking-tight">Choose a workspace</h1>

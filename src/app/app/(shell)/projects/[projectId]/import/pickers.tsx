@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { chooseAction, type ProjectFormState } from "../../actions";
 
-const select = "h-9 rounded-md border border-hairline-strong bg-white px-2 text-sm";
+const select = "h-9 rounded-md border border-hairline-strong bg-surface px-2 text-sm";
 const NONE: ProjectFormState = { error: null, saved: false };
 
 export function Pickers({ projectId, uploadId, sheets, sheet, headerRow, rowOptions }: { projectId: string; uploadId: string; sheets: string[]; sheet: string | null; headerRow: number | null; rowOptions: number[] }) {

@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 export default function LinkUsedPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 px-4 py-12">
+    <main className="auth-frame">
       <Lockup />
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-medium tracking-tight">This sign-in link has already been used or has expired.</h1>

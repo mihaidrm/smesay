@@ -43,15 +43,16 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
             aria-labelledby={`area-${g}`}
             data-testid="area"
             data-area={group.name}
-            className={cn("rounded-md border border-hairline", over === group.name && "ring-2 ring-teal-700 ring-offset-2")}
+            className={cn("card flex flex-col", over === group.name && "ring-2 ring-violet ring-offset-2 ring-offset-ground")}
             onDragOver={target ? (e) => { e.preventDefault(); setOver(group.name); } : undefined}
             onDragLeave={target ? () => setOver(null) : undefined}
             onDrop={target ? (e) => { e.preventDefault(); setOver(null); const id = e.dataTransfer.getData("text/plain"); if (id) drop(id, group.name); } : undefined}
           >
-            <div className="flex flex-wrap items-baseline gap-3 rounded-t-md border-b border-hairline bg-grey-50 px-4 py-2.5">
-              <h3 id={`area-${g}`} className="font-medium">{group.name}</h3>
-              {group.rationale && <div className="text-[13px] text-ink-muted" data-testid="rationale">{group.rationale}</div>}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 pt-4 pb-1">
+              <h3 id={`area-${g}`} className="text-[15px] font-bold">{group.name} <span className="font-mono text-xs font-normal text-ink-muted">{group.items.length === 1 ? "1 item" : `${group.items.length} items`}</span></h3>
+              {group.rationale && <div className="text-xs text-ink-muted" data-testid="rationale">{group.rationale}</div>}
             </div>
+            <div className="flex flex-col gap-2.5 p-3">
             {group.items.map((it) => (
               <div
                 key={it.id}
@@ -60,9 +61,9 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                 data-item-id={it.id}
                 draggable={!readOnly}
                 onDragStart={!readOnly ? (e) => { e.dataTransfer.setData("text/plain", it.id); e.dataTransfer.effectAllowed = "move"; } : undefined}
-                className={cn("flex items-start gap-4 border-b border-grey-100 px-4 py-3 last:border-b-0", !readOnly && "cursor-grab active:cursor-grabbing")}
+                className={cn("item-row flex items-start gap-3 px-3.5 py-3 text-sm leading-5", !readOnly && "cursor-grab active:cursor-grabbing")}
               >
-                <div className="w-14 shrink-0 pt-0.5 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
+                <div className="w-12 shrink-0 pt-0.5 font-mono text-xs text-ink-muted">{it.ref ?? it.position}</div>
                 <div className="min-w-0 flex-grow">
                   <ReaderText item={it.reader} original={it.text} />
                   {it.notes.map((note) => <div key={note} className="mt-1 text-xs text-unclear-text" data-testid="item-note">{note}</div>)}
@@ -78,7 +79,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                       <input type="hidden" name="projectId" value={projectId} />
                       <input type="hidden" name="itemId" value={it.id} />
                       <label htmlFor={`move-${it.id}`} className="sr-only">{SHAPE_COPY.moveLabel(it.ref ?? String(it.position))}</label>
-                      <select id={`move-${it.id}`} name="area" defaultValue={group.name} disabled={pending} className="h-8 rounded-md border border-hairline-strong bg-white px-2 text-[13px]">
+                      <select id={`move-${it.id}`} name="area" defaultValue={group.name} disabled={pending} className="h-8 rounded-lg border border-hairline-strong bg-surface px-2 text-[13px]">
                         {areas.map((a) => <option key={a} value={a}>{a}</option>)}
                       </select>
                       <Button type="submit" variant="secondary" size="small" disabled={pending}>{SHAPE_COPY.move}</Button>
@@ -88,6 +89,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly }: { proj
                 </div>
               </div>
             ))}
+            </div>
           </section>
         );
       })}

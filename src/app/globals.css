@@ -4,54 +4,58 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Design tokens (docs/design-system.md). The CSS twin of src/lib/tokens.ts: change both in the
-   same commit. shadcn's variables map onto the tokens below; the named tokens are for the rest. */
+/* Design tokens, version 2 (decision 0041, design note 33, docs/design-system.md). The CSS
+   twin of src/lib/tokens.ts: change both in the same commit. Every colour is a variable set
+   on :root for light and on .dark for dark; the Tailwind names below read the variables, so
+   one class works in both modes. shadcn's variables map onto the same tokens. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-heading: var(--font-jakarta);
 
   --color-white: #ffffff;
-  --color-grey-50: #f6f6f4;
-  --color-grey-100: #f0f0ee;
-  --color-greige: #eceae5;
-  --color-hairline: #e6e4df;
-  --color-hairline-strong: #c9c7c1;
-  --color-ink-muted: #5b6069;
-  --color-ink-soft: #454a52;
-  --color-ink: #16181c;
-  --color-ink-raised: #22252a;
-  --color-placeholder: #8a8e96;
-  --color-danger: #9b2c2c;
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-tint: var(--tint);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-placeholder: var(--placeholder);
+  --color-danger: var(--danger);
 
-  --color-teal-50: #e3f1ef;
-  --color-teal-100: #cadedd;
-  --color-teal-200: #a3c7c4;
-  --color-teal-300: #7fd1c6;
-  --color-teal-400: #4ca399;
-  --color-teal-500: #2a847c;
-  --color-teal-600: #21776f;
-  --color-teal-700: #0e6b63;
-  --color-teal-800: #10524e;
-  --color-teal-900: #123d3c;
+  --color-violet: var(--violet);
+  --color-violet-text: var(--violet-text);
+  --color-violet-soft: var(--violet-soft);
+  --color-coral: var(--coral);
+  --color-coral-text: var(--coral-text);
+  --color-coral-soft: var(--coral-soft);
+  --color-mint: var(--mint);
+  --color-mint-text: var(--mint-text);
+  --color-mint-soft: var(--mint-soft);
+  --color-sun: var(--sun);
+  --color-sun-text: var(--sun-text);
+  --color-sun-soft: var(--sun-soft);
 
-  --color-agree: #2f855a;
-  --color-agree-tint: #e6f4ec;
-  --color-agree-text: #22643f;
-  --color-pushed: #b7791f;
-  --color-pushed-tint: #fbf1dc;
-  --color-pushed-text: #7a5210;
-  --color-unclear: #7c3aed;
-  --color-unclear-tint: #eee8fa;
-  --color-unclear-text: #4c2f94;
-  --color-missing: #2b6cb0;
-  --color-missing-tint: #e3eef9;
-  --color-missing-text: #1f4f7a;
-  --color-disagree: #718096;
-  --color-disagree-tint: #f0f0ee;
-  --color-disagree-text: #454a52;
+  --color-agree: var(--agree);
+  --color-agree-tint: var(--agree-tint);
+  --color-agree-text: var(--agree-text);
+  --color-pushed: var(--pushed);
+  --color-pushed-tint: var(--pushed-tint);
+  --color-pushed-text: var(--pushed-text);
+  --color-unclear: var(--unclear);
+  --color-unclear-tint: var(--unclear-tint);
+  --color-unclear-text: var(--unclear-text);
+  --color-missing: var(--missing);
+  --color-missing-tint: var(--missing-tint);
+  --color-missing-text: var(--missing-text);
+  --color-disagree: var(--disagree);
+  --color-disagree-tint: var(--disagree-tint);
+  --color-disagree-text: var(--disagree-text);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -83,88 +87,178 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Four radii: 6 controls, 12 cards, 20 panels, 999 pills. shadcn's steps collapse onto them. */
-  --radius-sm: 6px;
-  --radius-md: 6px;
-  --radius-lg: 6px;
-  --radius-xl: 12px;
+  /* Four radii: 12 controls, inputs and rows; 16 cards; 20 marketing cards and panels; 999
+     pills. shadcn's steps collapse onto them. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-2xl: 20px;
   --radius-3xl: 20px;
-  --radius-4xl: 20px;
+  --radius-4xl: 24px;
 
-  /* One shadow. */
-  --shadow-card: 0 10px 28px rgba(22, 24, 28, 0.08);
-  --shadow-toast: 0 10px 28px rgba(22, 24, 28, 0.16);
+  /* One card shadow per mode, the primary button's glow, the toast. */
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-glow: 0 8px 20px rgba(109, 76, 245, 0.35);
+  --shadow-glow-hover: 0 12px 28px rgba(109, 76, 245, 0.55);
+  --shadow-toast: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #16181c;
-  --card: #ffffff;
-  --card-foreground: #16181c;
-  --popover: #ffffff;
-  --popover-foreground: #16181c;
-  --primary: #16181c;
+  color-scheme: light;
+  --ground: #f7f6fb;
+  --surface: #ffffff;
+  --raised: #ffffff;
+  --tint: #f7f6fb;
+  --hairline: #e6e3f0;
+  --hairline-strong: #cfcbe0;
+  --ink: #15131f;
+  --ink-soft: #3e3a54;
+  --ink-muted: #5e5a72;
+  --placeholder: #8c88a3;
+  --danger: #9b2c2c;
+  --violet: #6d4cf5;
+  --violet-text: #5a3be0;
+  --violet-soft: #eeeaff;
+  --coral: #ff6b57;
+  --coral-text: #9e3321;
+  --coral-soft: #ffe9e5;
+  --mint: #1f9d7a;
+  --mint-text: #166a52;
+  --mint-soft: #e1f5ee;
+  --sun: #f5b740;
+  --sun-text: #8a5a00;
+  --sun-soft: #fff3d6;
+  --agree: #2f855a;
+  --agree-tint: #e6f4ec;
+  --agree-text: #22643f;
+  --pushed: #b7791f;
+  --pushed-tint: #fbf1dc;
+  --pushed-text: #7a5210;
+  --unclear: #7c3aed;
+  --unclear-tint: #eee8fa;
+  --unclear-text: #4c2f94;
+  --missing: #2b6cb0;
+  --missing-tint: #e3eef9;
+  --missing-text: #1f4f7a;
+  --disagree: #718096;
+  --disagree-tint: #f0f0ee;
+  --disagree-text: #454a52;
+  --shadow-card: 0 12px 32px rgba(45, 32, 110, 0.1);
+  --shadow-card-hover: 0 18px 40px rgba(45, 32, 110, 0.16);
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--violet);
   --primary-foreground: #ffffff;
-  --secondary: #f6f6f4;
-  --secondary-foreground: #16181c;
-  --muted: #f6f6f4;
-  --muted-foreground: #5b6069;
-  --accent: #f6f6f4;
-  --accent-foreground: #16181c;
-  --destructive: #9b2c2c;
-  --border: #e6e4df;
-  --input: #c9c7c1;
-  --ring: #0e6b63;
-  --chart-1: #0e6b63;
-  --chart-2: #7fd1c6;
-  --chart-3: #5b6069;
-  --chart-4: #c9c7c1;
-  --chart-5: #16181c;
-  --radius: 6px;
-  --sidebar: #f6f6f4;
-  --sidebar-foreground: #16181c;
-  --sidebar-primary: #16181c;
+  --secondary: var(--tint);
+  --secondary-foreground: var(--ink);
+  --muted: var(--tint);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--violet-soft);
+  --accent-foreground: var(--violet-text);
+  --destructive: var(--danger);
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--violet);
+  --chart-1: var(--violet);
+  --chart-2: var(--coral);
+  --chart-3: var(--mint);
+  --chart-4: var(--sun);
+  --chart-5: var(--ink);
+  --radius: 12px;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--violet);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ffffff;
-  --sidebar-accent-foreground: #16181c;
-  --sidebar-border: #e6e4df;
-  --sidebar-ring: #0e6b63;
+  --sidebar-accent: var(--violet-soft);
+  --sidebar-accent-foreground: var(--violet-text);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--violet);
 }
 
-/* Dark mode mapping from the design system. Defined, not built in R1 (no toggle ships). */
+/* Dark: the same tokens, the values of design note 33 (the ground lightened one step after
+   Mihai's review). Status colours lift to read on the surface; their tints are the dark
+   softs. The class is set before paint by the script in src/app/layout.tsx. */
 .dark {
-  --background: #111214;
-  --foreground: #f2f1ee;
-  --card: #1a1c1f;
-  --card-foreground: #f2f1ee;
-  --popover: #1a1c1f;
-  --popover-foreground: #f2f1ee;
-  --primary: #f2f1ee;
-  --primary-foreground: #111214;
-  --secondary: #1a1c1f;
-  --secondary-foreground: #f2f1ee;
-  --muted: #1a1c1f;
-  --muted-foreground: #a3a7ae;
-  --accent: #1a1c1f;
-  --accent-foreground: #f2f1ee;
-  --destructive: #e07a7a;
-  --border: #2a2d32;
-  --input: #2a2d32;
-  --ring: #7fd1c6;
-  --chart-1: #7fd1c6;
-  --chart-2: #0e6b63;
-  --chart-3: #a3a7ae;
-  --chart-4: #2a2d32;
-  --chart-5: #f2f1ee;
-  --sidebar: #1a1c1f;
-  --sidebar-foreground: #f2f1ee;
-  --sidebar-primary: #f2f1ee;
-  --sidebar-primary-foreground: #111214;
-  --sidebar-accent: #111214;
-  --sidebar-accent-foreground: #f2f1ee;
-  --sidebar-border: #2a2d32;
-  --sidebar-ring: #7fd1c6;
+  color-scheme: dark;
+  --ground: #16152a;
+  --surface: #1e1d33;
+  --raised: #27263f;
+  --tint: #27263f;
+  --hairline: #343252;
+  --hairline-strong: #46445f;
+  --ink: #f3f1fa;
+  --ink-soft: #d4d0e4;
+  --ink-muted: #a8a4be;
+  --placeholder: #7d7996;
+  --danger: #ff8a78;
+  --violet: #9b86ff;
+  --violet-text: #b8a8ff;
+  --violet-soft: #2e2b55;
+  --coral: #ff8a78;
+  --coral-text: #ff8a78;
+  --coral-soft: #3a2230;
+  --mint: #5fd3b3;
+  --mint-text: #5fd3b3;
+  --mint-soft: #15302b;
+  --sun: #ffd36e;
+  --sun-text: #ffd36e;
+  --sun-soft: #3a2f14;
+  --agree: #6ccb95;
+  --agree-tint: #14332a;
+  --agree-text: #6ccb95;
+  --pushed: #e8b45a;
+  --pushed-tint: #3a2f14;
+  --pushed-text: #e8b45a;
+  --unclear: #b794f6;
+  --unclear-tint: #2e2347;
+  --unclear-text: #b794f6;
+  --missing: #6fa8e6;
+  --missing-tint: #1b2e44;
+  --missing-text: #6fa8e6;
+  --disagree: #a0aec0;
+  --disagree-tint: #2a2f3a;
+  --disagree-text: #a0aec0;
+  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 18px 40px rgba(0, 0, 0, 0.55);
+  --primary-foreground: #16152a;
+  --sidebar-primary-foreground: #16152a;
+}
+
+/* The card of design v2: a surface that floats on the ground with one soft shadow. The row
+   inside a card (an item on Shape, a project in the list) sits on the raised surface. */
+@utility card {
+  background-color: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+@utility item-row {
+  background-color: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+/* The primary button's gradient, the only gradient inside the app (design note 33). */
+@utility bg-aurora-button {
+  background-image: linear-gradient(135deg, #7a5cff, #6d4cf5 60%, #5a3be0);
+}
+/* The column of the pages outside the shell (sign-in, name the workspace, errors). */
+@utility auth-frame {
+  margin-inline: auto;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 28rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  padding: 3rem 1rem;
 }
 
 @layer base {
@@ -172,9 +266,9 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    font-size: 14px;
-    line-height: 20px;
+    @apply bg-ground text-ink;
+    font-size: 15px;
+    line-height: 24px;
   }
   html {
     @apply font-sans;

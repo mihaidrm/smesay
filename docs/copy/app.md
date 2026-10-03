@@ -45,7 +45,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Logo remove checkbox | Remove logo |
 | Accent label | Accent colour |
 | Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter and the progress bar. Buttons stay ink. |
-| Accent line, none set | No accent set. The respondent page uses teal. |
+| Accent line, none set | No accent set. The respondent page uses violet. |
 | Save button | Save |
 | Line after saving | Saved. Your instruments carry the new name, logo and accent. |
 | Plan card title and value | Plan, Free |
@@ -209,6 +209,10 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Sidebar, projects label and link | Projects, All |
 | Sidebar and list, sample pill | Sample |
 | Sidebar footer button | Sign out |
+| Sidebar, sample card title, line and button (design v2) | Try the sample / [SAMPLE NAME]: every screen has data, nothing to set up. / Open the sample |
+| Sidebar, mode toggle label and state (design v2) | Dark mode (the switch's name); Light / Dark |
+| Projects page, stat tiles (design v2) | [N] project(s) / [N] open link(s) / [N] response(s) this month / [N] AI run(s) this month |
+| Projects page, archive buttons | Show archived / Back to projects |
 | Projects page breadcrumb | [WORKSPACE NAME] |
 | Loading state of any page | Loading. |
 | Error state of any page, title | The server could not finish this request. |

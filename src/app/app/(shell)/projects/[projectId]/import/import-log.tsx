@@ -13,8 +13,8 @@ const SOURCE = { xlsx: "xlsx", csv: "csv", pasted: "pasted" } as const;
 export function ImportLog({ projectId, versions, diffText }: { projectId: string; versions: ItemSetVersion[]; diffText: string | null }) {
   if (versions.length === 0) return null;
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-hairline p-4" aria-labelledby="log-title" data-testid="import-log">
-      <h3 id="log-title" className="font-medium">{IMPORT_COPY.logTitle}</h3>
+    <section className="flex flex-col gap-3 card p-4" aria-labelledby="log-title" data-testid="import-log">
+      <h3 id="log-title" className="font-semibold">{IMPORT_COPY.logTitle}</h3>
       <Table>
         <TableHeader>
           <TableRow>

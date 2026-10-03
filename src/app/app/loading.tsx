@@ -3,7 +3,7 @@
 // 03-file-conventions/loading.md). Copy: docs/copy/app.md.
 export default function Loading() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12" aria-busy="true">
+    <main className="auth-frame" aria-busy="true">
       <p className="text-ink-muted">Loading.</p>
     </main>
   );

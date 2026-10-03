@@ -6,7 +6,7 @@ Nothing here is hand-drawn (decision 0004).
 
 ## What exists now
 
-- assets/brand/logo-mark-placeholder.svg: a teal rounded square with two list lines and a tick.
+- assets/brand/logo-mark-placeholder.svg: a violet rounded square with the two speech marks (design v2, decision 0041).
 - assets/brand/logo-lockup-placeholder.svg: the mark plus the text "Working Name".
 
 Both are placeholders made by Claude. They are fine for the prototype and for building. They are

@@ -33,7 +33,7 @@ export function SignInForm({ next }: { next: string }) {
 
   if (sent) {
     return (
-      <div role="status" className="rounded-lg border border-hairline bg-grey-50 px-4 py-3">{SIGN_IN_COPY.sent}</div>
+      <div role="status" className="rounded-lg border border-hairline bg-tint px-4 py-3">{SIGN_IN_COPY.sent}</div>
     );
   }
   return (

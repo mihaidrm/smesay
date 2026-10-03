@@ -1,11 +1,17 @@
-// The signed-in shell (stories/E2-1, acceptance 5; stories/E2-3, acceptance 3): the PM app
-// board's frame, a 240 px sidebar with the lockup, the workspace block (the name, or the
-// switcher when the person belongs to more than one), the member count, the project list, and
-// the signed-in email with Sign out. Route group, so /app/new and /app/switch render without
-// it (node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route-groups.md).
-// Copy: docs/copy/app.md.
+// The signed-in shell (stories/E2-1, acceptance 5; stories/E2-3, acceptance 3; the PM app
+// board, design v2, decision 0041): a 248 px sidebar on the surface with the lockup, the
+// workspace chip (initials tile, the name or the switcher when the person belongs to more than
+// one, the member count, the Settings link), the nav (Projects, Settings), the project list,
+// then at the bottom the sample card, the mode toggle and the signed-in email with Sign out.
+// Route group, so /app/new and /app/switch render without it (node_modules/next/dist/docs/
+// 01-app/03-api-reference/03-file-conventions/route-groups.md). Copy: docs/copy/app.md.
 import Link from "next/link";
+import { LayoutGrid, Settings } from "lucide-react";
+import { ModeToggle } from "@/components/app/mode-toggle";
+import { NavLink } from "@/components/app/nav-link";
+import { WorkspaceTile } from "@/components/app/tiles";
 import { Lockup } from "@/components/brand/mark";
+import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { members, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -15,35 +21,51 @@ import { WorkspaceSwitcher } from "./workspace-switcher";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { session, memberships, current } = await requireCurrentWorkspace("/app");
   const [memberRows, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
+  const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <div className="flex min-h-screen">
-      <aside className="flex w-60 shrink-0 flex-col gap-6 border-r border-hairline bg-grey-50 px-4 py-5 text-sm">
-        <Lockup />
-        <div className="flex flex-col gap-1">
-          <div className="text-xs text-ink-muted">Workspace</div>
-          <div className="flex items-center justify-between gap-2">
+      <aside className="flex w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm">
+        <div className="px-2 pt-1 pb-4"><Lockup text={17} /></div>
+        <div className="mb-2.5 flex items-center gap-2.5 rounded-xl bg-tint px-3 py-2.5">
+          <WorkspaceTile name={current.workspace.name} />
+          <div className="flex min-w-0 flex-grow flex-col">
+            <div className="text-xs text-ink-muted">Workspace</div>
             {memberships.length > 1
               ? <WorkspaceSwitcher current={current.workspace.id} options={memberships.map((w) => ({ id: w.id, name: w.name }))} />
-              : <div className="font-medium">{current.workspace.name}</div>}
-            <Link href="/app/settings" className="shrink-0 px-2 text-[13px] font-medium text-teal-700">Settings</Link>
+              : <div className="truncate font-semibold">{current.workspace.name}</div>}
+            <div className="flex items-center justify-between gap-2 text-xs text-ink-muted">
+              <span>{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</span>
+              <Link href="/app/settings" className="font-semibold text-violet-text">Settings</Link>
+            </div>
           </div>
-          <div className="text-xs text-ink-muted">{memberRows.length === 1 ? "1 member" : `${memberRows.length} members`}</div>
         </div>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between">
+        <NavLink href="/app" exact icon={<LayoutGrid aria-hidden="true" />}>Projects</NavLink>
+        <NavLink href="/app/settings" icon={<Settings aria-hidden="true" />}>Settings</NavLink>
+        <div className="mt-3 flex flex-col gap-1">
+          <div className="flex items-center justify-between px-3">
             <div className="text-xs text-ink-muted">Projects</div>
-            <Link href="/app" className="px-2 text-[13px] font-medium text-teal-700">All</Link>
+            <Link href="/app" className="text-xs font-semibold text-violet-text">All</Link>
           </div>
           {projectRows.filter((p) => p.archivedAt === null).map((p) => (
-            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-ink-soft hover:bg-white">
+            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 hover:bg-tint hover:text-ink">
               <span className="truncate">{p.name}</span>
               {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
             </Link>
           ))}
         </div>
-        <div className="mt-auto flex flex-col gap-2 text-ink-muted">
-          <div className="truncate" title={session.user.email}>{session.user.email}</div>
-          <SignOutButton />
+        <div className="mt-auto flex flex-col gap-3">
+          {sample && (
+            <div className="flex flex-col gap-2 rounded-[14px] border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
+              <div className="text-[13px] font-bold">Try the sample</div>
+              <div className="text-xs leading-[17px] text-ink-muted">{sample.name}: every screen has data, nothing to set up.</div>
+              <Link href={`/app/projects/${sample.id}/import`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
+            </div>
+          )}
+          <ModeToggle />
+          <div className="flex flex-col gap-2 px-2.5 text-ink-muted">
+            <div className="truncate text-xs" title={session.user.email}>{session.user.email}</div>
+            <SignOutButton />
+          </div>
         </div>
       </aside>
       <div className="flex min-w-0 flex-grow flex-col">{children}</div>

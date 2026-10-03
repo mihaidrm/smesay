@@ -43,12 +43,12 @@ beforeAll(async () => {
 const base = { name: "Marlow Group", accentHex: "#1F4F7A", logo: null, removeLogo: false };
 
 describe("accent", () => {
-  it("measures contrast on white, uses teal when none is set and falls back to ink under 4.5:1", () => {
+  it("measures contrast on white, uses violet when none is set and falls back to ink under 4.5:1", () => {
     expect(accentContrast("#1F4F7A")!.toFixed(2)).toBe("8.54");
     expect(isReadableAccent("#1F4F7A")).toBe(true);
     expect(isReadableAccent("#FFD500")).toBe(false);
     expect(effectiveAccent("#FFD500")).toBe(FALLBACK_ACCENT);
-    expect(FALLBACK_ACCENT).toBe("#16181C");
+    expect(FALLBACK_ACCENT).toBe("#15131F");
     expect(effectiveAccent("#1f4f7a")).toBe("#1F4F7A");
     expect(effectiveAccent(null)).toBe(DEFAULT_ACCENT);
     expect(effectiveAccent("")).toBe(DEFAULT_ACCENT);

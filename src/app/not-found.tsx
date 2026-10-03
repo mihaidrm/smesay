@@ -5,14 +5,15 @@
 // 03-api-reference/03-file-conventions/not-found.md.
 import Link from "next/link";
 import { Lockup } from "@/components/brand/mark";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-4 py-12">
+    <main className="auth-frame gap-6">
       <Lockup />
       <h1 className="text-2xl font-medium tracking-tight">This page does not exist.</h1>
       <p className="text-ink-muted">Check the address, or go to your projects.</p>
-      <Link href="/app" className="inline-flex h-10 items-center self-start rounded-full border border-ink bg-ink px-5 text-sm font-medium text-white">Go to your projects</Link>
+      <Link href="/app" className={buttonVariants({ className: "self-start" })}>Go to your projects</Link>
     </main>
   );
 }

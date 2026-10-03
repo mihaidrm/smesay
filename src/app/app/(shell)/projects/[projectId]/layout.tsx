@@ -26,8 +26,8 @@ export default async function ProjectLayout({ children, params }: { children: Re
     <main className="flex flex-col gap-5 px-8 py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <div className="text-xs text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
-          <h1 className="flex items-center gap-2 text-xl font-medium">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
+          <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
         </div>
         <Stepper current={imported ? "shape" : "import"} done={imported ? ["import"] : []} href={(step) => (BUILT.includes(step) ? `/app/projects/${project.id}/${step}` : null)} />
         {!project.isSample && (

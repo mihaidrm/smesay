@@ -40,7 +40,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-xl font-normal">{SHAPE_COPY.title}</h2>
+          <h2 className="text-xl font-bold tracking-[-0.02em]">{SHAPE_COPY.title}</h2>
           {set && rows.length > 0 && !project.isSample && (
             <div className="flex flex-wrap items-center gap-2">
               {shaped && <ReaderAll key={suggested} projectId={project.id} suggested={suggested} />}
@@ -61,8 +61,8 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
       </div>
       <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
-        <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-hairline-strong p-6" data-testid="shape-empty">
-          <div className="font-medium">{SHAPE_COPY.noSet}</div>
+        <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-hairline-strong bg-surface p-6" data-testid="shape-empty">
+          <div className="font-semibold">{SHAPE_COPY.noSet}</div>
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (

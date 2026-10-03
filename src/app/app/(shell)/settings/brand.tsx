@@ -36,7 +36,7 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
         {logoUrl
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={logoUrl} alt="" width={40} height={40} className="size-10 rounded-lg object-contain" data-testid="logo-preview" />
-          : <div className="flex size-10 items-center justify-center rounded-lg bg-ink font-semibold text-white" aria-hidden="true">{initial}</div>}
+          : <div className="flex size-10 items-center justify-center rounded-[10px] bg-violet font-extrabold text-white" aria-hidden="true">{initial}</div>}
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-logo">Logo</Label>
           <span className="text-xs text-ink-muted">PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark.</span>

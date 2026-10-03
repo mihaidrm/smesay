@@ -22,10 +22,10 @@ export function CheckCard({ uploadId, check, importedVersion }: { uploadId: stri
   const counts = check ? IMPORT_COPY.counts(check.report) : null;
   const n = check?.items.length ?? 0;
   return (
-    <section className="flex flex-col rounded-md border border-hairline" aria-labelledby="check-title" data-testid="check-card">
-      <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-medium">Check before import</h3></div>
+    <section className="flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
+      <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-semibold">Check before import</h3></div>
       {check && counts ? (
-        <div className="grid grid-cols-1 divide-y divide-grey-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div className="grid grid-cols-1 divide-y divide-hairline md:grid-cols-3 md:divide-x md:divide-y-0">
           <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
           <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => `Row ${d.row}, same as row ${d.keptRow}`)} />
           <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
@@ -34,7 +34,7 @@ export function CheckCard({ uploadId, check, importedVersion }: { uploadId: stri
         <div className="px-4 py-3 text-sm text-ink-muted">{IMPORT_COPY.noCheck}</div>
       )}
       {check && counts && check.report.unrecognisedValues > 0 && (
-        <div className="border-t border-grey-100"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
+        <div className="border-t border-hairline"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
       )}
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-hairline px-4 py-3">
         {importedVersion !== null ? (

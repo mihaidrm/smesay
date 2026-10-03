@@ -9,7 +9,7 @@ text passes AA, and the PM's logo and accent apply within the theming rules.
 1. A Playwright run with axe-core over About you, a chapter, the Wrap up and Done on the
    sample instrument reports zero serious or critical violations (business plan E7).
 2. Keyboard: every pill, toggle, box and button is reachable in reading order; the focus ring
-   is 2 px teal with 2 px offset on focus-visible (docs/design-system.md); a Playwright test
+   is 2 px violet with 2 px offset on focus-visible (design v2) (docs/design-system.md); a Playwright test
    tabs through one card and answers it with the keyboard only.
 3. Screen reader: each card is a fieldset with its legend; the rating row is a radiogroup with
    the value and "proposed" in the accessible name; the note under the card is aria-live

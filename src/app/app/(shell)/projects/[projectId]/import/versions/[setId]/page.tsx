@@ -19,7 +19,7 @@ export default async function VersionPage({ params }: { params: Promise<{ projec
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-normal">Version {set.version}</h2>
+        <h2 className="text-xl font-bold tracking-[-0.02em]">Version {set.version}</h2>
         <p className="text-ink-muted">{set.source === "pasted" ? "Pasted list" : set.sourceFilename}, imported {DATE.format(set.importedAt)}, {rows.length.toLocaleString("en-GB")} {rows.length === 1 ? "item" : "items"}. Read-only. <Link href={`/app/projects/${project.id}/import`} className="underline underline-offset-4">Back to Import</Link></p>
       </div>
       <Table data-testid="version-items">

@@ -49,7 +49,7 @@ accent, the contrast line, the banner, the logo served by the route.
   every field validated on the server (name 1 to 80, accent as #RRGGBB or empty, the logo by
   content). The accent is stored as typed, upper-cased; `effectiveAccent()` in
   src/lib/brand-rules.ts gives the respondent side the accent when it reaches 4.5:1 on white
-  (src/lib/contrast.ts), teal when none is set, and ink when it is too light (acceptance 2,
+  (src/lib/contrast.ts), violet when none is set (teal before design v2, decision 0041), and ink when it is too light (acceptance 2,
   decision 0016, Brand 06), and Settings shows the banner from docs/copy/errors.md. The brand
   lives on the workspace row, so a save applies to every instrument at once, published ones
   included.
