@@ -1,10 +1,10 @@
 // Banner (the ambiguity flag, design v2): a card on a soft violet gradient with a sun dot, ink
 // text, a secondary Dismiss pill. Empty state: a dashed card with a title, one line that says
-// what to do and, when asked, the mascot's placeholder. Toast: dark surface, light text, violet
+// what to do and, when asked, the mascot in the pose that fits the screen. Toast: dark surface, light text, violet
 // 300 action, the toast shadow (docs/design-system.md, Components; design note 33).
 import { cn } from "cn"
 import { buttonVariants } from "@/components/ui/button"
-import { MascotPlaceholder } from "@/components/app/mascot"
+import { Mascot, type MascotPose } from "@/components/app/mascot"
 
 // action (E4-4): a node drawn in the Dismiss pill's place, for a Dismiss that is a form; the
 // pill's own classes are exported as bannerButtonClass for it.
@@ -44,10 +44,10 @@ export function Banner({
   )
 }
 
-export function EmptyState({ title, children, mascot = false, className }: { title: string; children: React.ReactNode; mascot?: boolean; className?: string }) {
+export function EmptyState({ title, children, mascot, className }: { title: string; children: React.ReactNode; mascot?: MascotPose; className?: string }) {
   return (
     <div className={cn("flex flex-col items-center gap-2 rounded-2xl border border-dashed border-hairline-strong bg-surface px-6 py-10 text-center", className)}>
-      {mascot && <MascotPlaceholder size={64} className="mb-2" />}
+      {mascot && <Mascot pose={mascot} size={96} className="mb-2" />}
       <div className="text-lg font-bold tracking-[-0.02em]">{title}</div>
       <div className="text-[13px] text-ink-muted">{children}</div>
     </div>

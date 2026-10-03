@@ -13,6 +13,7 @@ shortlist, read the same day; prices in US dollars as the pages show them, befor
 
 | # | What | Where it goes | Links | Licence | Price | Status |
 |---|---|---|---|---|---|---|
+| 1 | Placed 2026-10-03: the Robot Vector Collection (Smashing Stocks via Craftwork, USD 14, https://craftwork.design/product/robot-vector-collection), bought by Mihai; the round-headed robot in four poses, hi, idea, reading, analysis, recoloured to the violet, in public/assets/mascot/ with LICENCE.txt. The receipt is still to be added beside the files. The shortlist below is history | sign-in, the landing hero, the Projects empty state (idea), Import (reading) and Results (analysis) empty states, the respondent thank-you | https://craftwork.design/product/robot-vector-collection | Craftwork commercial licence (https://craftwork.design/license) | 14, paid | placed (design note 37) |
 | 1a | Roger (or Albert), one flat vector character in 140 (125) premade poses: 70 gestures and 70 (55) concept scenes, SVG, AI, EPS and PNG, with a symbol library for recolouring. Recommended: ready files, no tool needed, the jacket recoloured to violet in the SVG when placed | Landing hero (over the live card), sign-in page, the empty states of Projects, Import and Results, the respondent thank-you screen | https://www.animationguides.com/downloads/roger-illustrations-pack/ , https://www.animationguides.com/downloads/albert-illustrations-pack/ | Standard licence; the page says attribution is optional. The licence page could not be opened from this session (404 on /license/), so read the Standard and Extended terms at checkout: the Standard must allow a commercial web app; Extended is 99.90 and not needed for one product | 24.90 | to choose |
 | 1b | Superhuman Constructor, a 3D character built in Figma from parts, 9 prebuilt poses and the constructor for more, PNG export at 2x from Figma | same slots | https://craftwork.design/product/superhuman | Commercial licence: own and client projects without limit, teams up to 20, no resale of the files, no logo use (https://craftwork.design/license) | 48 | alternative if a 3D look is wanted and Figma is at hand |
 | 1c | Techno Geek, one robot-like character in 10 preset poses, AI, EPS and PNG, parts rearrangeable (from 2016) | same slots | https://creativemarket.com/bagstudio/626669-Techno-Geek-Vector-Mascot-Pack | Creative Market Commercial licence | 18 | cheapest, dated style |
@@ -42,7 +43,7 @@ a coral #FF6B57 detail when placing it, which is placement, not drawing.
 | 6 | App icon and favicon, from the mark on Brand01 (no purchase; Claude exports the sizes) | Browser tab, phone home screen | made from docs/design-notes/prototype-01/Logo.dc.html | ours | free | Claude makes |
 | 7 | Social preview image (Open Graph), a product screen on the aurora ground | Links shared in chat and on LinkedIn | made from the landing board | ours | free | Claude makes |
 
-Total to pay: USD 24.90 for Roger or Albert (about EUR 23), or 48 for the Superhuman constructor; nothing else.
+Total paid: USD 14 for the Robot Vector Collection; nothing else to buy.
 
 Looked at and left out: Storyset (Freepik) is free with attribution and USD 7.49 a month
 without it (https://storyset.com), a running cost for one illustration family; Icons8
@@ -64,5 +65,5 @@ plan about EUR 20 a month before the first external user; the rest on free tiers
 3. The licence file is listed in docs/accounts.md under step 12, so the paper trail is in one
    place.
 
-Placeholders today: the mascot is a violet blob with two eyes and a smile (CSS, no file); the
+Placeholders today: none for the mascot (placed); the
 spot illustrations are dashed frames with a one-line caption; icons are Lucide.

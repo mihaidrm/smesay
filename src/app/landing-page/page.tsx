@@ -1,7 +1,7 @@
 // The landing page, design v2 (stories/E12-1 as amended on 2026-10-03; the LandingF board,
 // docs/design-notes/prototype-01/LandingF.dc.html; copy from docs/copy/landing.md). Served at
 // /landing-page until Mihai moves it to /: a dark hero with the aurora, the dot grid and the
-// cursor light, the live card tilted with the mascot's placeholder at its corner, light
+// cursor light, the live card tilted with the mascot at its corner, light
 // "three steps" and "what you get back" sections, dark pricing and footer. Desktop 1440 and
 // phone 390 in one pass (decision 0015): one column under 1024 px, the card upright and full
 // width, the type one step smaller. The landing keeps its own light and dark sections
@@ -15,7 +15,7 @@
 // cursor light; the two card labels on light use the text colours of their hues.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MascotPlaceholder } from "@/components/app/mascot";
+import { Mascot } from "@/components/app/mascot";
 import { Lockup } from "@/components/brand/mark";
 import { buttonVariants } from "@/components/ui/button";
 import { CursorLight } from "./cursor-light";
@@ -108,7 +108,7 @@ export default function LandingPage() {
           </div>
           <div className="landing-rise relative w-full max-w-[600px] pt-6 pb-16 lg:py-10 lg:pl-5 [animation-delay:150ms]">
             <LiveCard />
-            <MascotPlaceholder size={88} className="landing-float absolute right-0 bottom-9 lg:-right-10 lg:-bottom-1" />
+            <Mascot pose="hi" size={104} className="landing-float absolute right-0 bottom-8 lg:-right-12 lg:-bottom-2" />
             <div className="absolute bottom-2 -left-2 flex items-center gap-3 rounded-[14px] border border-[#343252] bg-[#1E1D33] px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.45)] lg:bottom-1 lg:-left-5" data-testid="agreement-chip">
               <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">72%</span>
               <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">14 of 40 items rated</div></div>
