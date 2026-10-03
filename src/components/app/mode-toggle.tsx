@@ -5,10 +5,12 @@
 // (src/app/globals.css). The script in src/app/layout.tsx applies the stored choice before the
 // first paint. The component reads the class through useSyncExternalStore with a
 // MutationObserver as the subscription (react.dev/reference/react/useSyncExternalStore), so
-// the label follows the class and the server render says "Light" until the client knows.
-// A switch role with the mode as its label, so a screen reader hears "Dark mode, on". New to
-// the design system: design note 34.
-import { useSyncExternalStore } from "react";
+// the state follows the class and the server render says off until the client knows.
+// A switch named by its visible label "Dark mode" (the label is the accessible name, WCAG
+// 2.5.3), 24 px high (WCAG 2.5.8), the off track in ink-muted against the surface (6.60 on
+// light, 6.82 on dark) with the thumb in white on light and in the ground on dark (6.60 and
+// 7.42 against the track). New to the design system: design note 34.
+import { useId, useSyncExternalStore } from "react";
 
 const KEY = "smesay-mode";
 
@@ -22,6 +24,7 @@ const serverRead = () => false;
 
 export function ModeToggle() {
   const dark = useSyncExternalStore(subscribe, read, serverRead);
+  const labelId = useId();
   const flip = () => {
     const next = !dark;
     document.documentElement.classList.toggle("dark", next);
@@ -29,17 +32,17 @@ export function ModeToggle() {
   };
   return (
     <div className="flex items-center justify-between gap-3 px-2.5 text-xs text-ink-muted">
-      <span aria-hidden="true">{dark ? "Dark" : "Light"}</span>
+      <span id={labelId}>Dark mode</span>
       <button
         type="button"
         role="switch"
         aria-checked={dark}
-        aria-label="Dark mode"
+        aria-labelledby={labelId}
         data-testid="mode-toggle"
         onClick={flip}
-        className="relative h-5 w-9 shrink-0 rounded-full border border-transparent bg-hairline-strong transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-checked:bg-violet"
+        className="relative h-6 w-11 shrink-0 rounded-full border border-transparent bg-ink-muted transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-checked:bg-violet"
       >
-        <span aria-hidden="true" className="absolute top-0.5 left-0.5 block size-4 rounded-full bg-white shadow-sm transition-transform duration-150 in-aria-checked:translate-x-4" />
+        <span aria-hidden="true" className="absolute top-0.5 left-0.5 block size-5 rounded-full bg-white shadow-sm transition-transform duration-150 in-aria-checked:translate-x-5 dark:bg-ground dark:in-aria-checked:bg-ground" />
       </button>
     </div>
   );

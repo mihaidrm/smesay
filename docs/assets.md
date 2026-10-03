@@ -51,5 +51,5 @@ plan about EUR 20 a month before the first external user; the rest on free tiers
 3. The licence file is listed in docs/accounts.md under step 12, so the paper trail is in one
    place.
 
-Placeholders today: the mascot is a violet blob with the two speech marks (CSS, no file); the
+Placeholders today: the mascot is a violet blob with two eyes and a smile (CSS, no file); the
 spot illustrations are dashed frames with a one-line caption; icons are Lucide.

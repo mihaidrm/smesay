@@ -211,7 +211,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Sidebar footer button | Sign out |
 | Sidebar, sample card title, line and button (design v2) | Try the sample / [SAMPLE NAME]: every screen has data, nothing to set up. / Open the sample |
 | Sidebar, mode toggle label and state (design v2) | Dark mode (the switch's name); Light / Dark |
-| Projects page, stat tiles (design v2) | [N] project(s) / [N] open link(s) / [N] response(s) this month / [N] AI run(s) this month |
+| Projects page, stat tiles (design v2) | [N] project(s) of your own / [N] response(s) this month / [N] AI run(s) this month |
 | Projects page, archive buttons | Show archived / Back to projects |
 | Projects page breadcrumb | [WORKSPACE NAME] |
 | Loading state of any page | Loading. |

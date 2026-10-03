@@ -29,6 +29,7 @@
   --color-danger: var(--danger);
 
   --color-violet: var(--violet);
+  --color-on-violet: var(--on-violet);
   --color-violet-text: var(--violet-text);
   --color-violet-soft: var(--violet-soft);
   --color-coral: var(--coral);
@@ -121,6 +122,7 @@
   --violet: #6d4cf5;
   --violet-text: #5a3be0;
   --violet-soft: #eeeaff;
+  --on-violet: #ffffff;
   --coral: #ff6b57;
   --coral-text: #9e3321;
   --coral-soft: #ffe9e5;
@@ -201,6 +203,7 @@
   --violet: #9b86ff;
   --violet-text: #b8a8ff;
   --violet-soft: #2e2b55;
+  --on-violet: #16152a;
   --coral: #ff8a78;
   --coral-text: #ff8a78;
   --coral-soft: #3a2230;
@@ -244,9 +247,10 @@
   border: 1px solid var(--hairline);
   border-radius: 12px;
 }
-/* The primary button's gradient, the only gradient inside the app (design note 33). */
+/* The primary button's gradient, the only gradient inside the app (design note 33). The
+   start is #7355F2, not the boards' first #7A5CFF, so white reads at 4.87 on every pixel. */
 @utility bg-aurora-button {
-  background-image: linear-gradient(135deg, #7a5cff, #6d4cf5 60%, #5a3be0);
+  background-image: linear-gradient(135deg, #7355f2, #6d4cf5 60%, #5a3be0);
 }
 /* The column of the pages outside the shell (sign-in, name the workspace, errors). */
 @utility auth-frame {

@@ -10,8 +10,8 @@ the design system and where the code departs from the boards, with the reason.
   the Tailwind names read the variables, so `bg-surface` or `text-violet-text` is one class
   in both modes. src/lib/tokens.ts carries the same values as light and dark objects; the
   status colours gained their dark solid, tint and text. docs/design-system.md is rewritten
-  for v2. Teal, grey-50, grey-100, greige, ink-raised and white-as-a-token are gone; the
-  v1 names that stayed (ink, ink-muted, ink-soft, hairline, hairline-strong, danger) now
+  for v2. Teal, grey-50, grey-100, greige and ink-raised are gone (white stays as a name only
+  for text on the violet gradient and the toggle's thumb); the v1 names that stayed (ink, ink-muted, ink-soft, hairline, hairline-strong, danger) now
   switch with the mode.
 - Type: Plus Jakarta Sans 400 to 800 through next/font/google, Geist Mono kept. Body 15 on
   24 in the app. Page titles 30 at 800, project titles 24 at 800, section titles 20 at 700,
@@ -19,7 +19,9 @@ the design system and where the code departs from the boards, with the reason.
 - Mode: the html class `dark` is set before the first paint by an inline script in
   src/app/layout.tsx from localStorage ("smesay-mode") or the system setting; the toggle at
   the bottom of the sidebar flips it and stores the choice. `suppressHydrationWarning` on the
-  html element covers the class the server did not know.
+  html element covers the class the server did not know. With no stored choice the script
+  also follows a system change while the page is open. When E11-5 adds the content security
+  policy, this inline script needs the nonce (SECURITY.md).
 - Components restyled: Button (gradient primary with the glow and the hover lift, secondary
   fills violet soft, tertiary in violet text, destructive on coral soft), StatusPill (height
   24, weight 600), NeutralPill, NotAnsweredPill, Banner (soft violet gradient, sun dot,
@@ -33,8 +35,8 @@ the design system and where the code departs from the boards, with the reason.
   hairline, radius 12), plus `bg-aurora-button` and `auth-frame`.
 - Screens: the shell (248 px sidebar: lockup, workspace chip with the initials tile, Projects
   and Settings nav with Lucide icons, the project list, the sample card, the toggle, the
-  email and Sign out), Projects (four stat tiles from the usage counts and the open links,
-  the table as a card with a colour tile per project, Show archived as a button), the project
+  email and Sign out), Projects (three stat tiles: the projects of your own on the list, the
+  responses and the AI runs this month from the usage counts; the table as a card with a colour tile per project, Show archived as a button), the project
   frame (title at 24, the new stepper), Import (every section a card), Shape (areas as cards
   with the count in mono and the rationale on the right, items as rows on the raised surface,
   Suggested in violet, Reader version used in mint), Settings (cards, the Plan chip in violet
@@ -55,9 +57,9 @@ the design system and where the code departs from the boards, with the reason.
 - The sidebar has no Results item. The product has no Results page until E6, and the copy
   rule is not to describe a feature the product does not have; the item and its coral count
   arrive with E6-1.
-- The stat tiles count what exists: projects, open links, responses this month, AI runs this
-  month (src/db/queries/usage.ts and the project summaries). The board's agreement percent
-  and to-do count come with E6 and E7.
+- The stat tiles count what exists: the projects of your own on the list, responses this
+  month, AI runs this month (src/db/queries/usage.ts). The board's open links, agreement
+  percent and to-do count come with E6 and E7.
 - The mark lost its baseline (the boards draw it without one; the v1 Identity text said "on a
   shared baseline"). docs/design-system.md and the two placeholder SVGs follow the boards.
 - The ambiguity banner on light is a surface card on the soft violet gradient with the sun
@@ -66,6 +68,26 @@ the design system and where the code departs from the boards, with the reason.
 - The mode toggle has two states, light and dark, and no "follow the system" position; the
   system setting applies until the first press. A reset would be a third control for a
   choice that is made once; it can be added if asked.
+
+## Audit (fresh context, same day)
+
+22 findings, 6 blocking, all fixed before the merge: the stepper's active pill and the
+avatar failed contrast on dark (now the on-violet token, 5.25 and 6.17, in the test); the
+mint stat tile used the solid (now mint text); the "open links" tile described a feature the
+product does not have (removed); six v1 sections of docs/design-system.md had been dropped
+(restored, adapted to v2, and the respondent primary stays ink); docs/retired-terms.md had
+no rows for the retired names (seven added, and the v1 brand boards with their generator
+joined the history list of the status script); the toggle and the tiles had no tests (a
+unit test for initials and gradientFor, a Playwright test for the toggle, the system setting
+and the reload). Minor ones fixed in the same push: the gradient's start lightened to
+#7355F2 so white reads at 4.87; focus rings on the stepper, the All link and the project
+links; the segmented control's ring offset; the toggle named by its visible label, 24 px
+high, with track and thumb above 3:1; the mode script follows a system change and is noted
+for the CSP nonce; the variable font loads without a weight list; initials by code point;
+the dark status figures on the surface asserted; stale wording in docs/brand-assets.md, the
+placeholder SVGs, docs/copy/emails.md and the canvas index board; radii on the scale. Left
+as is: the mode script runs on every route (the landing page and the respondent side get
+their own rule when built); `--color-white` stays for the two uses above.
 
 ## Checks
 

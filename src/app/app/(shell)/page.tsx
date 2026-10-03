@@ -1,5 +1,6 @@
 // Projects (stories/E3-1, acceptance 1 and 4; stories/E2-3, acceptance 2; the PM app board,
-// design v2): the title, three stat tiles from the usage counts (stories/E2-6), then the
+// design v2): the title, three stat tiles (the projects of your own on the list, then the
+// responses and AI runs this month from the usage counts, stories/E2-6), then the
 // table card of name with its tile, items, responses ("5 of 7"), status, updated; New
 // project; the sample's pill and Delete sample (stories/E8-8, acceptance 3); archived
 // projects behind "Show archived". Copy: docs/copy/app.md, errors.md. Status:
@@ -29,7 +30,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const [rows, used] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws)]);
   // The empty state is for a workspace with no project of its own at all, archived ones included.
   const own = showArchived ? rows : (await projects.list(current.ws)).filter((r) => !r.isSample);
-  const openLinks = rows.filter((p) => projectStatus(p, p.links) === "Open").length;
+  const ownOnList = rows.filter((p) => !p.isSample).length;
   return (
     <main className="flex flex-col gap-5 px-8 py-6">
       <div className="flex items-end justify-between gap-4">
@@ -45,8 +46,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       </div>
       {!showArchived && (
         <div className="flex gap-3.5">
-          <StatTile value={used.projects} label={used.projects === 1 ? "project" : "projects"} />
-          <StatTile value={openLinks} label={openLinks === 1 ? "open link" : "open links"} tone="violet" />
+          <StatTile value={ownOnList} label={ownOnList === 1 ? "project of your own" : "projects of your own"} tone="violet" />
           <StatTile value={used.responsesThisMonth} label={used.responsesThisMonth === 1 ? "response this month" : "responses this month"} tone="mint" />
           <StatTile value={used.aiRunsThisMonth} label={used.aiRunsThisMonth === 1 ? "AI run this month" : "AI runs this month"} tone="sun" />
         </div>

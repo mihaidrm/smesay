@@ -2,7 +2,8 @@
 
 Words and phrases that a decision replaced. `node scripts/sync-status.mjs` fails when one of them
 appears in a current file (boards, docs, stories, copy). Decisions, dated design notes, MISTAKES.md
-and the superseded landing pages A to D are history and are not checked. Add a row the day a
+the superseded landing pages A to D and the v1 brand boards 01 to 06 with their generator
+(decision 0041) are history and are not checked. Add a row the day a
 decision retires a term; remove the old wording in the same commit (decision 0017).
 
 | Term | Retired by | Say instead |
@@ -18,3 +19,10 @@ decision retires a term; remove the old wording in the same commit (decision 001
 | Next.js 15 | decision 0024 | Next.js 16 |
 | Next 15 | decision 0024 | Next 16 |
 | MinIO | decision 0025 | RustFS |
+| teal 700 | decision 0041 | violet (violet 600, violet text) |
+| teal 300 | decision 0041 | violet 300, violet text on dark |
+| greige | decision 0041 | tint |
+| grey-50 | decision 0041 | tint, ground |
+| grey-100 | decision 0041 | tint |
+| ink-raised | decision 0041 | raised |
+| Geist Sans | decision 0041 | Plus Jakarta Sans |

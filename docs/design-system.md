@@ -26,7 +26,7 @@ notes 01 to 09 and 14; the implementation note of v2 is design note 34.
 - Respondent side: the PM's logo and name take the header; SMEsay appears once as "Powered by",
   smallest lockup. Always shown on the Free plan.
 - The mascot (bought, docs/assets.md row 1) stands in the hero, on sign-in, in the empty states
-  and on the respondent thank-you; until it arrives a violet blob with the two speech marks
+  and on the respondent thank-you; until it arrives a violet blob with two eyes and a smile
   holds the frame (src/components/app/mascot.tsx).
 
 ## Colour
@@ -54,12 +54,14 @@ surface and on its soft) and soft (a pill or chip fill):
 | Token | Light solid, text, soft | Dark solid, text, soft | Use |
 |---|---|---|---|
 | violet | #6D4CF5, #5A3BE0, #EEEAFF | #9B86FF, #B8A8FF, #2E2B55 | the brand: links, focus rings, the selected state, the active nav item, the primary button, the mark |
+| on-violet | #FFFFFF | #16152A | text and the number circle on a violet fill (the stepper's active pill, the avatar): 5.25 and 6.17 |
 | coral | #FF6B57, #9E3321, #FFE9E5 | #FF8A78, #FF8A78, #3A2230 | counts, the disagreement view, what needs attention |
 | mint | #1F9D7A, #166A52, #E1F5EE | #5FD3B3, #5FD3B3, #15302B | saved, agreed, a done step, the reader version used |
 | sun | #F5B740, #8A5A00, #FFF3D6 | #FFD36E, #FFD36E, #3A2F14 | pushed back, the ambiguity dot |
 
-Two gradients and no more: the primary button (135deg #7A5CFF, #6D4CF5 at 60 percent, #5A3BE0,
-with the glow 0 8px 20px rgba(109,76,245,0.35)) and the marketing hero's aurora (violet, coral
+Two gradients and no more: the primary button (135deg #7355F2, #6D4CF5 at 60 percent, #5A3BE0,
+with the glow 0 8px 20px rgba(109,76,245,0.35); white text reads at 4.87 on the start and 6.69
+on the end, so the button keeps white text in both modes) and the marketing hero's aurora (violet, coral
 and sun at low opacity on the navy). The ambiguity banner and the sample card sit on a soft
 violet to surface gradient. Never a gradient on text inside the app. None of the four colours
 is used for data.
@@ -86,9 +88,8 @@ violet on surface 5.25, violet text on surface 6.69, white on violet 5.25, viole
 soft 5.69, coral text on its soft 6.12, mint text on its soft 5.75, sun text on its soft 5.37,
 danger on surface 7.53. Dark: ink on ground 15.98, muted on surface 6.82, muted on raised 6.07,
 violet on surface 5.67, violet text on surface 7.89, violet text on its soft 6.33, coral on its
-soft 6.31, mint on its soft 7.69, sun on its soft 9.27, danger on surface 7.16, the dark ground
-as text on the violet (the primary button's label on dark) 6.17. Hairline-strong is never text
-(1.58).
+soft 6.31, mint on its soft 7.69, sun on its soft 9.27, danger on surface 7.16, on-violet (the
+dark ground) on the violet 6.17. Hairline-strong is never text (1.58).
 
 Modes: the PM app and the admin area follow the system setting with a toggle at the bottom of
 the sidebar (src/components/app/mode-toggle.tsx; the choice is kept in the browser). The
@@ -158,8 +159,9 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 - Buttons: primary (the violet gradient pill with the glow, white text, weight 600), secondary
   (surface pill, hairline-strong, fills violet soft on hover), tertiary (underlined link in
   violet text), destructive (surface pill, danger border and text, coral soft on hover). Height
-  40 in the app, 48 on the respondent side and marketing, 32 small. Verbs as labels. One
-  primary per screen.
+  40 in the app, 48 on the respondent side and marketing, 32 small. On the respondent side the
+  primary is ink with the ground as text (RespondentV2; decision 0016: the PM's accent never
+  on buttons). Verbs as labels. One primary per screen.
 - Focus: 2 px violet ring, 2 px offset, on keyboard focus (focus-visible) on every control.
   Loading: a 14 px ring spinner before the label, the label stays. Disabled: the same control
   at 40 percent opacity, never grey on grey.
@@ -168,7 +170,8 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   saying what happened and what to do next.
 - Status pills: tint fill, text colour from the table, 12 px weight 600, height 24, radius 999.
   Neutral pill: tint fill, soft ink. Count badge (nav): coral fill, dark text, 11 px 700.
-- Toggle 36 by 20, violet when on, hairline-strong when off, a white thumb. Progress bar 4 px,
+- Toggle 44 by 24, violet when on, ink-muted when off, the thumb white on light and the ground
+  on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
   14 px, active ink with a 2 px violet underline. Segmented control: tint track, the active
   option a surface pill with the card shadow.
@@ -181,14 +184,78 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   count beside it when there is one. Item row (Shape, the respondent cards' list form): raised
   surface, hairline, radius 12, 12 by 14 padding.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
-  ink, violet text, mint or sun by what it counts.
+  ink or in violet text, mint text or sun text by what it counts (never a solid).
 - Sidebar: 248 wide on the surface; the lockup at 17 px; the workspace chip on the tint with
   the initials tile (coral to sun); nav items 40 high, radius 12, icon 18 px (Lucide), the
   current one on violet soft in violet text; the sample card on the soft violet gradient; the
   mode toggle; the signed-in email and Sign out.
-- Stepper: pills on a surface track, the current step a violet pill with a white circle and a
-  violet number, a done step a mint circle with a dark tick, a coming step muted with a
-  hairline-strong circle.
+- Stepper: pills on a surface track, the current step a violet pill with on-violet text and an
+  on-violet circle holding a violet number, a done step a mint circle with a dark tick, a coming
+  step muted with a hairline-strong circle.
 - Tiles: the workspace's initials and a project's colour (one of four gradients picked by the
   name; the sample a dashed outline) are decoration beside the written name, never the only
   mark.
+
+## Respondent columns
+
+Three column widths on the respondent side, decided 2026-10-01 after Mihai's review of the
+desktop board. About you, done, closed and inactive: 560 px, with the name field at 360 px, the
+role select at 360 px and the primary button sized to its label (280 px), left-aligned under the
+form. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point
+there. On a phone every column is the screen width and controls span it. The convention behind
+it (single column, field width matched to the expected input, labels above fields, the primary
+action under the form in the same column) is standard form guidance; the NN/g and GOV.UK pages
+on it could not be opened from this environment, so it is recorded here unverified.
+
+## Rating row (respondent cards)
+
+Decision 0018, kept in v2 (RespondentV2). Every card has the same size on screen: a 260 px
+frame (phone and desktop) with four fixed parts, on the surface with the card shadow. Reference
+in mono 11 and the title at 16/23 weight 600, clamped to two lines (the full title is in
+Details). The label "Your rating" over a five-column row of pills Must, Should, Could, Not
+needed, Unclear, 38 px high, 10 px text at 600, radius 999, 2 px apart, always one row. One
+slot that shows either the details text (the ground on light, the raised surface on dark,
+13/18, scrolls) or the comment box, never both. A 24 px footer with Details, the comment
+toggle and the status note. The proposed value has a dashed muted border. The selected pill
+fills with the PM's accent and white text. The comment box (radius 12, 14/20) takes the slot
+when required; "+ comment" opens it otherwise and closes Details. The status note: Saved in
+mint text, what is missing in sun text inside the card, Not rated yet in muted. Cards sit in
+one column on a phone and two on desktop, 12 px apart.
+
+## Data
+
+Follows the dataviz rules: thin marks, 2 px surface gaps between segments, direct labels on at
+most four series, a legend whenever there are two or more series, text in ink tokens never in
+series colour, never a pie, never two y-axes.
+
+- Agreement strip per item and per area: agree, pushed back, unclear segments; percent is
+  agree over answered, printed as mono text; the number matches the CSV to the row.
+- Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
+  printed as text.
+- Where groups disagree: two bars on one scale, coral for the share that disagreed, any
+  respondent field as the split, four largest gaps by default.
+- Live update: the changed cell fades over 400 ms. No spinning counters.
+
+## Respondent theming
+
+The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
+answer, the active chapter and the progress bar (decision 0016; the focus ring and links stay
+violet). Buttons stay ink. Neutrals and type never change. An accent under 4.5:1 on white
+falls back to ink and settings says why; with none set the accent is violet 600. The
+respondent side follows the phone's setting for the mode, with the PM's accent lifted two
+steps on dark, and a lifted accent that still fails on the dark surface falls back to violet
+400 (note 33).
+
+## Email
+
+600 px, white on the lavender ground, one column, system stack, the wordmark in text (the
+mark as an inline image at 22 px once E12-3 hosts it), one violet button (#6D4CF5, white
+text, radius 999), hairlines, 32 px padding, radius 16. Transactional only: sign-in, invite,
+reminder, submission receipt. Footer: company name, registered address placeholder until the
+lawyer confirms (E11), privacy policy link in violet text.
+
+## Voice
+
+WRITING.md applies to every string. Buttons are verbs. Error messages say what happened and
+what to do next. No exclamation marks. Second person, present tense.
+

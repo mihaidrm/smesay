@@ -46,8 +46,8 @@ export function Demos() {
         <Button disabled>Publish</Button>
         <Button variant="secondary" disabled>Reject all</Button>
       </Row>
-      <Row title="Buttons, respondent (48)" note="Height 48 on the respondent side and marketing.">
-        <Button size="respondent">Start with Submitting</Button>
+      <Row title="Buttons, respondent (48)" note="Height 48 on the respondent side and marketing. On the respondent side the primary is ink, never the PM's accent (decision 0016); the violet gradient is the PM app's and marketing's.">
+        <Button size="respondent" className="bg-none bg-ink text-ground shadow-none hover:shadow-none hover:brightness-110">Start with Submitting</Button>
         <Button size="respondent" variant="secondary">Back</Button>
       </Row>
       <Row title="Inputs" note="40 high, hairline-strong, radius 12. Error: red border and a message that says what to do.">

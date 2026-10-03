@@ -48,6 +48,12 @@ describe("design system figures", () => {
     [D.sunText, D.sunSoft, "9.27"],
     [D.danger, D.surface, "7.16"],
     [D.ground, D.violet, "6.17"],
+    // The stepper's active pill and the avatar: on-violet text on the violet, both modes.
+    [L.onViolet, L.violet, "5.25"],
+    [D.onViolet, D.violet, "6.17"],
+    // The primary button: white on the gradient's start and end.
+    ["#FFFFFF", tokens.gradient.start, "4.87"],
+    ["#FFFFFF", tokens.gradient.end, "6.69"],
   ];
   it.each(cases)("%s on %s is %s", (fg, bg, expected) => {
     expect(contrastLabel(fg, bg)).toBe(expected);
@@ -79,5 +85,11 @@ describe("design system figures", () => {
     expect(contrastLabel(tokens.status.unclear.dark.text, tokens.status.unclear.dark.tint)).toBe("5.93");
     expect(contrastLabel(tokens.status.missing.dark.text, tokens.status.missing.dark.tint)).toBe("5.54");
     expect(contrastLabel(tokens.status.disagree.dark.text, tokens.status.disagree.dark.tint)).toBe("5.94");
+    // The dark solids as text on the surface, as printed in docs/design-system.md.
+    expect(contrastLabel(tokens.status.agree.dark.text, D.surface)).toBe("8.30");
+    expect(contrastLabel(tokens.status.pushedBack.dark.text, D.surface)).toBe("8.69");
+    expect(contrastLabel(tokens.status.unclear.dark.text, D.surface)).toBe("6.71");
+    expect(contrastLabel(tokens.status.missing.dark.text, D.surface)).toBe("6.58");
+    expect(contrastLabel(tokens.status.disagree.dark.text, D.surface)).toBe("7.28");
   });
 });

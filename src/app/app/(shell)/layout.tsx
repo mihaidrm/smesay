@@ -41,10 +41,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="mt-3 flex flex-col gap-1">
           <div className="flex items-center justify-between px-3">
             <div className="text-xs text-ink-muted">Projects</div>
-            <Link href="/app" className="text-xs font-semibold text-violet-text">All</Link>
+            <Link href="/app" className="rounded-sm text-xs font-semibold text-violet-text outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">All</Link>
           </div>
           {projectRows.filter((p) => p.archivedAt === null).map((p) => (
-            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 hover:bg-tint hover:text-ink">
+            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
               <span className="truncate">{p.name}</span>
               {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
             </Link>
@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <div className="mt-auto flex flex-col gap-3">
           {sample && (
-            <div className="flex flex-col gap-2 rounded-[14px] border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
+            <div className="flex flex-col gap-2 rounded-xl border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
               <div className="text-[13px] font-bold">Try the sample</div>
               <div className="text-xs leading-[17px] text-ink-muted">{sample.name}: every screen has data, nothing to set up.</div>
               <Link href={`/app/projects/${sample.id}/import`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>

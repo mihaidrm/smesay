@@ -125,7 +125,7 @@ const retired = rd('docs/retired-terms.md').split('\n')
   .map((l) => l.split('|').slice(1, -1).map((c) => c.trim()))
   .map((c) => ({ term: c[0].replace(/^`|`$/g, ''), by: c[1] }));
 const EXEMPT = [/^drizzle\//, /^docs\/decisions\//, /^docs\/design-notes\/\d{4}-/, /^docs\/retired-terms\.md$/, /^MISTAKES\.md$/, /^scripts\//, /^docs\/business-plan\.pdf$/,
-  /^docs\/design-notes\/prototype-01\/Landing(B|C|D)?\.dc\.html$/, /^docs\/design-notes\/prototype-01\/.*\.(png|js)$/, /^\.git\//, /^node_modules\//, /^assets\//];
+  /^docs\/design-notes\/prototype-01\/Landing(B|C|D)?\.dc\.html$/, /^docs\/design-notes\/prototype-01\/(Brand0[1-6]\.dc\.html|brand-generator\.py|brand-tokens\.py)$/, /^docs\/design-notes\/prototype-01\/.*\.(png|js)$/, /^\.git\//, /^node_modules\//, /^assets\//];
 function files(dir) {
   return readdirSync(dir).flatMap((n) => {
     const p = join(dir, n); const rel = relative(ROOT, p);

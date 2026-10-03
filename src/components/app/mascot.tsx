@@ -1,5 +1,5 @@
-// The mascot's placeholder (decision 0041; docs/assets.md, row 1): a violet blob with the two
-// speech marks, drawn in CSS, in the frame the bought mascot takes over. Not an illustration
+// The mascot's placeholder (decision 0041; docs/assets.md, row 1): a violet blob with two eyes
+// and a smile, drawn in CSS, in the frame the bought mascot takes over. Not an illustration
 // by Claude's hand: a shape in the brand colours that keeps the slot warm. It floats 8 px
 // over 6 s on marketing and stands still in the app (design note 33, Motion). Decorative:
 // hidden from assistive technology.

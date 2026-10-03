@@ -7,7 +7,7 @@ Nothing here is hand-drawn (decision 0004).
 ## What exists now
 
 - assets/brand/logo-mark-placeholder.svg: a violet rounded square with the two speech marks (design v2, decision 0041).
-- assets/brand/logo-lockup-placeholder.svg: the mark plus the text "Working Name".
+- assets/brand/logo-lockup-placeholder.svg: the mark plus the wordmark, the ME in violet text.
 
 Both are placeholders made by Claude. They are fine for the prototype and for building. They are
 not distinctive enough to register as a trademark.
@@ -35,7 +35,7 @@ premade if you see a mark you like. Skip the generators: the placeholder already
 
 ## Imagery
 
-No purchase needed for R1. The design uses product screens on greige cards (design note 02).
+No purchase needed for R1 beyond the mascot of docs/assets.md (decision 0041). The design uses product screens on cards (design note 02; v2 in note 33).
 
 - Free: Unsplash photos (https://unsplash.com/license) allow commercial use without credit.
   Architecture, paper and landscape photos fit the style. Other sites can use the same photo.

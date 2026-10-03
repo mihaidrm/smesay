@@ -19,6 +19,7 @@ export const tokens = {
     violet: "#6D4CF5",
     violetText: "#5A3BE0",
     violetSoft: "#EEEAFF",
+    onViolet: "#FFFFFF",
     coral: "#FF6B57",
     coralText: "#9E3321",
     coralSoft: "#FFE9E5",
@@ -44,6 +45,7 @@ export const tokens = {
     violet: "#9B86FF",
     violetText: "#B8A8FF",
     violetSoft: "#2E2B55",
+    onViolet: "#16152A",
     coral: "#FF8A78",
     coralText: "#FF8A78",
     coralSoft: "#3A2230",
@@ -64,6 +66,8 @@ export const tokens = {
     disagree: { label: "Disagree", solid: "#718096", tint: "#F0F0EE", text: "#454A52", dark: { solid: "#A0AEC0", tint: "#2A2F3A", text: "#A0AEC0" } },
   },
   shadow: { light: "0 12px 32px rgba(45, 32, 110, 0.10)", dark: "0 12px 32px rgba(0, 0, 0, 0.45)", glow: "0 8px 20px rgba(109, 76, 245, 0.35)" },
+  // The primary button's gradient: white text reads at 4.87 on the start and 6.69 on the end.
+  gradient: { start: "#7355F2", middle: "#6D4CF5", end: "#5A3BE0" },
   radius: { control: 12, card: 16, panel: 20, pill: 999 },
   space: [4, 8, 12, 16, 24, 32, 48, 64, 96],
   type: [

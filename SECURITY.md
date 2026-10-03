@@ -46,3 +46,10 @@ Headers and transport
 Dependencies and backups
 - `npm audit` clean of high and critical at release; lockfile committed.
 - Nightly backups; one restore into a fresh database performed and documented before launch.
+
+Mode script
+- src/app/layout.tsx puts one inline script in the head to set the dark class before paint.
+  It is a fixed string, reads one localStorage key and compares it with one word. When the
+  content security policy lands (E11-5), that script takes the nonce the Next.js guide
+  describes (node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md).
+
