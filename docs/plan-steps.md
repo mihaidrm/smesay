@@ -68,9 +68,9 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E1 Foundation | Repo, CI, schema v1, migrations, local Docker with Postgres and RustFS, seed; deploy moved to the launch gate. E1-1 to E1-4 built 2026-10-01 and 2026-10-02, E1-5 deferred (decision 0006); Mihai's acceptance notes per story still owed | none | 2 | done |
 | E2 Accounts | Magic link (local mailbox), Google sign-in (Microsoft and Apple after launch, decision 0034); workspaces, members, roles, settings. E2-1 to E2-6 built 2026-10-02; Mihai checks the real Google flow on his PC and accepts each story | Free personal Google developer account (step 6, done 2026-10-02) | 4 | done |
 | E3 Import | xlsx and csv upload, header detection, mapping, versioning, validation report. E3-1 to E3-6 built and audited 2026-10-02 (PRs 29 to 33); seven decisions open for Mihai (docs/context.md) | none (RustFS in Docker) | 3 | done |
-| E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI | Anthropic Console on Gmail, a few euros (step 9) | 4 | open |
-| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021). E5-1 to E5-5 built 2026-10-03 | none | 4 | open |
-| E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch | none | 3 | open |
+| E4 AI shaping | Server route with budget, areas and order, reader versions, flags, golden set runner in CI. E4-1 to E4-6 built 2026-10-02 and 2026-10-03 (PRs 40 to 44 and 49); Mihai's acceptance notes per story still owed | Anthropic Console on Gmail, a few euros (step 9) | 4 | done |
+| E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021). E5-1 to E5-5 built 2026-10-03; E5-6 after E7-5 (docs/review-list.md) | none | 4 | open |
+| E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch. E6-1 built 2026-10-03 | none | 3 | open |
 | E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility | none | 5 | open |
 | E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project | none | 5 | open |
 | E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |

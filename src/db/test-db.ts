@@ -46,3 +46,20 @@ export async function ensureTestDatabase(): Promise<string> {
   } finally { await admin.end(); }
   return url;
 }
+
+// For the freeze test (stories/E6-1, acceptance 5): holds the instrument row's lock on its
+// own connection, as invites.publish does, runs `during` while the saves under test wait on
+// that lock, then inserts a public invite and commits. Raw SQL on a second client, so the
+// test never touches the app's client (the lint rule) and the app's pool is free for the
+// saves. Transactions in postgres-js: sql.begin (README, "Transactions").
+export async function publishWhileLocked(workspaceId: string, instrumentId: string, during: () => Promise<void>): Promise<void> {
+  const sql = postgres(testDatabaseUrl(), { max: 1 });
+  try {
+    await sql.begin(async (tx) => {
+      await tx`select id from instrument where workspace_id = ${workspaceId} and id = ${instrumentId} for update`;
+      await during();
+      const token = Array.from({ length: 32 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
+      await tx`insert into invite (workspace_id, instrument_id, kind, token, closes_at) values (${workspaceId}, ${instrumentId}, 'public', ${token}, ${new Date("2026-12-01T00:00:00Z")})`;
+    });
+  } finally { await sql.end(); }
+}

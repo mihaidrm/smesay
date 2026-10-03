@@ -6,13 +6,13 @@ import { notFound } from "next/navigation";
 import type { StepKey } from "@/components/app/stepper";
 import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
-import { instruments, projects } from "@/db/queries";
+import { instruments, invites, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { archiveAction } from "../actions";
 import { ProjectStepper } from "./project-stepper";
 
-const BUILT: StepKey[] = ["import", "shape", "build"];
+const BUILT: StepKey[] = ["import", "shape", "build", "share"];
 
 export default async function ProjectLayout({ children, params }: { children: React.ReactNode; params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -22,11 +22,14 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const archived = project.archivedAt !== null;
   // Import is done once the project has a set (stories/E3-5, acceptance 5); Shape is the
   // current step from then on (E4-2; Shape can be left at any time, E4-3); Build once an
-  // instrument draft exists (E5-1; the sample always has one), until E6 builds Share.
+  // instrument draft exists (E5-1; the sample always has one); Share once the instrument
+  // is published (a public link exists, E6-1), until E8 builds Results.
   const imported = project.isSample || (await latestSet(current.ws, project.id)) !== null;
-  const built = imported && (await instruments.latestForProject(current.ws, project.id)) !== null;
-  const furthest: StepKey = built ? "build" : imported ? "shape" : "import";
-  const done: StepKey[] = built ? ["import", "shape"] : imported ? ["import"] : [];
+  const instrument = imported ? await instruments.latestForProject(current.ws, project.id) : null;
+  const built = instrument !== null;
+  const published = built && (await invites.livePublic(current.ws, project.id)) !== null;
+  const furthest: StepKey = published ? "share" : built ? "build" : imported ? "shape" : "import";
+  const done: StepKey[] = published ? ["import", "shape", "build"] : built ? ["import", "shape"] : imported ? ["import"] : [];
   return (
     <main className="flex flex-col gap-5 px-8 pb-6">
       {/* The project header with the stepper stays at the top of the viewport while the step

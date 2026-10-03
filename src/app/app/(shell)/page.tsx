@@ -20,6 +20,7 @@ const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", 
 
 function Status({ status }: { status: ProjectStatus }) {
   if (status === "Open") return <StatusPill status="agree" data-testid="project-status">Open</StatusPill>;
+  if (status === "Scheduled") return <StatusPill status="pushedBack" data-testid="project-status">Scheduled</StatusPill>;
   return <NeutralPill data-testid="project-status">{status}</NeutralPill>;
 }
 

@@ -88,8 +88,9 @@ Every design and story question raised up to 2026-10-02 is answered (decisions 0
 The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: the stories in epic order, E5-6 (the preview panel on every step)
-next, under decision 0044. E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
+Next tasks for Claude: the stories in epic order, E6-2 (personal invites) next, under
+decision 0044; E5-6 (the preview panel on every step) comes after E7-5, since its iframe
+needs the respondent app (docs/review-list.md). E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
 0037 and 0038, PR 49). Design v2 (decision 0041, note 33, boards Brand07, LandingF, PmAppV2,
 RespondentV2) is in the code since 2026-10-03 (notes 34 to 37, PRs 56 to 63; Mihai: "Yeah
 looks good"), and E5-1 was built on it the same day (note 38); the asset list he buys from
@@ -121,11 +122,11 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 3 of 15 steps. Left: 12 steps
+Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 4 of 15 steps. Left: 11 steps
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
-- E4 AI shaping: open.
+- E4 AI shaping: done.
 - E5 Instrument builder: open.
 - E6 Sharing: open.
 - E7 Respondent: open.

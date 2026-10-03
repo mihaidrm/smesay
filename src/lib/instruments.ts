@@ -14,7 +14,7 @@ import type { Instrument } from "@/db/queries/instruments";
 import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
-import type { WorkspaceId } from "@/db/types";
+import type { ScaleLabels, ScoringMethod, WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { CLOSING_COPY, parseClosing } from "@/lib/closing";
 import { NotFoundError } from "@/lib/errors";
@@ -114,45 +114,47 @@ export async function isPublished(ws: WorkspaceId, instrumentId: string): Promis
 // shown, the PM's labels for the method's values, and the layout, validated here. Once
 // published the method, the switch and the labels are locked (answers depend on them) and
 // whatever is posted for them is ignored; the layout still changes, since it only shapes
-// the screens.
+// the screens. Whether it is published is read under the instrument row's lock
+// (instruments.updateLocked), the lock publishing takes (E6-1, acceptance 5), so a save
+// that waited on a publish in flight writes the layout only.
 export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown, rawLayout: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   if (!isLayout(rawLayout)) return { error: SCORING_ERRORS.badLayout };
-  // Published: only the layout is read; the form's locked controls post nothing (a disabled
-  // fieldset is left out of the form data) and a stale tab's values are ignored, not applied.
-  if (await isPublished(ws, instrumentId)) {
-    const instrument = await instruments.update(ws, instrumentId, { layout: rawLayout });
-    if (!instrument) throw new NotFoundError();
-    return { instrument };
+  // The locked form posts nothing for the method (a disabled fieldset is left out of the
+  // form data): a missing method is only valid once published. A posted one is checked
+  // here and applied only on a draft.
+  let full: { method: ScoringMethod; showProposed: boolean; scaleLabels: ScaleLabels | null } | null = null;
+  if (rawMethod !== null && rawMethod !== undefined) {
+    if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
+    const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
+    let parsedJson: unknown;
+    try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
+    const labels = parseScaleLabels(rawMethod, parsedJson);
+    if ("error" in labels) return { error: labels.error };
+    full = { method: rawMethod, showProposed, scaleLabels: labels.labels };
   }
-  if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
-  const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
-  let parsedJson: unknown;
-  try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
-  const labels = parseScaleLabels(rawMethod, parsedJson);
-  if ("error" in labels) return { error: labels.error };
-  const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels, layout: rawLayout });
-  if (!instrument) throw new NotFoundError();
-  return { instrument };
+  const result = await instruments.updateLocked(ws, instrumentId, (published) => (published ? { layout: rawLayout } : full ? { ...full, layout: rawLayout } : null));
+  if (!result) throw new NotFoundError();
+  if (!result.applied) return { error: SCORING_ERRORS.badMethod };
+  return { instrument: result.instrument };
 }
 
 // The Perspectives card (stories/E5-4): the names, one per line. A name removed is dropped
 // from every item of the instrument's set that carried it, a case-only rename keeps the
 // tags, and both happen in one statement under the instrument's lock (instruments.setPerspectives).
 // Locked once published, like the method (docs/review-list.md): a tag added mid-run would
-// take an item away from respondents who already answered it. The published check runs
-// outside the lock, as saveScoring's does; E6-1 publishes under the instrument lock and
-// moves the check inside it (docs/review-list.md).
+// take an item away from respondents who already answered it. Whether it is published is
+// read under the same lock publishing takes (E6-1, acceptance 5).
 export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  if (await isPublished(ws, instrumentId)) return { error: PERSPECTIVES_COPY.locked };
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
-  if (!instrument) throw new NotFoundError();
-  return { instrument };
+  const result = await instruments.setPerspectives(ws, instrumentId, parsed.names);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: PERSPECTIVES_COPY.locked };
+  return { instrument: result.instrument };
 }
 
 // The Closing card (stories/E5-5): the closing question, the missing-item form switch and
@@ -160,23 +162,24 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
 // published the question is locked (its answers are stored per response): the locked form
 // posts no question (a disabled input is left out of the form data) and the stored one is
 // kept; a stale tab that posts another question is refused; the switch and the sign-off
-// still change.
+// still change. Whether it is published is read under the lock publishing takes (E6-1).
 export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  // The published check runs outside any lock, as saveScoring's does; closing the race with
-  // a publish in flight is owed to E6-1 (docs/review-list.md).
-  let question = rawQuestion;
-  if (await isPublished(ws, instrumentId)) {
-    const stored = owned.instrument.closing.closingQuestion ?? "";
-    if (typeof rawQuestion === "string" && rawQuestion.trim() !== stored) return { error: CLOSING_COPY.questionLocked };
-    question = stored;
-  }
-  const parsed = parseClosing(question, rawMissingForm, rawSignOff, rawConfidence);
-  if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.update(ws, instrumentId, { closing: parsed.closing });
-  if (!instrument) throw new NotFoundError();
-  return { instrument };
+  const asPosted = parseClosing(rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
+  if ("error" in asPosted) return { error: asPosted.error };
+  // Under the lock the stored question is read from the locked row, so a stale tab cannot
+  // write an older question onto a published instrument.
+  const result = await instruments.updateLocked(ws, instrumentId, (published, current) => {
+    if (!published) return { closing: asPosted.closing };
+    const stored = current.closing.closingQuestion ?? "";
+    if (typeof rawQuestion === "string" && rawQuestion.trim() !== stored) return null;
+    const asLocked = parseClosing(stored, rawMissingForm, rawSignOff, rawConfidence);
+    return "error" in asLocked ? null : { closing: asLocked.closing };
+  });
+  if (!result) throw new NotFoundError();
+  if (!result.applied) return { error: CLOSING_COPY.questionLocked };
+  return { instrument: result.instrument };
 }
 
 // The chips on an item on Shape (stories/E5-4): the item's tags, each a name of the
@@ -198,12 +201,11 @@ export async function tagItem(ws: WorkspaceId, projectId: string, itemId: string
     if (!builtOn) throw new NotFoundError();
     return { error: set.version > builtOn.version ? PERSPECTIVES_COPY.otherSet(builtOn.version, set.version) : PERSPECTIVES_COPY.olderSet(set.version, builtOn.version) };
   }
-  if (await isPublished(ws, instrument.id)) return { error: PERSPECTIVES_COPY.locked };
   if (instrument.perspectives.length === 0) return { error: PERSPECTIVES_COPY.noneDefined };
   const parsed = parseTags(rawTags, instrument.perspectives);
   if ("error" in parsed) return { error: parsed.error };
   const result = await instruments.tagItem(ws, instrument.id, itemId, parsed.tags);
   if (!result) throw new NotFoundError();
-  if ("refused" in result) return { error: result.refused === "names" ? PERSPECTIVES_COPY.unknownTag : BUILD_COPY.replaced };
+  if ("refused" in result) return { error: result.refused === "names" ? PERSPECTIVES_COPY.unknownTag : result.refused === "published" ? PERSPECTIVES_COPY.locked : BUILD_COPY.replaced };
   return { item: result.item };
 }

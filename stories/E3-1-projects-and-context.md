@@ -7,7 +7,7 @@ projects shows where each one stands.
 
 ## Acceptance criteria
 1. Projects (PM app board): a table of name, items, responses ("5 of 7"), status (Draft, Open,
-   Closed, Sample), updated date; "New project" button; the sample row carries its pill and
+   Scheduled since E6-1, Closed, Sample), updated date; "New project" button; the sample row carries its pill and
    "Delete sample" (E8-8). Empty state when only the sample exists: "No projects yet" with the
    button, per docs/design-system.md.
 2. New project asks for a name only and opens the Import step. The stepper shows Import,
@@ -43,8 +43,9 @@ Built 2026-10-02.
   ("5 of 7" for the sample: 5 submitted of 7 invites, 6 personal and 1 public) and the links
   the status is derived from. Status is `projectStatus()` in src/lib/project-status.ts: Draft
   until an instrument has a link (E6 publishes by creating one), Open while a link is open (not
-  revoked, opened, not yet closed), Closed otherwise, Sample when is_sample. Open shows in the
-  agree tint, the others as the neutral pill.
+  revoked, opened, not yet closed), Scheduled while no link is open but one opens later
+  (E6-1, 2026-10-03), Closed otherwise, Sample when is_sample. Open shows in the agree tint,
+  Scheduled in the pushed-back tint, the others as the neutral pill.
 - The stepper is one component, src/components/app/stepper.tsx (design note 19), used by the
   project frame src/app/app/(shell)/projects/[projectId]/layout.tsx; a step with no page yet is
   not a link, so Shape, Build, Share and Results are grey until their stories. A project id
@@ -65,7 +66,7 @@ Built 2026-10-02.
   div) was closed in the story's own PR; findings 2, 3, 4, 7, 8, 9, 10 and the notes 11 to 16
   are closed by the audit-fix PR of the same day. Two were decided on 2026-10-03 (decision
   0040): Delete sample is the one hard delete of R1, the exception to decision 0028, and a
-  project whose links open in the future reads Closed until E6 gives the date its own place.
+  project whose links open in the future read Closed until E6-1 added Scheduled (2026-10-03).
 - Tests: src/lib/project-status.test.ts, src/lib/project-context.test.ts, src/lib/projects.test.ts
   (the sample copy summarised as 6 items, 5 of 7, Sample; a draft; the latest set's items and
   Open from an open link; the context saved, trimmed and refused above 2,000; archive and

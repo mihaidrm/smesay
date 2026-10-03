@@ -16,7 +16,7 @@ two source lines of design note 32.
 5. Delete sample is a hard delete of the workspace's sample copy, the one exception to
    decision 0028's "the app deletes nothing in R1": the sample is seeded, not the PM's work,
    and the seed puts it back. Decision 0028 points here.
-6. A project whose only links have an open date in the future reads Closed in the list, as
+6. (Changed by E6-1 on 2026-10-03: such a project reads Scheduled, docs/review-list.md.) A project whose only links have an open date in the future reads Closed in the list, as
    the status code says (src/lib/project-status.ts): the link is closed to respondents today.
    E6-1's page copy ("This link opens on") is where the date shows; a Scheduled value can
    come with E6 if it reads wrong then.

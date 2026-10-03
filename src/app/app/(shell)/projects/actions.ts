@@ -13,6 +13,7 @@ import { createProject, deleteSample, saveContext, setArchived } from "@/lib/pro
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
+import { publishLink, saveLink } from "@/lib/sharing";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button.
@@ -356,3 +357,33 @@ export async function tagItemAction(_previous: ProjectFormState, formData: FormD
   return { ...NONE, saved: true };
 }
 
+
+// Share (stories/E6-1): Publish creates the public link; Save changes its dates and passcode.
+// The project list's status and the stepper follow the link, so the layout is revalidated.
+export async function publishAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await publishLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath("/app", "layout");
+  return { ...NONE, saved: true };
+}
+
+export async function saveLinkAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath("/app", "layout");
+  return { ...NONE, saved: true };
+}

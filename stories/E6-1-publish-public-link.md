@@ -1,7 +1,7 @@
 # E6-1 Publish with a public link, open and close dates, optional passcode
 
 User: a PM ready to send the list out
-Status: ready
+Status: built
 Outcome: one link anyone can open between the dates, with an optional passcode; a closed
 instrument shows a closed page, not an error.
 
@@ -48,9 +48,35 @@ Owed from E3-6 (recorded 2026-10-02): the Import banner "This list is published.
 new version does not change the published instrument..." (docs/copy/errors.md) once an
 instrument can be published.
 
-Owed from E5-4 and E5-5 (recorded 2026-10-03): publishing takes the instrument row's lock
-(the one instruments.setPerspectives and instruments.tagItem take), and the four saves
-that lock on publish (saveScoring, savePerspectives, tagItem, saveClosing) move their
-published check inside a transaction that locks the row, re-reads the invites and writes;
-today the check runs outside any lock, so a change that passed it before the publish would
-still land; docs/review-list.md.
+Owed from E5-4 and E5-5 (recorded 2026-10-03, done the same day): publishing takes the
+instrument row's lock (invites.publish), and the four saves that lock on publish
+(saveScoring, savePerspectives, tagItem, saveClosing) check inside a transaction that
+locks the row (instruments.updateLocked, setPerspectives, tagItem); docs/review-list.md.
+
+Built 2026-10-03 (design note 46, decision 0044):
+- Acceptance 1: the Share page (share/page.tsx) with the link card: the state pill, the
+  note, the link with Copy link, Opens and Closes as date-times in the browser's zone
+  (named under them), the passcode, Publish then Save (share-form.tsx).
+- Acceptance 2: the token is crypto.randomBytes(16) as 32 hex characters
+  (src/lib/sharing.ts newToken); /r/[token] (src/app/r/[token]/page.tsx); an unknown token
+  gets its page.
+- Acceptance 3: not yet open and closed pages with the instants in UTC
+  (src/components/respondent/link-page.tsx); the revoked page is drawn too, for E6-4.
+- Acceptance 4: parseLinkInput refuses a close date before the open date, a missing one, a
+  close date in the past on Publish and a short passcode; the passcode is a salted scrypt
+  hash with its parameters (src/lib/passcode.ts, docs/review-list.md), checked on the
+  passcode page of an open link and remembered by a cookie scoped to the link's path
+  (src/lib/link-access.ts); wrong attempts are limited in the process, 60 per link and 5
+  per link and address in 15 minutes, counted when a post starts and given back on a right
+  passcode, and E11-1 widens that.
+- Acceptance 5: publish and the four saves share the instrument row's lock; the test in
+  src/lib/instruments.test.ts holds the lock, starts three saves, publishes, and sees the
+  scoring save narrowed to the layout and the perspectives and closing saves refused.
+  Publishing records instrument.published_at (migration 0015). Dates change after
+  publishing, also after "Build on version N" (the link in force stays on the published
+  instrument; publishing the newer draft replaces it, docs/review-list.md); the respondent
+  header says "Closes [DATE] UTC"; the stepper shows Share as the current step.
+- Acceptance 6: e2e/share.spec.ts publishes with a passcode, opens the link in a fresh
+  context, is refused with a wrong passcode and let in with the right one, sees About you,
+  moves the close date into the past and sees the closed page; the Import banner owed from
+  E3-6 is asserted too.
