@@ -34,7 +34,7 @@ export const JudgeOutput = z.strictObject({
     ref: z.string().describe("The ref as given"),
     sameMeaning: z.boolean(),
     added: z.boolean(),
-    note: z.string().max(200),
+    note: z.string().max(400).describe("One short sentence"),
   })).min(1),
 });
 
@@ -77,7 +77,7 @@ export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: st
     const contextLine = expected.context ? `CONTEXT: ${expected.context.goal} ${expected.context.audience}\n\n` : "";
     const data = contextLine + toJudge.map((j) => `[${j.ref}]\nORIGINAL: ${j.row}\nMEANING: ${j.meaning}\nREADER: ${j.reader}`).join("\n\n");
     const wanted = toJudge.map((j) => j.ref);
-    const judged = await runModel({
+    const judgeCall = () => runModel({
       ws, projectId, purpose: "shape", instructions: readFileSync(HERE + "judge.md", "utf8"), data, schema: JudgeOutput,
       check: (out) => {
         const got = out.verdicts.map((v) => v.ref);
@@ -87,6 +87,10 @@ export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: st
         return missing + extra + twice > 0 ? `${missing} ref(s) unanswered, ${extra} unknown, ${twice} answered twice` : null;
       },
     }, deps);
+    // An unusable judge answer (a note over the limit, a ref twice) gets one more try: the
+    // tenth real run lost a whole spec to a 201-character note.
+    let judged = await judgeCall();
+    if (!judged.ok && judged.reason === "invalid") judged = await judgeCall();
     if (!judged.ok) {
       // Without verdicts every differing reader version reads as unjudged; the one failure
       // named is the refusal.

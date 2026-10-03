@@ -62,7 +62,13 @@ item, a missed item, a changed meaning or a glossary term not kept.
    failure: 134 of 134 rows found, 0 invented, 0 meaning changed, every glossary term kept,
    ambiguity flags down to 0 to 4 per spec from 4 to 10. The three failures were area counts
    only: 05 gave 6 areas for 3 expected, 07 gave 5 for 3, 09 gave 3 for 5. That run meets the
-   bar of decision 0038 and is recorded as acceptance 5. Eight jobs in all, 2 euro 95 cents.
+   bar of decision 0038 and is recorded as acceptance 5. The ninth run (ffc3d55, CI run
+   37107518921, the merge): 8 of 10 for 40 cents, no content failure, two area counts. The
+   tenth, started by the merge to main itself (18544f0, CI run 37107761265, 39 cents, the
+   last automatic run under decision 0039): 6 of 10, under the bar because the judge's note
+   on one item of spec 01 ran to 201 characters against a 200 limit, which refused the whole
+   judge answer and counted 15 items as changed; the limit is 400 now and an unusable judge
+   answer gets one more try. Ten jobs in all, about 3 euro 70.
 
 ## Out of scope
 - Evals for insights (E9): their own small set, written in E9-1.

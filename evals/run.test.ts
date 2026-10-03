@@ -36,7 +36,7 @@ function perfect(expected: Expected, tweak: (ref: string, reader: string) => str
 // Answers the shaping call with `shape` and the judge call with one verdict per ref given,
 // false for the refs in `wrong` and added for the refs in `added`; `twice` answers the
 // first ref a second time.
-function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [], twice = false) {
+function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [], twice: boolean | "once" = false) {
   const calls: { system: string; data: string }[] = [];
   const fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body)) as { system: { text: string }[]; messages: { content: { text: string }[] }[] };
@@ -47,7 +47,10 @@ function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [
     if (system.startsWith("You compare a requirement")) {
       const refs = [...data.matchAll(/^\[([^\]]+)\]$/gm)].map((m) => m[1]);
       const verdicts = refs.map((ref) => ({ ref, sameMeaning: !wrong.includes(ref), added: added.includes(ref), note: "Same." }));
-      output = { verdicts: twice ? [...verdicts, verdicts[0]] : verdicts };
+      // `twice` answers the first ref a second time: on every judge call, or only the first one ("once").
+      const judgeCalls = calls.filter((c) => c.system.startsWith("You compare a requirement")).length;
+      const bad = twice === true || (twice === "once" && judgeCalls === 1);
+      output = { verdicts: bad ? [...verdicts, verdicts[0]] : verdicts };
     }
     const message = { id: "msg_test", type: "message", role: "assistant", model: DEFAULT_MODEL, content: [{ type: "text", text: JSON.stringify(output) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1000, output_tokens: 500, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
     return new Response(JSON.stringify(message), { status: 200, headers: { "content-type": "application/json" } });
@@ -143,8 +146,13 @@ describe("the golden set runner", () => {
     expect(twice.score.pass).toBe(false);
     expect(twice.score.failures).toEqual(["judge refused: invalid"]);
     expect(twice.error).toContain("1 answered twice");
-    // Both calls are billed: the fake reports 1,000 tokens in and 500 out each time.
-    expect(twice.costCents).toBe(2 * costEurCents(DEFAULT_MODEL, 1000, 500));
+    // Every call is billed, the retry included: the fake reports 1,000 tokens in and 500 out each time.
+    expect(twice.costCents).toBe(3 * costEurCents(DEFAULT_MODEL, 1000, 500));
+    // One bad judge answer gets a second try and the spec passes on it.
+    const once = transport(perfect(choir), [], [], "once");
+    const retried = await runSpec(choir, ws, projectId, { fetch: once.fetch });
+    expect(retried.score.pass).toBe(true);
+    expect(once.calls).toHaveLength(3);
   });
 
   it("counts the cost of a shaping answer the app refused", async () => {
