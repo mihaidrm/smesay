@@ -7,7 +7,7 @@ are mapped once, and the next file with the same headers maps itself.
 
 ## Acceptance criteria
 1. The mapping card (PM app board, Import) lists every column with a select: Item text,
-   Area, Proposed value, Reference, Custom field, Ignore. Item text is required; without it,
+   Area, Proposed value, Reference, Custom field, Do not import. Item text is required; without it,
    "Pick the column that holds the requirement text. Without it there is nothing to import."
    and the Import button is disabled at 40 percent.
 2. Up to five custom fields; a sixth select offering Custom field is disabled with "Up to
@@ -60,9 +60,8 @@ Built 2026-10-02.
   missing-text message, a second copy of the file opening with "Mapping remembered from". The
   "import" between the two uploads in acceptance 5 joins the test with E3-5, since the memory
   does not depend on it.
-- Wording: the last role is the board's "Do not import", not the story's "Ignore" (design note
-  21); Mihai asked 2026-10-02, acceptance 1 and the Stories board keep "Ignore" until he
-  answers.
+- Wording: the last role is the board's "Do not import" (design note 21; decision 0040 on
+  2026-10-03, acceptance 1 updated).
 - Audit of 2026-10-02 (fresh context, 13 findings), closed in the story's PR: two columns with
   the same header (or a header that reads like another column's letter) collapsed into one key,
   so the file could not be mapped (keys now carry the letter, "Requirement (B)", tested); a

@@ -21,7 +21,8 @@ Public links and respondents
 - Rate limits: respondent routes 100/min/IP; auth routes 5 attempts then backoff.
 
 Data
-- Uploads validated by type and size (5 MB, 2,000 rows); parsed server-side in a worker.
+- Uploads validated by type and size (5 MB, 2,000 rows); parsed server-side in the request,
+  within those caps (decision 0040).
 - Exports and deletion per workspace; deletion removes rows and objects within 24 hours.
 - No personal data in logs, Sentry events or analytics.
 

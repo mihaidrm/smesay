@@ -10,8 +10,9 @@ before anything is imported.
    message names the size or the row count and the limit (docs/copy/errors.md, Import). A file
    that is not xlsx or csv: "This file is [EXTENSION]. Upload an xlsx or csv, or paste the list
    instead."
-2. The header row is detected as the first row where most cells are short text and the rows
-   below are longer or typed differently. When no row qualifies, the message "No header row
+2. The header row is detected as the first row with at least two filled cells where most
+   cells are short text and the rows below are longer or typed differently (a one-column
+   list gets the picker, decision 0040). When no row qualifies, the message "No header row
    found. Pick the row that holds the column names, or tell us which column is the
    requirement." appears with a row picker.
 3. The preview shows the first ten data rows with the detected column letters and names (PM
@@ -80,14 +81,10 @@ Built 2026-10-02.
   the pickers), e2e/import.spec.ts (acceptance 6: a pdf refused, the Marlow fixture, four
   columns, ten rows, the row picker, reload).
 - Not in this story: the mapping card (E3-3), paste (E3-4), the import itself (E3-5).
-- Open: SECURITY.md says uploads are "parsed server-side in a worker". Here the parse runs in
-  the server action's process (a file is at most 5 MB; read-excel-file unzips the workbook in
-  memory). Whether a worker is needed before launch is Mihai's decision (asked 2026-10-02);
-  until then this line stays open and the audit's finding stays recorded here.
-- Open: acceptance 2's rule accepts a one-column header; the code asks for at least two filled
-  cells in the header row (MIN_FILLED), so a one-column list gets the picker. And the noHeader
-  message says "tell us which column is the requirement", a control E3-3 adds. Both asked
-  2026-10-02.
+- Decided 2026-10-03 (decision 0040): the parse runs in the server action's process within
+  the 5 MB and 2,000-row caps, no worker before launch, and SECURITY.md says so. The header
+  detection keeps MIN_FILLED at two: a one-column list gets the picker and the mapping. The
+  no-header message stays; the mapping card is the control it points at.
 - Change of 2026-10-02 (with E3-5): LONGER_MIN in src/lib/import/header.ts went from 8 to 3,
   because a header "Requirement" over 19-character requirements was not found (the data
   rows were not "clearly longer" by 8); header.test.ts has the case. The six fixtures still

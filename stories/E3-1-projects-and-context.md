@@ -63,10 +63,9 @@ Built 2026-10-02.
   instrument or set; link rows are read for the listed projects only.
 - Audit of 2026-10-02 (fresh context, 17 findings): the blocking one (a Playwright locator on a
   div) was closed in the story's own PR; findings 2, 3, 4, 7, 8, 9, 10 and the notes 11 to 16
-  are closed by the audit-fix PR of the same day. Two stay open for Mihai's decision: decision
-  0028 says the app deletes nothing in R1 while Delete sample is a hard delete of the sample
-  (an exception line in 0028, or no button until E8-8), and a link with an open date in the
-  future makes the project read Closed (Draft, or a new value).
+  are closed by the audit-fix PR of the same day. Two were decided on 2026-10-03 (decision
+  0040): Delete sample is the one hard delete of R1, the exception to decision 0028, and a
+  project whose links open in the future reads Closed until E6 gives the date its own place.
 - Tests: src/lib/project-status.test.ts, src/lib/project-context.test.ts, src/lib/projects.test.ts
   (the sample copy summarised as 6 items, 5 of 7, Sample; a draft; the latest set's items and
   Open from an open link; the context saved, trimmed and refused above 2,000; archive and

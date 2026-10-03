@@ -19,7 +19,8 @@ the option text, because a native option cannot show a tooltip on every platform
 
 - The roles are the board's five plus "Custom field" from the story; the last option keeps
   the board's "Do not import" rather than the story's "Ignore" (decision 0017, the board and
-  the copy say the same thing). Flagged to Mihai on 2026-10-02.
+  the copy say the same thing). Flagged to Mihai on 2026-10-02; kept on 2026-10-03 (decision
+  0040), and the story now says "Do not import".
 - A change in any select submits the whole form: the server keeps one column per single role
   and five custom fields at most, and the row re-renders from what was saved. No Save button.
 - The default mapping is guessed from the header names (Ref, Requirement, Module, Priority

@@ -19,7 +19,8 @@ then one click creates the items.
 4. A unit test runs the report over a fixture with 3 empty rows, 2 duplicates and 1 long item
    and checks the counts and the kept references; a second test checks the transaction rolls
    back on a bad row.
-5. After commit the stepper moves to Shape and the Results step shows "0 of 0" responses.
+5. After commit the stepper moves to Shape and the project list's Responses cell reads "0 of
+   0" (the Results pill carries no count, decision 0040).
 
 ## Out of scope
 - Versions after the first: E3-6.
@@ -66,5 +67,5 @@ Built 2026-10-02.
   collapsed (now the cell's text, collapsed only for the duplicate key); csv blank lines were
   dropped so row numbers drifted (kept now); the header rule change recorded in E3-2; the
   "nothing to import" message has a next step; INTERFACES.md lists the helpers; the
-  citation for `.for("update")` points at the drizzle types. Open for Mihai: acceptance 5's
-  "Results step shows 0 of 0 responses" (design note 23).
+  citation for `.for("update")` points at the drizzle types. Acceptance 5's "0 of 0" is the
+  project list's cell, not the pill (design note 23; decision 0040).

@@ -20,3 +20,7 @@ deletes nothing except through workspace removal; projects are archived (archive
 Consequence if accepted: stories/E1-2 stands as built; E1-3's helpers and E11's removal follow
 these rules. If refused: the foreign key actions in src/db/schema.ts change and a new
 migration follows.
+
+Amended 2026-10-03 (decision 0040): Delete sample, the hard delete of a workspace's seeded
+sample copy, is the one exception to "the app deletes nothing except through workspace
+removal".
