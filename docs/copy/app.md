@@ -232,7 +232,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Empty state, no instrument yet | Build the instrument first. Share sends what Build made. [Link: Go to Build] |
 | Link card title and state pill | Public link; Draft / Published / Revoked (E6-4) |
 | Note under the pill | Draft: Not published yet. Nobody can open the link. Published: Anyone with the link can respond until the close date. Published, opens later: The link opens on [DATE AND TIME UTC]. Until then it shows the opening date. Closed by its date: The link is closed. Respondents see the closed page. Revoked (E6-4): The link now shows a page saying it was withdrawn. Answers already given are kept. |
-| Draft card under the link, after Build on version N on a published project | Draft on version [N] (pill: Draft). Version [N] is built but not published; the link above is on version [M]. Publishing version [N] makes a new link and closes this one. (the same form, with Publish) |
+| Draft card under the link, after Build on version N on a published project | Draft on version [N] (pill: Draft). Version [N] is built but not published; the link above is on version [M]. Publishing version [N] makes a new link, and the link above closes then. (the same form, with Publish) |
 | Link row, once published | [LINK] (a read-only field named Link) [Button: Copy link, then Copied. for two seconds] |
 | Date fields | Opens (hint: Leave empty to open as soon as you publish.); Closes; under them: Times in [ZONE], your browser's time zone. |
 | Passcode field | Passcode, optional (hint: At least 6 characters. Respondents type it once per device. Once set: A passcode is set. Type a new one to change it. [Checkbox: Remove the passcode]) |

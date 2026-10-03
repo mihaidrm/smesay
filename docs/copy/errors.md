@@ -155,7 +155,9 @@ of the content; page means it replaces the screen.
 | Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
-| Inline, passcode page (E6-1: 5 wrong attempts per link and address in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
+| Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 30 per link, in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
+| Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |
+| Page (E6-1; E11-6 builds the full error pages) | The link page failed to load (a server error) | This page could not be loaded. Something went wrong on our side. Try again in a moment; nothing you entered on this device is lost. [Button: Try again] |
 | Page | Personal link already submitted, answers still editable | Welcome back, [NAME]. You submitted on [DATE]. You can change your answers until [CLOSE DATE]. [Button: Change my answers] |
 | Page | Personal link already submitted, link closed | Your answers were submitted on [DATE]. The link closed on [CLOSE DATE]; nothing can be changed now. |
 

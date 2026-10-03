@@ -9,7 +9,7 @@ describe("passcode", () => {
     const a = await hashPasscode("letmein");
     const b = await hashPasscode("letmein");
     expect(a).not.toBe(b);
-    expect(a.startsWith("scrypt$131072$8$1$")).toBe(true);
+    expect(a.startsWith("scrypt$65536$8$2$")).toBe(true);
     expect(a).not.toContain("letmein");
     expect(await verifyPasscode("letmein", a)).toBe(true);
     expect(await verifyPasscode("letmein", b)).toBe(true);

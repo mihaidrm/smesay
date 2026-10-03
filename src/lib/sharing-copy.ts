@@ -16,7 +16,7 @@ export const SHARE_COPY = {
     revoked: "The link now shows a page saying it was withdrawn. Answers already given are kept.",
   } as const,
   notOpenNote: (when: string) => `The link opens on ${when}. Until then it shows the opening date.`,
-  newerDraft: (built: number, live: number) => `Version ${built} is built but not published; the link above is on version ${live}. Publishing version ${built} makes a new link and closes this one.`,
+  newerDraft: (built: number, live: number) => `Version ${built} is built but not published; the link above is on version ${live}. Publishing version ${built} makes a new link, and the link above closes then.`,
   newerDraftCard: (version: number) => `Draft on version ${version}`,
   archived: "This project is archived. Unarchive it to share the list.",
   linkLabel: "Link",
@@ -63,5 +63,9 @@ export const LINK_PAGE_COPY = {
   passcodeButton: "Continue",
   wrongPasscode: "That passcode is not right. Ask the person who sent you the link.",
   tooManyAttempts: (minutes: number) => `Too many passcode attempts. Wait ${minutes} minutes and try again.`,
+  linkChanged: "This link changed since the page opened. Reload the page to see where it stands.",
   closes: (when: string) => `Closes ${when}`,
+  errorTitle: "This page could not be loaded.",
+  errorLine: "Something went wrong on our side. Try again in a moment; nothing you entered on this device is lost.",
+  tryAgain: "Try again",
 } as const;

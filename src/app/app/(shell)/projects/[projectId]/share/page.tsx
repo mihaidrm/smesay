@@ -84,7 +84,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
           <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
         </ul>
       ) : (
-        <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${invite?.passcodeHash?.slice(-12) ?? "none"}`} projectId={projectId} instrumentId={instrument.id} published={invite !== null} opensAt={invite?.opensAt?.toISOString() ?? null} closesAt={invite?.closesAt?.toISOString() ?? null} hasPasscode={invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
+        <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}`} projectId={projectId} instrumentId={instrument.id} published={invite !== null} opensAt={invite?.opensAt?.toISOString() ?? null} closesAt={invite?.closesAt?.toISOString() ?? null} hasPasscode={invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
       )}
     </section>
   );

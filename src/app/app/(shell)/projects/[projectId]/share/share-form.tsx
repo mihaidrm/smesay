@@ -39,6 +39,11 @@ export function ShareForm({ projectId, instrumentId, published, opensAt, closesA
   const [passcode, setPasscode] = useState("");
   const [remove, setRemove] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // After a save the typed passcode is cleared, so a later Save does not hash it again
+  // (state adjusted during render on a changed prop or result:
+  // react.dev/learn/you-might-not-need-an-effect, "Adjusting some state when a prop changes").
+  const [seen, setSeen] = useState(state);
+  if (state !== seen) { setSeen(state); if (state.saved) { setPasscode(""); setRemove(false); } }
   const id = useId();
   const zone = mounted ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
   const touch = () => setDirty(true);

@@ -108,7 +108,8 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
   const patch: { opensAt: Date | null; closesAt: Date; passcodeHash?: string | null } = { opensAt, closesAt };
   if (removePasscode) patch.passcodeHash = null;
   else if (passcode) patch.passcodeHash = await hashPasscode(passcode);
-  const invite = await invites.updatePublic(ws, instrumentId, patch);
-  if (!invite) throw new NotFoundError();
-  return { invite };
+  const result = await invites.updatePublic(ws, instrumentId, patch);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : BUILD_COPY.replaced };
+  return { invite: result.invite };
 }
