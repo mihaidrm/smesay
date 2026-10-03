@@ -8,15 +8,28 @@ design v2.
 
 ## To buy (one item)
 
+Mihai asked on 2026-10-03 for something ready-made instead of a Fiverr commission. The
+shortlist, read the same day; prices in US dollars as the pages show them, before VAT.
+
 | # | What | Where it goes | Links | Licence | Price | Status |
 |---|---|---|---|---|---|---|
-| 1 | Mascot: one character, two poses (waving, pointing), vector (SVG or AI) plus PNG at 2x on a transparent ground, readable on light #F7F6FB and dark #16152A; a friendly shape, no company logo in it | Landing hero (over the live card), sign-in page, the empty states of Projects, Import and Results, the respondent thank-you screen | Fiverr search: https://www.fiverr.com/search/gigs?query=mascot%20character%20design ; three gigs found 2026-10-03: https://fiverr.com/kayrex/character-design-mascot-design , https://fiverr.com/abcr8tive/create-a-custom-character-or-mascot-illustration , https://fiverr.com/rusmadji/make-cute-animal-mascot-for-you | Add the gig's "commercial use" and "source file" extras; keep the receipt and the order page as the licence | about USD 50 to 60 at the entry tier (listings run from under 50 to 600) | to buy |
+| 1a | Roger (or Albert), one flat vector character in 140 (125) premade poses: 70 gestures and 70 (55) concept scenes, SVG, AI, EPS and PNG, with a symbol library for recolouring. Recommended: ready files, no tool needed, the jacket recoloured to violet in the SVG when placed | Landing hero (over the live card), sign-in page, the empty states of Projects, Import and Results, the respondent thank-you screen | https://www.animationguides.com/downloads/roger-illustrations-pack/ , https://www.animationguides.com/downloads/albert-illustrations-pack/ | Standard licence; the page says attribution is optional. The licence page could not be opened from this session (404 on /license/), so read the Standard and Extended terms at checkout: the Standard must allow a commercial web app; Extended is 99.90 and not needed for one product | 24.90 | to choose |
+| 1b | Superhuman Constructor, a 3D character built in Figma from parts, 9 prebuilt poses and the constructor for more, PNG export at 2x from Figma | same slots | https://craftwork.design/product/superhuman | Commercial licence: own and client projects without limit, teams up to 20, no resale of the files, no logo use (https://craftwork.design/license) | 48 | alternative if a 3D look is wanted and Figma is at hand |
+| 1c | Techno Geek, one robot-like character in 10 preset poses, AI, EPS and PNG, parts rearrangeable (from 2016) | same slots | https://creativemarket.com/bagstudio/626669-Techno-Geek-Vector-Mascot-Pack | Creative Market Commercial licence | 18 | cheapest, dated style |
+| 1d | Open Peeps, hand-drawn people from mixable parts, busts, standing and sitting, SVG and PNG | same slots | https://www.openpeeps.com | CC0, commercial use without attribution | free | fallback, sketchy style against the rounded violet look |
 
-Brief to paste into the order: "A small friendly mascot for a web app called SMEsay that
-collects opinions from experts. Two poses: waving, pointing to the right. Flat vector style,
-rounded shapes, main colour violet #6D4CF5 with a coral #FF6B57 detail, no text, no logo.
-Deliver SVG and PNG at 2x on a transparent background. It must read on a white and on a dark
-navy background."
+Looked at and left out: the Fiverr gigs of the first list (a commission, which Mihai does not
+want); getillustrations.com packs (the 3D clay mascot pack at 55 and the character packs
+could not be opened from this session, 403); UI8 packs (prices load only in the browser);
+Creative Market "Friendly Outdoor Mascot Characters" at 17 (several different animals, not
+one character); Mascot Maker toolkits at 39 to 49 (vintage sports style); SVG Mascot (an AI
+generator, licence of the output unclear); Blush (a subscription, and its pricing page could
+not be opened).
+
+What the files must satisfy whichever is chosen: one character, at least two poses (waving
+or greeting, pointing right), readable on light #F7F6FB and dark #16152A, PNG at 2x on a
+transparent ground or SVG. Claude recolours the SVG's fills to the brand violet #6D4CF5 with
+a coral #FF6B57 detail when placing it, which is placement, not drawing.
 
 ## Free, licence allows commercial use
 
@@ -29,7 +42,7 @@ navy background."
 | 6 | App icon and favicon, from the mark on Brand01 (no purchase; Claude exports the sizes) | Browser tab, phone home screen | made from docs/design-notes/prototype-01/Logo.dc.html | ours | free | Claude makes |
 | 7 | Social preview image (Open Graph), a product screen on the aurora ground | Links shared in chat and on LinkedIn | made from the landing board | ours | free | Claude makes |
 
-Total to pay: about EUR 50 to 55 for the mascot, nothing else.
+Total to pay: USD 24.90 for Roger or Albert (about EUR 23), or 48 for the Superhuman constructor; nothing else.
 
 Looked at and left out: Storyset (Freepik) is free with attribution and USD 7.49 a month
 without it (https://storyset.com), a running cost for one illustration family; Icons8
