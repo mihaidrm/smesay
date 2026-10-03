@@ -254,7 +254,7 @@
 }
 /* The mode sweep (design note 35): when the toggle flips the mode, a view transition shows
    the new mode through a soft diagonal edge that travels from the top left corner to the
-   bottom right over 1.4 s, like a blanket pulled across the page. The old snapshot stays
+   bottom right over 2.5 s, like a blanket pulled across the page. The old snapshot stays
    still underneath (its default fade is removed); the new snapshot wears a 135 degree mask
    three times the page in size, moved from its transparent end to its opaque end
    (developer.mozilla.org/docs/Web/CSS/Reference/Selectors/::view-transition-new). Scoped to
@@ -273,7 +273,7 @@ html.mode-sweep::view-transition-new(root) {
   -webkit-mask-size: 300% 300%;
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
-  animation: mode-sweep 1400ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation: mode-sweep 2500ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 @media (prefers-reduced-motion: reduce) {
   html.mode-sweep::view-transition-old(root),
