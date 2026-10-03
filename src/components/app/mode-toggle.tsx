@@ -3,7 +3,11 @@
 // sidebar). The default follows the system setting; a press stores the choice in
 // localStorage ("smesay-mode") and flips the html class, which every token reads
 // (src/app/globals.css). The script in src/app/layout.tsx applies the stored choice before the
-// first paint. A press sweeps the new mode in from the top left corner (design note 35).
+// first paint. A press sweeps the new mode in from the top left corner (design note 35); the
+// track and the thumb carry their own view-transition-name, so they move at once, in 150 ms,
+// instead of waiting for the sweep to reach the corner of the sidebar
+// (developer.mozilla.org/docs/Web/CSS/view-transition-name). The thumb is centred in the
+// track with a vertical translate, so the 1 px border does not push it down.
 // The component reads the class through useSyncExternalStore with a
 // MutationObserver as the subscription (react.dev/reference/react/useSyncExternalStore), so
 // the state follows the class and the server render says off until the client knows.
@@ -53,9 +57,9 @@ export function ModeToggle() {
         aria-labelledby={labelId}
         data-testid="mode-toggle"
         onClick={flip}
-        className="relative h-6 w-11 shrink-0 rounded-full border border-transparent bg-ink-muted transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-checked:bg-violet"
+        className="mode-track relative h-6 w-11 shrink-0 rounded-full border border-transparent bg-ink-muted transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-checked:bg-violet"
       >
-        <span aria-hidden="true" className="absolute top-0.5 left-0.5 block size-5 rounded-full bg-white shadow-sm transition-transform duration-150 in-aria-checked:translate-x-5 dark:bg-ground dark:in-aria-checked:bg-ground" />
+        <span aria-hidden="true" className="mode-thumb absolute top-1/2 left-0.5 block size-5 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform duration-150 in-aria-checked:translate-x-5 dark:bg-ground dark:in-aria-checked:bg-ground" />
       </button>
     </div>
   );
