@@ -43,3 +43,9 @@ always true on the free entry.
 missing_item (text, suggested_area, and a suggested value column added in migration 0002
 with the closing answer column on response, `closing_answer`); INTERFACES.md first. The tally
 and sections reuse the respondent board's bucket rules.
+
+Owed from E5-5 (recorded 2026-10-03): the Wrap up is src/components/respondent/wrap-up.tsx,
+shared with the Build preview; E7-5 adds the answers (the tally, the gaps, the sections), the
+Go to handler, the mandatory fields in the "Still needed" line and the "Pick how sure you
+are" line, and stores the sign-off sentence the respondent ticked on the response
+(docs/review-list.md).

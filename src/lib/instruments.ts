@@ -16,6 +16,7 @@ import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
 import type { WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
+import { CLOSING_COPY, parseClosing } from "@/lib/closing";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
@@ -141,8 +142,8 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
 // tags, and both happen in one statement under the instrument's lock (instruments.setPerspectives).
 // Locked once published, like the method (docs/review-list.md): a tag added mid-run would
 // take an item away from respondents who already answered it. The published check runs
-// before the lock, as saveScoring's does; E6-1 takes the instrument lock when it publishes
-// (docs/review-list.md).
+// outside the lock, as saveScoring's does; E6-1 publishes under the instrument lock and
+// moves the check inside it (docs/review-list.md).
 export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
@@ -150,6 +151,30 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
   const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
+  if (!instrument) throw new NotFoundError();
+  return { instrument };
+}
+
+// The Closing card (stories/E5-5): the closing question, the missing-item form switch and
+// the sign-off text, with confidence always on (parseClosing refuses it off). Once
+// published the question is locked (its answers are stored per response): the locked form
+// posts no question (a disabled input is left out of the form data) and the stored one is
+// kept; a stale tab that posts another question is refused; the switch and the sign-off
+// still change.
+export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  // The published check runs outside any lock, as saveScoring's does; closing the race with
+  // a publish in flight is owed to E6-1 (docs/review-list.md).
+  let question = rawQuestion;
+  if (await isPublished(ws, instrumentId)) {
+    const stored = owned.instrument.closing.closingQuestion ?? "";
+    if (typeof rawQuestion === "string" && rawQuestion.trim() !== stored) return { error: CLOSING_COPY.questionLocked };
+    question = stored;
+  }
+  const parsed = parseClosing(question, rawMissingForm, rawSignOff, rawConfidence);
+  if ("error" in parsed) return { error: parsed.error };
+  const instrument = await instruments.update(ws, instrumentId, { closing: parsed.closing });
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }

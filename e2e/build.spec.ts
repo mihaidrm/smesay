@@ -6,7 +6,8 @@
 // (E5-2): the method switch, a label and the proposal switch seen on the Items screen; the
 // three layouts (E5-3) with the side-scroll and pill-height checks in the frame; two
 // perspectives defined, two items tagged on Shape, the picked one narrowing the preview (E5-4);
-// Remove refused on the last field.
+// the Closing card opening the Wrap up in the preview, a closing question seen there and
+// the missing-item form switched off (E5-5); Remove refused on the last field.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -196,6 +197,30 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
   await expect(chapter).toContainText("0 of 1");
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
+
+  // Closing (stories/E5-5): focusing the card opens the Wrap up in the preview; the question
+  // saved shows there, the missing-item form goes when switched off, confidence is always
+  // on and Submit is disabled with the line naming what is still needed.
+  const wrapUp = page.getByTestId("wrap-up");
+  await page.getByLabel("Closing question, optional").focus();
+  await expect(wrapUp).toBeVisible();
+  await expect(wrapUp.getByTestId("wrap-up-missing")).toBeVisible();
+  await expect(wrapUp.getByTestId("wrap-up-question")).toHaveCount(0);
+  await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers and they can be shared with the project team.");
+  await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
+  await page.getByRole("switch", { name: "Ask for missing items" }).click();
+  await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
+  await page.getByTestId("closing-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("closing-form").getByRole("status")).toHaveText("Saved.");
+  await expect(wrapUp.getByTestId("wrap-up-question")).toContainText("What would make this list complete?");
+  await expect(wrapUp.getByTestId("wrap-up-missing")).toHaveCount(0);
+  await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers.");
+  await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
+  await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
+  await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
+  await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
+  await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
   // The sidebar and the project header stay in view while the page scrolls (design note 43).

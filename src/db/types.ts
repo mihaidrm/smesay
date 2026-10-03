@@ -3,7 +3,9 @@
 // E5-1: email is the field type the submission receipt goes to (docs/copy/emails.md, 4);
 // the rule on labels, keys and options is in src/lib/respondent-fields.ts (INTERFACES.md).
 export type RespondentFieldSpec = { key: string; label: string; type: "text" | "dropdown" | "email"; mandatory: boolean; options?: string[] };
-export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText: string };
+// E5-5: the closing question is optional; "" for signOffText means the default sentence
+// (src/lib/closing.ts); confidence is always asked.
+export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText: string; closingQuestion?: string };
 // E5-2: the PM's labels for a scale's values, keyed by the value code (M, S, C, W; 1 to 5;
 // K, C, D), each up to 20 characters; a code not present keeps the default label
 // (src/lib/scoring.ts). Null on the row means every default.

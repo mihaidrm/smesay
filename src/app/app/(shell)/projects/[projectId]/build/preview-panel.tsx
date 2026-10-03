@@ -1,15 +1,16 @@
 "use client";
 // The preview panel of Build (stories/E5-1 to E5-3; the shell of design note 13, filled
 // in by E5-6): "Preview", the Phone pill, the caption, a screen switch between the About
-// you page and the items, and the 390 px frame. The About you screen rings the fields; the
+// you page, the items and the Wrap up (stories/E5-5: the Closing card opens it when it
+// takes focus or a click, through the PreviewScreen context), and the 390 px frame. The About you screen rings the fields; the
 // items screen rings the chapter row and the rating rows (decision 0021: Build rings what
-// it changes). The items screen follows the layout (decision 0016): chapters shows the
+// it changes); the Wrap up rings the parts the Closing card changes. The items screen follows the layout (decision 0016): chapters shows the
 // first area's cards under the chapter row; one item per screen shows one card with "Item
 // 1 of N in [AREA]"; the single page lists every area in order with no chapter row and
 // "All N on one page". The chapter row shows About you, every area (the first active) and
 // Wrap up, fading at the right edge when it is longer than the frame (the board's mask);
 // it is a picture, not navigation (free movement is E7-4's). The screen choice lives in
-// this component, keyed on the instrument alone, so a save of any card keeps the screen;
+// the PreviewScreen context, keyed on the instrument by the page, so a save of any card keeps the screen;
 // the About you page re-mounts on its own key and the cards on theirs (the layout in the
 // key), which clears the field values typed in the preview (nothing is stored there); the
 // perspective picks live here and survive a save of the names. At most
@@ -24,19 +25,21 @@ import { cn } from "cn";
 import { isVisible } from "@/lib/perspectives";
 import { AboutYou, type AboutYouProps } from "@/components/respondent/about-you";
 import { ItemCard, type ItemCardProps } from "@/components/respondent/item-card";
+import { WrapUp, type WrapUpProps } from "@/components/respondent/wrap-up";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import type { Layout } from "@/db/types";
 import { BUILD_COPY, PREVIEW_CARDS } from "@/lib/build-copy";
+import { CLOSING_COPY } from "@/lib/closing";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
+import { usePreviewScreen } from "./preview-screen";
 
-type Screen = "about" | "items";
 export type PreviewCard = Omit<ItemCardProps, "ring"> & { perspectives: string[] };
 export type PreviewChapter = { name: string | null; tags: string[][]; cards: { index: number; card: PreviewCard }[] };
 
 const cardKey = (card: Omit<ItemCardProps, "ring">, i: number, layout: Layout) => `${i}-${layout}-${card.method}-${card.showProposed}-${JSON.stringify(card.labels)}`;
 
-export function PreviewPanel({ about, chapters: allChapters, layout, perspectives }: { about: Omit<AboutYouProps, "preview" | "heading" | "ring" | "perspectives" | "picked" | "onPickPerspectives" | "firstChapter">; chapters: PreviewChapter[]; layout: Layout; perspectives: string[] }) {
-  const [screen, setScreen] = useState<Screen>("about");
+export function PreviewPanel({ about, chapters: allChapters, layout, perspectives, wrap }: { about: Omit<AboutYouProps, "preview" | "heading" | "ring" | "perspectives" | "picked" | "onPickPerspectives" | "firstChapter">; chapters: PreviewChapter[]; layout: Layout; perspectives: string[]; wrap: Pick<WrapUpProps, "closing" | "method" | "labels" | "showProposed"> }) {
+  const { screen, setScreen } = usePreviewScreen();
   const [picked, setPicked] = useState<string[]>([]);
   // What this respondent would see: every chapter with a visible item (or none at all), its
   // visible count, and the first PREVIEW_CARDS visible cards across the chapters.
@@ -57,10 +60,12 @@ export function PreviewPanel({ about, chapters: allChapters, layout, perspective
         <h3 id="preview-title" className="text-[15px] font-bold">{BUILD_COPY.preview}</h3>
         <span className="rounded-full bg-tint px-3 py-1 text-xs font-semibold text-ink-muted">{BUILD_COPY.previewDevice}</span>
       </div>
-      <p className="flex items-center gap-2 text-[13px] text-ink-muted"><span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-sm bg-violet" />{BUILD_COPY.previewCaption}</p>
-      <SegmentedControl value={screen} onChange={setScreen} label={BUILD_COPY.previewScreenSwitch} options={[{ value: "about", label: BUILD_COPY.previewScreens.about }, { value: "items", label: BUILD_COPY.previewScreens.items }]} className="self-start" />
+      <p className="flex items-center gap-2 text-[13px] text-ink-muted"><span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-sm bg-violet" />{screen === "wrapup" ? BUILD_COPY.previewCaptionWrapUp : BUILD_COPY.previewCaption}</p>
+      <SegmentedControl value={screen} onChange={setScreen} label={BUILD_COPY.previewScreenSwitch} options={[{ value: "about", label: BUILD_COPY.previewScreens.about }, { value: "items", label: BUILD_COPY.previewScreens.items }, { value: "wrapup", label: CLOSING_COPY.previewScreen }]} className="self-start" />
       <div className="mx-auto h-[720px] w-[390px] overflow-x-hidden overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-frame">
-        {screen === "about" ? (
+        {screen === "wrapup" ? (
+          <WrapUp key={JSON.stringify(wrap.closing)} workspaceName={about.workspaceName} accent={about.accent} {...wrap} chapters={chapters.flatMap((c) => (c.name ? [c.name] : []))} total={total} preview heading="h4" ring />
+        ) : screen === "about" ? (
           <AboutYou key={`${JSON.stringify(about.fields)}-${about.intro}-${about.title}-${perspectives.join("|")}`} {...about} firstChapter={firstChapter} perspectives={perspectives} picked={picked} onPickPerspectives={setPicked} preview heading="h4" ring="fields" />
         ) : (
           <div className="flex min-h-full flex-col bg-ground text-ink" data-testid="chapter-preview" data-layout={layout}>

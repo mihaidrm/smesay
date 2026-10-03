@@ -1,8 +1,8 @@
 // Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
 // "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
 // card (method, show proposed, labels, locked once published; the layout, E5-3), the
-// Perspectives card (E5-4; items are tagged on Shape) and the Respondent fields card, and on the right the preview panel showing the About you page or
-// the items in the chosen layout as the draft stands (the panel's shell from design note
+// Perspectives card (E5-4; items are tagged on Shape), the Closing card (E5-5) and the Respondent fields card, and on the right the preview panel showing the About you page,
+// the items in the chosen layout or the Wrap up as the draft stands (the panel's shell from design note
 // 13; E5-6 fills it in). Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
 // not edited. Copy: docs/copy/app.md (Build).
@@ -12,12 +12,15 @@ import { items, projects } from "@/db/queries";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { PREVIEW_CARDS } from "@/lib/build-copy";
+import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
 import { areaNames, groupByArea } from "@/lib/shaping";
 import { BuildOn } from "./build-on";
+import { ClosingForm } from "./closing-form";
+import { PreviewScreenProvider } from "./preview-screen";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
 import { PerspectivesForm } from "./perspectives-form";
@@ -83,6 +86,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         <h2 className="text-xl font-bold tracking-[-0.02em]">{BUILD_COPY.title}</h2>
         <p className="text-ink-muted" data-testid="build-line">{BUILD_COPY.line(builtOn.version)}</p>
       </div>
+      <PreviewScreenProvider key={instrument.id}>
       <div className="flex items-start gap-6">
         <div className="flex min-w-0 grow flex-col gap-5">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
@@ -125,6 +129,23 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
           </section>
+          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title">
+            <div className="flex flex-col gap-0.5">
+              <h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3>
+              <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
+            </div>
+            {readOnly ? (
+              <ul className="flex flex-col text-sm" data-testid="closing-list">
+                <li className="flex justify-between gap-4 py-2.5"><span>{CLOSING_COPY.questionLabel}</span><span className="text-ink-muted">{instrument.closing.closingQuestion ?? BUILD_COPY.off}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{CLOSING_COPY.missingTitle}</span><span className="text-ink-muted">{instrument.closing.missingForm ? BUILD_COPY.on : BUILD_COPY.off}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{CLOSING_COPY.confidenceTitle}</span><span className="text-ink-muted">{CLOSING_COPY.always}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{CLOSING_COPY.signOffLabel}</span><span className="text-right text-ink-muted">{signOffFor(instrument.closing)}</span></li>
+                <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
+              </ul>
+            ) : (
+              <ClosingForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} closing={instrument.closing} locked={locked} />
+            )}
+          </section>
           <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3>
@@ -147,8 +168,10 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           chapters={chapters}
           layout={instrument.layout}
           perspectives={instrument.perspectives}
+          wrap={{ closing: instrument.closing, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed }}
         />
       </div>
+      </PreviewScreenProvider>
     </div>
   );
 }

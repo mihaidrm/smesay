@@ -213,13 +213,16 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Perspectives card (E5-4) | Perspectives. Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone. Field: Perspectives, one per line. Under it: "[N] of [M] items carry a perspective. Tag items on Shape. Go to Shape" or "No perspectives yet. Every item goes to everyone." |
 | Perspectives card once published (E5-4) | Published instruments keep their perspectives and tags. Build a new instrument to change them. (the field disabled, no Save, no link to Shape) |
 | Perspectives card on the sample | [NAMES]. or "No perspectives yet. Every item goes to everyone." then The sample project cannot be edited. |
+| Closing card (E5-5) | Closing. How the journey ends. Respondents review what they said, add what is missing, say how sure they are and sign off. Fields: Closing question, optional (hint: One open question at the end, up to 200 characters. Leave empty to ask none.); Ask for missing items (a switch; On: respondents can name an item the list lacks, with an area and a proposed value.); Ask how confident they are (Always asked, 1 to 5. The dashboard shows the spread.; a pill "Always on", no switch); Sign-off text (hint: What respondents tick before they submit, up to 300 characters.; prefilled with "I confirm these are my answers and they can be shared with the project team.") |
+| Closing card once published (E5-5) | Published instruments keep their closing question. Build a new instrument to change it. (the question disabled; the switch and the sign-off still change) |
+| Closing card on the sample | Closing question, optional: [QUESTION] or Off; Ask for missing items: On / Off; Ask how confident they are: Always on; Sign-off text: [TEXT]; The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |
 | Dropdown options | Options, one per line |
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
-| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. |
-| Preview screen switch (E5-2; the control is named "Preview screen") | About you, Items (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
+| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. (on the Wrap up screen, E5-5: Highlighted: what the Closing card changes. The missing-item form, the closing question and the sign-off; confidence is always asked.) |
+| Preview screen switch (E5-2 and E5-5; the control is named "Preview screen"; focusing or clicking the Closing card opens Wrap up) | About you, Items, Wrap up (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
 
 ## Respondent card (E5-2 preview and E7-2)
 
@@ -247,6 +250,23 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
 | Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
+
+## Wrap up (the respondent instrument, E5-5 preview and E7-5)
+
+| Where | Text |
+|---|---|
+| Header | [WORKSPACE NAME], [ANSWERED] of [TOTAL] |
+| Title | Wrap up |
+| Tally tiles (decision 0018 item 5) | Agreed, Higher priority, Lower priority, Not needed, Unclear; rate-blind: Rated, Not needed, Unclear |
+| Gaps box | [N] still to finish. [Button: Go to [FIRST CHAPTER]] |
+| When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
+| When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |
+| Missing-item form (when the PM switched it on) | Is anything missing from the list? Optional. What is missing; Where it belongs (Choose one, then the chapters); How important it is (Choose one, then the method's values) |
+| Closing question (when the PM set one) | [THE PM'S QUESTION], a text box |
+| Confidence | How confident are you in these answers? 1, 2, 3, 4, 5, with Guessing under 1 and Certain under 5 |
+| Sign-off | [THE PM'S SIGN-OFF TEXT], one 48 px label with a checkbox |
+| Submit and the line under it | Submit; "Still needed: [N] items, how confident you are, the confirmation." or "Everything is in. Submit when you are ready." |
+| Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview; once everything is picked the line under it says "Submit is off in the preview.") |
 
 ## Import, column mapping (E3-3)
 

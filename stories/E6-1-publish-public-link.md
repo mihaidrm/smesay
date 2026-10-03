@@ -24,8 +24,12 @@ instrument shows a closed page, not an error.
    Respondents type it once per device." The passcode is stored hashed (argon2 or bcrypt,
    chosen with the research check) and a wrong one shows "That passcode is not right. Ask the
    person who sent you the link."; attempts are limited in E11-1.
-5. Publishing freezes method and layout (E5-2) and records published_at. Dates can be changed
-   after publishing; the respondent header note updates.
+5. Publishing freezes the method, the proposal switch and the labels (E5-2), the perspective
+   names and tags (E5-4) and the closing question (E5-5), and records published_at; the layout
+   (E5-3), the missing-item switch and the sign-off text still change. The freeze holds
+   against a save in flight: publishing takes the instrument row lock and the four saves
+   check inside it (a unit test publishes while a save waits on the lock and proves the save
+   is refused). Dates can be changed after publishing; the respondent header note updates.
 6. Playwright: publish, open the link in a fresh context, see About you; set the close date
    to the past, reload, see the closed page.
 
@@ -44,6 +48,9 @@ Owed from E3-6 (recorded 2026-10-02): the Import banner "This list is published.
 new version does not change the published instrument..." (docs/copy/errors.md) once an
 instrument can be published.
 
-Owed from E5-4 (recorded 2026-10-03): publishing takes the instrument row's lock (the one
-instruments.setPerspectives and instruments.tagItem take), so a perspective change in
-flight cannot land after the invite row exists; docs/review-list.md.
+Owed from E5-4 and E5-5 (recorded 2026-10-03): publishing takes the instrument row's lock
+(the one instruments.setPerspectives and instruments.tagItem take), and the four saves
+that lock on publish (saveScoring, savePerspectives, tagItem, saveClosing) move their
+published check inside a transaction that locks the row, re-reads the invites and writes;
+today the check runs outside any lock, so a change that passed it before the publish would
+still land; docs/review-list.md.
