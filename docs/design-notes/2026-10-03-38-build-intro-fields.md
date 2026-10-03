@@ -60,14 +60,13 @@ request holds the test output.
   would create drafts while the PM only views Import or Shape. Keep both out, or move the
   creation to an action first.
 
-## Questions for Mihai
+## Questions for Mihai, decided the same day (decision 0043)
 
-1. The hint under Start reads "Fill in your name and role to start." as the respondent board
-   wrote it, whatever the fields are called. A PM who renames the fields, or adds a required
-   Team, gets a hint that names the wrong fields. The option: "Fill in the required fields to
-   start." when the required fields are not exactly Name and Role. Recommended.
-2. Role as text by default (above). The alternative is the board's dropdown with placeholder
-   options, which a PM would have to replace before publishing.
+1. The hint under Start read "Fill in your name and role to start." as the respondent board
+   wrote it, whatever the fields are called. Decided: that line only while the required
+   fields are exactly Name and Role; "Fill in the required fields to start." for any other
+   set (startHint() in src/lib/respondent-fields.ts).
+2. Role as text by default (above). Decided: text. The board's dropdown stays on the sample.
 
 ## Audit of 2026-10-03
 

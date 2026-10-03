@@ -11,8 +11,9 @@ fields the PM asked for, and Start lands on the first chapter.
    (E5-1), the perspectives question when defined (E5-4), Start, and "Powered by SMEsay".
    Public link first visit asks the fields; a personal link shows "Welcome back, [NAME]" with
    name and role already set (E6-2).
-2. Start is disabled at 40 percent with "Fill in your name and role to start." until every
-   mandatory field is filled; mandatory is per field (E5-1). Dropdown fields render as a
+2. Start is disabled at 40 percent with "Fill in your name and role to start." (or "Fill in
+   the required fields to start." when the mandatory fields are not exactly Name and Role,
+   decision 0043) until every mandatory field is filled; mandatory is per field (E5-1). Dropdown fields render as a
    native select at 48 px.
 3. Link states each have a page (CLAUDE.md, respondent side): not yet open, closed, revoked,
    unknown token, passcode required, passcode attempts exceeded (E11-1), all with the copy in

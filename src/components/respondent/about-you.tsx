@@ -3,8 +3,8 @@
 // board, note 12; E7-1 renders it at /r/[token]). The PM's name and initials in the header,
 // the title and the intro, the fields the PM configured (a dropdown is a native select at
 // 48 px, E7-1 acceptance 2), Start disabled at 40 percent until every required field is
-// filled, with the hint under it (aria-describedby on Start, aria-required on the fields),
-// and the footer. One component for the Build preview and
+// filled, with the hint under it (aria-describedby on Start, aria-required on the fields;
+// the wording by decision 0043), and the footer. One component for the Build preview and
 // the real page, so the two cannot drift (stories/E5-6, acceptance 3). In preview mode the
 // header says nothing is saved and Start does nothing (E5-6, acceptance 4). Phone first:
 // the column is the screen width; on desktop E7-1 puts it in the 560 px column.
@@ -14,7 +14,7 @@ import { Mark } from "@/components/brand/mark";
 import { initials } from "@/components/app/tiles";
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
-import { missingMandatory } from "@/lib/respondent-fields";
+import { missingMandatory, startHint } from "@/lib/respondent-fields";
 
 export type AboutYouProps = {
   workspaceName: string;
@@ -82,7 +82,7 @@ export function AboutYou({ workspaceName, accent, title, intro, fields, firstCha
         <button type="button" disabled={disabled} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview) onStart?.(values); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
-        <div id={`${prefix}-hint`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="about-you-hint">{disabled ? ABOUT_YOU_COPY.startHint : ""}</div>
+        <div id={`${prefix}-hint`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="about-you-hint">{disabled ? startHint(fields) : ""}</div>
       </div>
     </div>
   );

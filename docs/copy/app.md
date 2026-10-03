@@ -218,7 +218,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
-| Hint under a disabled Start | Fill in your name and role to start. |
+| Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
 ## Import, column mapping (E3-3)
 

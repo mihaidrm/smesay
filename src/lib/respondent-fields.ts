@@ -20,6 +20,7 @@ export const FIELDS_COPY = {
   lastField: "Keep at least one field, so you can tell answers apart. Name is the usual one.",
   introHint: "Write one or two lines so respondents know what the list is for. They see this first.",
   startHint: "Fill in your name and role to start.",
+  startHintOther: "Fill in the required fields to start.",
   tooMany: `Up to ${FIELDS_MAX} fields. Remove one to add another.`,
   badLabel: `Give every field a label, up to ${FIELD_LABEL_MAX} characters.`,
   badOptions: `A dropdown needs ${OPTIONS_MIN} to ${OPTIONS_MAX} different options, one per line, each up to ${FIELD_LABEL_MAX} characters.`,
@@ -110,3 +111,11 @@ export function fieldSummary(field: RespondentFieldSpec): string {
 export function missingMandatory(fields: RespondentFieldSpec[], values: ResponseFields): string[] {
   return fields.filter((f) => f.mandatory && !(values[f.key] ?? "").trim()).map((f) => f.key);
 }
+
+// The hint under a disabled Start (decision 0043): the board's line while the required
+// fields are exactly Name and Role, the general line for any other set.
+export function startHint(fields: RespondentFieldSpec[]): string {
+  const required = fields.filter((f) => f.mandatory).map((f) => f.key).sort();
+  return required.length === 2 && required[0] === "name" && required[1] === "role" ? FIELDS_COPY.startHint : FIELDS_COPY.startHintOther;
+}
+
