@@ -16,7 +16,7 @@ export const CLOSING_ERRORS = {
   longQuestion: `The closing question is over ${CLOSING_QUESTION_MAX} characters. Shorten it; respondents answer it on a phone.`,
   badSignOff: `Write the sign-off in 1 to ${SIGN_OFF_MAX} characters. Respondents tick it before they submit.`,
   emDash: "Replace the em dash with a comma, a colon or a full stop. Respondents read this as written.",
-  confidenceOff: "The confidence question is always asked. It cannot be switched off.",
+  confidenceOff: "The confidence question is always asked. It cannot be switched off. Reload the page and try again.",
 } as const;
 
 // The Build card's words (docs/copy/app.md, Build) and the Wrap up's (docs/copy/app.md,
@@ -43,6 +43,8 @@ export const WRAP_UP_COPY = {
   toFinish: (n: number) => `${n} still to finish.`,
   goTo: (chapter: string) => `Go to ${chapter}`,
   nothingToReview: "You agreed with every proposed value. Nothing to review here.",
+  noItems: "No items to review.",
+  previewSubmit: "Submit is off in the preview.",
   missingTitle: "Is anything missing from the list? Optional.",
   missingText: "What is missing",
   missingArea: "Where it belongs",
@@ -73,8 +75,9 @@ const on = (raw: unknown) => raw === true || raw === "true" || raw === "on" || r
 // instrument.
 export function parseClosing(rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): { error: string } | { closing: ClosingSpec } {
   if (!on(rawConfidence)) return { error: CLOSING_ERRORS.confidenceOff };
-  const question = String(rawQuestion ?? "").trim();
-  const signOff = String(rawSignOff ?? "").trim();
+  // A form part that is not text (a file) reads as empty, never as "[object File]".
+  const question = typeof rawQuestion === "string" ? rawQuestion.trim() : "";
+  const signOff = typeof rawSignOff === "string" ? rawSignOff.trim() : "";
   if (question.length > CLOSING_QUESTION_MAX) return { error: CLOSING_ERRORS.longQuestion };
   if (signOff.length < 1 || signOff.length > SIGN_OFF_MAX) return { error: CLOSING_ERRORS.badSignOff };
   if (question.includes(EM_DASH) || signOff.includes(EM_DASH)) return { error: CLOSING_ERRORS.emDash };

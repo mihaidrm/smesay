@@ -12,7 +12,7 @@ import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { CLOSING_ERRORS, DEFAULT_SIGN_OFF } from "@/lib/closing";
+import { CLOSING_COPY, CLOSING_ERRORS, DEFAULT_SIGN_OFF } from "@/lib/closing";
 import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
@@ -219,7 +219,8 @@ describe("closing (stories/E5-5)", () => {
     // the sign-off still change. Build on version 2 carries the closing.
     await saveClosing(a.ws, project.id, instrument.id, "Kept?", "1", "Yes.", "1");
     await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
-    const after = await saveClosing(a.ws, project.id, instrument.id, "Changed?", "0", "Signed.", "1");
+    expect(await saveClosing(a.ws, project.id, instrument.id, "Changed?", "0", "Signed.", "1")).toEqual({ error: CLOSING_COPY.questionLocked });
+    const after = await saveClosing(a.ws, project.id, instrument.id, "Kept?", "0", "Signed.", "1");
     expect("instrument" in after && after.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Signed.", closingQuestion: "Kept?" });
     await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
     const built = await buildOnLatest(a.ws, project.id, instrument.id);

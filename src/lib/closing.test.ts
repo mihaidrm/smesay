@@ -9,6 +9,9 @@ describe("parseClosing", () => {
     expect(parseClosing("", "1", " I agree. ", "1")).toEqual({ closing: { confidence: true, missingForm: true, signOffText: "I agree." } });
     expect(parseClosing(" Anything else? ", "0", DEFAULT_SIGN_OFF, "on")).toEqual({ closing: { confidence: true, missingForm: false, signOffText: DEFAULT_SIGN_OFF, closingQuestion: "Anything else?" } });
     expect(parseClosing(undefined, undefined, "Yes.", true)).toEqual({ closing: { confidence: true, missingForm: false, signOffText: "Yes." } });
+    // A form part that is not text reads as empty.
+    expect(parseClosing(new Blob(["x"]), "1", "Yes.", "1")).toEqual({ closing: { confidence: true, missingForm: true, signOffText: "Yes." } });
+    expect(parseClosing("", "1", new Blob(["x"]), "1")).toEqual({ error: CLOSING_ERRORS.badSignOff });
   });
   it("refuses confidence off, a long question, a bad sign-off and an em dash", () => {
     expect(parseClosing("", "1", "Yes.", "0")).toEqual({ error: CLOSING_ERRORS.confidenceOff });

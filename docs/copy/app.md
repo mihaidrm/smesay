@@ -221,7 +221,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Dropdown options | Options, one per line |
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
-| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. (on the Wrap up screen, E5-5: Highlighted: what the Closing card changes. The missing-item form, the closing question, confidence and the sign-off.) |
+| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. (on the Wrap up screen, E5-5: Highlighted: what the Closing card changes. The missing-item form, the closing question and the sign-off; confidence is always asked.) |
 | Preview screen switch (E5-2 and E5-5; the control is named "Preview screen"; focusing the Closing card opens Wrap up) | About you, Items, Wrap up (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
 
 ## Respondent card (E5-2 preview and E7-2)
@@ -259,13 +259,14 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Title | Wrap up |
 | Tally tiles (decision 0018 item 5) | Agreed, Higher priority, Lower priority, Not needed, Unclear; rate-blind: Rated, Not needed, Unclear |
 | Gaps box | [N] still to finish. [Button: Go to [FIRST CHAPTER]] |
-| When nothing is left to review | You agreed with every proposed value. Nothing to review here. |
+| When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
+| When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |
 | Missing-item form (when the PM switched it on) | Is anything missing from the list? Optional. What is missing; Where it belongs (Choose one, then the chapters); How important it is (Choose one, then the method's values) |
 | Closing question (when the PM set one) | [THE PM'S QUESTION], a text box |
 | Confidence | How confident are you in these answers? 1, 2, 3, 4, 5, with Guessing under 1 and Certain under 5 |
 | Sign-off | [THE PM'S SIGN-OFF TEXT], one 48 px label with a checkbox |
 | Submit and the line under it | Submit; "Still needed: [N] items, how confident you are, the confirmation." or "Everything is in. Submit when you are ready." |
-| Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview) |
+| Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview; once everything is picked the line under it says "Submit is off in the preview.") |
 
 ## Import, column mapping (E3-3)
 

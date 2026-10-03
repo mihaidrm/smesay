@@ -4,7 +4,11 @@
 // such, decision 0003) and the sign-off text (up to 300 characters, the default sentence
 // prefilled). The server applies the rule again (saveClosing in src/lib/instruments.ts).
 // Once published the question is locked with its line; the switch and the sign-off still
-// change. Focusing any control opens the Wrap up in the preview (acceptance 3). "Saved."
+// change. Focusing or clicking any control opens the Wrap up in the preview (acceptance
+// 3): React's onFocus bubbles, unlike the browser's focus event
+// (react.dev/reference/react-dom/components/common#focusevent-handler), and the click
+// covers browsers that do not focus a button on click (MDN's button page, "Clicking and
+// focus"; unverified in this session). "Saved."
 // until the next change; Save is secondary like the other Build cards (design note 38).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
@@ -28,7 +32,7 @@ export function ClosingForm({ projectId, instrumentId, closing, locked }: { proj
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} onFocus={() => setScreen("wrapup")} noValidate className="flex flex-col gap-4" data-testid="closing-form">
+    <form action={action} onSubmit={() => setDirty(false)} onFocus={() => setScreen("wrapup")} onClick={() => setScreen("wrapup")} noValidate className="flex flex-col gap-4" data-testid="closing-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="missingForm" value={missingForm ? "1" : "0"} />

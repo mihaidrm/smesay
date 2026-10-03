@@ -16,7 +16,7 @@ import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
 import type { WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
-import { parseClosing } from "@/lib/closing";
+import { CLOSING_COPY, parseClosing } from "@/lib/closing";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
@@ -162,8 +162,14 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
 export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  const published = await isPublished(ws, instrumentId);
-  const parsed = parseClosing(published ? owned.instrument.closing.closingQuestion ?? "" : rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
+  // A stale tab that posts another question after publishing gets the locked message, not
+  // "Saved." over a question that was dropped. The check runs before the row lock, as
+  // saveScoring's does (E6-1 takes the instrument lock when it publishes).
+  if (await isPublished(ws, instrumentId)) {
+    const stored = owned.instrument.closing.closingQuestion ?? "";
+    if ((typeof rawQuestion === "string" ? rawQuestion.trim() : "") !== stored) return { error: CLOSING_COPY.questionLocked };
+  }
+  const parsed = parseClosing(rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
   if ("error" in parsed) return { error: parsed.error };
   const instrument = await instruments.update(ws, instrumentId, { closing: parsed.closing });
   if (!instrument) throw new NotFoundError();
