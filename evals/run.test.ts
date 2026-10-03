@@ -34,8 +34,9 @@ function perfect(expected: Expected, tweak: (ref: string, reader: string) => str
 }
 
 // Answers the shaping call with `shape` and the judge call with one verdict per ref given,
-// false for the refs in `wrong` and added for the refs in `added`.
-function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = []) {
+// false for the refs in `wrong` and added for the refs in `added`; `twice` answers the
+// first ref a second time.
+function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [], twice = false) {
   const calls: { system: string; data: string }[] = [];
   const fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body)) as { system: { text: string }[]; messages: { content: { text: string }[] }[] };
@@ -45,7 +46,8 @@ function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [
     let output: unknown = shape;
     if (system.startsWith("You compare a requirement")) {
       const refs = [...data.matchAll(/^\[([^\]]+)\]$/gm)].map((m) => m[1]);
-      output = { verdicts: refs.map((ref) => ({ ref, sameMeaning: !wrong.includes(ref), added: added.includes(ref), note: "Same." })) };
+      const verdicts = refs.map((ref) => ({ ref, sameMeaning: !wrong.includes(ref), added: added.includes(ref), note: "Same." }));
+      output = { verdicts: twice ? [...verdicts, verdicts[0]] : verdicts };
     }
     const message = { id: "msg_test", type: "message", role: "assistant", model: DEFAULT_MODEL, content: [{ type: "text", text: JSON.stringify(output) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1000, output_tokens: 500, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
     return new Response(JSON.stringify(message), { status: 200, headers: { "content-type": "application/json" } });
@@ -100,20 +102,48 @@ describe("the golden set runner", () => {
     expect(line(run.score, run.costCents)).toContain("FAIL 01");
   });
 
-  it("fails a context spec whose reader version renames a glossary term, and accepts an alias and a reversed duplicate", async () => {
+  it("fails a context spec whose reader version renames a glossary term, accepts an alias, and drops a reversed duplicate as the app does", async () => {
     const ski = spec("04");
     const shape = perfect(ski, (ref, reader) => (ref === "G04-02" ? reader.replace("SkiPass+", "the premium season pass") : reader));
     shape.areas[0].name = "Tickets";
     const run = await runSpec(ski, ws, projectId, { fetch: transport(shape).fetch });
     expect(run.score).toMatchObject({ pass: false, glossaryTerms: 5, glossaryMissing: 1, areasNamed: 4 });
     expect(run.score.failures).toEqual(["1 glossary term(s) not kept"]);
-    // Spec 08: the model flags the earlier item as the duplicate; the pair still matches.
-    const wash = spec("08");
-    const reversed = perfect(wash);
-    const pos = (ref: string) => String(wash.items.findIndex((i) => i.ref === ref) + 1);
-    reversed.items.find((i) => i.ref === pos("G08-13"))!.flags.duplicateOf = null;
-    reversed.items.find((i) => i.ref === pos("G08-05"))!.flags.duplicateOf = pos("G08-13");
-    expect(score(wash, reversed, new Map())).toMatchObject({ duplicatesExpected: 1, duplicatesRaised: 1, duplicatesMatched: 1 });
+    // Spec 01: a flag on the earlier item pointing at the later one is dropped (cleanDuplicateOf), so it counts as not raised.
+    const bakery = spec("01");
+    const reversed = perfect(bakery);
+    const pos = (ref: string) => String(bakery.items.findIndex((i) => i.ref === ref) + 1);
+    reversed.items.find((i) => i.ref === pos("G01-08"))!.flags.duplicateOf = null;
+    reversed.items.find((i) => i.ref === pos("G01-02"))!.flags.duplicateOf = pos("G01-08");
+    expect(score(bakery, reversed, new Map())).toMatchObject({ duplicatesExpected: 1, duplicatesRaised: 0, duplicatesMatched: 0 });
+  });
+
+  it("reports an area count over tolerance without failing, and fails a judge that answers a ref twice", async () => {
+    const choir = spec("05");
+    const split = perfect(choir);
+    // Six areas for three expected: the first area's items spread over three more.
+    const spread = split.areas[0].items;
+    split.areas[0].items = [spread[0]];
+    split.areas.push({ name: "Monday deadline", rationale: "Then this.", items: [spread[1]] }, { name: "Missed rehearsals", rationale: "Then this.", items: [spread[2]] }, { name: "Extra", rationale: "Last, this.", items: [] });
+    split.areas[5].items = split.areas[1].items.splice(0, 1);
+    const run = await runSpec(choir, ws, projectId, { fetch: transport(split).fetch });
+    expect(run.score).toMatchObject({ pass: true, areasGiven: 6, areasWithinTolerance: false, failures: [] });
+    expect(line(run.score, run.costCents)).toContain("areas 3/3 named (6 given, over tolerance)");
+    const twice = await runSpec(choir, ws, projectId, { fetch: transport(perfect(choir), [], [], true).fetch });
+    expect(twice.score.pass).toBe(false);
+    expect(twice.score.failures).toEqual(["judge refused: invalid"]);
+    expect(twice.error).toContain("1 answered twice");
+    expect(twice.costCents).toBeGreaterThan(0);
+  });
+
+  it("counts the cost of a shaping answer the app refused", async () => {
+    const vet = spec("02");
+    const wrongRefs = perfect(vet);
+    wrongRefs.areas[0].items = wrongRefs.areas[0].items.map((r) => "R-" + r);
+    const run = await runSpec(vet, ws, projectId, { fetch: transport(wrongRefs).fetch });
+    expect(run.score.failures).toEqual(["shaping refused: invalid"]);
+    expect(run.error).toContain("unknown ref(s)");
+    expect(run.costCents).toBeGreaterThan(0);
   });
 
   it("reports a refused shaping call as a failed spec with no judge call", async () => {

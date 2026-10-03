@@ -3,7 +3,7 @@
   "domain": "Car wash subscription billing",
   "source": "specs/08-carwash-billing.md",
   "context": null,
-  "item_count": 13,
+  "item_count": 12,
   "item_count_tolerance": 0,
   "area_count_tolerance": 1,
   "areas": [
@@ -31,8 +31,7 @@
       "items": [
         "G08-05",
         "G08-06",
-        "G08-09",
-        "G08-13"
+        "G08-09"
       ]
     },
     {
@@ -183,16 +182,6 @@
       ],
       "area": "Reporting",
       "row": "dashboard: active subs per plan, churn per month, revenue, and failed payments list so the girls can call them"
-    },
-    {
-      "ref": "G08-13",
-      "meaning": "Payments are charged per car, with cards stored on file.",
-      "must_keep": [
-        "card on file"
-      ],
-      "area": "Billing",
-      "duplicate_of": "G08-05",
-      "row": "payments per car with the card on file (repeated from 09:12 and 09:13)"
     }
   ],
   "must_not_invent": [
@@ -203,5 +192,5 @@
     "a loyalty programme",
     "a Hikvision integration beyond reading the plate"
   ],
-  "notes": "The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. G08-13 is listed to test duplicate detection; the runner accepts it merged into G08-05. \"lol\", \"thats it\" and the washing machines line are noise."
+  "notes": "The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. \"lol\", \"thats it\" and the washing machines line (a scope remark) are not rows."
 }

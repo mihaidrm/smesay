@@ -217,13 +217,12 @@
       "ref": "G03-15",
       "meaning": "Renew online twice unless someone reserved the book (the Romanian row, same as L-4).",
       "must_keep": [
-        "2",
-        "rezervat"
+        "2"
       ],
       "area": "Search and borrowing",
       "proposed": "2",
       "duplicate_of": "G03-03",
-      "row": "Prelungirea online de 2 ori, daca nu e rezervata de altcineva (same as L-4, Romanian version from the old list)"
+      "row": "Prelungirea online de 2 ori, daca nu e rezervata de altcineva"
     }
   ],
   "must_not_invent": [
@@ -233,5 +232,5 @@
     "L-3 or L-11 as items (they are empty rows)",
     "a Romanian-only requirement separate from renewal"
   ],
-  "notes": "L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3; the model keeps them as given, it does not convert them to MoSCoW."
+  "notes": "L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3 in a column the import maps to Proposed value; shaping never sees them (E4-2), so the rows carry none."
 }

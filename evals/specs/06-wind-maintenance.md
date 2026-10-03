@@ -53,10 +53,10 @@ What a PM imports from the document above: one row per item, nothing else. The r
 7. the job report is a PDF in the OEM format (they have a template, see attached, not attached sorry) so the warranty people accept it
 8. SCADA alarm that triggered a fault job is linked to the job by alarm id, we type the id now
 9. works with no signal up in the nacelle, syncs at the base
-10. site manager sees all open jobs by WTG and by tech, overdue scheduled services in red; M.D.: the overdue colour, make it configurable not red, we have a colour blind tech
+10. site manager sees all open jobs by WTG and by tech, overdue scheduled services in a configurable colour, not red (we have a colour blind tech)
 11. HSE officer: monthly export of all LOTO records and near misses
-12. near miss report: 3 fields, what, where, photo, from any tech, anonymous option; M.D.: anonymous to the site, visible to HSE, otherwise we cannot follow up
-13. weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 12 m/s; M.D.: the wind limit is 15 m/s for nacelle work per the OEM manual, 12 is for the rotor
+12. near miss report: 3 fields, what, where, photo, from any tech, anonymous to the site but visible to HSE (otherwise we cannot follow up)
+13. weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 15 m/s per the OEM manual (12 m/s is the rotor limit)
 14. retrofit jobs from the OEM bulletin need the bulletin number on the job
 ```
 

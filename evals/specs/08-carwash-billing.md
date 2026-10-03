@@ -50,11 +50,10 @@ What a PM imports from the document above: one row per item, nothing else. The r
 10. plate change: customer changes the plate himself, max once a month, staff can always
 11. no app. web + the gate.
 12. dashboard: active subs per plan, churn per month, revenue, and failed payments list so the girls can call them
-13. payments per car with the card on file (repeated from 09:12 and 09:13)
 ```
 
 ## Expected, in words
 
-13 rows, 12 distinct items in 4 areas (Plans and pricing, Billing, Gate and site, Reporting). The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. G08-13 is listed to test duplicate detection; the runner accepts it merged into G08-05. "lol", "thats it" and the washing machines line are noise.
+12 rows, 12 distinct items in 4 areas (Plans and pricing, Billing, Gate and site, Reporting). The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. "lol", "thats it" and the washing machines line (a scope remark) are not rows.
 
 The exact expectation is in expected/08.json.

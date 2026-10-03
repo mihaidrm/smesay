@@ -64,6 +64,6 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ## Expected, in words
 
-18 rows, 17 distinct items in 4 areas (Ordering, Confirming and shortages, Catalogue and prices, Wastage and returns). Item 6 is ambiguous: WhatsApp is a question, not a channel. Item 12 says "phase 2?", so it stays an item, flagged ambiguous for scope; the model must not drop it. Item 8 restates 2 with a second window (last week), which is a real addition, so it is a duplicate only in part; the runner accepts it as its own item or as merged into G01-02 with "last week" kept. The meeting notes and the parking line are noise, not items.
+18 rows, 17 distinct items in 4 areas (Ordering, Confirming and shortages, Catalogue and prices, Wastage and returns). Item 6 is ambiguous: WhatsApp is a question, not a channel. Item 12 says "phase 2?", so it stays an item, flagged ambiguous for scope. Item 8 restates 2 with a second window (last week): it stays a row, and a duplicate flag pointing at G01-02 is expected, with "last week" kept in its reader version. The meeting notes and the parking line are not rows.
 
 The exact expectation is in expected/01.json.

@@ -172,7 +172,7 @@
         "configurable"
       ],
       "area": "Oversight",
-      "row": "site manager sees all open jobs by WTG and by tech, overdue scheduled services in red; M.D.: the overdue colour, make it configurable not red, we have a colour blind tech"
+      "row": "site manager sees all open jobs by WTG and by tech, overdue scheduled services in a configurable colour, not red (we have a colour blind tech)"
     },
     {
       "ref": "G06-11",
@@ -193,7 +193,7 @@
         "visible to HSE"
       ],
       "area": "Safety",
-      "row": "near miss report: 3 fields, what, where, photo, from any tech, anonymous option; M.D.: anonymous to the site, visible to HSE, otherwise we cannot follow up"
+      "row": "near miss report: 3 fields, what, where, photo, from any tech, anonymous to the site but visible to HSE (otherwise we cannot follow up)"
     },
     {
       "ref": "G06-13",
@@ -203,7 +203,7 @@
         "nacelle"
       ],
       "area": "Safety",
-      "row": "weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 12 m/s; M.D.: the wind limit is 15 m/s for nacelle work per the OEM manual, 12 is for the rotor"
+      "row": "weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 15 m/s per the OEM manual (12 m/s is the rotor limit)"
     },
     {
       "ref": "G06-14",

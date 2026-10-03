@@ -48,23 +48,23 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ```text
 1. online booking for existing clients only, new clients call us (we need to check the animal first)
-2. a visit takes 20 minutes, a vaccination 10, surgery is whatever the doctor sets; Dr. I: the 20 minutes is wrong for exotic animals, make it 30 for birds and reptiles
+2. a visit takes 20 minutes, a vaccination 10, 30 for birds and reptiles, surgery is whatever the doctor sets
 3. two doctors, two rooms, the X-ray room is shared and must be booked with the visit when needed
 4. Dr. Iliescu: I need to block my Thursday mornings for surgery and nobody should be able to book a consultation into that block, including online bookings
-5. reminders: SMS the day before; Ana later: the SMS reminder two days before, not one
+5. reminders: SMS two days before the appointment, not one
 6. the client file shows the animals, last visit, vaccines due, and the balance owed
 7. we must be able to see who cancelled late (less than 24h) and how many times
 8. ok to lose: the paper agenda. Not ok to lose: the ability to overbook an emergency on top of a full day
 9. Mihnea (owner): I want the daily revenue by doctor on my phone in the morning
-10. printing the vaccination certificate from the visit, with the stamp image; Dr. I: the certificate must have both languages, Romanian and English, the EU pet passport people ask for it
+10. printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)
 11. the boarding kennel (6 places) is a different calendar but the same client file
 12. Ana: when a pet is marked deceased the reminders must stop the same day, we had a complaint last month
-13. Mihnea (owner): Keep it cheap. No app, the website is enough.
+13. No app, the website is enough.
 14. GDPR: clients can ask for their file and we export it
 ```
 
 ## Expected, in words
 
-14 rows, 14 distinct items in 4 areas (Booking, Reminders, Client and animal file, Owner and reporting). The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 belongs to Booking by meaning; the runner accepts it in Booking or Client file, the listed area is where it sits in the source. "Keep it cheap" is not an item.
+14 rows, 14 distinct items in 4 areas (Booking, Reminders, Client and animal file, Owner and reporting). The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 is listed under Client file, where it sits in the source; the runner reports placement and does not fail on it. "Keep it cheap" is not a row.
 
 The exact expectation is in expected/02.json.

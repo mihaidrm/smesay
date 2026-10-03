@@ -5,7 +5,8 @@ with the rows a PM would import from it, the areas, the items and the "must not 
 the shaping step is expected to produce. Written 2026-10-01 (plan step 1.6); rows added
 2026-10-03 (decision 0037). The output schema (schema.json) is written from
 src/lib/ai/shape-schema.ts by `npm run evals:schema` (E4-2); `npm run evals` runs run.ts
-(E4-6) against the real model, about 5 to 15 cents per spec on Sonnet.
+(E4-6) against the real model, 3 to 6 cents per spec on Sonnet in the first runs
+(2026-10-03), under one euro for the ten.
 
 ## Files
 
@@ -51,8 +52,9 @@ the line a PM imports from the document: the source line as it stands, numbering
 columns stripped, a correction from later in the document folded into its row, a prose
 sentence cut out as its own row (05). Rows that are not items (meeting notes, bugs, Won't do,
 closed duplicates, open questions, empty rows) have no entry and are never imported. A
-duplicate row stays a row with a duplicate_of expectation (01, 03, 08). The runner numbers the
-rows from 1 in order, with no area column, so the model proposes the areas.
+duplicate row stays a row with a duplicate_of expectation (01, 03); a line that is not in the
+document is never a row, so spec 08's contrived duplicate is gone. The runner numbers the rows
+from 1 in order, with no area column, so the model proposes the areas.
 
 ## Expected JSON
 
@@ -62,11 +64,12 @@ rows from 1 in order, with no area column, so the model proposes the areas.
 - areas: name, aliases (names that also pass), items (refs). Every item is in exactly one area.
 - items: ref, row (as imported), meaning (one plain sentence of what the item must still say),
   must_keep (tokens that should appear in the reader version: numbers, names, negatives), area,
-  and flags: proposed (the value as given in the source, kept as written), ambiguous (an
-  ambiguity flag is expected), duplicate_of (the ref it duplicates; the flag in either
-  direction passes).
-- must_not_invent: things a model is likely to add; any of them in the output is an invented
-  item.
+  and flags: proposed (the value as given in the source, for the reader; shaping never sees
+  it), ambiguous (an ambiguity flag is expected), duplicate_of (the earlier ref it
+  duplicates; a flag the app would drop, at the item itself or at a later item, does not
+  count, as in src/lib/shaping.ts cleanDuplicateOf).
+- must_not_invent: things a model is likely to add, for the person reading the spec. The
+  runner does not scan for them; the judge's `added` verdict is what counts an addition.
 - notes: what makes the spec hard and what the runner accepts.
 
 ## Scoring (run.ts and score.ts, E4-6)
@@ -90,9 +93,13 @@ duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro 
   safe. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
   an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
-Exit 1 when any spec fails. CI runs the job on a change under src/lib/ai/prompts/, to the
-output schema or the context module, or under evals/ (.github/workflows/evals.yml), with the
-repository secret ANTHROPIC_API_KEY; without it the job prints that it skipped and passes.
-The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any other call, in a throwaway
-workspace "evals" with a project "Golden set" that the runner creates once and reuses; it has
-no members, so it is not on anyone's screen.
+Exit 1 when any spec fails. CI runs the job on a pull request, and on main, when a file under
+src/lib/ai/, src/lib/shaping.ts or evals/ changed (.github/workflows/evals.yml), with the
+repository secret ANTHROPIC_API_KEY scoped to the two steps that need it; without it the job
+prints that it skipped and passes. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
+other call, in a throwaway workspace with a fixed id (EVALS_WORKSPACE_ID in run.ts)
+and a project "Golden set" that the runner creates once and reuses; it has no members, so it
+is not on anyone's screen. The cost printed per spec is read from that workspace's ai_run
+rows, so a call the provider billed and the app refused counts too. Two runs of the same
+commit can differ: the model is not deterministic, so a spec near a line can pass in one run
+and fail in the next (design note 32).

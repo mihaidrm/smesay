@@ -1,23 +1,28 @@
 name: Evals
 
-# The golden set (stories/E4-6, acceptance 3): runs on a change to a prompt, the output schema
-# or evals/, with the repository secret ANTHROPIC_API_KEY. Without the secret the job prints
-# that it skipped and passes. One run costs under one euro (evals/README.md).
+# The golden set (stories/E4-6, acceptance 3): runs on a pull request, and on main, when a
+# file the shaping result depends on changed (the prompts, the output schema, the context
+# module, the client and its prices, checkShape, or evals/), with the repository secret
+# ANTHROPIC_API_KEY. Without the secret the job prints that it skipped and passes. One run
+# costs under one euro (evals/README.md); pull requests only, not every push, so a commit
+# runs it once.
 on:
   push:
+    branches: [main]
     paths:
-      - "src/lib/ai/prompts/**"
-      - "src/lib/ai/shape-schema.ts"
-      - "src/lib/ai/context.ts"
+      - "src/lib/ai/**"
+      - "src/lib/shaping.ts"
       - "evals/**"
       - ".github/workflows/evals.yml"
   pull_request:
     paths:
-      - "src/lib/ai/prompts/**"
-      - "src/lib/ai/shape-schema.ts"
-      - "src/lib/ai/context.ts"
+      - "src/lib/ai/**"
+      - "src/lib/shaping.ts"
       - "evals/**"
       - ".github/workflows/evals.yml"
+
+permissions:
+  contents: read
 
 jobs:
   evals:
@@ -47,7 +52,6 @@ jobs:
       S3_ENDPOINT: "memory:"
       S3_BUCKET: uploads
       ANTHROPIC_MONTHLY_BUDGET_EUR: "10"
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,7 +59,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # The key reaches the two steps that need it, not npm ci or the upload.
       - id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "ANTHROPIC_API_KEY is not in the repository secrets: the evals are skipped (stories/E4-6, acceptance 3)."
@@ -66,6 +73,8 @@ jobs:
       - if: steps.key.outputs.run == 'true'
         run: npm run db:migrate
       - if: steps.key.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run evals
       - uses: actions/upload-artifact@v4
         if: always() && steps.key.outputs.run == 'true'

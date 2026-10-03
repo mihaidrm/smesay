@@ -2,6 +2,7 @@
 // evals/README.md, Scoring; decision 0037). Pure: no model call, no database. The judge's
 // verdicts come in from run.ts for the items whose reader version differs from the row.
 import type { ShapeOutput } from "@/lib/ai/shape-schema";
+import { cleanDuplicateOf } from "@/lib/shaping";
 
 export type ExpectedItem = {
   ref: string;
@@ -93,8 +94,9 @@ export function areaNamesMatch(a: string, b: string): boolean {
 // The runner numbers rows from 1 in the order of expected.items, as the app numbers items by
 // position (INTERFACES.md, AI shaping output). This maps a model ref back to the golden ref.
 export function refOfPosition(expected: Expected, position: string): string | null {
+  if (!/^[1-9]\d*$/.test(position)) return null;
   const n = Number(position);
-  return Number.isInteger(n) && n >= 1 && n <= expected.items.length ? expected.items[n - 1].ref : null;
+  return n <= expected.items.length ? expected.items[n - 1].ref : null;
 }
 
 // The items whose reader version is not the row word for word: those go to the judge.
@@ -148,7 +150,11 @@ export function score(expected: Expected, output: ShapeOutput, verdicts: Map<str
     const area = areaOf.get(exp.ref) ?? null;
     const expectedArea = named.get(exp.area);
     const areaRight = expectedArea === undefined ? null : area === expectedArea;
-    const dup = got.flags.duplicateOf ? refOfPosition(expected, got.flags.duplicateOf) : null;
+    // As the app keeps it (cleanDuplicateOf): a flag at the item itself, a later item or an
+    // unknown ref is dropped, so the count is what a PM sees.
+    const positions = expected.items.map((_, i) => String(i + 1));
+    const kept = cleanDuplicateOf(got.ref, got.flags.duplicateOf, positions);
+    const dup = kept ? refOfPosition(expected, kept) : null;
     // A term the row carries must appear in the reader version exactly as written.
     const glossaryMissing = glossary.filter((t) => exp.row.includes(t) && !reader.includes(t));
     return { ref: exp.ref, reader, identical, tokensMissing, judged, found, meaningChanged, invented, area, areaRight, ambiguity: got.flags.ambiguity ? fold(got.flags.ambiguity) : null, duplicateOf: dup, glossaryMissing };
@@ -159,10 +165,8 @@ export function score(expected: Expected, output: ShapeOutput, verdicts: Map<str
   const ambiguityRaised = items.filter((i) => i.ambiguity !== null).map((i) => i.ref);
   const duplicatesExpected = expected.items.filter((i) => i.duplicate_of).map((i) => [i.ref, i.duplicate_of!] as const);
   const duplicatesRaised = items.filter((i) => i.duplicateOf !== null).map((i) => [i.ref, i.duplicateOf!] as const);
-  // A pair counts in either direction: the model may flag the earlier item as the duplicate.
-  const pairKey = (a: string, b: string) => [a, b].sort().join("|");
-  const raisedPairs = new Set(duplicatesRaised.map(([a, b]) => pairKey(a, b)));
-  const duplicatesMatched = duplicatesExpected.filter(([a, b]) => raisedPairs.has(pairKey(a, b))).length;
+  const raisedPairs = new Set(duplicatesRaised.map(([a, b]) => `${a}|${b}`));
+  const duplicatesMatched = duplicatesExpected.filter(([a, b]) => raisedPairs.has(`${a}|${b}`)).length;
   const judgedPlacement = items.filter((i) => i.areaRight !== null);
   const glossaryMissing = items.reduce((n, i) => n + i.glossaryMissing.length, 0);
   const invented = items.filter((i) => i.invented).length;

@@ -78,7 +78,7 @@
         "birds"
       ],
       "area": "Booking",
-      "row": "a visit takes 20 minutes, a vaccination 10, surgery is whatever the doctor sets; Dr. I: the 20 minutes is wrong for exotic animals, make it 30 for birds and reptiles"
+      "row": "a visit takes 20 minutes, a vaccination 10, 30 for birds and reptiles, surgery is whatever the doctor sets"
     },
     {
       "ref": "G02-03",
@@ -108,7 +108,7 @@
         "two days"
       ],
       "area": "Reminders",
-      "row": "reminders: SMS the day before; Ana later: the SMS reminder two days before, not one"
+      "row": "reminders: SMS two days before the appointment, not one"
     },
     {
       "ref": "G02-06",
@@ -160,7 +160,7 @@
         "English"
       ],
       "area": "Client and animal file",
-      "row": "printing the vaccination certificate from the visit, with the stamp image; Dr. I: the certificate must have both languages, Romanian and English, the EU pet passport people ask for it"
+      "row": "printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)"
     },
     {
       "ref": "G02-11",
@@ -190,7 +190,7 @@
         "no app"
       ],
       "area": "Booking",
-      "row": "Mihnea (owner): Keep it cheap. No app, the website is enough."
+      "row": "No app, the website is enough."
     },
     {
       "ref": "G02-14",
@@ -211,5 +211,5 @@
     "inventory of medicines",
     "a mobile app"
   ],
-  "notes": "The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 belongs to Booking by meaning; the runner accepts it in Booking or Client file, the listed area is where it sits in the source. \"Keep it cheap\" is not an item."
+  "notes": "The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 is listed under Client file, where it sits in the source; the runner reports placement and does not fail on it. \"Keep it cheap\" is not a row."
 }

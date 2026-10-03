@@ -95,7 +95,7 @@
         "March"
       ],
       "area": "Membership and fees",
-      "row": "a reminder going out in February and again in March to those who have not paid"
+      "row": "a reminder going out in February and again in March to those who have not"
     },
     {
       "ref": "G05-06",
@@ -160,5 +160,5 @@
     "first come first served admission",
     "a feature for the notebook"
   ],
-  "notes": "Prose only. The model must find ten items in sentences and keep the negatives: \"not an automatic email, a person\" and \"not first come first served\". G05-02 is an ambiguity flag candidate (whose deadline is it, and what happens after Monday); G05-10 could be dropped as not a requirement or kept as a principle, both accepted. \"Half of whom left years ago\" is background, not an item."
+  "notes": "Prose only. The model must find ten items in sentences and keep the negatives: \"not an automatic email, a person\" and \"not first come first served\". G05-02 is an ambiguity flag candidate (whose deadline is it, and what happens after Monday); G05-10 is a principle more than a requirement and is expected flagged ambiguous. \"Half of whom left years ago\" is background, not a row."
 }

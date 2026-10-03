@@ -46,11 +46,11 @@ What a PM imports from the document above: one row per item, nothing else. The r
 12. Report: most borrowed titles per branch per month
 13. Lost card: block the card and issue a new one for 10 lei
 14. Accessibility: the public site passes WCAG AA
-15. Prelungirea online de 2 ori, daca nu e rezervata de altcineva (same as L-4, Romanian version from the old list)
+15. Prelungirea online de 2 ori, daca nu e rezervata de altcineva
 ```
 
 ## Expected, in words
 
-15 rows, 14 distinct items in 4 areas (Search and borrowing, Accounts and fines, Branch operations, Website). L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3; the model keeps them as given, it does not convert them to MoSCoW.
+15 rows, 14 distinct items in 4 areas (Search and borrowing, Accounts and fines, Branch operations, Website). L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3 in a column the import maps to Proposed value; shaping never sees them (E4-2), so the rows carry none.
 
 The exact expectation is in expected/03.json.

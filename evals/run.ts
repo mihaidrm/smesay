@@ -9,11 +9,12 @@ import { fileURLToPath } from "node:url";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { project, workspace } from "@/db/schema";
+import { project } from "@/db/schema";
 import { projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import type { WorkspaceId } from "@/db/types";
+import { usage } from "@/db/queries/usage";
 import { runModel, type RunDeps } from "@/lib/ai/client";
 import { contextOf } from "@/lib/ai/context";
 import { buildShapePrompt } from "@/lib/ai/prompts/shape";
@@ -22,7 +23,10 @@ import { checkShape } from "@/lib/shaping";
 import { line, needsJudge, score, type Expected, type SpecScore, type Verdict } from "./score";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
-export const EVALS_SLUG = "evals";
+// A fixed id, as the sample workspace has (src/db/seed/sample.ts), so no workspace a person
+// named "Evals" is ever taken for the throwaway one.
+export const EVALS_WORKSPACE_ID = "00000002-0000-4000-8000-000000000002";
+export const EVALS_SLUG = "evals-golden-set";
 
 export const JudgeOutput = z.strictObject({
   verdicts: z.array(z.strictObject({
@@ -42,6 +46,11 @@ export type SpecRun = { score: SpecScore; costCents: number; model: string; toke
 // One spec: the shaping call, the judge call, the score. deps.fetch answers in place of the
 // network in the test; the real run passes none.
 export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: string, deps: RunDeps = {}): Promise<SpecRun> {
+  // The cost is read from the workspace's ai_run rows (E2-6 usage), so a call the provider
+  // billed and the app refused counts as well (acceptance 4).
+  const now = deps.now ?? new Date();
+  const spentBefore = (await usage(ws, now)).aiCostCentsThisMonth;
+  const spent = async () => (await usage(ws, now)).aiCostCentsThisMonth - spentBefore;
   const items = expected.items.map((it, i) => ({ ref: String(i + 1), text: it.row, area: null }));
   const context = contextOf(expected.context ? { goal: `${expected.context.goal} ${expected.context.audience}`, terms: expected.context.glossary.join(", ") } : { goal: null, terms: null });
   const prompt = buildShapePrompt(items, context);
@@ -49,9 +58,8 @@ export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: st
   const shaped = await runModel({ ws, projectId, purpose: "shape", instructions: prompt.instructions, data: prompt.data, schema: ShapeOutput, check: (out) => checkShape(out, refs, null) }, deps);
   if (!shaped.ok) {
     const empty = score(expected, { areas: [], items: [] }, new Map());
-    return { score: { ...empty, pass: false, failures: [`shaping refused: ${shaped.reason}`] }, costCents: 0, model: "", tokensIn: 0, tokensOut: 0, error: `${shaped.reason}: ${shaped.detail}` };
+    return { score: { ...empty, pass: false, failures: [`shaping refused: ${shaped.reason}`] }, costCents: await spent(), model: "", tokensIn: 0, tokensOut: 0, error: `${shaped.reason}: ${shaped.detail}` };
   }
-  let cost = shaped.run.costEurCents;
   let tokensIn = shaped.run.tokensIn;
   let tokensOut = shaped.run.tokensOut;
   const verdicts = new Map<string, Verdict>();
@@ -65,25 +73,28 @@ export async function runSpec(expected: Expected, ws: WorkspaceId, projectId: st
         const got = out.verdicts.map((v) => v.ref);
         const missing = wanted.filter((r) => !got.includes(r)).length;
         const extra = got.filter((r) => !wanted.includes(r)).length;
-        return missing + extra > 0 ? `${missing} ref(s) unanswered, ${extra} unknown` : null;
+        const twice = got.filter((r, i) => got.indexOf(r) !== i).length;
+        return missing + extra + twice > 0 ? `${missing} ref(s) unanswered, ${extra} unknown, ${twice} answered twice` : null;
       },
     }, deps);
     if (!judged.ok) {
+      // Without verdicts every differing reader version reads as unjudged; the one failure
+      // named is the refusal.
       const partial = score(expected, shaped.output, verdicts);
-      return { score: { ...partial, pass: false, failures: [...partial.failures, `judge refused: ${judged.reason}`] }, costCents: cost, model: shaped.run.model, tokensIn, tokensOut, error: `${judged.reason}: ${judged.detail}` };
+      return { score: { ...partial, pass: false, failures: [`judge refused: ${judged.reason}`] }, costCents: await spent(), model: shaped.run.model, tokensIn, tokensOut, error: `${judged.reason}: ${judged.detail}` };
     }
     for (const v of judged.output.verdicts) verdicts.set(v.ref, { sameMeaning: v.sameMeaning, added: v.added, note: v.note });
-    cost += judged.run.costEurCents;
     tokensIn += judged.run.tokensIn;
     tokensOut += judged.run.tokensOut;
   }
-  return { score: score(expected, shaped.output, verdicts), costCents: cost, model: shaped.run.model, tokensIn, tokensOut };
+  return { score: score(expected, shaped.output, verdicts), costCents: await spent(), model: shaped.run.model, tokensIn, tokensOut };
 }
 
-// The throwaway workspace and its project, created on the first run and reused after.
+// The throwaway workspace and its project, created on the first run and reused after, found
+// by the fixed id and never by name or slug.
 export async function evalsWorkspace(): Promise<{ ws: WorkspaceId; projectId: string }> {
-  const [existing] = await db.select().from(workspace).where(eq(workspace.slug, EVALS_SLUG)).limit(1);
-  const row = existing ?? (await internal.createEmptyWorkspace({ name: "Evals", slug: EVALS_SLUG }));
+  const existing = await internal.getWorkspaceById(EVALS_WORKSPACE_ID);
+  const row = existing ?? (await internal.createEmptyWorkspace({ id: EVALS_WORKSPACE_ID, name: "Evals", slug: EVALS_SLUG }));
   const ws = unsafeWorkspaceId(row.id);
   const [own] = await db.select().from(project).where(and(eq(project.workspaceId, row.id), eq(project.name, "Golden set"))).limit(1);
   const projectId = own?.id ?? (await projects.create(ws, { name: "Golden set" })).id;

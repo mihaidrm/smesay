@@ -70,8 +70,53 @@ Evals CI job.
   expected ones were among them, so the model does see them; it also flags four to six more
   per spec.
 
+## The second run (CI run 37105823980 on 9492622, 39 cents)
+
+7 of 10 passed. Spec 09 ran (13 of 13 found) once its numbering was gone; no gender was
+invented; area names matched 3 or 4 of 4 in every spec once matched by stems. Still 6 to 8
+areas where 3 to 5 are expected, placed 50 to 70 percent in the matched areas, and 4 to 8
+ambiguity flags per spec. The three failures were one reader version each: a row that still
+carried its correction next to the old value (fixed in the rows), two conditions shifted in
+plainer words (an advisor's hold "until a meeting with the student"; "receipts monthly" where
+the source says invoices monthly), and one addition (who sets the finance flag). Those are
+the model's, and the shaping prompt is the place to change them; see Open for Mihai.
+
+## Audit of 2026-10-03
+
+23 findings in fresh context, 10 blocking. Fixed the same day: a row with no source line
+(spec 08's contrived duplicate, dropped: 12 rows, no duplicate expected there); corrections
+that were appended to a row instead of applied (02, 06; a reader version kept both values and
+the judge read a changed meaning); spec 09's numbering; a judge answer that names a ref
+twice now refuses; the cost of a call the app refused is counted (read from the workspace's
+ai_run rows); the throwaway workspace is found by a fixed id, never by a name a person could
+pick; the workflow runs once per commit (pull requests, and main), scopes the key to its two
+steps and holds a read-only token; duplicate flags count as the app keeps them (earlier item
+only); positions are exact strings; stale "accepts it merged" notes rewritten; SECURITY.md
+names the scripts outside src/ that read the database. Two rules the build changed from the
+story are now open questions in the story and below, not choices.
+
 ## Open for Mihai
 
+- The matching rule (story, open question 1): keep "the judge decides" when a must_keep token
+  is missing, or the story's stricter "missing token is a changed meaning". Recommended:
+  keep the judge, since the first run's 15 missing tokens were all intact meanings.
+- Two lines left out of the rows that decision 0037's list does not name: spec 04's "the
+  website must not look like the old one (Mihai will do the design)" and spec 08's "the
+  washing machines are not part of this, separate contract". Both read as remarks, not
+  requirements; say so if a PM would import them.
+- Two runs of one commit differ: specs 06 and 10 passed in one run and failed in the other.
+  The model is not deterministic and there is no knob: the Messages API page says
+  "Deprecated. Models released after Claude Opus 4.6 do not support setting temperature. A
+  value of 1.0 will be accepted for backwards compatibility, all other values will be
+  rejected." (platform.claude.com/docs/en/api/messages, read 2026-10-03). Recommended: read
+  two runs before changing a prompt, and treat one failing spec as a question, not a verdict.
+- The remaining failures are drift in one reader version out of 13 to 14 per spec: a
+  condition restated with a detail the row does not state, or a qualifier attached to the
+  wrong noun. The prompt already says "Do not add detail the item does not have". Options:
+  (a) accept 7 to 9 of 10 as the bar and record the first green run when it comes, (b) add to
+  the prompt "When a sentence could be read two ways, keep the original wording of that part"
+  and rerun, (c) both. Recommended: (b), one rerun, then (a) if it still drifts. A prompt
+  change is product behaviour, so your call.
 - Area granularity: the prompt asks for 3 to 8 areas and the model picks 5 to 7 for lists of
   10 to 18 rows. Recommended: tell the prompt to prefer the fewest areas that read well, three
   to five for a list under 40 items, then make the area count fail again. A prompt change

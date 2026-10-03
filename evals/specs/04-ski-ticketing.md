@@ -62,6 +62,6 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ## Expected, in words
 
-15 rows, 15 distinct items in 4 areas (Sales, Access, Passes and renewals, Reporting). Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; both are accepted.
+15 rows, 15 distinct items in 4 areas (Sales, Access, Passes and renewals, Reporting). Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; placement is reported, not failed on. The website line ("must not look like the old one") is not a row: the source says the design is done elsewhere.
 
 The exact expectation is in expected/04.json.
