@@ -93,6 +93,9 @@ all eight are in the second commit of PR 40 and listed below where they changed 
 
 ## Open for Mihai
 
+Both points below were decided on 2026-10-03 (decision 0036, design note 31): the product cap
+reads ANTHROPIC_MONTHLY_BUDGET_EUR, and the workspace default is 10.
+
 - ANTHROPIC_MONTHLY_BUDGET_EUR sits in .env.example since E1 and nothing reads it. Either a
   global cap across workspaces (the Console limit is now EUR 10, so one at EUR 10 would stop
   the app before the provider does) or remove the line. Recommended: the cap, in E4-6 with the

@@ -8,6 +8,7 @@ import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
 import { aiRuns, instruments, invites, itemSets, projects, responses, workspaces } from "@/db/queries";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
+import { internal } from "@/db/queries/internal";
 import { monthStart, usage } from "@/db/queries/usage";
 
 let sql: ReturnType<typeof postgres>;
@@ -57,5 +58,17 @@ describe("usage", () => {
     expect(await usage(a, now)).toEqual({ projects: 2, responsesThisMonth: 2, aiRunsThisMonth: 2, aiCostCentsThisMonth: 9 });
     expect(await usage(b, now)).toEqual({ projects: 2, responsesThisMonth: 2, aiRunsThisMonth: 2, aiCostCentsThisMonth: 9 });
     expect(await usage(a, new Date("2026-11-03T00:00:00Z"))).toEqual({ projects: 2, responsesThisMonth: 0, aiRunsThisMonth: 0, aiCostCentsThisMonth: 0 });
+  });
+
+  it("sums the month's cost across every workspace for the product cap, never the samples' rows", async () => {
+    // Other tests' rows share the database, so the sum is read before and after two more
+    // workspaces: 9 cents each this month, 50 on each sample that must not count.
+    const november = new Date("2026-11-03T00:00:00Z");
+    const before = await internal.productAiCostCentsThisMonth(now);
+    const beforeNovember = await internal.productAiCostCentsThisMonth(november);
+    await workspaceWithRows("C");
+    await workspaceWithRows("D");
+    expect(await internal.productAiCostCentsThisMonth(now)).toBe(before + 18);
+    expect(await internal.productAiCostCentsThisMonth(november)).toBe(beforeNovember);
   });
 });

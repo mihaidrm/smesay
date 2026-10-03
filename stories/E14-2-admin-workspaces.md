@@ -10,14 +10,15 @@ actions that help, each audited.
    members, projects, published instruments, responses this month, AI cost this month, last
    activity, deleted_at when set; searchable by name, slug or a member's email; sorted by last
    activity. Numbers come from E2-6's usage functions.
-2. /admin/workspaces/[id] shows the workspace's settings as the owner sees them (name, accent,
-   whether a logo is set, AI budget and spend, plan), the members with roles and the date
+2. /admin/workspaces/[id] shows the workspace's settings (name, accent, whether a logo is
+   set, plan) and, seen nowhere else (decision 0036), its AI budget and spend, the members with roles and the date
    they joined, the open invitations with their expiry, the projects with their status, item
    count and latest version, each project's instruments with state (draft, published, closed,
    revoked), link kind and dates, the uploads with size and date, and the last 20 product
    events of the workspace (E13-1). No respondent names and no answers on this page.
 3. Actions, each with a confirm line and an audit row (E14-1): change the plan (E2-6's column
-   change), set the AI budget, resend an open invitation, revoke a link (E6-4's kill switch,
+   change), set the AI budget (the only place it is seen or set, decision 0036), resend an
+   open invitation, revoke a link (E6-4's kill switch,
    by the admin), restore a workspace marked deleted within the 24 hours (E11-2), and add a
    support note (free text, shown only here).
 4. Every action runs through the same helpers the product uses (src/lib/members.ts,

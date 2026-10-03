@@ -55,7 +55,8 @@ rule had bypass spellings).
   a body with unknown keys cannot produce an empty `set`; a non-uuid parent id is 404.
 - workspaces.ts is scoped by membership (listForUser and getForUser join workspace_member and
   skip deleted_at, so requireWorkspace never hands out a deleted workspace's id); update takes
-  a WorkspaceId and changes name, slug, accent, logo and budget only; markDeleted starts the
+  a WorkspaceId and changes name, slug, accent and logo only (the AI budget is
+  internal.setAiBudgetEur, decision 0036); markDeleted starts the
   removal; the owner-only role check is E2-4's. members.ts is keyed by (WorkspaceId, user_id).
   `workspaces.create` inserts the workspace and its owner in one transaction
   (orm.drizzle.team/docs/transactions). The helpers that take no session (getWorkspaceById,

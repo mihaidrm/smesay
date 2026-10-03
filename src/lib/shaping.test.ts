@@ -51,6 +51,8 @@ async function importList(actor: { ws: WorkspaceId; userId: string }, projectId:
 beforeAll(async () => {
   await prepareTestDatabase();
   process.env.ANTHROPIC_API_KEY = "test-key-for-the-fake-transport";
+  // The product cap of decision 0036; rows from earlier runs stay in the test database.
+  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
   const stamp = Date.now();
   const signedIn = await signIn(`shaping-${stamp}@example.com`);
   const wsA = await requireWorkspace(signedIn.headers, (await workspaces.create({ name: "Shaping A", slug: `shaping-a-${stamp}` }, signedIn.id)).id);

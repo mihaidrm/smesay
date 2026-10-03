@@ -12,7 +12,13 @@ const MESSAGE = "Data access goes through src/db/queries/ (stories/E1-3). Import
 const CAST = "A WorkspaceId comes from requireWorkspace(headers, workspaceId), never from a cast (stories/E1-3).";
 const REQUIRE = "Load modules with import; require and createRequire are not used in the app (stories/E1-3).";
 // Files that may import what the rule otherwise refuses, by what they may import.
-const EXCEPTIONS = { [path.join(SRC, "lib", "workspace.ts")]: ["queries/internal"] };
+// src/lib/ai/client.ts reads the product's spend across workspaces for the cap of decision
+// 0036, and its test sets workspace budgets; both through queries/internal, nowhere else.
+const EXCEPTIONS = {
+  [path.join(SRC, "lib", "workspace.ts")]: ["queries/internal"],
+  [path.join(SRC, "lib", "ai", "client.ts")]: ["queries/internal"],
+  [path.join(SRC, "lib", "ai", "client.test.ts")]: ["queries/internal"],
+};
 
 function resolve(spec, fromFile) {
   if (spec.startsWith("@/")) return path.normalize(path.join(SRC, spec.slice(2)));

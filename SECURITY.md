@@ -7,7 +7,10 @@ Auth and sessions
   refuses an http base URL other than localhost.
 
 Multi-tenancy
-- Every query scoped by workspace id from the session, never from the request body.
+- Every query scoped by workspace id from the session, never from the request body. The one
+  read across workspaces is the product's AI spend sum for its monthly cap (decision 0036), in
+  src/db/queries/internal.ts; outside src/db the lint rule lets only src/lib/workspace.ts
+  (the membership check) and src/lib/ai/client.ts with its test import that module.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
 
 Public links and respondents
@@ -21,7 +24,8 @@ Data
 - No personal data in logs, Sentry events or analytics.
 
 AI
-- Anthropic key server-side only; per-workspace and per-request token budgets enforced.
+- Anthropic key server-side only; one product spend cap (ANTHROPIC_MONTHLY_BUDGET_EUR),
+  per-workspace and per-request token budgets enforced (decision 0036).
 - Uploaded text passed as data, separated from instructions; output validated against a JSON
   schema before display; model may not add items, additions flagged as suggestions.
 

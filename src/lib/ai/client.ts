@@ -15,6 +15,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 import { aiRuns, projects, workspaces } from "@/db/queries";
+import { internal } from "@/db/queries/internal";
 import { usage } from "@/db/queries/usage";
 import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
@@ -58,18 +59,28 @@ export type RunDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: Date; mo
 
 export type Run = { id: string; model: string; tokensIn: number; tokensOut: number; costEurCents: number; durationMs: number };
 
-export type Refusal = "budget" | "plan" | "rateLimited" | "failed" | "invalid";
+export type Refusal = "paused" | "budget" | "plan" | "rateLimited" | "failed" | "invalid";
 export type RunResult<T> =
   | { ok: true; output: T; run: Run }
-  // budget: the euro cap, refused before the call. plan: the plan's run cap, the same. rateLimited:
+  // paused: the product's monthly cap (ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036), refused
+  // before the call. budget: the workspace's euro cap, the same. plan: the plan's run cap, the same. rateLimited:
   // the provider answered 429. failed: timeout or provider error, no answer. invalid: an answer
   // the app cannot use: a refusal, a cut-off, a schema or check failure (acceptance 5). The
   // message is what the screen shows; detail is for the server log: codes, counts and paths
   // from this file, plus the caller's check reason, which the caller keeps free of list text.
   | { ok: false; reason: Refusal; message: string; detail: string };
 
-const MESSAGE: Record<Refusal, string> = { budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
+const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
 const refused = <T>(reason: Refusal, detail: string): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail });
+
+// The product's cap for the month in whole euro, from the environment (decision 0036); null
+// when the variable is missing or not a whole number, and the call is then refused, as for a
+// missing key. Read at each call, so a test can set it.
+export function productCapEur(): number | null {
+  const raw = process.env.ANTHROPIC_MONTHLY_BUDGET_EUR;
+  if (raw === undefined || !/^\d+$/.test(raw.trim())) return null;
+  return Number(raw.trim());
+}
 
 export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promise<RunResult<T>> {
   assertStrict(input.schema);
@@ -86,11 +97,19 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   const maxOutputTokens = input.maxOutputTokens ?? OUTPUT_TOKENS_MAX;
   const now = deps.now ?? new Date();
 
-  // The budget check (acceptance 3): the month's spend from usage(), the same rows E2-6 shows
-  // on Settings, plus the call's estimate, against the workspace's euro cap; and the plan's
-  // run cap through the same numbers, so the two cannot disagree.
-  const used = await usage(input.ws, now);
+  // The budget checks (acceptance 3; decision 0036): the product's spend this month across
+  // every workspace plus the call's estimate against ANTHROPIC_MONTHLY_BUDGET_EUR, then the
+  // workspace's spend from usage(), the same rows E2-6 counts, against the workspace's euro
+  // cap, and the plan's run cap through the same numbers, so none of the three can disagree.
+  const cap = productCapEur();
+  if (cap === null) {
+    console.error("ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
+    return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
+  }
   const estimate = costEurCents(model, estimateTokensIn(input.instructions + input.data), maxOutputTokens);
+  const productSpent = await internal.productAiCostCentsThisMonth(now);
+  if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`);
+  const used = await usage(input.ws, now);
   if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`);
   if (!isWithin(limitFor(workspace.plan, "aiRuns"), used.aiRunsThisMonth)) return refused("plan", `${used.aiRunsThisMonth} runs this month on plan ${workspace.plan}`);
 
