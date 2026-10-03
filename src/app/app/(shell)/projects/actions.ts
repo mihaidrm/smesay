@@ -11,7 +11,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { commitUpload } from "@/lib/imports";
-import { buildOnLatest, saveFields, saveIntro } from "@/lib/instruments";
+import { buildOnLatest, saveFields, saveIntro, saveScoring } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
@@ -296,3 +296,18 @@ export async function buildOnLatestAction(_previous: ProjectFormState, formData:
   revalidatePath("/app/projects/[projectId]", "layout");
   return { ...NONE, saved: true };
 }
+
+export async function saveScoringAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await saveScoring(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("method"), formData.get("showProposed"), formData.get("labels"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  return { ...NONE, saved: true };
+}
+

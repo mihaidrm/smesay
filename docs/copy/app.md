@@ -200,12 +200,30 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Intro card title and fields | Intro; Title (the project name by default), Intro |
 | Intro hint, while the intro is empty | Write one or two lines so respondents know what the list is for. They see this first. |
 | Intro count | [N] of 1,000 characters |
+| Scoring card title and line (E5-2) | Scoring. How respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method. |
+| Method cards (E5-2; the board's three) | Method: MoSCoW (Must, Should, Could, Not needed); 1 to 5 fit (How well the item fits the need); Keep, change, drop (For reviewing an existing list) |
+| Proposed value switch (E5-2, decision 0003) | Show the proposed value to respondents. On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard. |
+| Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, the default as placeholder) |
+| Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (every control disabled) |
+| Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |
 | Dropdown options | Options, one per line |
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
-| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in. |
+| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, and the rating row. |
+| Preview screen switch (E5-2) | About you, Items (the Items screen: the workspace name, "0 of [N]", the chapter pills, "[AREA] [N] items", the cards) |
+
+## Respondent card (E5-2 preview and E7-2)
+
+| Where | Text |
+|---|---|
+| Rating row label | Your rating |
+| Pills, MoSCoW | Must, Should, Could, Not needed, Unclear (or the PM's labels) |
+| Pills, 1 to 5 fit | 1, 2, 3, 4, 5, Unclear, with "no fit" under 1 and "fits fully" under 5 |
+| Pills, keep change drop | Keep, Change, Drop, Unclear |
+| Caption under the proposed pill | proposed |
+| Footer note before an answer | Not rated yet (then the picked label; "Saved" and the missing lines are E7-2 and E7-3) |
 
 ## About you (the respondent instrument, E5-1 preview and E7-1)
 

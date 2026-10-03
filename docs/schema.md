@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-03 (the date of the latest migration, 0012_budget_default).
+v1, 2026-10-03 (the date of the latest migration, 0013_scale_labels).
 
-Generated from the snapshot of the 13 migrations in drizzle/ (0012_snapshot.json) by
+Generated from the snapshot of the 14 migrations in drizzle/ (0013_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -171,6 +171,7 @@ how one set version is shown to respondents: method, proposed value shown or not
 | show_proposed | boolean | not null, default true |
 | layout | text | not null, default chapters |
 | respondent_fields | jsonb | not null, default [] |
+| scale_labels | jsonb |  |
 | closing | jsonb | not null, default {"confidence": true, "missingForm": true, "signOffText": ""} |
 | created_at | timestamp with time zone | not null, default now() |
 

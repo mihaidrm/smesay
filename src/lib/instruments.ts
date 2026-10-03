@@ -9,7 +9,7 @@
 // refused with a message, so a draft that was replaced (and, from E6, published) keeps its
 // title, intro and field keys. The sample is read-only on the server too (stories/E8-8,
 // acceptance 2). Words: src/lib/build-copy.ts.
-import { instruments, itemSets, projects } from "@/db/queries";
+import { instruments, invites, itemSets, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
@@ -18,6 +18,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
+import { isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
 
@@ -95,3 +96,28 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }
+
+// An instrument is published once it has a link or an invite (E6-1 creates them); the
+// sample's come from the seed. Its method, proposal switch and labels are then locked
+// (stories/E5-2, acceptance 4): answers are not kept across a method change.
+export async function isPublished(ws: WorkspaceId, instrumentId: string): Promise<boolean> {
+  return (await invites.list(ws)).some((i) => i.instrumentId === instrumentId);
+}
+
+// The scoring card (stories/E5-2): the method, whether the proposed value is shown, and
+// the PM's labels for the method's values, validated here.
+export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  if (await isPublished(ws, instrumentId)) return { error: SCORING_ERRORS.locked };
+  if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
+  const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
+  let parsedJson: unknown;
+  try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { parsedJson = []; }
+  const labels = parseScaleLabels(rawMethod, parsedJson);
+  if ("error" in labels) return { error: labels.error };
+  const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels });
+  if (!instrument) throw new NotFoundError();
+  return { instrument };
+}
+

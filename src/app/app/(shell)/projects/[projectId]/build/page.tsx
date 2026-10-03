@@ -1,21 +1,26 @@
-// Build (stories/E5-1; the PM app board, Build): the title and the version line, "Build on
-// version N" when a newer set exists (owed from E3-6), the Intro card and the Respondent
-// fields card, and on the right the preview panel showing the About you page as the draft
-// stands (the panel's shell from design note 13; E5-6 fills it in). Without a set the page
+// Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
+// "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
+// card (method, show proposed, labels; locked once published) and the Respondent fields
+// card, and on the right the preview panel showing the About you page or the first
+// chapter's cards as the draft stands (the panel's shell from design note 13; E5-6 fills
+// it in). Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
 // not edited. Copy: docs/copy/app.md (Build).
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AboutYou } from "@/components/respondent/about-you";
 import { items, projects } from "@/db/queries";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { BUILD_COPY, openDraft } from "@/lib/instruments";
+import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
+import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
+import { labelFor, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
 import { areaNames } from "@/lib/shaping";
 import { BuildOn } from "./build-on";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
+import { PreviewPanel } from "./preview-panel";
+import { ScoringForm } from "./scoring-form";
 
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -38,6 +43,18 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   const rows = await items.forSet(current.ws, builtOn.id);
   const firstChapter = areaNames(builtOn, rows)[0] ?? null;
   const readOnly = project.isSample;
+  const locked = readOnly || (await isPublished(current.ws, instrument.id));
+  const accent = effectiveAccent(current.workspace.accentHex);
+  // The first chapter's cards for the preview (stories/E5-2): the reader text when accepted,
+  // the details from the first custom column or the original text, the proposed value as
+  // a code of the method (null when the import's word is not one of the scale's).
+  const chapterRows = firstChapter ? rows.filter((it) => it.area === firstChapter) : rows;
+  const cards = chapterRows.map((it) => {
+    const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, string>).find((v) => typeof v === "string" && v.trim()) : undefined;
+    const title = textFor(it);
+    return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent };
+  });
+  const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -59,6 +76,21 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <IntroForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} title={instrument.title} intro={instrument.intro ?? ""} />
             )}
           </section>
+          <section className="card flex flex-col gap-3" aria-labelledby="build-scoring-title">
+            <div className="flex flex-col gap-0.5">
+              <h3 id="build-scoring-title" className="text-[15px] font-bold">{BUILD_COPY.scoringCard}</h3>
+              <p className="text-[13px] text-ink-muted">{BUILD_COPY.scoringLine}</p>
+            </div>
+            {readOnly ? (
+              <ul className="flex flex-col text-sm" data-testid="scoring-list">
+                <li className="flex justify-between gap-4 py-2.5"><span>{BUILD_COPY.methodLabel}</span><span className="text-ink-muted">{methodLabel}: {scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label).join(", ")}, {labelFor(instrument.method, null, "unclear")}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.showProposedTitle}</span><span className="text-ink-muted">{instrument.showProposed ? "On" : "Off"}</span></li>
+                <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
+              </ul>
+            ) : (
+              <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} locked={locked} />
+            )}
+          </section>
           <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3>
@@ -75,16 +107,11 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             )}
           </section>
         </div>
-        <aside className="flex w-[460px] shrink-0 flex-col gap-3 rounded-2xl border border-hairline bg-surface p-4" aria-labelledby="preview-title" data-testid="preview-panel">
-          <div className="flex items-center justify-between gap-3">
-            <h3 id="preview-title" className="text-[15px] font-bold">{BUILD_COPY.preview}</h3>
-            <span className="rounded-full bg-tint px-3 py-1 text-xs font-semibold text-ink-muted">{BUILD_COPY.previewDevice}</span>
-          </div>
-          <p className="flex items-center gap-2 text-[13px] text-ink-muted"><span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-sm bg-violet" />{BUILD_COPY.previewCaption}</p>
-          <div className="mx-auto h-[720px] w-[390px] overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground">
-            <AboutYou key={`${instrument.id}-${JSON.stringify(instrument.respondentFields)}-${instrument.intro}-${instrument.title}`} workspaceName={current.workspace.name} accent={effectiveAccent(current.workspace.accentHex)} title={instrument.title} intro={instrument.intro} fields={instrument.respondentFields} firstChapter={firstChapter} preview heading="h4" ring="fields" />
-          </div>
-        </aside>
+        <PreviewPanel
+          key={`${instrument.id}-${JSON.stringify(instrument.respondentFields)}-${instrument.intro}-${instrument.title}`}
+          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, firstChapter }}
+          chapter={{ name: firstChapter, count: chapterRows.length, cards }}
+        />
       </div>
     </div>
   );

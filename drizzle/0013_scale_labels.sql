@@ -1,0 +1,1 @@
+ALTER TABLE "instrument" ADD COLUMN "scale_labels" jsonb;

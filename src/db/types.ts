@@ -4,6 +4,10 @@
 // the rule on labels, keys and options is in src/lib/respondent-fields.ts (INTERFACES.md).
 export type RespondentFieldSpec = { key: string; label: string; type: "text" | "dropdown" | "email"; mandatory: boolean; options?: string[] };
 export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText: string };
+// E5-2: the PM's labels for a scale's values, keyed by the value code (M, S, C, W; 1 to 5;
+// K, C, D), each up to 20 characters; a code not present keeps the default label
+// (src/lib/scoring.ts). Null on the row means every default.
+export type ScaleLabels = { [code: string]: string };
 // The check before import (stories/E3-5): counts over the data rows, headerRow 0 when the
 // file had none, the folded duplicates by reference (E3-3's unrecognised values too).
 export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number; unrecognisedValues: number; duplicateRefs: { kept: string; folded: string[] }[] };
@@ -24,6 +28,8 @@ export type ResponseFields = { [key: string]: string };
 // area, the proposed value and the reference, up to five custom fields, the rest not imported.
 // A ColumnMapping is keyed by the column's header (its letter when the file has no header).
 export type ScoringMethod = "moscow" | "fit" | "kcd";
+// The four answers and the rate-blind pick (decisions 0014, 0018; INTERFACES.md AnswerKind).
+export type AnswerKind = "agree" | "change" | "disagree" | "unclear" | "pick";
 export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";
 export type ColumnMapping = { [column: string]: ColumnRole };
 // What the server found in an upload (stories/E3-2): the sheets, the chosen sheet, the header

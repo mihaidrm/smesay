@@ -2,8 +2,9 @@
 // version 1, titled after the project, Name and Role required), see the preview's About you
 // page with Start disabled and its hint, add a dropdown field with its options, save, see the
 // select with the options in the preview and the hint naming the required fields (decision
-// 0043); fill the required fields in the preview and see Start enabled; Remove refused on
-// the last field.
+// 0043); fill the required fields in the preview and see Start enabled; the scoring card
+// (E5-2): the method switch, a label and the proposal switch seen on the Items screen;
+// Remove refused on the last field.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -94,6 +95,40 @@ test("build the intro and the respondent fields, see them in the preview", async
 
   await page.reload();
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
+
+  // Scoring (stories/E5-2): the Items screen shows the rating row with MoSCoW and the
+  // proposed value dashed; switching to 1 to 5 fit changes the pills; a label renames a
+  // pill; the proposal switch off removes the dashed marker.
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
+  const chapter = page.getByTestId("chapter-preview");
+  await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  const row = chapter.getByTestId("rating-row").first();
+  await expect(row.getByRole("radio")).toHaveText(["Must", "Should", "Could", "Not needed", "Unclear"]);
+  await expect(row.locator("[data-proposed]")).toHaveText("Must");
+  await row.getByRole("radio", { name: "Should" }).click();
+  await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Should");
+  // The radio is visually hidden under its card; the card label takes the click.
+  await page.getByText("1 to 5 fit", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: /1 to 5 fit/ })).toBeChecked();
+  await expect(page.getByTestId("scale-labels").getByRole("textbox")).toHaveCount(5);
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(row.getByRole("radio")).toHaveText(["1", "2", "3", "4", "5", "Unclear"]);
+  await expect(row).toContainText("no fit");
+  await expect(row.locator("[data-proposed]")).toHaveCount(0);
+  await page.getByText("MoSCoW", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: /MoSCoW/ })).toBeChecked();
+  await page.getByLabel("Must", { exact: true }).fill("Essential");
+  await page.getByRole("switch", { name: "Show the proposed value to respondents" }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(row.getByRole("radio").first()).toHaveText("Essential");
+  await expect(row.locator("[data-proposed]")).toHaveCount(0);
+  await page.getByRole("switch", { name: "Show the proposed value to respondents" }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(row.locator("[data-proposed]")).toHaveText("Essential");
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
   // Removing the last field is refused (acceptance 2).
   await page.getByRole("button", { name: "Remove Team" }).click();

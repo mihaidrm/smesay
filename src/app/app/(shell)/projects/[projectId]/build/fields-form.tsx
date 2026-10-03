@@ -4,14 +4,14 @@
 // toggle; Add a field up to eight; Remove refused on the last one with the errors.md line.
 // The rows go to the server as one JSON list (the hidden `fields` input), where
 // parseFields applies the rule again (src/lib/respondent-fields.ts). The toggle is the design
-// system's 44 by 24 switch, named by the visible "Required" label (docs/design-system.md,
-// Components), the same markup as the mode toggle without its view transition names. Every
+// system's switch (src/components/app/toggle.tsx), named "Required, [field]". Every
 // control's accessible name carries the field it belongs to ("Required, Name"), since the
 // visible labels repeat on every row; Add a field moves focus to the new row's label and
 // Remove moves it to Add a field, so focus never falls to the page. "Saved." shows until the
 // next change. Design note 38.
 import { useActionState, useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { Toggle } from "@/components/app/toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,10 +78,7 @@ export function FieldsForm({ projectId, instrumentId, fields }: { projectId: str
                 <div className="flex shrink-0 flex-col items-start gap-1">
                   <span id={`${id}-required`} className="text-xs font-medium">{BUILD_COPY.requiredLabel}</span>
                   <span className="flex h-10 items-center">
-                    <button type="button" role="switch" aria-checked={row.mandatory} aria-label={`${BUILD_COPY.requiredLabel}, ${name}`} onClick={() => patch(row.id, { mandatory: !row.mandatory })}
-                      className="relative h-6 w-11 shrink-0 rounded-full border border-transparent bg-ink-muted transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-checked:bg-violet">
-                      <span aria-hidden="true" className="absolute top-1/2 left-0.5 block size-5 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform duration-150 in-aria-checked:translate-x-5 dark:bg-ground" />
-                    </button>
+                    <Toggle checked={row.mandatory} onChange={(next) => patch(row.id, { mandatory: next })} aria-label={`${BUILD_COPY.requiredLabel}, ${name}`} />
                   </span>
                 </div>
                 <Button type="button" variant="tertiary" size="small" onClick={() => remove(row.id)} aria-label={`${BUILD_COPY.remove} ${name}`} className="shrink-0">{BUILD_COPY.remove}</Button>

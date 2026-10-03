@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ShapeArea, UploadPreview } from "./types";
+import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
 
@@ -209,6 +209,8 @@ export const instrument = pgTable("instrument", {
   showProposed: boolean("show_proposed").notNull().default(true),
   layout: text("layout", { enum: LAYOUTS }).notNull().default("chapters"),
   respondentFields: jsonb("respondent_fields").$type<RespondentFieldSpec[]>().notNull().default(sql`'[]'::jsonb`),
+  // E5-2: the PM's labels for the scale's values, by code; null means the defaults.
+  scaleLabels: jsonb("scale_labels").$type<ScaleLabels>(),
   closing: jsonb("closing").$type<ClosingSpec>().notNull().default(sql`'{"confidence": true, "missingForm": true, "signOffText": ""}'::jsonb`),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
