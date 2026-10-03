@@ -7,6 +7,7 @@
 // no fit) is disagree; any other value is change; without a proposal every value is pick
 // (decision 0014; docs/review-list.md for the fit rule). Unclear is its own answer.
 import type { AnswerKind, ScaleLabels, ScoringMethod } from "@/db/types";
+import { normaliseValue } from "@/lib/import/values";
 
 export const LABEL_MAX = 20;
 export const UNCLEAR = "unclear";
@@ -61,22 +62,21 @@ export function labelFor(method: ScoringMethod, labels: ScaleLabels | null | und
   return scaleFor(method, labels).find((v) => v.code === code)?.label ?? null;
 }
 
-// The words an import may carry for a proposed value (E3-3 keeps unrecognised ones as
-// written), read into the method's code; null when the value does not name one.
-const WORDS: Record<ScoringMethod, Record<string, string>> = {
-  moscow: { m: "M", must: "M", "must have": "M", s: "S", should: "S", "should have": "S", c: "C", could: "C", "could have": "C", w: "W", wont: "W", "won't": "W", "won't have": "W", "wont have": "W", "not needed": "W", no: "W" },
+// The item's proposed value read into the method's code, through the import's own word
+// list (src/lib/import/values.ts, E3-3: Must, Should, Could, Won't; 1 to 5; keep, change,
+// drop), so Build and the check report agree on what counts. A value of another scale, or
+// a word the import kept as written, is no proposal on that card.
+const STORED_TO_CODE: Record<ScoringMethod, Record<string, string>> = {
+  moscow: { Must: "M", Should: "S", Could: "C", "Won't": "W" },
   fit: { "1": "1", "2": "2", "3": "3", "4": "4", "5": "5" },
-  kcd: { k: "K", keep: "K", c: "C", change: "C", d: "D", drop: "D" },
+  kcd: { keep: "K", change: "C", drop: "D" },
 };
 
 export function proposedCode(method: ScoringMethod, proposedValue: string | null | undefined): string | null {
   if (!proposedValue) return null;
-  const key = proposedValue.trim().toLowerCase().replace(/\s+/g, " ");
-  const code = WORDS[method][key];
-  if (code) return code;
-  // A code typed as such (M, S, 3, K) or the label of the method's scale.
-  const byCode = SCALES[method].find((v) => v.code.toLowerCase() === key || v.label.toLowerCase() === key);
-  return byCode?.code ?? null;
+  const { value, scale } = normaliseValue(proposedValue);
+  if (scale !== method) return null;
+  return STORED_TO_CODE[method][value] ?? null;
 }
 
 export type Classified = { kind: AnswerKind; value: string | null };
@@ -96,6 +96,8 @@ export function classify(input: { method: ScoringMethod; showProposed: boolean; 
 export const SCORING_ERRORS = {
   badMethod: "Pick one of the three methods: MoSCoW, 1 to 5 fit, or keep, change, drop.",
   badLabel: `Each label is 1 to ${LABEL_MAX} characters. Leave one empty to keep the default.`,
+  sameLabel: "Each value needs its own label, and Unclear is taken.",
+  badShape: "The labels did not reach the server as a list. Reload the page and try again.",
   locked: "Published instruments keep their method. Build a new instrument to change it.",
 } as const;
 
@@ -103,19 +105,22 @@ export const isMethod = (value: unknown): value is ScoringMethod => value === "m
 
 // The labels as the Build form posts them ({ code: text }), trimmed; a code of another
 // method or an unknown key is dropped; an empty text means the default; null when every
-// label is the default. An error when a label is over the limit or not a string.
+// label is the default. An error when a label is over the limit or not a string, when two
+// values would carry the same word, or when a label is "Unclear" (the fifth pill's word).
 export function parseScaleLabels(method: ScoringMethod, raw: unknown): { error: string } | { labels: ScaleLabels | null } {
   if (raw === null || raw === undefined || raw === "") return { labels: null };
-  if (typeof raw !== "object" || Array.isArray(raw)) return { error: SCORING_ERRORS.badLabel };
+  if (typeof raw !== "object" || Array.isArray(raw)) return { error: SCORING_ERRORS.badShape };
   const out: ScaleLabels = {};
   for (const v of SCALES[method]) {
     const text = (raw as Record<string, unknown>)[v.code];
     if (text === undefined || text === null) continue;
-    if (typeof text !== "string") return { error: SCORING_ERRORS.badLabel };
+    if (typeof text !== "string") return { error: SCORING_ERRORS.badShape };
     const label = text.trim();
     if (!label) continue;
     if (label.length > LABEL_MAX) return { error: SCORING_ERRORS.badLabel };
     if (label !== v.label) out[v.code] = label;
   }
+  const words = scaleFor(method, out).map((v) => v.label.toLowerCase());
+  if (new Set(words).size !== words.length || words.includes(SCORING_COPY.unclear.toLowerCase())) return { error: SCORING_ERRORS.sameLabel };
   return { labels: Object.keys(out).length ? out : null };
 }

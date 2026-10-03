@@ -22,6 +22,9 @@ import { IntroForm } from "./intro-form";
 import { PreviewPanel } from "./preview-panel";
 import { ScoringForm } from "./scoring-form";
 
+// The preview draws at most this many cards (the set may hold 2,000 rows).
+const PREVIEW_CARDS = 10;
+
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   const { current } = await requireCurrentWorkspace(`/app/projects/${projectId}/build`);
@@ -49,7 +52,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   // the details from the first custom column or the original text, the proposed value as
   // a code of the method (null when the import's word is not one of the scale's).
   const chapterRows = firstChapter ? rows.filter((it) => it.area === firstChapter) : rows;
-  const cards = chapterRows.map((it) => {
+  const cards = chapterRows.slice(0, PREVIEW_CARDS).map((it) => {
     const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, string>).find((v) => typeof v === "string" && v.trim()) : undefined;
     const title = textFor(it);
     return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent };
@@ -84,7 +87,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             {readOnly ? (
               <ul className="flex flex-col text-sm" data-testid="scoring-list">
                 <li className="flex justify-between gap-4 py-2.5"><span>{BUILD_COPY.methodLabel}</span><span className="text-ink-muted">{methodLabel}: {scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label).join(", ")}, {labelFor(instrument.method, null, "unclear")}</span></li>
-                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.showProposedTitle}</span><span className="text-ink-muted">{instrument.showProposed ? "On" : "Off"}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.showProposedTitle}</span><span className="text-ink-muted">{instrument.showProposed ? BUILD_COPY.on : BUILD_COPY.off}</span></li>
                 <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
               </ul>
             ) : (
@@ -108,9 +111,10 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           </section>
         </div>
         <PreviewPanel
-          key={`${instrument.id}-${JSON.stringify(instrument.respondentFields)}-${instrument.intro}-${instrument.title}`}
+          key={instrument.id}
           about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, firstChapter }}
           chapter={{ name: firstChapter, count: chapterRows.length, cards }}
+          total={rows.length}
         />
       </div>
     </div>

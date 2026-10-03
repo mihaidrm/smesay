@@ -203,7 +203,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Scoring card title and line (E5-2) | Scoring. How respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method. |
 | Method cards (E5-2; the board's three) | Method: MoSCoW (Must, Should, Could, Not needed); 1 to 5 fit (How well the item fits the need); Keep, change, drop (For reviewing an existing list) |
 | Proposed value switch (E5-2, decision 0003) | Show the proposed value to respondents. On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard. |
-| Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, the default as placeholder) |
+| Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, named "Label for [VALUE]", the default as placeholder) |
 | Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (every control disabled) |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
@@ -212,7 +212,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
 | Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, and the rating row. |
-| Preview screen switch (E5-2) | About you, Items (the Items screen: the workspace name, "0 of [N]", the chapter pills, "[AREA] [N] items", the cards) |
+| Preview screen switch (E5-2; the control is named "Preview screen") | About you, Items (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
 
 ## Respondent card (E5-2 preview and E7-2)
 

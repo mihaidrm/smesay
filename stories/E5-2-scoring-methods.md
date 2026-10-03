@@ -29,7 +29,7 @@ can be shown or hidden.
 
 ## Technical notes
 instrument.method, show_proposed (docs/schema.md); labels in a new jsonb column
-`scale_labels` (migration 0002, shape ScaleLabels in INTERFACES.md). The mapping function in
+`scale_labels` (migration 0013 as built; the note said 0002, shape ScaleLabels in INTERFACES.md). The mapping function in
 src/lib/scoring.ts is shared with E7 and E8.
 
 Built 2026-10-03 (design note 41, decision 0044):

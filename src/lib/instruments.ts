@@ -79,7 +79,7 @@ export async function saveFields(ws: WorkspaceId, projectId: string, instrumentI
   return { instrument };
 }
 
-// A new draft on the latest set, carrying the old one's title, intro, fields and settings;
+// A new draft on the latest set, carrying the old one's title, intro, fields, method, labels and settings;
 // the old instrument stays on its version with its responses (E3-6, acceptance 3). Only the
 // newest instrument can be built on (own), and createOnSet returns the existing draft when
 // two presses race, so the project never gets two drafts on one set.
@@ -91,7 +91,7 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
   if (!latest || latest.id === previous.itemSetId) return { error: BUILD_COPY.alreadyLatest };
   const instrument = await instruments.createOnSet(ws, {
     projectId: project.id, itemSetId: latest.id, title: previous.title, intro: previous.intro, method: previous.method,
-    showProposed: previous.showProposed, layout: previous.layout, respondentFields: previous.respondentFields, closing: previous.closing,
+    showProposed: previous.showProposed, layout: previous.layout, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
   });
   if (!instrument) throw new NotFoundError();
   return { instrument };
@@ -101,7 +101,7 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
 // sample's come from the seed. Its method, proposal switch and labels are then locked
 // (stories/E5-2, acceptance 4): answers are not kept across a method change.
 export async function isPublished(ws: WorkspaceId, instrumentId: string): Promise<boolean> {
-  return (await invites.list(ws)).some((i) => i.instrumentId === instrumentId);
+  return invites.anyForInstrument(ws, instrumentId);
 }
 
 // The scoring card (stories/E5-2): the method, whether the proposed value is shown, and
@@ -113,7 +113,7 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
   if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
   const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
   let parsedJson: unknown;
-  try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { parsedJson = []; }
+  try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
   const labels = parseScaleLabels(rawMethod, parsedJson);
   if ("error" in labels) return { error: labels.error };
   const instrument = await instruments.update(ws, instrumentId, { method: rawMethod, showProposed, scaleLabels: labels.labels });

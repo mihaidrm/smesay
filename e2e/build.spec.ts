@@ -12,6 +12,9 @@ import { latestLink } from "./mailpit";
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.11" } });
 
 test("build the intro and the respondent fields, see them in the preview", async ({ page, request }) => {
+  // Two stories' main paths in one sign-in (E5-1 and E5-2): the flow runs about 30 s on the
+  // dev server, so the limit is doubled here (test.setTimeout: node_modules/playwright/types/test.d.ts).
+  test.setTimeout(60_000);
   const email = `e2e-build-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
@@ -47,8 +50,8 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByLabel("Title")).toHaveValue("New expense tool");
   await expect(page.getByTestId("intro-hint")).toHaveText("Write one or two lines so respondents know what the list is for. They see this first.");
   await expect(page.getByTestId("field-row")).toHaveCount(2);
-  await expect(page.getByLabel("Label").nth(0)).toHaveValue("Name");
-  await expect(page.getByLabel("Label").nth(1)).toHaveValue("Role");
+  await expect(page.getByLabel("Label, field 1")).toHaveValue("Name");
+  await expect(page.getByLabel("Label, field 2")).toHaveValue("Role");
 
   // The preview's About you page (acceptance 3): the two fields, Start disabled, the hint.
   const preview = page.getByTestId("about-you");
@@ -73,7 +76,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("field-row")).toHaveCount(3);
   // Focus lands on the new row's label (design note 38).
   await expect(page.getByLabel("Label, field 3")).toBeFocused();
-  await page.getByLabel("Label").nth(2).fill("Team");
+  await page.getByLabel("Label, field 3").fill("Team");
   await page.getByLabel("Type").nth(2).selectOption("dropdown");
   await page.getByLabel("Options, one per line").fill("Sales\nFinance\nHR");
   await page.getByRole("switch", { name: "Required, Team" }).click();
@@ -105,8 +108,13 @@ test("build the intro and the respondent fields, see them in the preview", async
   const row = chapter.getByTestId("rating-row").first();
   await expect(row.getByRole("radio")).toHaveText(["Must", "Should", "Could", "Not needed", "Unclear"]);
   await expect(row.locator("[data-proposed]")).toHaveText("Must");
-  await row.getByRole("radio", { name: "Should" }).click();
+  // One tab stop, the arrow keys move and select (the ARIA radio pattern).
+  await row.getByRole("radio", { name: "Must" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(row.getByRole("radio", { name: "Should" })).toBeFocused();
+  await expect(row.getByRole("radio", { name: "Should" })).toHaveAttribute("aria-checked", "true");
   await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Should");
+  await expect(row.getByRole("radio", { name: "Must" })).toHaveAccessibleDescription("proposed");
   // The radio is visually hidden under its card; the card label takes the click.
   await page.getByText("1 to 5 fit", { exact: true }).click();
   await expect(page.getByRole("radio", { name: /1 to 5 fit/ })).toBeChecked();
@@ -118,7 +126,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(row.locator("[data-proposed]")).toHaveCount(0);
   await page.getByText("MoSCoW", { exact: true }).click();
   await expect(page.getByRole("radio", { name: /MoSCoW/ })).toBeChecked();
-  await page.getByLabel("Must", { exact: true }).fill("Essential");
+  await page.getByLabel("Label for Must").fill("Essential");
   await page.getByRole("switch", { name: "Show the proposed value to respondents" }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");

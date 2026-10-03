@@ -848,7 +848,7 @@ return { label: x[1], active: active, bg: st.bg, bd: st.bd, pick: () => this.set
 });
 let scaleLabels = ['Must', 'Should', 'Could', 'Not needed', 'Unclear'];
 if (s.method === 'moscow' && s.showProposed) scaleLabels = ['Must', 'Should (proposed)', 'Could', 'Not needed', 'Unclear'];
-if (s.method === 'fit') scaleLabels = ['1  Does not fit', '2', '3', '4', '5  Fits fully', 'Unclear'];
+if (s.method === 'fit') scaleLabels = ['1  No fit', '2', '3', '4', '5  Fits fully', 'Unclear'];
 if (s.method === 'kcd') scaleLabels = ['Keep', 'Change', 'Drop', 'Unclear'];
 
 const linkStates = {

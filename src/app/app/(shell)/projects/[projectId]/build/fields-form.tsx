@@ -63,7 +63,7 @@ export function FieldsForm({ projectId, instrumentId, fields }: { projectId: str
           const id = `${prefix}-${row.id}`;
           const name = row.label || `field ${i + 1}`;
           return (
-            <li key={row.id} className="item-row flex flex-col gap-2" data-testid="field-row">
+            <li key={row.id} className="item-row flex flex-col gap-2 px-3.5 py-3" data-testid="field-row">
               <div className="flex items-end gap-3">
                 <div className="flex grow flex-col gap-1">
                   <Label htmlFor={`${id}-label`} className="text-xs">{BUILD_COPY.labelLabel}</Label>

@@ -25,9 +25,18 @@ rating-row.tsx and item-card.tsx, src/components/app/toggle.tsx, migration 0013.
 - "Published" means a link or an invite row exists on the instrument (E6-1 creates them;
   the sample's come from the seed). The scoring card is then disabled with the line from
   errors.md, and saveScoring() refuses on the server.
-- The design system's switch is now one component (src/components/app/toggle.tsx), used by
-  the fields card and the scoring card; the mode toggle keeps its own markup for its view
-  transition names.
+- The design system's switch is one component for the app's forms
+  (src/components/app/toggle.tsx), used by the fields card and the scoring card; the mode
+  toggle keeps its own markup for its view transition names, and shadcn's
+  src/components/ui/switch.tsx stays only in the styleguide demo.
+- Audit of 2026-10-03 (26 findings, 2 blocking): the test's fixed invite token, labels
+  lost on "Build on version N", labels keyed per method in the form, a scoped publish
+  query, one word list for proposed values (the import's), arrow keys and a single tab
+  stop on the pills with the captions as descriptions, the preview keyed on the instrument
+  with at most ten cards, labels on two lines in a pill, duplicate labels refused, the
+  section headings as blocks instead of legends (Mihai: "0 gap"), and the doc rows.
+  Recorded for later: the dark lift of the accent (E7-7), the publish race (E6-1), the
+  change pill under keep, change, drop (docs/review-list.md).
 - The method cards are native radios in a fieldset, the chosen one on violet soft with a
   violet border, the focus ring on the card through has-[:focus-visible].
 
