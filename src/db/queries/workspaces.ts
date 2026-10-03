@@ -32,7 +32,7 @@ export const workspaces = {
       return row;
     }),
   // The owner-only check is E2-4's (src/lib/permissions.ts); the id comes from requireWorkspace().
-  // Only the columns a PM edits can change here: name, slug, accent, logo, budget.
+  // Only the columns a PM edits can change here: name, slug, accent, logo.
   update: async (workspaceId: WorkspaceId, patch: Partial<NewWorkspace>): Promise<Workspace | null> => {
     const values = pickEditable(patch);
     if (Object.keys(values).length === 0) return (await db.select().from(workspace).where(and(eq(workspace.id, workspaceId), live())).limit(1))[0] ?? null;
@@ -58,7 +58,8 @@ export const workspaces = {
     (await db.update(workspace).set({ deletedAt: new Date() }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
 };
 
-const EDITABLE = ["name", "slug", "accentHex", "logoObjectKey", "aiBudgetEur"] as const;
+// The AI budget is not here: internal.setAiBudgetEur, from the admin area only (decision 0036).
+const EDITABLE = ["name", "slug", "accentHex", "logoObjectKey"] as const;
 function pickEditable(patch: Partial<NewWorkspace>): Partial<NewWorkspace> {
   const out: Record<string, unknown> = {};
   for (const key of EDITABLE) if (key in patch) out[key] = (patch as Record<string, unknown>)[key];

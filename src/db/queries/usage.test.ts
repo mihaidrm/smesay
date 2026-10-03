@@ -8,7 +8,8 @@ import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
 import { aiRuns, instruments, invites, itemSets, projects, responses, workspaces } from "@/db/queries";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
-import { monthStart, productAiCostCentsThisMonth, usage } from "@/db/queries/usage";
+import { internal } from "@/db/queries/internal";
+import { monthStart, usage } from "@/db/queries/usage";
 
 let sql: ReturnType<typeof postgres>;
 const now = new Date("2026-10-15T12:00:00Z");
@@ -63,11 +64,11 @@ describe("usage", () => {
     // Other tests' rows share the database, so the sum is read before and after two more
     // workspaces: 9 cents each this month, 50 on each sample that must not count.
     const november = new Date("2026-11-03T00:00:00Z");
-    const before = await productAiCostCentsThisMonth(now);
-    const beforeNovember = await productAiCostCentsThisMonth(november);
+    const before = await internal.productAiCostCentsThisMonth(now);
+    const beforeNovember = await internal.productAiCostCentsThisMonth(november);
     await workspaceWithRows("C");
     await workspaceWithRows("D");
-    expect(await productAiCostCentsThisMonth(now)).toBe(before + 18);
-    expect(await productAiCostCentsThisMonth(november)).toBe(beforeNovember);
+    expect(await internal.productAiCostCentsThisMonth(now)).toBe(before + 18);
+    expect(await internal.productAiCostCentsThisMonth(november)).toBe(beforeNovember);
   });
 });

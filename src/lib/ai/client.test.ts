@@ -6,7 +6,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { aiRuns, projects, workspaces } from "@/db/queries";
-import { productAiCostCentsThisMonth } from "@/db/queries/usage";
+import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
@@ -41,7 +41,7 @@ beforeAll(async () => {
   process.env.ANTHROPIC_API_KEY = KEY;
   // Rows from earlier runs stay in the test database, so the product cap is high here and
   // the product cap test sets its own.
-  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "1000";
+  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
   const a = await signIn("ai-a");
   ws = await requireWorkspace(a.headers, (await createWorkspaceWithSample({ name: "AI A", slug: "ai-a-" + randomUUID() }, a.userId)).id);
   sampleId = (await projects.list(ws)).find((p) => p.isSample)!.id;
@@ -51,9 +51,9 @@ beforeAll(async () => {
 }, 60_000);
 
 afterEach(async () => {
-  await workspaces.update(ws, { aiBudgetEur: 10 });
+  await internal.setAiBudgetEur(ws, 10);
   process.env.ANTHROPIC_API_KEY = KEY;
-  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "1000";
+  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
 });
 
 const Shape = z.strictObject({ areas: z.array(z.strictObject({ name: z.string(), items: z.array(z.string()) })) });
@@ -126,7 +126,7 @@ describe("runModel", () => {
 
   it("refuses over budget before any call, counting the month's spend and not last month's", async () => {
     const { fetch, calls } = answer(good);
-    await workspaces.update(ws, { aiBudgetEur: 1 });
+    await internal.setAiBudgetEur(ws, 1);
     const now = new Date("2026-10-15T12:00:00Z");
     await aiRuns.create(ws, { projectId, purpose: "shape", model: DEFAULT_MODEL, tokensIn: 10, tokensOut: 10, costEurCents: 90, durationMs: 1 });
     const before = await aiRuns.count(ws);
@@ -140,8 +140,11 @@ describe("runModel", () => {
     expect((await runModel(input({ maxOutputTokens: 1000 }), { fetch, now })).ok).toBe(true);
     // Next month the 90 cents are gone and the full allowance fits again.
     expect((await runModel(input(), { fetch, now: new Date("2026-11-01T00:00:00Z") })).ok).toBe(true);
-    // A budget of zero refuses the smallest call.
-    await workspaces.update(ws, { aiBudgetEur: 0 });
+    // A budget of zero refuses the smallest call. The session-scoped update ignores the
+    // budget (decision 0036): only internal.setAiBudgetEur changes it.
+    await workspaces.update(ws, { aiBudgetEur: 7 });
+    expect((await workspaces.getById(ws))!.aiBudgetEur).toBe(1);
+    await internal.setAiBudgetEur(ws, 0);
     expect(await runModel(input({ maxOutputTokens: 1 }), { fetch, now })).toMatchObject({ ok: false, reason: "budget" });
   });
 
@@ -150,11 +153,12 @@ describe("runModel", () => {
     // Rows are stamped by the database at insert, so the month is the real one.
     const now = new Date();
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-    // Workspace B's spend brings the product to 10 cents under a whole-euro cap; A spent
+    // Workspace B's spend brings the product to 10 cents under the next whole euro; A spent
     // nothing this month in this test. The product cap is what refuses A's call (10 cents
-    // left, the estimate is 15), while A's own budget of 10 euro would allow it.
-    const spent = await productAiCostCentsThisMonth(now);
-    const cap = Math.floor(spent / 100) + 2;
+    // left, the estimate is 15), while A's own budget of 10 euro would allow it. The row B
+    // gets is under one euro, so the test database's spend grows slowly across runs.
+    const spent = await internal.productAiCostCentsThisMonth(now);
+    const cap = Math.floor((spent + 10) / 100) + 1;
     const otherProject = (await projects.create(wsB, { name: "B's own" })).id;
     await aiRuns.create(wsB, { projectId: otherProject, purpose: "shape", model: DEFAULT_MODEL, tokensIn: 10, tokensOut: 10, costEurCents: cap * 100 - 10 - spent, durationMs: 1 });
     process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = String(cap);

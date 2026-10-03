@@ -11,16 +11,22 @@ and no one in a workspace sees a budget. Both parts in one pull request.
   its own message (AI_COPY.paused). The three checks read the same ai_run rows, so none can
   disagree. Order: product cap, workspace budget, plan cap; the first that refuses names itself
   in the detail for the server log.
-- src/db/queries/usage.ts: productAiCostCentsThisMonth(now), the one query that reads across
-  workspaces. It returns a sum, never a row, and the sample projects' rows do not count, as in
-  usage(). It sits beside usage() rather than in queries/internal because nothing about a
-  workspace leaves it; the admin epic (E14) gets its own module per decision 0035.
+- src/db/queries/internal.ts: productAiCostCentsThisMonth(now), the one query that reads
+  across workspaces. It returns a sum, never a row, and the sample projects' rows do not
+  count, as in usage(). It sits in the fenced module, and the lint rule lets
+  src/lib/ai/client.ts and its test import that module, nothing else outside src/db. The
+  audit asked for this: a sum in usage.ts would have been importable by any page.
+  setAiBudgetEur(workspaceId, eur) sits beside it, for the admin area (E14-2) and the tests;
+  the session-scoped workspaces.update no longer accepts the budget, and the owner permission
+  workspace.budget is gone (eight owner-only actions now).
 - Migration 0012: the column default 50 becomes 10, and rows at 50 become 10. A workspace
   whose budget an admin changed to another number keeps it.
 - Settings: the AI budget card is gone. The usage line moves into the Plan card under the plan
   note, same text, same data-testid. The page no longer reads workspace.aiBudgetEur.
 - Copy: AI_COPY.budget ends with "Come back next month." instead of asking the owner to raise
   a budget they cannot see. Both rows in docs/copy/errors.md, the Settings table in app.md.
+- src/lib/shaping.ts logs every refusal's reason and detail, so a paused product or a spent
+  budget leaves a line in the server log, not only an unusable answer.
 - Tests: client.test.ts pauses the product on a cap computed from the test database's current
   spend (rows from earlier runs stay), lets a smaller call and next month through, and refuses
   with "failed" when the variable is missing, blank, a word or a decimal. usage.test.ts checks
@@ -33,12 +39,29 @@ and no one in a workspace sees a budget. Both parts in one pull request.
 
 - A product cap without the workspace budget: one workspace could spend the whole EUR 10 in a
   day and pause the AI for everyone else. Kept, hidden (decision 0036, point 2).
-- Reading the Console's limit from the API: Anthropic's Admin API lists usage and cost reports
-  (platform.claude.com/docs/en/build-with-claude/usage-cost-api), not the spend limit, and it
-  needs an admin key the app must not hold. The environment variable mirrors the Console
-  number by hand; docs/accounts.md step 9 says to keep the two the same.
+- Reading the Console's limit from the API: the Spend Limits API page says "The Spend Limits
+  API is available to Claude Enterprise organizations only. It is not available to Claude
+  Platform (Claude Console) organizations." (platform.claude.com/docs/en/manage-claude/
+  spend-limits-api, read 2026-10-03), and it needs an admin key the app must not hold. The
+  environment variable mirrors the Console number by hand; docs/accounts.md step 9 says to
+  keep the two the same.
+- A lock around the check and the call: two calls at the same moment each see the same spend,
+  so the cap can be passed by one estimate per concurrent call, as the workspace budget could
+  before. With the cap equal to the Console limit the provider then refuses and the user sees
+  "The AI did not answer" with Try again. Accepted for one product at EUR 10 a month; a lock
+  across workspaces would be the first serialised path in the app.
 - Treating a missing variable as "no cap": a deploy that forgets it would run uncapped against
   the provider's limit. Refused instead, as a missing key is.
+
+## Audit
+
+Fresh-context audit of 2026-10-03, 13 findings: the cross-workspace sum in an importable
+module (moved to internal, lint allowance for client.ts), CI red on the first commit (the
+shaping tests had no cap variable), stories E2-4, E2-5, E14-2, E1-3 and INTERFACES.md still
+giving owners the budget (fixed), workspaces.update still accepting the budget (removed),
+refusals not logged (fixed), the test's row growth (under a euro a run now), the e2e assertion
+(now also no "AI budget" heading, and the usage line inside the Plan region), a three-cell
+table row (fixed), the API citation (replaced), and the concurrency note above.
 
 ## Open for Mihai
 

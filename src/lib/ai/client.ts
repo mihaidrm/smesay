@@ -15,7 +15,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 import { aiRuns, projects, workspaces } from "@/db/queries";
-import { productAiCostCentsThisMonth, usage } from "@/db/queries/usage";
+import { internal } from "@/db/queries/internal";
+import { usage } from "@/db/queries/usage";
 import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { isWithin, limitFor } from "@/lib/plans";
@@ -106,7 +107,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
     return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
   }
   const estimate = costEurCents(model, estimateTokensIn(input.instructions + input.data), maxOutputTokens);
-  const productSpent = await productAiCostCentsThisMonth(now);
+  const productSpent = await internal.productAiCostCentsThisMonth(now);
   if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`);
   const used = await usage(input.ws, now);
   if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`);

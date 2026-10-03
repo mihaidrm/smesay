@@ -14,7 +14,7 @@ describe("can", () => {
     expect(can("member", "members.remove")).toBe(false);
     expect(can("member", "billing.change")).toBe(false);
   });
-  it("names the nine owner-only actions of the story", () => {
-    expect([...OWNER_ONLY].sort()).toEqual(["billing.change", "members.invite", "members.remove", "members.role", "workspace.accent", "workspace.budget", "workspace.delete", "workspace.logo", "workspace.rename"]);
+  it("names the eight owner-only actions of the story (the budget left with decision 0036)", () => {
+    expect([...OWNER_ONLY].sort()).toEqual(["billing.change", "members.invite", "members.remove", "members.role", "workspace.accent", "workspace.delete", "workspace.logo", "workspace.rename"]);
   });
 });

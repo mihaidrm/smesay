@@ -16,15 +16,6 @@ export function monthStart(now = new Date()): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
-// The product's own spend this month, across every workspace (decision 0036): the one number
-// the product cap in src/lib/ai/client.ts reads. No rows leave this function, only a sum, and
-// nothing else reads across workspaces. The sample projects' rows do not count, as above.
-export async function productAiCostCentsThisMonth(now = new Date()): Promise<number> {
-  const ownProjects = db.select({ id: project.id }).from(project).where(eq(project.isSample, false));
-  const [row] = await db.select({ cents: sum(aiRun.costEurCents) }).from(aiRun).where(and(gte(aiRun.createdAt, monthStart(now)), inArray(aiRun.projectId, ownProjects)));
-  return Number(row.cents ?? 0);
-}
-
 export async function usage(workspaceId: WorkspaceId, now = new Date()): Promise<Usage> {
   const start = monthStart(now);
   const ownProjects = db.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.isSample, false)));

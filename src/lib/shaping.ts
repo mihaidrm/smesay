@@ -114,7 +114,8 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   const keptAreas = [...new Set(rows.map(kept).filter((k): k is string => k !== null).map(fold))];
   const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "shape", instructions: prompt.instructions, data: prompt.data, schema: ShapeOutput, check: (out) => checkShape(out, refs, prompt.importedAreas, importedOf, keptAreas) }, deps);
   if (!result.ok) {
-    if (result.reason === "invalid") console.error(`Shaping refused the answer for set ${set.id}: ${result.detail}.`);
+    // Every refusal leaves a line, so a paused product or a spent budget is in the log.
+    console.error(`Shaping did not run for set ${set.id} (${result.reason}): ${result.detail}.`);
     return { error: result.message, retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const byRef = new Map(rows.map((it) => [ref(it), it]));

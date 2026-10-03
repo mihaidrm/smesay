@@ -7,7 +7,9 @@ Auth and sessions
   refuses an http base URL other than localhost.
 
 Multi-tenancy
-- Every query scoped by workspace id from the session, never from the request body.
+- Every query scoped by workspace id from the session, never from the request body. The one
+  read across workspaces is the product's AI spend sum for its monthly cap (decision 0036), in
+  src/db/queries/internal.ts, reachable from src/lib/ai/client.ts only (lint rule).
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
 
 Public links and respondents

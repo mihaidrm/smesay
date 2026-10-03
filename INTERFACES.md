@@ -71,7 +71,8 @@ count(ws), create(ws, data), update(ws, id, patch), remove(ws, id); get, update 
 return null when the row is not in that workspace or the id is not a uuid; create and update
 keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uuid parent id
 with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
-ownerUserId), update(ws, patch) (name, slug, accent, logo, budget only), markDeleted(ws).
+ownerUserId), update(ws, patch) (name, slug, accent, logo only; the AI budget is
+internal.setAiBudgetEur, decision 0036), markDeleted(ws).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
@@ -99,9 +100,9 @@ upload), `importLog(ws, projectId)` and `latestSet(ws, projectId)` in src/lib/im
 `commitImport(ws, input)` in src/db/queries/importCommit.ts (imported by name, the one
 transaction); itemSets.versions(ws, projectId) (every set with its item count and importer).
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
-aiRunsThisMonth, aiCostCentsThisMonth, by SQL) and productAiCostCentsThisMonth(now), the
-product's spend across every workspace for the cap of decision 0036 (a sum, never a row);
-PLANS and withinPlan(ws, kind) in
+aiRunsThisMonth, aiCostCentsThisMonth, by SQL); internal.productAiCostCentsThisMonth(now),
+the product's spend across every workspace for the cap of decision 0036 (a sum, never a row,
+in the fenced module); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.
 Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
 Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
@@ -110,8 +111,9 @@ name (not in the barrel), creates the workspace with its owner and its own copy 
 The session row carries currentWorkspaceId (uuid, nullable, migration 0002), set only by
 src/lib/current-workspace.ts after a membership check and read back on every request; the
 current workspace is never taken from a URL alone. src/db/queries/internal.ts
-(getWorkspaceById, createEmptyWorkspace, hardDeleteWorkspace, requireWorkspaceForUser) takes
-no session and is importable only from src/db and src/lib/workspace.ts. Importing "@/db",
+(getWorkspaceById, createEmptyWorkspace, hardDeleteWorkspace, productAiCostCentsThisMonth,
+setAiBudgetEur, requireWorkspaceForUser) takes no session and is importable only from src/db,
+src/lib/workspace.ts and src/lib/ai/client.ts with its test (decision 0036). Importing "@/db",
 "@/db/schema", drizzle-orm or postgres outside src/db/ fails lint for every import spelling
 tested (src/db/queries/lint-rule.test.ts); what src/db/queries/ exports is the reviewer's
 reading.

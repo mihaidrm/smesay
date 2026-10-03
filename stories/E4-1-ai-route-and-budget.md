@@ -37,8 +37,8 @@ never lets the key near a browser.
 - None.
 
 ## Technical notes
-The budget checks read productAiCostCentsThisMonth() and usage() (E2-6,
-src/db/queries/usage.ts) for the month's cost and `withinPlan(ws, "aiRuns")` for the run cap,
+The budget checks read internal.productAiCostCentsThisMonth() (src/db/queries/internal.ts,
+the fenced module) and usage() (E2-6, src/db/queries/usage.ts) for the month's cost and `withinPlan(ws, "aiRuns")` for the run cap,
 so the product cap, the workspace cap and the run cap cannot disagree.
 Anthropic SDK for TypeScript (docs.anthropic.com; the model id and pricing page are read when
 the story starts and cited in the price table). Default model: the latest Sonnet class model

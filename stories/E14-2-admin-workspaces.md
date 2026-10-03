@@ -10,8 +10,8 @@ actions that help, each audited.
    members, projects, published instruments, responses this month, AI cost this month, last
    activity, deleted_at when set; searchable by name, slug or a member's email; sorted by last
    activity. Numbers come from E2-6's usage functions.
-2. /admin/workspaces/[id] shows the workspace's settings as the owner sees them (name, accent,
-   whether a logo is set, AI budget and spend, plan), the members with roles and the date
+2. /admin/workspaces/[id] shows the workspace's settings (name, accent, whether a logo is
+   set, plan) and, seen nowhere else (decision 0036), its AI budget and spend, the members with roles and the date
    they joined, the open invitations with their expiry, the projects with their status, item
    count and latest version, each project's instruments with state (draft, published, closed,
    revoked), link kind and dates, the uploads with size and date, and the last 20 product

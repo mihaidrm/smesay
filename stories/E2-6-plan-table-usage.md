@@ -43,8 +43,8 @@ Built 2026-10-02.
   audit's finding that the budget card showed the sample's EUR 0.09 as spent.
   src/db/queries/usage.test.ts creates rows in two workspaces, plus sample rows, and checks the
   numbers and the boundary. The settings page's usage line reads it too, and
-  productAiCostCentsThisMonth(now) sums the same rows across every workspace for the product
-  cap (decision 0036). E4-1's budget checks read both.
+  internal.productAiCostCentsThisMonth(now) (src/db/queries/internal.ts) sums the same rows
+  across every workspace for the product cap (decision 0036). E4-1's budget checks read both.
 - workspace.plan (migration 0004, docs/schema.md through the generator), PLAN_KEYS in
   src/db/schema.ts and PlanKey in INTERFACES.md; `workspaces.setPlan(ws, plan)` is the column change,
   with no screen until R3; src/lib/plans.test.ts switches a

@@ -52,7 +52,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Plan pill | While we build it with the first users |
 | Plan note | Paid plans come later. Nothing you build now is lost or locked. |
 | Usage line under the plan note (E2-6) | [N] projects, [N] responses this month, [N] AI runs this month. |
-| | No AI budget on the page: the workspace budget is set and seen in the admin area only (decision 0036, E14-2). | |
+| Note | No AI budget on the page: the workspace budget is set and seen in the admin area only (decision 0036, E14-2). |
 
 ## Settings, Members (E2-4)
 
