@@ -40,8 +40,10 @@ export const invites = {
       if (!locked) return null;
       // The project row too, the lock updatePublic takes: a save of the older link and the
       // publish that replaces it cannot interleave (one project, one link in force). NO KEY
-      // UPDATE, so inserts that point at the project (an import, a draft) are not held up
-      // (postgresql.org/docs/current/explicit-locking.html, row-level locks).
+      // UPDATE, so a plain insert pointing at the project (its foreign-key check takes KEY
+      // SHARE) is not held up; an import commit and a new draft lock the project row FOR
+      // UPDATE themselves and do wait, briefly (postgresql.org/docs/current/explicit-locking.html,
+      // row-level locks).
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
       const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
       if (existing) return { invite: existing, created: false };

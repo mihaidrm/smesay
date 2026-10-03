@@ -19,7 +19,7 @@ import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
 import { LINK_ERRORS, publishLink, saveLink, SHARE_COPY } from "@/lib/sharing";
-import { attemptsHeld, checkPasscode, passcodeProof, proofMatches, viewLink, viewOf } from "@/lib/link-access";
+import { attemptsHeld, checkPasscode, clearAttempts, passcodeProof, proofMatches, viewLink, viewOf } from "@/lib/link-access";
 import { verifyPasscode } from "@/lib/passcode";
 import { projectStatus } from "@/lib/project-status";
 import { savePaste } from "@/lib/uploads";
@@ -290,13 +290,28 @@ describe("publish (stories/E6-1)", () => {
     const archivedLater = { ...(await links.byToken(published.invite.token))!, project: { ...link.project, archivedAt: new Date("2026-10-25T00:00:00Z") } };
     const closeFirst = viewOf(archivedLater, undefined, new Date("2026-10-26T00:00:00Z"));
     expect(closeFirst.kind === "closed" && closeFirst.closedAt).toEqual(new Date("2026-10-20T15:00:00Z"));
-    // Unknown and malformed tokens hold no limiter entry; a link's wrong attempts do.
-    const before = attemptsHeld();
-    for (let i = 0; i < 20; i++) await checkPasscode("f".repeat(31) + i.toString(16), "x", `10.4.0.${i}`, open);
-    expect((await checkPasscode("not-a-token", "x", "10.4.0.1", open)).kind).toBe("none");
-    expect(attemptsHeld()).toBe(before);
     expect(await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", false, now)).toEqual({ error: SHARE_COPY.archived });
     await projects.setArchived(a.ws, project.id, false);
+    // Unknown and malformed tokens, in sequence or at once, hold no limiter entry and do
+    // not touch a link's count; a link's wrong attempts do hold one, and a wrong attempt
+    // in flight keeps its count while right ones give theirs back.
+    const t3 = new Date(open.getTime() + 2 * 60 * 60_000);
+    expect("invite" in (await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "letmein", false, now))).toBe(true);
+    clearAttempts();
+    const before = attemptsHeld();
+    expect((await checkPasscode(published.invite.token, "wrong1", "10.5.0.1", t3)).kind).toBe("wrong");
+    expect(attemptsHeld()).toBe(before + 2);
+    for (let i = 0; i < 20; i++) await checkPasscode("f".repeat(31) + i.toString(16), "x", `10.4.0.${i}`, t3);
+    await Promise.all(Array.from({ length: 50 }, (_, i) => checkPasscode("e".repeat(30) + i.toString(16).padStart(2, "0"), "x", "10.4.1.1", t3)));
+    expect((await checkPasscode("not-a-token", "x", "10.4.0.1", t3)).kind).toBe("none");
+    expect(attemptsHeld()).toBe(before + 2);
+    const mixed = await Promise.all([
+      checkPasscode(published.invite.token, "wrong1", "10.5.0.2", t3),
+      checkPasscode(published.invite.token, "letmein", "10.5.0.3", t3),
+      checkPasscode(published.invite.token, "wrong1", "10.5.0.4", t3),
+    ]);
+    expect(mixed.map((r) => r.kind)).toEqual(["wrong", "ok", "wrong"]);
+    expect(attemptsHeld()).toBe(before + 4);
     // The sample and another workspace.
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
     const sampleDraft = (await openDraft(a.ws, sample))!;
