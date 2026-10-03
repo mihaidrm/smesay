@@ -1,7 +1,7 @@
 "use server";
 // The passcode step of a link (stories/E6-1, acceptance 4): checks the typed passcode
-// against the stored hash on an open link, with the attempts limited per link and address
-// (src/lib/link-access.ts), and sets the proof cookie on the link's path; the page then
+// against the stored hash on an open link, with wrong attempts limited per link and per
+// link and address (src/lib/link-access.ts), and sets the proof cookie on the link's path; the page then
 // shows the instrument. No session: the token names the link. The address is the first
 // X-Forwarded-For entry (the proxy in front sets it; locally the tests send one), else
 // "local". Cookies and headers in Server Functions: node_modules/next/dist/docs/01-app/

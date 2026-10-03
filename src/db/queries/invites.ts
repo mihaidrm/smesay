@@ -12,7 +12,7 @@
 // in force: the newest instrument that has one.
 import { and, desc, eq, isNull, ne, or, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { instrument, invite } from "@/db/schema";
+import { instrument, invite, project } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
@@ -38,14 +38,19 @@ export const invites = {
     return db.transaction(async (tx) => {
       const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
       if (!locked) return null;
+      // The project row too, the lock updatePublic takes: a save of the older link and the
+      // publish that replaces it cannot interleave (one project, one link in force).
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("update");
       const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
       if (existing) return { invite: existing, created: false };
       const [created] = await tx.insert(invite).values({ ...data, workspaceId, instrumentId, kind: "public" }).returning();
       await tx.update(instrument).set({ publishedAt: now }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId), isNull(instrument.publishedAt)));
       const siblings = tx.select({ id: instrument.id }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.projectId, locked.projectId), ne(instrument.id, instrumentId)));
       // The older link closes at `now`; one that had not opened yet opens at `now` too, so it
-      // reads as closed, not as opening later (least(): postgresql.org/docs/current/functions-conditional.html).
-      await tx.update(invite).set({ closesAt: now, opensAt: sql`least(${invite.opensAt}, ${sql.param(now, invite.opensAt)})` }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), isNull(invite.revokedAt), or(isNull(invite.closesAt), gt(invite.closesAt, now)), sql`${invite.instrumentId} in ${siblings}`));
+      // reads as closed, not as opening later; a null open date (open since publish) stays
+      // (CASE: postgresql.org/docs/current/functions-conditional.html).
+      const at = sql.param(now, invite.opensAt);
+      await tx.update(invite).set({ closesAt: now, opensAt: sql`case when ${invite.opensAt} > ${at} then ${at} else ${invite.opensAt} end` }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), isNull(invite.revokedAt), or(isNull(invite.closesAt), gt(invite.closesAt, now)), sql`${invite.instrumentId} in ${siblings}`));
       return { invite: created, created: true };
     });
   },
@@ -57,13 +62,15 @@ export const invites = {
       .orderBy(desc(instrument.createdAt)).limit(1);
     return rows[0]?.invite ?? null;
   },
-  // The dates and the passcode of an instrument's public link, under the instrument row's
-  // lock and only while that link is the project's link in force: a save that waited on the
-  // publish of a newer draft finds its link replaced and is refused ("replaced").
+  // The dates and the passcode of an instrument's public link, under the project row's lock
+  // (the one publish takes) and only while that link is the project's link in force: a save
+  // that waited on the publish of a newer draft finds its link replaced and is refused.
   updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
-      const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
+      const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
+      if (!own) return null;
+      const [locked] = await tx.select({ id: project.id, projectId: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("update");
       if (!locked) return null;
       const [live] = await tx.select({ instrumentId: invite.instrumentId }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
         .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))

@@ -6,7 +6,8 @@
 // timingSafeEqual). N = 2^16, r = 8, p = 2 is one of the OWASP Password Storage Cheat
 // Sheet's scrypt settings (cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html,
 // "scrypt": N=2^17 r=8 p=1, or N=2^16 r=8 p=2, ...), 64 MiB a check, with maxmem raised
-// for it; the attempt limits in src/lib/link-access.ts bound how much of it a link can cause. The story named argon2 or bcrypt;
+// for it; the per-link attempt limit in src/lib/link-access.ts, checked before the database
+// read, bounds how much of it a link can cause. The story named argon2 or bcrypt;
 // the choice is recorded in docs/review-list.md. The format is
 // "scrypt$N$r$p$<salt hex>$<key hex>", so the parameters can change without breaking old
 // hashes.

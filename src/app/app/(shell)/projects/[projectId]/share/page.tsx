@@ -3,7 +3,7 @@
 // published, the open and close date-times, the passcode and Publish or Save. The card
 // shows the link in force (invites.livePublic: the newest instrument that has one); when a
 // newer draft exists above it ("Build on version N" after publishing), a second card offers
-// to publish the draft, which makes a new link and closes this one (docs/review-list.md).
+// to publish the draft, which makes a new link; the link in force closes then (docs/review-list.md).
 // Without an instrument the page points to Build. The sample shows its link read-only
 // (E8-8). Personal invites (E6-2) and reminders (E6-3) come under these. Copy:
 // docs/copy/app.md (Share).

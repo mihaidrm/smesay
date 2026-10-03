@@ -21,8 +21,9 @@ Public links and respondents
 - The passcode is stored as a salted scrypt hash with its parameters (src/lib/passcode.ts)
   and remembered per device by a cookie scoped to the link's path that holds an HMAC under a
   key derived from the app's secret, never the passcode (src/lib/link-access.ts). Wrong
-  attempts are counted before the check: 30 per link and 5 per link and address in 15
-  minutes in the process (E6-1); the shared store and the per-route limit are E11-1.
+  attempts are limited in the process, counted as a post starts and given back on a right
+  passcode: 60 per link and 5 per link and address in 15 minutes (E6-1); the shared store
+  and the per-route limit are E11-1.
 - Rate limits: respondent routes 100/min/IP; auth routes 5 attempts then backoff.
 
 Data

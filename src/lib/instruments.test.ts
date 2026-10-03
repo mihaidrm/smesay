@@ -21,6 +21,7 @@ import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
 import { LINK_ERRORS, publishLink, saveLink, SHARE_COPY } from "@/lib/sharing";
 import { checkPasscode, passcodeProof, proofMatches, viewLink } from "@/lib/link-access";
 import { verifyPasscode } from "@/lib/passcode";
+import { projectStatus } from "@/lib/project-status";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 
@@ -200,8 +201,8 @@ describe("saveScoring (stories/E5-2)", () => {
   });
 });
 
-// The passcode hash is scrypt at N = 2^17 (about 100 ms a call), so these two tests get a
-// longer timeout (it(name, fn, timeout): vitest.dev/api/#test).
+// The passcode hash is scrypt at N = 2^16, r = 8, p = 2 (a few hundred ms a call), so these
+// tests get a longer timeout (it(name, fn, timeout): vitest.dev/api/#test).
 describe("publish (stories/E6-1)", () => {
   it("creates one public link with a 32-hex token, a hashed passcode and the dates; refuses the rest", async () => {
     const project = await projects.create(a.ws, { name: "Publish", createdBy: a.userId });
@@ -239,20 +240,24 @@ describe("publish (stories/E6-1)", () => {
     expect((await viewLink(published.invite.token, undefined, open)).kind).toBe("passcode");
     const proof = passcodeProof(link)!;
     expect((await viewLink(published.invite.token, proof, open)).kind).toBe("open");
-    expect(proofMatches(link, proof.slice(0, -1) + "0")).toBe(false);
+    expect(proofMatches(link, (proof[0] === "0" ? "1" : "0") + proof.slice(1))).toBe(false);
     expect(proofMatches(link, "é".repeat(32))).toBe(false);
     expect(proofMatches({ invite: { ...link.invite, token: "f".repeat(32) } }, proof)).toBe(false);
     expect((await checkPasscode(published.invite.token, "letmein", "10.0.0.1", now)).kind).toBe("none");
     expect((await checkPasscode(published.invite.token, "wrong1", "10.0.0.1", open)).kind).toBe("wrong");
     expect(await checkPasscode(published.invite.token, "letmein", "10.0.0.1", open)).toEqual({ kind: "ok", proof });
-    // Five wrong at once from one address: all five count before any check, the sixth is
-    // limited, and the window passes. Per link, 30 attempts whatever the address.
+    // Five wrong at once from one address: all five count as they start, the sixth is
+    // limited, and the window passes. Right passcodes spend nothing: 40 respondents from
+    // 40 addresses at once all get in. Per link, 60 wrong whatever the address, then a new
+    // address is limited too.
     const burst = await Promise.all(Array.from({ length: 5 }, () => checkPasscode(published.invite.token, "wrong1", "10.0.0.2", open)));
     expect(burst.every((r) => r.kind === "wrong")).toBe(true);
     expect((await checkPasscode(published.invite.token, "letmein", "10.0.0.2", open)).kind).toBe("limited");
     expect((await checkPasscode(published.invite.token, "letmein", "10.0.0.2", new Date(open.getTime() + 16 * 60_000))).kind).toBe("ok");
     const t2 = new Date(open.getTime() + 60 * 60_000);
-    for (let i = 0; i < 30; i++) await checkPasscode(published.invite.token, "wrong1", `10.1.0.${i}`, t2);
+    const right = await Promise.all(Array.from({ length: 40 }, (_, i) => checkPasscode(published.invite.token, "letmein", `10.3.0.${i}`, t2)));
+    expect(right.every((r) => r.kind === "ok")).toBe(true);
+    for (let i = 0; i < 60; i++) await checkPasscode(published.invite.token, "wrong1", `10.1.0.${i}`, t2);
     expect((await checkPasscode(published.invite.token, "letmein", "10.2.0.1", t2)).kind).toBe("limited");
     // A second press finds the link and changes nothing.
     expect(await publishLink(a.ws, project.id, instrument.id, "", "2026-10-25T15:00:00Z", "", now)).toEqual({ error: LINK_ERRORS.alreadyPublished });
@@ -272,14 +277,15 @@ describe("publish (stories/E6-1)", () => {
     const cleared = await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", true, now);
     expect("invite" in cleared && cleared.invite.passcodeHash).toBeNull();
     expect((await viewLink(published.invite.token, undefined, open)).kind).toBe("open");
-    // An archived project's link reads as closed on the day it was archived, unless its
-    // own close date came first.
+    // An archived project's link reads as closed, dated the earlier of the archiving (the
+    // real clock, today) and its own close date (20 Oct 2026).
     await projects.setArchived(a.ws, project.id, true);
+    const archivedAt = (await projects.get(a.ws, project.id))!.archivedAt!;
     const archivedView = await viewLink(published.invite.token, undefined, open);
     expect(archivedView.kind).toBe("closed");
-    expect(archivedView.kind === "closed" && archivedView.closedAt).toEqual((await projects.get(a.ws, project.id))!.archivedAt);
-    const closedFirst = await viewLink(published.invite.token, undefined, new Date("2026-10-21T00:00:00Z"));
-    expect(closedFirst.kind === "closed" && closedFirst.closedAt).toEqual(new Date("2026-10-20T15:00:00Z"));
+    expect(archivedView.kind === "closed" && archivedView.closedAt).toEqual(archivedAt);
+    const bothPassed = await viewLink(published.invite.token, undefined, new Date("2026-10-21T00:00:00Z"));
+    expect(bothPassed.kind === "closed" && bothPassed.closedAt).toEqual(archivedAt < new Date("2026-10-20T15:00:00Z") ? archivedAt : new Date("2026-10-20T15:00:00Z"));
     expect(await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", false, now)).toEqual({ error: SHARE_COPY.archived });
     await projects.setArchived(a.ws, project.id, false);
     // The sample and another workspace.
@@ -303,8 +309,8 @@ describe("publish (stories/E6-1)", () => {
     const now = new Date("2026-10-03T12:00:00Z");
     // Two presses at once: one link.
     const [first, second] = await Promise.all([
-      publishLink(a.ws, project.id, v1.id, "2026-10-10T06:00:00Z", "2026-10-20T15:00:00Z", "", now),
-      publishLink(a.ws, project.id, v1.id, "2026-10-10T06:00:00Z", "2026-10-21T15:00:00Z", "", now),
+      publishLink(a.ws, project.id, v1.id, "", "2026-10-20T15:00:00Z", "", now),
+      publishLink(a.ws, project.id, v1.id, "", "2026-10-21T15:00:00Z", "", now),
     ]);
     const created = [first, second].filter((r) => "invite" in r);
     expect(created.length).toBe(1);
@@ -319,24 +325,36 @@ describe("publish (stories/E6-1)", () => {
     expect((await invites.livePublic(a.ws, project.id))?.id).toBe(live.id);
     expect(await invites.publicForInstrument(a.ws, v2.id)).toBeNull();
     expect(await isPublished(a.ws, v2.id)).toBe(false);
-    const moved = await saveLink(a.ws, project.id, v1.id, "2026-10-10T06:00:00Z", "2026-10-25T15:00:00Z", "", false, now);
+    const moved = await saveLink(a.ws, project.id, v1.id, "", "2026-10-25T15:00:00Z", "", false, now);
     expect("invite" in moved && moved.invite.closesAt).toEqual(new Date("2026-10-25T15:00:00Z"));
-    // Publishing the draft makes a new link and closes the old one at that instant: its
-    // open date, still in the future, is pulled to that instant too, so it reads as closed
-    // and the project is not Scheduled.
+    // Publishing the draft makes a new link and closes the old one at that instant; its
+    // null open date (open since publish) stays null.
     const later = new Date("2026-10-04T12:00:00Z");
-    const replaced = await publishLink(a.ws, project.id, v2.id, "", "2026-11-01T15:00:00Z", "", later);
+    const replaced = await publishLink(a.ws, project.id, v2.id, "2026-10-10T06:00:00Z", "2026-11-01T15:00:00Z", "", later);
     if (!("invite" in replaced)) throw new Error(replaced.error);
     expect((await invites.livePublic(a.ws, project.id))?.id).toBe(replaced.invite.id);
     const old = (await invites.get(a.ws, live.id))!;
     expect(old.closesAt).toEqual(later);
-    expect(old.opensAt).toEqual(later);
+    expect(old.opensAt).toBeNull();
     expect((await viewLink(live.token, undefined, new Date("2026-10-05T00:00:00Z"))).kind).toBe("closed");
-    expect((await viewLink(live.token, undefined, new Date("2026-10-04T12:00:00Z"))).kind).toBe("closed");
-    expect((await viewLink(replaced.invite.token, undefined, new Date("2026-10-05T00:00:00Z"))).kind).toBe("open");
+    expect((await viewLink(replaced.invite.token, undefined, new Date("2026-10-05T00:00:00Z"))).kind).toBe("notOpen");
     // The old instrument can no longer be edited from Share.
     expect(await saveLink(a.ws, project.id, v1.id, "", "2026-10-25T15:00:00Z", "", false, now)).toEqual({ error: BUILD_COPY.replaced });
-  }, 30_000);
+    // A third version replaces the second, whose link had not opened yet: its open date is
+    // pulled to that instant, so it reads as closed, never as opening later, and the project
+    // is not Scheduled.
+    await importList(a.ws, a.userId, project.id, ["One", "Two", "Three", "Four"]);
+    const built3 = await buildOnLatest(a.ws, project.id, v2.id);
+    if (!("instrument" in built3)) throw new Error(built3.error);
+    const latest = new Date("2026-10-05T12:00:00Z");
+    const third = await publishLink(a.ws, project.id, built3.instrument.id, "", "2026-12-01T15:00:00Z", "", latest);
+    if (!("invite" in third)) throw new Error(third.error);
+    const secondLink = (await invites.get(a.ws, replaced.invite.id))!;
+    expect(secondLink.opensAt).toEqual(latest);
+    expect(secondLink.closesAt).toEqual(latest);
+    expect((await viewLink(replaced.invite.token, undefined, new Date("2026-10-06T00:00:00Z"))).kind).toBe("closed");
+    expect(projectStatus({ isSample: false }, (await invites.list(a.ws)).filter((i) => [live.id, replaced.invite.id, third.invite.id].includes(i.id)), new Date("2026-10-06T00:00:00Z"))).toBe("Open");
+  }, 60_000);
 
   it("holds the freeze against a save in flight: a save waiting on the publish lock is refused", async () => {
     const project = await projects.create(a.ws, { name: "Race", createdBy: a.userId });

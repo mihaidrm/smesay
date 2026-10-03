@@ -66,6 +66,6 @@ export const LINK_PAGE_COPY = {
   linkChanged: "This link changed since the page opened. Reload the page to see where it stands.",
   closes: (when: string) => `Closes ${when}`,
   errorTitle: "This page could not be loaded.",
-  errorLine: "Something went wrong on our side. Try again in a moment; nothing you entered on this device is lost.",
+  errorLine: "Something went wrong on our side. Try again in a moment.",
   tryAgain: "Try again",
 } as const;
