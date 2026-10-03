@@ -30,3 +30,10 @@ kept.
 ## Technical notes
 invite.revoked_at (docs/schema.md). The respondent app's state check is one route,
 /r/[token]/state, also used by E7-3's offline recovery.
+
+Owed from E6-2 (recorded 2026-10-03): the personal links take the public link's dates and
+follow them, and sending is refused while the public link is revoked ("The public link is
+revoked. Publish again to send invites."). This story decides what revoking the public link
+does to the personal links (as built, nothing: they are revoked one by one) and makes
+"Publish again" replace the revoked public row, since invites.publish returns the existing
+row of an instrument (created: false); docs/review-list.md.

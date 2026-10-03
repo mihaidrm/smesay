@@ -133,8 +133,8 @@ public links at `now`), invites.updatePublic(ws, instrumentId, patch); instrumen
 and setPerspectives and tagItem refuse under it once an invite exists (E6-1, acceptance 5).
 Personal invites (E6-2): invites.personalWithStatus(ws, instrumentId) (each row with
 responseStatus none, inProgress or submitted and answeredAt), invites.personalByEmail(ws,
-instrumentId, email); invite.sent_at and invite.send_error (migration 0016; both null: not
-sent yet; send_error set and sent_at null: Not sent) and the partial unique index
+instrumentId, email); invite.send_started_at, invite.sent_at and invite.send_error (migration 0016; sent_at null:
+Not sent) and the partial unique index
 invite_personal_email_idx on (instrument_id, email) where kind = 'personal'.
 invites.countPersonalSince(ws, minutes) (the 500 per 24 hours limit); invites.claimResend(ws,
 id, { name, roleHint }, now) (one statement: a Not sent row whose send failed, or one with

@@ -1,5 +1,5 @@
 {
-  "id": "88f434c9-347a-4077-a181-73956e90f518",
+  "id": "23943e87-7198-4187-b86f-9d9e872accb2",
   "prevId": "df2d7dda-7f29-42b5-ba86-15a677037394",
   "version": "7",
   "dialect": "postgresql",
@@ -835,6 +835,12 @@
         },
         "last_reminder_at": {
           "name": "last_reminder_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "send_started_at": {
+          "name": "send_started_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false

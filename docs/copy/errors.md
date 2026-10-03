@@ -149,7 +149,8 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-2) | Send before the public link exists (the box is off; a stale tab) | Publish the public link first. Personal links take its open and close dates. |
 | Inline, invites (E6-2) | Send while the public link is closed by its date | The public link is closed. Move its close date to send invites. |
 | Inline, invites (E6-2) | Send while the public link is revoked (E6-4) | The public link is revoked. Publish again to send invites. |
-| Inline, invites (E6-2) | More than 500 personal invites in the workspace in 24 hours | This workspace sent 500 invites in the last 24 hours. Try again tomorrow. |
+| Inline, invites (E6-2) | The list would pass 500 personal invites in the workspace in 24 hours | This workspace can send [N] more invites today (500 in 24 hours). Shorten the list, or try again tomorrow. (none left: This workspace sent 500 invites in the last 24 hours. Try again tomorrow.) |
+| Inline, invites (E6-2), under "[N] invites sent." | A Not sent address pasted again while another request is sending it (15 minutes from its last send) | [EMAIL] is being sent now. If it still says Not sent after 15 minutes, paste it again. |
 | Inline, invites (E6-2) | The list did not arrive as text | The list did not reach the server as text. Reload the page and try again. |
 | Inline, invites | Reminder too soon | Reminded [DAYS] days ago. The next reminder can go on [DATE]. |
 | Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. |

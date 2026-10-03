@@ -8,7 +8,8 @@ import { formatUtc } from "@/lib/sharing";
 const FOOTER = "SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]";
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export type InviteEmailInput = { pmName: string; workspaceName: string; projectName: string; respondentName: string | null; itemCount: number; minutes: number; intro: string | null; url: string; closesAt: Date | null };
+// opensAt: only when the link opens later than the send (the line "It opens on ...").
+export type InviteEmailInput = { pmName: string; workspaceName: string; projectName: string; respondentName: string | null; itemCount: number; minutes: number; intro: string | null; url: string; opensAt?: Date | null; closesAt: Date | null };
 
 export function inviteEmail(input: InviteEmailInput): { subject: string; text: string; html: string } {
   const { pmName, workspaceName, projectName, itemCount, minutes, url, closesAt } = input;
@@ -18,7 +19,7 @@ export function inviteEmail(input: InviteEmailInput): { subject: string; text: s
   const preheader = `${itemCount} ${itemCount === 1 ? "item" : "items"}, about ${minutes} minutes, on your phone or laptop.`;
   const greeting = input.respondentName ? `Hi ${input.respondentName},` : "Hi,";
   const list = `a list of ${itemCount} ${itemCount === 1 ? "requirement" : "requirements"}`;
-  const closes = closesAt ? `It closes on ${formatUtc(closesAt)}.` : "";
+  const closes = [input.opensAt ? `It opens on ${formatUtc(input.opensAt)}.` : "", closesAt ? `It closes on ${formatUtc(closesAt)}.` : ""].filter(Boolean).join(" ");
   const text = [
     greeting, "",
     `${pmName} at ${workspaceName} is checking ${list} for ${projectName} and wants your view.`, "",

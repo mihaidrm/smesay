@@ -30,11 +30,17 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
   the box lists each address that was not sent while the box keeps those addresses, so
   Send tries them again on the same row and token. A row with no sent_at reads Not sent
   whatever send_error holds; one with no outcome at all is another request's for 15
-  minutes (a send in flight), then it can be sent again (a request that died mid-way). The
-  claim is one update statement, so two sends cannot both take a row. The PM reads the reason on the row; the respondent side never shows it. A missing
+  minutes from its last send start (invite.send_started_at; the message names the wait),
+  then it can be sent again (a request that died mid-way). The claim is one update
+  statement that moves send_started_at, so two sends cannot both take a row. The new rows
+  go in with one insert under the project row's lock, the link's dates read inside it, and
+  ON CONFLICT DO NOTHING on the partial unique index. The PM reads the reason on the row; the respondent side never shows it. A missing
   mail variable is the app's fault, not the address's: it is thrown and named, not stored.
 - Up to 500 personal invites per workspace in 24 hours, counted on rows created, since the
-  PM names the sender and three lines of the body (SECURITY.md).
+  PM names the sender and three lines of the body (SECURITY.md); the refusal says how many
+  can still go today.
+- Email 2 names the open date when the link opens after the send, so an early click on the
+  not-yet-open page is no surprise.
 - The email goes out as "[PM NAME] via SMEsay" on the EMAIL_FROM address with reply-to the
   PM's own address (decision 0031; docs/copy/emails.md, email 2). The PM's name is the
   session user's, or the email when the name is empty. The minutes estimate is 20 seconds

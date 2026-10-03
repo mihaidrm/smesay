@@ -21,7 +21,7 @@ export const INVITEES_COPY = {
   linkRevoked: "The public link is revoked. Publish again to send invites.",
   headers: { person: "Person", status: "Status", reminders: "Reminders" },
   status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent" },
-  notSentHint: "Paste the address again to send it.",
+  notSentHint: "Paste the address again to send it. If it is being sent now, that works after 15 minutes.",
   noneSent: "None sent",
   remindersLine: (n: number, date: string) => `${n} sent, last ${date}`,
   empty: "Nobody invited yet.",
@@ -34,7 +34,8 @@ export const INVITEES_ERRORS = {
   tooMany: `Up to ${INVITEES_MAX_PER_SEND} people per send. Split the list and send again.`,
   longName: `Keep each name and role to ${INVITEE_TEXT_MAX} characters.`,
   already: (email: string) => `${email} already has a personal link. Press Remind to send it again.`,
-  tooManyToday: `This workspace sent ${INVITEES_PER_DAY} invites in the last 24 hours. Try again tomorrow.`,
+  tooManyToday: (left: number) => left === 0 ? `This workspace sent ${INVITEES_PER_DAY} invites in the last 24 hours. Try again tomorrow.` : `This workspace can send ${left} more ${left === 1 ? "invite" : "invites"} today (${INVITEES_PER_DAY} in 24 hours). Shorten the list, or try again tomorrow.`,
+  inFlight: (email: string) => `${email} is being sent now. If it still says Not sent after 15 minutes, paste it again.`,
   notSent: (email: string, reason: string) => `The invite to ${email} was not sent: ${reason}. Check the address and try again.`,
   badShape: "The list did not reach the server as text. Reload the page and try again.",
 } as const;

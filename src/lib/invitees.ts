@@ -4,11 +4,10 @@
 // via SMEsay" with the PM's address as reply-to. The personal links take the public link's
 // open and close instants and follow them (invites.updatePublic, invites.publish) and have
 // no passcode (the address is the proof; docs/review-list.md), so the public link is
-// published and not closed or revoked. The rows are created first, one by one (the partial
-// unique index invite_personal_email_idx refuses a second send of the same address racing
-// this one, reported as already invited; postgresql.org/docs/current/errcodes-appendix.html,
-// 23505 unique_violation, wrapped by the ORM, src/db/queries/onboarding.ts
-// isUniqueViolation), then the emails go out one by one: a send that fails leaves its row
+// published and not closed or revoked. The rows are created first, in one insert under the
+// project row's lock with the link's dates read there (invites.createPersonal; the partial
+// unique index invite_personal_email_idx drops a second send of the same address racing
+// this one, reported as already invited), then the emails go out one by one: a send that fails leaves its row
 // with send_error and the status Not sent (acceptance 5), the others still go, and pasting
 // that address again sends it again on the same row and token (invites.claimResend: a row
 // with no outcome yet is another request's for RESEND_AFTER_MINUTES). Up to INVITEES_PER_DAY rows
@@ -16,7 +15,6 @@
 // (src/lib/invitees-rules.ts; docs/copy/app.md, Share; docs/copy/errors.md).
 import { invites, items, projects, workspaces } from "@/db/queries";
 import type { Invite, InviteeRow } from "@/db/queries/invites";
-import { isUniqueViolation } from "@/db/queries/onboarding";
 import type { WorkspaceId } from "@/db/types";
 import { INVITEES_COPY, INVITEES_ERRORS, INVITEES_PER_DAY, inviteeLine, minutesFor, parseInvitees, type Invitee } from "@/lib/invitees-rules";
 import { inviteEmail } from "@/lib/mail/invite-email";
@@ -36,8 +34,8 @@ export type SendOutcome = { email: string; line: string; sent: boolean; error: s
 // carries a host or a credential onto the row.
 function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
-  if (/ is not set\./.test(text)) throw error;
-  return text.split("\n")[0]?.replace(/\S+:\/\/\S+/g, "[server]").trim().slice(0, 200) || "the mail server refused it";
+  if (/^[A-Z_]+ is not set\./.test(text)) throw error;
+  return text.split("\n")[0]?.replace(/\S+:\/\/\S+/g, "[server]").replace(/\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b/g, "[server]").trim().replace(/\.$/, "").slice(0, 200) || "the mail server refused it";
 }
 
 export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">): keyof typeof INVITEES_COPY.status {
@@ -74,8 +72,11 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     if (row?.sentAt) return { error: INVITEES_ERRORS.already(person.email) };
     if (row) existing.set(person.email, row);
   }
-  const fresh = parsed.invitees.filter((p) => !existing.has(p.email)).length;
-  if (fresh > 0 && (await invites.countPersonalSince(ws, 24 * 60)) + fresh > INVITEES_PER_DAY) return { error: INVITEES_ERRORS.tooManyToday };
+  const fresh = parsed.invitees.filter((p) => !existing.has(p.email));
+  if (fresh.length > 0) {
+    const left = Math.max(0, INVITEES_PER_DAY - (await invites.countPersonalSince(ws, 24 * 60, now)));
+    if (fresh.length > left) return { error: INVITEES_ERRORS.tooManyToday(left) };
+  }
   const project = await projects.get(ws, projectId);
   const workspace = await workspaces.getById(ws);
   if (!project || !workspace) throw new NotFoundError();
@@ -83,28 +84,28 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   const pmName = sender.name?.trim() || sender.email;
   const outcomes: SendOutcome[] = [];
   const created: { person: Invitee; invite: Invite }[] = [];
+  // Sent again on their rows: the name and role typed this time replace the old ones. A
+  // row another request is sending right now cannot be claimed and says so.
   for (const person of parsed.invitees) {
     const row = existing.get(person.email);
-    if (row) {
-      // Sent again on its row: the name and role typed this time replace the old ones. A
-      // row another request is sending right now cannot be claimed and is reported as
-      // already invited.
-      const claimed = await invites.claimResend(ws, row.id, { name: person.name ?? row.name, roleHint: person.role ?? row.roleHint }, now);
-      if (claimed) created.push({ person, invite: claimed });
-      else outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.already(person.email) });
-      continue;
-    }
-    try {
-      const invite = await invites.create(ws, { instrumentId, kind: "personal", token: newToken(), email: person.email, name: person.name, roleHint: person.role, opensAt: link.opensAt, closesAt: link.closesAt });
-      created.push({ person, invite });
-    } catch (error) {
-      if (!isUniqueViolation(error)) throw error;
-      // Another send of this address got in first; its row stands and sends, this one says so.
-      outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.already(person.email) });
-    }
+    if (!row) continue;
+    const claimed = await invites.claimResend(ws, row.id, { name: person.name ?? row.name, roleHint: person.role ?? row.roleHint }, now);
+    if (claimed) created.push({ person, invite: claimed });
+    else outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.inFlight(person.email) });
+  }
+  // The new rows, under the project lock with the link's dates read there; an address
+  // another send got in first is absent from the rows and says so.
+  const inserted = await invites.createPersonal(ws, instrumentId, fresh.map((p) => ({ ...p, token: newToken() })), now);
+  if (!inserted) throw new NotFoundError();
+  if (!inserted.link) return { error: INVITEES_COPY.needLink };
+  const byEmail = new Map(inserted.created.map((i) => [i.email, i]));
+  for (const person of fresh) {
+    const invite = byEmail.get(person.email);
+    if (invite) created.push({ person, invite });
+    else outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.already(person.email) });
   }
   for (const { person, invite } of created) {
-    const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, closesAt: invite.closesAt });
+    const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
     let reason: string | null = null;
     try {
       await send({ ...mail, to: person.email, fromName: `${pmName} via SMEsay`, replyTo: sender.email });

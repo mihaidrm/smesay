@@ -62,6 +62,7 @@ Button: Open your link
 [PERSONAL LINK as plain text]
 
 This link is yours. Do not forward it; answers sent through it are recorded under your name.
+It opens on [OPEN DATE AND TIME, with time zone]. (only when the link opens after the send)
 It closes on [CLOSE DATE AND TIME, with time zone].
 
 Reply-to is the PM's own address, so questions go to the person who knows, and the sender
@@ -72,7 +73,7 @@ name is the PM's (decision 0031).
 Sent by E6 when the PM presses Remind on a personal invite that is not submitted. At most one
 every three days per person (PM app board, Share step). Never sent automatically.
 
-From: [PM NAME] via SMEsay <invites@[DOMAIN]>
+From: [PM NAME] via SMEsay <[EMAIL_FROM address]> (as email 2)
 Reply-to: [PM EMAIL]
 Subject: Reminder: [PROJECT NAME] closes on [CLOSE DATE]
 Preheader: [ANSWERED] of [ITEM COUNT] answered so far.

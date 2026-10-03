@@ -155,10 +155,22 @@ describe("sendInvites", () => {
     await expect(sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
     const ed = (await listInvitees(a.ws, instrument.id))[3];
     expect([ed.email, inviteStatus(ed), ed.sendError]).toEqual(["ed@x.example", "notSent", null]);
-    // A row with no outcome yet is in flight for 15 minutes, then can be sent again.
-    expect(await sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async (mail) => { sent.push(mail); })).toEqual({ outcomes: [{ email: "ed@x.example", line: "ed@x.example", sent: false, error: INVITEES_ERRORS.already("ed@x.example") }] });
-    const much = new Date(ed.createdAt.getTime() + 16 * 60 * 1000);
+    // A row with no outcome yet is in flight for 15 minutes, then can be sent again; two
+    // resends of one failed row at once send one email.
+    expect(await sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async (mail) => { sent.push(mail); })).toEqual({ outcomes: [{ email: "ed@x.example", line: "ed@x.example", sent: false, error: INVITEES_ERRORS.inFlight("ed@x.example") }] });
+    const much = new Date(ed.sendStartedAt!.getTime() + 16 * 60 * 1000);
     expect(await sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, much, async (mail) => { sent.push(mail); })).toEqual({ outcomes: [{ email: "ed@x.example", line: "ed@x.example", sent: true, error: null }] });
+    const failedTwice = await sendInvites(a.ws, project.id, instrument.id, "hal@x.example", sender, BASE, much, async () => { throw new Error("451 try later."); });
+    expect(failedTwice).toEqual({ outcomes: [{ email: "hal@x.example", line: "hal@x.example", sent: false, error: INVITEES_ERRORS.notSent("hal@x.example", "451 try later") }] });
+    const slow = async (mail: Mail) => { await new Promise((r) => setTimeout(r, 50)); sent.push(mail); };
+    const twice = await Promise.all([
+      sendInvites(a.ws, project.id, instrument.id, "hal@x.example", sender, BASE, much, slow),
+      sendInvites(a.ws, project.id, instrument.id, "hal@x.example", sender, BASE, much, slow),
+    ]);
+    const halOutcomes = twice.flatMap((r) => ("outcomes" in r ? r.outcomes : []));
+    expect(halOutcomes.filter((o) => o.sent)).toHaveLength(1);
+    expect([...halOutcomes.map((o) => o.error), ...twice.map((r) => ("error" in r ? r.error : null))].filter((e) => e === INVITEES_ERRORS.inFlight("hal@x.example") || e === INVITEES_ERRORS.already("hal@x.example"))).toHaveLength(1);
+    expect(sent.filter((m) => m.to === "hal@x.example")).toHaveLength(1);
 
     // Two sends of one new address at once: one row, one email, the other told it exists
     // (under its count when its row insert lost, or as the whole refusal when it read the
@@ -173,11 +185,21 @@ describe("sendInvites", () => {
     expect((await listInvitees(a.ws, instrument.id)).filter((r) => r.email === "fay@x.example")).toHaveLength(1);
     expect(sent.filter((m) => m.to === "fay@x.example")).toHaveLength(1);
 
-    // The personal links follow the public link's dates; a closed link refuses sends.
+    // The daily limit says how many can still go.
+    expect(INVITEES_ERRORS.tooManyToday(0)).toBe("This workspace sent 500 invites in the last 24 hours. Try again tomorrow.");
+    expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite today (500 in 24 hours). Shorten the list, or try again tomorrow.");
+    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(6);
+    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date(Date.now() + 48 * 60 * 60 * 1000))).toBe(0);
+    expect(await invites.countPersonalSince(b.ws, 24 * 60, new Date())).toBe(6);
+    // The personal links follow the public link's dates and carry the open date in the
+    // email when it is later than the send; a closed link refuses sends.
     const moved = await saveLink(a.ws, project.id, instrument.id, "2026-10-05T00:00:00Z", "2026-10-25T15:00:00Z", "", false, now);
     if (!("invite" in moved)) throw new Error(moved.error);
     const followed = (await listInvitees(a.ws, instrument.id))[0];
     expect([followed.opensAt, followed.closesAt, followed.passcodeHash]).toEqual([new Date("2026-10-05T00:00:00Z"), new Date("2026-10-25T15:00:00Z"), null]);
+    const opensLater = await sendInvites(a.ws, project.id, instrument.id, "ivy@x.example", sender, BASE, now, async (mail) => { sent.push(mail); });
+    expect(opensLater).toEqual({ outcomes: [{ email: "ivy@x.example", line: "ivy@x.example", sent: true, error: null }] });
+    expect(sent[sent.length - 1].text).toContain("It opens on 5 Oct 2026, 00:00 UTC. It closes on 25 Oct 2026, 15:00 UTC.");
     expect(await sendInvites(a.ws, project.id, instrument.id, "gus@x.example", sender, BASE, new Date("2026-10-26T00:00:00Z"))).toEqual({ error: INVITEES_COPY.linkClosed });
 
     // The personal link opens without the passcode and carries the name and role; a

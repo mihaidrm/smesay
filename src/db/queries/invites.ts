@@ -63,7 +63,8 @@ export const invites = {
       return { invite: created, created: true };
     });
   },
-  // The personal invites of an instrument, oldest first, each with its response's state:
+  // The personal invites of an instrument, oldest first (one send's rows share an instant
+  // and come by address), each with its response's state:
   // the newest response of the invite (one row per invite whatever the response table
   // holds). Addresses and tokens stay inside the workspace: the caller holds its id from
   // the session.
@@ -71,7 +72,7 @@ export const invites = {
     if (!isUuid(instrumentId)) return [];
     const rows = await db.select().from(invite)
       .where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal")))
-      .orderBy(asc(invite.createdAt));
+      .orderBy(asc(invite.createdAt), asc(invite.email));
     if (rows.length === 0) return [];
     const answers = await db.select({ inviteId: response.inviteId, submittedAt: response.submittedAt, updatedAt: response.updatedAt }).from(response)
       .where(and(eq(response.workspaceId, workspaceId), inArray(response.inviteId, rows.map((r) => r.id))))
@@ -83,21 +84,48 @@ export const invites = {
       return { ...r, responseStatus: !a ? "none" : a.submittedAt ? "submitted" : "inProgress", answeredAt: a ? (a.submittedAt ?? a.updatedAt) : null };
     });
   },
-  // Claims a personal invite for sending again (E6-2): only one never sent whose send
-  // failed, or one left with no outcome for RESEND_AFTER_MINUTES (a request that died);
-  // one created more recently with no outcome is in flight on another request. One
-  // statement, so two sends cannot both claim it. Null when it cannot be claimed.
+  // The personal invites of a send (E6-2), inserted under the project row's lock (the one
+  // publish and updatePublic take) with the public link's dates read inside it, so a date
+  // change or a newer version's publish cannot slip between the read and the insert. An
+  // address that already has a personal invite on the instrument is skipped by the partial
+  // unique index (ON CONFLICT DO NOTHING on its columns and predicate:
+  // postgresql.org/docs/current/sql-insert.html, ON CONFLICT; drizzle `where` on onConflictDoNothing,
+  // node_modules/drizzle-orm/pg-core/query-builders/insert.d.ts) and is absent from the
+  // rows returned. Null when the instrument is not in the workspace; `link: null` when it
+  // has no public link.
+  createPersonal: async (workspaceId: WorkspaceId, instrumentId: string, people: { email: string; name: string | null; role: string | null; token: string }[], now = new Date()): Promise<{ link: Invite | null; created: Invite[] } | null> => {
+    if (!isUuid(instrumentId)) return null;
+    return db.transaction(async (tx) => {
+      const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
+      if (!own) return null;
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("no key update");
+      const [link] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
+      if (!link) return { link: null, created: [] };
+      if (people.length === 0) return { link, created: [] };
+      const created = await tx.insert(invite)
+        .values(people.map((p) => ({ workspaceId, instrumentId, kind: "personal" as const, token: p.token, email: p.email, name: p.name, roleHint: p.role, opensAt: link.opensAt, closesAt: link.closesAt, sendStartedAt: now })))
+        .onConflictDoNothing({ target: [invite.instrumentId, invite.email], where: sql`${invite.kind} = 'personal'` })
+        .returning();
+      return { link, created };
+    });
+  },
+  // Claims a personal invite for sending again (E6-2): one never sent whose send failed,
+  // or one whose last send started RESEND_AFTER_MINUTES ago with no outcome (a request
+  // that died); one started more recently with no outcome is in flight on another request.
+  // One statement that moves send_started_at, so two sends cannot both claim it. Null when
+  // it cannot be claimed.
   claimResend: async (workspaceId: WorkspaceId, id: string, patch: { name: string | null; roleHint: string | null }, now = new Date()): Promise<Invite | null> => {
     if (!isUuid(id)) return null;
     const stale = new Date(now.getTime() - RESEND_AFTER_MINUTES * 60 * 1000);
-    const rows = await db.update(invite).set({ ...patch, sendError: null })
-      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.sentAt), or(sql`${invite.sendError} is not null`, sql`${invite.createdAt} < ${sql.param(stale, invite.createdAt)}`)))
+    const rows = await db.update(invite).set({ ...patch, sendError: null, sendStartedAt: now })
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.sentAt), or(sql`${invite.sendError} is not null`, isNull(invite.sendStartedAt), sql`${invite.sendStartedAt} < ${sql.param(stale, invite.sendStartedAt)}`)))
       .returning();
     return rows[0] ?? null;
   },
-  // The personal invites created in the workspace in the last `minutes` (the send limit).
-  countPersonalSince: async (workspaceId: WorkspaceId, minutes: number): Promise<number> =>
-    (await db.select({ n: count() }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "personal"), gt(invite.createdAt, new Date(Date.now() - minutes * 60 * 1000)))))[0].n,
+  // The personal invites created in the workspace in the `minutes` before `now` (the send
+  // limit; the check and the inserts are not one statement, docs/review-list.md).
+  countPersonalSince: async (workspaceId: WorkspaceId, minutes: number, now = new Date()): Promise<number> =>
+    (await db.select({ n: count() }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "personal"), gt(invite.createdAt, new Date(now.getTime() - minutes * 60 * 1000)))))[0].n,
   // The personal invite of an address on an instrument, if any.
   personalByEmail: async (workspaceId: WorkspaceId, instrumentId: string, email: string): Promise<Invite | null> => {
     if (!isUuid(instrumentId)) return null;

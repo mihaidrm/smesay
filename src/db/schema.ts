@@ -247,8 +247,10 @@ export const invite = pgTable("invite", {
   revokedAt: ts("revoked_at"),
   remindersSent: integer("reminders_sent").notNull().default(0),
   lastReminderAt: ts("last_reminder_at"),
-  // E6-2: when the personal invite's email went out, and the provider's reason when it
-  // did not (null and null: not sent yet).
+  // E6-2: when the last send of the personal invite's email started (the row is that
+  // request's for RESEND_AFTER_MINUTES), when it went out, and the provider's reason when
+  // it did not.
+  sendStartedAt: ts("send_started_at"),
   sentAt: ts("sent_at"),
   sendError: text("send_error"),
   createdAt: ts("created_at").notNull().defaultNow(),

@@ -205,6 +205,7 @@ a public link or a personal link per email; opens and closes; passcode; revoked;
 | revoked_at | timestamp with time zone |  |
 | reminders_sent | integer | not null, default 0 |
 | last_reminder_at | timestamp with time zone |  |
+| send_started_at | timestamp with time zone |  |
 | sent_at | timestamp with time zone |  |
 | send_error | text |  |
 | created_at | timestamp with time zone | not null, default now() |
@@ -213,7 +214,7 @@ Unique: invite_id_workspace_uq on id, workspace_id; invite_id_instrument_uq on i
 
 Foreign keys: invite_instrument_fk (instrument_id, workspace_id) references instrument (id, workspace_id) on delete cascade.
 
-Indexes: invite_workspace_idx on workspace_id; invite_instrument_idx on instrument_id; invite_token_idx (unique) on token; invite_personal_email_idx (unique) on instrument_id, email.
+Indexes: invite_workspace_idx on workspace_id; invite_instrument_idx on instrument_id; invite_token_idx (unique) on token; invite_personal_email_idx (unique) on instrument_id, email where invite.kind = 'personal'.
 Checks: invite_kind_check: kind in ('public', 'personal'); invite_personal_email_check: kind = 'public' or email is not null; invite_token_length_check: length(token) >= 32.
 
 ## response
