@@ -18,6 +18,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, item, project } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
+import { renamePairs } from "@/lib/perspectives";
 import { isUuid, scoped, type NewRow } from "./scoped";
 
 export type Instrument = typeof instrument.$inferSelect;
@@ -42,13 +43,15 @@ export const instruments = {
     });
   },
   // The names, and every item of the instrument's set rewritten by the pairs (an old name
-  // that survives and its new spelling, src/lib/perspectives.ts renamePairs): a tag not in
-  // the pairs is dropped. Null when the instrument is not in the workspace.
-  setPerspectives: async (workspaceId: WorkspaceId, instrumentId: string, names: string[], pairs: { from: string; to: string }[]): Promise<Instrument | null> => {
+  // that survives and its new spelling, src/lib/perspectives.ts renamePairs, computed from
+  // the names read under the lock, so two saves at once cannot pair against stale names):
+  // a tag not in the pairs is dropped. Null when the instrument is not in the workspace.
+  setPerspectives: async (workspaceId: WorkspaceId, instrumentId: string, names: string[]): Promise<Instrument | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
-      const [locked] = await tx.select({ id: instrument.id, itemSetId: instrument.itemSetId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
+      const [locked] = await tx.select({ id: instrument.id, itemSetId: instrument.itemSetId, perspectives: instrument.perspectives }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
       if (!locked) return null;
+      const pairs = renamePairs(locked.perspectives, names);
       const [updated] = await tx.update(instrument).set({ perspectives: names }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).returning();
       // sql.param with the column as the encoder: a bare array in the template would be
       // inlined as a list (drizzle-orm/sql/sql.js, buildQueryFromSourceParams).

@@ -19,7 +19,7 @@ import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
-import { parsePerspectives, parseTags, PERSPECTIVES_COPY, renamePairs } from "@/lib/perspectives";
+import { parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
@@ -149,7 +149,7 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
   if (await isPublished(ws, instrumentId)) return { error: PERSPECTIVES_COPY.locked };
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names, renamePairs(owned.instrument.perspectives, parsed.names));
+  const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }

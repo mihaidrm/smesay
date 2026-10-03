@@ -219,6 +219,18 @@ describe("perspectives (stories/E5-4)", () => {
     await savePerspectives(a.ws, project.id, instrument.id, "Finance");
     expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["Finance"]);
     expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    // A case swap of two names rewrites in one pass; removing every name empties the tags.
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance\nsales");
+    await tagItem(a.ws, project.id, second.id, JSON.stringify(["sales", "Finance"]));
+    await savePerspectives(a.ws, project.id, instrument.id, "finance\nSales");
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual(["Sales", "finance"]);
+    await savePerspectives(a.ws, project.id, instrument.id, "");
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual([]);
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance\nSales");
+    await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance"]));
+    await tagItem(a.ws, project.id, second.id, JSON.stringify(["Finance"]));
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance");
     // An item of another project of the same workspace, through this project's id, is 404;
     // the sample's items through a plain project id too.
     const other = await projects.create(a.ws, { name: "Other", createdBy: a.userId });

@@ -36,7 +36,8 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const published = instrument !== null && onThisSet && (await isPublished(current.ws, instrument.id));
   const perspectives = instrument && onThisSet && !published ? instrument.perspectives : [];
   const builtOn = instrument && !onThisSet ? await itemSets.get(current.ws, instrument.itemSetId) : null;
-  const perspectivesNote = !instrument || instrument.perspectives.length === 0 || project.isSample ? null : published ? PERSPECTIVES_COPY.locked : !onThisSet && set ? PERSPECTIVES_COPY.otherSet(builtOn?.version ?? 0, set.version) : null;
+  if (instrument && !onThisSet && !builtOn) notFound();
+  const perspectivesNote = !instrument || instrument.perspectives.length === 0 || project.isSample ? null : published ? PERSPECTIVES_COPY.locked : !onThisSet && set && builtOn ? PERSPECTIVES_COPY.otherSet(builtOn.version, set.version) : null;
   const groups = set ? groupByArea(set, rows) : [];
   const shaped = set !== null && set.shapedAt !== null;
   const imported = hadImportedAreas(rows);

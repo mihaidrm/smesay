@@ -26,7 +26,7 @@ src/components/respondent/about-you.tsx, build/preview-panel.tsx, migration 0014
   items only (visibleItems). The preview lifts the picks into the panel so the Items
   screen and its "0 of [N]" follow them: the page sends the first ten untagged cards and
   the first ten per name, the panel draws the first ten visible, drops a chapter the picks
-  empty from the row and the Start label, and shows "Nothing to rate for what you picked"
+  empty from the row and the Start label, and shows "Nothing to rate yet"
   when nothing is left.
 - The chips on Shape are a group named "Perspectives of [REF]", pressed state by
   aria-pressed, optimistic and aria-disabled (keeping focus) while the server answers, and
