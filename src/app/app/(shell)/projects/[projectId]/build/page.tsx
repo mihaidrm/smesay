@@ -81,8 +81,8 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             <span className="rounded-full bg-tint px-3 py-1 text-xs font-semibold text-ink-muted">{BUILD_COPY.previewDevice}</span>
           </div>
           <p className="flex items-center gap-2 text-[13px] text-ink-muted"><span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-sm bg-violet" />{BUILD_COPY.previewCaption}</p>
-          <div className="mx-auto h-[720px] w-[390px] overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground ring-2 ring-violet/40 ring-offset-2 ring-offset-surface">
-            <AboutYou key={`${instrument.id}-${JSON.stringify(instrument.respondentFields)}-${instrument.intro}-${instrument.title}`} workspaceName={current.workspace.name} accent={effectiveAccent(current.workspace.accentHex)} title={instrument.title} intro={instrument.intro} fields={instrument.respondentFields} firstChapter={firstChapter} preview />
+          <div className="mx-auto h-[720px] w-[390px] overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground">
+            <AboutYou key={`${instrument.id}-${JSON.stringify(instrument.respondentFields)}-${instrument.intro}-${instrument.title}`} workspaceName={current.workspace.name} accent={effectiveAccent(current.workspace.accentHex)} title={instrument.title} intro={instrument.intro} fields={instrument.respondentFields} firstChapter={firstChapter} preview heading="h4" ring="fields" />
           </div>
         </aside>
       </div>

@@ -291,6 +291,8 @@ export async function buildOnLatestAction(_previous: ProjectFormState, formData:
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
-  revalidatePath(`/app/projects/${projectId}`, "layout");
+  // The stepper in the project layout and the Build page both change: the route pattern with
+  // "layout" (revalidatePath.md: a dynamic segment takes the pattern and the type).
+  revalidatePath("/app/projects/[projectId]", "layout");
   return { ...NONE, saved: true };
 }

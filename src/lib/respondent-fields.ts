@@ -5,7 +5,6 @@
 // the key is the label's slug, unique in the instrument (-2, -3 when two labels slug the
 // same). Messages: docs/copy/errors.md, Build and Share.
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
-import { slugFromName } from "@/lib/workspace-name";
 
 export const FIELD_LABEL_MAX = 60;
 export const FIELDS_MAX = 8;
@@ -39,9 +38,11 @@ export const DEFAULT_FIELDS: RespondentFieldSpec[] = [
 // line when the row is a dropdown.
 export type FieldInput = { label: string; type: string; mandatory: boolean; options?: string };
 
+// The label in lower case, accents dropped, runs of anything but letters and digits as one
+// hyphen (the slug rule of src/lib/workspace-name.ts); "field" when nothing is left.
 export function fieldKey(label: string): string {
-  const slug = slugFromName(label);
-  return slug === "workspace" && !/workspace/i.test(label) ? "field" : slug;
+  const slug = label.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "field";
 }
 
 // Keys in order, each unique: the second "Role" becomes role-2.
@@ -58,9 +59,13 @@ export function uniqueKeys(labels: string[]): string[] {
 
 const isFieldType = (value: unknown): value is FieldType => typeof value === "string" && (FIELD_TYPES as readonly string[]).includes(value);
 
-export function parseOptions(raw: unknown): string[] {
-  const lines = Array.isArray(raw) ? raw.map(String) : String(raw ?? "").split(/\r?\n/);
-  return lines.map((l) => l.trim()).filter(Boolean);
+// Options as the form posts them (one per line) or as stored (a list of strings); null when
+// anything in them is not a string.
+export function parseOptions(raw: unknown): string[] | null {
+  if (raw === undefined || raw === null) return [];
+  if (typeof raw === "string") return raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!Array.isArray(raw) || raw.some((o) => typeof o !== "string")) return null;
+  return raw.map((l) => l.trim()).filter(Boolean);
 }
 
 // The server-side rule (acceptance 4), run on what the form posted. The first problem wins;
@@ -73,12 +78,14 @@ export function parseFields(raw: unknown): { error: string } | { fields: Respond
   const labels: string[] = [];
   const parsed: Omit<RespondentFieldSpec, "key">[] = [];
   for (const row of rows) {
-    const label = String(row.label ?? "").trim();
+    if (typeof row.label !== "string") return { error: FIELDS_COPY.badShape };
+    const label = row.label.trim();
     if (label.length < 1 || label.length > FIELD_LABEL_MAX) return { error: FIELDS_COPY.badLabel };
     if (!isFieldType(row.type)) return { error: FIELDS_COPY.badType };
     const mandatory = row.mandatory === true || row.mandatory === "true" || row.mandatory === "on";
     if (row.type === "dropdown") {
       const options = parseOptions(row.options);
+      if (options === null) return { error: FIELDS_COPY.badShape };
       const distinct = new Set(options.map((o) => o.toLowerCase()));
       if (options.length < OPTIONS_MIN || options.length > OPTIONS_MAX || distinct.size !== options.length || options.some((o) => o.length > FIELD_LABEL_MAX)) return { error: FIELDS_COPY.badOptions };
       parsed.push({ label, type: "dropdown", mandatory, options });

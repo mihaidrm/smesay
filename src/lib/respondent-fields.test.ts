@@ -9,6 +9,7 @@ describe("field keys", () => {
     expect(fieldKey("Your name")).toBe("your-name");
     expect(fieldKey("Rôle / team")).toBe("role-team");
     expect(fieldKey("??")).toBe("field");
+    expect(fieldKey("Wórkspace")).toBe("workspace");
     expect(uniqueKeys(["Role", "role", "Role", "Name"])).toEqual(["role", "role-2", "role-3", "name"]);
   });
 });
@@ -35,6 +36,9 @@ describe("parseFields", () => {
     expect(parseFields([{ label: "Role", type: "dropdown", mandatory: true, options: Array.from({ length: 21 }, (_, i) => `O${i}`).join("\n") }])).toEqual({ error: FIELDS_COPY.badOptions });
     expect(parseFields("nope")).toEqual({ error: FIELDS_COPY.badShape });
     expect(parseFields([null])).toEqual({ error: FIELDS_COPY.badShape });
+    expect(parseFields([{ label: 12345, type: "text", mandatory: false }])).toEqual({ error: FIELDS_COPY.badShape });
+    expect(parseFields([{ label: {}, type: "text", mandatory: false }])).toEqual({ error: FIELDS_COPY.badShape });
+    expect(parseFields([{ label: "Role", type: "dropdown", mandatory: true, options: [{}, "b"] }])).toEqual({ error: FIELDS_COPY.badShape });
   });
   it("takes eight fields and twenty options", () => {
     expect(ok(Array.from({ length: 8 }, (_, i) => ({ label: `F${i}`, type: "text", mandatory: false }))).length).toBe(8);

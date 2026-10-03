@@ -9,7 +9,7 @@ export const TITLE_MAX = 80;
 export const BUILD_COPY = {
   title: "Build the instrument",
   line: (version: number) => `What respondents see, from version ${version} of the list. The preview on the right follows every save.`,
-  noSet: "Import a list first. Build works on the latest version.",
+  noSet: "Import a list first. Build works on an imported version.",
   noSetLink: "Go to Import",
   introCard: "Intro",
   titleLabel: "Title",
@@ -32,6 +32,7 @@ export const BUILD_COPY = {
   newer: (built: number, latest: number) => `Version ${latest} of the list was imported after this instrument was built on version ${built}. The instrument keeps version ${built} until you build on the new one; the intro and the fields are copied over.`,
   buildOn: (version: number) => `Build on version ${version}`,
   alreadyLatest: "This instrument is already built on the latest version of the list.",
+  replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
   preview: "Preview",
   previewCaption: "Highlighted: what this step changes. The fields respondents fill in.",
   previewDevice: "Phone",

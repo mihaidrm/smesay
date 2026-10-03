@@ -25,8 +25,11 @@ respondents fill in, and the preview refuses to start until the mandatory ones a
 ## Out of scope
 - Publishing: E6-1. Scoring, layout, closing: E5-2, E5-3, E5-5.
 
-## Open questions
-- None.
+## Open questions (design note 38, 2026-10-03)
+1. The hint under Start reads "Fill in your name and role to start." whatever the fields are
+   called. Recommended: "Fill in the required fields to start." when the required fields are
+   not exactly Name and Role. Waits for Mihai before E7-1 mounts the page.
+2. Role defaults to a text field, not the board's dropdown with options. Waits for Mihai.
 
 ## Technical notes
 instrument.respondent_fields as RespondentFieldSpec[] (INTERFACES.md), with `type: "email"`
@@ -62,4 +65,10 @@ Built 2026-10-03 (design note 38):
   Start enabled.
 - `type: "email"` is in INTERFACES.md and src/db/types.ts; the column is jsonb with no check
   on the type, so no migration was needed.
+- Audit of 2026-10-03 (22 findings, none blocking): one draft per project and set under the
+  project lock (instruments.createOnSet), edits and "Build on version N" refused on a draft
+  that is no longer the newest, the cross-workspace read test, per-row accessible names and
+  focus moves on the fields card, aria-required and the hint linked to Start, the ring on
+  the fields block, non-string input refused, the secondary Save buttons, and the doc rows.
+  The hint wording (question 1) stays as the story wrote it until Mihai decides.
 

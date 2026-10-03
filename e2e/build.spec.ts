@@ -69,6 +69,8 @@ test("build the intro and the respondent fields, see them in the preview", async
   // A dropdown field (acceptance 2 and 5): add, type, options, save, see the select.
   await page.getByRole("button", { name: "Add a field" }).click();
   await expect(page.getByTestId("field-row")).toHaveCount(3);
+  // Focus lands on the new row's label (design note 38).
+  await expect(page.getByLabel("Label, field 3")).toBeFocused();
   await page.getByLabel("Label").nth(2).fill("Team");
   await page.getByLabel("Type").nth(2).selectOption("dropdown");
   await page.getByLabel("Options, one per line").fill("Sales\nFinance\nHR");
@@ -90,6 +92,7 @@ test("build the intro and the respondent fields, see them in the preview", async
 
   // Removing the last field is refused (acceptance 2).
   await page.getByRole("button", { name: "Remove Team" }).click();
+  await expect(page.getByRole("button", { name: "Add a field" })).toBeFocused();
   await page.getByRole("button", { name: "Remove Role" }).click();
   await expect(page.getByTestId("field-row")).toHaveCount(1);
   await page.getByRole("button", { name: "Remove Name" }).click();

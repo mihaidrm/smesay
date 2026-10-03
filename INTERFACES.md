@@ -31,7 +31,8 @@ the check constraints use them). Change this file first.
   options?: string[] } (E5-1, 2026-10-03: `email` added for the submission receipt,
   docs/copy/emails.md email 4; the key is the label's slug, unique per instrument, suffixed
   -2, -3 when two labels slug the same; label 1 to 60 characters, up to 8 fields, a dropdown
-  has 2 to 20 options; src/lib/respondent-fields.ts is the code twin of the rule).
+  has 2 to 20 options, each up to 60 characters and different from the others ignoring
+  case; src/lib/respondent-fields.ts is the code twin of the rule).
 - ClosingSpec (jsonb, instrument.closing):
   { confidence: true, missingForm: boolean, signOffText: string }
 - ImportReport (jsonb, item_set.import_report):

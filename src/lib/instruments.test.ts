@@ -1,8 +1,8 @@
 // The instrument draft (stories/E5-1, acceptance 1, 2 and 4, and the line owed from E3-6)
 // on the test database: Build creates one draft per project on the latest set, titled after
 // the project with Name and Role; the intro and the fields save with the rule; a newer set
-// gets "Build on version 2", which copies the draft; the sample refuses edits; another
-// workspace's ids are 404.
+// gets "Build on version 2", which copies the draft and locks the old one; two opens at once
+// make one draft; the sample refuses edits; another workspace reads nothing and its ids are 404.
 import { beforeAll, describe, expect, it } from "vitest";
 import { instruments, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -59,6 +59,23 @@ describe("openDraft", () => {
     const again = await openDraft(a.ws, project);
     expect(again?.instrument.id).toBe(first?.instrument.id);
     expect((await instruments.list(a.ws)).filter((i) => i.projectId === project.id).length).toBe(1);
+    // Two opens at once (two tabs) end with one draft: createOnSet works under the project lock.
+    const fresh = await projects.create(a.ws, { name: "Raced", createdBy: a.userId });
+    await importList(a.ws, a.userId, fresh.id, ["One", "Two"]);
+    const drafts = await Promise.all([openDraft(a.ws, fresh), openDraft(a.ws, fresh), openDraft(a.ws, fresh)]);
+    expect(new Set(drafts.map((d) => d?.instrument.id)).size).toBe(1);
+    expect((await instruments.list(a.ws)).filter((i) => i.projectId === fresh.id).length).toBe(1);
+  });
+  it("reads nothing of another workspace", async () => {
+    const project = await projects.create(a.ws, { name: "Mine", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    await openDraft(a.ws, project);
+    expect(await instruments.latestForProject(a.ws, project.id)).not.toBeNull();
+    expect(await instruments.latestForProject(b.ws, project.id)).toBeNull();
+    expect(await instruments.latestForProject(a.ws, "not-a-uuid")).toBeNull();
+    expect(await openDraft(b.ws, project)).toBeNull();
+    expect(await instruments.createOnSet(b.ws, { projectId: project.id, itemSetId: (await openDraft(a.ws, project))!.builtOn.id, title: "B" })).toBeNull();
+    expect((await instruments.list(b.ws)).length).toBe(0);
   });
 });
 
@@ -115,5 +132,11 @@ describe("buildOnLatest", () => {
     expect(v2.instrument.id).toBe(built.instrument.id);
     expect(v2.newer).toBeNull();
     expect((await instruments.get(a.ws, v1.instrument.id))?.itemSetId).not.toBe(set2.id);
+    // The replaced draft can no longer be edited or built on (a stale tab).
+    expect(await saveIntro(a.ws, project.id, v1.instrument.id, "Stale", "x")).toEqual({ error: BUILD_COPY.replaced });
+    expect(await saveFields(a.ws, project.id, v1.instrument.id, JSON.stringify(DEFAULT_FIELDS))).toEqual({ error: BUILD_COPY.replaced });
+    expect(await buildOnLatest(a.ws, project.id, v1.instrument.id)).toEqual({ error: BUILD_COPY.replaced });
+    expect((await instruments.get(a.ws, v1.instrument.id))?.title).toBe("Versions");
+    expect((await instruments.list(a.ws)).filter((i) => i.projectId === project.id).length).toBe(2);
   });
 });
