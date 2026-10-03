@@ -38,16 +38,25 @@ async function ready(ws: WorkspaceId, projectId: string, instrumentId: string, s
   return { pmName: sender.name?.trim() || sender.email, projectName: project.name, itemCount, rows: await listInvitees(ws, instrumentId) };
 }
 
-// The claim (the rule in one statement, a submit in the same moment included), then the
+// The claim (the rule in one statement), then the newest response read again (a submit
+// that landed since the claim started is seen here and the claim given back), then the
 // email; anything that fails or throws after the claim gives it back first, a missing
-// mail variable included (reasonOf throws it, named).
+// mail variable included (reasonOf throws it, named). A refused claim is read again from
+// the database to say which: the row changed under the PM (not due any more, or too
+// soon), or another request got there first.
 async function remindRow(ws: WorkspaceId, row: InviteeRow, pmName: string, projectName: string, itemCount: number, sender: Sender, baseUrl: string, now: Date, send: (mail: Mail) => Promise<void>): Promise<RemindOutcome> {
   const email = row.email ?? "";
   const claimed = await invites.claimReminder(ws, row.id, now, REMIND_AFTER_HOURS);
-  if (!claimed) return { email, sent: false, error: canRemind(row, now).ok ? REMINDERS_COPY.raced(email) : REMINDERS_COPY.notDue(email) };
+  if (!claimed) {
+    const fresh = (await listInvitees(ws, row.instrumentId)).find((r) => r.id === row.id);
+    const check = fresh ? canRemind(fresh, now) : null;
+    if (!check || check.ok) return { email, sent: false, error: REMINDERS_COPY.raced(email) };
+    return { email, sent: false, error: check.why === "tooSoon" ? tooSoonLine(check) : REMINDERS_COPY.notDue(email) };
+  }
   let sentOk = false;
   try {
     const response = await responses.forInvite(ws, row.id);
+    if (response?.submittedAt) return { email, sent: false, error: REMINDERS_COPY.notDue(email) };
     const answered = response ? await answers.countForResponse(ws, response.id) : 0;
     const mail = reminderEmail({ pmName, projectName, respondentName: row.name, answered, itemCount, url: `${baseUrl}/r/${row.token}`, closesAt: claimed.closesAt });
     try {

@@ -25,7 +25,9 @@ Public links and respondents
   host or a credential (an @, a scheme, an IPv4 or IPv6 address, a dotted host name, a
   host:port, anywhere in the word) replaced by "[server]" first.
   At most 500 personal invites per workspace in 24 hours (src/lib/invitees.ts), since the
-  PM names the sender and three lines of the body.
+  PM names the sender and three lines of the body. Reminders (E6-3) go at most once per
+  person every 72 hours, only on a press, over those invites; no limit of their own
+  (docs/review-list.md).
 - The passcode is stored as a salted scrypt hash with its parameters (src/lib/passcode.ts)
   and remembered per device by a cookie scoped to the link's path that holds an HMAC under a
   key derived from the app's secret, never the passcode (src/lib/link-access.ts). Wrong

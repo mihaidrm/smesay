@@ -243,7 +243,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | After Send | [N] invites sent. (1 invite sent.) Under it, one line per address that was not sent (docs/copy/errors.md). The box keeps only those addresses, one per line, so Send tries them again. |
 | Invite list | Columns: Person ([NAME], then [EMAIL], [ROLE] under it; the email alone when no name); Status: Invited / In progress / Submitted / Not sent (with the provider's reason under it, or: Paste the address again to send it. A send in progress holds the address for 15 minutes.), and the last save or submit as [DATE AND TIME UTC] under the pill; Reminders: None sent, or [N] sent, last [DATE AND TIME UTC]; the last column: [Button: Remind] (E6-3), or in its place: Reminded [DAYS] days ago. The next reminder can go on [DATE AND TIME UTC]. (nothing for a submitted person or a Not sent row). Revoke per row comes with E6-4. |
 | Reminders line and button over the list (E6-3) | Reminders go only when you press the button, at most one per person every three days, never after they submit. [Button: Remind everyone who has not submitted] (off with: Nobody is due a reminder.) |
-| After Remind or Remind everyone (E6-3) | [N] reminders sent. (1 reminder sent.) Under it, one line per person not sent (docs/copy/errors.md). |
+| After Remind or Remind everyone (E6-3) | [N] reminders sent. (1 reminder sent.) Under it, one line per person not sent (docs/copy/errors.md). Remind everyone with nobody due (a stale tab): Nobody is due a reminder. |
 | Invite list, empty | Nobody invited yet. |
 | Personal invites on the sample | The sample project cannot be edited. (the list shows) |
 

@@ -141,7 +141,18 @@ describe("remindInvitee and remindAll", () => {
     ]);
     expect(twice.filter((r) => "outcome" in r && r.outcome.sent)).toHaveLength(1);
     // The loser is refused by the claim, or by the rule when it read the row after the win.
-    expect(twice.filter((r) => ("error" in r && r.error.startsWith("Reminded 0 days ago.")) || ("outcome" in r && r.outcome.error === REMINDERS_COPY.raced("dee@x.example")))).toHaveLength(1);
+    // The loser read the row before or after the win: the too-soon line either way.
+    expect(twice.filter((r) => ("error" in r && r.error.startsWith("Reminded 0 days ago.")) || ("outcome" in r && r.outcome.error?.startsWith("Reminded 0 days ago.")))).toHaveLength(1);
+    // The claim reads the newest response: Bo's older in-progress response with a newer
+    // submitted one refuses; a newer in-progress one after an older submitted one allows,
+    // as the list shows Remind then (docs/review-list.md).
+    const boSubmitted = await responses.create(a.ws, { instrumentId: instrument.id, itemSetId: instrument.itemSetId, inviteId: bo.id, deviceToken: randomBytes(16).toString("hex"), fields: {}, submittedAt: h(75), updatedAt: new Date(boResponse.updatedAt.getTime() + 1000) });
+    expect(await invites.claimReminder(a.ws, bo.id, h(200), REMIND_AFTER_HOURS)).toBeNull();
+    await responses.update(a.ws, boSubmitted.id, { updatedAt: new Date(boResponse.updatedAt.getTime() - 1000) });
+    const boAgain = await invites.claimReminder(a.ws, bo.id, h(200), REMIND_AFTER_HOURS);
+    expect(boAgain?.remindersSent).toBe(2);
+    await invites.unclaimReminder(a.ws, bo.id, h(200), t1);
+    await responses.remove(a.ws, boSubmitted.id);
     expect((await listInvitees(a.ws, instrument.id))[3].remindersSent).toBe(1);
 
     // Remind everyone 73 hours after Dee's reminder at h(74): Ana (h(73)), Bo (t1) and Dee

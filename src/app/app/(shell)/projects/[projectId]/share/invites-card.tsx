@@ -3,9 +3,9 @@
 // their status (Invited, In progress, Submitted, or Not sent when the email did not go,
 // with the reason when one was recorded), the reminders sent (E6-3 sends them) and the
 // last date: the response's last save or submit; Remind on a row and "Remind everyone who
-// has not submitted" over the list (stories/E6-3, remind-buttons.tsx), with the reason in
-// place of Remind when a person cannot be reminded now (reminders-rules.ts canRemind:
-// submitted, not sent, or reminded under three days ago). The box and the buttons are on
+// has not submitted" over the list (stories/E6-3, remind-buttons.tsx), with the too-soon
+// line in place of Remind when a person was reminded under three days ago and nothing
+// for a submitted person or a Not sent row (reminders-rules.ts canRemind). The box and the buttons are on
 // while the public link is published and not closed or revoked. The sample shows its list
 // read-only. Copy: docs/copy/app.md (Share, Personal invites).
 import { listInvitees, inviteStatus } from "@/lib/invitees";

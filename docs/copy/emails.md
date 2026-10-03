@@ -83,13 +83,12 @@ Hi [RESPONDENT NAME], (Hi, when the invite has no name)
 
 [PM NAME] is still waiting for your answers on [PROJECT NAME]. The link closes on
 [CLOSE DATE AND TIME, with time zone]. (the clause and the subject's "closes on" are dropped
-when the link has no close date, which Publish does not allow; [ANSWERED] of 1 item in the
-singular)
+when the link has no close date, which Publish does not allow)
 
 [One of:]
 You have not started yet.
 You answered [ANSWERED] of [ITEM COUNT] items. Your answers are saved; pick up where you left
-off.
+off. (1 item in the singular)
 
 Button: Carry on
 

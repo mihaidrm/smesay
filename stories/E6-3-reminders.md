@@ -28,7 +28,8 @@ Same transport as E2-1. "Remind everyone" is one request that returns per-row re
 Built 2026-10-03 (design note 48, decision 0044):
 - Acceptance 1: Remind on each row of the Personal invites card and "Remind everyone who
   has not submitted" over the list (share/remind-buttons.tsx); a submitted person, a Not
-  sent row and a revoked link have no Remind; under three days since the last reminder
+  sent row and a revoked invite have no Remind (a closed or revoked public link switches
+  every button off); under three days since the last reminder
   the row shows "Reminded [DAYS] days ago. The next reminder can go on [DATE]." in place
   of the button (src/lib/reminders-rules.ts canRemind), and the server says the same.
 - Acceptance 2: email 3 (src/lib/mail/reminder-email.ts) with "You have not started yet."
