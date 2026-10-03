@@ -215,10 +215,13 @@ describe("closing (stories/E5-5)", () => {
     const sampleDraft = (await openDraft(a.ws, sample))!;
     expect(await saveClosing(a.ws, sample.id, sampleDraft.instrument.id, "", "1", "Yes.", "1")).toEqual({ error: BUILD_COPY.sample });
     await expect(saveClosing(b.ws, project.id, instrument.id, "", "1", "Yes.", "1")).rejects.toBeInstanceOf(NotFoundError);
-    // Published: the question posted is ignored and the stored one kept; the switch and
-    // the sign-off still change. Build on version 2 carries the closing.
+    // Published: the locked form posts no question (null) and the stored one is kept while
+    // the switch and the sign-off change; a stale tab posting another question is refused;
+    // the same question passes. Build on version 2 carries the closing.
     await saveClosing(a.ws, project.id, instrument.id, "Kept?", "1", "Yes.", "1");
     await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    const lockedForm = await saveClosing(a.ws, project.id, instrument.id, null, "0", "Signed.", "1");
+    expect("instrument" in lockedForm && lockedForm.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Signed.", closingQuestion: "Kept?" });
     expect(await saveClosing(a.ws, project.id, instrument.id, "Changed?", "0", "Signed.", "1")).toEqual({ error: CLOSING_COPY.questionLocked });
     const after = await saveClosing(a.ws, project.id, instrument.id, "Kept?", "0", "Signed.", "1");
     expect("instrument" in after && after.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Signed.", closingQuestion: "Kept?" });

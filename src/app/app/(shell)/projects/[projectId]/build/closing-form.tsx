@@ -7,8 +7,9 @@
 // change. Focusing or clicking any control opens the Wrap up in the preview (acceptance
 // 3): React's onFocus bubbles, unlike the browser's focus event
 // (react.dev/reference/react-dom/components/common#focusevent-handler), and the click
-// covers browsers that do not focus a button on click (MDN's button page, "Clicking and
-// focus"; unverified in this session). "Saved."
+// covers Safari, which does not focus a button on click (MDN, <button>, "Clicking and
+// focus": "Most browsers do give focus to a button being clicked, but Safari does not, by
+// design"). "Saved."
 // until the next change; Save is secondary like the other Build cards (design note 38).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";

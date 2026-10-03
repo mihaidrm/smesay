@@ -45,5 +45,8 @@ new version does not change the published instrument..." (docs/copy/errors.md) o
 instrument can be published.
 
 Owed from E5-4 and E5-5 (recorded 2026-10-03): publishing takes the instrument row's lock
-(the one instruments.setPerspectives and instruments.tagItem take), so a perspective or
-closing change in flight cannot land after the invite row exists; docs/review-list.md.
+(the one instruments.setPerspectives and instruments.tagItem take), and the four saves
+that lock on publish (saveScoring, savePerspectives, tagItem, saveClosing) move their
+published check inside a transaction that locks the row, re-reads the invites and writes;
+today the check runs outside any lock, so a change that passed it before the publish would
+still land; docs/review-list.md.

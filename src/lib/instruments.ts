@@ -157,19 +157,22 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
 
 // The Closing card (stories/E5-5): the closing question, the missing-item form switch and
 // the sign-off text, with confidence always on (parseClosing refuses it off). Once
-// published the question is locked (its answers are stored per response) and whatever is
-// posted for it is ignored; the switch and the sign-off still change.
+// published the question is locked (its answers are stored per response): the locked form
+// posts no question (a disabled input is left out of the form data) and the stored one is
+// kept; a stale tab that posts another question is refused; the switch and the sign-off
+// still change.
 export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  // A stale tab that posts another question after publishing gets the locked message, not
-  // "Saved." over a question that was dropped. The check runs before the row lock, as
-  // saveScoring's does (E6-1 takes the instrument lock when it publishes).
+  // The published check runs outside any lock, as saveScoring's does; closing the race with
+  // a publish in flight is owed to E6-1 (docs/review-list.md).
+  let question = rawQuestion;
   if (await isPublished(ws, instrumentId)) {
     const stored = owned.instrument.closing.closingQuestion ?? "";
-    if ((typeof rawQuestion === "string" ? rawQuestion.trim() : "") !== stored) return { error: CLOSING_COPY.questionLocked };
+    if (typeof rawQuestion === "string" && rawQuestion.trim() !== stored) return { error: CLOSING_COPY.questionLocked };
+    question = stored;
   }
-  const parsed = parseClosing(rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
+  const parsed = parseClosing(question, rawMissingForm, rawSignOff, rawConfidence);
   if ("error" in parsed) return { error: parsed.error };
   const instrument = await instruments.update(ws, instrumentId, { closing: parsed.closing });
   if (!instrument) throw new NotFoundError();

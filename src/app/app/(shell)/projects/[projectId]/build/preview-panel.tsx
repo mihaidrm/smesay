@@ -2,7 +2,7 @@
 // The preview panel of Build (stories/E5-1 to E5-3; the shell of design note 13, filled
 // in by E5-6): "Preview", the Phone pill, the caption, a screen switch between the About
 // you page, the items and the Wrap up (stories/E5-5: the Closing card opens it when it
-// takes focus, through the PreviewScreen context), and the 390 px frame. The About you screen rings the fields; the
+// takes focus or a click, through the PreviewScreen context), and the 390 px frame. The About you screen rings the fields; the
 // items screen rings the chapter row and the rating rows (decision 0021: Build rings what
 // it changes); the Wrap up rings the parts the Closing card changes. The items screen follows the layout (decision 0016): chapters shows the
 // first area's cards under the chapter row; one item per screen shows one card with "Item
