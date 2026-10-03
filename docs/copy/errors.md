@@ -97,8 +97,18 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Inline, intro | Intro empty | Write one or two lines so respondents know what the list is for. They see this first. |
-| Inline, fields | No respondent field | Keep at least one field, so you can tell answers apart. Name is the usual one. |
+| Inline, intro | Intro empty (a hint under the field, not a refusal: a draft may have no intro yet) | Write one or two lines so respondents know what the list is for. They see this first. |
+| Inline, fields | No respondent field (Remove on the last one, and the server on an empty list) | Keep at least one field, so you can tell answers apart. Name is the usual one. |
+| Inline, intro (E5-1) | Title empty or over 80 characters | Give the instrument a title, up to 80 characters. Respondents see it in the header. |
+| Inline, intro (E5-1) | Intro over 1,000 characters | The intro is over 1,000 characters. Shorten it; respondents read it on a phone. |
+| Inline, fields (E5-1) | A ninth field, through the server | Up to 8 fields. Remove one to add another. |
+| Inline, fields (E5-1) | A label empty or over 60 characters | Give every field a label, up to 60 characters. |
+| Inline, fields (E5-1) | A dropdown with under 2 or over 20 options, a repeated option, or an option over 60 characters | A dropdown needs 2 to 20 different options, one per line, each up to 60 characters. |
+| Inline, fields (E5-1) | A type that is not text, dropdown or email, through the server | Pick a type for every field: Text, Dropdown or Email. |
+| Inline, fields (E5-1) | The posted list is not JSON or not a list | The fields did not reach the server as a list. Reload the page and try again. |
+| Inline, Build on version (E5-1) | The instrument is already on the latest set | This instrument is already built on the latest version of the list. |
+| Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
+| Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |
 | Inline, passcode | Passcode under 6 characters | Use at least 6 characters. Respondents type it once per device. |
 | Card, public link (already on the board) | Draft | Not published yet. Nobody can open the link. |
