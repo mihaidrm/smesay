@@ -224,6 +224,28 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. (on the Wrap up screen, E5-5: Highlighted: what the Closing card changes. The missing-item form, the closing question and the sign-off; confidence is always asked.) |
 | Preview screen switch (E5-2 and E5-5; the control is named "Preview screen"; focusing or clicking the Closing card opens Wrap up) | About you, Items, Wrap up (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
 
+## Share (E6-1)
+
+| Where | Text |
+|---|---|
+| Title and line | Share the list. One link anyone can open between the dates. Personal invites and reminders come next. Built on version [N] of the list. |
+| Empty state, no instrument yet | Build the instrument first. Share sends what Build made. [Link: Go to Build] |
+| Link card title and state pill | Public link; Draft / Published / Revoked (E6-4) |
+| Note under the pill | Draft: Not published yet. Nobody can open the link. Published: Anyone with the link can respond until the close date. Closed by its date: The link is closed. Respondents see the closed page. Revoked (E6-4): The link now shows a page saying it was withdrawn. Answers already given are kept. |
+| Link row, once published | [LINK] (a read-only field named Link) [Button: Copy link, then Copied. for two seconds] |
+| Date fields | Opens (hint: Leave empty to open as soon as you publish.); Closes; under them: Times in [ZONE], your browser's time zone. |
+| Passcode field | Passcode, optional (hint: At least 6 characters. Respondents type it once per device. Once set: A passcode is set. Type a new one to change it. [Checkbox: Remove the passcode]) |
+| Buttons | Publish (primary, on a draft); Save (secondary, once published); Saved. (until the next change) |
+| Link card on the sample | Opens: [DATE AND TIME UTC]; Closes: [DATE AND TIME UTC]; The sample project cannot be edited. |
+
+## Respondent link pages (E6-1; the words in docs/copy/errors.md, Respondent link states)
+
+| Where | Text |
+|---|---|
+| Header | [WORKSPACE INITIALS] [WORKSPACE NAME] (the SMEsay mark when the link matches no workspace) |
+| Passcode page | This link needs a passcode. The person who sent you the link has it. You type it once on this device. Field: Passcode. [Button: Continue] |
+| Dates on these pages | [DATE AND TIME] UTC, as "6 Oct 2026, 09:00 UTC" |
+
 ## Respondent card (E5-2 preview and E7-2)
 
 | Where | Text |

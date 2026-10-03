@@ -5,7 +5,8 @@
 // the import log lists every version (stories/E3-6).
 // The sample project has no upload card (it is read-only, stories/E8-8). Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
-import { projects, uploads } from "@/db/queries";
+import { Banner } from "@/components/ui/banner";
+import { instruments, invites, projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { checkUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
 import { mappingError } from "@/lib/import/mapping";
@@ -31,6 +32,9 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const check = upload && upload.mapping && !mappingError(upload.mapping) ? await checkUpload(upload) : null;
   const log = project.isSample ? { versions: [], diffText: null } : await importLog(current.ws, project.id);
   const setItems = log.versions[0]?.items ?? 0;
+  // The banner owed from E3-6 (stories/E6-1): the newest instrument has a public link.
+  const newest = set ? await instruments.latestForProject(current.ws, project.id) : null;
+  const published = newest !== null && (await invites.publicForInstrument(current.ws, newest.id)) !== null;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -42,6 +46,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
           </p>
         )}
       </div>
+      {published && <Banner data-testid="published-banner">{IMPORT_COPY.published}</Banner>}
       <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
       <section className="flex flex-col gap-3 card p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">

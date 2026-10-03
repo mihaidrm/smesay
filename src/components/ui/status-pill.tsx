@@ -21,9 +21,9 @@ const LABELS: Record<StatusKey, string> = {
   disagree: "Disagree",
 }
 
-export function StatusPill({ status, children, className }: { status: StatusKey; children?: React.ReactNode; className?: string }) {
+export function StatusPill({ status, children, className, ...props }: { status: StatusKey } & React.ComponentProps<"span">) {
   return (
-    <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold leading-none", STYLES[status], className)}>
+    <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold leading-none", STYLES[status], className)} {...props}>
       {children ?? LABELS[status]}
     </span>
   )

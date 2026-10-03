@@ -16,7 +16,8 @@ import { NotFoundError } from "@/lib/errors";
 
 export type { WorkspaceId };
 
-// For the seed and the tests only (eslint-rules/db-access.mjs keeps this module out of routes).
+// For the seed, the tests and links.byToken (the token-proved read of E6-1) only
+// (eslint-rules/db-access.mjs keeps this module out of routes).
 export const unsafeWorkspaceId = (id: string): WorkspaceId => id as WorkspaceId;
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

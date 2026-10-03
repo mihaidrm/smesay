@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { instruments, invites, items, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { prepareTestDatabase } from "@/db/test-db";
+import { prepareTestDatabase, publishWhileLocked } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
@@ -18,6 +18,8 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
+import { LINK_ERRORS, publishLink, saveLink } from "@/lib/sharing";
+import { verifyPasscode } from "@/lib/passcode";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 
@@ -194,6 +196,71 @@ describe("saveScoring (stories/E5-2)", () => {
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
     await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("publish (stories/E6-1)", () => {
+  it("creates one public link with a 32-hex token, a hashed passcode and the dates; refuses the rest", async () => {
+    const project = await projects.create(a.ws, { name: "Publish", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    const now = new Date("2026-10-03T12:00:00Z");
+    expect(await publishLink(a.ws, project.id, instrument.id, "", "", "", now)).toEqual({ error: LINK_ERRORS.noClose });
+    expect(await publishLink(a.ws, project.id, instrument.id, "", "2026-10-01T00:00:00Z", "", now)).toEqual({ error: LINK_ERRORS.closeBeforeOpen });
+    expect(await publishLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "abc", now)).toEqual({ error: LINK_ERRORS.shortPasscode });
+    expect(await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", false, now)).toEqual({ error: LINK_ERRORS.notPublished });
+    const published = await publishLink(a.ws, project.id, instrument.id, "2026-10-06T06:00:00Z", "2026-10-20T15:00:00Z", "letmein", now);
+    if (!("invite" in published)) throw new Error(published.error);
+    expect(published.invite.kind).toBe("public");
+    expect(published.invite.token).toMatch(/^[0-9a-f]{32}$/);
+    expect(published.invite.opensAt).toEqual(new Date("2026-10-06T06:00:00Z"));
+    expect(published.invite.closesAt).toEqual(new Date("2026-10-20T15:00:00Z"));
+    expect(published.invite.passcodeHash).not.toContain("letmein");
+    expect(verifyPasscode("letmein", published.invite.passcodeHash!)).toBe(true);
+    expect(await isPublished(a.ws, instrument.id)).toBe(true);
+    // A second press finds the link and changes nothing.
+    expect(await publishLink(a.ws, project.id, instrument.id, "", "2026-10-25T15:00:00Z", "", now)).toEqual({ error: LINK_ERRORS.alreadyPublished });
+    expect((await invites.list(a.ws)).filter((i) => i.instrumentId === instrument.id).length).toBe(1);
+    // The dates change after publishing, a past close date closes the link, an empty
+    // passcode keeps the one set and remove clears it.
+    const moved = await saveLink(a.ws, project.id, instrument.id, "", "2026-10-02T00:00:00Z", "", false, now);
+    if (!("invite" in moved)) throw new Error(moved.error);
+    expect(moved.invite.opensAt).toBeNull();
+    expect(moved.invite.closesAt).toEqual(new Date("2026-10-02T00:00:00Z"));
+    expect(moved.invite.token).toBe(published.invite.token);
+    expect(verifyPasscode("letmein", moved.invite.passcodeHash!)).toBe(true);
+    const cleared = await saveLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", true, now);
+    expect("invite" in cleared && cleared.invite.passcodeHash).toBeNull();
+    // The sample and another workspace.
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const sampleDraft = (await openDraft(a.ws, sample))!;
+    expect(await publishLink(a.ws, sample.id, sampleDraft.instrument.id, "", "2026-10-20T15:00:00Z", "", now)).toEqual({ error: BUILD_COPY.sample });
+    await expect(publishLink(b.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", now)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(saveLink(b.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", false, now)).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it("holds the freeze against a save in flight: a save waiting on the publish lock is refused", async () => {
+    const project = await projects.create(a.ws, { name: "Race", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+    // A second connection holds the instrument row's lock while it inserts the invite, as
+    // invites.publish does; the saves start meanwhile and must wait for the lock.
+    let scoring: Promise<unknown> | null = null;
+    let perspectives: Promise<unknown> | null = null;
+    let closing: Promise<unknown> | null = null;
+    let settledEarly = false;
+    await publishWhileLocked(a.ws, instrument.id, async () => {
+      scoring = saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}", "page").then((r) => { settledEarly = true; return r; });
+      perspectives = savePerspectives(a.ws, project.id, instrument.id, "Finance\nSales").then((r) => { settledEarly = true; return r; });
+      closing = saveClosing(a.ws, project.id, instrument.id, "Changed?", "1", "Yes.", "1").then((r) => { settledEarly = true; return r; });
+      await new Promise((r) => setTimeout(r, 300));
+      expect(settledEarly).toBe(false);
+    });
+    expect(await scoring!).toMatchObject({ instrument: { method: "moscow", layout: "page" } });
+    expect(await perspectives!).toEqual({ error: PERSPECTIVES_COPY.locked });
+    expect(await closing!).toEqual({ error: CLOSING_COPY.questionLocked });
+    expect((await instruments.get(a.ws, instrument.id))?.perspectives).toEqual(["Finance"]);
   });
 });
 

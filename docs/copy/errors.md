@@ -129,8 +129,13 @@ of the content; page means it replaces the screen.
 | Inline, closing (E5-5) | Shown under the question of a published instrument; the server refuses a save that posts another question then (a stale tab), and saves the switch and the sign-off when the question is unchanged | Published instruments keep their closing question. Build a new instrument to change it. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
-| Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |
+| Inline, dates (E6-1) | Close date before the open date, or in the past on Publish (a published link's close date may be moved into the past, which closes it) | The close date is before the open date. Pick a later close date. |
+| Inline, dates (E6-1) | No close date | Pick a close date. Respondents see it, and the link closes then. |
+| Inline, dates (E6-1) | A date that did not arrive as one, through the server | The dates did not reach the server as dates. Reload the page and try again. |
 | Inline, passcode | Passcode under 6 characters | Use at least 6 characters. Respondents type it once per device. |
+| Inline, passcode (E6-1) | Passcode over 64 characters | Use at most 64 characters for the passcode. |
+| Inline, Share (E6-1) | Save on a draft that has no link yet (a stale tab) | This instrument is not published yet. Press Publish first. |
+| Inline, Share (E6-1) | Publish when the link already exists (a second press, another tab) | This instrument is already published. Reload the page to see its link. |
 | Card, public link (already on the board) | Draft | Not published yet. Nobody can open the link. |
 | Card, public link (already on the board) | Published | Anyone with the link can respond until the close date. |
 | Card, public link (already on the board) | Revoked | The link now shows a page saying it was withdrawn. Answers already given are kept. |
@@ -143,9 +148,9 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Page (already on the board) | Link closed | Link closed. The project team at [WORKSPACE] stopped collecting answers for [PROJECT] on [DATE]. Nothing you sent is lost. If you were still answering, contact the project team: [PM CONTACT] |
+| Page (already on the board) | Link closed | Link closed. The project team at [WORKSPACE] stopped collecting answers for [PROJECT] on [DATE]. Nothing you sent is lost. If you were still answering, contact the project team: [PM CONTACT] (the last sentence only when a contact is known: a personal invite's sender, E6-2; the public link shows none) |
 | Page (already on the board) | Link revoked | Link inactive. The project team at [WORKSPACE] withdrew this link. If you were asked to answer, ask them for a new one. Nothing was saved from this visit. |
-| Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. |
+| Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
 | Page | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |

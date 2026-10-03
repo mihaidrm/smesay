@@ -123,6 +123,19 @@ pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effect
 in src/lib/brand-rules.ts is what the respondent side uses; the logo is at
 /brand/[workspaceId]/logo. Object storage: putObject, getObject, deleteObject in
 src/lib/storage.ts, keyed by path; nothing else touches the bucket.
+Links (E6-1): invites.publicForInstrument(ws, instrumentId), invites.publish(ws,
+instrumentId, { token, opensAt, closesAt, passcodeHash }) (one public link per instrument,
+created under the instrument row's lock; an existing one comes back with created: false),
+invites.updatePublic(ws, instrumentId, patch); instruments.updateLocked(ws, instrumentId,
+(published) => patch | null), the same lock, so saveScoring and saveClosing decide under it,
+and setPerspectives and tagItem refuse under it once an invite exists (E6-1, acceptance 5).
+links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
+invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
+(the token is the credential, SECURITY.md); null for anything else, nothing listed.
+`publishLink()`, `saveLink()`, `linkState()`, `formatUtc()` in src/lib/sharing.ts;
+`viewLink(token, cookie)` and the passcode proof in src/lib/link-access.ts; the passcode hash
+("scrypt$salt$key", src/lib/passcode.ts). The passcode cookie "smesay-passcode" is scoped to
+/r/[token] and holds an HMAC of the token and the stored hash under the app's secret.
 Projects (E3-1): projects.summaries(ws, { archived }) (each project with items, submitted,
 invites and the links its status derives from), projects.setArchived(ws, id, archived),
 projects.deleteSample(ws, id); the status rule is projectStatus() in src/lib/project-status.ts,
