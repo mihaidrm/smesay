@@ -37,9 +37,9 @@ stores a response (decision 0021).
 - None. The desktop preview stays at 42 percent with "Open full size" (decision 0031).
 
 ## Technical notes
-Sequencing (2026-10-03, decision 0044): built after E7-5, once the respondent app exists to
-load in the iframe; until then the Build preview draws the shared components
-(src/components/respondent/) in its own panel (E5-2 to E5-5). docs/review-list.md.
+Sequencing (decision 0045, Mihai, 2026-10-04): built after E7-5, once the respondent app
+exists to load in the iframe; until then the Build preview draws the shared components
+(src/components/respondent/) in its own panel (E5-2 to E5-5).
 
 The iframe loads /r/preview?instrument=[draft id]&device=desktop|phone with a short-lived
 preview token tied to the PM's session; the respondent app treats the token as "render only".
