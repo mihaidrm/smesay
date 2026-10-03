@@ -24,8 +24,12 @@ instrument shows a closed page, not an error.
    Respondents type it once per device." The passcode is stored hashed (argon2 or bcrypt,
    chosen with the research check) and a wrong one shows "That passcode is not right. Ask the
    person who sent you the link."; attempts are limited in E11-1.
-5. Publishing freezes method and layout (E5-2) and records published_at. Dates can be changed
-   after publishing; the respondent header note updates.
+5. Publishing freezes the method, the proposal switch and the labels (E5-2), the perspective
+   names and tags (E5-4) and the closing question (E5-5), and records published_at; the layout
+   (E5-3), the missing-item switch and the sign-off text still change. The freeze holds
+   against a save in flight: publishing takes the instrument row lock and the four saves
+   check inside it (a unit test publishes while a save waits on the lock and proves the save
+   is refused). Dates can be changed after publishing; the respondent header note updates.
 6. Playwright: publish, open the link in a fresh context, see About you; set the close date
    to the past, reload, see the closed page.
 

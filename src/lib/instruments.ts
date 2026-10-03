@@ -142,8 +142,8 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
 // tags, and both happen in one statement under the instrument's lock (instruments.setPerspectives).
 // Locked once published, like the method (docs/review-list.md): a tag added mid-run would
 // take an item away from respondents who already answered it. The published check runs
-// before the lock, as saveScoring's does; E6-1 takes the instrument lock when it publishes
-// (docs/review-list.md).
+// outside the lock, as saveScoring's does; E6-1 publishes under the instrument lock and
+// moves the check inside it (docs/review-list.md).
 export async function savePerspectives(ws: WorkspaceId, projectId: string, instrumentId: string, rawNames: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
