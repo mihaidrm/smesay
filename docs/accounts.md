@@ -212,7 +212,8 @@ is billed per use.
    with their own identity provider). Name it `validation-platform-dev`. Copy it once.
 5. Paste it in `.env.local` after `ANTHROPIC_API_KEY=`. Create a second key for production and
    paste it into Vercel only.
-6. Check it with one real call: `npm run ai:smoke` (stories/E4-1, acceptance 6). It needs a
+6. Check it with one real call, yourself (decision 0039: Claude spends no money): `npm run
+   ai:smoke` (stories/E4-1, acceptance 6). It needs a
    project of your own in any workspace (the seeded Marlow Group sample does not count), and
    prints the answer, the tokens, the cost in euro cents and the ai_run row id. A key or cap
    variable that is missing or wrong is named in the error.

@@ -1,25 +1,11 @@
 name: Evals
 
-# The golden set (stories/E4-6, acceptance 3): runs on a pull request, and on main, when a
-# file the shaping result depends on changed (the prompts, the output schema, the context
-# module, the client and its prices, checkShape, or evals/), with the repository secret
-# ANTHROPIC_API_KEY. Without the secret the job prints that it skipped and passes. One run
-# costs under one euro (evals/README.md); pull requests and main, not every push to a branch,
-# so a commit runs it once.
+# The golden set (stories/E4-6, acceptance 3; decision 0039): started by hand only, from the
+# Actions tab, by Mihai. It calls the real model on the repository secret ANTHROPIC_API_KEY
+# and costs 34 to 40 cents a run, so nothing starts it on a push or a pull request. Without
+# the secret the job prints that it skipped and passes.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/lib/ai/**"
-      - "src/lib/shaping.ts"
-      - "evals/**"
-      - ".github/workflows/evals.yml"
-  pull_request:
-    paths:
-      - "src/lib/ai/**"
-      - "src/lib/shaping.ts"
-      - "evals/**"
-      - ".github/workflows/evals.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

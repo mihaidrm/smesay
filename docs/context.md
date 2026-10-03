@@ -76,7 +76,9 @@ Next tasks for Claude: none until Mihai says so. E4 is complete (E4-1 to E4-5 me
 40 to 44; E4-6 built 2026-10-03 on decisions 0037 and 0038, PR 49) and Mihai asked for a
 pause after it, with a design pass on the boards before E5-1 (his question of 2026-10-03;
 recommended and agreed in the chat, no decision file yet). The golden set's eighth run met
-the bar (7 of 10, no content failure) and is recorded in story E4-6.
+the bar (7 of 10, no content failure) and is recorded in story E4-6. Since decision 0039
+nothing Claude runs spends money: the Evals job starts by hand only, and the smoke test and
+`npm run evals` are Mihai's to run.
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at

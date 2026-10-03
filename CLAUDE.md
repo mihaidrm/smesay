@@ -14,6 +14,11 @@ every push; the session runs only the fast checks and the test file it just wrot
 0032). Report the CI result with numbers. "Tests pass" is not a report. Mihai tests real devices
 and mail clients.
 
+Nothing Claude runs spends money (decision 0039): no real model call in the session, in a
+test or in CI. The paid checks (`npm run ai:smoke`, `npm run evals`, the Evals job in the
+Actions tab) are Mihai's to start, when he chooses. Claude tests with the fake transport and
+the stand-in only.
+
 Secrets are never printed, committed or included in a prompt. If an environment variable is
 missing, name it and stop. You never create accounts or enter payment details. Account setup
 steps for Mihai are in docs/accounts.md.
