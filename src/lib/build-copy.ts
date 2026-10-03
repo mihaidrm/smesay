@@ -42,10 +42,8 @@ export const BUILD_COPY = {
 } as const;
 
 // The About you page's words (stories/E5-1, acceptance 3; the respondent board, note 12).
-// The hint under Start names name and role as the board wrote it, whatever the fields are
-// called; design note 38 lists that as a question for Mihai.
+// The hint under Start is startHint() in src/lib/respondent-fields.ts (decision 0043).
 export const ABOUT_YOU_COPY = {
-  startHint: FIELDS_COPY.startHint,
   start: "Start",
   startWith: (chapter: string) => `Start with ${chapter}`,
   choose: "Choose one",

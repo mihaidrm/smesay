@@ -136,7 +136,8 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Note under the Start button (already on the board) | Name or role empty | Fill in your name and role to start. |
+| Note under the Start button (already on the board) | A required field empty, the required fields being exactly Name and Role | Fill in your name and role to start. |
+| Note under the Start button (decision 0043) | A required field empty, any other set of required fields | Fill in the required fields to start. |
 | Card note (already on the board) | Not rated | Not rated yet |
 | Card note (already on the board) | Different priority or Not needed, no reason | Say why. |
 | Card note (already on the board) | Unclear, no question | Write your question. |

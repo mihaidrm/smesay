@@ -1,8 +1,9 @@
 // The main path of E5-1: sign in, create a project, paste a list, open Build (a draft on
 // version 1, titled after the project, Name and Role required), see the preview's About you
 // page with Start disabled and its hint, add a dropdown field with its options, save, see the
-// select with the options in the preview; fill the required fields in the preview and see
-// Start enabled; Remove refused on the last field.
+// select with the options in the preview and the hint naming the required fields (decision
+// 0043); fill the required fields in the preview and see Start enabled; Remove refused on
+// the last field.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -74,16 +75,20 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByLabel("Label").nth(2).fill("Team");
   await page.getByLabel("Type").nth(2).selectOption("dropdown");
   await page.getByLabel("Options, one per line").fill("Sales\nFinance\nHR");
+  await page.getByRole("switch", { name: "Required, Team" }).click();
   await page.getByTestId("fields-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("fields-form").getByRole("status")).toHaveText("Saved.");
-  const team = preview.getByLabel("Team (optional)");
+  const team = preview.getByLabel("Team");
   await expect(team).toBeVisible();
   await expect(team.locator("option")).toHaveText(["Choose one", "Sales", "Finance", "HR"]);
+  // With a third required field the hint names the required fields (decision 0043).
+  await expect(preview.getByTestId("about-you-hint")).toHaveText("Fill in the required fields to start.");
 
-  // Start enables once the required fields are filled; the optional one can stay empty.
+  // Start enables once every required field is filled.
   await preview.getByLabel("Name").fill("Ana");
-  await expect(start).toBeDisabled();
   await preview.getByLabel("Role").fill("Finance");
+  await expect(start).toBeDisabled();
+  await team.selectOption("Sales");
   await expect(start).toBeEnabled();
   await expect(preview.getByTestId("about-you-hint")).toHaveText("");
 

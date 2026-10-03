@@ -2,7 +2,7 @@
 // instrument; label length, field count and dropdown options refused with the errors.md
 // message; the mandatory check behind the disabled Start.
 import { describe, expect, it } from "vitest";
-import { DEFAULT_FIELDS, FIELDS_COPY, fieldKey, fieldSummary, missingMandatory, parseFields, uniqueKeys } from "./respondent-fields";
+import { DEFAULT_FIELDS, FIELDS_COPY, fieldKey, fieldSummary, missingMandatory, parseFields, startHint, uniqueKeys } from "./respondent-fields";
 
 describe("field keys", () => {
   it("slugs the label and keeps duplicates apart", () => {
@@ -59,3 +59,16 @@ describe("summaries and the mandatory check", () => {
     expect(missingMandatory([{ key: "email", label: "Email", type: "email", mandatory: false }], {})).toEqual([]);
   });
 });
+
+describe("startHint (decision 0043)", () => {
+  const team = { key: "team", label: "Team", type: "text" as const, mandatory: true };
+  it("names name and role only while they are exactly the required fields", () => {
+    expect(startHint(DEFAULT_FIELDS)).toBe("Fill in your name and role to start.");
+    expect(startHint([DEFAULT_FIELDS[1], DEFAULT_FIELDS[0], { ...team, mandatory: false }])).toBe("Fill in your name and role to start.");
+    expect(startHint([...DEFAULT_FIELDS, team])).toBe("Fill in the required fields to start.");
+    expect(startHint([DEFAULT_FIELDS[0], { ...DEFAULT_FIELDS[1], mandatory: false }])).toBe("Fill in the required fields to start.");
+    expect(startHint([{ key: "your-name", label: "Your name", type: "text", mandatory: true }, DEFAULT_FIELDS[1]])).toBe("Fill in the required fields to start.");
+    expect(startHint([])).toBe("Fill in the required fields to start.");
+  });
+});
+

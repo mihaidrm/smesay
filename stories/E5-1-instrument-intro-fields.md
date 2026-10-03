@@ -17,7 +17,8 @@ respondents fill in, and the preview refuses to start until the mandatory ones a
    email 4).
 3. The preview's About you page (E5-6) shows the fields; Start stays disabled at 40 percent
    until the mandatory ones are filled, with "Fill in your name and role to start." (the
-   respondent board's note).
+   respondent board's note) while the mandatory fields are exactly Name and Role, and "Fill
+   in the required fields to start." for any other set (decision 0043).
 4. Every field validates on the server: label 1 to 60 characters, up to 8 fields, dropdown
    needs 2 to 20 options.
 5. Playwright: add a dropdown field, see it in the preview.
@@ -25,11 +26,9 @@ respondents fill in, and the preview refuses to start until the mandatory ones a
 ## Out of scope
 - Publishing: E6-1. Scoring, layout, closing: E5-2, E5-3, E5-5.
 
-## Open questions (design note 38, 2026-10-03)
-1. The hint under Start reads "Fill in your name and role to start." whatever the fields are
-   called. Recommended: "Fill in the required fields to start." when the required fields are
-   not exactly Name and Role. Waits for Mihai before E7-1 mounts the page.
-2. Role defaults to a text field, not the board's dropdown with options. Waits for Mihai.
+## Open questions
+- None. The two from design note 38 (the hint under Start, Role as text by default) are
+  decision 0043, 2026-10-03.
 
 ## Technical notes
 instrument.respondent_fields as RespondentFieldSpec[] (INTERFACES.md), with `type: "email"`
@@ -53,8 +52,8 @@ Built 2026-10-03 (design note 38):
 - Acceptance 3: the preview panel on the right (the 460 px shell of design note 13, the
   Desktop toggle and "Open full size" wait for E5-6) renders the About you page from
   src/components/respondent/about-you.tsx, the component E7-1 will mount at /r/[token]:
-  Start disabled at 40 percent with "Fill in your name and role to start." until every
-  required field is filled.
+  Start disabled at 40 percent with the hint of decision 0043 until every required field is
+  filled.
 - Acceptance 4: parseFields in src/lib/respondent-fields.ts (label 1 to 60, 1 to 8 fields,
   dropdown 2 to 20 different options; keys are label slugs, -2, -3 on a clash), with
   src/lib/respondent-fields.test.ts (6 tests) and src/lib/instruments.test.ts (4 tests: one

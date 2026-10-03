@@ -41,8 +41,8 @@ Done so far:
   (src/lib/instruments.ts), the intro and the respondent fields with the server rule
   (src/lib/respondent-fields.ts), "Build on version N" after a new import, and the About you
   page (src/components/respondent/about-you.tsx) in the preview panel; E7-1 mounts the same
-  component at /r/[token]. Design note 38 holds the two questions for Mihai (the hint under
-  Start, Role as text by default).
+  component at /r/[token]. The two questions of design note 38 (the hint under Start, Role
+  as text by default) are decision 0043.
 - Projects (stories/E3-1, built 2026-10-02): the list with counts and the derived status
   (src/lib/project-status.ts), New project, the project frame with the stepper
   (src/components/app/stepper.tsx), the About this project card on Import, archive, and Delete
