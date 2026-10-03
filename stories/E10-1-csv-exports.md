@@ -30,3 +30,9 @@ are the dashboard's numbers.
 ## Technical notes
 One module src/lib/export/csv.ts shared by both files, fed by the same queries as the
 dashboard (src/db/queries/results.ts), never by a second computation.
+
+Amended 2026-10-03 (design note 40): both exports take the page's ResultsFilter (E8-1), so
+a filtered Results screen exports what it shows and still reconciles to the row; the first
+row of a filtered file names the filter. The answer kind column uses the names of decision
+0014 as E8 shows them (Agree, Different priority, Disagree, Unclear); the items file's
+counts are headed the same way.

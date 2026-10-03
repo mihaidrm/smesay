@@ -231,10 +231,17 @@ one column on a phone and two on desktop, 12 px apart.
 
 Follows the dataviz rules: thin marks, 2 px surface gaps between segments, direct labels on at
 most four series, a legend whenever there are two or more series, text in ink tokens never in
-series colour, never a pie, never two y-axes.
+series colour, never two y-axes. A donut only at the area and list level, never per item,
+at most five slices, the numbers printed beside it (design note 40 relaxes the earlier "never
+a pie" on Cleveland and McGill's ranking and Mihai's ask; waits for his answer to its
+question 1).
 
-- Agreement strip per item and per area: agree, pushed back, unclear segments; percent is
-  agree over answered, printed as mono text; the number matches the CSV to the row.
+- Agreement per item and per area, three views (E8-3): the stacked bar per item (agree,
+  different priority, disagree, unclear, not answered segments; the compact default), the
+  aligned bars per kind per area (the readable one), the donut per area and list; percent is
+  agree over answered, printed as mono text; the number matches the CSV to the row under the
+  same filter. The kinds are named Agree, Different priority, Disagree, Unclear (decision
+  0014; the landing page legend follows when E8 is built, decision 0042).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
 - Where groups disagree: two bars on one scale, coral for the share that disagreed, any

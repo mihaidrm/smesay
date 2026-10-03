@@ -61,6 +61,16 @@ the check constraints use them). Change this file first.
   null fields when the project had none; null until shaped). Each item also carries its
   area's rationale as item.area_rationale, for the respondent side.
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
+- ResultsFilter (not stored; E8-1, written 2026-10-03, design note 40): the one parameter
+  every results query and both CSV exports take: { fields?: { [key]: string[] | string }
+  (a dropdown field's chosen options, or a text field's contains), kinds?: AnswerKind[]
+  plus "none" for not answered, withComment?: boolean, perspective?: string, status?:
+  ("submitted" | "inProgress")[], includeUnsubmitted: boolean, sort?: { key, dir } }; it
+  travels in the URL as query parameters and is parsed by one function in
+  src/lib/results-filter.ts (the sort key a whitelist).
+- ResultsPrefs (jsonb, user.results_prefs; E8-1, column added with that story):
+  { [instrumentId]: { tiles: string[] (the tile ids of E8-1's catalogue, up to six), view:
+  "table" | "columns" | "share" } }.
 - GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
   story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
   person dismissed; per person, every workspace).

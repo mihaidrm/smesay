@@ -54,7 +54,7 @@ plain words. Send one link.
 Title: What you get back.
 
 Agreement by area. Live · 31 of 40 answered. Submitting 81%. Approving 64%. Paying 92%.
-Legend: Agree, Pushed back, Unclear.
+Legend: Agree, Pushed back, Unclear. (Becomes Agree, Different priority, Disagree, Unclear when E8 is built, design note 40; on the claims list below.)
 
 To do, written by AI. Decide whether policy flags move to Must have. Cites 2 answers · Ana,
 Radu.
@@ -114,3 +114,4 @@ True on the day: the upload and shaping lines (E3, E4) and the free lines (decis
 Numbers inside product screens, the Marlow example (the seed, stories/E1-4), not claims:
 "72%", "14 of 40" (the agreement chip), "31 of 40", "81%", "64%", "92%" (agreement by area),
 the live card's answers, "Cites 2 answers".
+- The legend "Agree, Pushed back, Unclear" on the agreement-by-area card: the live product names the kinds Agree, Different priority, Disagree, Unclear (design note 40); the legend changes when E8 is built.
