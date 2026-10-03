@@ -30,8 +30,7 @@ the data, and points to the next one, until the first link is published.
 - Reminders by email to finish the first project: not in R1.
 
 ## Open questions
-- None. The place (above the table) is the recommendation in design note 39; Mihai can move
-  it to the sidebar.
+- None. The place (above the table) is decided (decision 0044, item 1; docs/review-list.md).
 
 ## Technical notes
 One query, src/db/queries/guide.ts `firstProjectState(workspaceId, userId)`, from the

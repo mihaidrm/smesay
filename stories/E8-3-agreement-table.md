@@ -48,9 +48,8 @@ other types; the pushed back split; sort and filter).
 - The histogram of confidence: in the PDF (E10-3). The gaps view: E8-6.
 
 ## Open questions
-- None. The donut and the kind's name are design note 40's recommendations (questions 1 and
-  2); Mihai confirms or changes them, and the design system's Data section and the landing
-  page legend follow.
+- None. The donut and the kind's name are decided (decision 0044, items 5 and 6); the
+  design system's Data section and the landing page legend follow when E8 is built.
 
 ## Technical notes
 src/db/queries/results.ts `agreementByItem(workspaceId, instrumentId, filter, split?)`; the

@@ -61,7 +61,7 @@ amended; nothing is built yet.
 - Tiles (E8-1): a catalogue of twelve, six on by default, up to six shown, chosen per PM
   per instrument; every tile is one SQL number that honours the filter.
 
-## Questions for Mihai
+## Questions for Mihai, decided by Claude under decision 0044 (the recommendations below)
 
 1. The donut at area and list level, as above, or no pie at all (the rule as written)?
    Recommended: the donut as above.
