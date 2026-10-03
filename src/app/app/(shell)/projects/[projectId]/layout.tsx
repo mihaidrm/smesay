@@ -1,5 +1,6 @@
 // The project frame (stories/E3-1, acceptance 2 and 4): breadcrumb, title, Archive or
-// Unarchive, the stepper (project-stepper.tsx), then the step page. A project id outside the workspace is 404
+// Unarchive, the stepper (project-stepper.tsx), pinned to the top of the viewport while the
+// step page scrolls, then the step page. A project id outside the workspace is 404
 // through projects.get(ws, id). Steps without a page yet are not links. Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import type { StepKey } from "@/components/app/stepper";
@@ -27,8 +28,10 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const furthest: StepKey = built ? "build" : imported ? "shape" : "import";
   const done: StepKey[] = built ? ["import", "shape"] : imported ? ["import"] : [];
   return (
-    <main className="flex flex-col gap-5 px-8 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <main className="flex flex-col gap-5 px-8 pb-6">
+      {/* The project header with the stepper stays at the top of the viewport while the step
+          page scrolls (Mihai, 2026-10-03), on the ground so the page slides under it. */}
+      <div className="sticky top-0 z-20 -mx-8 flex flex-wrap items-center justify-between gap-4 border-b border-hairline bg-ground px-8 py-4" data-testid="project-header">
         <div className="flex flex-col gap-1">
           <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
