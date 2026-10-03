@@ -27,8 +27,8 @@ what to do, once, in that place.
   (decision 0030 limits what is logged).
 
 ## Open questions
-- None. The three states and their thresholds are design note 39's recommendation (question
-  2); Mihai confirms or changes the thresholds.
+- None. The three states and their thresholds are decided (decision 0044, item 2;
+  docs/review-list.md).
 
 ## Technical notes
 The thresholds are constants in src/lib/guide.ts, the one place. The "help" pose is a fifth

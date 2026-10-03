@@ -31,8 +31,7 @@ the sample's Results it explains what the person is looking at, one screen at a 
 - Tips on Settings and Members: none in R1.
 
 ## Open questions
-- None. The number of walkthrough tips is three (design note 39, question 3) unless Mihai
-  wants more.
+- None. Three walkthrough tips (decision 0044, item 3; docs/review-list.md).
 
 ## Technical notes
 The condition per tip is a pure function of the page's loaded rows (src/lib/guide.ts),

@@ -47,7 +47,10 @@ file, or the copy scan fails. Report the two scripts' counts with every handoff.
 Decisions are Mihai's. Ask, recommend one option, wait for approval. When you think Mihai is
 making a mistake, say so before doing it, with the reason and what you would do instead; then do
 what he decides (decision 0007). If two requirements
-conflict, list the questions and wait. Record every decision in this folder on the day it is
+conflict, list the questions and wait. Until Mihai's full review (decision 0044, 2026-10-03)
+Claude takes the open points itself with the recommendation it would have made, records each
+in docs/review-list.md, and asks only for an account, a payment, a secret, a legal page, a
+spend, or two of his decisions in conflict. Record every decision in this folder on the day it is
 made: docs/decisions/ for decisions, docs/design-notes/ for design work, and update README.md
 and docs/context.md when the way sessions run changes.
 

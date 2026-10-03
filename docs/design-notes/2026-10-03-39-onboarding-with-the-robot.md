@@ -81,7 +81,7 @@ off; a mascot gives the guide a voice and a tone, it does not make a tutorial wo
   "analysis" on Results. The pack has 75 robots (docs/assets.md row 1); a fifth pose for the
   rescue tip ("Robot Help" or "Robot Question") is placed when E15-4 is built.
 
-## Questions for Mihai
+## Questions for Mihai, decided by Claude under decision 0044 (the recommendations below)
 
 1. The first-project path: on Projects above the table (recommended: it is the one screen
    every session starts on), or in the sidebar under the project list?

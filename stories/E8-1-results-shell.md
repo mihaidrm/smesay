@@ -55,8 +55,8 @@ department, by those who pushed back, by those who left comments; the pushed bac
 - A filter per tile (a tile filtered differently from the page): R2 (design note 40).
 
 ## Open questions
-- None. The donut, the kind's name and the per-PM tile choice are design note 40's
-  recommendations (questions 1 to 4); Mihai confirms or changes them.
+- None. The donut, the kind's name and the per-PM tile choice are decided (decision 0044,
+  items 5 to 8; docs/review-list.md for the full review).
 
 ## Technical notes
 The filter and the include-unsubmitted switch are one ResultsFilter parameter

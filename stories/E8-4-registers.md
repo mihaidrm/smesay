@@ -28,8 +28,8 @@ Amended 2026-10-03 (design note 40): the names, the sort on every column, the fi
   source", docs/plan-steps.md Phase 5).
 
 ## Open questions
-- None. "Add as item" is out of R1 (decision 0031). The name of the `change` kind is design
-  note 40's question 2.
+- None. "Add as item" is out of R1 (decision 0031). The `change` kind is "Different
+  priority" (decision 0044, item 6).
 
 ## Technical notes
 One query per register, scoped by workspace and instrument, taking the ResultsFilter of

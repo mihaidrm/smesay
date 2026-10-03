@@ -72,16 +72,18 @@ container has Node v22.22.0 and no Docker daemon.
 Read in this order: CLAUDE.md, docs/plan-steps.md, docs/decisions/*, docs/design-notes/*, docs/schema.md,
 stories/backlog.md, docs/business-plan.pdf (pages 9 to 15 hold the acceptance criteria).
 
-Waiting on Mihai:
-1. Click-through of the respondent boards (chapters, note 12) and the PM app (projects,
-   settings, sample, item detail, export, preview panel) on phone and laptop, and of
-   /styleguide in the running app (note 14).
+Waiting on Mihai: the full review when every epic is built (decision 0044, 2026-10-03), from
+docs/review-list.md, where every decision Claude took on its own is listed; the click-through
+of the boards and /styleguide (notes 12 and 14) folds into it. Until then Claude builds story
+by story and asks only when a step needs an account, a payment, a secret, a legal page, a
+spend or a ruling between two of Mihai's decisions. Still owed by Mihai when he gets to it:
+the receipt of the robot pack beside public/assets/mascot/.
 Every design and story question raised up to 2026-10-02 is answered (decisions 0030, 0031).
 The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: none until Mihai says so; E5-2 (scoring methods) is the next story in
-line. E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
+Next tasks for Claude: the stories in epic order, E5-2 (scoring methods) next, under decision
+0044. E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
 0037 and 0038, PR 49). Design v2 (decision 0041, note 33, boards Brand07, LandingF, PmAppV2,
 RespondentV2) is in the code since 2026-10-03 (notes 34 to 37, PRs 56 to 63; Mihai: "Yeah
 looks good"), and E5-1 was built on it the same day (note 38); the asset list he buys from
