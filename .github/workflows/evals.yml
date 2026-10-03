@@ -4,8 +4,8 @@ name: Evals
 # file the shaping result depends on changed (the prompts, the output schema, the context
 # module, the client and its prices, checkShape, or evals/), with the repository secret
 # ANTHROPIC_API_KEY. Without the secret the job prints that it skipped and passes. One run
-# costs under one euro (evals/README.md); pull requests only, not every push, so a commit
-# runs it once.
+# costs under one euro (evals/README.md); pull requests and main, not every push to a branch,
+# so a commit runs it once.
 on:
   push:
     branches: [main]

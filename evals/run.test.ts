@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { aiRuns } from "@/db/queries";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
-import { DEFAULT_MODEL } from "@/lib/ai/prices";
+import { costEurCents, DEFAULT_MODEL } from "@/lib/ai/prices";
 import type { ShapeOutput } from "@/lib/ai/shape-schema";
 import { evalsWorkspace, loadExpected, runSpec } from "./run";
 import { areaNamesMatch, line, refOfPosition, score, type Expected } from "./score";
@@ -123,7 +123,7 @@ describe("the golden set runner", () => {
     expect(score(bakery, reversed, new Map())).toMatchObject({ duplicatesExpected: 1, duplicatesRaised: 0, duplicatesMatched: 0 });
   });
 
-  it("reports an area count over tolerance without failing, and fails a judge that answers a ref twice", async () => {
+  it("reports an area count outside tolerance without failing, and fails a judge that answers a ref twice", async () => {
     const choir = spec("05");
     const split = perfect(choir);
     // Six areas for three expected: the first area's items spread over three more.
@@ -133,12 +133,13 @@ describe("the golden set runner", () => {
     split.areas[5].items = split.areas[1].items.splice(0, 1);
     const run = await runSpec(choir, ws, projectId, { fetch: transport(split).fetch });
     expect(run.score).toMatchObject({ pass: true, areasGiven: 6, areasWithinTolerance: false, failures: [] });
-    expect(line(run.score, run.costCents)).toContain("areas 3/3 named (6 given, over tolerance)");
+    expect(line(run.score, run.costCents)).toContain("areas 3/3 named (6 given, outside tolerance)");
     const twice = await runSpec(choir, ws, projectId, { fetch: transport(perfect(choir), [], [], true).fetch });
     expect(twice.score.pass).toBe(false);
     expect(twice.score.failures).toEqual(["judge refused: invalid"]);
     expect(twice.error).toContain("1 answered twice");
-    expect(twice.costCents).toBeGreaterThan(0);
+    // Both calls are billed: the fake reports 1,000 tokens in and 500 out each time.
+    expect(twice.costCents).toBe(2 * costEurCents(DEFAULT_MODEL, 1000, 500));
   });
 
   it("counts the cost of a shaping answer the app refused", async () => {

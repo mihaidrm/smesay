@@ -78,7 +78,7 @@
         "birds"
       ],
       "area": "Booking",
-      "row": "a visit takes 20 minutes, a vaccination 10, 30 for birds and reptiles, surgery is whatever the doctor sets"
+      "row": "a visit takes 20 minutes (30 for birds and reptiles), a vaccination 10, surgery is whatever the doctor sets"
     },
     {
       "ref": "G02-03",
@@ -108,7 +108,7 @@
         "two days"
       ],
       "area": "Reminders",
-      "row": "reminders: SMS two days before the appointment, not one"
+      "row": "reminders: SMS two days before, not one"
     },
     {
       "ref": "G02-06",

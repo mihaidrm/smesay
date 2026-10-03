@@ -352,7 +352,7 @@ REG-117 | Open | The system must hold 3,000 concurrent registrations in the firs
  it('G07-12','Course description page with ECTS, lecturer, language and assessment method.',['ECTS','assessment'],'Data and reporting'),
  it('G07-13','The system holds 3,000 concurrent registrations in the first hour of the window.',['3,000','first hour'],'Data and reporting')],
 ['a mobile app (REG-114 is Won\'t do)', 'fixing the old system crash (REG-106 is a bug, not a requirement)', 'password reset emails (REG-111 is a bug)', 'REG-103 as a separate item', 'online fee payment', 'grades or transcripts beyond the drop rule'],
-'Statuses matter: Bug rows and the Won\'t do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert "Won\'t do" into a Not needed item on the list; it is excluded from the list.')
+'Statuses matter: the Bug lines, the Won\'t do line and the Closed-Duplicate line are not rows. Thirteen rows from seventeen lines.')
 
 spec('08', 'Car wash subscription billing', 'carwash-billing',
 'Chat export between the owner and a developer friend, informal, with emoji stripped, some lines are jokes, decisions change mid-chat.',
@@ -458,7 +458,7 @@ None,
  it('G09-12','All purchases require a patron account so marketing can contact the audience.',['require','marketing'],'Audience',ambiguous=True),
  it('G09-13','The website conforms to WCAG 2.1 AA; wheelchair spaces are bookable online with an adjacent companion seat.',['WCAG','companion'],'Accessibility')],
 ['the contents of Annex C', 'a resolution of the account contradiction (the model flags it, it does not pick a side)', 'a loyalty scheme', 'a mobile app', 'dynamic pricing', 'a seat map for standing performances'],
-'3.4.1 and 3.4.2 contradict each other. Both are expected as items, both flagged ambiguous, and the ambiguity flag should name the contradiction. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.')
+'G09-11 and G09-12 (3.4.1 and 3.4.2 in the source) contradict each other. Both are rows, both expected flagged ambiguous; whether the flag names the contradiction is for the reader of the result, the runner counts the flags. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.')
 
 spec('10', 'Beekeeping cooperative traceability', 'honey-traceability',
 'Mixed: a short list from the cooperative president, then a forwarded message from the lab, then a list of questions nobody answered.',
@@ -504,7 +504,7 @@ Open questions (asked in June, no answers yet):
  it('G10-09','No public map of apiaries; the public page shows the village only.',['no','map','village'],'Labels and public page'),
  it('G10-10','Pass or fail thresholds are set per honey type (acacia and polyfloral have different moisture limits); the lab also sends a CSV with HMF, moisture, diastase and pollen origin.',['per honey type','moisture','CSV'],'Lab and quality',ambiguous=True)],
 ['a public apiary map', 'a price on the public page (open question, not decided)', 'GPS coordinates', 'selling outside the cooperative (open question)', 'hosting arrangements', 'an online shop for consumers'],
-'The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not items; a model that turns "do we show the price" into a requirement has invented one. Item 9 is a negative requirement and stays.')
+'The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not rows. Item 9 is a negative requirement and stays.')
 
 # ---------- rows as imported (decision 0037) ----------
 # The row a PM imports for each expected item: the source line as it stands, numbering and
@@ -532,10 +532,10 @@ ROWS = {
  'G01-17': 'Order cut-off time can be different per shop (the airport shop closes late).',
  'G01-18': 'See 11 - also tell them the replacement product if there is one.',
  'G02-01': 'online booking for existing clients only, new clients call us (we need to check the animal first)',
- 'G02-02': 'a visit takes 20 minutes, a vaccination 10, 30 for birds and reptiles, surgery is whatever the doctor sets',
+ 'G02-02': 'a visit takes 20 minutes (30 for birds and reptiles), a vaccination 10, surgery is whatever the doctor sets',
  'G02-03': 'two doctors, two rooms, the X-ray room is shared and must be booked with the visit when needed',
  'G02-04': 'Dr. Iliescu: I need to block my Thursday mornings for surgery and nobody should be able to book a consultation into that block, including online bookings',
- 'G02-05': 'reminders: SMS two days before the appointment, not one',
+ 'G02-05': 'reminders: SMS two days before, not one',
  'G02-06': 'the client file shows the animals, last visit, vaccines due, and the balance owed',
  'G02-07': 'we must be able to see who cancelled late (less than 24h) and how many times',
  'G02-08': 'ok to lose: the paper agenda. Not ok to lose: the ability to overbook an emergency on top of a full day',
@@ -613,7 +613,7 @@ ROWS = {
  'G07-12': 'Course description page with ECTS, lecturer, language, assessment method',
  'G07-13': 'The system must hold 3,000 concurrent registrations in the first hour of the window',
  'G08-01': '3 plans: basic 99 lei (4 washes/month), plus 149 (unlimited exterior), premium 249 (unlimited everything). per car, plate number is the id',
- 'G08-02': 'unlimited means max 1 wash per day, otherwise the taxi guys will kill us; actually basic also 1 per day max',
+ 'G08-02': 'max 1 wash per day on every plan, basic and unlimited alike, otherwise the taxi guys will kill us',
  'G08-03': 'second car 20% off, same account, separate plates',
  'G08-04': 'cancel anytime, ends at the end of the paid month, no refunds',
  'G08-05': 'card on file, charged on the 1st, if it fails retry on the 3rd and 5th then suspend',

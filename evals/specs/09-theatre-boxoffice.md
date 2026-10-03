@@ -63,6 +63,6 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ## Expected, in words
 
-13 rows, 13 distinct items in 5 areas (Ticket sales, Entrance, Reporting and finance, Audience, Accessibility). 3.4.1 and 3.4.2 contradict each other. Both are expected as items, both flagged ambiguous, and the ambiguity flag should name the contradiction. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.
+13 rows, 13 distinct items in 5 areas (Ticket sales, Entrance, Reporting and finance, Audience, Accessibility). G09-11 and G09-12 (3.4.1 and 3.4.2 in the source) contradict each other. Both are rows, both expected flagged ambiguous; whether the flag names the contradiction is for the reader of the result, the runner counts the flags. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.
 
 The exact expectation is in expected/09.json.

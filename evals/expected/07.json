@@ -188,5 +188,5 @@
     "online fee payment",
     "grades or transcripts beyond the drop rule"
   ],
-  "notes": "Statuses matter: Bug rows and the Won't do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert \"Won't do\" into a Not needed item on the list; it is excluded from the list."
+  "notes": "Statuses matter: the Bug lines, the Won't do line and the Closed-Duplicate line are not rows. Thirteen rows from seventeen lines."
 }

@@ -34,7 +34,7 @@ src/lib/ai/shape-schema.ts by `npm run evals:schema` (E4-2); `npm run evals` run
 | 05 | Community choir management | 10 | 10 | 3 | no | 2 | 0 |
 | 06 | Wind farm maintenance logging | 14 | 14 | 4 | yes | 1 | 0 |
 | 07 | University course registration | 13 | 13 | 3 | no | 0 | 0 |
-| 08 | Car wash subscription billing | 13 | 12 | 4 | no | 0 | 1 |
+| 08 | Car wash subscription billing | 12 | 12 | 4 | no | 0 | 0 |
 | 09 | Theatre box office | 13 | 13 | 5 | no | 2 | 0 |
 | 10 | Beekeeping cooperative traceability | 10 | 10 | 4 | no | 1 | 0 |
 
@@ -70,7 +70,7 @@ from 1 in order, with no area column, so the model proposes the areas.
   count, as in src/lib/shaping.ts cleanDuplicateOf).
 - must_not_invent: things a model is likely to add, for the person reading the spec. The
   runner does not scan for them; the judge's `added` verdict is what counts an addition.
-- notes: what makes the spec hard and what the runner accepts.
+- notes: what makes the spec hard, for the person reading it; the runner reads none of it.
 
 ## Scoring (run.ts and score.ts, E4-6)
 
@@ -80,17 +80,20 @@ over the items whose expected area was named), ambiguity flags expected, raised 
 duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro cents.
 
 - A reader version identical to its row is found without a model call. Every other one goes
-  to the judge (judge.md, one call per spec, output schema-validated and every ref answered
-  once): sameMeaning false is a changed meaning, added true is an invented item. A must_keep
-  token missing from the reader version is counted and printed, and the judge decides whether
-  the meaning survived without it; the count is there to read, not to fail on.
+  to the judge (judge.md, one call per spec, with the spec's context line first, output
+  schema-validated and every ref answered once): sameMeaning false is a changed meaning,
+  added true is an invented item. A must_keep token missing from the reader version is
+  counted and printed, and the judge decides whether the meaning survived without it. This
+  is how it runs today; the story's stricter rule (a missing token is a changed meaning) is
+  open question 1 of stories/E4-6, Mihai's to decide.
 - Missed: a row absent from the answer. checkShape refuses such an answer before it is
   scored, so a miss shows as a refused spec.
 - Glossary (04, 06): a term the row carries must be in the reader version exactly as written.
-- Passing: no missed, no invented, no changed meaning, every glossary term kept. Flags,
-  placement and the area count (printed with "over tolerance" beyond area_count_tolerance)
-  are reported, not failed on: they tell how good the grouping is, not whether the list is
-  safe. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
+- Passing: no missed, no invented, no changed meaning, every glossary term kept. Flags and
+  placement are reported, not failed on: they tell how good the grouping is, not whether the
+  list is safe. The area count is printed with "outside tolerance" beyond
+  area_count_tolerance and does not fail the run today; whether it should is open question
+  2 of stories/E4-6. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
   an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
 Exit 1 when any spec fails. CI runs the job on a pull request, and on main, when a file under

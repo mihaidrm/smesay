@@ -200,7 +200,7 @@ export function score(expected: Expected, output: ShapeOutput, verdicts: Map<str
 export function line(s: SpecScore, costCents: number): string {
   const parts = [
     `found ${s.found}/${s.items.length}`, `missed ${s.missed}`, `invented ${s.invented}`, `meaning changed ${s.meaningChanged}`,
-    `tokens missing ${s.tokensMissing}`, `areas ${s.areasNamed}/${s.areasExpected} named (${s.areasGiven} given${s.areasWithinTolerance ? "" : ", over tolerance"})`, `placed ${s.placedRight}/${s.placedJudged}`,
+    `tokens missing ${s.tokensMissing}`, `areas ${s.areasNamed}/${s.areasExpected} named (${s.areasGiven} given${s.areasWithinTolerance ? "" : ", outside tolerance"})`, `placed ${s.placedRight}/${s.placedJudged}`,
     `ambiguity ${s.ambiguityExpected} expected, ${s.ambiguityRaised} raised, ${s.ambiguityMatched} matched`,
     `duplicates ${s.duplicatesExpected} expected, ${s.duplicatesRaised} raised, ${s.duplicatesMatched} matched`,
   ];

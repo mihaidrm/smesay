@@ -48,10 +48,10 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ```text
 1. online booking for existing clients only, new clients call us (we need to check the animal first)
-2. a visit takes 20 minutes, a vaccination 10, 30 for birds and reptiles, surgery is whatever the doctor sets
+2. a visit takes 20 minutes (30 for birds and reptiles), a vaccination 10, surgery is whatever the doctor sets
 3. two doctors, two rooms, the X-ray room is shared and must be booked with the visit when needed
 4. Dr. Iliescu: I need to block my Thursday mornings for surgery and nobody should be able to book a consultation into that block, including online bookings
-5. reminders: SMS two days before the appointment, not one
+5. reminders: SMS two days before, not one
 6. the client file shows the animals, last visit, vaccines due, and the balance owed
 7. we must be able to see who cancelled late (less than 24h) and how many times
 8. ok to lose: the paper agenda. Not ok to lose: the ability to overbook an emergency on top of a full day

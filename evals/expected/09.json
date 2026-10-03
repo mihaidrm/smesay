@@ -203,5 +203,5 @@
     "dynamic pricing",
     "a seat map for standing performances"
   ],
-  "notes": "3.4.1 and 3.4.2 contradict each other. Both are expected as items, both flagged ambiguous, and the ambiguity flag should name the contradiction. Dropping one of them, or rewriting one to agree with the other, is a failure. \"Shall\" wording becomes plain sentences in the reader version without losing the numbers."
+  "notes": "G09-11 and G09-12 (3.4.1 and 3.4.2 in the source) contradict each other. Both are rows, both expected flagged ambiguous; whether the flag names the contradiction is for the reader of the result, the runner counts the flags. Dropping one of them, or rewriting one to agree with the other, is a failure. \"Shall\" wording becomes plain sentences in the reader version without losing the numbers."
 }

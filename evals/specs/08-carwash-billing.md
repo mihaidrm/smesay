@@ -39,7 +39,7 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ```text
 1. 3 plans: basic 99 lei (4 washes/month), plus 149 (unlimited exterior), premium 249 (unlimited everything). per car, plate number is the id
-2. unlimited means max 1 wash per day, otherwise the taxi guys will kill us; actually basic also 1 per day max
+2. max 1 wash per day on every plan, basic and unlimited alike, otherwise the taxi guys will kill us
 3. second car 20% off, same account, separate plates
 4. cancel anytime, ends at the end of the paid month, no refunds
 5. card on file, charged on the 1st, if it fails retry on the 3rd and 5th then suspend

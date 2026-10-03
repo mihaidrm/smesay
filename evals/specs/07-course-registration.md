@@ -48,6 +48,6 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ## Expected, in words
 
-13 rows, 13 distinct items in 3 areas (Registration, People and roles, Data and reporting). Statuses matter: Bug rows and the Won't do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert "Won't do" into a Not needed item on the list; it is excluded from the list.
+13 rows, 13 distinct items in 3 areas (Registration, People and roles, Data and reporting). Statuses matter: the Bug lines, the Won't do line and the Closed-Duplicate line are not rows. Thirteen rows from seventeen lines.
 
 The exact expectation is in expected/07.json.

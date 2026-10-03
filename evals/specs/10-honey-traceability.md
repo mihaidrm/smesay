@@ -52,6 +52,6 @@ What a PM imports from the document above: one row per item, nothing else. The r
 
 ## Expected, in words
 
-10 rows, 10 distinct items in 4 areas (Harvest and batches, Lab and quality, Labels and public page, Stock and sales). The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not items; a model that turns "do we show the price" into a requirement has invented one. Item 9 is a negative requirement and stays.
+10 rows, 10 distinct items in 4 areas (Harvest and batches, Lab and quality, Labels and public page, Stock and sales). The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not rows. Item 9 is a negative requirement and stays.
 
 The exact expectation is in expected/10.json.
