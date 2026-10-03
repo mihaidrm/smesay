@@ -55,4 +55,6 @@ so the AI keeps your names and terms." with a link to the About this project car
 
 ## Open for Mihai
 
+The copy was accepted on 2026-10-03 (decision 0037, point 2).
+
 - The context copy on Shape (docs/copy/app.md, Shape) waits for your acceptance.

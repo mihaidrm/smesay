@@ -67,6 +67,8 @@ table row (fixed), the API citation (replaced), and the concurrency note above.
 
 ## Open for Mihai
 
+Both points below were accepted as they stand on 2026-10-03 (decision 0037, point 3).
+
 - The lint allowance is per module: client.ts may call every internal helper and could
   re-export the module. The same holds for src/lib/workspace.ts since E1-3. A rule against
   re-exporting queries/internal from an allowed file would close it; not added here.

@@ -7,8 +7,8 @@ items involved, and a dismissed flag stays dismissed.
 
 ## Acceptance criteria
 1. The ambiguity banner on Shape (PM app board): "Ambiguity in [REF]. [What the item does not
-   say]. Respondents may mark it unclear." with Dismiss. One banner per flagged item, stacked;
-   the item card carries the same note.
+   say]. Respondents may mark it unclear." with Dismiss. One banner per flag, stacked (an
+   item with two flags gets two, decision 0037); the item card carries the same note.
 2. Duplicate flags name both items ("CL-02 may duplicate CL-05") and link to each; the PM can
    dismiss or, in R1, do nothing else (merging is a manual re-import).
 3. Dismissing sets item.flags.dismissed and survives a re-run of shaping and a reload.
