@@ -196,7 +196,7 @@ describe("shapeSet", () => {
     const rows = await items.forSet(a.ws, result.set.id);
     expect(hadImportedAreas(rows)).toBe(false);
     expect(rows.every((r) => r.flags?.areaBy === "ai")).toBe(true);
-    expect(body(three.calls[0]).system[0].text).toContain("3 to 8 areas");
+    expect(body(three.calls[0]).system[0].text).toContain("3 to 5 for a list under 40 items, never more than 8");
     // The re-run sends no areas, so the model may group afresh.
     const fresh = transport(answer([{ name: "Before the trip", items: ["4"] }, { name: "During", items: ["1"] }, { name: "After", items: ["2", "3"] }], ["1", "2", "3", "4"]));
     const again = await shapeSet(a, plain, fresh);

@@ -69,12 +69,14 @@ Waiting on Mihai:
    settings, sample, item detail, export, preview panel) on phone and laptop, and of
    /styleguide in the running app (note 14).
 Every design and story question raised up to 2026-10-02 is answered (decisions 0030, 0031).
-The evals key comes when E4-6 is built. The trademark search waits for the launch gate
+The evals key is in the repository secrets since 2026-10-03. The trademark search waits for the launch gate
 (decisions 0012, 0014).
 
-Next tasks for Claude: E4-6, the last of E4 (Mihai gave the go for E4 on 2026-10-02 and
-asked for a pause after it; E4-1 to E4-5 are merged, PRs 40 to 44). The golden set question
-in design note 27 and the ANTHROPIC_API_KEY repository secret wait for Mihai before E4-6.
+Next tasks for Claude: none until Mihai says so. E4 is complete (E4-1 to E4-5 merged, PRs
+40 to 44; E4-6 built 2026-10-03 on decisions 0037 and 0038, PR 49) and Mihai asked for a
+pause after it, with a design pass on the boards before E5-1 (his question of 2026-10-03;
+recommended and agreed in the chat, no decision file yet). The golden set's eighth run met
+the bar (7 of 10, no content failure) and is recorded in story E4-6.
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at

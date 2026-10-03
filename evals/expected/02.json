@@ -4,7 +4,8 @@
   "source": "specs/02-vet-scheduling.md",
   "context": null,
   "item_count": 14,
-  "item_count_tolerance": 1,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Booking",
@@ -64,7 +65,8 @@
         "existing clients",
         "new clients"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "online booking for existing clients only, new clients call us (we need to check the animal first)"
     },
     {
       "ref": "G02-02",
@@ -75,7 +77,8 @@
         "30",
         "birds"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "a visit takes 20 minutes (30 for birds and reptiles), a vaccination 10, surgery is whatever the doctor sets"
     },
     {
       "ref": "G02-03",
@@ -84,7 +87,8 @@
         "X-ray",
         "shared"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "two doctors, two rooms, the X-ray room is shared and must be booked with the visit when needed"
     },
     {
       "ref": "G02-04",
@@ -93,7 +97,8 @@
         "block",
         "online"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "Dr. Iliescu: I need to block my Thursday mornings for surgery and nobody should be able to book a consultation into that block, including online bookings"
     },
     {
       "ref": "G02-05",
@@ -102,7 +107,8 @@
         "SMS",
         "two days"
       ],
-      "area": "Reminders"
+      "area": "Reminders",
+      "row": "reminders: SMS two days before, not one"
     },
     {
       "ref": "G02-06",
@@ -111,7 +117,8 @@
         "vaccines due",
         "balance"
       ],
-      "area": "Client and animal file"
+      "area": "Client and animal file",
+      "row": "the client file shows the animals, last visit, vaccines due, and the balance owed"
     },
     {
       "ref": "G02-07",
@@ -120,7 +127,8 @@
         "24",
         "late"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "we must be able to see who cancelled late (less than 24h) and how many times"
     },
     {
       "ref": "G02-08",
@@ -130,7 +138,8 @@
         "overbook"
       ],
       "area": "Client and animal file",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "ok to lose: the paper agenda. Not ok to lose: the ability to overbook an emergency on top of a full day"
     },
     {
       "ref": "G02-09",
@@ -139,7 +148,8 @@
         "revenue",
         "by doctor"
       ],
-      "area": "Owner and reporting"
+      "area": "Owner and reporting",
+      "row": "Mihnea (owner): I want the daily revenue by doctor on my phone in the morning"
     },
     {
       "ref": "G02-10",
@@ -149,7 +159,8 @@
         "Romanian",
         "English"
       ],
-      "area": "Client and animal file"
+      "area": "Client and animal file",
+      "row": "printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)"
     },
     {
       "ref": "G02-11",
@@ -158,7 +169,8 @@
         "kennel",
         "6"
       ],
-      "area": "Client and animal file"
+      "area": "Client and animal file",
+      "row": "the boarding kennel (6 places) is a different calendar but the same client file"
     },
     {
       "ref": "G02-12",
@@ -167,7 +179,8 @@
         "deceased",
         "same day"
       ],
-      "area": "Reminders"
+      "area": "Reminders",
+      "row": "when a pet is marked deceased the reminders must stop the same day (we had a complaint last month)"
     },
     {
       "ref": "G02-13",
@@ -176,7 +189,8 @@
         "website",
         "no app"
       ],
-      "area": "Booking"
+      "area": "Booking",
+      "row": "No app, the website is enough."
     },
     {
       "ref": "G02-14",
@@ -185,7 +199,8 @@
         "export",
         "GDPR"
       ],
-      "area": "Owner and reporting"
+      "area": "Owner and reporting",
+      "row": "GDPR: clients can ask for their file and we export it"
     }
   ],
   "must_not_invent": [
@@ -196,5 +211,5 @@
     "inventory of medicines",
     "a mobile app"
   ],
-  "notes": "The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 belongs to Booking by meaning; the runner accepts it in Booking or Client file, the listed area is where it sits in the source. \"Keep it cheap\" is not an item."
+  "notes": "The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 is listed under Client file, where it sits in the source; the runner reports placement and does not fail on it. \"Keep it cheap\" is not a row."
 }

@@ -15,7 +15,8 @@
     ]
   },
   "item_count": 14,
-  "item_count_tolerance": 1,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Jobs",
@@ -75,7 +76,8 @@
         "WTG",
         "retrofit"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "open a job on a WTG from the tablet, job types: scheduled service, fault, inspection, retrofit"
     },
     {
       "ref": "G06-02",
@@ -85,7 +87,8 @@
         "2",
         "before"
       ],
-      "area": "Safety"
+      "area": "Safety",
+      "row": "LOTO checklist must be completed and signed by 2 techs before the job can go to \"in progress\" (no exceptions, HSE)"
     },
     {
       "ref": "G06-03",
@@ -95,7 +98,8 @@
         "harness",
         "ground"
       ],
-      "area": "Safety"
+      "area": "Safety",
+      "row": "nacelle work: log the climb, the harness check, and who is the second person on the ground"
     },
     {
       "ref": "G06-04",
@@ -104,7 +108,8 @@
         "barcode",
         "min stock"
       ],
-      "area": "Parts"
+      "area": "Parts",
+      "row": "parts used: scan the part barcode, stock comes from the container inventory, warns when a part drops below min stock"
     },
     {
       "ref": "G06-05",
@@ -114,7 +119,8 @@
         "warranty",
         "per tech"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "time per job per tech, for the OEM warranty claims they want the hours"
     },
     {
       "ref": "G06-06",
@@ -123,7 +129,8 @@
         "10",
         "compressed"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "photos: before / after, attached to the job, max 10, compressed on the tablet"
     },
     {
       "ref": "G06-07",
@@ -133,7 +140,8 @@
         "OEM"
       ],
       "area": "Jobs",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "the job report is a PDF in the OEM format (they have a template, see attached, not attached sorry) so the warranty people accept it"
     },
     {
       "ref": "G06-08",
@@ -142,7 +150,8 @@
         "SCADA",
         "alarm id"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "SCADA alarm that triggered a fault job is linked to the job by alarm id, we type the id now"
     },
     {
       "ref": "G06-09",
@@ -151,7 +160,8 @@
         "no signal",
         "sync"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "works with no signal up in the nacelle, syncs at the base"
     },
     {
       "ref": "G06-10",
@@ -161,7 +171,8 @@
         "overdue",
         "configurable"
       ],
-      "area": "Oversight"
+      "area": "Oversight",
+      "row": "site manager sees all open jobs by WTG and by tech, overdue scheduled services in a configurable colour, not red (we have a colour blind tech)"
     },
     {
       "ref": "G06-11",
@@ -171,7 +182,8 @@
         "LOTO",
         "near miss"
       ],
-      "area": "Safety"
+      "area": "Safety",
+      "row": "HSE officer: monthly export of all LOTO records and near misses"
     },
     {
       "ref": "G06-12",
@@ -180,7 +192,8 @@
         "anonymous",
         "visible to HSE"
       ],
-      "area": "Safety"
+      "area": "Safety",
+      "row": "near miss report: 3 fields, what, where, photo, from any tech, anonymous to the site but visible to HSE (otherwise we cannot follow up)"
     },
     {
       "ref": "G06-13",
@@ -189,7 +202,8 @@
         "15 m/s",
         "nacelle"
       ],
-      "area": "Safety"
+      "area": "Safety",
+      "row": "weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 15 m/s per the OEM manual (12 m/s is the rotor limit)"
     },
     {
       "ref": "G06-14",
@@ -197,7 +211,8 @@
       "must_keep": [
         "bulletin"
       ],
-      "area": "Jobs"
+      "area": "Jobs",
+      "row": "retrofit jobs from the OEM bulletin need the bulletin number on the job"
     }
   ],
   "must_not_invent": [

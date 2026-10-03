@@ -1,0 +1,169 @@
+// The golden set runner against a fetch that answers in place of the network (stories/E4-6,
+// acceptance 1, 2 and 4): the answer is built from the expectation, so a correct run passes;
+// then a dropped negative, an addition and a renamed glossary term are caught. No test calls
+// the real API.
+import { beforeAll, describe, expect, it } from "vitest";
+import { aiRuns } from "@/db/queries";
+import { prepareTestDatabase } from "@/db/test-db";
+import type { WorkspaceId } from "@/db/types";
+import { costEurCents, DEFAULT_MODEL } from "@/lib/ai/prices";
+import type { ShapeOutput } from "@/lib/ai/shape-schema";
+import { evalsWorkspace, exitCode, loadExpected, PASS_BAR, runSpec } from "./run";
+import { areaNamesMatch, line, refOfPosition, score, type Expected } from "./score";
+
+let ws: WorkspaceId;
+let projectId: string;
+const specs = loadExpected();
+const spec = (id: string) => specs.find((s) => s.id === id)!;
+
+beforeAll(async () => {
+  await prepareTestDatabase();
+  process.env.ANTHROPIC_API_KEY = "test-key-for-the-fake-transport";
+  process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
+  ({ ws, projectId } = await evalsWorkspace());
+}, 60_000);
+
+// The model's answer a correct run would give, from the expectation: the expected areas with
+// their items by position, the row in plainer words, the expected flags.
+function perfect(expected: Expected, tweak: (ref: string, reader: string) => string = (_r, s) => s): ShapeOutput {
+  const position = (ref: string) => String(expected.items.findIndex((i) => i.ref === ref) + 1);
+  return {
+    areas: expected.areas.map((a, i) => ({ name: a.name, rationale: i === 0 ? "First, because it starts here." : "Then this.", items: a.items.map(position) })),
+    items: expected.items.map((it) => ({ ref: position(it.ref), reader: tweak(it.ref, `${it.row} (in plain words)`), flags: { ambiguity: it.ambiguous ? "What the item does not say." : null, duplicateOf: it.duplicate_of ? position(it.duplicate_of) : null } })),
+  };
+}
+
+// Answers the shaping call with `shape` and the judge call with one verdict per ref given,
+// false for the refs in `wrong` and added for the refs in `added`; `twice` answers the
+// first ref a second time.
+function transport(shape: ShapeOutput, wrong: string[] = [], added: string[] = [], twice = false) {
+  const calls: { system: string; data: string }[] = [];
+  const fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+    const body = JSON.parse(String(init?.body)) as { system: { text: string }[]; messages: { content: { text: string }[] }[] };
+    const system = body.system[0].text;
+    const data = body.messages[0].content[0].text;
+    calls.push({ system, data });
+    let output: unknown = shape;
+    if (system.startsWith("You compare a requirement")) {
+      const refs = [...data.matchAll(/^\[([^\]]+)\]$/gm)].map((m) => m[1]);
+      const verdicts = refs.map((ref) => ({ ref, sameMeaning: !wrong.includes(ref), added: added.includes(ref), note: "Same." }));
+      output = { verdicts: twice ? [...verdicts, verdicts[0]] : verdicts };
+    }
+    const message = { id: "msg_test", type: "message", role: "assistant", model: DEFAULT_MODEL, content: [{ type: "text", text: JSON.stringify(output) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1000, output_tokens: 500, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
+    return new Response(JSON.stringify(message), { status: 200, headers: { "content-type": "application/json" } });
+  }) as unknown as typeof globalThis.fetch;
+  return { fetch, calls };
+}
+
+describe("the golden set runner", () => {
+  it("loads the ten specs with rows for every item, refs by position", () => {
+    expect(specs.map((s) => s.id)).toEqual(["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]);
+    for (const s of specs) {
+      expect(s.items.length).toBe(s.item_count);
+      for (const it of s.items) expect(it.row.length).toBeGreaterThan(10);
+    }
+    expect(refOfPosition(spec("01"), "1")).toBe("G01-01");
+    expect(refOfPosition(spec("01"), "18")).toBe("G01-18");
+    expect(refOfPosition(spec("01"), "19")).toBeNull();
+    expect(refOfPosition(spec("01"), "x")).toBeNull();
+    // Area names from the first real run against the set's names and aliases.
+    expect(areaNamesMatch("Placing the Order", "Placing orders")).toBe(true);
+    expect(areaNamesMatch("Confirmation and Shortages", "Confirming and shortages")).toBe(true);
+    expect(areaNamesMatch("Client and Animal Files", "Client and animal file")).toBe(true);
+    expect(areaNamesMatch("Gate and site", "Billing")).toBe(false);
+    expect(areaNamesMatch("Reporting and Monitoring", "Reporting")).toBe(true);
+    // The bar of decision 0038: seven of ten is green, six is not.
+    expect(PASS_BAR).toBe(7);
+    expect(exitCode(10)).toBe(0);
+    expect(exitCode(7)).toBe(0);
+    expect(exitCode(6)).toBe(1);
+  });
+
+  it("passes a run whose answer matches the expectation, in two logged calls, and prints the line", async () => {
+    const expected = spec("01");
+    const { fetch, calls } = transport(perfect(expected));
+    const before = await aiRuns.count(ws);
+    const run = await runSpec(expected, ws, projectId, { fetch });
+    expect(calls).toHaveLength(2);
+    expect(calls[0].data).toContain("[1] Every shop can place the next-day order");
+    expect(calls[0].data).not.toContain("area:");
+    expect(calls[1].data).toContain("[G01-01]\nORIGINAL: Every shop");
+    expect(run.score).toMatchObject({ pass: true, found: 18, missed: 0, invented: 0, meaningChanged: 0, areasNamed: 4, areasGiven: 4, placedRight: 18, placedJudged: 18, ambiguityExpected: 2, ambiguityRaised: 2, ambiguityMatched: 2, duplicatesExpected: 1, duplicatesRaised: 1, duplicatesMatched: 1, glossaryTerms: 0, failures: [] });
+    expect(run.costCents).toBeGreaterThan(0);
+    expect(run.model).toBe(DEFAULT_MODEL);
+    expect(await aiRuns.count(ws)).toBe(before + 2);
+    expect(line(run.score, run.costCents)).toBe(`PASS 01 Bakery chain ordering: found 18/18, missed 0, invented 0, meaning changed 0, tokens missing 0, areas 4/4 named (4 given), placed 18/18, ambiguity 2 expected, 2 raised, 2 matched, duplicates 1 expected, 1 raised, 1 matched, ${run.costCents} cent(s)`);
+  });
+
+  it("fails on a changed meaning or an addition the judge reports, and counts a missing token", async () => {
+    const expected = spec("01");
+    // G01-03 loses "not hidden"; G01-10 gets a sentence the row does not have.
+    const shape = perfect(expected, (ref, reader) => (ref === "G01-03" ? "Products out of production are greyed out." : ref === "G01-10" ? reader + " Shops get a weekly price list by email." : reader));
+    const { fetch } = transport(shape, ["G01-03"], ["G01-10"]);
+    const run = await runSpec(expected, ws, projectId, { fetch });
+    expect(run.score).toMatchObject({ pass: false, found: 17, meaningChanged: 1, invented: 1, tokensMissing: 1 });
+    expect(run.score.failures).toEqual(["1 invented", "1 meaning changed"]);
+    expect(run.score.items.find((i) => i.ref === "G01-03")).toMatchObject({ tokensMissing: ["not hidden"], meaningChanged: true, found: false });
+    expect(line(run.score, run.costCents)).toContain("FAIL 01");
+  });
+
+  it("fails a context spec whose reader version renames a glossary term, accepts an alias, and drops a reversed duplicate as the app does", async () => {
+    const ski = spec("04");
+    const shape = perfect(ski, (ref, reader) => (ref === "G04-02" ? reader.replace("SkiPass+", "the premium season pass") : reader));
+    shape.areas[0].name = "Tickets";
+    const run = await runSpec(ski, ws, projectId, { fetch: transport(shape).fetch });
+    expect(run.score).toMatchObject({ pass: false, glossaryTerms: 5, glossaryMissing: 1, areasNamed: 4 });
+    expect(run.score.failures).toEqual(["1 glossary term(s) not kept"]);
+    // The judge gets the project context before the pairs; a spec without one gets none.
+    const { fetch, calls } = transport(perfect(ski));
+    await runSpec(ski, ws, projectId, { fetch });
+    expect(calls[1].data.startsWith("CONTEXT: Replace the lift ticket system")).toBe(true);
+    expect(calls[0].data).toContain("PROJECT CONTEXT");
+    // Spec 01: a flag on the earlier item pointing at the later one is dropped (cleanDuplicateOf), so it counts as not raised.
+    const bakery = spec("01");
+    const reversed = perfect(bakery);
+    const pos = (ref: string) => String(bakery.items.findIndex((i) => i.ref === ref) + 1);
+    reversed.items.find((i) => i.ref === pos("G01-08"))!.flags.duplicateOf = null;
+    reversed.items.find((i) => i.ref === pos("G01-02"))!.flags.duplicateOf = pos("G01-08");
+    expect(score(bakery, reversed, new Map())).toMatchObject({ duplicatesExpected: 1, duplicatesRaised: 0, duplicatesMatched: 0 });
+  });
+
+  it("fails an area count outside tolerance, and a judge that answers a ref twice", async () => {
+    const choir = spec("05");
+    const split = perfect(choir);
+    // Six areas for three expected: the first area's items spread over three more.
+    const spread = split.areas[0].items;
+    split.areas[0].items = [spread[0]];
+    split.areas.push({ name: "Monday deadline", rationale: "Then this.", items: [spread[1]] }, { name: "Missed rehearsals", rationale: "Then this.", items: [spread[2]] }, { name: "Extra", rationale: "Last, this.", items: [] });
+    split.areas[5].items = split.areas[1].items.splice(0, 1);
+    const run = await runSpec(choir, ws, projectId, { fetch: transport(split).fetch });
+    expect(run.score).toMatchObject({ pass: false, areasGiven: 6, areasWithinTolerance: false, failures: ["6 areas for 3 expected"] });
+    expect(line(run.score, run.costCents)).toContain("areas 3/3 named (6 given, outside tolerance)");
+    const twice = await runSpec(choir, ws, projectId, { fetch: transport(perfect(choir), [], [], true).fetch });
+    expect(twice.score.pass).toBe(false);
+    expect(twice.score.failures).toEqual(["judge refused: invalid"]);
+    expect(twice.error).toContain("1 answered twice");
+    // Both calls are billed: the fake reports 1,000 tokens in and 500 out each time.
+    expect(twice.costCents).toBe(2 * costEurCents(DEFAULT_MODEL, 1000, 500));
+  });
+
+  it("counts the cost of a shaping answer the app refused", async () => {
+    const vet = spec("02");
+    const wrongRefs = perfect(vet);
+    wrongRefs.areas[0].items = wrongRefs.areas[0].items.map((r) => "R-" + r);
+    const run = await runSpec(vet, ws, projectId, { fetch: transport(wrongRefs).fetch });
+    expect(run.score.failures).toEqual(["shaping refused: invalid"]);
+    expect(run.error).toContain("unknown ref(s)");
+    expect(run.costCents).toBeGreaterThan(0);
+  });
+
+  it("reports a refused shaping call as a failed spec with no judge call", async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    const run = await runSpec(spec("02"), ws, projectId, { fetch: transport(perfect(spec("02"))).fetch });
+    process.env.ANTHROPIC_API_KEY = "test-key-for-the-fake-transport";
+    expect(run.score.pass).toBe(false);
+    expect(run.score.failures).toEqual(["shaping refused: failed"]);
+    expect(run.error).toContain("ANTHROPIC_API_KEY is not set");
+    expect(run.costCents).toBe(0);
+  });
+});

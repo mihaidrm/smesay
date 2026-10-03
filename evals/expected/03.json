@@ -3,8 +3,9 @@
   "domain": "Municipal library catalogue",
   "source": "specs/03-library-catalogue.md",
   "context": null,
-  "item_count": 14,
-  "item_count_tolerance": 1,
+  "item_count": 15,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Search and borrowing",
@@ -17,7 +18,8 @@
         "G03-02",
         "G03-03",
         "G03-08",
-        "G03-11"
+        "G03-11",
+        "G03-15"
       ]
     },
     {
@@ -65,7 +67,8 @@
         "subject"
       ],
       "area": "Search and borrowing",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Search the catalogue by title, author, ISBN and subject"
     },
     {
       "ref": "G03-02",
@@ -75,7 +78,8 @@
         "email"
       ],
       "area": "Search and borrowing",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Reserve a book that is out and get an email when it is back (max 3 reservations)"
     },
     {
       "ref": "G03-03",
@@ -85,7 +89,8 @@
         "reserved"
       ],
       "area": "Search and borrowing",
-      "proposed": "2"
+      "proposed": "2",
+      "row": "Renew online twice, unless someone reserved it"
     },
     {
       "ref": "G03-04",
@@ -95,7 +100,8 @@
         "parent"
       ],
       "area": "Accounts and fines",
-      "proposed": "2"
+      "proposed": "2",
+      "row": "Children's accounts: no fines, parent email on the account"
     },
     {
       "ref": "G03-05",
@@ -105,7 +111,8 @@
         "capped"
       ],
       "area": "Accounts and fines",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Fines calculated per day late, capped at the book price (currently done by hand)"
     },
     {
       "ref": "G03-06",
@@ -115,7 +122,8 @@
         "status"
       ],
       "area": "Branch operations",
-      "proposed": "3"
+      "proposed": "3",
+      "row": "Interlibrary loan request to the county library with status tracking"
     },
     {
       "ref": "G03-07",
@@ -125,7 +133,8 @@
         "barcode"
       ],
       "area": "Branch operations",
-      "proposed": "3"
+      "proposed": "3",
+      "row": "Self-checkout kiosk with the card barcode"
     },
     {
       "ref": "G03-08",
@@ -135,7 +144,8 @@
         "subscribers"
       ],
       "area": "Search and borrowing",
-      "proposed": "2"
+      "proposed": "2",
+      "row": "Weekly new arrivals list on the website and by email to subscribers"
     },
     {
       "ref": "G03-09",
@@ -145,7 +155,8 @@
         "where"
       ],
       "area": "Branch operations",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Branch staff can move a copy between branches and the catalogue shows where it is"
     },
     {
       "ref": "G03-10",
@@ -155,7 +166,8 @@
         "turned off"
       ],
       "area": "Accounts and fines",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Reading history is private, only the user sees it, can be turned off (legal)"
     },
     {
       "ref": "G03-11",
@@ -165,7 +177,8 @@
         "no own"
       ],
       "area": "Search and borrowing",
-      "proposed": "2"
+      "proposed": "2",
+      "row": "E-books: link to the national e-lending platform, no own e-book system"
     },
     {
       "ref": "G03-12",
@@ -175,7 +188,8 @@
         "per month"
       ],
       "area": "Branch operations",
-      "proposed": "2"
+      "proposed": "2",
+      "row": "Report: most borrowed titles per branch per month"
     },
     {
       "ref": "G03-13",
@@ -185,7 +199,8 @@
         "blocked"
       ],
       "area": "Accounts and fines",
-      "proposed": "3"
+      "proposed": "3",
+      "row": "Lost card: block the card and issue a new one for 10 lei"
     },
     {
       "ref": "G03-14",
@@ -195,7 +210,19 @@
         "AA"
       ],
       "area": "Website",
-      "proposed": "1"
+      "proposed": "1",
+      "row": "Accessibility: the public site passes WCAG AA"
+    },
+    {
+      "ref": "G03-15",
+      "meaning": "Renew online twice unless someone reserved the book (the Romanian row, same as L-4).",
+      "must_keep": [
+        "2"
+      ],
+      "area": "Search and borrowing",
+      "proposed": "2",
+      "duplicate_of": "G03-03",
+      "row": "Prelungirea online de 2 ori, daca nu e rezervata de altcineva"
     }
   ],
   "must_not_invent": [
@@ -205,5 +232,5 @@
     "L-3 or L-11 as items (they are empty rows)",
     "a Romanian-only requirement separate from renewal"
   ],
-  "notes": "L-7 is the Romanian duplicate of L-4; expected as one item (G03-03). The empty rows L-3 and L-11 are not items. Priorities are numbers 1 to 3; the model keeps them as given, it does not convert them to MoSCoW."
+  "notes": "L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3 in a column the import maps to Proposed value; shaping never sees them (E4-2), so the rows carry none."
 }

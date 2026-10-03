@@ -14,7 +14,8 @@
     ]
   },
   "item_count": 15,
-  "item_count_tolerance": 1,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Sales",
@@ -74,7 +75,8 @@
         "3",
         "online"
       ],
-      "area": "Sales"
+      "area": "Sales",
+      "row": "sell day, multi-day and season tickets online and at the 3 ticket offices"
     },
     {
       "ref": "G04-02",
@@ -84,7 +86,8 @@
         "5",
         "gate"
       ],
-      "area": "Sales"
+      "area": "Sales",
+      "row": "SkiPass+ (the premium season pass) includes 5 friend days, must be redeemable at the gate without going to the office"
     },
     {
       "ref": "G04-03",
@@ -93,7 +96,8 @@
         "Valley Card",
         "resident"
       ],
-      "area": "Sales"
+      "area": "Sales",
+      "row": "Valley Card holders (locals) get the resident price automatically when the card is scanned"
     },
     {
       "ref": "G04-04",
@@ -102,7 +106,8 @@
         "50",
         "credit"
       ],
-      "area": "Sales"
+      "area": "Sales",
+      "row": "refunds: weather closure of more than 50% of lifts = automatic credit for that day"
     },
     {
       "ref": "G04-05",
@@ -111,7 +116,8 @@
         "10",
         "one invoice"
       ],
-      "area": "Sales"
+      "area": "Sales",
+      "row": "group bookings (ski school, 10+) with one invoice and individual tickets"
     },
     {
       "ref": "G04-06",
@@ -121,7 +127,8 @@
         "14",
         "1 m"
       ],
-      "area": "Access"
+      "area": "Access",
+      "row": "RFID gates on all 14 lifts, read at 1 m without taking the card out"
     },
     {
       "ref": "G04-07",
@@ -131,7 +138,8 @@
         "8",
         "instructor"
       ],
-      "area": "Access"
+      "area": "Access",
+      "row": "Gate 7 (beginner lift) is free for ski school kids under 8 when accompanied by an instructor badge"
     },
     {
       "ref": "G04-08",
@@ -140,7 +148,8 @@
         "10 km",
         "5 minutes"
       ],
-      "area": "Access"
+      "area": "Access",
+      "row": "a ticket used at two gates more than 10 km apart within 5 minutes is blocked (sharing)"
     },
     {
       "ref": "G04-09",
@@ -149,7 +158,8 @@
         "4 hours",
         "local"
       ],
-      "area": "Access"
+      "area": "Access",
+      "row": "offline mode for gates: keep validating from the local list for 4 hours if the network drops"
     },
     {
       "ref": "G04-10",
@@ -158,7 +168,8 @@
         "photo",
         "before activation"
       ],
-      "area": "Passes and renewals"
+      "area": "Passes and renewals",
+      "row": "season pass photo taken at the office or uploaded, checked by staff before activation"
     },
     {
       "ref": "G04-11",
@@ -167,7 +178,8 @@
         "SkiPass+",
         "30 September"
       ],
-      "area": "Passes and renewals"
+      "area": "Passes and renewals",
+      "row": "renew SkiPass+ for next season at a discount until 30 September"
     },
     {
       "ref": "G04-12",
@@ -176,7 +188,8 @@
         "20 EUR",
         "history"
       ],
-      "area": "Passes and renewals"
+      "area": "Passes and renewals",
+      "row": "lost card: block old, issue new, 20 EUR, history transferred"
     },
     {
       "ref": "G04-13",
@@ -185,7 +198,8 @@
         "live",
         "by lift"
       ],
-      "area": "Reporting"
+      "area": "Reporting",
+      "row": "live count of people on the mountain by lift"
     },
     {
       "ref": "G04-14",
@@ -194,7 +208,8 @@
         "Saga",
         "by channel"
       ],
-      "area": "Reporting"
+      "area": "Reporting",
+      "row": "sales by channel by day for finance, exported to the accounting package (they use Saga)"
     },
     {
       "ref": "G04-15",
@@ -204,7 +219,8 @@
         "deleted"
       ],
       "area": "Reporting",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "GDPR: photo and name deleted 2 years after the pass expires"
     }
   ],
   "must_not_invent": [
@@ -214,5 +230,5 @@
     "equipment rental",
     "a loyalty programme beyond SkiPass+"
   ],
-  "notes": "Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; \"Premium season pass\" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps \"ski school\". Without the context a model may rename the areas to \"Online sales\" or \"Gates\"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; both are accepted."
+  "notes": "Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; \"Premium season pass\" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps \"ski school\". Without the context a model may rename the areas to \"Online sales\" or \"Gates\"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; placement is reported, not failed on. The website line (\"must not look like the old one\") is not a row: the source says the design is done elsewhere."
 }

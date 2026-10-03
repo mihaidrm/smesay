@@ -1,0 +1,84 @@
+name: Evals
+
+# The golden set (stories/E4-6, acceptance 3): runs on a pull request, and on main, when a
+# file the shaping result depends on changed (the prompts, the output schema, the context
+# module, the client and its prices, checkShape, or evals/), with the repository secret
+# ANTHROPIC_API_KEY. Without the secret the job prints that it skipped and passes. One run
+# costs under one euro (evals/README.md); pull requests and main, not every push to a branch,
+# so a commit runs it once.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/lib/ai/**"
+      - "src/lib/shaping.ts"
+      - "evals/**"
+      - ".github/workflows/evals.yml"
+  pull_request:
+    paths:
+      - "src/lib/ai/**"
+      - "src/lib/shaping.ts"
+      - "evals/**"
+      - ".github/workflows/evals.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: smesay
+          POSTGRES_PASSWORD: smesay
+          POSTGRES_DB: smesay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smesay -d smesay"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      CI: "true"
+      DATABASE_URL: postgres://smesay:smesay@localhost:5432/smesay
+      # For the throwaway database of this job only; it is no secret.
+      BETTER_AUTH_SECRET: ci-only-secret-for-the-throwaway-database
+      BETTER_AUTH_URL: http://localhost:3000
+      MAIL_SMTP_URL: "memory:"
+      EMAIL_FROM: SMEsay <sign-in@localhost>
+      S3_ENDPOINT: "memory:"
+      S3_BUCKET: uploads
+      ANTHROPIC_MONTHLY_BUDGET_EUR: "10"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The key reaches the two steps that need it, not npm ci or the upload.
+      - id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY is not in the repository secrets: the evals are skipped (stories/E4-6, acceptance 3)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.key.outputs.run == 'true'
+        run: npm run db:migrate
+      - if: steps.key.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npm run evals
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.key.outputs.run == 'true'
+        with:
+          name: evals-results
+          path: evals/results/latest.json
+          retention-days: 30

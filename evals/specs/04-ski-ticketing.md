@@ -38,8 +38,30 @@ Terms to keep as written: SkiPass+, Valley Card, Gate 7, RFID, ski school
   * GDPR: photo and name deleted 2 years after the pass expires
 ```
 
+## Rows as imported (decision 0037)
+
+What a PM imports from the document above: one row per item, nothing else. The runner feeds these rows with no area column.
+
+```text
+1. sell day, multi-day and season tickets online and at the 3 ticket offices
+2. SkiPass+ (the premium season pass) includes 5 friend days, must be redeemable at the gate without going to the office
+3. Valley Card holders (locals) get the resident price automatically when the card is scanned
+4. refunds: weather closure of more than 50% of lifts = automatic credit for that day
+5. group bookings (ski school, 10+) with one invoice and individual tickets
+6. RFID gates on all 14 lifts, read at 1 m without taking the card out
+7. Gate 7 (beginner lift) is free for ski school kids under 8 when accompanied by an instructor badge
+8. a ticket used at two gates more than 10 km apart within 5 minutes is blocked (sharing)
+9. offline mode for gates: keep validating from the local list for 4 hours if the network drops
+10. season pass photo taken at the office or uploaded, checked by staff before activation
+11. renew SkiPass+ for next season at a discount until 30 September
+12. lost card: block old, issue new, 20 EUR, history transferred
+13. live count of people on the mountain by lift
+14. sales by channel by day for finance, exported to the accounting package (they use Saga)
+15. GDPR: photo and name deleted 2 years after the pass expires
+```
+
 ## Expected, in words
 
-15 distinct items in 4 areas (Sales, Access, Passes and renewals, Reporting). Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; both are accepted.
+15 rows, 15 distinct items in 4 areas (Sales, Access, Passes and renewals, Reporting). Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; placement is reported, not failed on. The website line ("must not look like the old one") is not a row: the source says the design is done elsewhere.
 
 The exact expectation is in expected/04.json.

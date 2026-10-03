@@ -13,7 +13,7 @@ testUrl.pathname = testUrl.pathname.replace(/\/?$/, "") + "_test";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs", "evals/**/*.test.ts"],
     fileParallelism: false,
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     env: {

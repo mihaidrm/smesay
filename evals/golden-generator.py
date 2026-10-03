@@ -5,7 +5,8 @@ SPECS = []
 def spec(id, domain, slug, format_note, context, doc, areas, items, must_not_invent, notes):
     SPECS.append(dict(id=id, domain=domain, slug=slug, format_note=format_note, context=context, doc=doc.strip('\n'), areas=areas, items=items, must_not_invent=must_not_invent, notes=notes))
 
-# item: (ref, meaning, must_keep, area, flags dict) ; flags: duplicate_of, ambiguous, noise, proposed
+# item: (ref, meaning, must_keep, area, flags dict) ; flags: duplicate_of, ambiguous, proposed. The row
+# each item is imported as comes from ROWS below (decision 0037).
 def it(ref, meaning, keep, area, **flags): return dict(ref=ref, meaning=meaning, must_keep=keep, area=area, **flags)
 
 spec('01', 'Bakery chain ordering', 'bakery-ordering',
@@ -64,7 +65,7 @@ Parking Oradea: ask Mihnea.
  it('G01-17','The order cut-off time can differ per shop.',['cut-off','per shop'],'Ordering'),
  it('G01-18','A shortage notice names the replacement product when there is one.',['replacement'],'Confirming and shortages')],
 ['fax ordering', 'parking', 'WhatsApp confirmation as a requirement (it is a question in the source)', 'payment or invoicing', 'loyalty cards', 'recipes'],
-'Item 6 is ambiguous: WhatsApp is a question, not a channel. Item 12 says "phase 2?", so it stays an item, flagged ambiguous for scope; the model must not drop it. Item 8 restates 2 with a second window (last week), which is a real addition, so it is a duplicate only in part; the runner accepts it as its own item or as merged into G01-02 with "last week" kept. The meeting notes and the parking line are noise, not items.')
+'Item 6 is ambiguous: WhatsApp is a question, not a channel. Item 12 says "phase 2?", so it stays an item, flagged ambiguous for scope. Item 8 restates 2 with a second window (last week): it stays a row, and a duplicate flag pointing at G01-02 is expected, with "last week" kept in its reader version. The meeting notes and the parking line are not rows.')
 
 spec('02', 'Veterinary clinic scheduling', 'vet-scheduling',
 'Email thread, newest first, three people, with quoted replies. Requirements buried in sentences.',
@@ -123,7 +124,7 @@ day, we had a complaint last month. And the SMS reminder two days before, not on
  it('G02-13','No app; the website is enough.',['website','no app'],'Booking'),
  it('G02-14','Clients can request their file and the clinic exports it (GDPR).',['export','GDPR'],'Owner and reporting')],
 ['a paper agenda feature', 'online booking for new clients', 'a reminder one day before (superseded in the thread)', 'payments online', 'inventory of medicines', 'a mobile app'],
-'The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 belongs to Booking by meaning; the runner accepts it in Booking or Client file, the listed area is where it sits in the source. "Keep it cheap" is not an item.')
+'The thread revises itself: one day before becomes two days before, 20 minutes becomes 30 for birds and reptiles. The expected items carry the final value. G02-08 is listed under Client file, where it sits in the source; the runner reports placement and does not fail on it. "Keep it cheap" is not a row.')
 
 spec('03', 'Municipal library catalogue', 'library-catalogue',
 'A table copied from a spreadsheet into plain text, columns misaligned, two rows empty, one row in Romanian.',
@@ -148,7 +149,7 @@ L-15	Report: most borrowed titles per branch per month	2	manager
 L-16	Lost card: block the card and issue a new one for 10 lei	3	desk
 L-17	Accessibility: the public site passes WCAG AA	1	public
 ''',
-[('Search and borrowing', ['Public catalogue', 'Borrowing'], ['G03-01','G03-02','G03-03','G03-08','G03-11']),
+[('Search and borrowing', ['Public catalogue', 'Borrowing'], ['G03-01','G03-02','G03-03','G03-08','G03-11','G03-15']),
  ('Accounts and fines', ['Members', 'Accounts'], ['G03-04','G03-05','G03-10','G03-13']),
  ('Branch operations', ['Branches', 'Staff'], ['G03-06','G03-07','G03-09','G03-12']),
  ('Website', ['Public site'], ['G03-14'])],
@@ -165,9 +166,10 @@ L-17	Accessibility: the public site passes WCAG AA	1	public
  it('G03-11','E-books link to the national e-lending platform; no own e-book system.',['national','no own'],'Search and borrowing',proposed='2'),
  it('G03-12','Report of the most borrowed titles per branch per month.',['per branch','per month'],'Branch operations',proposed='2'),
  it('G03-13','A lost card is blocked and replaced for 10 lei.',['10 lei','blocked'],'Accounts and fines',proposed='3'),
- it('G03-14','The public site passes WCAG AA.',['WCAG','AA'],'Website',proposed='1')],
+ it('G03-14','The public site passes WCAG AA.',['WCAG','AA'],'Website',proposed='1'),
+ it('G03-15','Renew online twice unless someone reserved the book (the Romanian row, same as L-4).',['2'],'Search and borrowing',proposed='2',duplicate_of='G03-03')],
 ['an own e-book system', 'a mobile app', 'late-fee payment online', 'L-3 or L-11 as items (they are empty rows)', 'a Romanian-only requirement separate from renewal'],
-'L-7 is the Romanian duplicate of L-4; expected as one item (G03-03). The empty rows L-3 and L-11 are not items. Priorities are numbers 1 to 3; the model keeps them as given, it does not convert them to MoSCoW.')
+'L-7 is the Romanian duplicate of L-4: it stays a row (G03-15) and the duplicate flag is expected to point at G03-03. The empty rows L-3 and L-11 are not rows. Priorities are numbers 1 to 3 in a column the import maps to Proposed value; shaping never sees them (E4-2), so the rows carry none.')
 
 spec('04', 'Ski resort lift ticketing', 'ski-ticketing',
 'Nested bullets from a wiki page, some bullets are headings, product names with odd capitalisation. Has a context block.',
@@ -219,7 +221,7 @@ dict(goal='Replace the lift ticket system before the December season: online sal
  it('G04-14','Sales by channel by day, exported to the accounting package (Saga).',['Saga','by channel'],'Reporting'),
  it('G04-15','Photo and name are deleted 2 years after the pass expires.',['2 years','deleted'],'Reporting',ambiguous=True)],
 ['a redesign of the website as a requirement (the source says the design is done elsewhere)', 'a mobile app', 'parking tickets', 'equipment rental', 'a loyalty programme beyond SkiPass+'],
-'Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; both are accepted.')
+'Context spec (decision 0011). The glossary terms SkiPass+, Valley Card, Gate 7 and RFID must appear exactly as written in the reader versions; "Premium season pass" instead of SkiPass+ is a failure. The context names the ski school as an audience, so the group booking item keeps "ski school". Without the context a model may rename the areas to "Online sales" or "Gates"; with it, the four source headings are expected (aliases accepted). G04-15 is ambiguous: it sits under Misc and could go to Passes; placement is reported, not failed on. The website line ("must not look like the old one") is not a row: the source says the design is done elsewhere.')
 
 spec('05', 'Community choir management', 'choir-membership',
 'Prose paragraphs from a committee member, no list at all. Items must be extracted from sentences.',
@@ -257,7 +259,7 @@ not have to remember who that is.
  it('G05-09','Concert dates show the dress code and call time; a public page lists the next three concerts with a link to Eventbook for tickets.',['dress code','call time','three','Eventbook'],'Music and concerts'),
  it('G05-10','The site is the source of truth for membership, not the notebook.',['truth'],'Membership and fees',ambiguous=True)],
 ['an own ticketing system', 'a WhatsApp integration', 'a mobile app', 'an automatic email to a member who missed rehearsals', 'first come first served admission', 'a feature for the notebook'],
-'Prose only. The model must find ten items in sentences and keep the negatives: "not an automatic email, a person" and "not first come first served". G05-02 is an ambiguity flag candidate (whose deadline is it, and what happens after Monday); G05-10 could be dropped as not a requirement or kept as a principle, both accepted. "Half of whom left years ago" is background, not an item.')
+'Prose only. The model must find ten items in sentences and keep the negatives: "not an automatic email, a person" and "not first come first served". G05-02 is an ambiguity flag candidate (whose deadline is it, and what happens after Monday); G05-10 is a principle more than a requirement and is expected flagged ambiguous. "Half of whom left years ago" is background, not a row.')
 
 spec('06', 'Wind farm maintenance logging', 'wind-maintenance',
 'Technician shorthand, abbreviations, numbers everywhere, a second author appended corrections at the bottom. Has a context block.',
@@ -350,7 +352,7 @@ REG-117 | Open | The system must hold 3,000 concurrent registrations in the firs
  it('G07-12','Course description page with ECTS, lecturer, language and assessment method.',['ECTS','assessment'],'Data and reporting'),
  it('G07-13','The system holds 3,000 concurrent registrations in the first hour of the window.',['3,000','first hour'],'Data and reporting')],
 ['a mobile app (REG-114 is Won\'t do)', 'fixing the old system crash (REG-106 is a bug, not a requirement)', 'password reset emails (REG-111 is a bug)', 'REG-103 as a separate item', 'online fee payment', 'grades or transcripts beyond the drop rule'],
-'Statuses matter: Bug rows and the Won\'t do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert "Won\'t do" into a Not needed item on the list; it is excluded from the list.')
+'Statuses matter: the Bug lines, the Won\'t do line and the Closed-Duplicate line are not rows. Thirteen rows from seventeen lines.')
 
 spec('08', 'Car wash subscription billing', 'carwash-billing',
 'Chat export between the owner and a developer friend, informal, with emoji stripped, some lines are jokes, decisions change mid-chat.',
@@ -382,7 +384,7 @@ contract
 [09:29] Vlad: no app. web + the gate.
 ''',
 [('Plans and pricing', ['Subscriptions', 'Plans'], ['G08-01','G08-02','G08-03','G08-04','G08-08','G08-10']),
- ('Billing', ['Payments', 'Invoicing'], ['G08-05','G08-06','G08-09','G08-13']),
+ ('Billing', ['Payments', 'Invoicing'], ['G08-05','G08-06','G08-09']),
  ('Gate and site', ['Access', 'Operations'], ['G08-07','G08-11']),
  ('Reporting', ['Dashboard'], ['G08-12'])],
 [it('G08-01','Three plans per car: Basic 99 lei (4 washes a month), Plus 149 (unlimited exterior), Premium 249 (unlimited everything); the plate number is the id.',['99','149','249','plate'],'Plans and pricing'),
@@ -396,10 +398,9 @@ contract
  it('G08-09','A subscription can be paused for up to 2 months a year.',['2 months','pause'],'Billing'),
  it('G08-10','A customer can change the plate at most once a month; staff can always change it.',['once a month','staff'],'Plans and pricing'),
  it('G08-11','No app: web and the gate only.',['no app','web'],'Gate and site'),
- it('G08-12','Dashboard: active subscriptions per plan, churn per month, revenue, and a failed payments list to call.',['churn','failed payments'],'Reporting'),
- it('G08-13','Payments are charged per car, with cards stored on file.',['card on file'],'Billing',duplicate_of='G08-05')],
+ it('G08-12','Dashboard: active subscriptions per plan, churn per month, revenue, and a failed payments list to call.',['churn','failed payments'],'Reporting')],
 ['a washing machine or laundry feature', 'refunds', 'a mobile app', 'a plan with no daily limit', 'a loyalty programme', 'a Hikvision integration beyond reading the plate'],
-'The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. G08-13 is listed to test duplicate detection; the runner accepts it merged into G08-05. "lol", "thats it" and the washing machines line are noise.')
+'The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. "lol", "thats it" and the washing machines line (a scope remark) are not rows.')
 
 spec('09', 'Theatre box office', 'theatre-boxoffice',
 'A formal tender-style list with legalistic numbering (3.1.4), long sentences, two items that contradict each other.',
@@ -457,7 +458,7 @@ None,
  it('G09-12','All purchases require a patron account so marketing can contact the audience.',['require','marketing'],'Audience',ambiguous=True),
  it('G09-13','The website conforms to WCAG 2.1 AA; wheelchair spaces are bookable online with an adjacent companion seat.',['WCAG','companion'],'Accessibility')],
 ['the contents of Annex C', 'a resolution of the account contradiction (the model flags it, it does not pick a side)', 'a loyalty scheme', 'a mobile app', 'dynamic pricing', 'a seat map for standing performances'],
-'3.4.1 and 3.4.2 contradict each other. Both are expected as items, both flagged ambiguous, and the ambiguity flag should name the contradiction. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.')
+'G09-11 and G09-12 (3.4.1 and 3.4.2 in the source) contradict each other. Both are rows, both expected flagged ambiguous; whether the flag names the contradiction is for the reader of the result, the runner counts the flags. Dropping one of them, or rewriting one to agree with the other, is a failure. "Shall" wording becomes plain sentences in the reader version without losing the numbers.')
 
 spec('10', 'Beekeeping cooperative traceability', 'honey-traceability',
 'Mixed: a short list from the cooperative president, then a forwarded message from the lab, then a list of questions nobody answered.',
@@ -503,7 +504,150 @@ Open questions (asked in June, no answers yet):
  it('G10-09','No public map of apiaries; the public page shows the village only.',['no','map','village'],'Labels and public page'),
  it('G10-10','Pass or fail thresholds are set per honey type (acacia and polyfloral have different moisture limits); the lab also sends a CSV with HMF, moisture, diastase and pollen origin.',['per honey type','moisture','CSV'],'Lab and quality',ambiguous=True)],
 ['a public apiary map', 'a price on the public page (open question, not decided)', 'GPS coordinates', 'selling outside the cooperative (open question)', 'hosting arrangements', 'an online shop for consumers'],
-'The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not items; a model that turns "do we show the price" into a requirement has invented one. Item 9 is a negative requirement and stays.')
+'The lab message adds one real requirement (thresholds per honey type) and an option (CSV), expected as one item flagged ambiguous. The three open questions are not rows. Item 9 is a negative requirement and stays.')
+
+# ---------- rows as imported (decision 0037) ----------
+# The row a PM imports for each expected item: the source line as it stands, numbering and
+# status columns stripped, a correction from later in the document folded into its row, a
+# prose sentence cut out as its own row (spec 05). Rows that are not items (meeting notes,
+# bugs, Won't do, closed duplicates, open questions, empty rows) have no entry and are never
+# imported. The runner feeds these rows, in this order, with no area column.
+ROWS = {
+ 'G01-01': 'Every shop can place the next-day order from a phone or the shop PC, until 16:00. MUST',
+ 'G01-02': "The order form shows yesterday's order so you can copy it and change the numbers. (Important!!)",
+ 'G01-03': 'Products that are out of production for the day are greyed out, not hidden.',
+ 'G01-04': 'Central bakery sees all orders in one list by 16:15 and can print it per oven line.',
+ 'G01-05': 'a shop manager can set a standing order per weekday that is created automatically if nobody changes it by 15:30 ***',
+ 'G01-06': 'Order confirmation goes to the shop by SMS and email (or whatsapp?) with the totals.',
+ 'G01-07': 'Wastage: at closing the shop types what was thrown away per product; the report compares with the order. nice to have',
+ 'G01-08': 'Same as 2 basically: show last week same day as well, Dana asked for this twice.',
+ 'G01-09': 'Allergen list per product visible in the order form (legal, must).',
+ 'G01-10': 'Price changes are set centrally and shops cannot edit prices.',
+ 'G01-11': 'If the bakery cannot deliver the full quantity, the shop is told before 06:00 what is short.',
+ 'G01-12': 'Driver app: scan the crate label at drop-off so the shop knows the order arrived. (phase 2?)',
+ 'G01-13': 'Returns of unsold bread to the central bakery for the animal feed partner, counted per crate.',
+ 'G01-14': 'the dashboard for the owners: sales vs orders vs wastage per shop per week. must',
+ 'G01-15': 'Users: shop manager, shop staff (order only, no standing orders), bakery planner, driver, owner.',
+ 'G01-16': 'Works offline in the shop if the internet drops, syncs later. should',
+ 'G01-17': 'Order cut-off time can be different per shop (the airport shop closes late).',
+ 'G01-18': 'See 11 - also tell them the replacement product if there is one.',
+ 'G02-01': 'online booking for existing clients only, new clients call us (we need to check the animal first)',
+ 'G02-02': 'a visit takes 20 minutes (30 for birds and reptiles), a vaccination 10, surgery is whatever the doctor sets',
+ 'G02-03': 'two doctors, two rooms, the X-ray room is shared and must be booked with the visit when needed',
+ 'G02-04': 'Dr. Iliescu: I need to block my Thursday mornings for surgery and nobody should be able to book a consultation into that block, including online bookings',
+ 'G02-05': 'reminders: SMS two days before, not one',
+ 'G02-06': 'the client file shows the animals, last visit, vaccines due, and the balance owed',
+ 'G02-07': 'we must be able to see who cancelled late (less than 24h) and how many times',
+ 'G02-08': 'ok to lose: the paper agenda. Not ok to lose: the ability to overbook an emergency on top of a full day',
+ 'G02-09': 'Mihnea (owner): I want the daily revenue by doctor on my phone in the morning',
+ 'G02-10': 'printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)',
+ 'G02-11': 'the boarding kennel (6 places) is a different calendar but the same client file',
+ 'G02-12': 'when a pet is marked deceased the reminders must stop the same day (we had a complaint last month)',
+ 'G02-13': 'No app, the website is enough.',
+ 'G02-14': 'GDPR: clients can ask for their file and we export it',
+ 'G03-01': 'Search the catalogue by title, author, ISBN and subject',
+ 'G03-02': 'Reserve a book that is out and get an email when it is back (max 3 reservations)',
+ 'G03-03': 'Renew online twice, unless someone reserved it',
+ 'G03-04': "Children's accounts: no fines, parent email on the account",
+ 'G03-05': 'Fines calculated per day late, capped at the book price (currently done by hand)',
+ 'G03-06': 'Interlibrary loan request to the county library with status tracking',
+ 'G03-07': 'Self-checkout kiosk with the card barcode',
+ 'G03-08': 'Weekly new arrivals list on the website and by email to subscribers',
+ 'G03-09': 'Branch staff can move a copy between branches and the catalogue shows where it is',
+ 'G03-10': 'Reading history is private, only the user sees it, can be turned off (legal)',
+ 'G03-11': 'E-books: link to the national e-lending platform, no own e-book system',
+ 'G03-12': 'Report: most borrowed titles per branch per month',
+ 'G03-13': 'Lost card: block the card and issue a new one for 10 lei',
+ 'G03-14': 'Accessibility: the public site passes WCAG AA',
+ 'G03-15': 'Prelungirea online de 2 ori, daca nu e rezervata de altcineva',
+ 'G04-01': 'sell day, multi-day and season tickets online and at the 3 ticket offices',
+ 'G04-02': 'SkiPass+ (the premium season pass) includes 5 friend days, must be redeemable at the gate without going to the office',
+ 'G04-03': 'Valley Card holders (locals) get the resident price automatically when the card is scanned',
+ 'G04-04': 'refunds: weather closure of more than 50% of lifts = automatic credit for that day',
+ 'G04-05': 'group bookings (ski school, 10+) with one invoice and individual tickets',
+ 'G04-06': 'RFID gates on all 14 lifts, read at 1 m without taking the card out',
+ 'G04-07': 'Gate 7 (beginner lift) is free for ski school kids under 8 when accompanied by an instructor badge',
+ 'G04-08': 'a ticket used at two gates more than 10 km apart within 5 minutes is blocked (sharing)',
+ 'G04-09': 'offline mode for gates: keep validating from the local list for 4 hours if the network drops',
+ 'G04-10': 'season pass photo taken at the office or uploaded, checked by staff before activation',
+ 'G04-11': 'renew SkiPass+ for next season at a discount until 30 September',
+ 'G04-12': 'lost card: block old, issue new, 20 EUR, history transferred',
+ 'G04-13': 'live count of people on the mountain by lift',
+ 'G04-14': 'sales by channel by day for finance, exported to the accounting package (they use Saga)',
+ 'G04-15': 'GDPR: photo and name deleted 2 years after the pass expires',
+ 'G05-01': 'The site should let a member see the rehearsal calendar for the season and say whether they are coming to each one',
+ 'G05-02': 'we need to know by the Monday before if we have enough tenors',
+ 'G05-03': 'If someone misses three rehearsals in a row before a concert, the section leader should be told so they can call them, not an automatic email, a person',
+ 'G05-04': 'The membership fee is 120 lei a year and we need to see who has paid',
+ 'G05-05': 'a reminder going out in February and again in March to those who have not',
+ 'G05-06': 'The waiting list people should be able to put their name and voice part on the site themselves, and when a place opens the committee picks someone, it is not first come first served',
+ 'G05-07': 'members over 70 pay half, and we should not have to remember who that is',
+ 'G05-08': 'Sheet music: we have the right to share PDFs with members only, so they must be behind a login and not downloadable by the waiting list',
+ 'G05-09': 'Concert dates with the dress code and the call time, and a page the public can see with the next three concerts and a way to buy tickets, we use a third party for tickets (Eventbook) so just a link',
+ 'G05-10': 'Carmen wants to keep the notebook, that is fine, but the site is the truth',
+ 'G06-01': 'open a job on a WTG from the tablet, job types: scheduled service, fault, inspection, retrofit',
+ 'G06-02': 'LOTO checklist must be completed and signed by 2 techs before the job can go to "in progress" (no exceptions, HSE)',
+ 'G06-03': 'nacelle work: log the climb, the harness check, and who is the second person on the ground',
+ 'G06-04': 'parts used: scan the part barcode, stock comes from the container inventory, warns when a part drops below min stock',
+ 'G06-05': 'time per job per tech, for the OEM warranty claims they want the hours',
+ 'G06-06': 'photos: before / after, attached to the job, max 10, compressed on the tablet',
+ 'G06-07': 'the job report is a PDF in the OEM format (they have a template, see attached, not attached sorry) so the warranty people accept it',
+ 'G06-08': 'SCADA alarm that triggered a fault job is linked to the job by alarm id, we type the id now',
+ 'G06-09': 'works with no signal up in the nacelle, syncs at the base',
+ 'G06-10': 'site manager sees all open jobs by WTG and by tech, overdue scheduled services in a configurable colour, not red (we have a colour blind tech)',
+ 'G06-11': 'HSE officer: monthly export of all LOTO records and near misses',
+ 'G06-12': 'near miss report: 3 fields, what, where, photo, from any tech, anonymous to the site but visible to HSE (otherwise we cannot follow up)',
+ 'G06-13': 'weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 15 m/s per the OEM manual (12 m/s is the rotor limit)',
+ 'G06-14': 'retrofit jobs from the OEM bulletin need the bulletin number on the job',
+ 'G07-01': 'Students register for courses in a window per year of study, 48h each, year 4 first',
+ 'G07-02': 'Prerequisite check at registration, with the list of missing prerequisites shown',
+ 'G07-03': 'Capacity per course; waiting list with automatic promotion when a seat opens, by timestamp',
+ 'G07-04': "Timetable clash warning, registration still allowed with dean's approval",
+ 'G07-05': 'A student can drop a course until week 3 without a mark on the transcript',
+ 'G07-06': "Advisors see their students' registrations and can hold a registration pending a meeting",
+ 'G07-07': 'Erasmus students register through the same system with a provisional student id',
+ 'G07-08': 'Fees: a student with unpaid fees from last semester cannot register (finance flag)',
+ 'G07-09': "Registration confirmation PDF with the student's courses and the timetable",
+ 'G07-10': 'Export of enrolment per course to the department secretaries, xlsx, every night',
+ 'G07-11': 'Audit log of every registration change, who and when, kept 5 years',
+ 'G07-12': 'Course description page with ECTS, lecturer, language, assessment method',
+ 'G07-13': 'The system must hold 3,000 concurrent registrations in the first hour of the window',
+ 'G08-01': '3 plans: basic 99 lei (4 washes/month), plus 149 (unlimited exterior), premium 249 (unlimited everything). per car, plate number is the id',
+ 'G08-02': 'max 1 wash per day on every plan, basic and unlimited alike, otherwise the taxi guys will kill us',
+ 'G08-03': 'second car 20% off, same account, separate plates',
+ 'G08-04': 'cancel anytime, ends at the end of the paid month, no refunds',
+ 'G08-05': 'card on file, charged on the 1st, if it fails retry on the 3rd and 5th then suspend',
+ 'G08-06': 'receipts by email, invoices for companies with CUI, monthly; for companies it has to go to e-factura, that is law now',
+ 'G08-07': 'the gate reads the plate (we have the camera already, Hikvision) and opens if the plan is active, staff see the plan on the tablet',
+ 'G08-08': 'gift cards for xmas, 3 or 6 months, code on paper',
+ 'G08-09': 'pause: a sub can be paused up to 2 months a year, e.g. when they go abroad',
+ 'G08-10': 'plate change: customer changes the plate himself, max once a month, staff can always',
+ 'G08-11': 'no app. web + the gate.',
+ 'G08-12': 'dashboard: active subs per plan, churn per month, revenue, and failed payments list so the girls can call them',
+ 'G09-01': 'The system shall allow the sale of tickets for reserved seating performances through the box office, the website and authorised resellers, with a single seat map.',
+ 'G09-02': 'The system shall hold a seat for a maximum of 10 minutes during an online purchase.',
+ 'G09-03': 'The system shall apply the discount schedule (students, pensioners, groups of 15 or more, staff) upon presentation of the relevant proof at the box office; online purchases of discounted tickets shall be validated at the entrance.',
+ 'G09-04': 'The system shall support season subscriptions of 6 performances with a fixed seat.',
+ 'G09-05': 'The system shall not permit the sale of more tickets than the hall capacity as declared to the fire authority (486 seats, 4 wheelchair spaces).',
+ 'G09-06': 'Tickets shall be scanned at the entrance from paper or a phone screen; a ticket shall be accepted once.',
+ 'G09-07': 'The system shall operate the entrance scanners without an internet connection for the duration of a performance.',
+ 'G09-08': 'A settlement report per performance shall be available within 30 minutes of the end of the performance, showing sales by channel and by price category.',
+ 'G09-09': 'Author royalties shall be computed per performance as a percentage of net sales, with the percentage set per production.',
+ 'G09-10': 'The system shall export daily sales to the accounting system in the format annexed (Annex C).',
+ 'G09-11': 'Patrons may create an account to see their purchase history and receive the programme by email; an account shall not be required to buy a ticket.',
+ 'G09-12': 'All ticket purchases shall require a patron account so that the marketing department can contact the audience.',
+ 'G09-13': 'The website shall conform to WCAG 2.1 level AA; wheelchair spaces shall be bookable online with a companion seat adjacent.',
+ 'G10-01': 'every jar has a QR code that opens a page with the beekeeper, the apiary location (village, not GPS), the harvest date and the lab result',
+ 'G10-02': 'beekeepers record each harvest from their phone: apiary, date, kg, honey type',
+ 'G10-03': 'the cooperative mixes honey from several beekeepers into one batch, the batch page lists all of them with their share',
+ 'G10-04': 'lab results are attached to the batch, PDF from the lab, and the page shows pass/fail only, not the numbers',
+ 'G10-05': "label printing with the batch number and the QR, on the cooperative's Zebra printer",
+ 'G10-06': 'stock: how many kg of each honey type is in the warehouse, by batch',
+ 'G10-07': 'sales to the shops, invoice per shop, honey leaves the stock by batch (oldest first)',
+ 'G10-08': 'a beekeeper sees only their own harvests and the batches they are part of',
+ 'G10-09': 'the mayor wants a public map of the apiaries. NO. village only, see 1',
+ 'G10-10': 'From the lab (Dr. Pop): we can send the results as PDF and as a CSV with the parameters (HMF, moisture, diastase, pollen origin). If you want pass/fail we need the thresholds from you per honey type. Acacia and polyfloral have different moisture limits.',
+}
 
 # ---------- emit ----------
 spec_index = []
@@ -514,15 +658,23 @@ for s in SPECS:
         md += ['## Project context (decision 0011)', '', f"Goal: {c['goal']}", '', f"Audience: {c['audience']}", '', 'Terms to keep as written: ' + ', '.join(c['glossary']), '']
     else:
         md += ['Project context: none.', '']
-    md += ['## Document as received', '', '```text', s['doc'], '```', '', '## Expected, in words', '',
-           f"{len([i for i in s['items'] if not i.get('duplicate_of')])} distinct items in {len(s['areas'])} areas (" + ', '.join(a[0] for a in s['areas']) + '). ' + s['notes'], '',
+    for i in s['items']:
+        assert i['ref'] in ROWS, (s['id'], i['ref'], 'no row')
+        i['row'] = ROWS[i['ref']]
+    md += ['## Document as received', '', '```text', s['doc'], '```', '',
+           '## Rows as imported (decision 0037)', '',
+           'What a PM imports from the document above: one row per item, nothing else. The runner feeds these rows with no area column.', '', '```text']
+    md += [f"{n + 1}. {i['row']}" for n, i in enumerate(s['items'])]
+    md += ['```', '', '## Expected, in words', '',
+           f"{len(s['items'])} rows, {len([i for i in s['items'] if not i.get('duplicate_of')])} distinct items in {len(s['areas'])} areas (" + ', '.join(a[0] for a in s['areas']) + '). ' + s['notes'], '',
            'The exact expectation is in expected/' + s['id'] + '.json.', '']
     (ROOT / 'specs' / f"{s['id']}-{s['slug']}.md").write_text('\n'.join(md))
     exp = {
         'id': s['id'], 'domain': s['domain'], 'source': f"specs/{s['id']}-{s['slug']}.md",
         'context': s['context'],
-        'item_count': len([i for i in s['items'] if not i.get('duplicate_of')]),
-        'item_count_tolerance': 1,
+        'item_count': len(s['items']),
+        'item_count_tolerance': 0,
+        'area_count_tolerance': 1,
         'areas': [{'name': a[0], 'aliases': a[1], 'items': a[2]} for a in s['areas']],
         'items': s['items'],
         'must_not_invent': s['must_not_invent'],
@@ -537,5 +689,5 @@ for s in SPECS:
     for i in s['items']:
         assert i['area'] in [a[0] for a in s['areas']], (s['id'], i['ref'])
         assert i['ref'] in next(a[2] for a in s['areas'] if a[0] == i['area']), (s['id'], i['ref'], 'area mismatch')
-print('| Spec | Domain | Rows in source | Distinct items | Areas | Context | Ambiguous | Duplicates |')
+print('| Spec | Domain | Rows imported | Distinct items | Areas | Context | Ambiguous | Duplicates |')
 for r in spec_index: print(f"| {r[0]} | {r[1]} | {r[3]} | {r[4]} | {r[5]} | {'yes' if r[6] else 'no'} | {r[7]} | {r[8]} |")
