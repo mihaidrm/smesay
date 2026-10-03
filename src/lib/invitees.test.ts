@@ -14,7 +14,7 @@ import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, openDraft, saveIntro } from "@/lib/instruments";
-import { INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, sendInvites } from "@/lib/invitees";
+import { INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, refusalCopy, sendInvites } from "@/lib/invitees";
 import { INVITEES_MAX_PER_SEND, minutesFor, parseInvitees } from "@/lib/invitees-rules";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { BUILD_COPY } from "@/lib/build-copy";
@@ -152,10 +152,16 @@ describe("sendInvites", () => {
     expect(sent[1].to).toBe("bo@x.example");
     const dee = await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, now, async () => { throw new Error("connect ECONNREFUSED smtp://user:secret@mail.example:587 now"); });
     expect(dee).toEqual({ outcomes: [{ email: "dee@x.example", line: "dee@x.example", sent: false, error: INVITEES_ERRORS.notSent("dee@x.example", "connect ECONNREFUSED [server] now") }] });
-    const cut = await sendInvites(a.ws, project.id, instrument.id, "gil@x.example", sender, BASE, now, async () => { throw new Error("getaddrinfo ENOTFOUND smtp.internal.example 10.0.0.5:587 mail.internal:25."); });
-    expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server]") }] });
+    const cut = await sendInvites(a.ws, project.id, instrument.id, "gil@x.example", sender, BASE, now, async () => { throw new Error("getaddrinfo ENOTFOUND smtp.internal.example 10.0.0.5:587 mail.internal:25 <gil@x.example> at 10:30."); });
+    expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server] <gil@x.example> at 10:30") }] });
+    // A long reason is cut to 200 characters before the patterns run, in bounded time.
+    const started = Date.now();
+    const long = await sendInvites(a.ws, project.id, instrument.id, "gus2@x.example", sender, BASE, now, async () => { throw new Error("a:".repeat(5000)); });
+    expect(Date.now() - started).toBeLessThan(2000);
+    if (!("outcomes" in long)) throw new Error(long.error);
+    expect(long.outcomes[0].error!.length).toBeLessThan(320);
     await expect(sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
-    const ed = (await listInvitees(a.ws, instrument.id))[4];
+    const ed = (await listInvitees(a.ws, instrument.id))[5];
     expect([ed.email, inviteStatus(ed), ed.sendError]).toEqual(["ed@x.example", "notSent", null]);
     // A row with no outcome yet is in flight for 15 minutes, then can be sent again; two
     // resends of one failed row at once send one email.
@@ -189,9 +195,9 @@ describe("sendInvites", () => {
 
     // The daily limit says how many can still go.
     expect(INVITEES_ERRORS.tooManyToday(0)).toBe("This workspace sent 500 invites in the last 24 hours. Try again later.");
-    expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite in the next 24 hours (500 per 24 hours). Shorten the list, or try again later.");
-    // The sample's 6 and this test's 7 so far (ana, bo, dee, gil, ed, fay, hal).
-    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(13);
+    expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite right now (500 in any 24 hours). Shorten the list, or try again later.");
+    // The sample's 6 and this test's 8 so far (ana, bo, dee, gil, gus2, ed, fay, hal).
+    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(14);
     expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date(Date.now() + 48 * 60 * 60 * 1000))).toBe(0);
     expect(await invites.countPersonalSince(b.ws, 24 * 60, new Date())).toBe(6);
     // The personal links follow the public link's dates and carry the open date in the
@@ -245,10 +251,16 @@ describe("sendInvites", () => {
     if (!("invite" in publishedAgain)) throw new Error(publishedAgain.error);
     expect(newer!.id).not.toBe(instrument.id);
     expect((await listInvitees(a.ws, instrument.id))[0].closesAt).toEqual(new Date("2026-10-06T12:00:00Z"));
-    // The replaced instrument refuses under the lock too (the early check passed: its own
-    // public row still exists), and the newer one sends.
+    // The replaced instrument refuses under the lock (and own() before it, for a stale
+    // tab); closed and revoked refuse there too; each refusal has its words; the newer one
+    // sends.
     expect(await invites.createPersonal(a.ws, instrument.id, [{ email: "y@x.example", name: null, role: null, token: "e".repeat(32) }], now)).toEqual({ refused: "replaced" });
     expect(await sendInvites(a.ws, project.id, instrument.id, "y@x.example", sender, BASE, now)).toEqual({ error: BUILD_COPY.replaced });
+    expect(await invites.createPersonal(a.ws, newer!.id, [{ email: "y@x.example", name: null, role: null, token: "e".repeat(32) }], new Date("2026-11-21T00:00:00Z"))).toEqual({ refused: "closed" });
+    await invites.update(a.ws, publishedAgain.invite.id, { revokedAt: new Date("2026-10-07T00:00:00Z") });
+    expect(await invites.createPersonal(a.ws, newer!.id, [{ email: "y@x.example", name: null, role: null, token: "e".repeat(32) }], now)).toEqual({ refused: "revoked" });
+    await invites.update(a.ws, publishedAgain.invite.id, { revokedAt: null });
+    expect([refusalCopy("none"), refusalCopy("replaced"), refusalCopy("revoked"), refusalCopy("closed")]).toEqual([INVITEES_COPY.needLink, INVITEES_COPY.linkReplaced, INVITEES_COPY.linkRevoked, INVITEES_COPY.linkClosed]);
     const onNewer = await sendInvites(a.ws, project.id, newer!.id, "zed@x.example", sender, BASE, new Date("2026-10-07T12:00:00Z"), async (mail) => { sent.push(mail); });
     expect(onNewer).toEqual({ outcomes: [{ email: "zed@x.example", line: "zed@x.example", sent: true, error: null }] });
   }, 60_000);

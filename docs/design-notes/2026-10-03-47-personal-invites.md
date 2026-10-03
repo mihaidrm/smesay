@@ -34,7 +34,8 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
   then it can be sent again (a request that died mid-way). The claim is one update
   statement that moves send_started_at, so two sends cannot both take a row. The new rows
   go in first, with one insert under the instrument row's lock then the project row's (the
-  order publish takes, so the two cannot deadlock), the public link checked inside them
+  order publish takes, so the two cannot deadlock; both FOR NO KEY UPDATE, so a
+  respondent's save is not held up), the public link checked inside them
   (the project's link in force, not revoked, not closed) and its dates read there, ON
   CONFLICT DO NOTHING on the partial unique index; a refusal there happens before any row
   is claimed for sending again. The outcomes come back in the order pasted. The PM reads the reason on the row; the respondent side never shows it. A missing

@@ -137,7 +137,7 @@ instrumentId, email); invite.send_started_at, invite.sent_at and invite.send_err
 Not sent) and the partial unique index
 invite_personal_email_idx on (instrument_id, email) where kind = 'personal'.
 invites.createPersonal(ws, instrumentId, people, now) (one insert under the instrument row
-FOR UPDATE then the project row FOR NO KEY UPDATE, publish's order; the public link checked
+then the project row, both FOR NO KEY UPDATE, publish's order; the public link checked
 there as the project's link in force, not revoked, not closed at now, its dates on the rows;
 ON CONFLICT DO NOTHING on the partial index; returns { created } or { refused: none |
 replaced | revoked | closed }, null outside the workspace);

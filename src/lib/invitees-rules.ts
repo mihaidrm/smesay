@@ -19,6 +19,7 @@ export const INVITEES_COPY = {
   sent: (n: number) => `${n} ${n === 1 ? "invite" : "invites"} sent.`,
   linkClosed: "The public link is closed. Move its close date to send invites.",
   linkRevoked: "The public link is revoked. Publish again to send invites.",
+  linkReplaced: "A newer version of the list is published. Send invites from its Share page.",
   headers: { person: "Person", status: "Status", reminders: "Reminders" },
   status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent" },
   notSentHint: "Paste the address again to send it. A send in progress holds the address for 15 minutes.",
@@ -34,8 +35,8 @@ export const INVITEES_ERRORS = {
   tooMany: `Up to ${INVITEES_MAX_PER_SEND} people per send. Split the list and send again.`,
   longName: `Keep each name and role to ${INVITEE_TEXT_MAX} characters.`,
   already: (email: string) => `${email} already has a personal link. Press Remind to send it again.`,
-  tooManyToday: (left: number) => left === 0 ? `This workspace sent ${INVITEES_PER_DAY} invites in the last 24 hours. Try again later.` : `This workspace can send ${left} more ${left === 1 ? "invite" : "invites"} in the next 24 hours (${INVITEES_PER_DAY} per 24 hours). Shorten the list, or try again later.`,
-  inFlight: (email: string) => `${email} was sent in the last 15 minutes and may still be going. If it still says Not sent after that, paste it again.`,
+  tooManyToday: (left: number) => left === 0 ? `This workspace sent ${INVITEES_PER_DAY} invites in the last 24 hours. Try again later.` : `This workspace can send ${left} more ${left === 1 ? "invite" : "invites"} right now (${INVITEES_PER_DAY} in any 24 hours). Shorten the list, or try again later.`,
+  inFlight: (email: string) => `A send to ${email} started in the last 15 minutes and may still be going. If the row still says Not sent after that, paste the address again.`,
   notSent: (email: string, reason: string) => `The invite to ${email} was not sent: ${reason}. Check the address and try again.`,
   badShape: "The list did not reach the server as text. Reload the page and try again.",
 } as const;

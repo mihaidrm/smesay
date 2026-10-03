@@ -85,8 +85,11 @@ export const invites = {
     });
   },
   // The personal invites of a send (E6-2), inserted under the locks publish takes, in its
-  // order (the instrument row FOR UPDATE, then the project row FOR NO KEY UPDATE, so the
-  // two cannot deadlock; updatePublic takes the project row only), with the public link
+  // order (the instrument row, then the project row, so the two cannot deadlock;
+  // updatePublic takes the project row only), both FOR NO KEY UPDATE: that waits on
+  // publish's FOR UPDATE and publish waits on it, while a respondent's response insert,
+  // whose foreign-key check takes KEY SHARE on the instrument row, is not held up
+  // (postgresql.org/docs/current/explicit-locking.html, row-level lock modes), with the public link
   // read inside them: it must be the project's link in force (not replaced by a newer
   // version's), not revoked and not closed at `now`, and its dates go on the rows, so a
   // date change, a revoke or a newer version's publish cannot slip between the read and
@@ -98,7 +101,7 @@ export const invites = {
   createPersonal: async (workspaceId: WorkspaceId, instrumentId: string, people: { email: string; name: string | null; role: string | null; token: string }[], now = new Date()): Promise<{ created: Invite[] } | { refused: "none" | "replaced" | "revoked" | "closed" } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
-      const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
+      const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("no key update");
       if (!locked) return null;
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
       const [live] = await tx.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))

@@ -5,9 +5,11 @@
 // open and close instants and follow them (invites.updatePublic, invites.publish) and have
 // no passcode (the address is the proof; docs/review-list.md), so the public link is
 // published and not closed or revoked. The rows are created first, in one insert under the
-// project row's lock with the link's dates read there (invites.createPersonal; the partial
-// unique index invite_personal_email_idx drops a second send of the same address racing
-// this one, reported as already invited), then the emails go out one by one: a send that fails leaves its row
+// instrument row's lock then the project row's, the link checked and its dates read there
+// (invites.createPersonal; the partial unique index invite_personal_email_idx drops a
+// second send of the same address racing this one, reported as already invited), then the
+// emails go out one by one (a date change or a newer version's publish in that gap still
+// sends this email with the dates the rows hold, docs/review-list.md): a send that fails leaves its row
 // with send_error and the status Not sent (acceptance 5), the others still go, and pasting
 // that address again sends it again on the same row and token (invites.claimResend: a row
 // with no outcome yet is another request's for RESEND_AFTER_MINUTES). Up to INVITEES_PER_DAY rows
@@ -20,7 +22,6 @@ import { INVITEES_COPY, INVITEES_ERRORS, INVITEES_PER_DAY, inviteeLine, minutesF
 import { inviteEmail } from "@/lib/mail/invite-email";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
-import { BUILD_COPY } from "@/lib/build-copy";
 import { linkState, newToken, own } from "@/lib/sharing";
 
 export { INVITEES_COPY, INVITEES_ERRORS };
@@ -29,17 +30,30 @@ export type Sender = { name: string | null; email: string };
 // line: what the box takes to send this person again.
 export type SendOutcome = { email: string; line: string; sent: boolean; error: string | null };
 
-// The provider's reason, one line, for the row and the message (acceptance 5). A missing
-// mail variable is the app's own, not the address's: it is thrown, named, as sendMail
-// names it. Anything shaped like a connection string is cut, so a server's reason never
-// carries a host or a credential onto the row.
+// The provider's reason, one line of at most REASON_MAX characters, for the row and the
+// message (acceptance 5). A missing mail variable is the app's own, not the address's: it
+// is thrown, named, as sendMail names it. Anything shaped like a connection string is cut,
+// so a server's reason never carries a host or a credential onto the row: URLs, IPv4
+// addresses with or without a port, dotted host names (not after an @, so an address in
+// the reason stays) and a word followed by a colon and a port number. A status code such
+// as 5.1.1 stays. Each pattern is linear in the line, and the line is cut to REASON_MAX
+// before they run (docs/review-list.md on what else the patterns catch).
+const REASON_MAX = 200;
 function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   if (/^[A-Z_]+ is not set\./.test(text)) throw error;
-  // Cut: URLs, IPv4 addresses, host:port pairs and dotted host names (a status code such
-  // as 5.1.1 stays).
-  return text.split("\n")[0]?.replace(/\S+:\/\/\S+/g, "[server]").replace(/\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b/g, "[server]").replace(/\[?[0-9a-f:]*:[0-9a-f:]+\]?:\d{2,5}\b|\b[\w-]+(\.[\w-]+)*\.[a-z]{2,}(:\d{2,5})?\b|\b[\w-]+:\d{2,5}\b/gi, "[server]").trim().replace(/\.$/, "").slice(0, 200) || "the mail server refused it";
+  const line = (text.split("\n")[0] ?? "").slice(0, REASON_MAX);
+  return line
+    .replace(/\S+:\/\/\S+/g, "[server]")
+    .replace(/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?\b/g, "[server]")
+    .replace(/(?<![@\w.-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?::\d{2,5})?\b/gi, "[server]")
+    .replace(/\b[a-z][\w-]*:\d{2,5}\b/gi, "[server]")
+    .trim().replace(/\.$/, "") || "the mail server refused it";
 }
+
+// The words for a refusal under the lock (invites.createPersonal).
+export const refusalCopy = (refused: "none" | "replaced" | "revoked" | "closed"): string =>
+  refused === "none" ? INVITEES_COPY.needLink : refused === "replaced" ? INVITEES_COPY.linkReplaced : refused === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.linkClosed;
 
 export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">): keyof typeof INVITEES_COPY.status {
   if (row.responseStatus === "submitted") return "submitted";
@@ -90,7 +104,7 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   // from the rows and says so.
   const inserted = await invites.createPersonal(ws, instrumentId, fresh.map((p) => ({ ...p, token: newToken() })), now);
   if (!inserted) throw new NotFoundError();
-  if ("refused" in inserted) return { error: inserted.refused === "none" ? INVITEES_COPY.needLink : inserted.refused === "replaced" ? BUILD_COPY.replaced : inserted.refused === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.linkClosed };
+  if ("refused" in inserted) return { error: refusalCopy(inserted.refused) };
   const results = new Map<string, SendOutcome>();
   const created: { person: Invitee; invite: Invite }[] = [];
   const byEmail = new Map(inserted.created.map((i) => [i.email, i]));
