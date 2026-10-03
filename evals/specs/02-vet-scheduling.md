@@ -58,7 +58,7 @@ What a PM imports from the document above: one row per item, nothing else. The r
 9. Mihnea (owner): I want the daily revenue by doctor on my phone in the morning
 10. printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)
 11. the boarding kennel (6 places) is a different calendar but the same client file
-12. Ana: when a pet is marked deceased the reminders must stop the same day, we had a complaint last month
+12. when a pet is marked deceased the reminders must stop the same day (we had a complaint last month)
 13. No app, the website is enough.
 14. GDPR: clients can ask for their file and we export it
 ```

@@ -542,7 +542,7 @@ ROWS = {
  'G02-09': 'Mihnea (owner): I want the daily revenue by doctor on my phone in the morning',
  'G02-10': 'printing the vaccination certificate from the visit, with the stamp image, in both languages, Romanian and English (the EU pet passport people ask for it)',
  'G02-11': 'the boarding kennel (6 places) is a different calendar but the same client file',
- 'G02-12': 'Ana: when a pet is marked deceased the reminders must stop the same day, we had a complaint last month',
+ 'G02-12': 'when a pet is marked deceased the reminders must stop the same day (we had a complaint last month)',
  'G02-13': 'No app, the website is enough.',
  'G02-14': 'GDPR: clients can ask for their file and we export it',
  'G03-01': 'Search the catalogue by title, author, ISBN and subject',

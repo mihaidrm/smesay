@@ -48,8 +48,14 @@ item, a missed item, a changed meaning or a glossary term not kept.
    - 76e422f, CI run 37106473558: 9 of 10 for 38 cents. Spec 02 failed on G02-02, whose
      row put "30 for birds and reptiles" after the vaccination length and the model read it
      as visits only (the row now says it next to the visit, 69e353e). Spec 08 passed.
-   The first green run goes here when a run gives it; what to change in the prompt is
-   Mihai's call (design note 32, Open for Mihai).
+   - 69e353e, CI run 37106694262: 8 of 10 for 39 cents. G08-06 again ("receipts monthly");
+     G07-10, where "export to the secretaries" became "the system sends", read by the judge
+     as a decided channel.
+   - c77427f, CI run 37106726352: 8 of 10 for 36 cents. G08-06 for the fourth time; G02-12,
+     whose row began with the speaker label "Ana:" and came back as "when Ana marks a pet"
+     (the label is not content and the row lost it).
+   Six runs, 2 euro 19 cents in all. The first green run goes here when a run gives it; what
+   to change in the prompt is Mihai's call (design note 32, Open for Mihai).
 
 ## Out of scope
 - Evals for insights (E9): their own small set, written in E9-1.

@@ -100,6 +100,15 @@ where the judge read it as open. The row now reads "a visit takes 20 minutes (30
 and reptiles), a vaccination 10" (69e353e, the second audit's finding). G08-06 passed this
 time; the drift of the second and third runs did not repeat.
 
+## The fifth and sixth runs (69e353e and c77427f, 39 and 36 cents)
+
+8 of 10 each. G08-06 failed in both, the fourth time in a row: the model attaches "monthly"
+to the receipts whatever else changes, so it is the model's steady reading of that line, not
+chance. The other failure each time was a judge call on a reader version that named a
+party or a channel the row leaves open ("the system sends" for "export to"; "when Ana marks
+a pet" from a row that began "Ana:", a speaker label that is now gone from the row). Six
+runs: 1, 3, 7, 7, 8, 9, 8, 8 of 10 across the eight jobs, 2 euro 19 cents of the EUR 10 cap.
+
 ## Audit of 2026-10-03
 
 23 findings in fresh context, 10 blocking. Fixed the same day: a row with no source line
@@ -154,5 +163,7 @@ story are now open questions in the story and below, not choices.
   raise the bar in the prompt ("only when a respondent could not rate the item at all without
   asking") and watch the matched count in the next run; the dismissal and the one-banner-per-
   flag choice (decision 0037) stay.
-- Six runs so far, 1 to 9 of 10; the next green run is acceptance 5. E4 is complete after
+- Eight jobs so far, 1 to 9 of 10, with the same drift cases recurring; the next green run
+  is acceptance 5, and it most likely needs the prompt line above. No further run is started
+  until you answer, so the budget is not spent on repeats. E4 is complete after
   this; the pause you asked for starts.
