@@ -160,7 +160,7 @@ and the judge's context line stay as built. The points below are kept as they we
 - Two lines left out of the rows that decision 0037's list does not name: spec 04's "the
   website must not look like the old one (Mihai will do the design)" and spec 08's "the
   washing machines are not part of this, separate contract". Both read as remarks, not
-  requirements; say so if a PM would import them.
+  requirements. Decided: they stay out (decision 0040, 2026-10-03).
 - Two runs of one commit differ: specs 06 and 10 passed in one run and failed in the other.
   The model is not deterministic and there is no knob: the Messages API page says of
   temperature "Models released after Claude Opus 4.6 do not support setting temperature."

@@ -82,10 +82,8 @@ nothing Claude runs spends money: the Evals job starts by hand only, and the smo
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
-EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
-these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
-the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
-link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (71 in 14 epics); a story is rewritten when Mihai
+EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33); its
+seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (71 in 14 epics); a story is rewritten when Mihai
 sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
 EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 9).
 
