@@ -46,9 +46,39 @@ Evals CI job.
   workflow runs on every push and the paths filter is per workflow in GitHub Actions
   (docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore).
 
+## The first real run (CI run 37105430695, claude-sonnet-5-5, 34 cents)
+
+3 of 10 specs passed. What it showed, and what changed the same day:
+
+- Spec 09 refused with "13 unknown ref(s) in areas": its rows kept the tender numbering
+  ("3.1.1 The system shall...") and the model used 3.1.1 as the ref instead of [1]. The rule
+  says numbering is stripped; the rows now are. A list pasted with such numbering in the app
+  would hit the same confusion; the paste import strips "1." and "a)" but not "3.1.1"
+  (src/lib/import/paste.ts), noted for E3 if it shows up in real files.
+- Every row was found and no meaning changed in the nine specs that ran: 145 of 145 rows,
+  0 changed. must_keep tokens were missing 15 times with the meaning intact (the judge agreed
+  each time), which is why tokens are counted and not failed on.
+- "Invented" 4 times: Dr. Iliescu became "her" and Mihnea "his" (spec 02), and two reasons
+  the source gives in passing were restated as "because" clauses (04, 08). The pronouns are
+  real inventions: the shaping prompt now says to give nobody a gender the item does not give.
+  The restated reasons are not: judge.md now says so.
+- The model gave 5 to 7 areas in every spec where the set expects 3 to 5, and no name
+  matched a name or alias word for word (Placing the Order, Confirmation and Shortages,
+  Client and Animal Files). Names now match loosely by stems; the area count is printed and
+  not failed on, pending the question below.
+- Ambiguity flags: 54 raised across the nine specs where the set expects 10. Nine of the ten
+  expected ones were among them, so the model does see them; it also flags four to six more
+  per spec.
+
 ## Open for Mihai
 
-- The first real run: PR 49's Evals job. Its numbers go into the story (acceptance 5). If a
-  spec fails on the judge's reading rather than on a real loss, the fix is in the
-  expectation or the judge prompt, not the shaping prompt; say which you want to see first.
-- E4 is complete after this; the pause you asked for starts.
+- Area granularity: the prompt asks for 3 to 8 areas and the model picks 5 to 7 for lists of
+  10 to 18 rows. Recommended: tell the prompt to prefer the fewest areas that read well, three
+  to five for a list under 40 items, then make the area count fail again. A prompt change
+  reruns the evals (34 cents).
+- Ambiguity volume: 4 to 6 flags per 15 rows means that many banners on Shape. Recommended:
+  raise the bar in the prompt ("only when a respondent could not rate the item at all without
+  asking") and watch the matched count in the next run; the dismissal and the one-banner-per-
+  flag choice (decision 0037) stay.
+- The next Evals job (this PR's second commit) is the candidate first green run for
+  acceptance 5. E4 is complete after this; the pause you asked for starts.

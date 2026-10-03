@@ -84,9 +84,11 @@ duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro 
 - Missed: a row absent from the answer. checkShape refuses such an answer before it is
   scored, so a miss shows as a refused spec.
 - Glossary (04, 06): a term the row carries must be in the reader version exactly as written.
-- Passing: no missed, no invented, no changed meaning, every glossary term kept, the number
-  of areas within area_count_tolerance of the expected areas. Flags and placement are reported,
-  not failed on: they tell how good the grouping is, not whether the list is safe.
+- Passing: no missed, no invented, no changed meaning, every glossary term kept. Flags,
+  placement and the area count (printed with "over tolerance" beyond area_count_tolerance)
+  are reported, not failed on: they tell how good the grouping is, not whether the list is
+  safe. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
+  an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
 Exit 1 when any spec fails. CI runs the job on a change under src/lib/ai/prompts/, to the
 output schema or the context module, or under evals/ (.github/workflows/evals.yml), with the

@@ -41,7 +41,7 @@ export function buildShapePrompt(items: PromptItem[], context: ProjectContext = 
     "An item marked (keep in: name) was put there by hand: include an area with exactly that name and keep the item in it.",
     "Every item appears in exactly one area. Use every ref once and invent none: no new items, no merged items, no dropped items.",
     "For each area write one sentence of rationale in the form: First, because ... / Then, ... / Last, ...",
-    "For each item write a reader version: the same requirement in plain words a non-expert reads in one go. Keep every number, name, date, product name and negative (not, never, only, except) exactly. Do not add detail the item does not have. If the item already reads plainly, repeat it unchanged.",
+    "For each item write a reader version: the same requirement in plain words a non-expert reads in one go. Keep every number, name, date, product name and negative (not, never, only, except) exactly. Do not add detail the item does not have, and give nobody a gender the item does not give: use the name as written or they. If the item already reads plainly, repeat it unchanged.",
     "Set ambiguity to what the item does not say when a respondent could not rate it without asking a question; otherwise null. Set duplicateOf to the ref of an earlier item that asks for the same thing in other words; otherwise null.",
     "Answer with JSON matching the schema and nothing else.",
   ].join("\n\n");

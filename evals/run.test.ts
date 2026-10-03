@@ -9,7 +9,7 @@ import type { WorkspaceId } from "@/db/types";
 import { DEFAULT_MODEL } from "@/lib/ai/prices";
 import type { ShapeOutput } from "@/lib/ai/shape-schema";
 import { evalsWorkspace, loadExpected, runSpec } from "./run";
-import { line, refOfPosition, score, type Expected } from "./score";
+import { areaNamesMatch, line, refOfPosition, score, type Expected } from "./score";
 
 let ws: WorkspaceId;
 let projectId: string;
@@ -64,6 +64,12 @@ describe("the golden set runner", () => {
     expect(refOfPosition(spec("01"), "18")).toBe("G01-18");
     expect(refOfPosition(spec("01"), "19")).toBeNull();
     expect(refOfPosition(spec("01"), "x")).toBeNull();
+    // Area names from the first real run against the set's names and aliases.
+    expect(areaNamesMatch("Placing the Order", "Placing orders")).toBe(true);
+    expect(areaNamesMatch("Confirmation and Shortages", "Confirming and shortages")).toBe(true);
+    expect(areaNamesMatch("Client and Animal Files", "Client and animal file")).toBe(true);
+    expect(areaNamesMatch("Gate and site", "Billing")).toBe(false);
+    expect(areaNamesMatch("Reporting and Monitoring", "Reporting")).toBe(true);
   });
 
   it("passes a run whose answer matches the expectation, in two logged calls, and prints the line", async () => {
