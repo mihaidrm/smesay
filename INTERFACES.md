@@ -136,14 +136,22 @@ responseStatus none, inProgress or submitted and answeredAt), invites.personalBy
 instrumentId, email); invite.send_started_at, invite.sent_at and invite.send_error (migration 0016; sent_at null:
 Not sent) and the partial unique index
 invite_personal_email_idx on (instrument_id, email) where kind = 'personal'.
-invites.countPersonalSince(ws, minutes) (the 500 per 24 hours limit); invites.claimResend(ws,
-id, { name, roleHint }, now) (one statement: a Not sent row whose send failed, or one with
-no outcome for RESEND_AFTER_MINUTES); invites.updatePublic
+invites.createPersonal(ws, instrumentId, people, now) (one insert under the instrument row
+FOR UPDATE then the project row FOR NO KEY UPDATE, publish's order; the public link checked
+there as the project's link in force, not revoked, not closed at now, its dates on the rows;
+ON CONFLICT DO NOTHING on the partial index; returns { created } or { refused: none |
+replaced | revoked | closed }, null outside the workspace);
+invites.countPersonalSince(ws, minutes, now) (the 500 per 24 hours limit); invites.claimResend(ws,
+id, { name, roleHint }, now) (one statement that moves invite.send_started_at: a Not sent
+row whose send failed, or one whose last send started RESEND_AFTER_MINUTES before now with
+no outcome); invites.updatePublic
 copies a date change to the instrument's personal links and invites.publish closes the
 older instruments' personal links with their public one.
 sendInvites(ws, projectId, instrumentId, rawList, sender, baseUrl, now, send) in
-src/lib/invitees.ts (outcomes: email, line, sent, error); parseInvitees and minutesFor in src/lib/invitees-rules.ts;
-inviteEmail() in src/lib/mail/invite-email.ts; sendMail() takes fromName and replyTo.
+src/lib/invitees.ts (outcomes: email, line, sent, error, in the order pasted); parseInvitees and minutesFor in src/lib/invitees-rules.ts;
+inviteEmail(input) in src/lib/mail/invite-email.ts (InviteEmailInput: pmName, workspaceName,
+projectName, respondentName, itemCount, minutes, intro, url, opensAt when the link opens
+after the send, closesAt); sendMail() takes fromName and replyTo.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

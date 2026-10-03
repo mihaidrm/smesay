@@ -21,8 +21,8 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
   than 100 people or a name over 80 characters refuses the whole send before anything is
   created, so one bad line sends nothing and the PM fixes the list once. The refused address
   is named in the message.
-- One invite row per address, oldest first in the list, with its own token from the same
-  generator as the public link. The database refuses a second personal invite for the same
+- One invite row per address, oldest first in the list (one send's rows share an instant
+  and come by address), with its own token from the same generator as the public link. The database refuses a second personal invite for the same
   address on an instrument (partial unique index), so two sends at once cannot double up.
 - Rows are created first, then the emails go out one at a time: a send that fails leaves
   the row with the provider's first line in send_error (anything shaped like a connection
@@ -33,8 +33,11 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
   minutes from its last send start (invite.send_started_at; the message names the wait),
   then it can be sent again (a request that died mid-way). The claim is one update
   statement that moves send_started_at, so two sends cannot both take a row. The new rows
-  go in with one insert under the project row's lock, the link's dates read inside it, and
-  ON CONFLICT DO NOTHING on the partial unique index. The PM reads the reason on the row; the respondent side never shows it. A missing
+  go in first, with one insert under the instrument row's lock then the project row's (the
+  order publish takes, so the two cannot deadlock), the public link checked inside them
+  (the project's link in force, not revoked, not closed) and its dates read there, ON
+  CONFLICT DO NOTHING on the partial unique index; a refusal there happens before any row
+  is claimed for sending again. The outcomes come back in the order pasted. The PM reads the reason on the row; the respondent side never shows it. A missing
   mail variable is the app's fault, not the address's: it is thrown and named, not stored.
 - Up to 500 personal invites per workspace in 24 hours, counted on rows created, since the
   PM names the sender and three lines of the body (SECURITY.md); the refusal says how many

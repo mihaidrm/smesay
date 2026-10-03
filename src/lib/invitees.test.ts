@@ -152,8 +152,10 @@ describe("sendInvites", () => {
     expect(sent[1].to).toBe("bo@x.example");
     const dee = await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, now, async () => { throw new Error("connect ECONNREFUSED smtp://user:secret@mail.example:587 now"); });
     expect(dee).toEqual({ outcomes: [{ email: "dee@x.example", line: "dee@x.example", sent: false, error: INVITEES_ERRORS.notSent("dee@x.example", "connect ECONNREFUSED [server] now") }] });
+    const cut = await sendInvites(a.ws, project.id, instrument.id, "gil@x.example", sender, BASE, now, async () => { throw new Error("getaddrinfo ENOTFOUND smtp.internal.example 10.0.0.5:587 mail.internal:25."); });
+    expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server]") }] });
     await expect(sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
-    const ed = (await listInvitees(a.ws, instrument.id))[3];
+    const ed = (await listInvitees(a.ws, instrument.id))[4];
     expect([ed.email, inviteStatus(ed), ed.sendError]).toEqual(["ed@x.example", "notSent", null]);
     // A row with no outcome yet is in flight for 15 minutes, then can be sent again; two
     // resends of one failed row at once send one email.
@@ -181,14 +183,15 @@ describe("sendInvites", () => {
     ]);
     const fayOutcomes = both.flatMap((r) => ("outcomes" in r ? r.outcomes : []));
     expect(fayOutcomes.filter((o) => o.sent)).toHaveLength(1);
-    expect([...fayOutcomes.map((o) => o.error), ...both.map((r) => ("error" in r ? r.error : null))].filter((e) => e === INVITEES_ERRORS.already("fay@x.example"))).toHaveLength(1);
+    expect([...fayOutcomes.map((o) => o.error), ...both.map((r) => ("error" in r ? r.error : null))].filter((e) => e === INVITEES_ERRORS.already("fay@x.example") || e === INVITEES_ERRORS.inFlight("fay@x.example"))).toHaveLength(1);
     expect((await listInvitees(a.ws, instrument.id)).filter((r) => r.email === "fay@x.example")).toHaveLength(1);
     expect(sent.filter((m) => m.to === "fay@x.example")).toHaveLength(1);
 
     // The daily limit says how many can still go.
-    expect(INVITEES_ERRORS.tooManyToday(0)).toBe("This workspace sent 500 invites in the last 24 hours. Try again tomorrow.");
-    expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite today (500 in 24 hours). Shorten the list, or try again tomorrow.");
-    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(6);
+    expect(INVITEES_ERRORS.tooManyToday(0)).toBe("This workspace sent 500 invites in the last 24 hours. Try again later.");
+    expect(INVITEES_ERRORS.tooManyToday(1)).toBe("This workspace can send 1 more invite in the next 24 hours (500 per 24 hours). Shorten the list, or try again later.");
+    // The sample's 6 and this test's 7 so far (ana, bo, dee, gil, ed, fay, hal).
+    expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date())).toBeGreaterThanOrEqual(13);
     expect(await invites.countPersonalSince(a.ws, 24 * 60, new Date(Date.now() + 48 * 60 * 60 * 1000))).toBe(0);
     expect(await invites.countPersonalSince(b.ws, 24 * 60, new Date())).toBe(6);
     // The personal links follow the public link's dates and carry the open date in the
@@ -223,6 +226,7 @@ describe("sendInvites", () => {
     expect(await listInvitees(b.ws, instrument.id)).toEqual([]);
     await expect(sendInvites(b.ws, project.id, instrument.id, "x@x.example", sender, BASE, now, async (mail) => { sent.push(mail); })).rejects.toThrow(NotFoundError);
     expect(await invites.personalByEmail(b.ws, instrument.id, "ana@x.example")).toBeNull();
+    expect(await invites.createPersonal(b.ws, instrument.id, [{ email: "x@x.example", name: null, role: null, token: "f".repeat(32) }], now)).toBeNull();
     expect(await invites.personalByEmail(a.ws, instrument.id, "x@x.example")).toBeNull();
     expect((await listInvitees(a.ws, instrument.id)).length).toBe(before);
     expect(sent.length).toBe(sentBefore);
@@ -241,6 +245,12 @@ describe("sendInvites", () => {
     if (!("invite" in publishedAgain)) throw new Error(publishedAgain.error);
     expect(newer!.id).not.toBe(instrument.id);
     expect((await listInvitees(a.ws, instrument.id))[0].closesAt).toEqual(new Date("2026-10-06T12:00:00Z"));
+    // The replaced instrument refuses under the lock too (the early check passed: its own
+    // public row still exists), and the newer one sends.
+    expect(await invites.createPersonal(a.ws, instrument.id, [{ email: "y@x.example", name: null, role: null, token: "e".repeat(32) }], now)).toEqual({ refused: "replaced" });
+    expect(await sendInvites(a.ws, project.id, instrument.id, "y@x.example", sender, BASE, now)).toEqual({ error: BUILD_COPY.replaced });
+    const onNewer = await sendInvites(a.ws, project.id, newer!.id, "zed@x.example", sender, BASE, new Date("2026-10-07T12:00:00Z"), async (mail) => { sent.push(mail); });
+    expect(onNewer).toEqual({ outcomes: [{ email: "zed@x.example", line: "zed@x.example", sent: true, error: null }] });
   }, 60_000);
 
   it("refuses the sample project", async () => {

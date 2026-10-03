@@ -20,6 +20,7 @@ import { INVITEES_COPY, INVITEES_ERRORS, INVITEES_PER_DAY, inviteeLine, minutesF
 import { inviteEmail } from "@/lib/mail/invite-email";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
+import { BUILD_COPY } from "@/lib/build-copy";
 import { linkState, newToken, own } from "@/lib/sharing";
 
 export { INVITEES_COPY, INVITEES_ERRORS };
@@ -35,7 +36,9 @@ export type SendOutcome = { email: string; line: string; sent: boolean; error: s
 function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   if (/^[A-Z_]+ is not set\./.test(text)) throw error;
-  return text.split("\n")[0]?.replace(/\S+:\/\/\S+/g, "[server]").replace(/\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b/g, "[server]").trim().replace(/\.$/, "").slice(0, 200) || "the mail server refused it";
+  // Cut: URLs, IPv4 addresses, host:port pairs and dotted host names (a status code such
+  // as 5.1.1 stays).
+  return text.split("\n")[0]?.replace(/\S+:\/\/\S+/g, "[server]").replace(/\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b/g, "[server]").replace(/\[?[0-9a-f:]*:[0-9a-f:]+\]?:\d{2,5}\b|\b[\w-]+(\.[\w-]+)*\.[a-z]{2,}(:\d{2,5})?\b|\b[\w-]+:\d{2,5}\b/gi, "[server]").trim().replace(/\.$/, "").slice(0, 200) || "the mail server refused it";
 }
 
 export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">): keyof typeof INVITEES_COPY.status {
@@ -82,27 +85,28 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   if (!project || !workspace) throw new NotFoundError();
   const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
   const pmName = sender.name?.trim() || sender.email;
-  const outcomes: SendOutcome[] = [];
+  // The new rows first, under the locks with the link checked and its dates read there (a
+  // refusal there leaves nothing claimed); an address another send got in first is absent
+  // from the rows and says so.
+  const inserted = await invites.createPersonal(ws, instrumentId, fresh.map((p) => ({ ...p, token: newToken() })), now);
+  if (!inserted) throw new NotFoundError();
+  if ("refused" in inserted) return { error: inserted.refused === "none" ? INVITEES_COPY.needLink : inserted.refused === "replaced" ? BUILD_COPY.replaced : inserted.refused === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.linkClosed };
+  const results = new Map<string, SendOutcome>();
   const created: { person: Invitee; invite: Invite }[] = [];
-  // Sent again on their rows: the name and role typed this time replace the old ones. A
+  const byEmail = new Map(inserted.created.map((i) => [i.email, i]));
+  for (const person of fresh) {
+    const invite = byEmail.get(person.email);
+    if (invite) created.push({ person, invite });
+    else results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.already(person.email) });
+  }
+  // Then the rows sent again: the name and role typed this time replace the old ones. A
   // row another request is sending right now cannot be claimed and says so.
   for (const person of parsed.invitees) {
     const row = existing.get(person.email);
     if (!row) continue;
     const claimed = await invites.claimResend(ws, row.id, { name: person.name ?? row.name, roleHint: person.role ?? row.roleHint }, now);
     if (claimed) created.push({ person, invite: claimed });
-    else outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.inFlight(person.email) });
-  }
-  // The new rows, under the project lock with the link's dates read there; an address
-  // another send got in first is absent from the rows and says so.
-  const inserted = await invites.createPersonal(ws, instrumentId, fresh.map((p) => ({ ...p, token: newToken() })), now);
-  if (!inserted) throw new NotFoundError();
-  if (!inserted.link) return { error: INVITEES_COPY.needLink };
-  const byEmail = new Map(inserted.created.map((i) => [i.email, i]));
-  for (const person of fresh) {
-    const invite = byEmail.get(person.email);
-    if (invite) created.push({ person, invite });
-    else outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.already(person.email) });
+    else results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.inFlight(person.email) });
   }
   for (const { person, invite } of created) {
     const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
@@ -114,11 +118,12 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     }
     if (reason === null) {
       await invites.update(ws, invite.id, { sentAt: now, sendError: null });
-      outcomes.push({ email: person.email, line: inviteeLine(person), sent: true, error: null });
+      results.set(person.email, { email: person.email, line: inviteeLine(person), sent: true, error: null });
     } else {
       await invites.update(ws, invite.id, { sendError: reason });
-      outcomes.push({ email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.notSent(person.email, reason) });
+      results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.notSent(person.email, reason) });
     }
   }
-  return { outcomes };
+  // In the order pasted.
+  return { outcomes: parsed.invitees.flatMap((p) => { const r = results.get(p.email); return r ? [r] : []; }) };
 }

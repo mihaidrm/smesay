@@ -84,29 +84,37 @@ export const invites = {
       return { ...r, responseStatus: !a ? "none" : a.submittedAt ? "submitted" : "inProgress", answeredAt: a ? (a.submittedAt ?? a.updatedAt) : null };
     });
   },
-  // The personal invites of a send (E6-2), inserted under the project row's lock (the one
-  // publish and updatePublic take) with the public link's dates read inside it, so a date
-  // change or a newer version's publish cannot slip between the read and the insert. An
-  // address that already has a personal invite on the instrument is skipped by the partial
-  // unique index (ON CONFLICT DO NOTHING on its columns and predicate:
-  // postgresql.org/docs/current/sql-insert.html, ON CONFLICT; drizzle `where` on onConflictDoNothing,
-  // node_modules/drizzle-orm/pg-core/query-builders/insert.d.ts) and is absent from the
-  // rows returned. Null when the instrument is not in the workspace; `link: null` when it
-  // has no public link.
-  createPersonal: async (workspaceId: WorkspaceId, instrumentId: string, people: { email: string; name: string | null; role: string | null; token: string }[], now = new Date()): Promise<{ link: Invite | null; created: Invite[] } | null> => {
+  // The personal invites of a send (E6-2), inserted under the locks publish takes, in its
+  // order (the instrument row FOR UPDATE, then the project row FOR NO KEY UPDATE, so the
+  // two cannot deadlock; updatePublic takes the project row only), with the public link
+  // read inside them: it must be the project's link in force (not replaced by a newer
+  // version's), not revoked and not closed at `now`, and its dates go on the rows, so a
+  // date change, a revoke or a newer version's publish cannot slip between the read and
+  // the insert. An address that already has a personal invite on the instrument is skipped
+  // by the partial unique index (ON CONFLICT DO NOTHING on its columns and predicate:
+  // postgresql.org/docs/current/sql-insert.html, ON CONFLICT; drizzle `where` on
+  // onConflictDoNothing, node_modules/drizzle-orm/pg-core/query-builders/insert.d.ts) and
+  // is absent from the rows returned. Null when the instrument is not in the workspace.
+  createPersonal: async (workspaceId: WorkspaceId, instrumentId: string, people: { email: string; name: string | null; role: string | null; token: string }[], now = new Date()): Promise<{ created: Invite[] } | { refused: "none" | "replaced" | "revoked" | "closed" } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
-      const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
-      if (!own) return null;
-      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("no key update");
-      const [link] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
-      if (!link) return { link: null, created: [] };
-      if (people.length === 0) return { link, created: [] };
+      const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
+      if (!locked) return null;
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
+      const [live] = await tx.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
+        .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))
+        .orderBy(desc(instrument.createdAt)).limit(1);
+      if (!live) return { refused: "none" as const };
+      const link = live.invite;
+      if (link.instrumentId !== instrumentId) return { refused: "replaced" as const };
+      if (link.revokedAt) return { refused: "revoked" as const };
+      if (link.closesAt && link.closesAt <= now) return { refused: "closed" as const };
+      if (people.length === 0) return { created: [] };
       const created = await tx.insert(invite)
         .values(people.map((p) => ({ workspaceId, instrumentId, kind: "personal" as const, token: p.token, email: p.email, name: p.name, roleHint: p.role, opensAt: link.opensAt, closesAt: link.closesAt, sendStartedAt: now })))
         .onConflictDoNothing({ target: [invite.instrumentId, invite.email], where: sql`${invite.kind} = 'personal'` })
         .returning();
-      return { link, created };
+      return { created };
     });
   },
   // Claims a personal invite for sending again (E6-2): one never sent whose send failed,
