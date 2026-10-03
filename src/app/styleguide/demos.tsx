@@ -117,8 +117,8 @@ export function Demos() {
       <Row title="Toast" note="Dark surface, light text, violet 300 action.">
         <Toast action="Undo">Reader version accepted for CL-01.</Toast>
       </Row>
-      <Row title="Empty state" note="Dashed card, a title, one line that says what to do, the mascot where the screen is a first visit.">
-        <EmptyState title="No answers yet" mascot className="w-full max-w-[560px]">
+      <Row title="Empty state" note="Dashed card, a title, one line that says what to do, the mascot in the pose that fits the screen where it is a first visit.">
+        <EmptyState title="No answers yet" mascot="analysis" className="w-full max-w-[560px]">
           The link is not published. Share it, or open the sample project to see what results look like.
         </EmptyState>
       </Row>

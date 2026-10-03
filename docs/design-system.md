@@ -25,9 +25,11 @@ notes 01 to 09 and 14; the implementation note of v2 is design note 34.
 - One tagline: "What the SMEs say." Footer expands SME once: subject matter expert.
 - Respondent side: the PM's logo and name take the header; SMEsay appears once as "Powered by",
   smallest lockup. Always shown on the Free plan.
-- The mascot (bought, docs/assets.md row 1) stands in the hero, on sign-in, in the empty states
-  and on the respondent thank-you; until it arrives a violet blob with two eyes and a smile
-  holds the frame (src/components/app/mascot.tsx).
+- The mascot (bought, docs/assets.md row 1): the round-headed robot of the Robot Vector
+  Collection, recoloured to the violet, in four poses (hi, idea, reading, analysis) in
+  public/assets/mascot/. It stands on a light disc with the card shadow in both modes: 88 px
+  on sign-in, 104 on the landing hero, 96 in an empty state. Decorative, empty alt; the
+  page text carries the meaning (src/components/app/mascot.tsx, design note 37).
 
 ## Colour
 

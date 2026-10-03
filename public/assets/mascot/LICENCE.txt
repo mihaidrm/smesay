@@ -1,0 +1,11 @@
+SMEsay mascot: four illustrations from the Robot Vector Collection by Smashing Stocks,
+bought through Craftwork (https://craftwork.design/product/robot-vector-collection) by Mihai
+Scelcunov on 2026-10-03 under the Craftwork commercial licence
+(https://craftwork.design/license): use in own and client projects without limit, teams up to
+20 people, no resale of the files, no use as a logo or trademark. The receipt or order page is
+to be added beside this file by Mihai. Only the four files in use are kept in the repository;
+the rest of the pack stays with the buyer. The yellows were recoloured to the brand violet
+(#6D4CF5, #7A5CFF, #5A3BE0); nothing else was changed.
+
+hi.svg: "Talking Robot". idea.svg: "Robot Idea". reading.svg: "Robot Reading".
+analysis.svg: "Robot Analysis".

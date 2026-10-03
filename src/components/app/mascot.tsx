@@ -1,21 +1,26 @@
-// The mascot's placeholder (decision 0041; docs/assets.md, row 1): a violet blob with two eyes
-// and a smile, drawn in CSS, in the frame the bought mascot takes over. Not an illustration
-// by Claude's hand: a shape in the brand colours that keeps the slot warm. It floats 8 px
-// over 6 s on marketing and stands still in the app (design note 33, Motion). Decorative:
-// hidden from assistive technology.
+// The mascot (decision 0041; docs/assets.md row 1, placed 2026-10-03): one bought character,
+// the round-headed robot of the Robot Vector Collection (Craftwork, commercial licence in
+// public/assets/mascot/LICENCE.txt), in four poses: "hi" greets (sign-in, the landing hero,
+// the respondent thank-you), "idea" gives a tip (the Projects empty state), "reading" reads
+// the list (Import), "analysis" shows a chart (Results). The yellows of the pack are
+// recoloured to the brand violet in the files. It sits on a light disc in both modes, so its
+// dark outlines read on the dark surface too. Decorative: the alt is empty and the page
+// text carries the meaning. Design note 37.
 import { cn } from "cn";
 
-export function MascotPlaceholder({ size = 88, className }: { size?: number; className?: string }) {
-  const s = size / 88;
+export type MascotPose = "hi" | "idea" | "reading" | "analysis";
+
+export function Mascot({ pose, size = 88, className }: { pose: MascotPose; size?: number; className?: string }) {
   return (
     <span
-      aria-hidden="true"
-      data-testid="mascot-placeholder"
-      className={cn("relative block shrink-0 bg-[radial-gradient(circle_at_30%_30%,#B8A8FF,#6D4CF5_55%,#3B2AA6)] shadow-glow", className)}
-      style={{ width: size, height: size, borderRadius: "40% 60% 55% 45% / 50% 45% 55% 50%" }}
+      data-testid="mascot"
+      data-pose={pose}
+      className={cn("flex shrink-0 items-center justify-center rounded-full border border-[#E6E3F0] bg-[#F7F6FB] shadow-card", className)}
+      style={{ width: size, height: size }}
     >
-      <span className="absolute rounded-full bg-white" style={{ left: 27 * s, top: 25 * s, width: 7 * s, height: 7 * s, boxShadow: `${27 * s}px 0 0 #fff` }} />
-      <span className="absolute box-border border-white" style={{ left: 25 * s, top: 33 * s, width: 38 * s, height: 19 * s, borderWidth: 4 * s, borderTopWidth: 0, borderRadius: `0 0 ${19 * s}px ${19 * s}px` }} />
+      {/* A plain img: the file is the app's own static asset at one size, nothing for next/image to resize or host. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/assets/mascot/${pose}.svg`} alt="" width={Math.round(size * 0.82)} height={Math.round(size * 0.82)} draggable={false} />
     </span>
   );
 }

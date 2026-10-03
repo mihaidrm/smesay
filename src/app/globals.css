@@ -329,8 +329,8 @@ html.mode-sweep::view-transition-new(root) {
   50% { box-shadow: 0 0 0 9px rgba(95, 211, 179, 0.05); }
 }
 @keyframes landing-float {
-  0%, 100% { transform: rotate(8deg) translateY(0); }
-  50% { transform: rotate(8deg) translateY(-8px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 @keyframes landing-rise {
   from { opacity: 0; transform: translateY(18px); }

@@ -87,7 +87,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         </div>
       )}
       {!showArchived && own.length === 0 && (
-        <EmptyState title="No projects yet" mascot>
+        <EmptyState title="No projects yet" mascot="idea">
           <span className="flex flex-col items-center gap-3">
             <span>Start one and import your list.</span>
             <Link href="/app/projects/new" className={buttonVariants()}>New project</Link>
