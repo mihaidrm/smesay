@@ -1,7 +1,7 @@
 # E2-2 Sign in with Google
 
 User: a PM whose company runs on Google Workspace
-Status: built
+Status: accepted
 Outcome: one click on "Continue with Google" signs in the same person the magic link would,
 matched by verified email. Microsoft and Apple come after launch (decision 0034).
 

@@ -76,7 +76,7 @@ Next tasks for Claude: E4-6, the last of E4 (Mihai gave the go for E4 on 2026-10
 asked for a pause after it; E4-1 to E4-5 are merged, PRs 40 to 44). The golden set question
 in design note 27 and the ANTHROPIC_API_KEY repository secret wait for Mihai before E4-6.
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
-cent. He still checks the real Google flow (E2-2, decision 0034). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
+cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
 EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,

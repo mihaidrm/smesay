@@ -56,6 +56,8 @@ reader version differs from the original.
 
 ## Open for Mihai
 
+The copy was accepted on 2026-10-03 (decision 0037, point 2).
+
 - The copy of this story (docs/copy/app.md, Shape, and the two Shaping rows in errors.md)
   waits for your acceptance.
 - "Continue" to Build still waits for E5-1.
