@@ -13,3 +13,9 @@ plans later", rather than no pricing at all.
 Landing page: Mihai prefers page B's layout with page D's story and a gallery of output types
 (charts, registers, insights). Built as page E. Claude's caution: keep the outputs to one section
 so the page does not grow long again like page C.
+
+Amended 2026-10-03 with design v2 (decision 0041, design note 33): the landing page's pricing
+section is the Free card (EUR 0 a month, four feature lines, "paid plans come later and
+nothing you build now is lost or locked") in place of the one free line. The rule stays:
+free while we build it with the first users, no paid plan on the page.
+

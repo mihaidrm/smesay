@@ -18,9 +18,11 @@ Done so far:
 - User journey and a clickable prototype with mocked data (docs/design-notes/2026-09-30-03-prototype.md).
   Mihai accepted all eight prototype choices on 2026-10-01 (decision 0009).
 - Landing pages A to D on the same canvas (design notes 04 to 08). Mihai chose B's layout with
-  D's story and a gallery of outputs: landing page E (decision 0008). E is the current landing
-  page. Headline confirmed on 2026-10-01: "Send the list as a link. Get back who agrees, and
-  why." (decision 0009). No phone layout yet.
+  D's story and a gallery of outputs: landing page E (decision 0008), cut shorter and restyled
+  as landing page F with design v2 (decision 0041, design note 33). F is built at /landing-page
+  (stories/E12-1, design note 36), desktop and phone; the home page keeps its placeholder until
+  Mihai moves F to /. Headline confirmed on 2026-10-01: "Send the list as a link. Get back who
+  agrees, and why." (decision 0009).
 - Provisional name SMEsay (decision 0005), trademark search pending. Logo: wordmark D with
   mark B. Example: Marlow Group replacing its expense tool, confirmed 2026-10-01.
 - Git repository on GitHub: mihaidrm/smesay, personal account (decision 0006). First commit
