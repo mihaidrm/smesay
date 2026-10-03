@@ -1,5 +1,6 @@
 // The main path of E3-1 (acceptance 5): create a project, type a context, see the count,
-// reload, the context is there; the list shows the new project as a draft next to the sample.
+// reload, the context is there; the list shows the new project as a draft next to the sample;
+// with the sample deleted and the project archived, the list shows the archived state.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -48,4 +49,17 @@ test("create a project and keep its context", async ({ page, request }) => {
   await expect(rows.first().getByTestId("project-status")).toHaveText("Sample");
   await expect(rows.first()).toContainText("5 of 7");
   await expect(page.getByText("No projects yet")).toHaveCount(0);
+
+  // Every project archived and the sample deleted: the list is empty, the robot says so.
+  await page.getByRole("button", { name: "Delete sample" }).click();
+  await page.getByTestId("delete-sample-confirm").getByRole("button", { name: "Delete sample" }).click();
+  await expect(rows).toHaveCount(1);
+  await rows.first().getByRole("link", { name: "Open" }).click();
+  await page.getByRole("button", { name: "Archive project" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByText("All your projects are archived")).toBeVisible();
+  await expect(page.locator('img[src="/assets/mascot/idea.svg"]')).toBeVisible();
+  await expect(rows).toHaveCount(0);
+  await page.getByRole("link", { name: "Show archived" }).first().click();
+  await expect(rows).toHaveCount(1);
 });

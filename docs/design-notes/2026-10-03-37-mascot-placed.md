@@ -11,7 +11,9 @@ map onto the slots the design has, which no other character in the pack does.
 
 - hi ("Talking Robot"): waving, with a "Hi.." bubble. Sign-in card, the landing hero, the
   respondent thank-you when E5 builds it.
-- idea ("Robot Idea"): a light bulb on a wire. The Projects empty state (a tip: start one).
+- idea ("Robot Idea"): a light bulb on a wire. The Projects empty state (a tip: start one),
+  and since 2026-10-03 the state where every project is archived and the sample is deleted
+  (Mihai expected the robot there; the page was blank under the tiles).
 - reading ("Robot Reading"): an open book. The Import empty state when Import has one.
 - analysis ("Robot Analysis"): a chart on a screen at a desk. The Results empty state (E6).
 
