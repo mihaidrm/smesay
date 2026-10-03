@@ -74,6 +74,7 @@ test("publish a public link, open it with the passcode, close it", async ({ page
   await link.getByRole("button", { name: "Continue" }).click();
   await expect(link.getByTestId("about-you")).toBeVisible();
   await expect(link.getByRole("heading", { name: "New expense tool" })).toBeVisible();
+  await expect(link.getByTestId("about-you-note")).toContainText("Closes 20 Jan 2027");
   await expect(link.getByLabel("Name")).toBeVisible();
   await expect(link.getByTestId("about-you-start")).toBeDisabled();
   await link.goto(url.replace(/[0-9a-f]{32}$/, "0".repeat(32)));
@@ -86,8 +87,11 @@ test("publish a public link, open it with the passcode, close it", async ({ page
   await expect(page.getByTestId("link-note")).toHaveText("The link is closed. Respondents see the closed page.");
   await link.goto(url);
   await expect(link.getByRole("heading", { name: "Link closed." })).toBeVisible();
-  await expect(link.getByText("stopped collecting answers for New expense tool on 1 Jan 2026")).toBeVisible();
+  await expect(link.getByText(/stopped collecting answers for New expense tool on/)).toBeVisible();
   await respondent.close();
   await page.goto(`${projectUrl}/import`);
   await expect(page.getByTestId("published-banner")).toContainText("This list is published.");
+  // The project list reads the link: Closed now that the close date passed.
+  await page.goto("/app");
+  await expect(page.getByTestId("project-row").filter({ hasText: "New expense tool" }).getByTestId("project-status")).toHaveText("Closed");
 });

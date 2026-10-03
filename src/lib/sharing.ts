@@ -1,6 +1,8 @@
 // The public link (stories/E6-1): one invite row of kind public per instrument, created by
 // Publish under the instrument row's lock (invites.publish), with the open and close
-// instants and an optional passcode (hashed, src/lib/passcode.ts). The token is 32 hex
+// instants and an optional passcode (hashed, src/lib/passcode.ts). Publishing a newer
+// instrument closes the project's older link at that instant, so one project has one link
+// in force (invites.livePublic). The token is 32 hex
 // characters from crypto.randomBytes(16) (SECURITY.md; nodejs.org/api/crypto.html,
 // crypto.randomBytes). The link is /r/[token]. Dates arrive as ISO instants (the Share form
 // converts the browser's local date-time; the zone shown there is the browser's, since the
@@ -56,20 +58,26 @@ export function parseLinkInput(rawOpens: unknown, rawCloses: unknown, rawPasscod
   if (opensAt === undefined || closesAt === undefined) return { error: LINK_ERRORS.badDate };
   if (closesAt === null) return { error: LINK_ERRORS.noClose };
   if (opensAt && closesAt <= opensAt) return { error: LINK_ERRORS.closeBeforeOpen };
-  if (!afterPublish && closesAt <= now) return { error: LINK_ERRORS.closeBeforeOpen };
+  if (!afterPublish && closesAt <= now) return { error: LINK_ERRORS.closeInPast };
   const passcode = typeof rawPasscode === "string" ? rawPasscode.trim() : "";
   if (passcode && passcode.length < PASSCODE_MIN) return { error: LINK_ERRORS.shortPasscode };
   if (passcode.length > PASSCODE_MAX) return { error: LINK_ERRORS.longPasscode };
   return { input: { opensAt, closesAt, passcode: passcode || null } };
 }
 
+// The project and the instrument the form named, both in the workspace (404 otherwise), the
+// project live (not the sample, not archived), and the instrument either the project's newest
+// (the one Publish creates a link for) or the one holding the link in force (whose dates
+// still change after "Build on version N", docs/review-list.md).
 async function own(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ error: string } | { instrument: Instrument }> {
   const project = await projects.get(ws, projectId);
   const instrument = await instruments.get(ws, instrumentId);
   if (!project || !instrument || instrument.projectId !== project.id) throw new NotFoundError();
   if (project.isSample) return { error: BUILD_COPY.sample };
+  if (project.archivedAt) return { error: SHARE_COPY.archived };
   const latest = await instruments.latestForProject(ws, project.id);
-  if (!latest || latest.id !== instrument.id) return { error: BUILD_COPY.replaced };
+  const live = await invites.livePublic(ws, project.id);
+  if (latest?.id !== instrument.id && live?.instrumentId !== instrument.id) return { error: BUILD_COPY.replaced };
   return { instrument };
 }
 
@@ -81,7 +89,7 @@ export async function publishLink(ws: WorkspaceId, projectId: string, instrument
   const parsed = parseLinkInput(rawOpens, rawCloses, rawPasscode, now, false);
   if ("error" in parsed) return { error: parsed.error };
   const { opensAt, closesAt, passcode } = parsed.input;
-  const result = await invites.publish(ws, instrumentId, { token: newToken(), opensAt, closesAt, passcodeHash: passcode ? hashPasscode(passcode) : null });
+  const result = await invites.publish(ws, instrumentId, { token: newToken(), opensAt, closesAt, passcodeHash: passcode ? await hashPasscode(passcode) : null }, now);
   if (!result) throw new NotFoundError();
   if (!result.created) return { error: LINK_ERRORS.alreadyPublished };
   return { invite: result.invite };
@@ -99,7 +107,7 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
   const { opensAt, closesAt, passcode } = parsed.input;
   const patch: { opensAt: Date | null; closesAt: Date; passcodeHash?: string | null } = { opensAt, closesAt };
   if (removePasscode) patch.passcodeHash = null;
-  else if (passcode) patch.passcodeHash = hashPasscode(passcode);
+  else if (passcode) patch.passcodeHash = await hashPasscode(passcode);
   const invite = await invites.updatePublic(ws, instrumentId, patch);
   if (!invite) throw new NotFoundError();
   return { invite };

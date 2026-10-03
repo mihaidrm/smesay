@@ -18,9 +18,11 @@ Multi-tenancy
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
 - Revoked and closed instruments return a page, not data. Passcode attempts rate-limited.
-- The passcode is stored as a salted scrypt hash (src/lib/passcode.ts) and remembered per
-  device by a cookie scoped to the link's path that holds an HMAC under the app's secret,
-  never the passcode (src/lib/link-access.ts).
+- The passcode is stored as a salted scrypt hash with its parameters (src/lib/passcode.ts)
+  and remembered per device by a cookie scoped to the link's path that holds an HMAC under a
+  key derived from the app's secret, never the passcode (src/lib/link-access.ts). Wrong
+  attempts: 5 per link and address in 15 minutes in the process (E6-1); the shared store and
+  the per-route limit are E11-1.
 - Rate limits: respondent routes 100/min/IP; auth routes 5 attempts then backoff.
 
 Data

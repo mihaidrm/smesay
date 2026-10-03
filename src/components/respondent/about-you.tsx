@@ -19,6 +19,8 @@ import { missingMandatory, startHint } from "@/lib/respondent-fields";
 
 export type AboutYouProps = {
   workspaceName: string;
+  // The header's note, "Closes [DATE]" on a live link (stories/E6-1, acceptance 5; E7-1).
+  headerNote?: string | null;
   // effectiveAccent() of the workspace (src/lib/brand-rules.ts): at least 4.5 to 1 on white,
   // so white initials read on it too.
   accent: string;
@@ -44,7 +46,7 @@ export type AboutYouProps = {
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function AboutYou({ workspaceName, accent, title, intro, fields, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
+export function AboutYou({ workspaceName, headerNote = null, accent, title, intro, fields, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({});
   const [ownPicks, setOwnPicks] = useState<string[]>([]);
   const picks = picked ?? ownPicks;
@@ -63,6 +65,7 @@ export function AboutYou({ workspaceName, accent, title, intro, fields, firstCha
       <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
         <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-extrabold text-white" style={{ background: accent }}>{initials(workspaceName)}</span>
         <span className="grow text-[15px] font-bold">{workspaceName}</span>
+        {headerNote && <span className="font-mono text-xs text-ink-muted" data-testid="about-you-note">{headerNote}</span>}
       </header>
       <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
         <div className="flex flex-col gap-1">

@@ -65,7 +65,7 @@ Built 2026-10-02.
   div) was closed in the story's own PR; findings 2, 3, 4, 7, 8, 9, 10 and the notes 11 to 16
   are closed by the audit-fix PR of the same day. Two were decided on 2026-10-03 (decision
   0040): Delete sample is the one hard delete of R1, the exception to decision 0028, and a
-  project whose links open in the future reads Closed until E6 gives the date its own place.
+  project whose links open in the future read Closed until E6-1 added Scheduled (2026-10-03).
 - Tests: src/lib/project-status.test.ts, src/lib/project-context.test.ts, src/lib/projects.test.ts
   (the sample copy summarised as 6 items, 5 of 7, Sample; a draft; the latest set's items and
   Open from an open link; the context saved, trimmed and refused above 2,000; archive and

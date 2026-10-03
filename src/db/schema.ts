@@ -216,6 +216,8 @@ export const instrument = pgTable("instrument", {
   // E5-4: the perspective names respondents pick from; empty means the question is not asked.
   perspectives: jsonb("perspectives").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   closing: jsonb("closing").$type<ClosingSpec>().notNull().default(sql`'{"confidence": true, "missingForm": true, "signOffText": ""}'::jsonb`),
+  // E6-1: set when the first public link is created; null on a draft.
+  publishedAt: ts("published_at"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "instrument_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),

@@ -50,15 +50,16 @@ export const instruments = {
       return created;
     });
   },
-  // A change decided under the lock: `patch(published)` returns what to write, or null to
-  // refuse. Null when the instrument is not in the workspace; applied false when refused.
-  updateLocked: async (workspaceId: WorkspaceId, instrumentId: string, patch: (published: boolean) => Patch<typeof instrument> | null): Promise<{ instrument: Instrument; published: boolean; applied: boolean } | null> => {
+  // A change decided under the lock: `patch(published, current)` reads the row as locked
+  // and returns what to write, or null to refuse. Null when the instrument is not in the
+  // workspace; applied false when refused.
+  updateLocked: async (workspaceId: WorkspaceId, instrumentId: string, patch: (published: boolean, current: Instrument) => Patch<typeof instrument> | null): Promise<{ instrument: Instrument; published: boolean; applied: boolean } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
       const [locked] = await tx.select().from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("update");
       if (!locked) return null;
       const published = await publishedIn(tx, workspaceId, instrumentId);
-      const change = patch(published);
+      const change = patch(published, locked);
       if (change === null) return { instrument: locked, published, applied: false };
       const [updated] = await tx.update(instrument).set(change).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).returning();
       return { instrument: updated ?? locked, published, applied: true };

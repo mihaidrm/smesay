@@ -64,13 +64,17 @@ Built 2026-10-03 (design note 46, decision 0044):
   (src/components/respondent/link-page.tsx); the revoked page is drawn too, for E6-4.
 - Acceptance 4: parseLinkInput refuses a close date before the open date, a missing one, a
   close date in the past on Publish and a short passcode; the passcode is a salted scrypt
-  hash (src/lib/passcode.ts, docs/review-list.md), checked on the passcode page and
-  remembered by a cookie scoped to the link's path (src/lib/link-access.ts); attempts are
-  rate-limited in E11-1.
+  hash with its parameters (src/lib/passcode.ts, docs/review-list.md), checked on the
+  passcode page of an open link and remembered by a cookie scoped to the link's path
+  (src/lib/link-access.ts); wrong attempts are limited to 5 per link and address in 15
+  minutes in the process, and E11-1 widens that.
 - Acceptance 5: publish and the four saves share the instrument row's lock; the test in
   src/lib/instruments.test.ts holds the lock, starts three saves, publishes, and sees the
-  scoring save narrowed to the layout and the perspectives and closing saves refused. Dates
-  change after publishing; the stepper shows Share as the current step.
+  scoring save narrowed to the layout and the perspectives and closing saves refused.
+  Publishing records instrument.published_at (migration 0015). Dates change after
+  publishing, also after "Build on version N" (the link in force stays on the published
+  instrument; publishing the newer draft replaces it, docs/review-list.md); the respondent
+  header says "Closes [DATE] UTC"; the stepper shows Share as the current step.
 - Acceptance 6: e2e/share.spec.ts publishes with a passcode, opens the link in a fresh
   context, is refused with a wrong passcode and let in with the right one, sees About you,
   moves the close date into the past and sees the closed page; the Import banner owed from

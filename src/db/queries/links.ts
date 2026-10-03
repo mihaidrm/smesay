@@ -5,7 +5,8 @@
 // for a token that exists and null for anything else, and nothing is listed. The rows come
 // back with their workspace id as a WorkspaceId (the brand only src/db and
 // src/lib/workspace.ts may produce; here the token proved the access, so the respondent
-// routes can call the scoped helpers for the link's items); nothing here writes.
+// routes can call the scoped helpers for the link's items); an archived project's link
+// comes back too, and src/lib/link-access.ts shows it as closed. Nothing here writes.
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, invite, project, workspace } from "@/db/schema";
@@ -27,7 +28,7 @@ export const links = {
       .innerJoin(workspace, eq(workspace.id, invite.workspaceId))
       .where(eq(invite.token, token)).limit(1);
     const row = rows[0];
-    if (!row || row.project.archivedAt !== null) return null;
+    if (!row) return null;
     return { ws: unsafeWorkspaceId(row.invite.workspaceId), invite: row.invite, instrument: row.instrument, project: row.project, brand: { name: row.name, accentHex: row.accentHex, logoObjectKey: row.logoObjectKey } };
   },
 };

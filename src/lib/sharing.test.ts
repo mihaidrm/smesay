@@ -26,7 +26,7 @@ describe("parseLinkInput", () => {
   it("refuses a missing or early close date before publishing, and allows a past one after", () => {
     expect(parseLinkInput("", "", "", now, false)).toEqual({ error: LINK_ERRORS.noClose });
     expect(parseLinkInput(later, earlier, "", now, false)).toEqual({ error: LINK_ERRORS.closeBeforeOpen });
-    expect(parseLinkInput("", earlier, "", now, false)).toEqual({ error: LINK_ERRORS.closeBeforeOpen });
+    expect(parseLinkInput("", earlier, "", now, false)).toEqual({ error: LINK_ERRORS.closeInPast });
     expect(parseLinkInput("", earlier, "", now, true)).toMatchObject({ input: { closesAt: new Date(earlier) } });
     expect(parseLinkInput(later, earlier, "", now, true)).toEqual({ error: LINK_ERRORS.closeBeforeOpen });
     expect(parseLinkInput("not a date", later, "", now, false)).toEqual({ error: LINK_ERRORS.badDate });

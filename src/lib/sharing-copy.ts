@@ -5,7 +5,7 @@ import { PASSCODE_MAX, PASSCODE_MIN } from "@/lib/passcode-rules";
 
 export const SHARE_COPY = {
   title: "Share the list",
-  line: "One link anyone can open between the dates. Personal invites and reminders come next.",
+  line: "One link anyone can open between the dates.",
   noInstrument: "Build the instrument first. Share sends what Build made.",
   noInstrumentLink: "Go to Build",
   card: "Public link",
@@ -15,6 +15,10 @@ export const SHARE_COPY = {
     published: "Anyone with the link can respond until the close date.",
     revoked: "The link now shows a page saying it was withdrawn. Answers already given are kept.",
   } as const,
+  notOpenNote: (when: string) => `The link opens on ${when}. Until then it shows the opening date.`,
+  newerDraft: (built: number, live: number) => `Version ${built} is built but not published; the link above is on version ${live}. Publishing version ${built} makes a new link and closes this one.`,
+  newerDraftCard: (version: number) => `Draft on version ${version}`,
+  archived: "This project is archived. Unarchive it to share the list.",
   linkLabel: "Link",
   copy: "Copy link",
   copied: "Copied.",
@@ -35,7 +39,8 @@ export const SHARE_COPY = {
 
 export const LINK_ERRORS = {
   closeBeforeOpen: "The close date is before the open date. Pick a later close date.",
-  noClose: "Pick a close date. Respondents see it, and the link closes then.",
+  noClose: "Pick a close date. The link closes then.",
+  closeInPast: "The close date is in the past. Pick a date in the future.",
   badDate: "The dates did not reach the server as dates. Reload the page and try again.",
   shortPasscode: `Use at least ${PASSCODE_MIN} characters. Respondents type it once per device.`,
   longPasscode: `Use at most ${PASSCODE_MAX} characters for the passcode.`,
@@ -57,5 +62,6 @@ export const LINK_PAGE_COPY = {
   passcodeLabel: "Passcode",
   passcodeButton: "Continue",
   wrongPasscode: "That passcode is not right. Ask the person who sent you the link.",
+  tooManyAttempts: (minutes: number) => `Too many passcode attempts. Wait ${minutes} minutes and try again.`,
   closes: (when: string) => `Closes ${when}`,
 } as const;

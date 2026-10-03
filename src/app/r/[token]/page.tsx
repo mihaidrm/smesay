@@ -29,7 +29,7 @@ export default async function LinkRoute({ params }: { params: Promise<{ token: s
   const accent = effectiveAccent(link.brand.accentHex);
   if (view.kind === "revoked") return <LinkPage workspaceName={link.brand.name} accent={accent} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(link.brand.name)} />;
   if (view.kind === "notOpen") return <LinkPage workspaceName={link.brand.name} accent={accent} title={LINK_PAGE_COPY.notOpenTitle(formatUtc(link.invite.opensAt!))} line={LINK_PAGE_COPY.notOpenLine} />;
-  if (view.kind === "closed") return <LinkPage workspaceName={link.brand.name} accent={accent} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(link.invite.closesAt!))} />;
+  if (view.kind === "closed") return <LinkPage workspaceName={link.brand.name} accent={accent} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(view.closedAt))} />;
   if (view.kind === "passcode") {
     return (
       <LinkPage workspaceName={link.brand.name} accent={accent} title={LINK_PAGE_COPY.passcodeTitle} line={LINK_PAGE_COPY.passcodeLine}>
@@ -43,7 +43,7 @@ export default async function LinkRoute({ params }: { params: Promise<{ token: s
   const firstChapter = set ? (areaNames(set, rows)[0] ?? null) : null;
   return (
     <div className="mx-auto min-h-screen w-full max-w-[560px] bg-ground">
-      <AboutYou workspaceName={link.brand.name} accent={accent} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />
+      <AboutYou workspaceName={link.brand.name} accent={accent} headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />
     </div>
   );
 }

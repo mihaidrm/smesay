@@ -27,7 +27,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const imported = project.isSample || (await latestSet(current.ws, project.id)) !== null;
   const instrument = imported ? await instruments.latestForProject(current.ws, project.id) : null;
   const built = instrument !== null;
-  const published = built && (await invites.publicForInstrument(current.ws, instrument.id)) !== null;
+  const published = built && (await invites.livePublic(current.ws, project.id)) !== null;
   const furthest: StepKey = published ? "share" : built ? "build" : imported ? "shape" : "import";
   const done: StepKey[] = published ? ["import", "shape", "build"] : built ? ["import", "shape"] : imported ? ["import"] : [];
   return (

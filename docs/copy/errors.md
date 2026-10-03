@@ -57,7 +57,7 @@ of the content; page means it replaces the screen.
 | Page, the signed-in error page | Upload interrupted: the connection drops before the server action runs, so nothing is stored and the error page shows (E3-2; its copy is the 500 row below, E11-6) | The upload stopped before the file arrived. Check your connection and upload it again. Nothing was imported. (the wording for E11-6 to show when the failed request was an upload) |
 | Inline, check card | Import pressed while every row is empty in the item text column (E3-5) | Nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file. |
 | Inline, check card | Import pressed again for a file already imported (E3-5; a replayed form) | This file is already imported as version [N]. Upload or paste the next version to import again. |
-| Banner, import | New version of a list already published | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. [Button: Import as version [N]] |
+| Banner, import | The project has a public link in force (E6-1: shown above the versions on every visit; the text only, the upload card keeps its own Import button) | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. |
 
 ## Shaping (E4)
 
@@ -129,8 +129,10 @@ of the content; page means it replaces the screen.
 | Inline, closing (E5-5) | Shown under the question of a published instrument; the server refuses a save that posts another question then (a stale tab), and saves the switch and the sign-off when the question is unchanged | Published instruments keep their closing question. Build a new instrument to change it. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
-| Inline, dates (E6-1) | Close date before the open date, or in the past on Publish (a published link's close date may be moved into the past, which closes it) | The close date is before the open date. Pick a later close date. |
-| Inline, dates (E6-1) | No close date | Pick a close date. Respondents see it, and the link closes then. |
+| Inline, dates (E6-1) | Close date before the open date (a published link's close date may be moved into the past, which closes it) | The close date is before the open date. Pick a later close date. |
+| Inline, dates (E6-1) | No close date | Pick a close date. The link closes then. |
+| Inline, dates (E6-1) | Close date in the past on Publish | The close date is in the past. Pick a date in the future. |
+| Inline, Share (E6-1) | Publish or Save on an archived project | This project is archived. Unarchive it to share the list. |
 | Inline, dates (E6-1) | A date that did not arrive as one, through the server | The dates did not reach the server as dates. Reload the page and try again. |
 | Inline, passcode | Passcode under 6 characters | Use at least 6 characters. Respondents type it once per device. |
 | Inline, passcode (E6-1) | Passcode over 64 characters | Use at most 64 characters for the passcode. |
@@ -148,12 +150,12 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Page (already on the board) | Link closed | Link closed. The project team at [WORKSPACE] stopped collecting answers for [PROJECT] on [DATE]. Nothing you sent is lost. If you were still answering, contact the project team: [PM CONTACT] (the last sentence only when a contact is known: a personal invite's sender, E6-2; the public link shows none) |
+| Page (already on the board) | Link closed (by its close date, by a newer version's link, or the project archived: [DATE] is then the day it was archived) | Link closed. The project team at [WORKSPACE] stopped collecting answers for [PROJECT] on [DATE]. Nothing you sent is lost. If you were still answering, contact the project team: [PM CONTACT] (the last sentence only when a contact is known: a personal invite's sender, E6-2; the public link shows none) |
 | Page (already on the board) | Link revoked | Link inactive. The project team at [WORKSPACE] withdrew this link. If you were asked to answer, ask them for a new one. Nothing was saved from this visit. |
 | Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
-| Page | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
+| Inline, passcode page (E6-1: 5 wrong attempts per link and address in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
 | Page | Personal link already submitted, answers still editable | Welcome back, [NAME]. You submitted on [DATE]. You can change your answers until [CLOSE DATE]. [Button: Change my answers] |
 | Page | Personal link already submitted, link closed | Your answers were submitted on [DATE]. The link closed on [CLOSE DATE]; nothing can be changed now. |
 

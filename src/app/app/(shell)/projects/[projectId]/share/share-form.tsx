@@ -5,8 +5,13 @@
 // passcode field; Publish on a draft, Save once published. The server applies the rule
 // again (src/lib/sharing.ts). datetime-local values carry no zone, so the conversion is
 // `new Date(value).toISOString()` here, in the browser (developer.mozilla.org/docs/Web/HTML/
-// Element/input/datetime-local, "Value"). "Saved." until the next change.
-import { useActionState, useId, useState } from "react";
+// Element/input/datetime-local, "Value"). The local text and the zone name exist only in the
+// browser: the server render shows empty fields and no zone, and the client fills them once
+// mounted, through useSyncExternalStore's server snapshot
+// (react.dev/reference/react/useSyncExternalStore, "Adding support for server rendering"),
+// so the two renders agree. A spring-forward gap or an ambiguous hour follows the browser's
+// own reading of `new Date(local)` (docs/review-list.md). "Saved." until the next change.
+import { useActionState, useId, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,15 +26,21 @@ function toLocal(date: Date | null): string {
 }
 const toIso = (local: string): string => (local ? new Date(local).toISOString() : "");
 
+const noop = () => () => {};
+const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
+
 export function ShareForm({ projectId, instrumentId, published, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; published: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(published ? saveLinkAction : publishAction, { error: null, saved: false });
-  const [opens, setOpens] = useState(toLocal(opensAt ? new Date(opensAt) : null));
-  const [closes, setCloses] = useState(toLocal(closesAt ? new Date(closesAt) : null));
+  const mounted = useMounted();
+  const [opensTyped, setOpens] = useState<string | null>(null);
+  const [closesTyped, setCloses] = useState<string | null>(null);
+  const opens = opensTyped ?? (mounted ? toLocal(opensAt ? new Date(opensAt) : null) : "");
+  const closes = closesTyped ?? (mounted ? toLocal(closesAt ? new Date(closesAt) : null) : "");
   const [passcode, setPasscode] = useState("");
   const [remove, setRemove] = useState(false);
   const [dirty, setDirty] = useState(false);
   const id = useId();
-  const zone = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+  const zone = mounted ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
   const touch = () => setDirty(true);
   return (
     <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="share-form">
@@ -49,7 +60,7 @@ export function ShareForm({ projectId, instrumentId, published, opensAt, closesA
           <Input id={`${id}-closes`} type="datetime-local" value={closes} onChange={(e) => { setCloses(e.target.value); touch(); }} />
         </div>
       </div>
-      <p className="text-[13px] text-ink-muted" data-testid="share-zone">{SHARE_COPY.zone(zone)}</p>
+      <p className="min-h-[18px] text-[13px] text-ink-muted" data-testid="share-zone">{zone ? SHARE_COPY.zone(zone) : ""}</p>
       <div className="flex flex-col gap-1">
         <Label htmlFor={`${id}-passcode`} className="text-[13px]">{SHARE_COPY.passcodeLabel}</Label>
         <Input id={`${id}-passcode`} name="passcode" type="text" autoComplete="off" value={passcode} aria-describedby={`${id}-passcode-hint`} disabled={remove} onChange={(e) => { setPasscode(e.target.value); touch(); }} />

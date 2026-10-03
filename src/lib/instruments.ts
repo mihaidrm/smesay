@@ -166,13 +166,17 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
 export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  const stored = owned.instrument.closing.closingQuestion ?? "";
   const asPosted = parseClosing(rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
   if ("error" in asPosted) return { error: asPosted.error };
-  const asLocked = parseClosing(stored, rawMissingForm, rawSignOff, rawConfidence);
-  if ("error" in asLocked) return { error: asLocked.error };
-  const sameQuestion = typeof rawQuestion !== "string" || rawQuestion.trim() === stored;
-  const result = await instruments.updateLocked(ws, instrumentId, (published) => (published ? (sameQuestion ? { closing: asLocked.closing } : null) : { closing: asPosted.closing }));
+  // Under the lock the stored question is read from the locked row, so a stale tab cannot
+  // write an older question onto a published instrument.
+  const result = await instruments.updateLocked(ws, instrumentId, (published, current) => {
+    if (!published) return { closing: asPosted.closing };
+    const stored = current.closing.closingQuestion ?? "";
+    if (typeof rawQuestion === "string" && rawQuestion.trim() !== stored) return null;
+    const asLocked = parseClosing(stored, rawMissingForm, rawSignOff, rawConfidence);
+    return "error" in asLocked ? null : { closing: asLocked.closing };
+  });
   if (!result) throw new NotFoundError();
   if (!result.applied) return { error: CLOSING_COPY.questionLocked };
   return { instrument: result.instrument };
