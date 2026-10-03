@@ -37,7 +37,7 @@ export function ModeToggle() {
       document.documentElement.classList.toggle("dark", next);
       try { localStorage.setItem(KEY, next ? "dark" : "light"); } catch { /* private mode: the choice lasts this page only */ }
     };
-    // The sweep (design note 35): a view transition wipes the new mode in over 2.5 s, from
+    // The sweep (design note 35): a view transition wipes the new mode in over 1.8 s, from
     // the top left corner going light and from the bottom right going dark
     // (src/app/globals.css, mode-sweep and mode-sweep-to-dark). The html classes scope the
     // CSS to this transition. Browsers without startViewTransition and people who asked for
