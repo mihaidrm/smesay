@@ -37,6 +37,7 @@ export const BUILD_COPY = {
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
   preview: "Preview",
   previewCaption: "Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row.",
+  previewCaptionWrapUp: "Highlighted: what the Closing card changes. The missing-item form, the closing question, confidence and the sign-off.",
   previewDevice: "Phone",
   previewScreens: { about: "About you", items: "Items" },
   // The scoring card (stories/E5-2; the PM app board, Build).

@@ -33,8 +33,15 @@ the check constraints use them). Change this file first.
   -2, -3 when two labels slug the same; label 1 to 60 characters, up to 8 fields, a dropdown
   has 2 to 20 options, each up to 60 characters and different from the others ignoring
   case; src/lib/respondent-fields.ts is the code twin of the rule).
-- ClosingSpec (jsonb, instrument.closing):
-  { confidence: true, missingForm: boolean, signOffText: string }
+- ClosingSpec (jsonb, instrument.closing; E5-5, 2026-10-03):
+  { confidence: true, missingForm: boolean, signOffText: string, closingQuestion?: string }
+  (confidence is always true and the server refuses false; missingForm defaults to true;
+  signOffText 1 to 300 characters, where "" on a row means the default sentence in
+  src/lib/closing.ts; closingQuestion 1 to 200 characters, absent means no question. The
+  PM's words are theirs: the only copy rule applied at save time is no em dash. The rule is
+  parseClosing() in src/lib/closing.ts. Once published the question locks, since its
+  answers are stored per response (response.closing_answer, E7-5); the form and the
+  sign-off text still change.)
 - Perspectives (E5-4, 2026-10-03): instrument.perspectives jsonb string[] (the names
   respondents pick from, up to 10, each 1 to 30 characters, unique ignoring case; empty
   means About you asks nothing); item.perspectives text[] (the names this item is shown

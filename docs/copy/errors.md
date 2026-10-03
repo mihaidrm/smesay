@@ -122,6 +122,11 @@ of the content; page means it replaces the screen.
 | Inline, perspective chips on Shape (E5-4) | A tag on an item of a newer version than the one the instrument is built on, through the server | These items are on version [N] of the list; the instrument is built on version [M]. Build on version [N] first, then tag items here. |
 | Inline, perspective chips on Shape (E5-4) | A tag on an item of an older version than the instrument's (a stale Shape tab after Build on version N) | These items are version [N] of the list; the instrument is now built on version [M]. Reload the page to tag the current items. |
 | Inline, perspectives (E5-4) | The names or the tags did not arrive as text or a list | The tags did not reach the server as a list. Reload the page and try again. |
+| Inline, closing (E5-5) | The confidence flag posted off, through the server | The confidence question is always asked. It cannot be switched off. |
+| Inline, closing (E5-5) | The closing question over 200 characters | The closing question is over 200 characters. Shorten it; respondents answer it on a phone. |
+| Inline, closing (E5-5) | The sign-off empty or over 300 characters | Write the sign-off in 1 to 300 characters. Respondents tick it before they submit. |
+| Inline, closing (E5-5) | An em dash in the question or the sign-off (the one copy rule applied to the PM's words) | Replace the em dash with a comma, a colon or a full stop. Respondents read this as written. |
+| Inline, closing (E5-5) | Shown under the question of a published instrument; the server keeps the stored question then and saves the switch and the sign-off | Published instruments keep their closing question. Build a new instrument to change it. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |

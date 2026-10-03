@@ -16,6 +16,7 @@ import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
 import type { WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
+import { parseClosing } from "@/lib/closing";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
@@ -150,6 +151,21 @@ export async function savePerspectives(ws: WorkspaceId, projectId: string, instr
   const parsed = parsePerspectives(rawNames);
   if ("error" in parsed) return { error: parsed.error };
   const instrument = await instruments.setPerspectives(ws, instrumentId, parsed.names);
+  if (!instrument) throw new NotFoundError();
+  return { instrument };
+}
+
+// The Closing card (stories/E5-5): the closing question, the missing-item form switch and
+// the sign-off text, with confidence always on (parseClosing refuses it off). Once
+// published the question is locked (its answers are stored per response) and whatever is
+// posted for it is ignored; the switch and the sign-off still change.
+export async function saveClosing(ws: WorkspaceId, projectId: string, instrumentId: string, rawQuestion: unknown, rawMissingForm: unknown, rawSignOff: unknown, rawConfidence: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const published = await isPublished(ws, instrumentId);
+  const parsed = parseClosing(published ? owned.instrument.closing.closingQuestion ?? "" : rawQuestion, rawMissingForm, rawSignOff, rawConfidence);
+  if ("error" in parsed) return { error: parsed.error };
+  const instrument = await instruments.update(ws, instrumentId, { closing: parsed.closing });
   if (!instrument) throw new NotFoundError();
   return { instrument };
 }

@@ -12,7 +12,8 @@ import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { CLOSING_ERRORS, DEFAULT_SIGN_OFF } from "@/lib/closing";
+import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
@@ -193,6 +194,36 @@ describe("saveScoring (stories/E5-2)", () => {
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
     await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("closing (stories/E5-5)", () => {
+  it("saves the question, the switch and the sign-off with the rule, refuses confidence off, locks the question once published", async () => {
+    const project = await projects.create(a.ws, { name: "Closing", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    expect(instrument.closing).toEqual({ confidence: true, missingForm: true, signOffText: "" });
+    expect(await saveClosing(a.ws, project.id, instrument.id, "", "1", DEFAULT_SIGN_OFF, "0")).toEqual({ error: CLOSING_ERRORS.confidenceOff });
+    expect(await saveClosing(a.ws, project.id, instrument.id, "", "1", "", "1")).toEqual({ error: CLOSING_ERRORS.badSignOff });
+    expect(await saveClosing(a.ws, project.id, instrument.id, `A ${String.fromCharCode(8212)} B?`, "1", "Yes.", "1")).toEqual({ error: CLOSING_ERRORS.emDash });
+    const saved = await saveClosing(a.ws, project.id, instrument.id, " Anything else? ", "0", " Mine. ", "1");
+    expect("instrument" in saved && saved.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Mine.", closingQuestion: "Anything else?" });
+    const cleared = await saveClosing(a.ws, project.id, instrument.id, "", "1", DEFAULT_SIGN_OFF, "on");
+    expect("instrument" in cleared && cleared.instrument.closing).toEqual({ confidence: true, missingForm: true, signOffText: DEFAULT_SIGN_OFF });
+    // The sample and another workspace.
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const sampleDraft = (await openDraft(a.ws, sample))!;
+    expect(await saveClosing(a.ws, sample.id, sampleDraft.instrument.id, "", "1", "Yes.", "1")).toEqual({ error: BUILD_COPY.sample });
+    await expect(saveClosing(b.ws, project.id, instrument.id, "", "1", "Yes.", "1")).rejects.toBeInstanceOf(NotFoundError);
+    // Published: the question posted is ignored and the stored one kept; the switch and
+    // the sign-off still change. Build on version 2 carries the closing.
+    await saveClosing(a.ws, project.id, instrument.id, "Kept?", "1", "Yes.", "1");
+    await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    const after = await saveClosing(a.ws, project.id, instrument.id, "Changed?", "0", "Signed.", "1");
+    expect("instrument" in after && after.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Signed.", closingQuestion: "Kept?" });
+    await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
+    const built = await buildOnLatest(a.ws, project.id, instrument.id);
+    expect("instrument" in built && built.instrument.closing).toEqual({ confidence: true, missingForm: false, signOffText: "Signed.", closingQuestion: "Kept?" });
   });
 });
 
