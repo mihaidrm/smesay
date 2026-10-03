@@ -17,6 +17,7 @@ export async function enterPasscodeAction(_previous: PasscodeState, formData: Fo
   const address = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0].trim();
   const result = await checkPasscode(token, formData.get("passcode"), address);
   if (result.kind === "limited") return { error: LINK_PAGE_COPY.tooManyAttempts(PASSCODE_WINDOW_MINUTES), ok: false };
+  if (result.kind === "busy") return { error: LINK_PAGE_COPY.busy, ok: false };
   if (result.kind === "none") return { error: LINK_PAGE_COPY.linkChanged, ok: false };
   if (result.kind !== "ok") return { error: LINK_PAGE_COPY.wrongPasscode, ok: false };
   const store = await cookies();

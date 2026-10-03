@@ -64,6 +64,7 @@ export const LINK_PAGE_COPY = {
   wrongPasscode: "That passcode is not right. Ask the person who sent you the link.",
   tooManyAttempts: (minutes: number) => `Too many passcode attempts. Wait ${minutes} minutes and try again.`,
   linkChanged: "This link changed since the page opened. Reload the page to see where it stands.",
+  busy: "Too many people are entering passcodes right now. Wait a few minutes and try again.",
   closes: (when: string) => `Closes ${when}`,
   errorTitle: "This page could not be loaded.",
   errorLine: "Something went wrong on our side. Try again in a moment.",

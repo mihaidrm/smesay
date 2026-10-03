@@ -94,6 +94,11 @@ function take(map: Map<string, Window>, key: string, limit: number, now: number)
   map.set(key, fresh);
   return fresh;
 }
+// Drops expired entries; true when the Map has room afterwards.
+function sweep(map: Map<string, Window>, now: number): boolean {
+  for (const [k, v] of map) if (v.until <= now) map.delete(k);
+  return map.size < MAP_CAP;
+}
 function release(map: Map<string, Window>, key: string, entry: Window): void {
   if (map.get(key) !== entry) return;
   entry.count -= 1;
@@ -112,7 +117,7 @@ export function clearAttempts(): void {
 // needs no passcode. The counts are taken after the read, for a real link at its passcode
 // step only; the address count is taken only when the link's passed. Both are given back
 // on a correct passcode.
-export async function checkPasscode(token: string, typed: unknown, address: string, now = new Date()): Promise<{ kind: "ok"; proof: string } | { kind: "wrong" | "limited" | "none" }> {
+export async function checkPasscode(token: string, typed: unknown, address: string, now = new Date()): Promise<{ kind: "ok"; proof: string } | { kind: "wrong" | "limited" | "busy" | "none" }> {
   if (!TOKEN_SHAPE.test(token) || typeof typed !== "string") return { kind: "none" };
   const link = await links.byToken(token);
   if (!link || !link.invite.passcodeHash) return { kind: "none" };
@@ -120,6 +125,10 @@ export async function checkPasscode(token: string, typed: unknown, address: stri
   const at = now.getTime();
   const linkKey = link.invite.token;
   const addressKey = `${linkKey}:${address.slice(0, 64)}`;
+  // "busy": the Map is full of live entries, so the post is refused without a count
+  // against this link (docs/review-list.md records what it takes to fill a Map).
+  if (perLink.size >= MAP_CAP && !perLink.has(linkKey) && !sweep(perLink, at)) return { kind: "busy" };
+  if (perAddress.size >= MAP_CAP && !perAddress.has(addressKey) && !sweep(perAddress, at)) return { kind: "busy" };
   const linkEntry = take(perLink, linkKey, PASSCODE_LINK_ATTEMPTS, at);
   if (!linkEntry) return { kind: "limited" };
   const addressEntry = take(perAddress, addressKey, PASSCODE_ATTEMPTS, at);
