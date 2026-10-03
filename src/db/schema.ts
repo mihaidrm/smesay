@@ -40,7 +40,7 @@ export const workspace = pgTable("workspace", {
   slug: text("slug").notNull(),
   accentHex: text("accent_hex"),
   logoObjectKey: text("logo_object_key"),
-  aiBudgetEur: integer("ai_budget_eur").notNull().default(50),
+  aiBudgetEur: integer("ai_budget_eur").notNull().default(10),
   // The plan (stories/E2-6): a column change switches a workspace; the limits are in
   // src/lib/plans.ts and the free entry has none while the product is validated (decision 0008).
   plan: text("plan", { enum: PLAN_KEYS }).notNull().default("free"),

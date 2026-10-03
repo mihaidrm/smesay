@@ -33,7 +33,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Switch page line when the current workspace was removed | The workspace you were in is no longer available to you. Pick another one to work in. |
 | Signed-in line under both pages | Signed in as [EMAIL]. |
 
-## Settings, brand and budget (E2-5)
+## Settings, brand and plan (E2-5)
 
 | Where | Text |
 |---|---|
@@ -48,13 +48,11 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Accent line, none set | No accent set. The respondent page uses teal. |
 | Save button | Save |
 | Line after saving | Saved. Your instruments carry the new name, logo and accent. |
-| Budget card title | AI budget |
-| Budget line | EUR [BUDGET] per month, EUR [SPENT] used this month |
-| Budget note | The budget is not editable on the Free plan. |
-| Usage line under the budget (E2-6) | [N] projects, [N] responses this month, [N] AI runs this month. |
 | Plan card title and value | Plan, Free |
 | Plan pill | While we build it with the first users |
 | Plan note | Paid plans come later. Nothing you build now is lost or locked. |
+| Usage line under the plan note (E2-6) | [N] projects, [N] responses this month, [N] AI runs this month. |
+| | No AI budget on the page: the workspace budget is set and seen in the admin area only (decision 0036, E14-2). | |
 
 ## Settings, Members (E2-4)
 

@@ -1,23 +1,25 @@
-# E9-3 Insight cost shown per run against the workspace budget
+# E9-3 Insight cost shown per run
 
 User: the workspace owner watching the euros
 Status: ready
-Outcome: every run shows what it cost, and a run that would exceed the budget is refused with
-the shortfall.
+Outcome: every run shows what it cost, and a run that would exceed the workspace's budget or
+the product's cap is refused before it starts. The budget itself is never shown (decision 0036).
 
 ## Acceptance criteria
-1. Under the actions: "Last run [DATE]: [N] tokens, EUR [COST]. This month: EUR [SPENT] of
-   EUR [BUDGET]." from the ai_run rows (E4-1).
+1. Under the actions: "Last run [DATE]: [N] tokens, EUR [COST]. This month: EUR [SPENT]."
+   from the ai_run rows (E4-1). No budget number on the page: the workspace budget is set and
+   seen in the admin area only (decision 0036, E14-2).
 2. Before a run, the estimate (from the token count of the inputs and the price table) is
-   checked against the remaining budget; refused runs show "This run would cost about EUR
-   [ESTIMATE] and the workspace has EUR [LEFT] left this month. Ask the workspace owner to
-   raise the budget." (added to docs/copy/errors.md with this story).
+   checked by runModel (E4-1) against the product cap and the workspace budget; a refused run
+   shows the E4-1 messages ("AI is paused until next month." or "This workspace has used its
+   AI budget for the month.", docs/copy/errors.md, Shaping) with "This run would cost about
+   EUR [ESTIMATE]." in front (added to docs/copy/errors.md with this story).
 3. The estimate is within 30 percent of the actual on the seeded project (a test compares the
    estimate function with the fake transport's reported usage).
 4. Settings' usage line (E2-6) matches the sum shown here.
 
 ## Out of scope
-- Raising the budget in the app: paid plans (R3).
+- Raising the budget in the app: credits bought from SMEsay, if that comes (decision 0036).
 
 ## Open questions
 - None.

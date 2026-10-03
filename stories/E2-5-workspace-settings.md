@@ -1,15 +1,16 @@
-# E2-5 Workspace settings: name, logo, accent colour, AI budget
+# E2-5 Workspace settings: name, logo, accent colour
 
 User: the workspace owner making instruments carry the company's name and colour
 Status: built
 Outcome: logo and colour appear on every instrument of the workspace as soon as they are
-saved; the AI budget is visible.
+saved.
 
 ## Acceptance criteria
 1. Settings (PM app board): workspace name; logo upload (PNG or SVG, up to 1 MB, stored in the
    S3-compatible bucket, shown at 24 px in the respondent header in place of the mark); accent
-   colour as a hex field with a swatch; AI budget shown as "EUR [BUDGET] per month, EUR [SPENT]
-   used this month" (not editable in R1; default 50, decision 0011).
+   colour as a hex field with a swatch; the Plan card with the usage line (E2-6). The AI
+   budget is not on the page (decision 0036): it is set and seen in the admin area only
+   (E14-2), default 10.
 2. An accent under 4.5:1 on white shows the banner "This colour is too light on white, so the
    respondent page uses the default. Pick a darker one to use yours." and the respondent side
    uses ink (docs/design-system.md, respondent theming; Brand 06). The check uses
@@ -25,7 +26,8 @@ saved; the AI budget is visible.
    chapter row.
 
 ## Out of scope
-- Billing and plan changes: R3. The AI budget becomes editable with paid plans.
+- Billing and plan changes: R3. The AI budget may become credits bought from SMEsay (decision
+  0036, point 3).
 - Workspace deletion and export: E11-2.
 
 ## Open questions
@@ -72,10 +74,10 @@ accent, the contrast line, the banner, the logo served by the route.
   the upload and on the server; the server action's body cap is raised to 2 MB in next.config.ts
   so the file reaches the app's own message.
 - Settings (src/app/app/(shell)/settings): the brand card with the form for owners (the
-  contrast line follows the field as typed) and the values for members, the AI budget card
-  ("EUR 50.00 per month, EUR [SPENT] used this month" from ai_run.cost_eur_cents this month,
-  aiRuns.costThisMonthCents) and the Plan card, above the Members section of E2-4.
-- Copy: docs/copy/app.md (Settings, brand and budget) and errors.md. Design note 18 has the
+  contrast line follows the field as typed) and the values for members, and the Plan card
+  with the usage line, above the Members section of E2-4. The AI budget card built with the
+  story was removed on 2026-10-03 (decision 0036, design note 31).
+- Copy: docs/copy/app.md (Settings, brand and plan) and errors.md. Design note 18 has the
   screenshots.
 - Audit of 2026-10-02 (fresh context, 18 findings): the two blocking ones (the fallback was teal
   where every source says ink; a logo over 1 MB hit Next's body cap before the app's message)

@@ -61,7 +61,7 @@ response's set version (`answer.item_set_id`, with `(response_id, item_set_id)` 
 `(item_id, item_set_id)` to item). The enum columns are typed with `text({ enum })` and the
 jsonb columns with `.$type<>()` from src/db/types.ts, the TypeScript twins of INTERFACES.md.
 
-- `workspace`: id, name, slug (unique), accent_hex, logo_object_key, ai_budget_eur (default 50),
+- `workspace`: id, name, slug (unique), accent_hex, logo_object_key, ai_budget_eur (default 10, decision 0036),
   created_at, deleted_at (E11 removes rows within 24 hours of deletion).
 - `workspace_member`: workspace_id, user_id (text, fk `user`, on delete cascade), role
   (owner, member), created_at; primary key (workspace_id, user_id); index on user_id (the

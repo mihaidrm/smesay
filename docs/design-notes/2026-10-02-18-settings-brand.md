@@ -25,6 +25,8 @@ light (the colour is kept; the respondent side falls back to ink). A file over 1
 in the browser before the upload, with the same line the server would give. A member
 sees the three values as a list, no form.
 
+Superseded 2026-10-03: the AI budget card was removed and the usage line moved into the Plan
+card (decision 0036, design note 31). As built on 2026-10-02:
 AI budget: the mono line "EUR 50.00 per month, EUR [SPENT] used this month", a 6 px greige
 bar with an ink fill for the share used, the note that the budget is not editable on the
 Free plan, and (E2-6) the usage line "[N] projects, [N] responses this month, [N] AI runs this

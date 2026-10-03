@@ -76,13 +76,14 @@ Next tasks for Claude: E4-6, the last of E4 (Mihai gave the go for E4 on 2026-10
 asked for a pause after it; E4-1 to E4-4 are merged, PRs 40 to 43; E4-5 is built, PR 44).
 The golden set question in design note 27 waits for Mihai before E4-6. Mihai runs `npm run ai:smoke` on his
 PC as E4-1's acceptance (docs/accounts.md step 9) and checks the real Google flow (E2-2,
-decision 0034). E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
+decision 0034). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
+PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
+EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33), with
 these decisions open for Mihai: the worker line in SECURITY.md, the one-column header rule,
 the noHeader wording, "Ignore" versus "Do not import", decision 0028 and Delete sample, a
 link with a future open date reading Closed, the Results pill count of E3-5 acceptance 5. Every story exists (71 in 14 epics); a story is rewritten when Mihai
 sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
-EUR 10); the two questions from design note 26 (ANTHROPIC_MONTHLY_BUDGET_EUR, the EUR 50
-workspace default) wait for his answer.
+EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 9).
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):

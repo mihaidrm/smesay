@@ -12,10 +12,13 @@ never lets the key near a browser.
 2. Every call records an ai_run row: workspace, project, purpose (shape, insights), model,
    tokens in and out, cost in euro cents from a price table in the code, duration
    (docs/schema.md). The cost table names the model and the date its prices were read.
-3. Before a call, the month's spend (E2-6 usage) plus the call's estimated cost is checked
-   against workspace.ai_budget_eur. Over budget: the call is refused and the caller gets the
-   message "This workspace has used its AI budget for the month. The list is imported and can
-   be published as it is. Ask the workspace owner to raise the budget." (docs/copy/errors.md).
+3. Before a call, the product's spend this month across every workspace plus the call's
+   estimated cost is checked against ANTHROPIC_MONTHLY_BUDGET_EUR (decision 0036), then the
+   workspace's month (E2-6 usage) plus the estimate against workspace.ai_budget_eur. Over the
+   product cap: "AI is paused until next month. The list is imported and can be published as
+   it is." Over the workspace budget: "This workspace has used its AI budget for the month.
+   The list is imported and can be published as it is. Come back next month."
+   (docs/copy/errors.md). A missing cap variable refuses every call and is named in the log.
 4. Timeout 60 seconds; on timeout or provider error the caller gets "The AI did not answer.
    Nothing changed. Try again; if it fails again, use the items as imported and come back
    later." with a Try again button. A provider 429 gives "Too many AI requests at once. Wait a
@@ -34,8 +37,9 @@ never lets the key near a browser.
 - None.
 
 ## Technical notes
-The budget check reads usage() (E2-6, src/db/queries/usage.ts) for the month's cost and
-`withinPlan(ws, "aiRuns")` for the run cap, so the euro cap and the run cap cannot disagree.
+The budget checks read productAiCostCentsThisMonth() and usage() (E2-6,
+src/db/queries/usage.ts) for the month's cost and `withinPlan(ws, "aiRuns")` for the run cap,
+so the product cap, the workspace cap and the run cap cannot disagree.
 Anthropic SDK for TypeScript (docs.anthropic.com; the model id and pricing page are read when
 the story starts and cited in the price table). Default model: the latest Sonnet class model
 on that day, recorded in the table. Prompt caching is not used in R1. The claude-api skill in

@@ -17,7 +17,8 @@ actions that help, each audited.
    revoked), link kind and dates, the uploads with size and date, and the last 20 product
    events of the workspace (E13-1). No respondent names and no answers on this page.
 3. Actions, each with a confirm line and an audit row (E14-1): change the plan (E2-6's column
-   change), set the AI budget, resend an open invitation, revoke a link (E6-4's kill switch,
+   change), set the AI budget (the only place it is seen or set, decision 0036), resend an
+   open invitation, revoke a link (E6-4's kill switch,
    by the admin), restore a workspace marked deleted within the 24 hours (E11-2), and add a
    support note (free text, shown only here).
 4. Every action runs through the same helpers the product uses (src/lib/members.ts,

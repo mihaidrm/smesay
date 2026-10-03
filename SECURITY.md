@@ -21,7 +21,8 @@ Data
 - No personal data in logs, Sentry events or analytics.
 
 AI
-- Anthropic key server-side only; per-workspace and per-request token budgets enforced.
+- Anthropic key server-side only; one product spend cap (ANTHROPIC_MONTHLY_BUDGET_EUR),
+  per-workspace and per-request token budgets enforced (decision 0036).
 - Uploaded text passed as data, separated from instructions; output validated against a JSON
   schema before display; model may not add items, additions flagged as suggestions.
 

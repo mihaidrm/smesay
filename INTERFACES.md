@@ -99,7 +99,9 @@ upload), `importLog(ws, projectId)` and `latestSet(ws, projectId)` in src/lib/im
 `commitImport(ws, input)` in src/db/queries/importCommit.ts (imported by name, the one
 transaction); itemSets.versions(ws, projectId) (every set with its item count and importer).
 Usage and plans (E2-6): usage(ws, now) in src/db/queries/usage.ts (projects, responsesThisMonth,
-aiRunsThisMonth, aiCostCentsThisMonth, by SQL); PLANS and withinPlan(ws, kind) in
+aiRunsThisMonth, aiCostCentsThisMonth, by SQL) and productAiCostCentsThisMonth(now), the
+product's spend across every workspace for the cap of decision 0036 (a sum, never a row);
+PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.
 Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
 Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
@@ -142,8 +144,9 @@ The route (E4-1): `runModel({ ws, projectId, purpose, instructions, data, schema
 maxOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
 ANTHROPIC_API_KEY or imports the SDK (lint rule smesay/ai-sdk, which also keeps the module
 out of "use client" files). It returns `{ ok: true, output, run }` (run: id, model, tokensIn,
-tokensOut, costEurCents, durationMs) or `{ ok: false, reason: "budget" | "plan" |
-"rateLimited" | "failed" | "invalid", message, detail }`; message is what the screen shows
+tokensOut, costEurCents, durationMs) or `{ ok: false, reason: "paused" | "budget" | "plan" |
+"rateLimited" | "failed" | "invalid", message, detail }` (paused: the product's monthly cap,
+ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036; budget: the workspace's); message is what the screen shows
 (AI_COPY in src/lib/ai/copy.ts, no database import), detail is for the server log (codes and
 paths from the route, plus the caller's check reason, which the caller keeps free of list text). The instructions are the system prompt; data is
 its own content block of the user message; every object in the schema is a z.strictObject

@@ -205,14 +205,17 @@ is billed per use.
 2. Open "Billing". Add a card and buy a small amount of credit (the minimum is a few euros).
    Leave auto-reload off.
 3. Open "Limits" and set the monthly spend limit to EUR 10 (or the dollar equivalent). Done
-   2026-10-02 at EUR 10.
+   2026-10-02 at EUR 10. Put the same whole number in `.env.local` after
+   `ANTHROPIC_MONTHLY_BUDGET_EUR=` (decision 0036): the app pauses the AI for the month at
+   that number, before the Console does. Change both together.
 4. Open "API keys", click "Create Key" (not "Identity federation": that is for cloud workloads
    with their own identity provider). Name it `validation-platform-dev`. Copy it once.
 5. Paste it in `.env.local` after `ANTHROPIC_API_KEY=`. Create a second key for production and
    paste it into Vercel only.
 6. Check it with one real call: `npm run ai:smoke` (stories/E4-1, acceptance 6). It needs a
-   project of your own in the oldest workspace, and prints the answer, the tokens, the cost in
-   euro cents and the ai_run row id. A key that is missing or wrong is named in the error.
+   project of your own in any workspace (the seeded Marlow Group sample does not count), and
+   prints the answer, the tokens, the cost in euro cents and the ai_run row id. A key or cap
+   variable that is missing or wrong is named in the error.
 
 ## Step 10. Sentry, error reports (before E11)
 
