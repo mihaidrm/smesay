@@ -39,6 +39,8 @@ test("send two personal invites, read the emails, open one link", async ({ page,
   await expect(page.getByLabel("People, one per line")).toBeDisabled();
   await expect(page.getByTestId("invites-card")).toContainText("Publish the public link first.");
   await expect(page.getByTestId("invites-empty")).toHaveText("Nobody invited yet.");
+  // The form fills its fields after it mounts (share-form.tsx): wait for the zone line.
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("link-state")).toHaveText("Published");

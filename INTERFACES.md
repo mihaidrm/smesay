@@ -149,10 +149,19 @@ copies a date change to the instrument's personal links and invites.publish clos
 older instruments' personal links with their public one.
 sendInvites(ws, projectId, instrumentId, rawList, sender, baseUrl, now, send) in
 src/lib/invitees.ts (outcomes: email, line, sent, error, in the order pasted), with
-refusalCopy(refused) and cutServers(line) beside it; parseInvitees and minutesFor in src/lib/invitees-rules.ts;
+refusalCopy(refused), cutServers(line) and reasonOf(error) beside it; parseInvitees and minutesFor in src/lib/invitees-rules.ts;
 inviteEmail(input) in src/lib/mail/invite-email.ts (InviteEmailInput: pmName, workspaceName,
 projectName, respondentName, itemCount, minutes, intro, url, opensAt when the link opens
 after the send, closesAt); sendMail() takes fromName and replyTo.
+Reminders (E6-3): invites.claimReminder(ws, id, now, minHours) (one statement: reminders_sent
++ 1 and last_reminder_at = now on a sent, unrevoked personal invite whose last reminder is
+minHours old or none, and the newest response not submitted; null when refused),
+invites.unclaimReminder(ws, id, claimedAt, previous) (only while claimedAt is on the row);
+responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, responseId);
+remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) and
+remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
+and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
+src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.
