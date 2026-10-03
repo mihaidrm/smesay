@@ -45,7 +45,7 @@ metadata and the full claims list; docs/context.md says F; citations added in th
 client components; print shows every section; the test loads at 390, checks the hero and
 pricing buttons and the hidden state before scrolling. Recorded as an open question in the
 story rather than fixed: the page describes the planned product, which the copy rule
-forbids; Mihai decides. Left as is: the reduced-motion setting is read once on mount; "See
+forbids; Mihai decided the same day that the rule is for the live product (decision 0042). Left as is: the reduced-motion setting is read once on mount; "See
 the sample" and "Start free" both reach sign-in for a visitor without a session (acceptance
 5 as worded, until E12-4). Evidence for accessibility below the fold: axe-core 4.13.0 (WCAG 2.0 A and AA, 2.1 AA rules) run through Playwright after scrolling the whole page, at 1440 and at 390: 0 violations, 20 rules passed at each width.
 
