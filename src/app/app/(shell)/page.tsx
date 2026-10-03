@@ -28,7 +28,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const { archived } = await searchParams;
   const showArchived = archived === "1";
   const [rows, used] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws)]);
-  // The empty state is for a workspace with no project of its own at all, archived ones included.
+  // "No projects yet" is for a workspace with no project of its own at all, archived ones
+  // included; "All your projects are archived" when the list is empty only because every
+  // project (the sample deleted) is archived (Mihai, 2026-10-03: "not seeing the robot here").
   const own = showArchived ? rows : (await projects.list(current.ws)).filter((r) => !r.isSample);
   const ownOnList = rows.filter((p) => !p.isSample).length;
   return (
@@ -91,6 +93,17 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           <span className="flex flex-col items-center gap-3">
             <span>Start one and import your list.</span>
             <Link href="/app/projects/new" className={buttonVariants()}>New project</Link>
+          </span>
+        </EmptyState>
+      )}
+      {!showArchived && own.length > 0 && rows.length === 0 && (
+        <EmptyState title="All your projects are archived" mascot="idea">
+          <span className="flex flex-col items-center gap-3">
+            <span>Unarchive one from the archived list, or start a new one.</span>
+            <span className="flex gap-2.5">
+              <Link href="/app?archived=1" className={buttonVariants({ variant: "secondary" })}>Show archived</Link>
+              <Link href="/app/projects/new" className={buttonVariants()}>New project</Link>
+            </span>
           </span>
         </EmptyState>
       )}

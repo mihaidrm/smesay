@@ -87,6 +87,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Updated cell of the sample | Created with the workspace |
 | Row buttons | Open, Delete sample (then the confirm line from errors.md with Cancel and Delete sample) |
 | Empty state when the workspace has no project of its own, archived ones included | No projects yet. Start one and import your list. [New project] |
+| Empty state when every project is archived and the sample is deleted (the list is empty) | All your projects are archived. Unarchive one from the archived list, or start a new one. [Show archived] [New project] |
 | Empty state of the archived view | No archived projects. Archived projects appear here. |
 | Links under the table | Show archived, Back to projects |
 | New project title and line | New project. A name is enough. The list comes on the next step. |
