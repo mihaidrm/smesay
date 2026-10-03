@@ -1,140 +1,85 @@
 # Landing page copy
 
-The words on landing page E (docs/design-notes/prototype-01/LandingE.dc.html and
-LandingEPhone.dc.html), in page order, so they can be read as one text and scanned. The
-screens inside the page use the Marlow Group example (decision 0005); their data is listed
-only where a reader would take it as a claim. When a line here changes, the boards change in
-the same commit (decision 0017).
+The words on landing page F, design v2 (docs/design-notes/prototype-01/LandingF.dc.html;
+built at /landing-page, stories/E12-1), in page order. F is landing page E cut shorter
+(design note 33); E's longer copy (the three pictures, the reasons band, the use cases, the
+closing) is in this file's history before 2026-10-03 and comes back if a section of E is
+built again. The screens inside the page use the Marlow Group example (decision 0005); their
+data is listed only where a reader would take it as a claim. When a line here changes, the
+board and the page change in the same commit (decision 0017).
 
 ## Navigation
 
-SMEsay. How it works. What you get. Pricing. Try the sample. Start free.
+SMEsay. How it works. What you get. Pricing. Start free.
 
 ## Hero
 
-Label: Requirement validation with your subject matter experts
+Chip: Live: 5 of 7 experts answering right now
 
 Headline: Send the list as a link. Get back who agrees, and why.
 
 Instead of emailing a spreadsheet around, your experts go through it item by item: agree,
-disagree with a reason, or ask a question. You get reasons, not votes, and a to-do list written
-from them.
+push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI,
+and the CSV.
 
-Buttons: Start free. Try the sample as a respondent.
+Buttons: Start free. See the sample.
 
-Hero panel labels: What you asked them about. You proposed. What they answered, arriving now.
-5 of 7 experts. To do, written by AI. From 2 answers.
+Under the buttons: No account for the experts. Nothing to install. Free while we build it.
 
-## Three pictures
+Live card (the Marlow example): Approving · CL-04. Arriving now. "Expenses over the policy
+limit are flagged before they reach the approver." You proposed Should have. Ana, finance:
+Must have. Dan, sales: Agree. Radu, operations: Must have. Ioana, HR: Agree. To do, written by
+AI: Decide whether policy flags move to Must have. From 2 answers.
 
-Title: What happens, in three pictures
+Agreement chip: 72%. Agreement so far. 14 of 40 items rated.
 
-A spreadsheet goes in. Reasons and a to-do list come out.
+## Three steps
 
-1. You have a list. The spreadsheet you already have, with all its mess. Upload it as it is.
-2. They answer, and say why. Agree, change the priority, disagree or ask. Every push-back needs
-   a reason.
-3. You get a to-do list and a record. To-dos written from the answers, each citing them. Who
-   signed off, and when.
+Title: Three steps. The AI does the dull one.
 
-## How it works
+Upload the spreadsheet you already have. Shaping groups it into areas and writes each item in
+plain words. Send one link.
 
-Title: How it works. Three steps. Each one ends with something you can show.
-
-01 Upload and tidy. Upload the spreadsheet you already have. Tell it which column is the
-requirement and which is the priority. It groups the items into areas and rewrites each one in
-plain words. The original wording is always kept, and nothing changes until you press Accept.
-You get: A list people can read.
-
-02 Send one link. Publish, then share one link. Your experts open it and go through the list. A
-reason is required for every disagreement, so you never get a bare no. At the end they confirm
-their answers. No account needed; it works on a phone; they can stop and come back.
-You get: Signed-off answers.
-
-03 Read and decide. See the answers as they arrive. Agreement per item, every push-back with its
-reason, every open question, every missing item. AI turns them into a short list of actions and
-names the answers behind each one. Export to a spreadsheet or a PDF.
-You get: Decisions with sources.
+1. Import the list. xlsx, csv or a pasted list. Columns are matched once and remembered.
+   (Fragment: expense-requirements.xlsx)
+2. Shape it. AI groups items into areas, writes a reader version of each, and flags
+   duplicates and vague ones. You keep or change every line. (Fragment: CL-01 Photograph a
+   receipt and the amount fills in, Submitting. CL-07 Per diem rates apply by country,
+   Ambiguity. CL-09 Mileage is paid at the state rate, Duplicate of CL-02.)
+3. Send one link. Experts open it on a phone, no account. Answers arrive live; the dashboard,
+   the to-do list and the CSV are yours. (Fragment: smesay.app/r/7k2… Copy.)
 
 ## What you get back
 
-Title: What you get back. Every view below is live while the link is open, and every number
-matches the export.
+Title: What you get back.
 
-Agreement by area. 5 of 7 answered. Legend: Agree, Pushed back, Unclear.
+Agreement by area. Live · 31 of 40 answered. Submitting 81%. Approving 64%. Paying 92%.
+Legend: Agree, Pushed back, Unclear.
 
-Where groups disagree, by role. Share of each group that agreed. Compare by any field you asked
-for.
+To do, written by AI. Decide whether policy flags move to Must have. Cites 2 answers · Ana,
+Radu.
 
-How sure they were. Confidence, 1 to 5, given at sign-off. Average 3.8. Low confidence on a
-high-agreement item is worth a second look.
+Where groups disagree. Finance and sales split on cash advances.
 
-Disagreement register. 9 push-backs, 2 questions, 1 missing item. Sortable by item or by
-person. Rows read "[Name], [Role] says [Priority]: [reason]" or "marked it Unclear: [question]".
-The priority a respondent picks is Must have, Should have, Could have or Not needed, the same
-words they see on the card.
-
-Sign-off record. Who confirmed, when, and how confident. Goes into the PDF for the steering
-deck.
-
-To-do list, written by AI. 4 actions. An action with no answers behind it is never shown.
-
-Export everything: CSV of answers. CSV of items with totals. JSON of the project. PDF summary
-for the deck.
-
-## Reasons band
-
-A vote tells you what. A reason tells you why.
-
-Nobody can disagree without saying why, and nobody can mark an item unclear without asking the
-question. These are the lines you read first.
-
-(Then the Marlow answers scroll: each one a reason, its status pill and "[Role], on [item]".)
-
-## Use cases
-
-Title: One mechanic, five jobs. A list of items, each answered with a reason. The features on
-the right are the ones each job leans on.
-
-- Requirement validation for a client engagement. The consultancy sends the link to the
-  client's experts and puts the sign-off record in the steering deck. Personal invites,
-  Passcode, Sign-off record, PDF summary.
-- Roadmap or backlog check with internal experts. Product shows the proposed priority and finds
-  out who disagrees before the budget is committed. Public link, Proposed priority shown, Live
-  dashboard.
-- Vendor or platform shortlist criteria. IT and the business departments rate the same
-  criteria; the dashboard shows where they split. Perspectives, Compare by department, CSV
-  export.
-- Policy or process review. Each clause is an item. Staff keep, change or drop it, with a
-  reason every time. Keep, change, drop; Disagree with a reason; Disagreement register.
-- Catalogue or pricing changes reviewed by partners. Partners rate blind so the proposal does
-  not anchor them, and say how sure they are. Rate-blind mode, Confidence at sign-off,
-  Missing-item form.
+Every number to the row. Export CSV.
 
 ## Pricing
 
-Title: Pricing. Free. While we build it with the first users.
+Title: Free while we build it with the first users.
 
-Every feature on this page, for as many projects and responses as you need. Paid plans come
-later, and nothing you build now is lost or locked.
+Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you
+build now is lost or locked.
 
-Data hosted in the EU. Export or delete everything yourself, at any time.
+Buttons: Start free. See the sample.
 
-Button: Start free.
-
-## Closing
-
-Try it on the list you were about to email round. Upload it, send the link to three people, and
-see what comes back.
-
-Buttons: Start free. Try the sample first.
+Card: Free. While we build it. EUR 0 / month. Projects, experts and answers without limits.
+AI shaping and the to-do list. Live dashboard and CSV export. Your logo and colour on the
+link.
 
 ## Footer
 
-SMEsay. SME: subject matter expert. The people who know.
-
-Product: How it works, What you get, Pricing. Try it: Sample instrument, Sample project. Legal:
-Privacy policy, Terms, DPA and subprocessors. © Alerty S.R.L. 2026.
+SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · hello@smesay.app.
+The legal links go live with E11; until then they are text.
 
 ## Claims to check before launch
 
@@ -142,8 +87,8 @@ Privacy policy, Terms, DPA and subprocessors. © Alerty S.R.L. 2026.
   (decision 0006). Keep the line, confirm the region at the gate.
 - "Export or delete everything yourself, at any time": E10 and E11 deliver this. Do not launch
   the page before they ship.
-- "Average 3.8", "5 of 7", "9 push-backs", "63%": Marlow example numbers inside product screens (the seed, stories/E1-4), not
-  claims about the product. They match the PM app board and the respondent board.
+- "5 of 7", "72%", "14 of 40", "31 of 40", "81%", "64%", "92%": Marlow example numbers inside
+  product screens (the seed, stories/E1-4), not claims about the product.
 - The legal links point to pages E11 writes; every one carries the lawyer markers.
 
 ## Changed in this pass, 2026-10-01
