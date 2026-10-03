@@ -5,7 +5,8 @@
 // newer draft exists above it ("Build on version N" after publishing), a second card offers
 // to publish the draft, which makes a new link; the link in force closes then (docs/review-list.md).
 // Without an instrument the page points to Build. The sample shows its link read-only
-// (E8-8). Personal invites (E6-2) and reminders (E6-3) come under these. Copy:
+// (E8-8). Personal invites (E6-2, invites-card.tsx) come under the link card, on the same
+// instrument, and need its link published; reminders (E6-3) come there too. Copy:
 // docs/copy/app.md (Share).
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -18,6 +19,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { readAuthEnv } from "@/lib/auth";
 import { formatUtc, linkState, SHARE_COPY } from "@/lib/sharing";
 import { CopyLink } from "./copy-link";
+import { InvitesCard } from "./invites-card";
 import { ShareForm } from "./share-form";
 
 export default async function SharePage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -51,6 +53,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
         <p className="text-ink-muted">{SHARE_COPY.line} {builtOn && <span data-testid="share-version">{SHARE_COPY.version(builtOn.version)}</span>}</p>
       </div>
       <LinkCard projectId={project.id} isSample={project.isSample} instrument={instrument} invite={live} />
+      <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} published={live !== null} />
       {newerDraft && newerSet && builtOn && (
         <section className="card flex max-w-[720px] flex-col gap-4" aria-labelledby="share-draft-title" data-testid="draft-card">
           <div className="flex items-center justify-between gap-3">

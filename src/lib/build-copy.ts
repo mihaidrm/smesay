@@ -86,6 +86,9 @@ export const ABOUT_YOU_COPY = {
   footer: (workspace: string) => `Your answers go to the project team at ${workspace}. They are saved as you go on this device, so you can close this page and come back.`,
   poweredBy: "Powered by",
   previewNote: "Preview: nothing you enter here is saved",
+  // A personal link (stories/E6-2, acceptance 3): the fields the PM filled are not asked.
+  answeringAs: (who: string) => `Answering as ${who}.`,
+  answeringAsNote: "The person who invited you filled this in. Tell them if it is wrong.",
   // Perspectives (stories/E5-4): the question on About you, shown only when some exist.
   perspectivesQuestion: "Which of these describe you?",
   perspectivesHint: "Pick every one that fits. You see the items for your perspectives and the ones for everyone.",

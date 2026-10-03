@@ -10,14 +10,17 @@
 // one project has one open link (docs/review-list.md). publicForInstrument and
 // updatePublic read and change one instrument's link; livePublic finds the project's link
 // in force: the newest instrument that has one.
-import { and, desc, eq, isNull, ne, or, gt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne, or, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { instrument, invite, project } from "@/db/schema";
+import { instrument, invite, project, response } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
 export type Invite = typeof invite.$inferSelect;
 export type PublicLinkData = { token: string; opensAt: Date | null; closesAt: Date | null; passcodeHash: string | null };
+// A personal invite with where its person stands (stories/E6-2): no response, one in
+// progress, or one submitted.
+export type InviteeRow = Invite & { responseStatus: "none" | "inProgress" | "submitted"; answeredAt: Date | null };
 
 export const invites = {
   ...scoped(invite),
@@ -57,6 +60,24 @@ export const invites = {
       await tx.update(invite).set({ closesAt: now, opensAt: sql`case when ${invite.opensAt} > ${at} then ${at} else ${invite.opensAt} end` }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), isNull(invite.revokedAt), or(isNull(invite.closesAt), gt(invite.closesAt, now)), sql`${invite.instrumentId} in ${siblings}`));
       return { invite: created, created: true };
     });
+  },
+  // The personal invites of an instrument, oldest first, each with its response's state
+  // (one response per personal invite; the join reads the newest). Addresses and tokens
+  // stay inside the workspace: the caller holds its id from the session.
+  personalWithStatus: async (workspaceId: WorkspaceId, instrumentId: string): Promise<InviteeRow[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.select({ invite, submittedAt: response.submittedAt, responseId: response.id, updatedAt: response.updatedAt })
+      .from(invite)
+      .leftJoin(response, and(eq(response.inviteId, invite.id), eq(response.workspaceId, workspaceId)))
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal")))
+      .orderBy(asc(invite.createdAt));
+    return rows.map((r) => ({ ...r.invite, responseStatus: r.responseId === null ? "none" : r.submittedAt ? "submitted" : "inProgress", answeredAt: r.submittedAt ?? r.updatedAt ?? null }));
+  },
+  // The personal invite of an address on an instrument, if any.
+  personalByEmail: async (workspaceId: WorkspaceId, instrumentId: string, email: string): Promise<Invite | null> => {
+    if (!isUuid(instrumentId)) return null;
+    const rows = await db.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal"), eq(invite.email, email))).limit(1);
+    return rows[0] ?? null;
   },
   // The project's public link in force: the newest instrument's that has one, or null.
   livePublic: async (workspaceId: WorkspaceId, projectId: string): Promise<Invite | null> => {

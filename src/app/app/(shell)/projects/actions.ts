@@ -13,7 +13,9 @@ import { createProject, deleteSample, saveContext, setArchived } from "@/lib/pro
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
+import { sendInvites } from "@/lib/invitees";
 import { publishLink, saveLink } from "@/lib/sharing";
+import { readAuthEnv } from "@/lib/auth";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button.
@@ -386,4 +388,24 @@ export async function saveLinkAction(_previous: ProjectFormState, formData: Form
   }
   revalidatePath("/app", "layout");
   return { ...NONE, saved: true };
+}
+
+// Personal invites (stories/E6-2): the sender is the signed-in PM (the email's reply-to);
+// the base URL of the links is the app's own (BETTER_AUTH_URL). The result carries one
+// line per address that was not sent (acceptance 5) and the count sent.
+export type InvitesFormState = ProjectFormState & { sent: number; failed: string[] };
+export async function sendInvitesAction(_previous: InvitesFormState, formData: FormData): Promise<InvitesFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  try {
+    const result = await sendInvites(current.ws, projectId, instrumentId, formData.get("people"), { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [] };
+    const failed = result.outcomes.flatMap((o) => (o.error ? [o.error] : []));
+    return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
 }

@@ -131,6 +131,14 @@ back with created: false; sets instrument.published_at and closes the project's 
 public links at `now`), invites.updatePublic(ws, instrumentId, patch); instruments.updateLocked(ws, instrumentId,
 (published) => patch | null), the same lock, so saveScoring and saveClosing decide under it,
 and setPerspectives and tagItem refuse under it once an invite exists (E6-1, acceptance 5).
+Personal invites (E6-2): invites.personalWithStatus(ws, instrumentId) (each row with
+responseStatus none, inProgress or submitted and answeredAt), invites.personalByEmail(ws,
+instrumentId, email); invite.sent_at and invite.send_error (migration 0016; both null: not
+sent yet; send_error set and sent_at null: Not sent) and the partial unique index
+invite_personal_email_idx on (instrument_id, email) where kind = 'personal'.
+sendInvites(ws, projectId, instrumentId, rawList, sender, baseUrl, now, send) in
+src/lib/invitees.ts; parseInvitees and minutesFor in src/lib/invitees-rules.ts;
+inviteEmail() in src/lib/mail/invite-email.ts; sendMail() takes fromName and replyTo.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

@@ -247,12 +247,19 @@ export const invite = pgTable("invite", {
   revokedAt: ts("revoked_at"),
   remindersSent: integer("reminders_sent").notNull().default(0),
   lastReminderAt: ts("last_reminder_at"),
+  // E6-2: when the personal invite's email went out, and the provider's reason when it
+  // did not (null and null: not sent yet).
+  sentAt: ts("sent_at"),
+  sendError: text("send_error"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "invite_instrument_fk", columns: [t.instrumentId, t.workspaceId], foreignColumns: [instrument.id, instrument.workspaceId] }).onDelete("cascade"),
   index("invite_workspace_idx").on(t.workspaceId),
   index("invite_instrument_idx").on(t.instrumentId),
   uniqueIndex("invite_token_idx").on(t.token),
+  // E6-2: one personal invite per address on an instrument (two sends at once cannot both
+  // create one; partial unique index: postgresql.org/docs/current/indexes-partial.html).
+  uniqueIndex("invite_personal_email_idx").on(t.instrumentId, t.email).where(sql`${t.kind} = 'personal'`),
   unique("invite_id_workspace_uq").on(t.id, t.workspaceId),
   unique("invite_id_instrument_uq").on(t.id, t.instrumentId),
   check("invite_kind_check", oneOf("kind", INVITE_KINDS)),

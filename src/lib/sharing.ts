@@ -69,7 +69,7 @@ export function parseLinkInput(rawOpens: unknown, rawCloses: unknown, rawPasscod
 // project live (not the sample, not archived), and the instrument either the project's newest
 // (the one Publish creates a link for) or the one holding the link in force (whose dates
 // still change after "Build on version N", docs/review-list.md).
-async function own(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ error: string } | { instrument: Instrument }> {
+export async function own(ws: WorkspaceId, projectId: string, instrumentId: string): Promise<{ error: string } | { instrument: Instrument }> {
   const project = await projects.get(ws, projectId);
   const instrument = await instruments.get(ws, instrumentId);
   if (!project || !instrument || instrument.projectId !== project.id) throw new NotFoundError();

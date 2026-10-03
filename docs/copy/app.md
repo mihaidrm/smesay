@@ -238,6 +238,12 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Passcode field | Passcode, optional (hint: At least 6 characters. Respondents type it once per device. Once set: A passcode is set. Type a new one to change it. [Checkbox: Remove the passcode]) |
 | Buttons | Publish (primary, on a draft); Save (secondary, once published); Saved. (until the next change) |
 | Link card on the sample | Opens: [DATE AND TIME UTC]; Closes: [DATE AND TIME UTC]; The sample project cannot be edited. |
+| Personal invites card (E6-2), title and line | Personal invites. One link per person, sent by email from you. Each answers under their name and can carry on from any device. |
+| Personal invites box | People, one per line (hint: Addresses apart by commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance). Before the public link is published the box is off and the hint reads: Publish the public link first. Personal links take its open and close dates. [Button: Send] |
+| After Send | [N] invites sent. (1 invite sent.) Under it, one line per address that was not sent (docs/copy/errors.md). The box clears when every invite went. |
+| Invite list | Columns: Person ([NAME], then [EMAIL], [ROLE] under it; the email alone when no name); Status: Invited / In progress / Submitted / Not sent (with the provider's reason under it), and the last save or submit as [DATE AND TIME UTC] under the pill; Reminders: None sent, or [N] sent, last [DATE AND TIME UTC] (E6-3 sends them). Remind and Revoke per row come with E6-3 and E6-4. |
+| Invite list, empty | Nobody invited yet. |
+| Personal invites on the sample | The sample project cannot be edited. (the list shows) |
 
 ## Respondent link pages (E6-1; the words in docs/copy/errors.md, Respondent link states)
 
@@ -264,6 +270,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Preview strip (E5-6, acceptance 4) | Preview: nothing you enter here is saved |
 | Header | [WORKSPACE INITIALS] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
+| Personal link (E6-2), above the fields | Answering as [NAME], [ROLE]. The person who invited you filled this in. Tell them if it is wrong. (the fields the invite carries are not asked) |
 | Title and intro | [INSTRUMENT TITLE], [INTRO] |
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |
 | Dropdown first option | Choose one |

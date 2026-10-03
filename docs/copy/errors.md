@@ -141,10 +141,15 @@ of the content; page means it replaces the screen.
 | Card, public link (already on the board) | Draft | Not published yet. Nobody can open the link. |
 | Card, public link (already on the board) | Published | Anyone with the link can respond until the close date. |
 | Card, public link (already on the board) | Revoked | The link now shows a page saying it was withdrawn. Answers already given are kept. |
-| Inline, invites | Address already invited | [EMAIL] already has a personal link. Press Remind to send it again. |
-| Inline, invites | Invalid address | [TEXT] is not an email address. Check it and try again. |
+| Inline, invites (E6-2) | Address already invited (the whole send is refused, nothing goes) | [EMAIL] already has a personal link. Press Remind to send it again. |
+| Inline, invites (E6-2) | A piece of the list that is not an address (the whole send is refused) | [TEXT] is not an email address. Check it and try again. |
+| Inline, invites (E6-2) | Empty box | Enter at least one email address, one person per line. |
+| Inline, invites (E6-2) | More than 100 people in one send | Up to 100 people per send. Split the list and send again. |
+| Inline, invites (E6-2) | A name or role over 80 characters | Keep each name and role under 80 characters. |
+| Inline, invites (E6-2) | Send before the public link exists (the box is off; a stale tab) | Publish the public link first. Personal links take its open and close dates. |
+| Inline, invites (E6-2) | The list did not arrive as text | The list did not reach the server as text. Reload the page and try again. |
 | Inline, invites | Reminder too soon | Reminded [DAYS] days ago. The next reminder can go on [DATE]. |
-| Banner, invites | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. |
+| Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. |
 
 ## Respondent link states (E7)
 

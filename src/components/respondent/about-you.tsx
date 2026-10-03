@@ -27,6 +27,9 @@ export type AboutYouProps = {
   title: string;
   intro: string | null;
   fields: RespondentFieldSpec[];
+  // The values a personal link carries (stories/E6-2, acceptance 3): a field with one is
+  // not asked; the About you page says who is answering instead.
+  prefilled?: ResponseFields;
   // The first chapter's name for the Start label; null while the list has no areas.
   firstChapter: string | null;
   // The perspectives to pick from (stories/E5-4); none means the question is not asked.
@@ -46,8 +49,10 @@ export type AboutYouProps = {
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function AboutYou({ workspaceName, headerNote = null, accent, title, intro, fields, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
-  const [values, setValues] = useState<ResponseFields>({});
+export function AboutYou({ workspaceName, headerNote = null, accent, title, intro, fields, prefilled, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
+  const [values, setValues] = useState<ResponseFields>(prefilled ?? {});
+  const asked = fields.filter((f) => !prefilled?.[f.key]);
+  const filled = fields.flatMap((f) => (prefilled?.[f.key] ? [prefilled[f.key]] : []));
   const [ownPicks, setOwnPicks] = useState<string[]>([]);
   const picks = picked ?? ownPicks;
   const togglePick = (name: string) => {
@@ -73,7 +78,13 @@ export function AboutYou({ workspaceName, headerNote = null, accent, title, intr
           {intro && <p className="text-sm leading-5 text-ink-muted" data-testid="about-you-intro">{intro}</p>}
         </div>
         <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="about-you-fields">
-          {fields.map((f) => {
+          {filled.length > 0 && (
+            <div className="flex flex-col gap-0.5 text-sm" data-testid="answering-as">
+              <span className="font-semibold">{ABOUT_YOU_COPY.answeringAs(filled.join(", "))}</span>
+              <span className="text-ink-muted">{ABOUT_YOU_COPY.answeringAsNote}</span>
+            </div>
+          )}
+          {asked.map((f) => {
             // "field-" keeps a field's slug apart from the perspective ids (p-0...) and the hints.
             const id = `${prefix}-field-${f.key}`;
             const label = f.mandatory ? f.label : `${f.label} (${ABOUT_YOU_COPY.optional})`;

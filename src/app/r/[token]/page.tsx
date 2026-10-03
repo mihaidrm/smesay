@@ -3,6 +3,8 @@
 // (src/lib/link-access.ts, no session), and each state has a page: unknown token, not yet
 // open, closed, inactive (revoked, E6-4), passcode required, and the instrument's About you
 // page (the component the Build preview draws, src/components/respondent/about-you.tsx).
+// A personal link (stories/E6-2, acceptance 3) carries the name and role the PM typed:
+// those fields are not asked (the resume with "Welcome back" is E7-3's, once answers exist).
 // Every page is a page, never data (SECURITY.md). Dates are shown in UTC
 // (src/lib/sharing.ts formatUtc). Copy: docs/copy/errors.md (Respondent link states),
 // docs/copy/app.md (About you).
@@ -41,9 +43,10 @@ export default async function LinkRoute({ params }: { params: Promise<{ token: s
   const set = await itemSets.get(link.ws, link.instrument.itemSetId);
   const rows = set ? await items.forSet(link.ws, set.id) : [];
   const firstChapter = set ? (areaNames(set, rows)[0] ?? null) : null;
+  const prefilled = link.invite.kind === "personal" ? Object.fromEntries([["name", link.invite.name], ["role", link.invite.roleHint]].filter((e): e is [string, string] => typeof e[1] === "string" && e[1].length > 0)) : undefined;
   return (
     <div className="mx-auto min-h-screen w-full max-w-[560px] bg-ground">
-      <AboutYou workspaceName={link.brand.name} accent={accent} headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />
+      <AboutYou workspaceName={link.brand.name} accent={accent} headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} prefilled={prefilled} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />
     </div>
   );
 }
