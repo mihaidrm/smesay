@@ -59,12 +59,11 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   // Every area in the list's order (one unnamed chapter when the set has no areas), ten
   // cards in all across them (stories/E5-3: the single page lists every area).
   const names = areaNames(builtOn, rows);
-  let budget = PREVIEW_CARDS;
-  const chapters = (names.length ? names.map((name) => ({ name, rows: rows.filter((it) => it.area === name) })) : [{ name: null, rows }]).map((c) => {
-    const cards = c.rows.slice(0, budget).map(toCard);
-    budget -= cards.length;
-    return { name: c.name, count: c.rows.length, cards };
-  });
+  const grouped = names.length ? names.map((name) => ({ name, rows: rows.filter((it) => it.area === name) })) : [{ name: null as string | null, rows }];
+  const chapters = grouped.reduce<{ left: number; out: { name: string | null; count: number; cards: ReturnType<typeof toCard>[] }[] }>((acc, c) => {
+    const cards = c.rows.slice(0, acc.left).map(toCard);
+    return { left: acc.left - cards.length, out: [...acc.out, { name: c.name, count: c.rows.length, cards }] };
+  }, { left: PREVIEW_CARDS, out: [] }).out;
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
     <div className="flex flex-col gap-5">
