@@ -18,6 +18,14 @@ Multi-tenancy
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
 - Revoked and closed instruments return a page, not data. Passcode attempts rate-limited.
+- A personal link (E6-2) is its own 128-bit token, sent to one address; the address is the
+  proof, so the public link's passcode does not apply to it. One personal invite per address
+  on an instrument (partial unique index). The provider's failure reason is stored on the
+  row and shown to the PM only, cut to 200 characters with every word that could carry a
+  host or a credential (an @, a scheme, an IPv4 or IPv6 address, a dotted host name, a
+  host:port, anywhere in the word) replaced by "[server]" first.
+  At most 500 personal invites per workspace in 24 hours (src/lib/invitees.ts), since the
+  PM names the sender and three lines of the body.
 - The passcode is stored as a salted scrypt hash with its parameters (src/lib/passcode.ts)
   and remembered per device by a cookie scoped to the link's path that holds an HMAC under a
   key derived from the app's secret, never the passcode (src/lib/link-access.ts). Wrong

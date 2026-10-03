@@ -141,10 +141,20 @@ of the content; page means it replaces the screen.
 | Card, public link (already on the board) | Draft | Not published yet. Nobody can open the link. |
 | Card, public link (already on the board) | Published | Anyone with the link can respond until the close date. |
 | Card, public link (already on the board) | Revoked | The link now shows a page saying it was withdrawn. Answers already given are kept. |
-| Inline, invites | Address already invited | [EMAIL] already has a personal link. Press Remind to send it again. |
-| Inline, invites | Invalid address | [TEXT] is not an email address. Check it and try again. |
+| Inline, invites (E6-2) | Address already sent (the whole send is refused, nothing goes; a Not sent address goes again instead; the second of two sends racing on one new address gets this line under the count) | [EMAIL] already has a personal link. Press Remind to send it again. |
+| Inline, invites (E6-2) | A piece of the list that is not an address (the whole send is refused) | [TEXT] is not an email address. Check it and try again. |
+| Inline, invites (E6-2) | Empty box | Enter at least one email address, one person per line. |
+| Inline, invites (E6-2) | More than 100 people in one send | Up to 100 people per send. Split the list and send again. |
+| Inline, invites (E6-2) | A name or role over 80 characters | Keep each name and role to 80 characters. |
+| Inline, invites (E6-2) | Send before the public link exists (the box is off; a stale tab) | Publish the public link first. Personal links take its open and close dates. |
+| Inline, invites (E6-2) | Send while the public link is closed by its date | The public link is closed. Move its close date to send invites. |
+| Inline, invites (E6-2) | Send while the public link is revoked (E6-4) | The public link is revoked. Publish again to send invites. |
+| Inline, invites (E6-2) | The list would pass 500 personal invites in the workspace in any 24 hours | This workspace can send [N] more invites right now (500 in any 24 hours). Shorten the list, or try again later. (none left: This workspace sent 500 invites in the last 24 hours. Try again later.) |
+| Inline, invites (E6-2), under "[N] invites sent." | A Not sent address pasted again within 15 minutes of its last send start (another request may still be sending it, or that request died) | A send to [EMAIL] started in the last 15 minutes and may still be going. If the row still says Not sent after that, paste the address again. |
+| Inline, invites (E6-2) | Send on an instrument whose link a newer version's publish replaced between the page load and the check under the lock (a stale tab gets the Build page's replaced message from own() first) | A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link. |
+| Inline, invites (E6-2) | The list did not arrive as text | The list did not reach the server as text. Reload the page and try again. |
 | Inline, invites | Reminder too soon | Reminded [DAYS] days ago. The next reminder can go on [DATE]. |
-| Banner, invites | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. |
+| Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. ([PROVIDER REASON] is the server's first line, cut to 200 characters, its final period dropped, with every word holding a host, an address or a login cut to "[server]" (SECURITY.md); when nothing but servers was in it: the mail server refused it, and its reason named only servers; when it was empty: the mail server refused it) |
 
 ## Respondent link states (E7)
 

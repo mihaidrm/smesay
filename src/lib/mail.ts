@@ -7,7 +7,11 @@
 // instead of sending, for the unit tests. A missing variable is named and nothing is sent.
 import { createTransport, type Transporter } from "nodemailer";
 
-export type Mail = { to: string; subject: string; text: string; html: string };
+// fromName and replyTo (stories/E6-2, docs/copy/emails.md email 2): the sender shows as
+// "[PM NAME] via SMEsay" on the EMAIL_FROM address and replies go to the PM (nodemailer's
+// from as { name, address } and replyTo: node_modules/nodemailer/dist/esm/mime-node/index.d.ts
+// MimeNodeAddressInput, dist/esm/mail-composer/index.d.ts replyTo).
+export type Mail = { to: string; subject: string; text: string; html: string; fromName?: string; replyTo?: string };
 export const memoryOutbox: Mail[] = [];
 
 let transporter: Transporter | null = null;
@@ -23,5 +27,6 @@ export async function sendMail(mail: Mail): Promise<void> {
   const from = env("EMAIL_FROM");
   if (url === "memory:") { memoryOutbox.push(mail); return; }
   transporter ??= createTransport(url);
-  await transporter.sendMail({ from, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html });
+  const address = from.match(/<([^>]+)>/)?.[1] ?? from;
+  await transporter.sendMail({ from: mail.fromName ? { name: mail.fromName, address } : from, replyTo: mail.replyTo, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html });
 }

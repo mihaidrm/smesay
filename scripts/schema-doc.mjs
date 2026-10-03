@@ -92,7 +92,7 @@ export function render() {
     const checks = Object.values(t.checkConstraints || {});
     const idx = Object.values(t.indexes || {});
     const extra = [];
-    if (idx.length) extra.push('Indexes: ' + idx.map((i) => `${i.name}${i.isUnique ? ' (unique)' : ''} on ${i.columns.map((c) => c.expression).join(', ')}`).join('; ') + '.');
+    if (idx.length) extra.push('Indexes: ' + idx.map((i) => `${i.name}${i.isUnique ? ' (unique)' : ''} on ${i.columns.map((c) => c.expression).join(', ')}${i.where ? ` where ${i.where.replace(/"/g, '')}` : ''}`).join('; ') + '.');
     if (checks.length) extra.push('Checks: ' + checks.map((c) => `${c.name}: ${c.value.replace(/"/g, '')}`).join('; ') + '.');
     if (extra.length) lines.push('', ...extra);
     lines.push('');

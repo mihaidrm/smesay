@@ -64,7 +64,7 @@ export async function seedSampleInto(ws: WorkspaceId, projectName: string): Prom
       const personal = await invites.create(ws, {
         instrumentId: instrument.id, kind: "personal", token: token(), email, name: p.name, roleHint: p.role,
         opensAt: sample.instrument.opensAt, closesAt: sample.instrument.closesAt, remindersSent: p.reminders,
-        lastReminderAt: p.reminders ? new Date("2026-10-10T08:00:00Z") : null,
+        lastReminderAt: p.reminders ? new Date("2026-10-10T08:00:00Z") : null, sentAt: sample.instrument.opensAt,
       });
       inviteId = personal.id;
     }

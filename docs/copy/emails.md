@@ -40,16 +40,16 @@ so they cannot drift.
 Sent by E6 when the PM adds a person to the personal invites and presses Send. One email per
 person. The link resumes on any device.
 
-From: [PM NAME] via SMEsay <invites@[DOMAIN]>
+From: [PM NAME] via SMEsay <[EMAIL_FROM address]> (one sender address for the app, docs/review-list.md; [PM NAME] is the PM's name, or their email when no name is set)
 Reply-to: [PM EMAIL]
 Subject: [PM NAME] asks for your view on [PROJECT NAME]
-Preheader: [ITEM COUNT] items, about [MINUTES] minutes, on your phone or laptop.
+Preheader: [ITEM COUNT] items, about [MINUTES] minutes, on your phone or laptop. (1 item when the list has one)
 
 Body:
-Hi [RESPONDENT NAME],
+Hi [RESPONDENT NAME], (Hi, when the invite has no name)
 
 [PM NAME] at [WORKSPACE NAME] is checking a list of [ITEM COUNT] requirements for
-[PROJECT NAME] and wants your view.
+[PROJECT NAME] and wants your view. (a list of 1 requirement when the list has one)
 
 [PM INTRO, the text from Build, up to three lines]
 
@@ -62,6 +62,7 @@ Button: Open your link
 [PERSONAL LINK as plain text]
 
 This link is yours. Do not forward it; answers sent through it are recorded under your name.
+It opens on [OPEN DATE AND TIME, with time zone]. (only when the link opens after the send)
 It closes on [CLOSE DATE AND TIME, with time zone].
 
 Reply-to is the PM's own address, so questions go to the person who knows, and the sender
@@ -72,7 +73,7 @@ name is the PM's (decision 0031).
 Sent by E6 when the PM presses Remind on a personal invite that is not submitted. At most one
 every three days per person (PM app board, Share step). Never sent automatically.
 
-From: [PM NAME] via SMEsay <invites@[DOMAIN]>
+From: [PM NAME] via SMEsay <[EMAIL_FROM address]> (as email 2)
 Reply-to: [PM EMAIL]
 Subject: Reminder: [PROJECT NAME] closes on [CLOSE DATE]
 Preheader: [ANSWERED] of [ITEM COUNT] answered so far.

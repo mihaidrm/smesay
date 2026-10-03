@@ -1,7 +1,7 @@
 # E6-2 Personal invites: paste emails, send from the platform, one link per person
 
 User: a PM who needs named answers from specific people
-Status: ready
+Status: built
 Outcome: each person gets their own link by email; the link resumes their response on any
 device and records answers under their name.
 
@@ -34,3 +34,36 @@ device and records answers under their name.
 invite.email, name, role_hint (docs/schema.md); the response for a personal invite is created
 on first open with fields pre-filled from the invite. The "minutes" estimate is one function
 shared with the reminder and the landing copy.
+
+Built 2026-10-03 (design note 47, decision 0044):
+- Acceptance 1: the Personal invites card on Share (share/invites-card.tsx, invites-form.tsx)
+  under the link card, on the same instrument; the box takes addresses apart by commas,
+  semicolons, spaces or new lines, with a name and a role after commas
+  (src/lib/invitees-rules.ts parseInvitees); a piece that is not an address, or an address
+  already invited, refuses the whole send with the words from docs/copy/errors.md, so one bad
+  line sends nothing (docs/review-list.md). The box is off until the public link is
+  published: the personal links take its open and close instants.
+- Acceptance 2: one invite row of kind personal per address with its own 32-hex token
+  (src/lib/sharing.ts newToken), no passcode, and email 2 (src/lib/mail/invite-email.ts)
+  sent as "[PM NAME] via SMEsay" with reply-to the PM's address (src/lib/mail.ts fromName,
+  replyTo); the minutes are 20 seconds per item rounded up to five (minutesFor); the intro's
+  first three lines; the close instant in UTC. Locally the email lands in Mailpit.
+- Acceptance 3: a personal link's About you says "Answering as [NAME], [ROLE]" and does not
+  ask the fields the invite carries (src/components/respondent/about-you.tsx prefilled;
+  src/app/r/[token]/page.tsx). "Welcome back, [NAME]" with the count answered needs answers,
+  which E7-2 and E7-3 create and resume; the response keyed by the invite is E7-1's
+  (docs/review-list.md).
+- Acceptance 4: the list with Person, Status (Invited, In progress, Submitted from the
+  response row; Not sent when the email failed) with the last save or submit, and Reminders
+  (None sent, or "[N] sent, last [DATE]"); Remind and Revoke per row come with E6-3 and E6-4.
+- Acceptance 5: a send that fails stores the provider's first line in invite.send_error
+  (migration 0016), the row shows Not sent with the reason, the message lists the address
+  under "[N] invites sent.", the box keeps that address so Send tries it again on the same
+  row and token, and the other invites still go (src/lib/invitees.test.ts fails one of two
+  through a stand-in transport, sends the failed one again, races two sends of one address,
+  cuts a connection string from a reason, and proves the personal links follow the public
+  link's dates and its close on a newer version).
+- Acceptance 6: e2e/invites.spec.ts sends two people, reads both emails from Mailpit
+  (sender, subject, count, minutes, close date, two different links), opens one link in a
+  fresh context and sees About you answering as that person with Name and Role not asked and
+  Start enabled; the other link asks for them; a bad address and a repeat are refused.
