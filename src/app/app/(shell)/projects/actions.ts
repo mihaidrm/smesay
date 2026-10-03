@@ -14,6 +14,7 @@ import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { sendInvites } from "@/lib/invitees";
+import { remindAll, remindInvitee } from "@/lib/reminders";
 import { publishLink, saveLink } from "@/lib/sharing";
 import { readAuthEnv } from "@/lib/auth";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
@@ -405,6 +406,41 @@ export async function sendInvitesAction(_previous: InvitesFormState, formData: F
     if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
     const failed = result.outcomes.filter((o) => !o.sent);
     return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? ""), again: failed.map((o) => o.line) };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// Reminders (stories/E6-3): one row, or everyone who has not submitted and is due. The
+// result lists the people not sent (and why) under the count.
+export type RemindFormState = ProjectFormState & { sent: number; failed: string[] };
+const REMIND_NONE: RemindFormState = { ...NONE, sent: 0, failed: [] };
+export async function remindAction(_previous: RemindFormState, formData: FormData): Promise<RemindFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  const inviteId = String(formData.get("inviteId") ?? "");
+  try {
+    const result = await remindInvitee(current.ws, projectId, instrumentId, inviteId, { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    if ("error" in result) return { ...REMIND_NONE, error: result.error };
+    return { ...REMIND_NONE, saved: true, sent: result.outcome.sent ? 1 : 0, failed: result.outcome.error ? [result.outcome.error] : [] };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+export async function remindAllAction(_previous: RemindFormState, formData: FormData): Promise<RemindFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  try {
+    const result = await remindAll(current.ws, projectId, instrumentId, { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    if ("error" in result) return { ...REMIND_NONE, error: result.error };
+    const failed = result.outcomes.filter((o) => !o.sent);
+    return { ...REMIND_NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? "") };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;

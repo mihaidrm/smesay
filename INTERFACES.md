@@ -153,6 +153,14 @@ refusalCopy(refused) and cutServers(line) beside it; parseInvitees and minutesFo
 inviteEmail(input) in src/lib/mail/invite-email.ts (InviteEmailInput: pmName, workspaceName,
 projectName, respondentName, itemCount, minutes, intro, url, opensAt when the link opens
 after the send, closesAt); sendMail() takes fromName and replyTo.
+Reminders (E6-3): invites.claimReminder(ws, id, now, minHours) (one statement: reminders_sent
++ 1 and last_reminder_at = now on a sent, unrevoked personal invite whose last reminder is
+minHours old or none; null when refused), invites.unclaimReminder(ws, id, previous);
+responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, responseId);
+remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) and
+remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
+and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
+src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

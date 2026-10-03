@@ -18,6 +18,7 @@ import { NotFoundError } from "@/lib/errors";
 import { hashPasscode, PASSCODE_MAX, PASSCODE_MIN } from "@/lib/passcode";
 import { isLinkOpen } from "@/lib/project-status";
 import { LINK_ERRORS, SHARE_COPY } from "@/lib/sharing-copy";
+import { formatUtc } from "@/lib/sharing-format";
 
 export { LINK_ERRORS, SHARE_COPY };
 
@@ -31,12 +32,7 @@ export function linkState(invite: Pick<Invite, "opensAt" | "closesAt" | "revoked
   return "closed";
 }
 
-const UTC = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
-// "6 Oct 2026, 09:00 UTC": the respondent side names the zone, since it does not know the
-// reader's (E7-7 may localise).
-export function formatUtc(date: Date): string {
-  return `${UTC.format(date)} UTC`;
-}
+export { formatUtc };
 
 export const newToken = (): string => randomBytes(16).toString("hex");
 
