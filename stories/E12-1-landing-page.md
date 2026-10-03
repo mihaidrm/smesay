@@ -38,14 +38,9 @@ placeholder until then. Landing page E and its phone board are superseded.
 - The move to /: Mihai's call, one line in src/app/page.tsx when he gives it.
 
 ## Open questions
-- The page describes the R1 product as planned (the public link, the respondent instrument,
-  the live dashboard, the CSV export, the legal pages, the smesay.app address), which
-  conflicts with the copy rule "do not describe a feature the product does not have"
-  (CLAUDE.md). Raised by the audit of 2026-10-03. Until Mihai answers, the page is served at
-  /landing-page and linked from nowhere; docs/copy/landing.md lists every such line under
-  "Claims to check before launch". Options for Mihai: keep the planned copy and treat the
-  landing as launch-gate material (the lines come true with E5 to E7, E10, E11 before the
-  page moves to /), or cut the page to what exists today and grow it story by story.
+- Closed 2026-10-03 (decision 0042): the page describes the R1 product as planned; the copy
+  rule is for the live product, and every planned line is checked at the launch gate
+  (docs/copy/landing.md, "Claims to check before launch").
 - Primary actions on the page are the violet gradient (design v2); on the respondent side
   they stay ink (decision 0031, 0016).
 

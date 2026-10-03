@@ -9,8 +9,8 @@
 // from the mode tokens. The product fragments are the Marlow example as static markup until
 // the respondent and dashboard components exist (E5, E6); they are swapped for the real
 // components then (acceptance 4, amended). The page describes the R1 product as planned, not
-// only what is built today; that conflict with the copy rule is recorded in the story as an
-// open question for Mihai, and the page is linked from nowhere until he answers.
+// only what is built today (decision 0042: the copy rule is for the live product; the planned
+// lines are checked at the launch gate, docs/copy/landing.md).
 // Small text on the dark hero is #C9C4E0 or lighter so it keeps 4.5 over the aurora and the
 // cursor light; the two card labels on light use the text colours of their hues.
 import type { Metadata } from "next";

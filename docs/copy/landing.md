@@ -90,10 +90,11 @@ written by AI, and the CSV.
 ## Claims to check before launch
 
 The page describes the R1 product as planned, not only what is built on the day it was coded
-(2026-10-03: sign-in, workspaces, projects, import, AI shaping). That conflicts with the copy
-rule "do not describe a feature the product does not have"; it is recorded in stories/E12-1
-as an open question for Mihai, and the page is linked from nowhere until he answers. Lines
-that are claims about the product rather than the Marlow example inside a product screen:
+(2026-10-03: sign-in, workspaces, projects, import, AI shaping). Decision 0042: the copy rule
+"do not describe a feature the product does not have" is for the live product; these lines
+are checked at the launch gate before the page moves to /, and a line still not true then is
+cut. Lines that are claims about the product rather than the Marlow example inside a product
+screen:
 
 - The hero chip "Live: 5 of 7 experts answering right now" (outside the live card), "Send
   the list as a link", "go through it item by item", "a dashboard, a to-do list written by

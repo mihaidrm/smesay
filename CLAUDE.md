@@ -111,7 +111,9 @@ Dashboard
 
 Copy and docs
 - Error messages say what happened and what to do next.
-- Do not describe a feature the product does not have.
+- Do not describe a feature the product does not have. The rule is for the live product;
+  while the product is being built, the landing page describes R1 as planned and its claims
+  are checked at the launch gate (decision 0042).
 - Legal pages mark every place a lawyer must confirm.
 
 Research
