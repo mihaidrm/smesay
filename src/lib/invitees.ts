@@ -30,25 +30,24 @@ export type Sender = { name: string | null; email: string };
 // line: what the box takes to send this person again.
 export type SendOutcome = { email: string; line: string; sent: boolean; error: string | null };
 
-// The provider's reason, one line of at most REASON_MAX characters, for the row and the
-// message (acceptance 5). A missing mail variable is the app's own, not the address's: it
-// is thrown, named, as sendMail names it. Anything shaped like a connection string is cut,
-// so a server's reason never carries a host or a credential onto the row: URLs, IPv4
-// addresses with or without a port, dotted host names (not after an @, so an address in
-// the reason stays) and a word followed by a colon and a port number. A status code such
-// as 5.1.1 stays. Each pattern is linear in the line, and the line is cut to REASON_MAX
-// before they run (docs/review-list.md on what else the patterns catch).
+// The provider's reason for the row and the message (acceptance 5): the first line, cut
+// to REASON_MAX characters, then each word that could carry a host or a credential
+// replaced by "[server]": a word with an @ or a :// in it (an address, a login, a URL), an
+// IPv4 address, a dotted host name (labels of letters, digits, - and _, the last one
+// letters), and a word followed by a colon and a port number, each with or without a
+// port and trailing punctuation. A status code such as 5.1.1 and a time such as 10:30
+// stay. Word by word, so the time is linear in the line. A missing mail variable is the
+// app's own, not the address's: it is thrown, named, as sendMail names it. The result can
+// be longer than REASON_MAX by the replacements (docs/review-list.md).
 const REASON_MAX = 200;
+const SERVER_WORD = /^[<("']*(?:\S*(?:@|:\/\/)\S*|\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?|[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}(?::\d{1,5})?|[a-z][\w-]*:\d{2,5})[>)"'.,;:!]*$/i;
+export function cutServers(line: string): string {
+  return line.split(/(\s+)/).map((word) => (SERVER_WORD.test(word) ? "[server]" : word)).join("");
+}
 function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   if (/^[A-Z_]+ is not set\./.test(text)) throw error;
-  const line = (text.split("\n")[0] ?? "").slice(0, REASON_MAX);
-  return line
-    .replace(/\S+:\/\/\S+/g, "[server]")
-    .replace(/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d{1,5})?\b/g, "[server]")
-    .replace(/(?<![@\w.-])[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?::\d{2,5})?\b/gi, "[server]")
-    .replace(/\b[a-z][\w-]*:\d{2,5}\b/gi, "[server]")
-    .trim().replace(/\.$/, "") || "the mail server refused it";
+  return cutServers((text.split("\n")[0] ?? "").slice(0, REASON_MAX)).trim().replace(/\.$/, "") || "the mail server refused it";
 }
 
 // The words for a refusal under the lock (invites.createPersonal).

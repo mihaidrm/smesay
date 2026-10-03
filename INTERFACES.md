@@ -148,7 +148,8 @@ no outcome); invites.updatePublic
 copies a date change to the instrument's personal links and invites.publish closes the
 older instruments' personal links with their public one.
 sendInvites(ws, projectId, instrumentId, rawList, sender, baseUrl, now, send) in
-src/lib/invitees.ts (outcomes: email, line, sent, error, in the order pasted); parseInvitees and minutesFor in src/lib/invitees-rules.ts;
+src/lib/invitees.ts (outcomes: email, line, sent, error, in the order pasted), with
+refusalCopy(refused) and cutServers(line) beside it; parseInvitees and minutesFor in src/lib/invitees-rules.ts;
 inviteEmail(input) in src/lib/mail/invite-email.ts (InviteEmailInput: pmName, workspaceName,
 projectName, respondentName, itemCount, minutes, intro, url, opensAt when the link opens
 after the send, closesAt); sendMail() takes fromName and replyTo.

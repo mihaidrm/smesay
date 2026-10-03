@@ -21,7 +21,9 @@ Public links and respondents
 - A personal link (E6-2) is its own 128-bit token, sent to one address; the address is the
   proof, so the public link's passcode does not apply to it. One personal invite per address
   on an instrument (partial unique index). The provider's failure reason is stored on the
-  row and shown to the PM only, with anything shaped like a connection string cut first.
+  row and shown to the PM only, cut to 200 characters with every word that could carry a
+  host or a credential (an @, a scheme, an IPv4 address, a dotted host name, a host:port)
+  replaced by "[server]" first.
   At most 500 personal invites per workspace in 24 hours (src/lib/invitees.ts), since the
   PM names the sender and three lines of the body.
 - The passcode is stored as a salted scrypt hash with its parameters (src/lib/passcode.ts)

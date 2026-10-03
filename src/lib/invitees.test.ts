@@ -14,7 +14,7 @@ import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, openDraft, saveIntro } from "@/lib/instruments";
-import { INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, refusalCopy, sendInvites } from "@/lib/invitees";
+import { cutServers, INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, refusalCopy, sendInvites } from "@/lib/invitees";
 import { INVITEES_MAX_PER_SEND, minutesFor, parseInvitees } from "@/lib/invitees-rules";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { BUILD_COPY } from "@/lib/build-copy";
@@ -152,8 +152,10 @@ describe("sendInvites", () => {
     expect(sent[1].to).toBe("bo@x.example");
     const dee = await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, now, async () => { throw new Error("connect ECONNREFUSED smtp://user:secret@mail.example:587 now"); });
     expect(dee).toEqual({ outcomes: [{ email: "dee@x.example", line: "dee@x.example", sent: false, error: INVITEES_ERRORS.notSent("dee@x.example", "connect ECONNREFUSED [server] now") }] });
-    const cut = await sendInvites(a.ws, project.id, instrument.id, "gil@x.example", sender, BASE, now, async () => { throw new Error("getaddrinfo ENOTFOUND smtp.internal.example 10.0.0.5:587 mail.internal:25 <gil@x.example> at 10:30."); });
-    expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server] <gil@x.example> at 10:30") }] });
+    const cut = await sendInvites(a.ws, project.id, instrument.id, "gil@x.example", sender, BASE, now, async () => { throw new Error("getaddrinfo ENOTFOUND smtp_relay.internal.example 10.0.0.5:587 mail.internal:25 <gil@x.example> at 10:30, code 5.1.1."); });
+    expect(cut).toEqual({ outcomes: [{ email: "gil@x.example", line: "gil@x.example", sent: false, error: INVITEES_ERRORS.notSent("gil@x.example", "getaddrinfo ENOTFOUND [server] [server] [server] [server] at 10:30, code 5.1.1") }] });
+    expect(cutServers("user:secret@mail.example:587 refused; login failed for user:hunter2@relay.corp.example; see https://x.example/help (host.example).")).toBe("[server] refused; login failed for [server] see [server] [server]");
+    expect(cutServers("550 5.1.1 Node.js Code:550 try 10:30 x")).toBe("550 5.1.1 [server] [server] try 10:30 x");
     // A long reason is cut to 200 characters before the patterns run, in bounded time.
     const started = Date.now();
     const long = await sendInvites(a.ws, project.id, instrument.id, "gus2@x.example", sender, BASE, now, async () => { throw new Error("a:".repeat(5000)); });
