@@ -10,7 +10,8 @@ fields the PM asked for, and Start lands on the first chapter.
    in the header with the note "Closes [DATE]", the intro, the fields from the instrument
    (E5-1), the perspectives question when defined (E5-4), Start, and "Powered by SMEsay".
    Public link first visit asks the fields; a personal link shows "Welcome back, [NAME]" with
-   name and role already set (E6-2).
+   name and role already set (E6-2 already shows "Answering as [NAME], [ROLE]" above the
+   fields and does not ask them; "Welcome back" waits for answers to exist).
 2. Start is disabled at 40 percent with "Fill in your name and role to start." (or "Fill in
    the required fields to start." when the mandatory fields are not exactly Name and Role,
    decision 0043) until every mandatory field is filled; mandatory is per field (E5-1). Dropdown fields render as a

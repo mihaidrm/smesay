@@ -43,7 +43,14 @@ export default async function LinkRoute({ params }: { params: Promise<{ token: s
   const set = await itemSets.get(link.ws, link.instrument.itemSetId);
   const rows = set ? await items.forSet(link.ws, set.id) : [];
   const firstChapter = set ? (areaNames(set, rows)[0] ?? null) : null;
-  const prefilled = link.invite.kind === "personal" ? Object.fromEntries([["name", link.invite.name], ["role", link.invite.roleHint]].filter((e): e is [string, string] => typeof e[1] === "string" && e[1].length > 0)) : undefined;
+  // Only the fields the PM configured, and a dropdown only with one of its options; the
+  // rest is asked (CLAUDE.md: store only the configured fields).
+  const carried: Record<string, string | null> = { name: link.invite.name, role: link.invite.roleHint };
+  const prefilled = link.invite.kind === "personal" ? Object.fromEntries(link.instrument.respondentFields.flatMap((f) => {
+    const value = carried[f.key];
+    if (!value || (f.type === "dropdown" && !(f.options ?? []).includes(value))) return [];
+    return [[f.key, value]];
+  })) : undefined;
   return (
     <div className="mx-auto min-h-screen w-full max-w-[560px] bg-ground">
       <AboutYou workspaceName={link.brand.name} accent={accent} headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} prefilled={prefilled} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />

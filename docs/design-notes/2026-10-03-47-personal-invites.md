@@ -10,10 +10,11 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
 ## What was decided
 
 - The Personal invites card sits under the link card on the same instrument and needs its
-  public link published first: a personal link takes the public link's open and close
-  instants (one project, one set of dates; E6-1 changes them on the public link only, and
-  E6-3 or E6-4 may copy a change across) and has no passcode, since the address it was sent
-  to is the proof. The box is off until then and the hint says why.
+  public link published and not closed or revoked: a personal link takes the public link's
+  open and close instants and follows them (a date change on Share reaches the personal
+  links; publishing a newer version closes the older version's personal links with its
+  public one) and has no passcode, since the address it was sent to is the proof. The box
+  is off otherwise and the hint says why.
 - The box takes addresses apart by commas, semicolons, spaces or new lines, with a name and
   a role after commas (the story's "comma, space or newline separated" plus the optional
   columns). A piece that is not an address, an address already invited, an empty box, more
@@ -24,17 +25,25 @@ invites-form.tsx), src/components/respondent/about-you.tsx and src/app/r/[token]
   generator as the public link. The database refuses a second personal invite for the same
   address on an instrument (partial unique index), so two sends at once cannot double up.
 - Rows are created first, then the emails go out one at a time: a send that fails leaves
-  the row with the provider's first line in send_error and the status Not sent, the other
-  invites still go, and the message under the box lists each address that was not sent. The
-  PM reads the reason on the row; the respondent side never shows it.
+  the row with the provider's first line in send_error (anything shaped like a connection
+  string cut) and the status Not sent, the other invites still go, and the message under
+  the box lists each address that was not sent while the box keeps those addresses, so
+  Send tries them again on the same row and token. A row with no sent_at reads Not sent
+  whatever send_error holds; one with no outcome at all is another request's for 15
+  minutes (a send in flight), then it can be sent again (a request that died mid-way). The
+  claim is one update statement, so two sends cannot both take a row. The PM reads the reason on the row; the respondent side never shows it. A missing
+  mail variable is the app's fault, not the address's: it is thrown and named, not stored.
+- Up to 500 personal invites per workspace in 24 hours, counted on rows created, since the
+  PM names the sender and three lines of the body (SECURITY.md).
 - The email goes out as "[PM NAME] via SMEsay" on the EMAIL_FROM address with reply-to the
   PM's own address (decision 0031; docs/copy/emails.md, email 2). The PM's name is the
   session user's, or the email when the name is empty. The minutes estimate is 20 seconds
   per item rounded up to the next five minutes, at least five, shared with the reminder
   (E6-3). The intro from Build is cut to its first three lines in the email.
 - The personal link's About you says "Answering as [NAME], [ROLE]" above the fields and
-  does not ask the fields the invite carries (name, role); a field the invite has no value
-  for is asked. The resume with "Welcome back, [NAME]" and the count answered waits for
+  does not ask the fields the invite carries (name, role) when the instrument has them; a
+  dropdown is prefilled only with one of its options; a field the invite has no value for,
+  or that the PM did not configure, is asked or not stored. The resume with "Welcome back, [NAME]" and the count answered waits for
   answers to exist (E7-2, E7-3).
 - Status in the list reads from the response row joined on the invite: none means Invited
   (or Not sent), a row without submitted_at means In progress, with it Submitted; the last

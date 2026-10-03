@@ -27,8 +27,9 @@ export type AboutYouProps = {
   title: string;
   intro: string | null;
   fields: RespondentFieldSpec[];
-  // The values a personal link carries (stories/E6-2, acceptance 3): a field with one is
-  // not asked; the About you page says who is answering instead.
+  // The values a personal link carries (stories/E6-2, acceptance 3), keyed by configured
+  // fields only (the page filters them): a field with one is not asked; the About you page
+  // says who is answering instead.
   prefilled?: ResponseFields;
   // The first chapter's name for the Start label; null while the list has no areas.
   firstChapter: string | null;

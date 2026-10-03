@@ -17,10 +17,11 @@ export function inviteEmail(input: InviteEmailInput): { subject: string; text: s
   const subject = `${pmName} asks for your view on ${projectName}`;
   const preheader = `${itemCount} ${itemCount === 1 ? "item" : "items"}, about ${minutes} minutes, on your phone or laptop.`;
   const greeting = input.respondentName ? `Hi ${input.respondentName},` : "Hi,";
+  const list = `a list of ${itemCount} ${itemCount === 1 ? "requirement" : "requirements"}`;
   const closes = closesAt ? `It closes on ${formatUtc(closesAt)}.` : "";
   const text = [
     greeting, "",
-    `${pmName} at ${workspaceName} is checking a list of ${itemCount} requirements for ${projectName} and wants your view.`, "",
+    `${pmName} at ${workspaceName} is checking ${list} for ${projectName} and wants your view.`, "",
     ...(intro ? [intro, ""] : []),
     `For each item you say whether you agree with the proposed priority, or what it should be and why. It takes about ${minutes} minutes. You can stop and come back; your answers are saved as you go. No account is needed.`, "",
     url, "",
@@ -35,7 +36,7 @@ export function inviteEmail(input: InviteEmailInput): { subject: string; text: s
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#FFFFFF;border:1px solid #E6E3F0;border-radius:16px"><tr><td style="padding:32px">
 <div style="font-weight:800;letter-spacing:-0.02em;margin-bottom:24px">S<span style="color:#5A3BE0">ME</span>say</div>
 <p style="margin:0 0 16px">${escape(greeting)}</p>
-<p style="margin:0 0 16px">${escape(pmName)} at ${escape(workspaceName)} is checking a list of ${itemCount} requirements for ${escape(projectName)} and wants your view.</p>
+<p style="margin:0 0 16px">${escape(pmName)} at ${escape(workspaceName)} is checking ${escape(list)} for ${escape(projectName)} and wants your view.</p>
 ${intro ? `<p style="margin:0 0 16px;white-space:pre-line">${escape(intro)}</p>` : ""}
 <p style="margin:0 0 24px">For each item you say whether you agree with the proposed priority, or what it should be and why. It takes about ${minutes} minutes. You can stop and come back; your answers are saved as you go. No account is needed.</p>
 <a href="${safeUrl}" style="display:inline-block;background:#6D4CF5;color:#FFFFFF;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:700">Open your link</a>

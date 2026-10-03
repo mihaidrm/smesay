@@ -58,8 +58,11 @@ Built 2026-10-03 (design note 47, decision 0044):
   (None sent, or "[N] sent, last [DATE]"); Remind and Revoke per row come with E6-3 and E6-4.
 - Acceptance 5: a send that fails stores the provider's first line in invite.send_error
   (migration 0016), the row shows Not sent with the reason, the message lists the address
-  under "[N] invites sent.", and the other invites still go (src/lib/invitees.test.ts fails
-  one of two through a stand-in transport).
+  under "[N] invites sent.", the box keeps that address so Send tries it again on the same
+  row and token, and the other invites still go (src/lib/invitees.test.ts fails one of two
+  through a stand-in transport, sends the failed one again, races two sends of one address,
+  cuts a connection string from a reason, and proves the personal links follow the public
+  link's dates and its close on a newer version).
 - Acceptance 6: e2e/invites.spec.ts sends two people, reads both emails from Mailpit
   (sender, subject, count, minutes, close date, two different links), opens one link in a
   fresh context and sees About you answering as that person with Name and Role not asked and

@@ -393,7 +393,8 @@ export async function saveLinkAction(_previous: ProjectFormState, formData: Form
 // Personal invites (stories/E6-2): the sender is the signed-in PM (the email's reply-to);
 // the base URL of the links is the app's own (BETTER_AUTH_URL). The result carries one
 // line per address that was not sent (acceptance 5) and the count sent.
-export type InvitesFormState = ProjectFormState & { sent: number; failed: string[] };
+// failed: one message per address not sent; again: those addresses as lines for the box.
+export type InvitesFormState = ProjectFormState & { sent: number; failed: string[]; again: string[] };
 export async function sendInvitesAction(_previous: InvitesFormState, formData: FormData): Promise<InvitesFormState> {
   const { session, current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
@@ -401,9 +402,9 @@ export async function sendInvitesAction(_previous: InvitesFormState, formData: F
   try {
     const result = await sendInvites(current.ws, projectId, instrumentId, formData.get("people"), { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
     revalidatePath(`/app/projects/${projectId}/share`);
-    if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [] };
-    const failed = result.outcomes.flatMap((o) => (o.error ? [o.error] : []));
-    return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed };
+    if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
+    const failed = result.outcomes.filter((o) => !o.sent);
+    return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? ""), again: failed.map((o) => o.line) };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;

@@ -10,13 +10,14 @@
 // one project has one open link (docs/review-list.md). publicForInstrument and
 // updatePublic read and change one instrument's link; livePublic finds the project's link
 // in force: the newest instrument that has one.
-import { and, asc, desc, eq, isNull, ne, or, gt, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, ne, or, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, invite, project, response } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
 export type Invite = typeof invite.$inferSelect;
+export const RESEND_AFTER_MINUTES = 15;
 export type PublicLinkData = { token: string; opensAt: Date | null; closesAt: Date | null; passcodeHash: string | null };
 // A personal invite with where its person stands (stories/E6-2): no response, one in
 // progress, or one submitted.
@@ -53,26 +54,50 @@ export const invites = {
       const [created] = await tx.insert(invite).values({ ...data, workspaceId, instrumentId, kind: "public" }).returning();
       await tx.update(instrument).set({ publishedAt: now }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId), isNull(instrument.publishedAt)));
       const siblings = tx.select({ id: instrument.id }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.projectId, locked.projectId), ne(instrument.id, instrumentId)));
-      // The older link closes at `now`; one that had not opened yet opens at `now` too, so it
-      // reads as closed, not as opening later; a null open date (open since publish) stays
-      // (CASE: postgresql.org/docs/current/functions-conditional.html).
+      // The older links close at `now`, the public one and its personal ones (E6-2: they
+      // follow it); one that had not opened yet opens at `now` too, so it reads as closed,
+      // not as opening later; a null open date (open since publish) stays (CASE:
+      // postgresql.org/docs/current/functions-conditional.html).
       const at = sql.param(now, invite.opensAt);
-      await tx.update(invite).set({ closesAt: now, opensAt: sql`case when ${invite.opensAt} > ${at} then ${at} else ${invite.opensAt} end` }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), isNull(invite.revokedAt), or(isNull(invite.closesAt), gt(invite.closesAt, now)), sql`${invite.instrumentId} in ${siblings}`));
+      await tx.update(invite).set({ closesAt: now, opensAt: sql`case when ${invite.opensAt} > ${at} then ${at} else ${invite.opensAt} end` }).where(and(eq(invite.workspaceId, workspaceId), isNull(invite.revokedAt), or(isNull(invite.closesAt), gt(invite.closesAt, now)), sql`${invite.instrumentId} in ${siblings}`));
       return { invite: created, created: true };
     });
   },
-  // The personal invites of an instrument, oldest first, each with its response's state
-  // (one response per personal invite; the join reads the newest). Addresses and tokens
-  // stay inside the workspace: the caller holds its id from the session.
+  // The personal invites of an instrument, oldest first, each with its response's state:
+  // the newest response of the invite (one row per invite whatever the response table
+  // holds). Addresses and tokens stay inside the workspace: the caller holds its id from
+  // the session.
   personalWithStatus: async (workspaceId: WorkspaceId, instrumentId: string): Promise<InviteeRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.select({ invite, submittedAt: response.submittedAt, responseId: response.id, updatedAt: response.updatedAt })
-      .from(invite)
-      .leftJoin(response, and(eq(response.inviteId, invite.id), eq(response.workspaceId, workspaceId)))
+    const rows = await db.select().from(invite)
       .where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal")))
       .orderBy(asc(invite.createdAt));
-    return rows.map((r) => ({ ...r.invite, responseStatus: r.responseId === null ? "none" : r.submittedAt ? "submitted" : "inProgress", answeredAt: r.submittedAt ?? r.updatedAt ?? null }));
+    if (rows.length === 0) return [];
+    const answers = await db.select({ inviteId: response.inviteId, submittedAt: response.submittedAt, updatedAt: response.updatedAt }).from(response)
+      .where(and(eq(response.workspaceId, workspaceId), inArray(response.inviteId, rows.map((r) => r.id))))
+      .orderBy(desc(response.updatedAt));
+    const newest = new Map<string, { submittedAt: Date | null; updatedAt: Date }>();
+    for (const a of answers) if (!newest.has(a.inviteId)) newest.set(a.inviteId, a);
+    return rows.map((r) => {
+      const a = newest.get(r.id);
+      return { ...r, responseStatus: !a ? "none" : a.submittedAt ? "submitted" : "inProgress", answeredAt: a ? (a.submittedAt ?? a.updatedAt) : null };
+    });
   },
+  // Claims a personal invite for sending again (E6-2): only one never sent whose send
+  // failed, or one left with no outcome for RESEND_AFTER_MINUTES (a request that died);
+  // one created more recently with no outcome is in flight on another request. One
+  // statement, so two sends cannot both claim it. Null when it cannot be claimed.
+  claimResend: async (workspaceId: WorkspaceId, id: string, patch: { name: string | null; roleHint: string | null }, now = new Date()): Promise<Invite | null> => {
+    if (!isUuid(id)) return null;
+    const stale = new Date(now.getTime() - RESEND_AFTER_MINUTES * 60 * 1000);
+    const rows = await db.update(invite).set({ ...patch, sendError: null })
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.sentAt), or(sql`${invite.sendError} is not null`, sql`${invite.createdAt} < ${sql.param(stale, invite.createdAt)}`)))
+      .returning();
+    return rows[0] ?? null;
+  },
+  // The personal invites created in the workspace in the last `minutes` (the send limit).
+  countPersonalSince: async (workspaceId: WorkspaceId, minutes: number): Promise<number> =>
+    (await db.select({ n: count() }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "personal"), gt(invite.createdAt, new Date(Date.now() - minutes * 60 * 1000)))))[0].n,
   // The personal invite of an address on an instrument, if any.
   personalByEmail: async (workspaceId: WorkspaceId, instrumentId: string, email: string): Promise<Invite | null> => {
     if (!isUuid(instrumentId)) return null;
@@ -89,7 +114,9 @@ export const invites = {
   },
   // The dates and the passcode of an instrument's public link, under the project row's lock
   // (the one publish takes) and only while that link is the project's link in force: a save
-  // that waited on the publish of a newer draft finds its link replaced and is refused.
+  // that waited on the publish of a newer draft finds its link replaced and is refused. The
+  // dates go to the instrument's personal links too (E6-2: they follow the public link);
+  // the passcode does not.
   updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
@@ -103,6 +130,10 @@ export const invites = {
       if (!live) return { refused: "none" as const };
       if (live.instrumentId !== instrumentId) return { refused: "replaced" as const };
       const rows = await tx.update(invite).set(patch).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).returning();
+      const dates: Partial<Pick<PublicLinkData, "opensAt" | "closesAt">> = {};
+      if ("opensAt" in patch) dates.opensAt = patch.opensAt;
+      if ("closesAt" in patch) dates.closesAt = patch.closesAt;
+      if (Object.keys(dates).length > 0) await tx.update(invite).set(dates).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal")));
       return rows[0] ? { invite: rows[0] } : { refused: "none" as const };
     });
   },

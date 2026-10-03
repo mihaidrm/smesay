@@ -53,7 +53,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
         <p className="text-ink-muted">{SHARE_COPY.line} {builtOn && <span data-testid="share-version">{SHARE_COPY.version(builtOn.version)}</span>}</p>
       </div>
       <LinkCard projectId={project.id} isSample={project.isSample} instrument={instrument} invite={live} />
-      <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} published={live !== null} />
+      <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} linkState={linkState(live)} />
       {newerDraft && newerSet && builtOn && (
         <section className="card flex max-w-[720px] flex-col gap-4" aria-labelledby="share-draft-title" data-testid="draft-card">
           <div className="flex items-center justify-between gap-3">

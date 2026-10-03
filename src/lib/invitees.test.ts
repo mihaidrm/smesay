@@ -7,17 +7,20 @@
 // nothing.
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomBytes } from "node:crypto";
-import { invites, links, projects, responses } from "@/db/queries";
+import { instruments, invites, links, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
-import { openDraft, saveIntro } from "@/lib/instruments";
+import { buildOnLatest, openDraft, saveIntro } from "@/lib/instruments";
 import { INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, sendInvites } from "@/lib/invitees";
 import { INVITEES_MAX_PER_SEND, minutesFor, parseInvitees } from "@/lib/invitees-rules";
 import { memoryOutbox, type Mail } from "@/lib/mail";
-import { publishLink } from "@/lib/sharing";
+import { BUILD_COPY } from "@/lib/build-copy";
+import { NotFoundError } from "@/lib/errors";
+import { setArchived } from "@/lib/projects";
+import { publishLink, saveLink, SHARE_COPY } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 
@@ -61,6 +64,7 @@ describe("parseInvitees (acceptance 1)", () => {
     expect(parseInvitees("ana@x.example, Ana, Finance, Extra")).toEqual({ error: INVITEES_ERRORS.badAddress("Extra") });
     expect(parseInvitees("not an address")).toEqual({ error: INVITEES_ERRORS.badAddress("not an address") });
     expect(parseInvitees(`ana@x.example, ${"n".repeat(81)}`)).toEqual({ error: INVITEES_ERRORS.longName });
+    expect(parseInvitees(`ana@x.example, ${"n".repeat(80)}`)).toEqual({ invitees: [{ email: "ana@x.example", name: "n".repeat(80), role: null }] });
     const many = Array.from({ length: INVITEES_MAX_PER_SEND + 1 }, (_, i) => `p${i}@x.example`).join("\n");
     expect(parseInvitees(many)).toEqual({ error: INVITEES_ERRORS.tooMany });
   });
@@ -97,8 +101,8 @@ describe("sendInvites", () => {
     const result = await sendInvites(a.ws, project.id, instrument.id, "ana@x.example, Ana Pop, Finance\nbo@x.example, Bo", sender, BASE, now, flaky);
     if (!("outcomes" in result)) throw new Error(result.error);
     expect(result.outcomes).toEqual([
-      { email: "ana@x.example", sent: true, error: null },
-      { email: "bo@x.example", sent: false, error: INVITEES_ERRORS.notSent("bo@x.example", "550 5.1.1 The email account that you tried to reach does not exist") },
+      { email: "ana@x.example", line: "ana@x.example, Ana Pop, Finance", sent: true, error: null },
+      { email: "bo@x.example", line: "bo@x.example, Bo", sent: false, error: INVITEES_ERRORS.notSent("bo@x.example", "550 5.1.1 The email account that you tried to reach does not exist") },
     ]);
     expect(sent).toHaveLength(1);
     const mail = sent[0];
@@ -134,9 +138,47 @@ describe("sendInvites", () => {
     expect(rows[0].passcodeHash).toBeNull();
     expect(url.endsWith(rows[0].token)).toBe(true);
 
-    // A repeat is refused whole: nothing is sent for the new address either.
+    // A repeat of a sent address is refused whole: nothing is sent for the new address
+    // either. The Not sent address goes again on its row and token, with the role typed now;
+    // a connection string in the reason is cut; a missing mail variable is thrown, not stored.
     expect(await sendInvites(a.ws, project.id, instrument.id, "cy@x.example\nana@x.example", sender, BASE, now, flaky)).toEqual({ error: INVITEES_ERRORS.already("ana@x.example") });
     expect(await listInvitees(a.ws, instrument.id)).toHaveLength(2);
+    const later = new Date("2026-10-03T13:00:00Z");
+    expect(await invites.claimResend(b.ws, rows[1].id, { name: null, roleHint: null }, later)).toBeNull();
+    const again = await sendInvites(a.ws, project.id, instrument.id, "bo@x.example, Bo, Sales", sender, BASE, later, async (mail) => { sent.push(mail); });
+    expect(again).toEqual({ outcomes: [{ email: "bo@x.example", line: "bo@x.example, Bo, Sales", sent: true, error: null }] });
+    const resent = (await listInvitees(a.ws, instrument.id))[1];
+    expect([resent.id, resent.token, resent.roleHint, resent.sentAt, resent.sendError, inviteStatus(resent)]).toEqual([rows[1].id, rows[1].token, "Sales", later, null, "invited"]);
+    expect(sent[1].to).toBe("bo@x.example");
+    const dee = await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, now, async () => { throw new Error("connect ECONNREFUSED smtp://user:secret@mail.example:587 now"); });
+    expect(dee).toEqual({ outcomes: [{ email: "dee@x.example", line: "dee@x.example", sent: false, error: INVITEES_ERRORS.notSent("dee@x.example", "connect ECONNREFUSED [server] now") }] });
+    await expect(sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async () => { throw new Error("MAIL_SMTP_URL is not set. Copy .env.example to .env.local and fill it in (docs/setup.md)."); })).rejects.toThrow("MAIL_SMTP_URL is not set");
+    const ed = (await listInvitees(a.ws, instrument.id))[3];
+    expect([ed.email, inviteStatus(ed), ed.sendError]).toEqual(["ed@x.example", "notSent", null]);
+    // A row with no outcome yet is in flight for 15 minutes, then can be sent again.
+    expect(await sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, now, async (mail) => { sent.push(mail); })).toEqual({ outcomes: [{ email: "ed@x.example", line: "ed@x.example", sent: false, error: INVITEES_ERRORS.already("ed@x.example") }] });
+    const much = new Date(ed.createdAt.getTime() + 16 * 60 * 1000);
+    expect(await sendInvites(a.ws, project.id, instrument.id, "ed@x.example", sender, BASE, much, async (mail) => { sent.push(mail); })).toEqual({ outcomes: [{ email: "ed@x.example", line: "ed@x.example", sent: true, error: null }] });
+
+    // Two sends of one new address at once: one row, one email, the other told it exists
+    // (under its count when its row insert lost, or as the whole refusal when it read the
+    // row sent first).
+    const both = await Promise.all([
+      sendInvites(a.ws, project.id, instrument.id, "fay@x.example", sender, BASE, now, async (mail) => { sent.push(mail); }),
+      sendInvites(a.ws, project.id, instrument.id, "fay@x.example", sender, BASE, now, async (mail) => { sent.push(mail); }),
+    ]);
+    const fayOutcomes = both.flatMap((r) => ("outcomes" in r ? r.outcomes : []));
+    expect(fayOutcomes.filter((o) => o.sent)).toHaveLength(1);
+    expect([...fayOutcomes.map((o) => o.error), ...both.map((r) => ("error" in r ? r.error : null))].filter((e) => e === INVITEES_ERRORS.already("fay@x.example"))).toHaveLength(1);
+    expect((await listInvitees(a.ws, instrument.id)).filter((r) => r.email === "fay@x.example")).toHaveLength(1);
+    expect(sent.filter((m) => m.to === "fay@x.example")).toHaveLength(1);
+
+    // The personal links follow the public link's dates; a closed link refuses sends.
+    const moved = await saveLink(a.ws, project.id, instrument.id, "2026-10-05T00:00:00Z", "2026-10-25T15:00:00Z", "", false, now);
+    if (!("invite" in moved)) throw new Error(moved.error);
+    const followed = (await listInvitees(a.ws, instrument.id))[0];
+    expect([followed.opensAt, followed.closesAt, followed.passcodeHash]).toEqual([new Date("2026-10-05T00:00:00Z"), new Date("2026-10-25T15:00:00Z"), null]);
+    expect(await sendInvites(a.ws, project.id, instrument.id, "gus@x.example", sender, BASE, new Date("2026-10-26T00:00:00Z"))).toEqual({ error: INVITEES_COPY.linkClosed });
 
     // The personal link opens without the passcode and carries the name and role; a
     // response in progress and a submitted one change the status.
@@ -152,16 +194,40 @@ describe("sendInvites", () => {
     expect(inviteStatus(after[1])).toBe("submitted");
     expect(after[1].answeredAt).toEqual(submitted);
 
-    // Another workspace: the list is empty and the send is 404 (own() throws).
+    // Another workspace: the list is empty, the send is 404 (own() throws) with no row and
+    // no email in either workspace, and the address cannot be read.
+    const before = (await listInvitees(a.ws, instrument.id)).length;
+    const sentBefore = sent.length;
     expect(await listInvitees(b.ws, instrument.id)).toEqual([]);
-    await expect(sendInvites(b.ws, project.id, instrument.id, "x@x.example", sender, BASE, now)).rejects.toThrow();
+    await expect(sendInvites(b.ws, project.id, instrument.id, "x@x.example", sender, BASE, now, async (mail) => { sent.push(mail); })).rejects.toThrow(NotFoundError);
     expect(await invites.personalByEmail(b.ws, instrument.id, "ana@x.example")).toBeNull();
+    expect(await invites.personalByEmail(a.ws, instrument.id, "x@x.example")).toBeNull();
+    expect((await listInvitees(a.ws, instrument.id)).length).toBe(before);
+    expect(sent.length).toBe(sentBefore);
+
+    // An archived project refuses; a newer version published closes the personal links too.
+    await setArchived(a.ws, project.id, true);
+    expect(await sendInvites(a.ws, project.id, instrument.id, "x@x.example", sender, BASE, now)).toEqual({ error: SHARE_COPY.archived });
+    await setArchived(a.ws, project.id, false);
+    const pasted2 = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One", "Two"].join("\n"));
+    if (!("upload" in pasted2)) throw new Error(pasted2.error);
+    await commitUpload(a.ws, pasted2.upload.id, a.userId);
+    const built = await buildOnLatest(a.ws, project.id, instrument.id);
+    if (!("instrument" in built)) throw new Error(built.error);
+    const newer = await instruments.get(a.ws, built.instrument.id);
+    const publishedAgain = await publishLink(a.ws, project.id, newer!.id, "", "2026-11-20T15:00:00Z", "", new Date("2026-10-06T12:00:00Z"));
+    if (!("invite" in publishedAgain)) throw new Error(publishedAgain.error);
+    expect(newer!.id).not.toBe(instrument.id);
+    expect((await listInvitees(a.ws, instrument.id))[0].closesAt).toEqual(new Date("2026-10-06T12:00:00Z"));
   }, 60_000);
 
   it("refuses the sample project", async () => {
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
     const live = (await invites.livePublic(a.ws, sample.id))!;
-    const result = await sendInvites(a.ws, sample.id, live.instrumentId, "x@x.example", { name: null, email: "pm@x.example" }, BASE);
-    expect("error" in result).toBe(true);
+    const before = (await listInvitees(a.ws, live.instrumentId)).length;
+    expect(before).toBeGreaterThan(0);
+    expect(await sendInvites(a.ws, sample.id, live.instrumentId, "x@x.example", { name: null, email: "pm@x.example" }, BASE)).toEqual({ error: BUILD_COPY.sample });
+    expect(await listInvitees(a.ws, live.instrumentId)).toHaveLength(before);
+    expect(await invites.personalByEmail(a.ws, live.instrumentId, "x@x.example")).toBeNull();
   });
 });

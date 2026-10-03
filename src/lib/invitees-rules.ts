@@ -4,6 +4,9 @@
 // reminder emails and the landing copy share (20 seconds per item, rounded up to the next
 // five minutes).
 export const INVITEES_MAX_PER_SEND = 100;
+// Per workspace in 24 hours, counted on the rows created (SECURITY.md, rate limits).
+export const INVITEES_PER_DAY = 500;
+export const INVITEE_TEXT_MAX = 80;
 export const SECONDS_PER_ITEM = 20;
 
 export const INVITEES_COPY = {
@@ -14,9 +17,11 @@ export const INVITEES_COPY = {
   send: "Send",
   needLink: "Publish the public link first. Personal links take its open and close dates.",
   sent: (n: number) => `${n} ${n === 1 ? "invite" : "invites"} sent.`,
-  sentTo: (email: string) => `Sent to ${email}.`,
+  linkClosed: "The public link is closed. Move its close date to send invites.",
+  linkRevoked: "The public link is revoked. Publish again to send invites.",
   headers: { person: "Person", status: "Status", reminders: "Reminders" },
   status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent" },
+  notSentHint: "Paste the address again to send it.",
   noneSent: "None sent",
   remindersLine: (n: number, date: string) => `${n} sent, last ${date}`,
   empty: "Nobody invited yet.",
@@ -27,13 +32,17 @@ export const INVITEES_ERRORS = {
   empty: "Enter at least one email address, one person per line.",
   badAddress: (text: string) => `${text} is not an email address. Check it and try again.`,
   tooMany: `Up to ${INVITEES_MAX_PER_SEND} people per send. Split the list and send again.`,
-  longName: "Keep each name and role under 80 characters.",
+  longName: `Keep each name and role to ${INVITEE_TEXT_MAX} characters.`,
   already: (email: string) => `${email} already has a personal link. Press Remind to send it again.`,
+  tooManyToday: `This workspace sent ${INVITEES_PER_DAY} invites in the last 24 hours. Try again tomorrow.`,
   notSent: (email: string, reason: string) => `The invite to ${email} was not sent: ${reason}. Check the address and try again.`,
   badShape: "The list did not reach the server as text. Reload the page and try again.",
 } as const;
 
 export type Invitee = { email: string; name: string | null; role: string | null };
+
+// The line the box takes for a person, for the addresses that were not sent.
+export const inviteeLine = (p: Invitee): string => [p.email, p.name, p.role].filter(Boolean).join(", ");
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -67,7 +76,7 @@ export function parseInvitees(raw: unknown): { error: string } | { invitees: Inv
       continue;
     }
     if (!current || current.role !== null) return { error: INVITEES_ERRORS.badAddress(piece) };
-    if (piece.length > 80) return { error: INVITEES_ERRORS.longName };
+    if (piece.length > INVITEE_TEXT_MAX) return { error: INVITEES_ERRORS.longName };
     if (current.name === null) current.name = piece; else current.role = piece;
   }
   return { invitees };
