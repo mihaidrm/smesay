@@ -93,7 +93,7 @@ E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms 
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
 EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33); its
-seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (71 in 14 epics); a story is rewritten when Mihai
+seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (76 in 15 epics; E15 Onboarding written 2026-10-03, design note 39, four questions for Mihai there); a story is rewritten when Mihai
 sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
 EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 9).
 
@@ -113,7 +113,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, fourteen epics in order (about 44 sessions, 22 weeks, to about end of March 2027): Done 3 of 14 steps. Left: 11 steps
+Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 3 of 15 steps. Left: 12 steps
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
@@ -128,6 +128,7 @@ Phase 3, R1 build, fourteen epics in order (about 44 sessions, 22 weeks, to abou
 - E12 Landing and onboarding: open.
 - E13 Analytics for us: open.
 - E14 Admin and support: open.
+- E15 Onboarding and tutorial: open.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;

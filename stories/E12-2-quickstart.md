@@ -19,7 +19,8 @@ which a new user reaches a published instrument in under five minutes without he
 4. Playwright: first sign-in shows the quickstart; the second does not; Help shows it.
 
 ## Out of scope
-- In-product tours and tooltips: not in R1.
+- In-product tours: not in R1. Tips in the product are E15 (the guide card, 2026-10-03); the
+  quickstart stays the reference page the guide links to.
 
 ## Open questions
 - None.

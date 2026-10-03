@@ -10,7 +10,8 @@ personal data, so the funnel in E13-2 can be counted in SQL.
    member_joined, project_created, import_committed (source, rows), shape_run (items, cost
    cents), instrument_published (method, layout), invite_sent (kind), link_opened (kind),
    response_started, response_submitted (items, minutes), reminder_sent, insight_run,
-   export_downloaded (format), sample_opened, sample_deleted, quickstart_seen, workspace_deleted.
+   export_downloaded (format), sample_opened, sample_deleted, quickstart_seen, workspace_deleted;
+   from E15-5: guide_shown, guide_dismissed, guide_acted (tip id).
    An event not in the catalogue is refused by the tracking function (unit test).
 2. Table event: id, workspace_id (nullable for events before a workspace exists), user_id
    (nullable, never for respondent events), name, properties jsonb, created_at. Migration
