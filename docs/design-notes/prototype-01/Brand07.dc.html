@@ -23,6 +23,13 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 .btn.p{background:linear-gradient(135deg,#7A5CFF,#6D4CF5 60%,#5A3BE0);color:#fff;box-shadow:0 8px 20px rgba(109,76,245,0.35)}
 .btn.s{background:var(--surface);color:var(--ink);border:1px solid var(--hair2)}
 .btn.t{background:transparent;color:var(--accent-text);text-decoration:underline;text-underline-offset:3px}
+.btn{transition:transform 150ms ease-out,box-shadow 150ms ease-out,background-color 150ms ease-out,border-color 150ms ease-out,filter 150ms ease-out}
+.btn:hover,.btn.hov{transform:translateY(-2px)}
+.btn:active{transform:translateY(0);transition-duration:60ms}
+.btn.p:hover,.btn.p.hov{box-shadow:0 12px 28px rgba(109,76,245,0.55);filter:brightness(1.08)}
+.btn.s:hover,.btn.s.hov{background:var(--accent-soft);border-color:var(--accent)}
+.btn.t:hover{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}.btn:hover{transform:none}}
 .pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600}
 .input{height:42px;border:1px solid var(--hair2);border-radius:12px;background:var(--surface);padding:0 14px;display:flex;align-items:center;color:var(--muted);font-size:14px}
 .nav{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:12px;font-size:14px;font-weight:500;color:var(--muted)}
@@ -62,11 +69,13 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <div style="font-size: 20px; font-weight: 500; margin-top: 8px">Card title, 20 at 600 or 500</div>
 <div style="font-size: 15px; line-height: 24px; color: var(--muted); margin-top: 6px; max-width: 520px">Body 15 on 24 in the app and on marketing, muted for secondary. <span class="mono" style="color: var(--ink)">CL-01 · 14 of 40</span> in mono.</div>
 </div>
-<div class="h">CONTROLS. Primary is a violet gradient pill with a glow, never ink. Secondary is a bordered pill. Inputs radius 12.</div>
+<div class="h">CONTROLS. Primary is a violet gradient pill with a glow, never ink. Secondary is a bordered pill. Inputs radius 12. Hover: every button lifts 2 px over 150 ms, the primary's glow deepens, the secondary fills with the soft accent; pressed drops back. On marketing, a soft light follows the cursor over the dark sections (mouse only, off under reduced motion).</div>
 <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
 <button class="btn p" type="button">Create workspace</button>
 <button class="btn s" type="button">Import a list</button>
 <button class="btn t" type="button">Show archived</button>
+<button class="btn p hov" type="button">Hovered</button>
+<button class="btn s hov" type="button">Hovered</button>
 <div class="input" style="width: 240px">Workspace name</div>
 </div>
 <div style="display: flex; gap: 8px; flex-wrap: wrap">
@@ -119,6 +128,8 @@ body{margin:0;font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;ba
 <button class="btn p" type="button">Create workspace</button>
 <button class="btn s" type="button">Import a list</button>
 <button class="btn t" type="button">Show archived</button>
+<button class="btn p hov" type="button">Hovered</button>
+<button class="btn s hov" type="button">Hovered</button>
 <div class="input" style="width: 240px">Workspace name</div>
 </div>
 <div style="display: flex; gap: 8px; flex-wrap: wrap">

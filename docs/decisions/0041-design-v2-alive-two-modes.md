@@ -32,3 +32,8 @@ EUR 60 that Mihai buys), with Dripify's feel as the reference and no copying of 
 Consequences: design note 33, docs/design-system.md v2, docs/assets.md, CLAUDE.md, the four
 boards and the canvas index, docs/context.md, all on 2026-10-03. The code changes nothing
 until the boards are approved.
+
+Amended the same day after Mihai's third look at the boards: a soft light follows the cursor
+over the dark marketing sections (the system cursor stays visible; off on touch and under
+reduced motion), and every button has a hover state (a 2 px lift, a deeper glow on the
+primary, a fill on the secondary). Design note 33, Motion.

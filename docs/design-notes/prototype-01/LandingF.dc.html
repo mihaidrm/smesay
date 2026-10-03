@@ -20,7 +20,20 @@ a{color:inherit;text-decoration:none}
 .rise{animation:rise 700ms ease-out both}
 .card{transition:transform 180ms ease-out,box-shadow 180ms ease-out}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(45,32,110,0.16)}
-@media (prefers-reduced-motion:reduce){.dot,.rise,.blob{animation:none}.card{transition:none}}
+.lit{--mx:980px;--my:300px}
+.spot{position:absolute;left:0;top:0;width:760px;height:760px;margin:-380px 0 0 -380px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(155,134,255,0.26) 0%,rgba(255,138,120,0.10) 34%,rgba(0,0,0,0) 62%);transform:translate(var(--mx),var(--my));will-change:transform;transition:opacity 400ms ease-out}
+.btn{transition:transform 150ms ease-out,box-shadow 150ms ease-out,background-color 150ms ease-out,border-color 150ms ease-out,filter 150ms ease-out}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0);transition-duration:60ms}
+.btn.p:hover{box-shadow:0 14px 32px rgba(109,76,245,0.55);filter:brightness(1.08)}
+.btn.g:hover{border-color:#9B86FF;background:rgba(155,134,255,0.12)}
+.btn.s:hover{background:#EEEAFF;border-color:#B8A8FF}
+.btn .ar{margin-left:8px;transition:transform 150ms ease-out}
+.btn:hover .ar{transform:translateX(3px)}
+.navl{transition:color 150ms ease-out}
+.navl:hover{color:#F3F1FA}
+@media (hover:none){.spot{display:none}}
+@media (prefers-reduced-motion:reduce){.dot,.rise,.blob{animation:none}.card,.btn,.btn .ar,.spot{transition:none}.btn:hover,.btn:hover .ar{transform:none}}
 .btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 26px;border-radius:999px;font-weight:700;font-size:16px}
 .btn.p{background:linear-gradient(135deg,#7A5CFF,#6D4CF5 60%,#5A3BE0);color:#fff;box-shadow:0 10px 26px rgba(109,76,245,0.40)}
 .btn.g{border:1px solid #46445F;color:#F3F1FA;background:rgba(255,255,255,0.03)}
@@ -39,11 +52,12 @@ a{color:inherit;text-decoration:none}
 </helmet>
 <div style="width: 1440px; height: 2660px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column">
 
-<div style="position: relative; height: 840px; box-sizing: border-box; overflow: hidden; background: #16152A">
+<div class="lit" style="position: relative; height: 840px; box-sizing: border-box; overflow: hidden; background: #16152A">
 <div style="position: absolute; left: -200px; top: -260px; width: 900px; height: 900px; border-radius: 50%; background: radial-gradient(circle, rgba(109,76,245,0.55), rgba(109,76,245,0) 62%)"></div>
 <div style="position: absolute; right: -160px; top: 120px; width: 760px; height: 760px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,87,0.38), rgba(255,107,87,0) 60%)"></div>
 <div style="position: absolute; left: 520px; top: 520px; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, rgba(245,183,64,0.22), rgba(245,183,64,0) 60%)"></div>
 <div style="position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 28px 28px"></div>
+<div class="spot" aria-hidden="true"></div>
 
 <div style="position: relative; height: 76px; padding: 0 120px; display: flex; align-items: center; justify-content: space-between">
 <a href="#top" style="display: flex; align-items: center; gap: 10px">
@@ -51,9 +65,9 @@ a{color:inherit;text-decoration:none}
 <span style="font-size: 18px; font-weight: 800; letter-spacing: -0.02em">S<span style="color: #B8A8FF">ME</span>say</span>
 </a>
 <div style="display: flex; align-items: center; gap: 30px; font-size: 15px; font-weight: 500; color: #C9C4E0">
-<a href="#how">How it works</a>
-<a href="#outputs">What you get</a>
-<a href="#pricing">Pricing</a>
+<a class="navl" href="#how">How it works</a>
+<a class="navl" href="#outputs">What you get</a>
+<a class="navl" href="#pricing">Pricing</a>
 <a href="#pricing" class="btn p" style="height: 40px; padding: 0 18px; font-size: 14px">Start free</a>
 </div>
 </div>
@@ -64,7 +78,7 @@ a{color:inherit;text-decoration:none}
 <h1 style="margin: 22px 0 0 0; font-size: 66px; font-weight: 800; line-height: 68px; letter-spacing: -0.04em">Send the list as a link. <span style="background: linear-gradient(90deg,#B8A8FF 0%,#FF8A78 60%,#FFD36E 100%); -webkit-background-clip: text; background-clip: text; color: transparent">Get back who agrees, and why.</span></h1>
 <div style="margin-top: 26px; font-size: 19px; line-height: 30px; color: #C9C4E0; max-width: 520px">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</div>
 <div style="margin-top: 34px; display: flex; align-items: center; gap: 14px">
-<a href="#pricing" class="btn p">Start free</a>
+<a href="#pricing" class="btn p">Start free<span class="ar" aria-hidden="true">→</span></a>
 <a href="RespondentV2.dc.html" class="btn g">Try the sample as a respondent</a>
 </div>
 <div style="margin-top: 26px; display: flex; align-items: center; gap: 14px; font-size: 13px; color: #A8A4BE">
@@ -147,8 +161,9 @@ a{color:inherit;text-decoration:none}
 </div>
 </div>
 
-<div id="pricing" style="position: relative; background: #16152A; color: #F3F1FA; padding: 96px 120px; box-sizing: border-box; overflow: hidden">
+<div id="pricing" class="lit" style="--mx: 300px; --my: 160px; position: relative; background: #16152A; color: #F3F1FA; padding: 96px 120px; box-sizing: border-box; overflow: hidden">
 <div style="position: absolute; right: -200px; bottom: -300px; width: 800px; height: 800px; border-radius: 50%; background: radial-gradient(circle, rgba(109,76,245,0.45), rgba(109,76,245,0) 62%)"></div>
+<div class="spot" aria-hidden="true"></div>
 <div style="position: relative; display: flex; justify-content: space-between; align-items: center">
 <div style="width: 560px">
 <h2 style="margin: 0; font-size: 44px; font-weight: 800; line-height: 48px; letter-spacing: -0.035em">Free while we build it with the first users.</h2>
@@ -174,6 +189,21 @@ a{color:inherit;text-decoration:none}
 </div>
 </div>
 </x-dc>
+<script>
+(function(){
+  if(!window.matchMedia||window.matchMedia("(hover: none)").matches||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  document.querySelectorAll(".lit").forEach(function(sec){
+    var spot=sec.querySelector(".spot"),frame=0,x=0,y=0;
+    sec.addEventListener("pointermove",function(e){
+      var r=sec.getBoundingClientRect();x=e.clientX-r.left;y=e.clientY-r.top;
+      if(frame)return;
+      frame=requestAnimationFrame(function(){frame=0;spot.style.transform="translate("+x+"px,"+y+"px)";});
+    });
+    sec.addEventListener("pointerenter",function(){spot.style.opacity="1";});
+    sec.addEventListener("pointerleave",function(){spot.style.opacity="0";});
+  });
+})();
+</script>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2660}}'>
 class Component extends DCLogic {
 renderVals() { return {}; }
