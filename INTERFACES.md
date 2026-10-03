@@ -61,6 +61,9 @@ the check constraints use them). Change this file first.
   null fields when the project had none; null until shaped). Each item also carries its
   area's rationale as item.area_rationale, for the respondent side.
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
+- GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
+  story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
+  person dismissed; per person, every workspace).
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
   ten data rows), rowsRead: number }. UploadKind: xlsx, csv, pasted (E3-4: a pasted list is
