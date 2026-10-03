@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-03 (the date of the latest migration, 0013_scale_labels).
+v1, 2026-10-03 (the date of the latest migration, 0014_perspectives).
 
-Generated from the snapshot of the 14 migrations in drizzle/ (0013_snapshot.json) by
+Generated from the snapshot of the 15 migrations in drizzle/ (0014_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -147,6 +147,7 @@ one requirement: original_text is never overwritten, reader_text sits beside it 
 | proposed_value | text |  |
 | custom | jsonb |  |
 | flags | jsonb |  |
+| perspectives | text[] | not null, default {} |
 
 Unique: item_id_workspace_uq on id, workspace_id; item_id_item_set_uq on id, item_set_id.
 
@@ -172,6 +173,7 @@ how one set version is shown to respondents: method, proposed value shown or not
 | layout | text | not null, default chapters |
 | respondent_fields | jsonb | not null, default [] |
 | scale_labels | jsonb |  |
+| perspectives | jsonb | not null, default [] |
 | closing | jsonb | not null, default {"confidence": true, "missingForm": true, "signOffText": ""} |
 | created_at | timestamp with time zone | not null, default now() |
 
@@ -224,6 +226,7 @@ one respondent's session against one instrument, pinned to the set version it wa
 | invite_id | uuid | fk invite.id with workspace_id, on delete restrict, fk invite.id with instrument_id, on delete restrict, not null |
 | device_token | text | not null, unique |
 | fields | jsonb | not null, default {} |
+| perspectives | text[] | not null, default {} |
 | confidence | integer |  |
 | signed_off | boolean | not null, default false |
 | submitted_at | timestamp with time zone |  |

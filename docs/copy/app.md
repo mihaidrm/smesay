@@ -169,6 +169,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Button, after a run | Run again |
 | Grouped line, after a run | AI grouped [N] items into [M] areas and wrote a readable version of each. [A] of [R] reader versions accepted. Run again replaces the areas the AI chose. Items you moved stay where they are. |
 | Counter alone, on the sample (E4-3) | [A] of [R] reader versions accepted. |
+| Perspective chips under an item (E5-4; a group named "Perspectives of [REF]") | one chip per perspective of the newest instrument, pressed when the item carries it; none while the instrument has none, is published or is built on another version |
+| Line under the grouped line when the instrument has perspectives but no chips show (E5-4) | These items are on version [N] of the list; the instrument is built on version [M]. Build on version [N] first, then tag items here. Go to Build / Published instruments keep their perspectives and tags. Build a new instrument to change them. |
 | Title row, while suggested versions exist (E4-3) | Accept all, Reject all |
 | Confirm lines for the two (E4-3) | Accept all [N] suggested reader versions? / Reject all [N] suggested reader versions and keep the originals? [Buttons: Accept all or Reject all, Cancel] |
 | Item: the reader version, then the original under it (E4-3) | [reader version] / Original: [original] |
@@ -196,7 +198,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Title | Build the instrument |
 | Line under the title | What respondents see, from version [N] of the list. The preview on the right follows every save. |
 | Empty state, no list yet | Import a list first. Build works on an imported version. Go to Import |
-| Newer version card (E3-6, acceptance 3) | Version [N] of the list was imported after this instrument was built on version [M]. The instrument keeps version [M] until you build on the new one; the intro and the fields are copied over. [Button: Build on version [N]] |
+| Newer version card (E3-6, acceptance 3) | Version [N] of the list was imported after this instrument was built on version [M]. The instrument keeps version [M] until you build on the new one; the intro, the fields, the scoring and the perspective names are copied over. Items are tagged again on Shape. [Button: Build on version [N]] |
 | Intro card title and fields | Intro; Title (the project name by default), Intro |
 | Intro hint, while the intro is empty | Write one or two lines so respondents know what the list is for. They see this first. |
 | Intro count | [N] of 1,000 characters |
@@ -208,6 +210,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Layout cards (E5-3; the board's three, chapters first and default) | Layout. How the list is split into screens. Chapters are the default; a published instrument can still change its layout. Chapters (One area per screen, compact cards); One item per screen (One card at a time, with the chapter row); Single long page (Every area in order, no chapter row) |
 | Items preview per layout (E5-3) | The chapter row: About you, every area (the first active), Wrap up, fading at the right edge when long. One item per screen: "Item 1 of [N] in [AREA]" (the instrument's title when the list has no areas) over one card; Single long page: "All [N] on one page", every area with its heading (items without an area under "Not shaped yet", as on Shape), no chapter row; Chapters: the chapter row and the first area's cards. Under an area with fewer cards drawn than it holds: "The first [N] of [M] items. The rest follow in the same way." |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
+| Perspectives card (E5-4) | Perspectives. Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone. Field: Perspectives, one per line. Under it: "[N] of [M] items carry a perspective. Tag items on Shape. Go to Shape" or "No perspectives yet. Every item goes to everyone." |
+| Perspectives card once published (E5-4) | Published instruments keep their perspectives and tags. Build a new instrument to change them. (the field disabled, no Save, no link to Shape) |
+| Perspectives card on the sample | [NAMES]. or "No perspectives yet. Every item goes to everyone." then The sample project cannot be edited. |
 | Fields card title and line | Respondent fields. What respondents fill in before they rate. Required fields must be filled before Start. |
 | Field row | Label; Type (Text, Dropdown, Email); Required (a switch); Remove (each control is named with its field for screen readers: "Required, Name", "Remove Name", "field 2" while the label is empty) |
 | Dropdown options | Options, one per line |
@@ -239,6 +244,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
+| Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
+| Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
 ## Import, column mapping (E3-3)

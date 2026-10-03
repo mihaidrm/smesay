@@ -16,6 +16,8 @@ export const SHAPE_COPY = {
   movedByYou: "Moved by you",
   moveLabel: (ref: string) => `Move ${ref} to`,
   move: "Move",
+  // Perspectives on an item (stories/E5-4): the chips under the item on Shape.
+  perspectivesLabel: (ref: string) => `Perspectives of ${ref}`,
   noSet: "Import a list first. Shape works on the latest version.",
   noSetLink: "Go to Import",
   unknownArea: "That area does not exist. Pick one from the list.",

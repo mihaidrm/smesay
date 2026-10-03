@@ -4,7 +4,8 @@
 // select with the options in the preview and the hint naming the required fields (decision
 // 0043); fill the required fields in the preview and see Start enabled; the scoring card
 // (E5-2): the method switch, a label and the proposal switch seen on the Items screen; the
-// three layouts (E5-3) with the side-scroll and pill-height checks in the frame;
+// three layouts (E5-3) with the side-scroll and pill-height checks in the frame; two
+// perspectives defined, two items tagged on Shape, the picked one narrowing the preview (E5-4);
 // Remove refused on the last field.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -15,7 +16,7 @@ test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.11" } });
 test("build the intro and the respondent fields, see them in the preview", async ({ page, request }) => {
   // Two stories' main paths in one sign-in (E5-1 and E5-2): the flow runs about 30 s on the
   // dev server, so the limit is doubled here (test.setTimeout: node_modules/playwright/types/test.d.ts).
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   const email = `e2e-build-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
@@ -165,6 +166,36 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
   await expect(chapter.getByTestId("chapter-row")).toBeVisible();
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
+
+  // Perspectives (stories/E5-4): two names on Build, one item tagged Finance and one Sales
+  // on Shape, the respondent who picks Finance sees one item; the one who picks nothing
+  // sees none and gets the "nothing to rate" screen.
+  await page.getByLabel("Perspectives, one per line").fill("Finance\nSales");
+  await page.getByTestId("perspectives-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("perspectives-form").getByRole("status")).toHaveText("Saved.");
+  await expect(page.getByTestId("perspectives-tagged")).toContainText("0 of 2 items carry a perspective.");
+  await page.getByTestId("perspectives-tagged").getByRole("link", { name: "Go to Shape" }).click();
+  await expect(page).toHaveURL(/\/shape$/);
+  const firstTags = page.getByTestId("perspective-tags").first();
+  await firstTags.getByRole("button", { name: "Finance" }).click();
+  await expect(firstTags.getByRole("button", { name: "Finance" })).toHaveAttribute("aria-pressed", "true");
+  await expect(firstTags.getByRole("button", { name: "Finance" })).toBeEnabled();
+  await page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" }).click();
+  await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).toHaveAttribute("aria-pressed", "true");
+  // The pressed state shows at once; the chip is aria-disabled until the server answers.
+  await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).not.toHaveAttribute("aria-disabled", "true");
+  await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
+  await expect(page.getByTestId("perspectives-tagged")).toContainText("2 of 2 items carry a perspective.");
+  await expect(preview.getByTestId("about-you-perspectives")).toContainText("Which of these describe you?");
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
+  await expect(chapter.getByTestId("nothing-visible")).toBeVisible();
+  await expect(chapter.getByTestId("item-card")).toHaveCount(0);
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
+  await preview.getByLabel("Finance").check();
+  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
+  await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  await expect(chapter).toContainText("0 of 1");
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
   // The sidebar and the project header stay in view while the page scrolls (design note 43).

@@ -113,6 +113,15 @@ of the content; page means it replaces the screen.
 | Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
 | Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch or label then and saves the layout only (E5-3) | Published instruments keep their method. Build a new instrument to change it. |
 | Inline, scoring (E5-3) | A layout that is not one of the three, through the server | Pick one of the three layouts: chapters, one item per screen, or a single long page. |
+| Inline, perspectives (E5-4) | An eleventh perspective | Up to 10 perspectives. Remove one to add another. |
+| Inline, perspectives (E5-4) | A name over 30 characters | Each perspective is 1 to 30 characters, one per line. |
+| Inline, perspectives (E5-4) | Two lines naming the same perspective, ignoring case | Each perspective once. Two lines name the same one. |
+| Inline, perspective chips on Shape (E5-4) | A tag that is not one of the instrument's names, through the server | That perspective is not on the instrument. Define it on Build first. |
+| Inline, perspective chips on Shape (E5-4) | Tagging while the instrument has no perspectives, through the server | Define perspectives on Build first, then tag items here. |
+| Inline, perspectives and chips (E5-4) | Saving the names or a tag on a published instrument (a link or an invite exists), through the server | Published instruments keep their perspectives and tags. Build a new instrument to change them. |
+| Inline, perspective chips on Shape (E5-4) | A tag on an item of a newer version than the one the instrument is built on, through the server | These items are on version [N] of the list; the instrument is built on version [M]. Build on version [N] first, then tag items here. |
+| Inline, perspective chips on Shape (E5-4) | A tag on an item of an older version than the instrument's (a stale Shape tab after Build on version N) | These items are version [N] of the list; the instrument is now built on version [M]. Reload the page to tag the current items. |
+| Inline, perspectives (E5-4) | The names or the tags did not arrive as text or a list | The tags did not reach the server as a list. Reload the page and try again. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |

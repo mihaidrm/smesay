@@ -9,9 +9,11 @@
 // controls. Copy: docs/copy/app.md (Shape).
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { items, projects } from "@/db/queries";
+import { instruments, items, itemSets, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
+import { isPublished } from "@/lib/instruments";
+import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
 import { areaNames, contextLine, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
@@ -26,6 +28,16 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   if (!project) notFound();
   const set = await latestSet(current.ws, project.id);
   const rows = set ? await items.forSet(current.ws, set.id) : [];
+  // The perspectives (stories/E5-4) come from the newest instrument, when it is built on
+  // this set and not published; otherwise a line says why there are no chips (the version
+  // the instrument is on, with the way to Build, or that it is published).
+  const instrument = set ? await instruments.latestForProject(current.ws, project.id) : null;
+  const onThisSet = instrument !== null && instrument.itemSetId === set?.id;
+  const published = instrument !== null && onThisSet && (await isPublished(current.ws, instrument.id));
+  const perspectives = instrument && onThisSet && !published ? instrument.perspectives : [];
+  const builtOn = instrument && !onThisSet ? await itemSets.get(current.ws, instrument.itemSetId) : null;
+  if (instrument && !onThisSet && !builtOn) notFound();
+  const perspectivesNote = !instrument || instrument.perspectives.length === 0 || project.isSample ? null : published ? PERSPECTIVES_COPY.locked : !onThisSet && set && builtOn ? PERSPECTIVES_COPY.otherSet(builtOn.version, set.version) : null;
   const groups = set ? groupByArea(set, rows) : [];
   const shaped = set !== null && set.shapedAt !== null;
   const imported = hadImportedAreas(rows);
@@ -58,6 +70,11 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
         {set && rows.length > 0 && !project.isSample && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={`/app/projects/${project.id}/import#about-title`} />}
+        {perspectivesNote && (
+          <p className="text-[13px] text-ink-muted" data-testid="perspectives-note">
+            {perspectivesNote}{!published && <> <Link href={`/app/projects/${project.id}/build`} className="underline underline-offset-4">{PERSPECTIVES_COPY.otherSetLink}</Link></>}
+          </p>
+        )}
       </div>
       <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
       {!set || rows.length === 0 ? (
@@ -66,7 +83,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id) })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} perspectives={perspectives} />
       )}
     </div>
   );

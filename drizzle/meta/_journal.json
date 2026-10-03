@@ -99,6 +99,13 @@
       "when": 1791043882432,
       "tag": "0013_scale_labels",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791047759098,
+      "tag": "0014_perspectives",
+      "breakpoints": true
     }
   ]
 }

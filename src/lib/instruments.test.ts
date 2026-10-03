@@ -5,14 +5,15 @@
 // make one draft; the sample refuses edits; another workspace reads nothing and its ids are 404.
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { instruments, invites, projects, workspaces } from "@/db/queries";
+import { instruments, invites, items, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, saveScoring } from "@/lib/instruments";
+import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
@@ -121,6 +122,7 @@ describe("buildOnLatest", () => {
     const v1 = (await openDraft(a.ws, project))!;
     await saveIntro(a.ws, project.id, v1.instrument.id, "Versions", "Kept across versions.");
     await saveScoring(a.ws, project.id, v1.instrument.id, "moscow", "1", JSON.stringify({ M: "Essential" }), "chapters");
+    await savePerspectives(a.ws, project.id, v1.instrument.id, "Finance\nSales");
     expect(await buildOnLatest(a.ws, project.id, v1.instrument.id)).toEqual({ error: BUILD_COPY.alreadyLatest });
     const set2 = await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
     const stillV1 = (await openDraft(a.ws, project))!;
@@ -132,6 +134,7 @@ describe("buildOnLatest", () => {
     expect(built.instrument.itemSetId).toBe(set2.id);
     expect(built.instrument.intro).toBe("Kept across versions.");
     expect(built.instrument.scaleLabels).toEqual({ M: "Essential" });
+    expect(built.instrument.perspectives).toEqual(["Finance", "Sales"]);
     const v2 = (await openDraft(a.ws, project))!;
     expect(v2.instrument.id).toBe(built.instrument.id);
     expect(v2.newer).toBeNull();
@@ -190,6 +193,78 @@ describe("saveScoring (stories/E5-2)", () => {
     // Another workspace reads no invite and cannot save.
     expect(await isPublished(b.ws, instrument.id)).toBe(false);
     await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("perspectives (stories/E5-4)", () => {
+  it("saves the names, tags items with them, drops tags of removed names, and refuses the rest", async () => {
+    const project = await projects.create(a.ws, { name: "Perspectives", createdBy: a.userId });
+    const set = await importList(a.ws, a.userId, project.id, ["Cash advances", "Mileage"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    const [first, second] = await items.forSet(a.ws, set.id);
+    expect(instrument.perspectives).toEqual([]);
+    expect(await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.noneDefined });
+    expect(await savePerspectives(a.ws, project.id, instrument.id, "Finance\nfinance")).toEqual({ error: PERSPECTIVES_COPY.sameName });
+    const saved = await savePerspectives(a.ws, project.id, instrument.id, "Finance\n\nSales\n");
+    expect("instrument" in saved && saved.instrument.perspectives).toEqual(["Finance", "Sales"]);
+    expect(await tagItem(a.ws, project.id, first.id, JSON.stringify(["Legal"]))).toEqual({ error: PERSPECTIVES_COPY.unknownTag });
+    expect(await tagItem(a.ws, project.id, first.id, "nope")).toEqual({ error: PERSPECTIVES_COPY.badShape });
+    const tagged = await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance", "Sales"]));
+    expect("item" in tagged && tagged.item.perspectives).toEqual(["Finance", "Sales"]);
+    await tagItem(a.ws, project.id, second.id, JSON.stringify(["Sales"]));
+    // A case-only rename keeps the tags, spelt the new way; removing Sales drops it from
+    // both items and Finance stays on the first.
+    await savePerspectives(a.ws, project.id, instrument.id, "FINANCE\nSales");
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["FINANCE", "Sales"]);
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["Finance"]);
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    // A case swap of two names rewrites in one pass; removing every name empties the tags.
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance\nsales");
+    await tagItem(a.ws, project.id, second.id, JSON.stringify(["sales", "Finance"]));
+    await savePerspectives(a.ws, project.id, instrument.id, "finance\nSales");
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual(["Sales", "finance"]);
+    await savePerspectives(a.ws, project.id, instrument.id, "");
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual([]);
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance\nSales");
+    await tagItem(a.ws, project.id, first.id, JSON.stringify(["Finance"]));
+    await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual([]);
+    // An item of another project of the same workspace, through this project's id, is 404;
+    // the sample's items through a plain project id too.
+    const other = await projects.create(a.ws, { name: "Other", createdBy: a.userId });
+    const otherSet = await importList(a.ws, a.userId, other.id, ["Elsewhere", "Elsewhere too"]);
+    const [elsewhere] = await items.forSet(a.ws, otherSet.id);
+    await expect(tagItem(a.ws, project.id, elsewhere.id, JSON.stringify(["Finance"]))).rejects.toBeInstanceOf(NotFoundError);
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const sampleDraft = (await openDraft(a.ws, sample))!;
+    const [sampleItem] = await items.forSet(a.ws, sampleDraft.builtOn.id);
+    await expect(tagItem(a.ws, project.id, sampleItem.id, JSON.stringify(["Finance"]))).rejects.toBeInstanceOf(NotFoundError);
+    expect(await savePerspectives(a.ws, sample.id, sampleDraft.instrument.id, "Finance")).toEqual({ error: BUILD_COPY.sample });
+    // The sample and another workspace.
+    await expect(savePerspectives(b.ws, project.id, instrument.id, "Finance")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(tagItem(b.ws, project.id, first.id, JSON.stringify(["Finance"]))).rejects.toBeInstanceOf(NotFoundError);
+    expect((await items.get(a.ws, first.id))?.perspectives).toEqual(["Finance"]);
+    // An item of the latest set while the instrument is still on version 1: the message
+    // naming both versions, not a 404; the old set's items still tag.
+    const set2 = await importList(a.ws, a.userId, project.id, ["Cash advances", "Mileage", "Per diem"]);
+    const [onV2] = await items.forSet(a.ws, set2.id);
+    expect(await tagItem(a.ws, project.id, onV2.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.otherSet(1, 2) });
+    expect("item" in (await tagItem(a.ws, project.id, second.id, JSON.stringify(["Finance"])))).toBe(true);
+    // After "Build on version 2" a stale tab on version 1 is told to reload, and the tags
+    // of version 1 stay as they were.
+    const v2 = await buildOnLatest(a.ws, project.id, instrument.id);
+    if (!("instrument" in v2)) throw new Error(v2.error);
+    expect(v2.instrument.perspectives).toEqual(["Finance"]);
+    expect(await tagItem(a.ws, project.id, second.id, JSON.stringify([]))).toEqual({ error: PERSPECTIVES_COPY.olderSet(1, 2) });
+    expect((await items.get(a.ws, second.id))?.perspectives).toEqual(["Finance"]);
+    expect((await items.get(a.ws, onV2.id))?.perspectives).toEqual([]);
+    // Published: the names and the tags lock.
+    await invites.create(a.ws, { instrumentId: v2.instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    expect(await savePerspectives(a.ws, project.id, v2.instrument.id, "Finance\nLegal")).toEqual({ error: PERSPECTIVES_COPY.locked });
+    expect(await tagItem(a.ws, project.id, onV2.id, JSON.stringify(["Finance"]))).toEqual({ error: PERSPECTIVES_COPY.locked });
+    expect((await items.get(a.ws, onV2.id))?.perspectives).toEqual([]);
   });
 });
 

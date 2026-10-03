@@ -188,6 +188,8 @@ export const item = pgTable("item", {
   proposedValue: text("proposed_value"),
   custom: jsonb("custom"),
   flags: jsonb("flags").$type<ItemFlags>(),
+  // E5-4: the perspectives this item is shown to; empty means everyone.
+  perspectives: text("perspectives").array().notNull().default(sql`'{}'::text[]`),
 }, (t) => [
   foreignKey({ name: "item_item_set_fk", columns: [t.itemSetId, t.workspaceId], foreignColumns: [itemSet.id, itemSet.workspaceId] }).onDelete("cascade"),
   index("item_workspace_idx").on(t.workspaceId),
@@ -211,6 +213,8 @@ export const instrument = pgTable("instrument", {
   respondentFields: jsonb("respondent_fields").$type<RespondentFieldSpec[]>().notNull().default(sql`'[]'::jsonb`),
   // E5-2: the PM's labels for the scale's values, by code; null means the defaults.
   scaleLabels: jsonb("scale_labels").$type<ScaleLabels>(),
+  // E5-4: the perspective names respondents pick from; empty means the question is not asked.
+  perspectives: jsonb("perspectives").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   closing: jsonb("closing").$type<ClosingSpec>().notNull().default(sql`'{"confidence": true, "missingForm": true, "signOffText": ""}'::jsonb`),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
@@ -262,6 +266,8 @@ export const response = pgTable("response", {
   inviteId: uuid("invite_id").notNull(),
   deviceToken: text("device_token").notNull(),
   fields: jsonb("fields").$type<ResponseFields>().notNull().default(sql`'{}'::jsonb`),
+  // E5-4: the perspectives the respondent picked on About you.
+  perspectives: text("perspectives").array().notNull().default(sql`'{}'::text[]`),
   confidence: integer("confidence"),
   signedOff: boolean("signed_off").notNull().default(false),
   submittedAt: ts("submitted_at"),

@@ -11,7 +11,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { commitUpload } from "@/lib/imports";
-import { buildOnLatest, saveFields, saveIntro, saveScoring } from "@/lib/instruments";
+import { buildOnLatest, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
@@ -307,6 +307,37 @@ export async function saveScoringAction(_previous: ProjectFormState, formData: F
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  return { ...NONE, saved: true };
+}
+
+export async function savePerspectivesAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await savePerspectives(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("perspectives"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  revalidatePath(`/app/projects/${projectId}/shape`);
+  return { ...NONE, saved: true };
+}
+
+// The chips on an item on Shape (stories/E5-4): the whole list of the item's tags.
+export async function tagItemAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await tagItem(current.ws, projectId, String(formData.get("itemId") ?? ""), formData.get("tags"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/shape`);
   revalidatePath(`/app/projects/${projectId}/build`);
   return { ...NONE, saved: true };
 }
