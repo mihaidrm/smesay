@@ -167,6 +167,14 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(chapter.getByTestId("chapter-row")).toBeVisible();
   await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
+  // The sidebar and the project header stay in view while the page scrolls (design note 43).
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const stepperBox = (await page.getByRole("navigation", { name: "Steps" }).boundingBox())!;
+  expect(stepperBox.y).toBeGreaterThanOrEqual(0);
+  const signOutBox = (await page.getByRole("button", { name: "Sign out" }).boundingBox())!;
+  expect(signOutBox.y + signOutBox.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+  await page.evaluate(() => window.scrollTo(0, 0));
+
   // Removing the last field is refused (acceptance 2).
   await page.getByRole("button", { name: "Remove Team" }).click();
   await expect(page.getByRole("button", { name: "Add a field" })).toBeFocused();

@@ -192,10 +192,14 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   surface, hairline, radius 12, 12 by 14 padding.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
-- Sidebar: 248 wide on the surface; the lockup at 17 px; the workspace chip on the tint with
+- Sidebar: 248 wide on the surface, pinned to the viewport at its full height so the whole
+  menu stays in view however long the page is (only the project list scrolls, inside it);
+  the lockup at 17 px; the workspace chip on the tint with
   the initials tile (coral to sun); nav items 40 high, radius 12, icon 18 px (Lucide), the
   current one on violet soft in violet text; the sample card on the soft violet gradient; the
   mode toggle; the signed-in email and Sign out.
+- Project header: breadcrumb, title, the stepper and Archive on one row, pinned to the top of
+  the viewport on the ground with a hairline under it while the step page scrolls.
 - Stepper: pills on a surface track, the current step a violet pill with on-violet text and an
   on-violet circle holding a violet number, a done step a mint circle with a dark tick, a coming
   step muted with a hairline-strong circle.

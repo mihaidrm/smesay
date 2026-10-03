@@ -3,6 +3,9 @@
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
 // one, the member count), the nav (Projects, Settings), the project list,
 // then at the bottom the sample card, the mode toggle and the signed-in email with Sign out.
+// The sidebar is pinned to the viewport (sticky, the viewport's height) so the whole menu
+// stays in view however long the page is; only its project list scrolls, inside the
+// sidebar (Mihai, 2026-10-03).
 // Route group, so /app/new and /app/switch render without it (node_modules/next/dist/docs/
 // 01-app/03-api-reference/03-file-conventions/route-groups.md). Copy: docs/copy/app.md.
 import Link from "next/link";
@@ -23,8 +26,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [memberRows, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm">
+    <div className="flex min-h-screen items-start">
+      <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm" data-testid="sidebar">
         <div className="px-2 pt-1 pb-4"><Lockup text={17} /></div>
         <div className="mb-2.5 flex items-center gap-2.5 rounded-xl bg-tint px-3 py-2.5">
           <WorkspaceTile name={current.workspace.name} />
@@ -38,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <NavLink href="/app" exact icon={<LayoutGrid aria-hidden="true" />}>Projects</NavLink>
         <NavLink href="/app/settings" icon={<Settings aria-hidden="true" />}>Settings</NavLink>
-        <div className="mt-3 flex flex-col gap-1">
+        <div className="mt-3 flex min-h-0 flex-col gap-1 overflow-y-auto">
           <div className="flex items-center justify-between px-3">
             <div className="text-xs text-ink-muted">Projects</div>
             <Link href="/app" className="rounded-sm text-xs font-semibold text-violet-text outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">All</Link>
