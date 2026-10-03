@@ -150,9 +150,9 @@ Design note 33, Motion: cards lift 2 px on hover; buttons lift 2 px over 150 ms,
 glow deepens, the secondary fills violet soft, pressed drops back in 60 ms; the live dot pulses
 every 2.2 s; the stepper's active pill and the mode toggle's thumb slide over 150 to 250 ms;
 progress bars fill over 250 ms; a changed dashboard cell fades over 400 ms; the mode toggle
-sweeps the new mode in from the top left corner to the bottom right over 2,500 ms behind a
-soft diagonal edge at a steady speed, on the page from the first frame (a view transition,
-design note 35). On marketing,
+sweeps the new mode in over 2,500 ms behind a soft diagonal edge at a steady speed, on the
+page from the first frame: from the top left corner going light, from the bottom right
+going dark (a view transition, design note 35). On marketing,
 sections rise 18 px once, the mascot floats and a light follows the cursor over the dark
 sections. Everything stops under prefers-reduced-motion. No counters that spin.
 
