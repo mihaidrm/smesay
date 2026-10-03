@@ -3,7 +3,8 @@
 // sidebar). The default follows the system setting; a press stores the choice in
 // localStorage ("smesay-mode") and flips the html class, which every token reads
 // (src/app/globals.css). The script in src/app/layout.tsx applies the stored choice before the
-// first paint. A press sweeps the new mode in from the top left corner (design note 35); the
+// first paint. A press sweeps the new mode in from the top left corner going light and from
+// the bottom right going dark (design note 35, the fourth look); the
 // track and the thumb carry their own view-transition-name, so they move at once, in 150 ms,
 // instead of waiting for the sweep to reach the corner of the sidebar
 // (developer.mozilla.org/docs/Web/CSS/view-transition-name). The thumb is centred in the
@@ -36,16 +37,18 @@ export function ModeToggle() {
       document.documentElement.classList.toggle("dark", next);
       try { localStorage.setItem(KEY, next ? "dark" : "light"); } catch { /* private mode: the choice lasts this page only */ }
     };
-    // The sweep (design note 35): a view transition wipes the new mode in from the top left
-    // corner to the bottom right over 2.5 s (src/app/globals.css, mode-sweep). The html class
-    // scopes the CSS to this transition. Browsers without startViewTransition and people who
-    // asked for reduced motion get the plain switch
+    // The sweep (design note 35): a view transition wipes the new mode in over 2.5 s, from
+    // the top left corner going light and from the bottom right going dark
+    // (src/app/globals.css, mode-sweep and mode-sweep-to-dark). The html classes scope the
+    // CSS to this transition. Browsers without startViewTransition and people who asked for
+    // reduced motion get the plain switch
     // (developer.mozilla.org/docs/Web/API/Document/startViewTransition).
     const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce || typeof document.startViewTransition !== "function") { apply(); return; }
     root.classList.add("mode-sweep");
-    document.startViewTransition(apply).finished.finally(() => root.classList.remove("mode-sweep"));
+    root.classList.toggle("mode-sweep-to-dark", next);
+    document.startViewTransition(apply).finished.finally(() => root.classList.remove("mode-sweep", "mode-sweep-to-dark"));
   };
   return (
     <div className="flex items-center justify-between gap-3 px-2.5 text-xs text-ink-muted">

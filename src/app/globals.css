@@ -261,10 +261,16 @@
    The size and the curve are set so the edge is on the page from the first frame to the
    last: at 300 percent with an ease in and out the edge sat off the corner for the first
    0.9 s and crossed in 0.5 s (design note 35, the third look). Scoped to the html class
-   the toggle sets, so no other transition inherits it. */
+   the toggle sets, so no other transition inherits it. Going light, the edge travels from
+   the top left corner; going dark (mode-sweep-to-dark) the gradient and the travel are
+   reversed, so the blanket is pulled back from the bottom right (the fourth look). */
 @keyframes mode-sweep {
   from { mask-position: 100% 100%; -webkit-mask-position: 100% 100%; }
   to { mask-position: 0% 0%; -webkit-mask-position: 0% 0%; }
+}
+@keyframes mode-sweep-back {
+  from { mask-position: 0% 0%; -webkit-mask-position: 0% 0%; }
+  to { mask-position: 100% 100%; -webkit-mask-position: 100% 100%; }
 }
 html.mode-sweep::view-transition-old(root) {
   animation: none;
@@ -277,6 +283,11 @@ html.mode-sweep::view-transition-new(root) {
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   animation: mode-sweep 2500ms linear both;
+}
+html.mode-sweep.mode-sweep-to-dark::view-transition-new(root) {
+  mask-image: linear-gradient(315deg, #000 0%, #000 44%, transparent 56%, transparent 100%);
+  -webkit-mask-image: linear-gradient(315deg, #000 0%, #000 44%, transparent 56%, transparent 100%);
+  animation-name: mode-sweep-back;
 }
 /* The toggle's track and thumb are captured apart from the page, so they change at once
    while the page sweeps: the thumb's group slides between its old and new place and the
