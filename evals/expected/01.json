@@ -3,8 +3,9 @@
   "domain": "Bakery chain ordering",
   "source": "specs/01-bakery-ordering.md",
   "context": null,
-  "item_count": 17,
-  "item_count_tolerance": 1,
+  "item_count": 18,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Ordering",
@@ -70,7 +71,8 @@
         "phone"
       ],
       "area": "Ordering",
-      "proposed": "Must"
+      "proposed": "Must",
+      "row": "Every shop can place the next-day order from a phone or the shop PC, until 16:00. MUST"
     },
     {
       "ref": "G01-02",
@@ -78,7 +80,8 @@
       "must_keep": [
         "copy"
       ],
-      "area": "Ordering"
+      "area": "Ordering",
+      "row": "The order form shows yesterday's order so you can copy it and change the numbers. (Important!!)"
     },
     {
       "ref": "G01-03",
@@ -87,7 +90,8 @@
         "greyed",
         "not hidden"
       ],
-      "area": "Ordering"
+      "area": "Ordering",
+      "row": "Products that are out of production for the day are greyed out, not hidden."
     },
     {
       "ref": "G01-04",
@@ -96,7 +100,8 @@
         "16:15",
         "oven line"
       ],
-      "area": "Confirming and shortages"
+      "area": "Confirming and shortages",
+      "row": "Central bakery sees all orders in one list by 16:15 and can print it per oven line."
     },
     {
       "ref": "G01-05",
@@ -105,7 +110,8 @@
         "standing order",
         "15:30"
       ],
-      "area": "Ordering"
+      "area": "Ordering",
+      "row": "a shop manager can set a standing order per weekday that is created automatically if nobody changes it by 15:30 ***"
     },
     {
       "ref": "G01-06",
@@ -115,7 +121,8 @@
         "email"
       ],
       "area": "Confirming and shortages",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "Order confirmation goes to the shop by SMS and email (or whatsapp?) with the totals."
     },
     {
       "ref": "G01-07",
@@ -125,7 +132,8 @@
         "per product"
       ],
       "area": "Wastage and returns",
-      "proposed": "Could"
+      "proposed": "Could",
+      "row": "Wastage: at closing the shop types what was thrown away per product; the report compares with the order. nice to have"
     },
     {
       "ref": "G01-08",
@@ -135,7 +143,8 @@
         "same day"
       ],
       "area": "Ordering",
-      "duplicate_of": "G01-02"
+      "duplicate_of": "G01-02",
+      "row": "Same as 2 basically: show last week same day as well, Dana asked for this twice."
     },
     {
       "ref": "G01-09",
@@ -144,7 +153,8 @@
         "allergen"
       ],
       "area": "Catalogue and prices",
-      "proposed": "Must"
+      "proposed": "Must",
+      "row": "Allergen list per product visible in the order form (legal, must)."
     },
     {
       "ref": "G01-10",
@@ -153,7 +163,8 @@
         "centrally",
         "cannot edit"
       ],
-      "area": "Catalogue and prices"
+      "area": "Catalogue and prices",
+      "row": "Price changes are set centrally and shops cannot edit prices."
     },
     {
       "ref": "G01-11",
@@ -162,7 +173,8 @@
         "06:00",
         "short"
       ],
-      "area": "Confirming and shortages"
+      "area": "Confirming and shortages",
+      "row": "If the bakery cannot deliver the full quantity, the shop is told before 06:00 what is short."
     },
     {
       "ref": "G01-12",
@@ -172,7 +184,8 @@
         "crate label"
       ],
       "area": "Confirming and shortages",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "Driver app: scan the crate label at drop-off so the shop knows the order arrived. (phase 2?)"
     },
     {
       "ref": "G01-13",
@@ -181,7 +194,8 @@
         "returns",
         "per crate"
       ],
-      "area": "Wastage and returns"
+      "area": "Wastage and returns",
+      "row": "Returns of unsold bread to the central bakery for the animal feed partner, counted per crate."
     },
     {
       "ref": "G01-14",
@@ -191,7 +205,8 @@
         "per week"
       ],
       "area": "Wastage and returns",
-      "proposed": "Must"
+      "proposed": "Must",
+      "row": "the dashboard for the owners: sales vs orders vs wastage per shop per week. must"
     },
     {
       "ref": "G01-15",
@@ -201,7 +216,8 @@
         "driver",
         "owner"
       ],
-      "area": "Ordering"
+      "area": "Ordering",
+      "row": "Users: shop manager, shop staff (order only, no standing orders), bakery planner, driver, owner."
     },
     {
       "ref": "G01-16",
@@ -211,7 +227,8 @@
         "sync"
       ],
       "area": "Ordering",
-      "proposed": "Should"
+      "proposed": "Should",
+      "row": "Works offline in the shop if the internet drops, syncs later. should"
     },
     {
       "ref": "G01-17",
@@ -220,7 +237,8 @@
         "cut-off",
         "per shop"
       ],
-      "area": "Ordering"
+      "area": "Ordering",
+      "row": "Order cut-off time can be different per shop (the airport shop closes late)."
     },
     {
       "ref": "G01-18",
@@ -228,7 +246,8 @@
       "must_keep": [
         "replacement"
       ],
-      "area": "Confirming and shortages"
+      "area": "Confirming and shortages",
+      "row": "See 11 - also tell them the replacement product if there is one."
     }
   ],
   "must_not_invent": [

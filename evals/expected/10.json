@@ -4,7 +4,8 @@
   "source": "specs/10-honey-traceability.md",
   "context": null,
   "item_count": 10,
-  "item_count_tolerance": 1,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Harvest and batches",
@@ -61,7 +62,8 @@
         "village",
         "not GPS"
       ],
-      "area": "Labels and public page"
+      "area": "Labels and public page",
+      "row": "every jar has a QR code that opens a page with the beekeeper, the apiary location (village, not GPS), the harvest date and the lab result"
     },
     {
       "ref": "G10-02",
@@ -71,7 +73,8 @@
         "kg",
         "type"
       ],
-      "area": "Harvest and batches"
+      "area": "Harvest and batches",
+      "row": "beekeepers record each harvest from their phone: apiary, date, kg, honey type"
     },
     {
       "ref": "G10-03",
@@ -80,7 +83,8 @@
         "batch",
         "share"
       ],
-      "area": "Harvest and batches"
+      "area": "Harvest and batches",
+      "row": "the cooperative mixes honey from several beekeepers into one batch, the batch page lists all of them with their share"
     },
     {
       "ref": "G10-04",
@@ -90,7 +94,8 @@
         "pass",
         "not the numbers"
       ],
-      "area": "Lab and quality"
+      "area": "Lab and quality",
+      "row": "lab results are attached to the batch, PDF from the lab, and the page shows pass/fail only, not the numbers"
     },
     {
       "ref": "G10-05",
@@ -99,7 +104,8 @@
         "Zebra",
         "batch number"
       ],
-      "area": "Labels and public page"
+      "area": "Labels and public page",
+      "row": "label printing with the batch number and the QR, on the cooperative's Zebra printer"
     },
     {
       "ref": "G10-06",
@@ -108,7 +114,8 @@
         "kg",
         "by batch"
       ],
-      "area": "Stock and sales"
+      "area": "Stock and sales",
+      "row": "stock: how many kg of each honey type is in the warehouse, by batch"
     },
     {
       "ref": "G10-07",
@@ -117,7 +124,8 @@
         "invoice",
         "oldest first"
       ],
-      "area": "Stock and sales"
+      "area": "Stock and sales",
+      "row": "sales to the shops, invoice per shop, honey leaves the stock by batch (oldest first)"
     },
     {
       "ref": "G10-08",
@@ -125,7 +133,8 @@
       "must_keep": [
         "only their own"
       ],
-      "area": "Harvest and batches"
+      "area": "Harvest and batches",
+      "row": "a beekeeper sees only their own harvests and the batches they are part of"
     },
     {
       "ref": "G10-09",
@@ -135,7 +144,8 @@
         "map",
         "village"
       ],
-      "area": "Labels and public page"
+      "area": "Labels and public page",
+      "row": "the mayor wants a public map of the apiaries. NO. village only, see 1"
     },
     {
       "ref": "G10-10",
@@ -146,7 +156,8 @@
         "CSV"
       ],
       "area": "Lab and quality",
-      "ambiguous": true
+      "ambiguous": true,
+      "row": "From the lab (Dr. Pop): we can send the results as PDF and as a CSV with the parameters (HMF, moisture, diastase, pollen origin). If you want pass/fail we need the thresholds from you per honey type. Acacia and polyfloral have different moisture limits."
     }
   ],
   "must_not_invent": [

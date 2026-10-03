@@ -33,8 +33,28 @@ contract
 [09:29] Vlad: no app. web + the gate.
 ```
 
+## Rows as imported (decision 0037)
+
+What a PM imports from the document above: one row per item, nothing else. The runner feeds these rows with no area column.
+
+```text
+1. 3 plans: basic 99 lei (4 washes/month), plus 149 (unlimited exterior), premium 249 (unlimited everything). per car, plate number is the id
+2. unlimited means max 1 wash per day, otherwise the taxi guys will kill us; actually basic also 1 per day max
+3. second car 20% off, same account, separate plates
+4. cancel anytime, ends at the end of the paid month, no refunds
+5. card on file, charged on the 1st, if it fails retry on the 3rd and 5th then suspend
+6. receipts by email, invoices for companies with CUI, monthly; for companies it has to go to e-factura, that is law now
+7. the gate reads the plate (we have the camera already, Hikvision) and opens if the plan is active, staff see the plan on the tablet
+8. gift cards for xmas, 3 or 6 months, code on paper
+9. pause: a sub can be paused up to 2 months a year, e.g. when they go abroad
+10. plate change: customer changes the plate himself, max once a month, staff can always
+11. no app. web + the gate.
+12. dashboard: active subs per plan, churn per month, revenue, and failed payments list so the girls can call them
+13. payments per car with the card on file (repeated from 09:12 and 09:13)
+```
+
 ## Expected, in words
 
-12 distinct items in 4 areas (Plans and pricing, Billing, Gate and site, Reporting). The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. G08-13 is listed to test duplicate detection; the runner accepts it merged into G08-05. "lol", "thats it" and the washing machines line are noise.
+13 rows, 12 distinct items in 4 areas (Plans and pricing, Billing, Gate and site, Reporting). The chat revises itself: at 09:20 Basic also gets the daily limit, so G08-02 covers all plans. G08-13 is listed to test duplicate detection; the runner accepts it merged into G08-05. "lol", "thats it" and the washing machines line are noise.
 
 The exact expectation is in expected/08.json.

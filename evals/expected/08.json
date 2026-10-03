@@ -3,8 +3,9 @@
   "domain": "Car wash subscription billing",
   "source": "specs/08-carwash-billing.md",
   "context": null,
-  "item_count": 12,
-  "item_count_tolerance": 1,
+  "item_count": 13,
+  "item_count_tolerance": 0,
+  "area_count_tolerance": 1,
   "areas": [
     {
       "name": "Plans and pricing",
@@ -65,7 +66,8 @@
         "249",
         "plate"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "3 plans: basic 99 lei (4 washes/month), plus 149 (unlimited exterior), premium 249 (unlimited everything). per car, plate number is the id"
     },
     {
       "ref": "G08-02",
@@ -74,7 +76,8 @@
         "1",
         "per day"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "unlimited means max 1 wash per day, otherwise the taxi guys will kill us; actually basic also 1 per day max"
     },
     {
       "ref": "G08-03",
@@ -83,7 +86,8 @@
         "20",
         "second car"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "second car 20% off, same account, separate plates"
     },
     {
       "ref": "G08-04",
@@ -92,7 +96,8 @@
         "end of the paid month",
         "no refunds"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "cancel anytime, ends at the end of the paid month, no refunds"
     },
     {
       "ref": "G08-05",
@@ -103,7 +108,8 @@
         "5th",
         "suspend"
       ],
-      "area": "Billing"
+      "area": "Billing",
+      "row": "card on file, charged on the 1st, if it fails retry on the 3rd and 5th then suspend"
     },
     {
       "ref": "G08-06",
@@ -113,7 +119,8 @@
         "e-Factura",
         "monthly"
       ],
-      "area": "Billing"
+      "area": "Billing",
+      "row": "receipts by email, invoices for companies with CUI, monthly; for companies it has to go to e-factura, that is law now"
     },
     {
       "ref": "G08-07",
@@ -123,7 +130,8 @@
         "opens",
         "tablet"
       ],
-      "area": "Gate and site"
+      "area": "Gate and site",
+      "row": "the gate reads the plate (we have the camera already, Hikvision) and opens if the plan is active, staff see the plan on the tablet"
     },
     {
       "ref": "G08-08",
@@ -133,7 +141,8 @@
         "6",
         "code"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "gift cards for xmas, 3 or 6 months, code on paper"
     },
     {
       "ref": "G08-09",
@@ -142,7 +151,8 @@
         "2 months",
         "pause"
       ],
-      "area": "Billing"
+      "area": "Billing",
+      "row": "pause: a sub can be paused up to 2 months a year, e.g. when they go abroad"
     },
     {
       "ref": "G08-10",
@@ -151,7 +161,8 @@
         "once a month",
         "staff"
       ],
-      "area": "Plans and pricing"
+      "area": "Plans and pricing",
+      "row": "plate change: customer changes the plate himself, max once a month, staff can always"
     },
     {
       "ref": "G08-11",
@@ -160,7 +171,8 @@
         "no app",
         "web"
       ],
-      "area": "Gate and site"
+      "area": "Gate and site",
+      "row": "no app. web + the gate."
     },
     {
       "ref": "G08-12",
@@ -169,7 +181,8 @@
         "churn",
         "failed payments"
       ],
-      "area": "Reporting"
+      "area": "Reporting",
+      "row": "dashboard: active subs per plan, churn per month, revenue, and failed payments list so the girls can call them"
     },
     {
       "ref": "G08-13",
@@ -178,7 +191,8 @@
         "card on file"
       ],
       "area": "Billing",
-      "duplicate_of": "G08-05"
+      "duplicate_of": "G08-05",
+      "row": "payments per car with the card on file (repeated from 09:12 and 09:13)"
     }
   ],
   "must_not_invent": [

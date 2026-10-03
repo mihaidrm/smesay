@@ -39,8 +39,29 @@ blind tech. And anonymity on near misses: anonymous to the site, visible to HSE,
 cannot follow up.
 ```
 
+## Rows as imported (decision 0037)
+
+What a PM imports from the document above: one row per item, nothing else. The runner feeds these rows with no area column.
+
+```text
+1. open a job on a WTG from the tablet, job types: scheduled service, fault, inspection, retrofit
+2. LOTO checklist must be completed and signed by 2 techs before the job can go to "in progress" (no exceptions, HSE)
+3. nacelle work: log the climb, the harness check, and who is the second person on the ground
+4. parts used: scan the part barcode, stock comes from the container inventory, warns when a part drops below min stock
+5. time per job per tech, for the OEM warranty claims they want the hours
+6. photos: before / after, attached to the job, max 10, compressed on the tablet
+7. the job report is a PDF in the OEM format (they have a template, see attached, not attached sorry) so the warranty people accept it
+8. SCADA alarm that triggered a fault job is linked to the job by alarm id, we type the id now
+9. works with no signal up in the nacelle, syncs at the base
+10. site manager sees all open jobs by WTG and by tech, overdue scheduled services in red; M.D.: the overdue colour, make it configurable not red, we have a colour blind tech
+11. HSE officer: monthly export of all LOTO records and near misses
+12. near miss report: 3 fields, what, where, photo, from any tech, anonymous option; M.D.: anonymous to the site, visible to HSE, otherwise we cannot follow up
+13. weather: the app shows wind speed from SCADA and blocks opening a nacelle job above 12 m/s; M.D.: the wind limit is 15 m/s for nacelle work per the OEM manual, 12 is for the rotor
+14. retrofit jobs from the OEM bulletin need the bulletin number on the job
+```
+
 ## Expected, in words
 
-14 distinct items in 4 areas (Jobs, Safety, Parts, Oversight). Context spec (decision 0011). Glossary terms WTG, LOTO, SCADA, nacelle, HSE and OEM stay as written; "turbine" for WTG is accepted only in addition, never instead. The corrections at the bottom override the list: 15 m/s, configurable colour, anonymous to the site but visible to HSE. G06-07 is flagged ambiguous because the template is missing. The 12 m/s rotor limit is not an item; it is an explanation.
+14 rows, 14 distinct items in 4 areas (Jobs, Safety, Parts, Oversight). Context spec (decision 0011). Glossary terms WTG, LOTO, SCADA, nacelle, HSE and OEM stay as written; "turbine" for WTG is accepted only in addition, never instead. The corrections at the bottom override the list: 15 m/s, configurable colour, anonymous to the site but visible to HSE. G06-07 is flagged ambiguous because the template is missing. The 12 m/s rotor limit is not an item; it is an explanation.
 
 The exact expectation is in expected/06.json.

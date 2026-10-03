@@ -7,6 +7,8 @@ coverage/
 playwright-report/
 test-results/
 *.log
+# the golden set runner's last result (stories/E4-6)
+evals/results/
 .DS_Store
 # never commit anything client-derived; keep such material outside this folder entirely
 reference/

@@ -41,7 +41,7 @@ docs/context.md; the pre-commit hook fails when they differ (decision 0022).
 | 1.3 | PM prototype: settings, members, project list, sample watermark, item detail, export tab, project context box, preview panel on every builder step. Built 2026-10-01, desktop only (decisions 0020, 0021, note 13) | Claude | Accepted on a laptop | done |
 | 1.4 | Design system: docs/design-system.md and six brand boards on the canvas, written 2026-10-01 (notes 09, 10) | Claude | Mihai approves | done |
 | 1.5 | Copy: landing, quickstart, transactional emails, error messages. Drafted 2026-10-01 in docs/copy/, scan passes (scripts/scan-copy.mjs) | Claude | Passes the WRITING.md scan; Mihai approves | drafted |
-| 1.6 | Golden set: ten messy requirement lists from invented domains, with expected areas, item counts and must-not-invent lists. Written 2026-10-01 in evals/ (specs, expected JSON, generator) | Claude | Ten files in evals/, Mihai reads two | drafted |
+| 1.6 | Golden set: ten messy requirement lists from invented domains, with expected areas, item counts and must-not-invent lists. Written 2026-10-01 in evals/ (specs, expected JSON, generator); rows as imported and the runner added 2026-10-03 (decision 0037, E4-6) | Claude | Ten files in evals/, Mihai reads two | drafted |
 | 1.7 | Trademark check: Mihai runs it on the chosen name when ready; the domain waits for the launch gate (0006) | Mihai | Name in docs/context.md | mihai |
 
 Gate: the prototype and the design system are accepted, the name and domain exist.

@@ -26,8 +26,28 @@ REG-116 | Open | Course description page with ECTS, lecturer, language, assessme
 REG-117 | Open | The system must hold 3,000 concurrent registrations in the first hour of the window
 ```
 
+## Rows as imported (decision 0037)
+
+What a PM imports from the document above: one row per item, nothing else. The runner feeds these rows with no area column.
+
+```text
+1. Students register for courses in a window per year of study, 48h each, year 4 first
+2. Prerequisite check at registration, with the list of missing prerequisites shown
+3. Capacity per course; waiting list with automatic promotion when a seat opens, by timestamp
+4. Timetable clash warning, registration still allowed with dean's approval
+5. A student can drop a course until week 3 without a mark on the transcript
+6. Advisors see their students' registrations and can hold a registration pending a meeting
+7. Erasmus students register through the same system with a provisional student id
+8. Fees: a student with unpaid fees from last semester cannot register (finance flag)
+9. Registration confirmation PDF with the student's courses and the timetable
+10. Export of enrolment per course to the department secretaries, xlsx, every night
+11. Audit log of every registration change, who and when, kept 5 years
+12. Course description page with ECTS, lecturer, language, assessment method
+13. The system must hold 3,000 concurrent registrations in the first hour of the window
+```
+
 ## Expected, in words
 
-13 distinct items in 3 areas (Registration, People and roles, Data and reporting). Statuses matter: Bug rows and the Won't do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert "Won't do" into a Not needed item on the list; it is excluded from the list.
+13 rows, 13 distinct items in 3 areas (Registration, People and roles, Data and reporting). Statuses matter: Bug rows and the Won't do row are not items; the Closed-Duplicate row folds into G07-02. Thirteen items from seventeen rows. The model must not convert "Won't do" into a Not needed item on the list; it is excluded from the list.
 
 The exact expectation is in expected/07.json.
