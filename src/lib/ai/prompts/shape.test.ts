@@ -12,7 +12,9 @@ describe("buildShapePrompt", () => {
     const p = buildShapePrompt(plain);
     expect(p.data).toBe("ITEMS (2)\n[1] Receipts by phone\n[2] Approval from the email");
     expect(p.instructions).not.toContain("Receipts");
-    expect(p.instructions).toContain("3 to 8 areas");
+    expect(p.instructions).toContain("3 to 5 for a list under 40 items, never more than 8");
+    expect(p.instructions).toContain("keep the original wording of that part");
+    expect(p.instructions).toContain("most items need none");
     expect(p.importedAreas).toBeNull();
   });
   it("lists the imported areas in the data block, not the instructions, and marks the items that have one", () => {

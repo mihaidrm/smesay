@@ -123,7 +123,7 @@ describe("the golden set runner", () => {
     expect(score(bakery, reversed, new Map())).toMatchObject({ duplicatesExpected: 1, duplicatesRaised: 0, duplicatesMatched: 0 });
   });
 
-  it("reports an area count outside tolerance without failing, and fails a judge that answers a ref twice", async () => {
+  it("fails an area count outside tolerance, and a judge that answers a ref twice", async () => {
     const choir = spec("05");
     const split = perfect(choir);
     // Six areas for three expected: the first area's items spread over three more.
@@ -132,7 +132,7 @@ describe("the golden set runner", () => {
     split.areas.push({ name: "Monday deadline", rationale: "Then this.", items: [spread[1]] }, { name: "Missed rehearsals", rationale: "Then this.", items: [spread[2]] }, { name: "Extra", rationale: "Last, this.", items: [] });
     split.areas[5].items = split.areas[1].items.splice(0, 1);
     const run = await runSpec(choir, ws, projectId, { fetch: transport(split).fetch });
-    expect(run.score).toMatchObject({ pass: true, areasGiven: 6, areasWithinTolerance: false, failures: [] });
+    expect(run.score).toMatchObject({ pass: false, areasGiven: 6, areasWithinTolerance: false, failures: ["6 areas for 3 expected"] });
     expect(line(run.score, run.costCents)).toContain("areas 3/3 named (6 given, outside tolerance)");
     const twice = await runSpec(choir, ws, projectId, { fetch: transport(perfect(choir), [], [], true).fetch });
     expect(twice.score.pass).toBe(false);

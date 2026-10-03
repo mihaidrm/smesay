@@ -83,17 +83,15 @@ duplicate flags the same, glossary terms kept (04 and 06), and the cost in euro 
   to the judge (judge.md, one call per spec, with the spec's context line first, output
   schema-validated and every ref answered once): sameMeaning false is a changed meaning,
   added true is an invented item. A must_keep token missing from the reader version is
-  counted and printed, and the judge decides whether the meaning survived without it. This
-  is how it runs today; the story's stricter rule (a missing token is a changed meaning) is
-  open question 1 of stories/E4-6, Mihai's to decide.
+  counted and printed, and the judge decides whether the meaning survived without it
+  (decision 0038, point 4).
 - Missed: a row absent from the answer. checkShape refuses such an answer before it is
   scored, so a miss shows as a refused spec.
 - Glossary (04, 06): a term the row carries must be in the reader version exactly as written.
-- Passing: no missed, no invented, no changed meaning, every glossary term kept. Flags and
-  placement are reported, not failed on: they tell how good the grouping is, not whether the
-  list is safe. The area count is printed with "outside tolerance" beyond
-  area_count_tolerance and does not fail the run today; whether it should is open question
-  2 of stories/E4-6. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
+- Passing: no missed, no invented, no changed meaning, every glossary term kept, and the
+  number of areas within area_count_tolerance of the expected areas (decision 0038). Flags
+  and placement are reported, not failed on: they tell how good the grouping is, not whether
+  the list is safe. Area names match loosely (score.ts areaNamesMatch): the words of the expected name or
   an alias, small words aside and cut to a stem, all in the model's name or the reverse.
 
 Exit 1 when any spec fails. CI runs the job on a pull request, and on main, when a file under

@@ -10,13 +10,12 @@ item, a missed item, a changed meaning or a glossary term not kept.
    and prints per spec: found, missed, invented, meaning changed, tokens missing, areas named
    and placed, flags expected, raised and matched, glossary kept, cost (evals/README.md,
    Scoring). Exit 1 on any invented item, missed item or changed meaning, or counts outside
-   tolerance. (As built on 2026-10-03: the area count is printed with "outside tolerance"
-   and does not fail the run; open question 2 below.)
+   tolerance (the area count beyond area_count_tolerance, decision 0038).
 2. Matching uses must_keep tokens first (no model call) and a judge call for meaning only
    where tokens match but wording differs; the judge prompt is in evals/judge.md and the
    judge's own output is schema-validated. (As built: a reader version identical to its row
    needs no call; every other one goes to one judge call per spec, every ref answered once;
-   a missing token is counted and printed and the judge decides; open question 1 below.)
+   a missing token is counted and printed and the judge decides; decision 0038, point 4.)
 3. CI runs the evals job only on a pull request, or a push to main, that changed a file the
    shaping result depends on: src/lib/ai/, src/lib/shaping.ts or evals/ (paths filter on its
    own workflow), with ANTHROPIC_API_KEY from the repository's secrets scoped to the steps
@@ -54,20 +53,16 @@ item, a missed item, a changed meaning or a glossary term not kept.
    - c77427f, CI run 37106726352: 8 of 10 for 36 cents. G08-06 for the fourth time; G02-12,
      whose row began with the speaker label "Ana:" and came back as "when Ana marks a pet"
      (the label is not content and the row lost it).
-   Six runs, 2 euro 19 cents in all. The first green run goes here when a run gives it; what
-   to change in the prompt is Mihai's call (design note 32, Open for Mihai).
+   Six runs, 2 euro 19 cents in all. Decision 0038 then changed the prompt (keep ambiguous
+   wording, fewest areas, fewer flags) and made the area count fail again; the first run at
+   7 of 10 or better after it is recorded here as acceptance 5.
 
 ## Out of scope
 - Evals for insights (E9): their own small set, written in E9-1.
 
 ## Open questions
-- The matching rule. The story as written said a missing must_keep token is a changed
-  meaning, with the judge only where every token is present. The build counts the missing
-  token and lets the judge decide, because the first run showed 15 missing tokens with the
-  meaning intact each time ("for each product" for "per product"). Claude's call, pending
-  Mihai's (design note 32); the stricter rule is a one-line change in evals/score.ts.
-- The area count is reported, not failed on, until the prompt's grouping is decided (note 32).
-- Mihai put ANTHROPIC_API_KEY in the repository secrets on 2026-10-03.
+- None. Decision 0038 settled the prompt lines, the area count and the matching rule; Mihai
+  put ANTHROPIC_API_KEY in the repository secrets on 2026-10-03.
 
 ## Technical notes
 run.ts uses the E4-1 client with purpose "shape" (the judge call too, there is no third

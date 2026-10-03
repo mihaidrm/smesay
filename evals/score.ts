@@ -179,9 +179,10 @@ export function score(expected: Expected, output: ShapeOutput, verdicts: Map<str
   if (meaningChanged > 0) failures.push(`${meaningChanged} meaning changed`);
   if (glossaryMissing > 0) failures.push(`${glossaryMissing} glossary term(s) not kept`);
   if (Math.abs(answered.size - expected.item_count) > expected.item_count_tolerance) failures.push(`${answered.size} items for ${expected.item_count} expected`);
-  // The area count is reported, not failed on, until the prompt's grouping is decided
-  // (design note 32): the first run gave 5 to 7 areas where the set expects 3 to 5.
+  // The area count fails the run beyond the tolerance (decision 0038, after the prompt asked
+  // for the fewest areas that read well).
   const areasWithinTolerance = Math.abs(areasGiven - expected.areas.length) <= expected.area_count_tolerance;
+  if (!areasWithinTolerance) failures.push(`${areasGiven} areas for ${expected.areas.length} expected`);
 
   return {
     id: expected.id, domain: expected.domain, pass: failures.length === 0,

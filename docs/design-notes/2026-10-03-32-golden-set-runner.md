@@ -123,6 +123,13 @@ only); positions are exact strings; stale "accepts it merged" notes rewritten; S
 names the scripts outside src/ that read the database. Two rules the build changed from the
 story are now open questions in the story and below, not choices.
 
+## Decided (decision 0038, the same day)
+
+Mihai went with the recommendations: the prompt keeps ambiguous wording, prefers the fewest
+areas (three to five under 40 items) and flags only what cannot be rated at all; the area
+count fails the run again; 7 to 9 of 10 is the bar if a run still drifts; the matching rule
+and the judge's context line stay as built. The points below are kept as they were asked.
+
 ## Open for Mihai
 
 - The matching rule (story, open question 1): keep "the judge decides" when a must_keep token
