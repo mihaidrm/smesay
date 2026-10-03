@@ -35,6 +35,13 @@ the check constraints use them). Change this file first.
   case; src/lib/respondent-fields.ts is the code twin of the rule).
 - ClosingSpec (jsonb, instrument.closing):
   { confidence: true, missingForm: boolean, signOffText: string }
+- ScaleLabels (jsonb, instrument.scale_labels, nullable; E5-2, 2026-10-03): { [code]: label }
+  for the codes of the instrument's method (moscow: M, S, C, W; fit: 1, 2, 3, 4, 5; kcd: K,
+  C, D), each label 1 to 20 characters; a code not present keeps the default label; null
+  means every default. The stored answer value is always the code (answer.value), never the
+  label (stories/E5-2, acceptance 3). The codes, the default labels, the captions and the
+  mapping from (method, showProposed, proposed code, picked code) to AnswerKind are in
+  src/lib/scoring.ts, shared by Build, the respondent app (E7-2) and Results (E8).
 - ImportReport (jsonb, item_set.import_report):
   { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow:
   number (0 when the file had none), unrecognisedValues: number, duplicateRefs: { kept: string,

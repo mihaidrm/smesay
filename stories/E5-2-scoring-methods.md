@@ -1,7 +1,7 @@
 # E5-2 Scoring method templates: MoSCoW with the proposed value, 1 to 5 fit, keep change drop
 
 User: a PM choosing how experts rate
-Status: ready
+Status: built
 Outcome: switching the method re-renders every card in the preview, and the proposed value
 can be shown or hidden.
 
@@ -29,5 +29,25 @@ can be shown or hidden.
 
 ## Technical notes
 instrument.method, show_proposed (docs/schema.md); labels in a new jsonb column
-`scale_labels` (migration 0002, shape ScaleLabels in INTERFACES.md). The mapping function in
+`scale_labels` (migration 0013 as built; the note said 0002, shape ScaleLabels in INTERFACES.md). The mapping function in
 src/lib/scoring.ts is shared with E7 and E8.
+
+Built 2026-10-03 (design note 41, decision 0044):
+- Acceptance 1: the Scoring card on Build (scoring-form.tsx) with the three methods as radio
+  cards; the preview panel's Items screen shows the first chapter's cards with the rating
+  row (src/components/respondent/rating-row.tsx, item-card.tsx, shared with E7-2): values
+  as pills, Unclear last, the proposed pill dashed and captioned "proposed", the 1 to 5
+  scale captioned "no fit" and "fits fully".
+- Acceptance 2: the "Show the proposed value to respondents" switch; classify() in
+  src/lib/scoring.ts stores `pick` when off or when the item has no proposal, `agree` on
+  the proposal, `disagree` on Not needed, Drop or 1, `change` otherwise.
+- Acceptance 3: one label per value, up to 20 characters, in instrument.scale_labels
+  (migration 0013, ScaleLabels in INTERFACES.md); the stored value is always the code;
+  labelFor() gives the word to cards, registers and exports.
+- Acceptance 4: a draft changes method freely; isPublished() (a link or an invite exists)
+  locks the card with the line from errors.md, on the server too.
+- Acceptance 5: src/lib/scoring.test.ts maps every (method, shown, picked) pair; the
+  instrument test saves, refuses and locks on the test database.
+- Playwright: e2e/build.spec.ts switches to 1 to 5 fit and sees the pills change, renames
+  Must to Essential, turns the proposal off and on.
+

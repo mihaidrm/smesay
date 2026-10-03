@@ -4,14 +4,16 @@
 // gets "Build on version 2", which copies the draft and locks the old one; two opens at once
 // make one draft; the sample refuses edits; another workspace reads nothing and its ids are 404.
 import { beforeAll, describe, expect, it } from "vitest";
-import { instruments, projects, workspaces } from "@/db/queries";
+import { randomUUID } from "node:crypto";
+import { instruments, invites, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { BUILD_COPY, buildOnLatest, openDraft, saveFields, saveIntro } from "@/lib/instruments";
+import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveFields, saveIntro, saveScoring } from "@/lib/instruments";
+import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
 import { DEFAULT_FIELDS, FIELDS_COPY } from "@/lib/respondent-fields";
 import { savePaste } from "@/lib/uploads";
@@ -118,6 +120,7 @@ describe("buildOnLatest", () => {
     await importList(a.ws, a.userId, project.id, ["One", "Two"]);
     const v1 = (await openDraft(a.ws, project))!;
     await saveIntro(a.ws, project.id, v1.instrument.id, "Versions", "Kept across versions.");
+    await saveScoring(a.ws, project.id, v1.instrument.id, "moscow", "1", JSON.stringify({ M: "Essential" }));
     expect(await buildOnLatest(a.ws, project.id, v1.instrument.id)).toEqual({ error: BUILD_COPY.alreadyLatest });
     const set2 = await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
     const stillV1 = (await openDraft(a.ws, project))!;
@@ -128,6 +131,7 @@ describe("buildOnLatest", () => {
     if (!("instrument" in built)) throw new Error(built.error);
     expect(built.instrument.itemSetId).toBe(set2.id);
     expect(built.instrument.intro).toBe("Kept across versions.");
+    expect(built.instrument.scaleLabels).toEqual({ M: "Essential" });
     const v2 = (await openDraft(a.ws, project))!;
     expect(v2.instrument.id).toBe(built.instrument.id);
     expect(v2.newer).toBeNull();
@@ -140,3 +144,40 @@ describe("buildOnLatest", () => {
     expect((await instruments.list(a.ws)).filter((i) => i.projectId === project.id).length).toBe(2);
   });
 });
+
+describe("saveScoring (stories/E5-2)", () => {
+  it("saves the method, the switch and the labels with the rule, and locks once published", async () => {
+    const project = await projects.create(a.ws, { name: "Scoring", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    expect(instrument.method).toBe("moscow");
+    expect(instrument.showProposed).toBe(true);
+    expect(instrument.scaleLabels).toBeNull();
+    expect(await saveScoring(a.ws, project.id, instrument.id, "stars", "1", "{}")).toEqual({ error: SCORING_ERRORS.badMethod });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", JSON.stringify({ "1": "x".repeat(21) }))).toEqual({ error: SCORING_ERRORS.badLabel });
+    const saved = await saveScoring(a.ws, project.id, instrument.id, "kcd", "0", JSON.stringify({ D: " Remove ", K: "Keep", M: "ignored" }));
+    if (!("instrument" in saved)) throw new Error(saved.error);
+    expect(saved.instrument.method).toBe("kcd");
+    expect(saved.instrument.showProposed).toBe(false);
+    expect(saved.instrument.scaleLabels).toEqual({ D: "Remove" });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "not json")).toEqual({ error: SCORING_ERRORS.badShape });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", JSON.stringify({ M: "Should" }))).toEqual({ error: SCORING_ERRORS.sameLabel });
+    const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
+    const sampleDraft = (await openDraft(a.ws, sample))!;
+    expect(await saveScoring(a.ws, sample.id, sampleDraft.instrument.id, "fit", "1", "{}")).toEqual({ error: BUILD_COPY.sample });
+    const defaults = await saveScoring(a.ws, project.id, instrument.id, "moscow", "on", "{}");
+    if (!("instrument" in defaults)) throw new Error(defaults.error);
+    expect(defaults.instrument.scaleLabels).toBeNull();
+    expect(defaults.instrument.showProposed).toBe(true);
+    // A link makes it published (E6-1 creates the row): the method is locked.
+    expect(await isPublished(a.ws, instrument.id)).toBe(false);
+    await invites.create(a.ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    expect(await isPublished(a.ws, instrument.id)).toBe(true);
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}")).toEqual({ error: SCORING_ERRORS.locked });
+    expect((await instruments.get(a.ws, instrument.id))?.method).toBe("moscow");
+    // Another workspace reads no invite and cannot save.
+    expect(await isPublished(b.ws, instrument.id)).toBe(false);
+    await expect(saveScoring(b.ws, project.id, instrument.id, "fit", "1", "{}")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+

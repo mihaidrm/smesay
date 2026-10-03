@@ -92,6 +92,13 @@
       "when": 1791008194019,
       "tag": "0012_budget_default",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791043882432,
+      "tag": "0013_scale_labels",
+      "breakpoints": true
     }
   ]
 }

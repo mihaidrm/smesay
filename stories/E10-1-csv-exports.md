@@ -10,7 +10,10 @@ are the dashboard's numbers.
    field, item reference, area, item text, proposed value, answer kind, their value, reason or
    question, comment, submitted at, source, perspectives) and "Items with totals" (one row per
    item: reference, text, original, area, proposed value, counts of agree, changed, disagree,
-   unclear, not answered, agreement percentage).
+   unclear, not answered, agreement percentage). The answer kind column reads Agree,
+   Different priority, Disagree, Unclear or Picked (the rate-blind `pick`); their value and
+   the proposed value are the scale's code with the instrument's label beside it (E5-2,
+   acceptance 3: labels appear in exports).
 2. UTF-8 with a byte order mark, comma separated, quoted fields, dates as ISO 8601 with the
    UTC offset; opens in Excel with diacritics and dates intact (Mihai checks on his PC; a unit
    test checks the BOM, the quoting of a field with a comma and a newline, and the date

@@ -217,8 +217,10 @@ on it could not be opened from this environment, so it is recorded here unverifi
 Decision 0018, kept in v2 (RespondentV2). Every card has the same size on screen: a 260 px
 frame (phone and desktop) with four fixed parts, on the surface with the card shadow. Reference
 in mono 11 and the title at 16/23 weight 600, clamped to two lines (the full title is in
-Details). The label "Your rating" over a five-column row of pills Must, Should, Could, Not
-needed, Unclear, 38 px high, 10 px text at 600, radius 999, 2 px apart, always one row. One
+Details). The label "Your rating" over one row of pills, the method's values then Unclear
+(MoSCoW: Must, Should, Could, Not needed, Unclear; 1 to 5 fit: six pills with "no fit" and
+"fits fully" captioned under the ends; keep, change, drop: four), 38 px high, 10 px text at
+600, radius 999, 2 px apart, always one row, a long label on two lines inside its pill. One
 slot that shows either the details text (the ground on light, the raised surface on dark,
 13/18, scrolls) or the comment box, never both. A 24 px footer with Details, the comment
 toggle and the status note. The proposed value has a dashed muted border. The selected pill

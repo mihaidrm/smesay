@@ -107,6 +107,11 @@ of the content; page means it replaces the screen.
 | Inline, fields (E5-1) | A type that is not text, dropdown or email, through the server | Pick a type for every field: Text, Dropdown or Email. |
 | Inline, fields (E5-1) | The posted list is not JSON or not a list | The fields did not reach the server as a list. Reload the page and try again. |
 | Inline, Build on version (E5-1) | The instrument is already on the latest set | This instrument is already built on the latest version of the list. |
+| Inline, scoring (E5-2) | A method that is not one of the three, through the server | Pick one of the three methods: MoSCoW, 1 to 5 fit, or keep, change, drop. |
+| Inline, scoring (E5-2) | A label over 20 characters | Each label is 1 to 20 characters. Leave one empty to keep the default. |
+| Inline, scoring (E5-2) | Two values with the same label, or a label "Unclear" | Each value needs its own label, and Unclear is taken. |
+| Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
+| Inline, scoring (E5-2) | Save on a published instrument (a link or an invite exists) | Published instruments keep their method. Build a new instrument to change it. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates | Close date before open date or in the past | The close date is before the open date. Pick a later close date. |
