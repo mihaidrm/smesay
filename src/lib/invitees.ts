@@ -36,21 +36,23 @@ export type SendOutcome = { email: string; line: string; sent: boolean; error: s
 // IPv4 address, two colons with hex between (an IPv6 address), a dotted host name
 // (labels of letters, digits, - and _, the last one letters) or a word followed by a
 // colon and a port number, anywhere in the word, whatever is glued around them. A status
-// code such as 5.1.1 and a time such as 10:30 stay (a time with seconds reads as IPv6
-// and goes). Each test is one pass over the word, so the time is linear in the line. A
+// code such as 5.1.1 and a time such as 10:30 stay (a time with seconds, or followed by
+// a colon, reads as IPv6 and goes). The marks for IPv6 and word:port backtrack on long
+// runs of hex letters or dashes, so cutServers cuts its line to REASON_MAX before testing
+// (two worst-case words of 200 characters take under a tenth of a millisecond). A
 // missing mail variable is the app's own, not the address's: it is thrown, named, as
 // sendMail names it. The result can be longer than REASON_MAX by the replacements, and a
 // reason that was only servers reads as withheld (docs/review-list.md).
 const REASON_MAX = 200;
 const SERVER_MARKS = [/@|:\/\//, /\d{1,3}(?:\.\d{1,3}){3}/, /[0-9a-f]*:[0-9a-f]*:[0-9a-f]*/i, /(?:^|[^\w.-])[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}(?![\w])/i, /(?:^|[^\w])[a-z][\w-]*:\d{2,5}(?!\d)/i];
 export function cutServers(line: string): string {
-  return line.split(/(\s+)/).map((word) => (word.length > 0 && SERVER_MARKS.some((mark) => mark.test(word)) ? "[server]" : word)).join("");
+  return line.slice(0, REASON_MAX).split(/(\s+)/).map((word) => (word.length > 0 && SERVER_MARKS.some((mark) => mark.test(word)) ? "[server]" : word)).join("");
 }
 const WITHHELD = "the mail server refused it, and its reason named only servers";
 function reasonOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   if (/^[A-Z_]+ is not set\./.test(text)) throw error;
-  const cut = cutServers((text.split("\n")[0] ?? "").slice(0, REASON_MAX)).trim().replace(/\.$/, "");
+  const cut = cutServers(text.split("\n")[0] ?? "").trim().replace(/\.$/, "");
   if (!cut) return "the mail server refused it";
   return /[a-z0-9]/i.test(cut.replace(/\[server\]/g, "")) ? cut : WITHHELD;
 }

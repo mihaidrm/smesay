@@ -158,7 +158,10 @@ describe("sendInvites", () => {
     expect(cutServers("550 5.1.1 Node.js Code:550 try 10:30 x")).toBe("550 5.1.1 [server] [server] try 10:30 x");
     expect(cutServers("mail.example.com[192.0.2.1]:25: <unknown[192.0.2.1]>: [10.0.0.5] 10.0.0.5/24 mail.example?")).toBe("[server] [server] [server] [server] [server]");
     expect(cutServers("connect ECONNREFUSED ::1:587 [2001:db8::1]:587 fd00::5 (::1) refused.Please")).toBe("connect ECONNREFUSED [server] [server] [server] [server] [server]");
-    expect(cutServers("(".repeat(5000) + "x")).toBe("(".repeat(5000) + "x");
+    expect(cutServers("(".repeat(5000) + "x")).toBe("(".repeat(200));
+    const slowStart = Date.now();
+    expect(cutServers("a".repeat(16000) + " " + "-a".repeat(8000))).toBe("a".repeat(200));
+    expect(Date.now() - slowStart).toBeLessThan(500);
     const only = await sendInvites(a.ws, project.id, instrument.id, "gus3@x.example", sender, BASE, now, async () => { throw new Error("mail.internal:25"); });
     expect(only).toEqual({ outcomes: [{ email: "gus3@x.example", line: "gus3@x.example", sent: false, error: INVITEES_ERRORS.notSent("gus3@x.example", "the mail server refused it, and its reason named only servers") }] });
     // A long reason is cut to 200 characters before the patterns run, in bounded time.
