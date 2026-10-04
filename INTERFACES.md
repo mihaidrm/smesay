@@ -86,16 +86,23 @@ the check constraints use them). Change this file first.
   null fields when the project had none; null until shaped). Each item also carries its
   area's rationale as item.area_rationale, for the respondent side.
 - ResponseFields (jsonb, response.fields): { [key: string]: string }, keys from RespondentFieldSpec.
-- ResultsFilter (not stored; E8-1, written 2026-10-03, design note 40): the one parameter
-  every results query and both CSV exports take: { fields?: { [key]: string[] | string }
-  (a dropdown field's chosen options, or a text field's contains), kinds?: AnswerKind[]
-  plus "none" for not answered, withComment?: boolean, perspective?: string, status?:
-  ("submitted" | "inProgress")[], includeUnsubmitted: boolean, sort?: { key, dir } }; it
-  travels in the URL as query parameters and is parsed by one function in
-  src/lib/results-filter.ts (the sort key a whitelist).
-- ResultsPrefs (jsonb, user.results_prefs; E8-1, column added with that story):
-  { [instrumentId]: { tiles: string[] (the tile ids of E8-1's catalogue, up to six), view:
-  "table" | "columns" | "share" } }.
+- ResultsFilter (not stored; E8-1, written 2026-10-03, design note 40; built 2026-10-04,
+  design note 60): the one parameter every results query and both CSV exports take:
+  { fields: { [key]: string[] | string } (a dropdown field's chosen options, or the words a
+  text field contains), kinds: ("agree" | "change" | "disagree" | "unclear" | "pick" |
+  "none")[] ("none": not answered), withComment: boolean, perspective: string | null,
+  status: ("submitted" | "inProgress")[], includeUnsubmitted: boolean }, the sort to come
+  with E8-2. It selects people (started responses, and personal invites not opened yet
+  with the name and role their About you starts with): a person with at least one answer of
+  a chosen kind (or an item they see unanswered), with a reason or comment, whose fields,
+  perspective and status match; the numbers count those people's answers. It travels in the
+  URL (f.[key], kind, comment=1, perspective, status, unsubmitted=1 or 0, absent for the
+  PM's stored choice) and is read and written by parseResultsFilter and filterQuery in
+  src/lib/results-filter.ts, against the instrument's fields and perspectives.
+- ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
+  { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
+  includeUnsubmitted?: boolean (decision 0030's switch, kept per PM), view?: "table" |
+  "columns" | "share" (E8-3) } }.
 - GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
   story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
   person dismissed; per person, every workspace).
@@ -116,6 +123,15 @@ keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uui
 with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
 ownerUserId), update(ws, patch) (name, slug, accent, logo only; the AI budget is
 internal.setAiBudgetEur, decision 0036), markDeleted(ws).
+Results (E8-1): results.numbers(ws, instrumentId, filter) gives ResultsNumbers
+(src/lib/results-tiles.ts: invited, submitted, inProgress, shown, total, agree, change,
+disagree, unclear, pick, answered, withComment, missing, unansweredItems, fullyAgreed,
+pushedBackItems, medianMinutes, anyAnswer, actions) from one SQL query, or null for an
+instrument outside the workspace; results.rows(ws, instrumentId, filter) the answers the
+same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
+submitted }), which E10-1's CSV writes; resultsPrefs.get(userId, instrumentId) and
+resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted? }) read and merge the
+person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email

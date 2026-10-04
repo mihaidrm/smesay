@@ -1,0 +1,38 @@
+"use server";
+// Server actions of Results (stories/E8-1, acceptance 2 and 7): the PM's tiles and the
+// include-unsubmitted switch, kept per PM per instrument (user.results_prefs). The project is
+// read through the current workspace first, so an instrument of another workspace is never
+// written to anyone's choices; the tiles are checked on the server (one to six known ids).
+// Server Functions: node_modules/next/dist/docs/01-app/01-getting-started/07-mutating-data.md.
+import { revalidatePath } from "next/cache";
+import { instruments, projects } from "@/db/queries";
+import { resultsPrefs } from "@/db/queries/results";
+import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { parseTileChoice } from "@/lib/results-tiles";
+
+export type ResultsActionState = { error: string | null };
+
+async function instrumentFor(projectId: string) {
+  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const project = await projects.get(current.ws, projectId);
+  const instrument = project ? await instruments.latestForProject(current.ws, project.id) : null;
+  return instrument ? { userId: session.user.id, instrumentId: instrument.id } : null;
+}
+
+export async function saveTiles(projectId: string, tiles: string[]): Promise<ResultsActionState> {
+  const found = await instrumentFor(projectId);
+  if (!found) return { error: "This project has no results yet." };
+  const choice = parseTileChoice(Array.isArray(tiles) ? tiles : []);
+  if ("error" in choice) return { error: choice.error };
+  await resultsPrefs.set(found.userId, found.instrumentId, { tiles: choice });
+  revalidatePath(`/app/projects/${projectId}/results`);
+  return { error: null };
+}
+
+export async function saveIncludeUnsubmitted(projectId: string, on: boolean): Promise<ResultsActionState> {
+  const found = await instrumentFor(projectId);
+  if (!found) return { error: "This project has no results yet." };
+  await resultsPrefs.set(found.userId, found.instrumentId, { includeUnsubmitted: on === true });
+  revalidatePath(`/app/projects/${projectId}/results`);
+  return { error: null };
+}

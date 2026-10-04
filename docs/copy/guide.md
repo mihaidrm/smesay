@@ -35,7 +35,7 @@ Share one link. Line under the steps: Then: read the results.
 | Id | Pose | Screen | Line | Action |
 |---|---|---|---|---|
 | sample.strip | analysis | Results, headline strip and agreement table | The numbers at the top count answers; the table shows each item with who agreed and who pushed back. | Next |
-| sample.registers | analysis | Pushed back tab | Every push back comes with a reason. This is what you read before the meeting. | Next |
+| sample.registers | analysis | Different priority and Disagree tab | Every push back comes with a reason. This is what you read before the meeting. | Next |
 | sample.detail | analysis | an item's detail | One item, every answer. The AI's to-do list cites these rows. | Start a project |
 
 ## Rescue tips (E15-4)
