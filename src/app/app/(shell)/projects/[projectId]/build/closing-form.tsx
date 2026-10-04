@@ -5,7 +5,8 @@
 // prefilled). The server applies the rule again (saveClosing in src/lib/instruments.ts).
 // Once published the question is locked with its line; the switch and the sign-off still
 // change. Focusing or clicking any control opens the Wrap up in the preview (acceptance
-// 3; data-preview-screen, src/components/app/preview-frame.tsx PreviewColumn). "Saved."
+// 3; data-preview-screen on the card in build/page.tsx, src/components/app/preview-frame.tsx
+// PreviewColumn). "Saved."
 // until the next change; Save is secondary like the other Build cards (design note 38).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
@@ -27,7 +28,7 @@ export function ClosingForm({ projectId, instrumentId, closing, locked }: { proj
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate data-preview-screen="wrap" className="flex flex-col gap-4" data-testid="closing-form">
+    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="closing-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="missingForm" value={missingForm ? "1" : "0"} />

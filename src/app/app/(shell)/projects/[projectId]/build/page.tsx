@@ -93,7 +93,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title">
+          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title" data-preview-screen="wrap">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3>
               <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>

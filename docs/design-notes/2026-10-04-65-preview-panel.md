@@ -37,7 +37,7 @@ the starting point; this note records what was decided while building it.
   from the first import. The sample project has no preview (decision 0021, item 1): its data
   shows only under the watermark, and loadPreview refuses it as well.
 - The source changes only when what the preview shows changes: the token is made for the
-  current hour (it lasts into the next), and a digest of the view is in the address. A save
+  current hour and is valid through the next, so one to two hours, and a digest of the view is in the address. A save
   that changes the preview reloads it; a render of the page that changes nothing does not.
 - The panel sticks below the pinned project header (top 7rem) and scrolls inside itself when
   taller than the window, so Open full size and the frame's foot stay in reach. Import's

@@ -22,5 +22,7 @@ without creating anything in anyone's workspace.
 
 ## Technical notes
 A fixed instrument built from the seed data in a read-only "sample" workspace that exists in
-every deployment (created by the seed), served through the preview mode of E5-6 with a public
-preview token that never expires.
+every deployment (created by the seed). The preview mode of E5-6 (nothing saved, Submit off)
+is the likely way to serve it, but its token needs a PM's session and lasts one to two hours,
+and loadPreview refuses a sample (decision 0021, item 1): this story decides its own access
+rule when it is built.

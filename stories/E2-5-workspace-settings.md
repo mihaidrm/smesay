@@ -23,8 +23,9 @@ saved.
    colour as #RRGGBB, logo type and size by content, not extension. Saving is owner-only through
    `can()` (E2-4, src/lib/permissions.ts: workspace.rename, workspace.accent, workspace.logo);
    a test calls the save as a member and gets 403.
-5. Playwright: change the accent, open the sample instrument preview, see the colour on the
-   chapter row.
+5. Playwright: change the accent and see it saved with its contrast line; the colour on the
+   respondent's screens is checked by E7's test (e2e/respondent-a11y.spec.ts), since the
+   sample has no preview (decision 0021, item 1; changed 2026-10-04 with E5-6).
 
 ## Out of scope
 - Billing and plan changes: R3. The AI budget may become credits bought from SMEsay (decision

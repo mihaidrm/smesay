@@ -8,8 +8,10 @@
 // (src/lib/sharing.ts newToken), never "p.", so the two cannot be confused, and every write
 // route answers 403 to a preview token: nothing a preview does is stored.
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { isPreviewToken, PREVIEW_PREFIX } from "@/lib/preview-prefix";
 
-export const PREVIEW_PREFIX = "p.";
+export { isPreviewToken, PREVIEW_PREFIX };
+
 export const PREVIEW_TTL_MS = 60 * 60 * 1000;
 
 export type PreviewClaim = { project: string; ws: string; user: string; exp: number };
@@ -17,7 +19,6 @@ export type PreviewClaim = { project: string; ws: string; user: string; exp: num
 const b64 = (b: Buffer | string) => Buffer.from(b).toString("base64url");
 const sign = (payload: string, secret: string) => createHmac("sha256", secret).update(payload).digest();
 
-export const isPreviewToken = (token: string): boolean => token.startsWith(PREVIEW_PREFIX);
 
 export function previewToken(claim: Omit<PreviewClaim, "exp">, secret: string, now = Date.now()): string {
   const payload = b64(JSON.stringify({ ...claim, exp: now + PREVIEW_TTL_MS }));
@@ -26,7 +27,7 @@ export function previewToken(claim: Omit<PreviewClaim, "exp">, secret: string, n
 
 // Whether the signed-in PM may see the preview a claim names: the claim's PM, in the claim's
 // workspace as their current one. Another PM's token is the expired page; the same PM in
-// another workspace is told which workspace to switch to (CLAUDE.md, errors say what to do).
+// another workspace is told to switch workspace (CLAUDE.md, errors say what to do).
 export type PreviewAccess = "ok" | "expired" | "otherWorkspace";
 export function previewAccess(claim: PreviewClaim | null, session: { user: string; ws: string | null } | null): PreviewAccess {
   if (!claim || !session || session.user !== claim.user) return "expired";

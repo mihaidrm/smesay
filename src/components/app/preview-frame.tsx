@@ -31,11 +31,29 @@ export function PreviewScreen({ children }: { children: React.ReactNode }) {
   return <ScreenContext.Provider value={{ screen, setScreen }}>{children}</ScreenContext.Provider>;
 }
 
-// The step page's column: where the focus or a click lands sets the preview's screen.
+// The step page's column: where the focus lands sets the preview's screen; a click inside the
+// Wrap up's card opens it (a click on its heading too), and a click on plain text elsewhere
+// changes nothing.
+const inWrap = (target: EventTarget) => target instanceof Element && target.closest('[data-preview-screen="wrap"]') !== null;
 export function PreviewColumn({ children }: { children: React.ReactNode }) {
   const { setScreen } = usePreviewScreen();
-  const pick = (e: React.SyntheticEvent) => setScreen(e.target instanceof Element && e.target.closest('[data-preview-screen="wrap"]') ? "wrap" : "start");
-  return <div onFocus={pick} onClick={pick} className="flex min-w-0 grow flex-col gap-5">{children}</div>;
+  return (
+    <div onFocus={(e) => setScreen(inWrap(e.target) ? "wrap" : "start")} onClick={(e) => { if (inWrap(e.target)) setScreen("wrap"); }} className="flex min-w-0 grow flex-col gap-5">
+      {children}
+    </div>
+  );
+}
+
+// The frame and its loading state (CLAUDE.md, PM side): keyed by the address, so a new
+// address starts loading again; the note shows until the page in it has loaded.
+function Frame({ url, className }: { url: string; className: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <p role="status" className="absolute inset-x-0 top-1/3 text-center text-sm text-ink-muted" data-testid="preview-loading">{PREVIEW_COPY.loading}</p>}
+      <iframe src={url} title={PREVIEW_COPY.frameTitle} onLoad={() => setLoaded(true)} className={className} data-testid="preview-iframe" />
+    </>
+  );
 }
 
 export function PreviewFrame({ src, caption }: { src: string; caption: string }) {
@@ -51,12 +69,12 @@ export function PreviewFrame({ src, caption }: { src: string; caption: string })
       <SegmentedControl value={device} onChange={setDevice} label={PREVIEW_COPY.device} options={[{ value: "desktop", label: PREVIEW_COPY.desktop }, { value: "phone", label: PREVIEW_COPY.phone }]} className="self-start" />
       <p className="text-sm text-ink-muted" data-testid="preview-caption">{caption}</p>
       {device === "desktop" ? (
-        <div className="h-[560px] w-[420px] shrink-0 overflow-hidden rounded-xl border border-hairline-strong bg-ground" data-testid="preview-desktop">
-          <iframe key={url} src={url} title={PREVIEW_COPY.frameTitle} className="h-[1333px] w-[1000px] origin-top-left scale-[0.42] border-0" data-testid="preview-iframe" />
+        <div className="relative h-[560px] w-[420px] shrink-0 overflow-hidden rounded-xl border border-hairline-strong bg-ground" data-testid="preview-desktop">
+          <Frame key={url} url={url} className="h-[1333px] w-[1000px] origin-top-left scale-[0.42] border-0" />
         </div>
       ) : (
-        <div className="mx-auto h-[720px] w-[390px] shrink-0 overflow-hidden rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-phone">
-          <iframe key={url} src={url} title={PREVIEW_COPY.frameTitle} className="h-full w-[390px] border-0" data-testid="preview-iframe" />
+        <div className="relative mx-auto h-[720px] w-[390px] shrink-0 overflow-hidden rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-phone">
+          <Frame key={url} url={url} className="h-full w-[390px] border-0" />
         </div>
       )}
     </aside>

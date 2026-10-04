@@ -86,6 +86,7 @@ export const ABOUT_YOU_COPY = {
 export const PREVIEW_COPY = {
   title: "Preview",
   newTab: "(opens in a new tab)",
+  loading: "Loading the preview",
   device: "Device",
   desktop: "Desktop",
   phone: "Phone",

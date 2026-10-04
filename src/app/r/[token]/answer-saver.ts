@@ -52,6 +52,7 @@
 // (the answers route's `complete`, also on a stale reply), taken only from a reply whose
 // version is at least the one already applied (doneFrom); the chapter row and the Wrap up
 // count from it (E7-4, technical notes).
+import { isPreviewToken } from "@/lib/preview-prefix";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
 import { delayFor, doneFrom, nextEntry, settleState, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
@@ -340,8 +341,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       if (!down.current) flushAll();
     };
     const onFocusOut = () => flush();
-    // The builder's preview (a "p." token, src/lib/preview-token.ts) has no state to check.
-    const onOnline = () => { if (!token.startsWith("p.")) void check(); };
+    // The builder's preview (src/lib/preview-prefix.ts) has no state to check.
+    const onOnline = () => { if (!isPreviewToken(token)) void check(); };
     window.addEventListener("pagehide", onHide);
     document.addEventListener("visibilitychange", onVisibility);
     document.addEventListener("focusout", onFocusOut);

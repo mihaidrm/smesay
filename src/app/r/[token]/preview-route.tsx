@@ -5,7 +5,7 @@
 // (?ring=...), the workspace's current brand, and on a phone (?device=phone) in a 390 px
 // column; ?screen=wrap opens the Wrap up (the Closing card focused on Build). A token that is
 // expired or not this PM's shows the expired page, this PM's for another workspace a page
-// saying which to switch to (previewAccess); a revoked
+// saying to switch workspace (previewAccess); a revoked
 // link on Share shows the withdrawn page (decision 0021, item 3). Nothing is stored: the app
 // keeps everything in memory and the write routes refuse a preview token.
 import { LinkPage } from "@/components/respondent/link-page";

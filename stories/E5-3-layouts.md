@@ -39,8 +39,8 @@ Built 2026-10-03 (design note 42, decision 0044):
   [AREA]"; the single page with every area in order, "All [N] on one page" and no chapter
   row. Free navigation between chapters and the two card columns on desktop came with E7-4,
   E7-2 and the iframe of E5-6.
-- Acceptance 3: the check runs in the preview frame (390 px, the respondent app does not
-  exist yet) on a fresh project: no side scroll in any layout (the frame's scrollWidth), and
+- Acceptance 3: the check ran in Build's preview at 390 px (since E5-6 the respondent app in
+  an iframe, on Phone) on a fresh project: no side scroll in any layout (the frame's scrollWidth), and
   every pill at least 38 px high. The pills are 38 px by docs/design-system.md (decision 0018
   item 4 said 36 and left the size open), not the 48 px this line asked for; the Back and
   Continue buttons are 48 (docs/review-list.md). E7-2 repeats the check at 375 by 667 on
