@@ -43,7 +43,7 @@ export async function seedSample(): Promise<SeedResult> {
 // One copy of the sample under the given workspace. Throws half way on a failure; the caller
 // decides what to remove.
 export async function seedSampleInto(ws: WorkspaceId, projectName: string): Promise<void> {
-  const project = await projects.create(ws, { ...sample.project, name: projectName });
+  const project = await projects.createSample(ws, { ...sample.project, name: projectName });
   const set = await itemSets.create(ws, { projectId: project.id, version: 1, source: "xlsx", sourceFilename: sample.sourceFilename, importReport: sample.importReport });
   const itemIds = new Map<number, string>();
   for (const it of sample.items) {

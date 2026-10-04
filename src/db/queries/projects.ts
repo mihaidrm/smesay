@@ -22,15 +22,23 @@ export type ProjectSummary = Project & { items: number; submitted: number; invit
 const base = scoped(project);
 class NotSampleError extends Error {}
 
-// The watermark goes only with the sample (stories/E8-8, acceptance 4): is_sample is set when
-// the sample is seeded (src/db/seed/sample-seed.ts, through create) and no update may carry
-// it, whatever the caller passes, so the only way to lose it is to delete the sample.
+// The watermark goes only with the sample (stories/E8-8, acceptance 4): is_sample is set only
+// when the sample is seeded (src/db/seed/sample-seed.ts, through createSample), any other
+// create or any update that carries it is refused, so the only way to lose it is to delete the
+// sample and the only way to get one is the seed.
 export class SampleFlagError extends Error {
   constructor() { super("project.is_sample is set when the sample is seeded and never changed (stories/E8-8)."); }
 }
 
 export const projects = {
   ...base,
+  // Only the seed makes a sample (createSample); any other create is refused the flag.
+  create: async (workspaceId: WorkspaceId, values: Parameters<typeof base.create>[1]): Promise<Project> => {
+    if ((values as { isSample?: boolean }).isSample) throw new SampleFlagError();
+    return base.create(workspaceId, values);
+  },
+  createSample: async (workspaceId: WorkspaceId, values: Parameters<typeof base.create>[1]): Promise<Project> =>
+    base.create(workspaceId, { ...values, isSample: true }),
   update: async (workspaceId: WorkspaceId, id: string, patch: Parameters<typeof base.update>[2]): Promise<Project | null> => {
     if (Object.hasOwn(patch, "isSample")) throw new SampleFlagError();
     return base.update(workspaceId, id, patch);

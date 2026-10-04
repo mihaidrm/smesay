@@ -32,6 +32,14 @@ test("sample project: the band on every step, delete from its header", async ({ 
   await steps.getByRole("link", { name: /Build/ }).click();
   await expect(page).toHaveURL(/\/build$/);
   await expect(page.getByTestId("sample-band")).toHaveText(band);
+  await steps.getByRole("link", { name: /Share/ }).click();
+  await expect(page).toHaveURL(/\/share$/);
+  await expect(page.getByTestId("sample-band")).toHaveText(band);
+  await steps.getByRole("link", { name: /Import/ }).click();
+  await expect(page).toHaveURL(/\/import$/);
+  await expect(page.getByTestId("sample-band")).toHaveText(band);
+  // The band is in the pinned header, so it stays in view while the page scrolls.
+  await expect(page.getByTestId("project-header").getByTestId("sample-band")).toBeVisible();
 
   await page.getByTestId("project-header").getByRole("button", { name: "Delete sample" }).click();
   await expect(page.getByTestId("delete-sample-confirm")).toContainText("The sample project and its invented answers are deleted. Your own projects are not affected.");

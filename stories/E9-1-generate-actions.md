@@ -24,6 +24,9 @@ it comes from; an action without a citation is never shown.
    uncited.
 6. Playwright: on the seeded project, Write actions (fake transport in test mode returns the
    four seeded actions), see four actions with citations.
+7. On the sample (E8-8, acceptance 1), the Actions tab shows its seeded actions (insight rows
+   with model "sample") with their citations, read-only like every step of the sample: no
+   Write actions, so no model call. Added 2026-10-04 (decision 0044) after E8-8's check.
 
 ## Out of scope
 - Editing an action's text: R2.

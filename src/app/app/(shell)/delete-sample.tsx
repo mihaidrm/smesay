@@ -1,5 +1,6 @@
 "use client";
-// Delete sample on the project list (stories/E8-8, acceptance 3, built with E3-1): the first
+// Delete sample on the project list and in the sample's header (stories/E8-8, acceptance 3,
+// built with E3-1): the first
 // press shows the confirm line from docs/copy/errors.md and the real button; Cancel puts the
 // row back. The action itself is deleteSampleAction.
 import { useState } from "react";

@@ -43,9 +43,12 @@ Built 2026-10-04 (decision 0044; docs/review-list.md):
 - Acceptance 1: the sample opens on Results (its furthest step, E8-1) with the Agreement tab,
   the registers, the Responses tab and the detail filled from the seed; Actions and Export
   fill with E9-1 and E10-1, and the exports carry the watermark there (E10-1, acceptance 4).
-  The header reads "[workspace] · sample project"; the band is drawn by the project frame
-  (src/app/app/(shell)/projects/[projectId]/layout.tsx) under the header on every step, and
-  by the sample's link page (src/app/r/[token]/page.tsx); neither can be dismissed.
+  The header reads "[workspace] · sample project"; the band is one component
+  (src/components/app/sample-band.tsx) drawn by the project frame
+  (src/app/app/(shell)/projects/[projectId]/layout.tsx) inside the pinned header on every
+  step, so it stays in view while the page scrolls, and by the sample's link page
+  (src/app/r/[token]/page.tsx); neither can be dismissed. The sample's Actions tab is E9-1's
+  acceptance 7.
 - Acceptance 2: Import (the About card), Shape (a line, new here), Build and Share are
   read-only on the sample with "The sample project cannot be edited."; the server refuses
   saves, Publish and invites on it (src/lib/projects.ts, src/lib/sharing.ts,
@@ -53,7 +56,8 @@ Built 2026-10-04 (decision 0044; docs/review-list.md):
 - Acceptance 3: Delete sample on the list (E3-1) and, here, on the sample's header in
   Archive's place, with the same confirm line and the same action.
 - Acceptance 4: projects.update refuses a patch that carries isSample (SampleFlagError),
-  whatever its value; src/lib/projects.test.ts checks it on the sample and on a PM's project.
+  whatever its value, and projects.create refuses isSample true; only the seed makes a sample
+  (projects.createSample). src/lib/projects.test.ts checks both.
 - Acceptance 5: e2e/sample.spec.ts opens the sample on Results, sees the band there, on
-  Shape (with its line) and on Build, deletes it from its header and sees it gone from the
-  list.
+  Shape (with its line), Build, Share and Import, deletes it from its header and sees it
+  gone from the list; e2e/respondent-start.spec.ts sees the band on the sample's link page.

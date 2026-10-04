@@ -23,7 +23,9 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page).toHaveURL(/\/app$/);
-  const sampleHref = (await page.getByTestId("sample-card").getByRole("link", { name: "Open the sample" }).getAttribute("href"))!.replace(/\/import$/, "");
+  // The sample opens on Results (E8-8); its project address is taken from the link.
+  const sampleId = (await page.getByTestId("sample-card").getByRole("link", { name: "Open the sample" }).getAttribute("href"))!.match(/projects\/([0-9a-f-]{36})/)![1];
+  const sampleHref = `/app/projects/${sampleId}`;
   await page.getByRole("link", { name: "New project" }).first().click();
   await page.getByLabel("Project name").fill("Expense tool");
   await page.getByRole("button", { name: "Create project" }).click();
@@ -106,5 +108,6 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await sampleTab.goto(sampleUrl);
   await expect(sampleTab.getByRole("heading", { name: "This is a sample link." })).toBeVisible();
   await expect(sampleTab.getByText("does not collect answers")).toBeVisible();
+  await expect(sampleTab.getByTestId("sample-band")).toBeVisible();
   await visitor.close();
 });

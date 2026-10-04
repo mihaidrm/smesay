@@ -116,6 +116,12 @@ describe("archive and the sample", () => {
     expect((await projects.get(ws, draft.id))?.isSample).toBe(false);
     // Archiving, the other helper that writes the row, cannot reach the sample (E3-1).
     await expect(setArchived(ws, sample.id, true)).rejects.toMatchObject({ status: 403 });
+    // Only the seed makes a sample: create refuses the flag.
+    await expect(projects.create(ws, { name: "Not a sample", isSample: true } as Parameters<typeof projects.create>[1])).rejects.toBeInstanceOf(SampleFlagError);
+    expect((await projects.summaries(ws)).filter((r) => r.isSample)).toHaveLength(1);
+    // The query helper behind archiving writes archived_at only.
+    await projects.setArchived(ws, sample.id, false);
+    expect((await projects.get(ws, sample.id))?.isSample).toBe(true);
   });
 
   it("deletes the sample with its responses and nothing else; a normal project is refused", async () => {
