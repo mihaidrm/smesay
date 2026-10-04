@@ -3,7 +3,8 @@
 // confidence (1 to 5 or null), closingAnswer, missing: { text, area, value } | null, base,
 // page, seq, after } (the version it was made on, the page, its number, the saves of other
 // pages it was made on top of: src/lib/respondent-rules.ts wrapTakes). 200 { saved: true,
-// version, writer, writerSeq }; 409 { error: "stale", wrap, version, writer, writerSeq } when
+// version, writer, writerSeq, changedSince (E7-6) }; 409 { error: "stale", wrap, version,
+// writer, writerSeq, changedSince } when
 // the stored Wrap up is not the one the write was made on; refusals { error } with the link's
 // statuses (404, 403, 409 not open yet, 410), 409 when this device has no response or not the
 // one named, 422 with the sentence (a confidence off the scale, text too long, a missing item

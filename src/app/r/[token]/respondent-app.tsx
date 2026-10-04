@@ -31,7 +31,10 @@
 // /r/[token]/submit and lands on the Done screen (?at=done: "Thank you, [NAME]." and the
 // time in UTC, with Change my answers, which reopens the Wrap up with the sign-off
 // cleared). The form is saved as the respondent writes (wrap-saver.ts) and cannot be changed
-// while Submit posts. A Submit that fails keeps everything and says so.
+// while Submit posts. A Submit that fails keeps everything and says so. E7-6: the
+// Done screen's summary line, and for a submitted response opened again "Welcome back,
+// [NAME]. You submitted on [DATE]. You can change your answers until [CLOSE DATE]." with
+// Change.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { cn } from "cn";
 import { AboutYou } from "@/components/respondent/about-you";
@@ -73,7 +76,10 @@ export type RespondentAppProps = {
   // A returning visit with answers (E7-4, acceptance 4): the first name and the count.
   welcome: { name: string | null; answered: number; total: number } | null;
   // A response already submitted (E7-5 and E7-6): when, and the first name for the thanks.
-  submitted: { at: string; name: string | null } | null;
+  submitted: { at: string; name: string | null; returning: boolean } | null;
+  // A submitted response with changes not submitted again (E7-6, acceptance 6).
+  changedSince: boolean;
+  closesAt: string | null;
   // The Wrap up as the server holds it and its version (E7-5), empty before a save.
   wrap: WrapValue;
   wrapSync: WrapSync;
@@ -103,6 +109,14 @@ export function RespondentApp(props: RespondentAppProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(props.submitted);
+  // E7-6: any change after a Submit takes the sign-off back on the server; the page says so
+  // on Done and on the Wrap up until the next Submit, as the server holds it: every answer to
+  // a save, a Start or a Submit carries changedSince. Between two Submits the server's state
+  // only goes from signed off to changed, so the page takes the first "changed" it hears and
+  // keeps it until a Submit, whatever order the answers arrive in; a change undone before it
+  // was saved, or kept from an earlier visit and sent on opening, reads as the server has it.
+  const [changedSince, setChangedSince] = useState(props.changedSince);
+  const heldSince = (since: boolean | null) => { if (since === true && submitted) setChangedSince(true); };
   const itemIds = useMemo(() => items.map((it) => it.id), [items]);
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -123,6 +137,7 @@ export function RespondentApp(props: RespondentAppProps) {
     // again for it.
     onStale: (value) => setWrapState({ ...value, signed: false }),
     clean: cleanWrap,
+    onSaved: heldSince,
   });
   const wrapNow = useRef(wrap);
   useEffect(() => { wrapNow.current = wrap; }, [wrap]);
@@ -138,7 +153,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
-    onSaved: () => { savedSinceStart.current = true; },
+    onSaved: (since) => { savedSinceStart.current = true; heldSince(since); },
     onGone: () => window.location.reload(),
     onNotStarted: () => lostResponse(),
   });
@@ -212,7 +227,7 @@ export function RespondentApp(props: RespondentAppProps) {
     setStartError(null);
     try {
       const response = await fetch(`/r/${encodeURIComponent(token)}/start`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fields: values, perspectives: chosen }) });
-      const body = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; response?: string };
+      const body = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; response?: string; changedSince?: unknown };
       if (!response.ok || !body.ok) {
         // A link that changed (closed, revoked) since the page opened: the page shows its state.
         if (response.status === 410 || response.status === 404 || response.status === 403 || response.status === 409) { window.location.reload(); return; }
@@ -231,6 +246,9 @@ export function RespondentApp(props: RespondentAppProps) {
         saver.bind(body.response);
         wrapSaver.bind(body.response);
       }
+      // A Start that changes the details or the picks of a submitted response takes its
+      // sign-off back, as the server does (E7-6).
+      if (typeof body.changedSince === "boolean") heldSince(body.changedSince);
       startedHere.current = true;
       savedSinceStart.current = false;
       setStarted(true);
@@ -278,18 +296,19 @@ export function RespondentApp(props: RespondentAppProps) {
       const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
-      const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue };
+      const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue; changedSince?: unknown };
       if (response.ok && body.submittedAt) {
         // The server holds the Wrap up now; the sign-off is ticked again for the next Submit
         // (Back from Done shows it unticked).
         wrapSaver.submitted(body.version, posted);
         setWrapState((w) => ({ ...w, signed: false }));
-        setSubmitted({ at: body.submittedAt, name: body.name ?? props.welcome?.name ?? firstName(fields) });
+        setChangedSince(false);
+        setSubmitted({ at: body.submittedAt, name: body.name ?? props.welcome?.name ?? submitted?.name ?? firstName(fields), returning: false });
         go({ kind: "done" });
         return;
       }
       // Another window or device changed the Wrap up since: it shows the stored one.
-      if (response.status === 409 && body.error === "stale") { wrapSaver.adopt(body); return; }
+      if (response.status === 409 && body.error === "stale") { wrapSaver.adopt(body); heldSince(body.changedSince === true); return; }
       if (response.status === 410 || response.status === 404 || (response.status === 403 && body.error !== RESPONDENT_ERRORS.planFull) || (response.status === 409 && body.error === "notOpen")) { window.location.reload(); return; }
       if (response.status === 409) { lostResponse(); return; }
       setSubmitError(body.error ?? RESPONDENT_COPY.submitFailed);
@@ -306,9 +325,11 @@ export function RespondentApp(props: RespondentAppProps) {
       <p>{RESPONDENT_COPY.answeredBefore(props.welcome.answered, props.welcome.total)}</p>
     </div>
   ) : null;
-  const banner = welcome || saver.offline || (saver.storageOff && !storageNoticeDone) ? (
+  const since = changedSince && submitted && screen.kind === "wrap" ? <p className="border-b border-sun bg-sun-soft px-5 py-2.5 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p> : null;
+  const banner = welcome || since || saver.offline || (saver.storageOff && !storageNoticeDone) ? (
     <>
       {welcome}
+      {since}
       {(saver.offline || (saver.storageOff && !storageNoticeDone)) && (
         <div className="flex flex-col gap-1 border-b border-sun bg-sun-soft px-5 py-2.5 text-sm text-sun-text" role="status" data-testid="saving-banner">
           {saver.offline && <p>{RESPONDENT_COPY.offline}</p>}
@@ -340,8 +361,10 @@ export function RespondentApp(props: RespondentAppProps) {
         <div className="flex min-h-screen flex-col" data-testid="done-screen">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
           <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8">
-            <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{RESPONDENT_COPY.thanks(submitted.name)}</h1>
-            <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
+            <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{submitted.returning ? RESPONDENT_COPY.welcomeSubmitted(submitted.name) : RESPONDENT_COPY.thanks(submitted.name)}</h1>
+            <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
+            {changedSince && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p>}
+            <p className="text-[15px] leading-[23px]" data-testid="done-summary">{RESPONDENT_COPY.summary({ agreed: tally.agreed, changed: tally.higher + tally.lower, notNeeded: tally.notNeeded, unclear: tally.unclear, rated: tally.rated, added: wrap.missing.text.trim() ? 1 : 0 }, !instrument.showProposed)}</p>
             <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
           </main>
         </div>

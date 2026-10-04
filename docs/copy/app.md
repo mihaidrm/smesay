@@ -317,7 +317,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Submit and the line under it | Submit; "Still needed: [N] items, your details on About you, how confident you are, the confirmation." (the parts that apply) or "Everything is in. Submit when you are ready."; while posting: Submitting |
 | Sections (E7-5; agreed items are not listed) | Higher priority [N], Lower priority [N], Not needed [N], Your questions [N]: each row the reference, the item, the value picked and the reason or question, [Button: Change] (named "Change: [ITEM]" for screen readers) |
 | Tally on the live link (E7-5) | the five tiles with the respondent's counts; "Rated" appears beside them when an item had no proposal |
-| Done (E7-5; E7-6 adds the summary line and the welcome back) | Thank you, [FIRST NAME]. (Thank you. without a name) Submitted [DATE], [HH:MM] UTC. [Button: Change my answers] (reopens the Wrap up with the sign-off cleared) |
+| Done (E7-5 and E7-6) | Thank you, [FIRST NAME]. (Thank you. without a name) Submitted [DATE], [HH:MM] UTC. Then the summary line: [N] agreed, [N] changed, [N] not needed, [N] unclear, [N] items added (with ", [N] rated" after "changed" when items without a proposal were rated; rate-blind: [N] rated, [N] not needed, [N] unclear, [N] items added). After a change not submitted again (E7-6), on Done and over the Wrap up: You changed answers after submitting. Submit again to send them. [Button: Change my answers] (reopens the Wrap up with the sign-off cleared) |
 | Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview; once everything is picked the line under it says "Submit is off in the preview.") |
 
 ## Import, column mapping (E3-3)

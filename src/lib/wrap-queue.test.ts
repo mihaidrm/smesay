@@ -6,9 +6,8 @@
 // out; which changes go in the queue; Wrap ups compared as the server stores them.
 import { describe, expect, it } from "vitest";
 import { nextEntry } from "@/lib/answer-queue";
-import { EMPTY_WRAP, type WrapValue } from "@/lib/respondent-rules";
-import { EMPTY_WRAP as EMPTY, sameWrap } from "@/lib/respondent-rules";
-import { rebasedWrap, restorableWrap, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry } from "@/lib/wrap-queue";
+import { EMPTY_WRAP, sameWrap, type WrapValue } from "@/lib/respondent-rules";
+import { answered, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry } from "@/lib/wrap-queue";
 
 const P = "page-wrap-0001";
 const Q = "page-wrap-0002";
@@ -91,8 +90,8 @@ describe("the Wrap up's device queue", () => {
 
   it("compares Wrap ups as the server stores them", () => {
     expect(sameWrap(value("Export to CSV "), value("Export to CSV"))).toBe(true);
-    expect(sameWrap({ ...EMPTY, missing: { text: " ", area: "Submitting", value: "S" } }, EMPTY)).toBe(true);
-    expect(sameWrap({ ...EMPTY, missing: { text: "Mileage", area: "Submitting", value: "" } }, { ...EMPTY, missing: { text: "Mileage ", area: "", value: "" } })).toBe(false);
+    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: " ", area: "Submitting", value: "S" } }, EMPTY_WRAP)).toBe(true);
+    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: "Mileage", area: "Submitting", value: "" } }, { ...EMPTY_WRAP, missing: { text: "Mileage ", area: "", value: "" } })).toBe(false);
     expect(sameWrap(value("A", 3), value("A", 4))).toBe(false);
     // A kept change that landed trimmed (its keepalive) is not "changed elsewhere".
     const raw = withWrapEntry("r1", entry(value("Export to CSV "), 1, 2, Q));
@@ -119,5 +118,22 @@ describe("the Wrap up's device queue", () => {
     expect(wrapReplyStep(200, { version: 2 }, sent, newer, P, 3)).toMatchObject({ outcome: "saved", held: null, rebase: null, done: false, changedElsewhere: false });
     expect(wrapReplyStep(409, { error: "stale", version: 2, writer: Q, writerSeq: 1, wrap: value("Other") }, sent, null, P, 3)).toMatchObject({ held: null, changedElsewhere: false });
     expect(wrapReplyStep(200, { version: 3 }, newer, newer, P, 3)).toMatchObject({ held: value("Fine, thanks"), done: true });
+  });
+
+  it("sends the next change at once only when nothing else holds it, and drops a retry once answered", () => {
+    const sent = entry(value("A"), 1, 1);
+    const next = entry(value("AB"), 1, 2);
+    const free = { inflight: false, timer: false, retry: false };
+    expect(sendsNext(next, sent, free)).toBe(true);
+    expect(sendsNext({ ...sent }, sent, free)).toBe(false);
+    expect(sendsNext(null, sent, free)).toBe(false);
+    expect([sendsNext(next, sent, { ...free, inflight: true }), sendsNext(next, sent, { ...free, timer: true }), sendsNext(next, sent, { ...free, retry: true })]).toEqual([false, false, false]);
+    // Saved with a newer change waiting (rebased), saved, refused: answered; a failure is not.
+    expect(answered(wrapReplyStep(200, { version: 4 }, sent, next, P, 3))).toBe(true);
+    expect(answered(wrapReplyStep(200, { version: 4 }, sent, sent, P, 3))).toBe(true);
+    expect(answered(wrapReplyStep(422, { error: "No." }, sent, sent, P, 0))).toBe(true);
+    expect(answered(wrapReplyStep(500, {}, sent, sent, P, 0))).toBe(false);
+    // A reply with no readable version still settles the change (as the cards' does).
+    expect(wrapReplyStep(200, {}, sent, sent, P, 3)).toMatchObject({ done: true, failed: false });
   });
 });

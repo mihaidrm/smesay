@@ -69,6 +69,14 @@ export const RESPONDENT_COPY = {
   submittedAt: (when: string) => `Submitted ${when}`,
   changeMine: "Change my answers",
   needFields: "your details on About you",
+  // After Submit (E7-6; docs/copy/errors.md, the submitted pages).
+  summary: (n: { agreed: number; changed: number; notNeeded: number; unclear: number; rated: number; added: number }, blind: boolean) =>
+    `${blind ? `${n.rated} rated` : `${n.agreed} agreed, ${n.changed} changed${n.rated > 0 ? `, ${n.rated} rated` : ""}`}, ${n.notNeeded} not needed, ${n.unclear} unclear, ${n.added} ${n.added === 1 ? "item" : "items"} added`,
+  // E7-6, acceptance 6: a change after Submit, not submitted again.
+  changedSince: "You changed answers after submitting. Submit again to send them.",
+  welcomeSubmitted: (name: string | null) => (name ? `Welcome back, ${name}.` : "Welcome back."),
+  submittedOn: (when: string, closes: string | null) => (closes ? `You submitted on ${when}. You can change your answers until ${closes}.` : `You submitted on ${when}. You can change your answers while the link is open.`),
+  closedSubmitted: (when: string, closed: string, changed: boolean) => `Your answers were submitted on ${when}.${changed ? " You changed some after that and did not submit them again." : ""} The link closed on ${closed}; nothing can be changed now.`,
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -416,3 +424,13 @@ export function parseSubmitInput(raw: unknown, ctx: WrapCtx): { error: string } 
   if (wrap.input.confidence === null) return { error: RESPONDENT_ERRORS.confidence };
   return { input: { ...wrap.input, confidence: wrap.input.confidence } };
 }
+
+// The PM's "changed after submitting" mark (E7-6, acceptance 4; shown by the tracker, E8-2):
+// an answer, the Wrap up or the About you details changed after the first Submit (the last
+// save is later). A Submit and a Start that changes nothing do not move the last save.
+export function changedAfterSubmit(r: { firstSubmittedAt: Date | null; updatedAt: Date }): boolean {
+  return r.firstSubmittedAt !== null && r.updatedAt.getTime() > r.firstSubmittedAt.getTime();
+}
+// A submitted response with changes not submitted again (E7-6, acceptance 6): every change
+// takes the sign-off back until the next Submit.
+export const changedSinceSubmit = (r: { submittedAt: Date | null; signedOff: boolean }): boolean => r.submittedAt !== null && !r.signedOff;

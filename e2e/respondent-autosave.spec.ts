@@ -111,8 +111,9 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   await laptop.addCookies(await phone.cookies());
   const desk = await laptop.newPage();
   await desk.goto(`${url}?at=1`);
-  // Typed only once the page has hydrated: before that, React puts the server's value back
-  // between Playwright's select-all and its typing.
+  // Typed only once the page has hydrated (data-ready). Typed into before, the run failed 1 in
+  // 2 with the old value left after the new text; that hydration put the server's value back
+  // between Playwright's select-all and its typing is unverified.
   await desk.locator("[data-ready]").waitFor();
   const receiptsDesk = desk.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
   await receiptsDesk.getByTestId("card-reason").fill("Newer, from the laptop.");

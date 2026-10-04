@@ -65,7 +65,9 @@ export type SaverEvents = {
   // Another window or device changed the answer; the card shows the stored one.
   onStale: (itemId: string, answer: AnswerState) => void;
   // The server took an answer for this device's response (the cookie works).
-  onSaved: () => void;
+  // A save the server took or answered stale for, and whether the response is submitted with
+  // changes not submitted again (E7-6), or null when the answer does not say.
+  onSaved: (changedSince: boolean | null) => void;
 };
 
 let probed: { storage: Storage | null } | null = null;
@@ -206,7 +208,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
         setDone((d) => ({ ...d, [itemId]: taken.complete }));
       }
       if (step.failed !== null) markFailed(itemId, step.failed);
-      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved();
+      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved(typeof body.changedSince === "boolean" ? body.changedSince : null);
       if (step.rebase !== null && current) {
         // A newer change waits: it goes on top of the page's own confirmed save.
         const base = step.rebase;

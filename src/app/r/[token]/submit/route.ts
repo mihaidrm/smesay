@@ -4,7 +4,7 @@
 // submitResponse (src/lib/respondent.ts): the link open for this device (404, 403, 409 not
 // open yet, 410), the response started and the one named (409), the Wrap up changed in
 // another window or on another device since the page's values (409 { error: "stale", wrap,
-// version, writer, writerSeq }), every item complete and the rest of the Wrap up (422 with
+// version, writer, writerSeq, changedSince }), every item complete and the rest of the Wrap up (422 with
 // the sentence), the plan's monthly responses (403). JSON only, up to 16 KB
 // (src/lib/request-json.ts). The answer is { submittedAt (ISO, UTC), name (the first name for
 // the thanks, or null), version (the Wrap up's) } or { error }. The
