@@ -82,28 +82,31 @@ test("a click on the Shape switch before the turn holds it", async ({ page }) =>
   await expect(shape).toHaveAttribute("data-side", "Your sheet");
 });
 
-// The comparison with the usual ways (design note 58): six points, the switch changes the
-// Today column and keeps the SMEsay one, and a phone does not scroll sideways.
+// The comparison with the usual ways (design note 58): the nav link scrolls to it, six
+// points, the switch changes the Today column and leaves the whole SMEsay column as it was,
+// and a phone shows the short label and does not scroll sideways.
 test("the comparison with a spreadsheet, a form and a workshop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/landing-page");
   await page.getByRole("link", { name: "Compare" }).click();
+  await expect(page.getByRole("heading", { name: "Why not a spreadsheet, a form or a workshop?" })).toBeInViewport();
   const compare = page.getByTestId("compare");
-  await expect(page.getByRole("heading", { name: "Why not a spreadsheet, a form or a workshop?" })).toBeVisible();
   await expect(page.getByTestId("compare-row")).toHaveCount(6);
   await expect(compare).toHaveAttribute("data-way", "sheet");
-  await expect(page.getByTestId("compare-today").first()).toHaveText("You send the sheet as it is, codes and jargon included.");
-  const smesay = await page.getByTestId("compare-row").first().innerText();
+  await expect(page.getByTestId("compare-today").first()).toHaveText("The sheet goes out in the words your team wrote it in, unless you rewrite it first.");
+  const smesay = await page.getByTestId("compare-smesay").allInnerTexts();
+  expect(smesay).toHaveLength(6);
   await compare.getByRole("button", { name: "Workshop" }).click();
   await expect(compare.getByRole("button", { name: "Workshop" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("compare-today").nth(4)).toHaveText("The loudest voices tend to set the direction. Quiet and remote experts say less.");
-  expect(await page.getByTestId("compare-row").first().innerText()).toContain("Import the sheet you already have.");
-  expect(smesay).toContain("Import the sheet you already have.");
+  await expect(page.getByTestId("compare-today").nth(4)).toHaveText("The loudest voices tend to set the direction. Quiet and remote experts tend to say less.");
+  expect(await page.getByTestId("compare-smesay").allInnerTexts()).toEqual(smesay);
   await compare.getByRole("button", { name: "Survey form" }).click();
-  await expect(page.getByTestId("compare-today").first()).toHaveText("You rebuild the list in the form builder, one question at a time.");
+  await expect(page.getByTestId("compare-today").first()).toHaveText("You turn the list into form questions, in the words your team wrote it in.");
+  expect(await page.getByTestId("compare-smesay").allInnerTexts()).toEqual(smesay);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await compare.scrollIntoViewIfNeeded();
+  await expect(compare.getByRole("button", { name: "Spreadsheet", exact: true })).toBeVisible();
   const widths = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(widths[0]).toBeLessThanOrEqual(widths[1]);
 });

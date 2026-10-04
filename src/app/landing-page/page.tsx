@@ -106,7 +106,7 @@ export default function LandingPage() {
         <CursorLight />
         <div className="relative mx-auto flex h-[76px] w-full max-w-[1200px] items-center justify-between px-5 md:px-8">
           <Link href="/landing-page" className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#9B86FF]"><Lockup text={18} onInk /></Link>
-          <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] md:gap-[30px]">
+          <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] lg:gap-[30px]">
             <a href="#how" className={navLink}>How it works</a>
             <a href="#outputs" className={navLink}>What you get</a>
             <a href="#compare" className={navLink}>Compare</a>
@@ -224,7 +224,7 @@ export default function LandingPage() {
             <CompareDemo />
           </Reveal>
           <Reveal delay={240} className="mt-6 max-w-[720px] text-[16px] leading-6 text-[#5E5A72]">
-            <p>It does not replace the meeting. It gives the meeting the answers and the open points to start from.</p>
+            <p>It does not replace the meeting where you decide. It gives that meeting the answers and the open points to start from.</p>
           </Reveal>
         </div>
       </section>

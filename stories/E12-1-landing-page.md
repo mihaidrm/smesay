@@ -67,9 +67,10 @@ against the way the visitor picks, with Compare in the nav. Acceptance 1, 6 and 
   they stay ink (decision 0031, 0016).
 
 ## Technical notes
-src/app/landing-page/page.tsx with the sections inline, four client components
+src/app/landing-page/page.tsx with the sections inline, five client components
 (cursor-light.tsx for the glow, reveal.tsx for the rise on scroll through
-IntersectionObserver, shape-demo.tsx and results-demo.tsx for the two switches), the motion keyframes in src/app/globals.css (landing-pulse,
+IntersectionObserver, shape-demo.tsx, results-demo.tsx and compare-demo.tsx for the three
+switches), the motion keyframes in src/app/globals.css (landing-pulse,
 landing-float, landing-rise). The landing keeps its own light and dark sections whatever the
 app's mode, so its colours are written out rather than read from the mode tokens.
 
@@ -98,9 +99,12 @@ Shape card's turn (2 tests, both passed).
 
 ## Build record, 2026-10-04 (the comparison)
 
-Design note 58. e2e/landing.spec.ts: 4 tests, all passed on the dev server (the new one: six
-points, the switch changes the Today column, no side scroll at 390). Lighthouse CLI 13.5.0 on
-the production build, mobile form factor, Chromium 1194: performance 97, accessibility 100,
-best practices 100, SEO 100; LCP 2.6 s, CLS 0, TBT 50 ms. axe-core (WCAG 2.0 A and AA, best
-practice) through Playwright after scrolling the whole page: 0 violations at 390 and at 1440,
-every section shown.
+Design note 58. e2e/landing.spec.ts: 4 tests, all passed on the dev server (the new one: the
+nav link brings the section into view, six points, the switch changes the Today column and
+leaves the SMEsay column as it was, the short label and no side scroll at 390). Lighthouse
+CLI 13.5.0 on the production build, mobile form factor, Chromium 1194: performance 97,
+accessibility 100, best practices 100, SEO 100; LCP 2.6 s, CLS 0, TBT 50 ms. axe-core 4.13.0
+(WCAG 2.0 A and AA, 2.1 AA, best practice) through Playwright after scrolling the whole page:
+0 violations, 38 rules passed, at 390 and at 1440, every section shown. After the audit the
+same day: one column under 1024 px, the nav gap at 768, the switch's focus ring whole, every
+SMEsay line with its condition, the survey form lines true of the common tools.
