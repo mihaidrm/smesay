@@ -179,6 +179,18 @@ renewInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) 
 src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
 ({ status: 200 | 404 | 410, state }) and GET /r/[token]/state (the same, as JSON { state },
 no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
+The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
+src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
+revoked, passcode, or ready with the device's response, the items and areas, the answers);
+startResponse(token, cookies, body, now) (POST /r/[token]/start, JSON { fields,
+perspectives }; refusals 404, 403, 409, 410, 422 with the sentence; a public link's first
+Start returns the device token for the smesay-device cookie on the link's path);
+openLinkFor(token, cookies, now) (the same check for every respondent write);
+responses.forDevice(ws, inviteId, deviceToken), responses.startPersonal(ws, data) (one
+response per personal invite, under the invite row's lock), answers.forResponse(ws,
+responseId). Client-safe rules in src/lib/respondent-rules.ts: parseFieldValues,
+parsePicks, carriedFields, chaptersFor (RespondentItem, AreaMeta, Chapter), isComplete,
+answeredCount, parseScreen.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

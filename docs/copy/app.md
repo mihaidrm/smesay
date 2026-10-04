@@ -272,14 +272,16 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Preview strip (E5-6, acceptance 4) | Preview: nothing you enter here is saved |
-| Header | [WORKSPACE INITIALS] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
+| Header | [WORKSPACE LOGO at 24 px, or the INITIALS when there is none] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
 | Personal link (E6-2), above the fields | Answering as [NAME], [ROLE]. The person who invited you filled this in. Tell them if it is wrong. (the fields the invite carries are not asked) |
 | Title and intro | [INSTRUMENT TITLE], [INTRO] |
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |
 | Dropdown first option | Choose one |
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
-| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
+| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
+| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] |
+| Chapter name for items with no area (E7-1; the Build preview uses it too) | Other items |
 | Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
 | Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |

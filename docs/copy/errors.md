@@ -182,6 +182,8 @@ of the content; page means it replaces the screen.
 | Page (already on the board) | Link revoked | Link inactive. The project team at [WORKSPACE] withdrew this link. If you were asked to answer, ask them for a new one. Nothing was saved from this visit. |
 | Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
+| Page (E7-1) | The sample project's link (it never collects answers, E8-8 acceptance 2) | This is a sample link. It belongs to the sample project in [WORKSPACE] and does not collect answers. Ask the person who sent it for the real link. |
+| Page, under the closed line (E7-1, acceptance 3) | A closed personal link whose respondent started and did not submit | You answered [N] of [M] items before it closed. They were not submitted; the project team sees them marked as not submitted. |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
 | Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 60 per link, in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
 | Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |
@@ -196,6 +198,11 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Note under the Start button (already on the board) | A required field empty, the required fields being exactly Name and Role | Fill in your name and role to start. |
 | Note under the Start button (decision 0043) | A required field empty, any other set of required fields | Fill in the required fields to start. |
+| Note under the Start button (E7-1) | Start did not reach the server, or the server failed | Your details were not saved. Check your connection and press Start again. |
+| Note under the Start button (E7-1), from the server | A dropdown value that is not one of its options (a stale page) | Pick one of the options for [LABEL]. |
+| Note under the Start button (E7-1), from the server | An email field that is not an address | [TEXT] is not an email address. Check it and try again. |
+| Note under the Start button (E7-1), from the server | A field over 200 characters | Keep [LABEL] to 200 characters. |
+| Note under the Start button (E7-1), from the server | The form did not arrive as JSON, or a perspective not on the list (a stale page) | Your details did not reach the server as a form. Reload the page and try again. / Pick the perspectives from the list on the page. Reload the page and try again. |
 | Card note (already on the board) | Not rated | Not rated yet |
 | Card note (already on the board) | Different priority or Not needed, no reason | Say why. |
 | Card note (already on the board) | Unclear, no question | Write your question. |

@@ -12,13 +12,15 @@
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
-import { initials } from "@/components/app/tiles";
+import { RespondentHeader } from "./respondent-header";
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
 
 export type AboutYouProps = {
   workspaceName: string;
+  // The workspace's logo (E7-1, acceptance 1); the initials when there is none.
+  logoUrl?: string | null;
   // The header's note, "Closes [DATE]" on a live link (stories/E6-1, acceptance 5; E7-1).
   headerNote?: string | null;
   // effectiveAccent() of the workspace (src/lib/brand-rules.ts): at least 4.5 to 1 on white,
@@ -31,6 +33,12 @@ export type AboutYouProps = {
   // fields only (the page filters them): a field with one is not asked; the About you page
   // says who is answering instead.
   prefilled?: ResponseFields;
+  // The values and picks saved on this device's response (E7-1: About you again after Start).
+  initialValues?: ResponseFields;
+  initialPicks?: string[];
+  // Start's state on the real page: the request in flight, and the sentence when it failed.
+  starting?: boolean;
+  startError?: string | null;
   // The first chapter's name for the Start label; null while the list has no areas.
   firstChapter: string | null;
   // The perspectives to pick from (stories/E5-4); none means the question is not asked.
@@ -44,17 +52,17 @@ export type AboutYouProps = {
   heading?: "h1" | "h4";
   // The part the Build step rings in the preview (stories/E5-6, acceptance 2).
   ring?: "fields";
-  onStart?: (values: ResponseFields) => void;
+  onStart?: (values: ResponseFields, picks: string[]) => void;
   className?: string;
 };
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function AboutYou({ workspaceName, headerNote = null, accent, title, intro, fields, prefilled, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
-  const [values, setValues] = useState<ResponseFields>(prefilled ?? {});
+export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
+  const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
   const asked = fields.filter((f) => !prefilled?.[f.key]);
   const filled = fields.flatMap((f) => (prefilled?.[f.key] ? [prefilled[f.key]] : []));
-  const [ownPicks, setOwnPicks] = useState<string[]>([]);
+  const [ownPicks, setOwnPicks] = useState<string[]>(initialPicks ?? []);
   const picks = picked ?? ownPicks;
   const togglePick = (name: string) => {
     const next = picks.includes(name) ? picks.filter((p) => p !== name) : [...picks, name];
@@ -68,11 +76,7 @@ export function AboutYou({ workspaceName, headerNote = null, accent, title, intr
   return (
     <div className={cn("flex min-h-full flex-col bg-ground text-ink", className)} data-testid="about-you" data-preview={preview || undefined}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
-      <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
-        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-extrabold text-white" style={{ background: accent }}>{initials(workspaceName)}</span>
-        <span className="grow text-[15px] font-bold">{workspaceName}</span>
-        {headerNote && <span className="font-mono text-xs text-ink-muted" data-testid="about-you-note">{headerNote}</span>}
-      </header>
+      <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} noteTestId="about-you-note" />
       <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
         <div className="flex flex-col gap-1">
           <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{title}</Heading>
@@ -124,10 +128,10 @@ export function AboutYou({ workspaceName, headerNote = null, accent, title, intr
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" disabled={disabled} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview) onStart?.(values); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="about-you-start">
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
-        <div id={`${prefix}-hint`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="about-you-hint">{disabled ? startHint(fields) : ""}</div>
+        <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
       </div>
     </div>
   );

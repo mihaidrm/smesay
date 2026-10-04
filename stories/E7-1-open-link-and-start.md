@@ -1,7 +1,7 @@
 # E7-1 Open a link, fill the mandatory fields, start
 
 User: an expert who got a link on their phone
-Status: ready
+Status: built
 Outcome: the link opens without an account on any current browser, About you takes the
 fields the PM asked for, and Start lands on the first chapter.
 
@@ -45,3 +45,28 @@ outsiders: the sample instrument is treated as not published to the public (E8-8
 The respondent app lives under src/app/r/[token]/ and never imports the PM app's session
 helpers: access is by token (E1-3, out of scope note). The device token for a public link is
 created on Start and stored in a cookie scoped to /r/[token] (E7-3).
+
+Built 2026-10-04 (design note 50, decision 0044):
+- Acceptance 1: /r/[token] renders About you with the header (the workspace's logo at 24 px
+  or its initials, the name, "Closes [DATE]"), the intro, the PM's fields, the perspectives
+  question, Start and "Powered by SMEsay" (src/app/r/[token]/page.tsx, respondent-app.tsx,
+  src/components/respondent/about-you.tsx and respondent-header.tsx). A personal link shows
+  "Answering as" and does not ask the carried fields; "Welcome back" with the count is E7-4's.
+- Acceptance 2: Start disabled at 40 percent with the hint until the mandatory fields are
+  filled (E5-1, decision 0043); the server checks the same and more
+  (src/lib/respondent-rules.ts parseFieldValues); dropdowns are native selects at 48 px.
+- Acceptance 3: every link state has its page (unknown, not yet open, closed, revoked,
+  passcode, attempts exceeded, and the sample's own page); a closed public link shows no
+  per-device state; a closed personal link shows the respondent's own count.
+- Acceptance 4: Playwright runs Chromium at 390 by 844 and 1440 by 900
+  (e2e/respondent-start.spec.ts); Mihai checks iOS and Android on his devices.
+- Acceptance 5: About you sits in a 560 px column on the desktop; a chapter in 1000 px with
+  two card columns.
+- Acceptance 6: e2e/respondent-start.spec.ts opens a published project's link (the sample's
+  link collects nothing, docs/review-list.md), fills Name and Role, starts, sees the first
+  chapter with its cards, reloads onto the same chapter, and sees the sample link's page.
+- Start: POST /r/[token]/start (start/route.ts) creates the response (one per personal
+  invite, under the invite row's lock; one per device on the public link, keyed by the
+  device cookie) or updates its fields; src/lib/respondent.test.ts covers the rules, the
+  race on a personal link, the cookie, and the refusals on passcode, sample, not-yet-open,
+  closed and revoked links.
