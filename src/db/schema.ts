@@ -287,6 +287,12 @@ export const response = pgTable("response", {
   firstSubmittedAt: ts("first_submitted_at"),
   closingAnswer: text("closing_answer"),
   signOffText: text("sign_off_text"),
+  // E7-5: the Wrap up's version (its confidence, closing answer and missing item), counted up
+  // on every write, the open page that wrote it last and that page's number for the write; the
+  // same rule as an answer's (below; src/db/queries/responses.ts).
+  wrapVersion: integer("wrap_version").notNull().default(0),
+  wrapWriter: text("wrap_writer"),
+  wrapWriterSeq: integer("wrap_writer_seq").notNull().default(0),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 }, (t) => [

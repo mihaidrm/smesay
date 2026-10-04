@@ -2,116 +2,282 @@
 // The Wrap up's saver (stories/E7-5): the missing item, the closing answer and confidence go
 // to PUT /r/[token]/wrap as the respondent writes them, within a second like the cards
 // (answer-saver.ts; the same timing: src/lib/answer-queue.ts delayFor), one request at a time,
-// the newest values each time (they replace the stored ones whole). The page keeps them on the
-// device until the server holds them (smesay-wrap:[token]), so a closed tab loses nothing;
-// `onHeld` says when the server holds what the page shows. A request that fails retries every
-// 5 seconds with "Not saved" in the header; a link that stopped being open reloads the page;
-// a response not this device's returns the respondent to About you; a refusal (422) shows its
-// sentence under Submit. Submit carries the same values, so before it posts, `settle` drops
-// what waits and lets a request in flight finish, so an older save never lands after it.
+// the newest values each time (they replace the stored ones whole). Ticking the sign-off
+// sends nothing: it is never saved, only posted with Submit. A change that says what the
+// server holds sends nothing either.
+//
+// Every write carries the Wrap up's version it was made on, this page's id and its number for
+// the write, and the saves of other pages it was made on top of; the server takes it by the
+// cards' rule or answers "stale" with the stored Wrap up (src/lib/wrap-queue.ts). A stale
+// reply that is the page's own changes nothing on screen; any other came from another window
+// or device, and the page shows the stored Wrap up with a sentence (`notice`). No clock
+// decides, so an old change kept on a device never replaces a newer one.
+//
+// The change the server has not confirmed is kept on the device under smesay-wrap:[token],
+// tied to the response, until the server holds it; a page that opens shows it and sends it
+// with the version, page and number it was kept with, when the server holds nothing newer
+// (restorableWrap), and otherwise drops it and says so. When the page is hidden or closed the
+// waiting change goes out once more with keepalive (developer.mozilla.org/docs/Web/API/
+// RequestInit, keepalive; developer.mozilla.org/docs/Web/API/Window/pagehide_event). A
+// request that fails retries every 5 seconds with "Not saved" in the header; a link that
+// stopped being open reloads the page; a response not this device's returns the respondent to
+// About you; a refusal (422) shows its sentence. Submit first waits for what waits (`settle`:
+// sent at once, nothing dropped, so a Submit that fails loses nothing), then posts with the
+// version the page holds (`claim`).
 import { useCallback, useEffect, useRef, useState } from "react";
-import { delayFor, outcomeOf, RETRY_MS, SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
-import type { WrapValue } from "@/lib/respondent-rules";
+import { delayFor, nextEntry, RETRY_MS, SAVE_TIMEOUT_MS, settleState } from "@/lib/answer-queue";
+import { EMPTY_WRAP, RESPONDENT_ERRORS, sameWrap, wrapKey, type SaveRef, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
+import { rebasedWrap, restorableWrap, withoutWrapEntry, withWrapEntry, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
+import { newPageId } from "./answer-saver";
 
-export type WrapSaverEvents = { onGone: () => void; onNotStarted: () => void; onHeld: () => void };
-
-const bodyOf = (response: string, value: WrapValue) => {
-  const missing = value.missing.text.trim() ? { text: value.missing.text, area: value.missing.area || null, value: value.missing.value || null } : null;
-  return JSON.stringify({ response, confidence: value.confidence, closingAnswer: value.closingAnswer, missing });
+export type WrapSaverEvents = {
+  onGone: () => void;
+  onNotStarted: () => void;
+  // The kept change the page opened with, and the stored Wrap up another window or device
+  // wrote: the page shows them.
+  onRestore: (value: WrapValue) => void;
+  onStale: (value: WrapValue) => void;
+  // A missing item's area the list no longer offers is not sent.
+  clean: (value: WrapValue) => WrapValue;
 };
 
-export function useWrapSaver(token: string, responseId: string | null, events: WrapSaverEvents) {
+const bodyOf = (response: string, entry: WrapEntry) => {
+  const v = entry.draft;
+  const missing = v.missing.text.trim() ? { text: v.missing.text, area: v.missing.area || null, value: v.missing.value || null } : null;
+  return JSON.stringify({ response, confidence: v.confidence, closingAnswer: v.closingAnswer, missing, base: entry.base, page: entry.page, seq: entry.seq, after: entry.after });
+};
+
+export function useWrapSaver(token: string, responseId: string | null, server: { wrap: WrapValue } & WrapSync, events: WrapSaverEvents) {
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const latest = useRef<WrapValue | null>(null);
-  const inflight = useRef<Promise<void> | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const key = wrapKey(token);
+  // What the server holds and its version, as far as this page knows.
+  const held = useRef(server.wrap);
+  const known = useRef(server.version);
+  // The newest change the server has not confirmed, and the one in flight.
+  const current = useRef<WrapEntry | null>(null);
+  const inflight = useRef<WrapEntry | null>(null);
+  const hideSent = useRef<string | null>(null);
+  const seq = useRef(0);
+  const page = useRef<string | null>(null);
+  const pageId = useCallback(() => (page.current ||= newPageId()), []);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const firstAt = useRef<number | null>(null);
   const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const failing = useRef(false);
+  // How many replies refused the Wrap up or showed another window's (for settle).
+  const upsets = useRef(0);
   const alive = useRef(true);
   const eventsRef = useRef(events);
   useEffect(() => { eventsRef.current = events; }, [events]);
   const responseRef = useRef(responseId);
   useEffect(() => { responseRef.current = responseId; }, [responseId]);
-  const sendRef = useRef<() => void>(() => {});
+  const sendRef = useRef<(keepalive?: boolean) => Promise<void>>(async () => {});
 
-  const send = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
-    const value = latest.current;
+  const update = useCallback((change: (raw: string | null) => string | null) => {
+    try {
+      const store = window.localStorage;
+      const next = change(store.getItem(key));
+      if (next === null) store.removeItem(key);
+      else store.setItem(key, next);
+    } catch { /* Kept in the page only. */ }
+  }, [key]);
+  const markFailed = useCallback((on: boolean) => { failing.current = on; setFailed(on); }, []);
+  const scheduleRetry = useCallback(() => { if (!retry.current) retry.current = setTimeout(() => { retry.current = null; void sendRef.current(); }, RETRY_MS); }, []);
+  const clearTimer = useCallback(() => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } }, []);
+
+  const send = useCallback(async (keepalive = false) => {
+    const entry = current.current;
     const response = responseRef.current;
-    if (!value || !response || inflight.current) return;
-    firstAt.current = null;
-    const run = (async () => {
-      try {
-        const reply = await fetch(`/r/${encodeURIComponent(token)}/wrap`, { method: "PUT", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: bodyOf(response, value) });
-        if (!alive.current || responseRef.current !== response) return;
-        const body = (await reply.json().catch(() => ({}))) as { error?: string };
-        const outcome = outcomeOf(reply.status, body.error);
-        if (outcome === "saved") {
-          setFailed(false);
-          setError(null);
-          if (latest.current === value) { latest.current = null; eventsRef.current.onHeld(); }
-          return;
-        }
-        if (outcome === "gone") { eventsRef.current.onGone(); return; }
-        if (outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
-        if (outcome === "refused") { if (latest.current === value) latest.current = null; setError(body.error ?? null); return; }
-        throw new Error("retry");
-      } catch {
-        if (!alive.current || responseRef.current !== response) return;
-        setFailed(true);
-        if (!retry.current) retry.current = setTimeout(() => { retry.current = null; sendRef.current(); }, RETRY_MS);
-      } finally {
-        inflight.current = null;
+    if (!entry || !response) return;
+    if (keepalive) {
+      // pagehide and visibilitychange both fire when a tab closes: one keepalive copy.
+      const id = `${entry.page}:${entry.seq}`;
+      if (hideSent.current === id) return;
+      hideSent.current = id;
+    } else {
+      if (inflight.current) return;
+      clearTimer();
+      inflight.current = entry;
+      firstAt.current = null;
+    }
+    const settled = () => { if (!keepalive && inflight.current === entry) inflight.current = null; };
+    try {
+      const reply = await fetch(`/r/${encodeURIComponent(token)}/wrap`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: bodyOf(response, entry) });
+      settled();
+      // A reply for a response the page no longer answers for changes nothing.
+      if (!alive.current || responseRef.current !== response) return;
+      const body = (await reply.json().catch(() => ({}))) as WrapReplyBody;
+      const step = wrapReplyStep(reply.status, body, entry, current.current, pageId());
+      if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
+      if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
+      if (step.version !== null) known.current = Math.max(known.current, step.version);
+      if (step.held) held.current = step.held;
+      if (step.failed !== null) markFailed(step.failed);
+      if (step.rebase !== null && current.current) {
+        // A newer change waits: it goes on top of the page's own confirmed save.
+        const base = step.rebase;
+        const next = { ...current.current, base, after: [] as SaveRef[] };
+        current.current = next;
+        update((raw) => rebasedWrap(raw, response, next.page, base));
       }
-    })();
-    inflight.current = run;
-    // A change made while this one flew goes next.
-    void run.then(() => { if (alive.current && latest.current && latest.current !== value && !timer.current) sendRef.current(); });
-  }, [token]);
+      if (step.done) {
+        const waiting = current.current ?? entry;
+        clearTimer();
+        firstAt.current = null;
+        current.current = null;
+        update((raw) => withoutWrapEntry(raw, response, waiting.page, waiting.seq));
+      }
+      if (step.changedElsewhere || step.error) upsets.current += 1;
+      if (step.changedElsewhere && step.held) {
+        setNotice(RESPONDENT_ERRORS.wrapChanged);
+        eventsRef.current.onStale(step.held);
+      }
+      if (step.error) setError(step.error);
+      if (step.failed) scheduleRetry();
+    } catch {
+      // No connection, the time limit, or a keepalive the browser would not send: only a
+      // change that still waits, for the response the page answers for, counts as failed.
+      settled();
+      if (!alive.current || responseRef.current !== response || !current.current || keepalive) return;
+      markFailed(true);
+      scheduleRetry();
+    } finally {
+      // A change made while this one was in flight goes now, unless its timer still runs.
+      const next = current.current;
+      if (alive.current && !keepalive && next && next !== entry && !inflight.current && !timer.current) void sendRef.current();
+    }
+  }, [token, update, pageId, markFailed, scheduleRetry, clearTimer]);
   useEffect(() => { sendRef.current = send; }, [send]);
 
-  const queue = useCallback((value: WrapValue) => {
-    latest.current = value;
+  // A change of the form: the newest values wait for their turn, kept on the device.
+  const queue = useCallback((raw: WrapValue) => {
+    const response = responseRef.current;
+    if (!response) return;
+    const value = eventsRef.current.clean(raw);
+    const prev = current.current;
+    if (prev ? sameWrap(prev.draft, value) : sameWrap(held.current, value)) return;
     setError(null);
+    setNotice(null);
+    // Back to what the server holds before the waiting change went: nothing to send.
+    if (prev && !inflight.current && sameWrap(held.current, value)) {
+      clearTimer();
+      firstAt.current = null;
+      current.current = null;
+      update((stored) => withoutWrapEntry(stored, response, prev.page, prev.seq));
+      return;
+    }
+    seq.current += 1;
+    const entry = nextEntry(prev ?? undefined, value, known.current, pageId(), seq.current);
+    current.current = entry;
+    update(() => withWrapEntry(response, entry));
     const now = Date.now();
     firstAt.current ??= now;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => sendRef.current(), delayFor(firstAt.current, now));
-  }, []);
+    clearTimer();
+    timer.current = setTimeout(() => { timer.current = null; void sendRef.current(); }, delayFor(firstAt.current, now));
+  }, [update, pageId, clearTimer]);
 
-  // Before Submit: what waits is dropped (Submit posts the same values), a request in flight
-  // finishes first. false when it does not within the time limit.
-  const settle = useCallback(async (): Promise<boolean> => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+  // Before Submit: what waits goes now (a retry waiting too) and Submit waits for the server
+  // to hold it. ok: nothing waits; failed: it could not be saved now (it stays queued and
+  // retries); check: the Wrap up was refused or changed elsewhere meanwhile, or the page
+  // answers for another response now.
+  const settle = useCallback(async (): Promise<"ok" | "failed" | "check"> => {
     if (retry.current) { clearTimeout(retry.current); retry.current = null; }
-    latest.current = null;
-    firstAt.current = null;
-    const flying = inflight.current;
-    if (!flying) return true;
-    const limit = new Promise<false>((resolve) => setTimeout(() => resolve(false), SAVE_TIMEOUT_MS));
-    return Promise.race([flying.then(() => true as const), limit]);
+    failing.current = false;
+    const response = responseRef.current;
+    const upsetAt = upsets.current;
+    void sendRef.current();
+    const until = Date.now() + SAVE_TIMEOUT_MS;
+    for (;;) {
+      const state = settleState({ waiting: current.current ? 1 : 0, failed: failing.current ? 1 : 0, down: false, alive: alive.current, late: Date.now() > until, upset: upsets.current !== upsetAt, moved: responseRef.current !== response });
+      if (state !== "wait") return state;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   }, []);
 
-  // A lost response: nothing of the old one is sent any more.
+  // Submit's version fields: the version the page holds, and this page's next number.
+  const claim = useCallback(() => {
+    seq.current += 1;
+    return { base: known.current, page: pageId(), seq: seq.current, after: [] as SaveRef[] };
+  }, [pageId]);
+  // Submit's reply: the server holds these values at this version, or another Wrap up.
+  const submitted = useCallback((version: unknown, value: WrapValue) => {
+    if (typeof version === "number") known.current = Math.max(known.current, version);
+    held.current = value;
+  }, []);
+  const adopt = useCallback((body: WrapReplyBody) => {
+    if (typeof body.version === "number") known.current = Math.max(known.current, body.version);
+    if (body.wrap) {
+      held.current = body.wrap;
+      eventsRef.current.onStale(body.wrap);
+    }
+    setNotice(RESPONDENT_ERRORS.wrapChanged);
+  }, []);
+
+  // A lost response: nothing of the old one is sent any more, and its kept change goes.
   const reset = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    const response = responseRef.current;
+    clearTimer();
     if (retry.current) { clearTimeout(retry.current); retry.current = null; }
-    latest.current = null;
+    current.current = null;
     firstAt.current = null;
+    held.current = EMPTY_WRAP;
+    known.current = 0;
     responseRef.current = null;
-    setFailed(false);
+    markFailed(false);
     setError(null);
-  }, []);
+    setNotice(null);
+    if (response) update((raw) => (wrapEntryOf(raw, response) ? null : raw));
+  }, [update, markFailed, clearTimer]);
+  // Start named the response the page answers for from now (the same one again included).
+  const bind = useCallback((id: string) => { responseRef.current = id; }, []);
 
+  // Open: the change this device kept comes back on the form and goes, when the server would
+  // take it; one the server has replaced since goes with the sentence.
+  const restored = useRef(false);
+  const initial = useRef(server);
   useEffect(() => {
     alive.current = true;
+    const response = responseRef.current;
+    if (!restored.current && response) {
+      restored.current = true;
+      let raw: string | null = null;
+      try { raw = window.localStorage.getItem(key); } catch { /* Nothing kept. */ }
+      const { entry, dropped } = restorableWrap(raw, response, initial.current);
+      if (entry) {
+        const draft = eventsRef.current.clean(entry.draft);
+        current.current = { ...entry, draft };
+        queueMicrotask(() => eventsRef.current.onRestore(draft));
+      } else if (wrapEntryOf(raw, response)) {
+        update(() => null);
+        if (dropped) queueMicrotask(() => setNotice(RESPONDENT_ERRORS.wrapChanged));
+      }
+    }
+    // What waits without a timer (the kept change, or one whose timer the extra cleanup React
+    // runs in development cleared: react.dev/reference/react/StrictMode) goes now.
+    if (current.current && !inflight.current && !timer.current) void sendRef.current();
     return () => {
       alive.current = false;
-      if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+      clearTimer();
       if (retry.current) { clearTimeout(retry.current); retry.current = null; }
+    };
+  }, [key, update, clearTimer]);
+
+  useEffect(() => {
+    const onHide = () => void sendRef.current(true);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") { void sendRef.current(true); return; }
+      hideSent.current = null;
+      if (current.current && !inflight.current) void sendRef.current();
+    };
+    window.addEventListener("pagehide", onHide);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
-  return { failed, error, queue, settle, reset };
+  return { failed, error, notice, queue, settle, claim, submitted, adopt, reset, bind };
 }

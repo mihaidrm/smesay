@@ -221,6 +221,7 @@ of the content; page means it replaces the screen.
 | Wrap up, from the server (E7-5) | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
 | Wrap up, from the server (E7-5) | Sign-off not ticked | Tick the confirmation to submit. |
 | Wrap up (E7-5) | While Submit waited for the cards, one was refused or changed in another window | One of your answers was not saved as you left it. Check the cards with a red note, then submit again. |
+| Wrap up (E7-5), above the form | Another window or device saved the Wrap up after this page's change was made on it (also a change the device kept and could not send since, and a Submit made on an older Wrap up); the form shows the stored one and the sign-off is unticked | Your Wrap up was changed in another window or on another device. This page shows the saved one now; change it again if yours should stand. |
 | Wrap up, from the server (E7-5) | The PM changed the sign-off sentence after the page opened | The confirmation changed since this page opened. Reload the page, read it and tick it again. |
 | Wrap up (E7-5) | Submit failed: no connection, or the server failed | Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again. |
 | Wrap up, from the server (E7-5) | An item is still to finish (another tab, a stale page) | [N] items are still to finish. Finish them in the chapters, then submit. (1 item is ... Finish it ...) |

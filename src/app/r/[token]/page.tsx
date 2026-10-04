@@ -92,6 +92,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         answers={view.answers}
         versions={view.versions}
         wrap={view.wrap}
+        wrapSync={view.wrapSync}
         responseId={response?.id ?? null}
         closing={instrument.closing}
         welcome={welcome}

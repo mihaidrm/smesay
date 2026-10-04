@@ -1,5 +1,5 @@
 {
-  "id": "c2497361-dbcb-4e49-8cd5-0340257045d0",
+  "id": "1bfbcea3-06cb-47f2-80b5-4c7a754cf111",
   "prevId": "2e71a041-b96b-4577-a04e-3f92191f0320",
   "version": "7",
   "dialect": "postgresql",
@@ -1797,6 +1797,26 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "wrap_version": {
+          "name": "wrap_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "wrap_writer": {
+          "name": "wrap_writer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wrap_writer_seq": {
+          "name": "wrap_writer_seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",

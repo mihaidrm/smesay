@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 import { answers, items, itemSets, links, missingItems, responses } from "@/db/queries";
 import type { Answer } from "@/db/queries/answers";
 import type { Link } from "@/db/queries/links";
-import type { InviteDates, Response } from "@/db/queries/responses";
+import type { InviteDates, Response, StoredWrap } from "@/db/queries/responses";
 import { textFor } from "@/lib/item-text";
 import { isVisible } from "@/lib/perspectives";
 import { viewOf, type LinkView } from "@/lib/link-access";
@@ -21,7 +21,7 @@ import { sendMail, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
-import { answerFor, answeredCount, areasOf, carriedFields, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
+import { answerFor, answeredCount, areasOf, carriedFields, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
 import { linkState } from "@/lib/sharing";
 
@@ -37,7 +37,7 @@ export type RespondentView =
   | LinkView
   | { kind: "sample"; link: Link }
   | { kind: "closedOwn"; link: Link; closedAt: Date; response: Response; answered: number; total: number }
-  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number>; wrap: WrapValue };
+  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number>; wrap: WrapValue; wrapSync: WrapSync };
 
 // The response this device has on this link: the personal invite's, or the one its device
 // cookie names on the public link.
@@ -87,10 +87,12 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   const response = await responseOf(link, cookies.device);
   const { items: list, areas } = await itemsOf(link);
   const rows = response ? await answers.forResponse(link.ws, response.id) : [];
-  // The Wrap up as last saved (E7-5: saved as the respondent writes, and by Submit).
+  // The Wrap up as last saved and its version (E7-5: saved as the respondent writes, and by
+  // Submit).
   const missing = response ? (await missingItems.forResponse(link.ws, response.id))[0] : undefined;
-  const wrap: WrapValue = response ? { confidence: response.confidence, signed: false, closingAnswer: response.closingAnswer ?? "", missing: { text: missing?.text ?? "", area: missing?.suggestedArea ?? "", value: missing?.suggestedValue ?? "" } } : EMPTY_WRAP;
-  return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])), wrap };
+  const wrap: WrapValue = response ? wrapOf({ confidence: response.confidence, closingAnswer: response.closingAnswer, missing: missing ? { text: missing.text, area: missing.suggestedArea, value: missing.suggestedValue } : null }) : EMPTY_WRAP;
+  const wrapSync: WrapSync = response ? { version: response.wrapVersion, writer: response.wrapWriter, writerSeq: response.wrapWriterSeq } : { version: 0, writer: null, writerSeq: 0 };
+  return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])), wrap, wrapSync };
 }
 
 export type WriteRefusal = { status: 403 | 404 | 409 | 410 | 422; error: string };
@@ -192,28 +194,41 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
 }
 
 // The Wrap up's answers as the respondent writes them (E7-5; PUT /r/[token]/wrap): the link
-// open for this device, the response started and the one the page answers for, the answers
-// read as Submit reads them (parseWrapInput), then stored under the invite row's lock and the
-// response's (responses.saveWrap).
-export async function saveWrap(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | { saved: true }> {
+// open for this device, the response started and the one the page answers for (checked
+// before anything else is read from the body), the answers read as Submit reads them
+// (parseWrapInput), then stored under the invite row's lock and the response's when the write
+// was made on the stored Wrap up (responses.saveWrap); a stale write gets the stored one back.
+export type WrapReply = { wrap: WrapValue } & WrapSync;
+export type WrapSaved = { saved: true; version: number; writer: string | null; writerSeq: number };
+export async function saveWrap(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | WrapSaved | { stale: WrapReply }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
   const { link } = open;
   const response = await responseOf(link, cookies.device);
-  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  if (!response || namedResponse(body) !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   const { items: all, areas } = await itemsOf(link);
   const chapters = chaptersFor(areas, all, response.perspectives);
   const closing = link.instrument.closing;
   const parsed = parseWrapInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm });
   if ("error" in parsed) return { status: 422, error: parsed.error };
-  if (parsed.input.response !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
-  const { confidence, closingAnswer, missing } = parsed.input;
-  const saved = await responses.saveWrap(link.ws, link.invite.id, response.id, { confidence, closingAnswer, missing }, stillOpen, now);
+  const { response: _named, ...write } = parsed.input;
+  void _named;
+  const saved = await responses.saveWrap(link.ws, link.invite.id, response.id, write, stillOpen, now);
   if (!saved) return { status: 404, error: "unknown" };
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
-  return { saved: true };
+  if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
+  return { saved: true, version: saved.saved.wrapVersion, writer: saved.saved.wrapWriter, writerSeq: saved.saved.wrapWriterSeq };
 }
+
+// The response a write names (E7-3 onwards): an open window whose cookie was replaced since
+// never writes to the response another window started.
+const namedResponse = (body: unknown): unknown => (body && typeof body === "object" && !Array.isArray(body) ? (body as { response?: unknown }).response : undefined);
+
+// The stored Wrap up as the page holds it (the sign-off is never stored for the page: it is
+// ticked for each Submit).
+export const wrapOf = (stored: { confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null }): WrapValue => ({ confidence: stored.confidence, signed: false, closingAnswer: stored.closingAnswer ?? "", missing: { text: stored.missing?.text ?? "", area: stored.missing?.area ?? "", value: stored.missing?.value ?? "" } });
+const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq });
 
 // The first word of the respondent's name, for "Thank you, [NAME]." and "Welcome back":
 // the name field Start saved, else a personal invite's name.
@@ -234,36 +249,41 @@ export function firstNameOf(link: Link, response: Pick<Response, "fields">): str
 // receipt goes after the reply (`receipt`, run by the route with after():
 // node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md); one that fails
 // to send does not undo the Submit.
-export type Submitted = { submittedAt: Date; name: string | null; receipt: (() => Promise<void>) | null };
-export async function submitResponse(token: string, cookies: RespondentCookies, body: unknown, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<WriteRefusal | Submitted> {
+export type Submitted = { submittedAt: Date; name: string | null; version: number; receipt: (() => Promise<void>) | null };
+export async function submitResponse(token: string, cookies: RespondentCookies, body: unknown, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<WriteRefusal | Submitted | { stale: WrapReply }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
   const { link } = open;
   const response = await responseOf(link, cookies.device);
-  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  // The response the page answers for, before anything else: an open window whose cookie was
+  // replaced since never submits the response another window started (as saveAnswer).
+  if (!response || namedResponse(body) !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   const { items: all, areas } = await itemsOf(link);
   const chapters = chaptersFor(areas, all, response.perspectives);
-  const visible = chapters.flatMap((c) => c.items);
   const spec = link.instrument.respondentFields;
   if (missingMandatory(spec, { ...response.fields, ...carriedFields(link.invite, spec) }).length > 0) return { status: 422, error: RESPONDENT_ERRORS.fieldsOpen };
   const closing = link.instrument.closing;
   const parsed = parseSubmitInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm, signOff: signOffFor(closing) });
   if ("error" in parsed) return { status: 422, error: parsed.error };
-  // The response the page answers for: an open window whose cookie was replaced since never
-  // submits the response another window started (as saveAnswer).
-  if (parsed.input.response !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   if (!response.submittedAt && !(await withinPlan(link.ws, "responses", now))) return { status: 403, error: RESPONDENT_ERRORS.planFull };
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
+  // The items the response's perspectives show as locked (a Start in another window can
+  // change them until then).
   let rows: Record<string, AnswerState> = {};
-  const check = (stored: Answer[]) => {
+  let visible: RespondentItem[] = [];
+  const check = (stored: Answer[], perspectives: string[]) => {
     rows = answerMap(stored);
+    visible = chaptersFor(areas, all, perspectives).flatMap((c) => c.items);
     const openItems = visible.filter((it) => !isComplete(rows[it.id])).length;
     return openItems > 0 ? RESPONDENT_ERRORS.itemsOpen(openItems) : null;
   };
-  const { confidence, closingAnswer, missing } = parsed.input;
-  const saved = await responses.submit(link.ws, link.invite.id, response.id, { confidence, closingAnswer, missing, signOffText: signOffFor(closing) }, stillOpen, check, now);
+  const { response: _named, ...write } = parsed.input;
+  void _named;
+  const { missing, confidence } = write;
+  const saved = await responses.submit(link.ws, link.invite.id, response.id, { ...write, signOffText: signOffFor(closing) }, stillOpen, check, now);
   if (!saved) return { status: 404, error: "unknown" };
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
+  if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
   if ("invalid" in saved) return { status: 422, error: saved.invalid };
   // The first Submit, decided from the row written under the lock: two Submits at once on
   // one personal link send one receipt.
@@ -276,5 +296,5 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
         try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
       }
     : null;
-  return { submittedAt: now, name: firstNameOf(link, saved), receipt };
+  return { submittedAt: now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };
 }

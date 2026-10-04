@@ -1,7 +1,7 @@
 // Workspace-scoped helpers for the missingItem table (stories/E1-3). Every call takes the workspace id
 // first; see scoped.ts for the rule. Specific queries for later epics are added here, never in
-// routes or pages. forResponse (E7-5): a response's missing item (one at most, replaced on
-// every Submit by responses.submit).
+// routes or pages. forResponse (E7-5): a response's missing item (one at most, written by
+// responses.saveWrap and responses.submit and updated in place).
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { missingItem } from "@/db/schema";

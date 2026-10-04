@@ -16,7 +16,9 @@
 // they suggested (higher, lower, not needed, their questions; agreed items are not listed)
 // with Change per row, the missing item, the closing answer, confidence and the sign-off held
 // by the page (`value`, `onValue`), and Submit, on once nothing is still needed, "Submitting"
-// while it posts and the server's sentence when it fails. Phone first. Tap targets on the
+// while it posts (the form cannot change meanwhile) and the server's sentence when it fails;
+// what the Wrap up's own save says (`saveNote`: changed elsewhere, or refused) shows above
+// the form whatever Submit's state. Phone first. Tap targets on the
 // live link are 48 px (docs/design-system.md, Respondent tap targets): the Go to and Change
 // buttons keep their pill and take a 48 px hit area.
 import { useId, useRef, useState } from "react";
@@ -60,6 +62,7 @@ export type WrapUpProps = {
   fieldsMissing?: boolean;
   submitting?: boolean;
   submitError?: string | null;
+  saveNote?: string | null;
   onSubmit?: () => void;
 };
 
@@ -72,7 +75,7 @@ const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRat
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, onSubmit }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = preview ? "div" : "main";
   const firstGap = gaps?.[0];
@@ -167,7 +170,8 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           );
         })}
         {live && open === 0 && sections && sections.length === 0 && showProposed && <p className="text-sm text-ink-muted" data-testid="wrap-up-nothing">{WRAP_UP_COPY.nothingToReview}</p>}
-        <div className={cn("flex flex-col gap-4", ring && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="wrap-up-closing">
+        {saveNote && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" role="status" data-testid="wrap-up-save-note">{saveNote}</p>}
+        <fieldset disabled={submitting} className={cn("m-0 flex min-w-0 flex-col gap-4 border-0 p-0", ring && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="wrap-up-closing">
         {closing.missingForm && (
           <fieldset className="flex flex-col gap-2.5" data-testid="wrap-up-missing">
             <legend className="float-left mb-1 w-full text-sm font-semibold">{WRAP_UP_COPY.missingTitle}</legend>
@@ -219,7 +223,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)]" />
           <span>{signOffFor(closing)}</span>
         </label>
-        </div>
+        </fieldset>
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </Body>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">

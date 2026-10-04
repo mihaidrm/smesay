@@ -71,12 +71,17 @@ Built 2026-10-04 (design note 55, decision 0044):
   item (migration 0018), under the invite row's lock; Done shows "Thank you, [FIRST NAME]."
   and "Submitted [DATE], [HH:MM] UTC". A second Submit updates the same response
   (src/lib/respondent-submit.test.ts counts one row).
-- Acceptance 4: a failed Submit keeps everything and says so in the line under Submit. The
-  Wrap up's answers save to the server within a second as they are written (PUT
-  /r/[token]/wrap, src/app/r/[token]/wrap-saver.ts), like the cards (CLAUDE.md, respondent
-  side), and stay on the device (smesay-wrap:[token]) until the server holds them, so a
-  closed tab or another device loses nothing; a Submit again keeps the missing item and the
-  closing answer. The sign-off is ticked again each time. Submit names the response the page
+- Acceptance 4: a failed Submit keeps everything and says so in the line under Submit; what
+  waited to be saved stays queued and is retried. The Wrap up's answers save to the server
+  within a second as they are written (PUT /r/[token]/wrap, src/app/r/[token]/wrap-saver.ts),
+  like the cards (CLAUDE.md, respondent side), with the cards' version rule (an old change
+  kept on a device never replaces a newer one, a submitted one included; another window's
+  change shows with a sentence). Until the server holds them they stay on the device
+  (smesay-wrap:[token]) and go once more as the tab closes (keepalive), so a closed tab loses
+  nothing; a change that cannot go then waits on that device for the link's next visit
+  there. A Submit again keeps the missing item and the closing answer. The sign-off is
+  ticked again each time and is never saved; ticking it sends nothing. The form cannot
+  change while Submit posts. Submit names the response the page
   answers for, as every save does; a response that is not this device's is "not started",
   and the page goes back to About you with everything kept, as when a card's save finds it.
 - Acceptance 5 as amended: the receipt (email 4, src/lib/mail/receipt-email.ts) goes to a
@@ -108,3 +113,17 @@ Built 2026-10-04 (design note 55, decision 0044):
   for responses submitted before migration 0018 and the sample seed; the tenancy test goes
   through an invite of the other workspace; the email field's wording; the unused label.
   E7-6 takes answers changed after a Submit.
+- Third audit 2026-10-04: 1 blocking (a Wrap up change kept on one device, sent when the
+  page opened a week later, replaced the answers the respondent had submitted on another
+  device, with no version check), 9 should-fix, 9 nits. Fixed: the Wrap up carries the cards'
+  version rule (wrap_version, wrap_writer, wrap_writer_seq in migration 0018; wrapTakes;
+  src/lib/wrap-queue.ts with unit tests); a stale write and a stale Submit get the stored
+  Wrap up back and the page says so above the form; Submit sends what waits at once and
+  never drops it, and the form cannot change while it posts; ticking the sign-off and a
+  write that changes nothing move nothing but the version; after a lost response the Wrap up
+  goes to the new one whatever it holds; a kept change has its area checked; keepalive on
+  hide; the response a write names is checked first; the completeness check uses the
+  perspectives as locked; the missing item is updated in place; Submit has a time limit; a
+  stale sentence under Submit clears on a change or a move; the receipt's rate-blind line is
+  in docs/copy/emails.md; the wrap route's JSON-only test; a test runs the migration's
+  backfill.

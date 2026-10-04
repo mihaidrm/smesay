@@ -85,7 +85,7 @@ function deviceStorage(): Storage | null {
 // useSyncExternalStore with a server snapshot (react.dev/reference/react/useSyncExternalStore).
 const noSubscribe = () => () => {};
 const storageMissing = () => deviceStorage() === null;
-const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
+export const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
 
 
 export function useAnswerSaver(token: string, responseId: string | null, enabled: boolean, itemIds: string[], initialVersions: Record<string, number>, initialAnswers: Record<string, AnswerState>, initialSaved: Record<string, boolean>, initialDone: Record<string, boolean>, events: SaverEvents) {

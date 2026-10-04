@@ -1,11 +1,14 @@
 // Submit (stories/E7-5) on the test database: the Wrap up's buckets, its areas, the submit
-// input and the Wrap up kept on the device; then Submit refused while an item is open
-// (checked under the response's lock), without confidence or the sign-off, or with a missing
-// item outside the areas; stored with the sign-off sentence, the closing answer, the missing
-// item and the first and latest times, and read back for the next visit; a second Submit
-// updating the same response; the receipt only to a personal invite, on its first Submit,
-// never to an address typed on a public link; a revoked link and another workspace writing
-// nothing; the route taking JSON only.
+// input and the version rule (the device queue: src/lib/wrap-queue.test.ts); then Submit
+// refused while an item is open (checked under the response's lock, with the perspectives as
+// locked), without confidence or the sign-off, or with a missing item outside the areas;
+// stored with the sign-off sentence, the closing answer, the missing item and the first and
+// latest times, and read back for the next visit; a second Submit updating the same response;
+// the Wrap up saved as it is written, an old change kept on a device never replacing a newer
+// one, a save that changes nothing moving nothing, the missing item keeping its id; the
+// receipt only to a personal invite, on its first Submit, never to an address typed on a
+// public link; a revoked link and another workspace writing nothing; both routes taking JSON
+// only. The migration's backfill of the first Submit: src/db/queries/usage.test.ts.
 import { beforeAll, describe, expect, it } from "vitest";
 import { items, missingItems, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -19,11 +22,12 @@ import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
-import { areasOf, bucketOf, landingOf, parseScreen, EMPTY_WRAP, parseSubmitInput, RESPONDENT_ERRORS, tallyOf, wrapDraft, wrapDraftOf, type Chapter } from "@/lib/respondent-rules";
+import { areasOf, bucketOf, landingOf, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 import { POST as submitRoute } from "@/app/r/[token]/submit/route";
+import { PUT as wrapRoute } from "@/app/r/[token]/wrap/route";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 let a: { ws: WorkspaceId; userId: string }; let b: { ws: WorkspaceId; userId: string };
@@ -53,6 +57,11 @@ const now = new Date("2026-10-05T12:00:00Z");
 let seq = 0;
 const PAGE = "page-submit-0001";
 const save = (token: string, cookies: RespondentCookies, response: string, body: { itemId: string; picked: string; reason?: string }, at = now) => saveAnswer(token, cookies, { ...body, base: 0, page: PAGE, seq: ++seq, response }, at);
+// The Wrap up's writes of one test page, numbered the same way (src/lib/respondent-rules.ts
+// wrapTakes): `v()` gives the next write's version fields.
+let wseq = 0;
+const WPAGE = "page-wrap-0001";
+const v = (base = 0) => ({ base, page: WPAGE, seq: ++wseq, after: [] as { page: string; seq: number }[] });
 
 async function publishedProject(name: string, options: { question?: string; emailField?: boolean } = {}) {
   return publishedProjectIn(a, name, options);
@@ -92,24 +101,45 @@ describe("the Wrap up's rules", () => {
   });
   it("reads the Wrap up as Submit posts it", () => {
     const ctx = { method: "moscow" as const, areas: ["Submitting", "Paying"], hasQuestion: true, missingForm: true };
-    expect(parseSubmitInput({ response: "r", confidence: 4, signedOff: true, closingAnswer: " Fine ", missing: { text: " Mileage ", area: "Submitting", value: "S" } }, ctx)).toEqual({ input: { response: "r", confidence: 4, closingAnswer: "Fine", missing: { text: "Mileage", area: "Submitting", value: "S" } } });
-    expect(parseSubmitInput({ response: "r", confidence: 4, signedOff: true, closingAnswer: "x", missing: { text: "", area: "", value: "" } }, { ...ctx, hasQuestion: false })).toEqual({ input: { response: "r", confidence: 4, closingAnswer: null, missing: null } });
-    expect(parseSubmitInput({ response: "r", confidence: 4, signedOff: false }, ctx)).toEqual({ error: RESPONDENT_ERRORS.signOff });
-    expect(parseSubmitInput({ response: "r", confidence: 0, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.confidence });
-    expect(parseSubmitInput({ response: "r", signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.confidence });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, missing: { text: "x", area: "Nowhere" } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badMissing });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, missing: { text: "x", value: "Z" } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badMissing });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, missing: { text: "x".repeat(501) } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.missingTooLong });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, closingAnswer: "x".repeat(2001) }, ctx)).toEqual({ error: RESPONDENT_ERRORS.closingTooLong });
+    const V = { base: 2, page: "page-wrap-0001", seq: 3 };
+    const out = { base: 2, page: "page-wrap-0001", seq: 3, after: [] };
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 4, signedOff: true, closingAnswer: " Fine ", missing: { text: " Mileage ", area: "Submitting", value: "S" } }, ctx)).toEqual({ input: { response: "r", confidence: 4, closingAnswer: "Fine", missing: { text: "Mileage", area: "Submitting", value: "S" }, ...out } });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 4, signedOff: true, closingAnswer: "x", missing: { text: "", area: "", value: "" } }, { ...ctx, hasQuestion: false })).toEqual({ input: { response: "r", confidence: 4, closingAnswer: null, missing: null, ...out } });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 4, signedOff: false }, ctx)).toEqual({ error: RESPONDENT_ERRORS.signOff });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 0, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.confidence });
+    expect(parseSubmitInput({ response: "r", ...V, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.confidence });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, missing: { text: "x", area: "Nowhere" } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badMissing });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, missing: { text: "x", value: "Z" } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badMissing });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, missing: { text: "x".repeat(501) } }, ctx)).toEqual({ error: RESPONDENT_ERRORS.missingTooLong });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, closingAnswer: "x".repeat(2001) }, ctx)).toEqual({ error: RESPONDENT_ERRORS.closingTooLong });
     expect(parseSubmitInput("nope", ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
-    // The response the page answers for is named.
-    expect(parseSubmitInput({ confidence: 3, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    // The response the page answers for is named, and the write's version, page and number.
+    expect(parseSubmitInput({ ...V, confidence: 3, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    expect(parseWrapInput({ response: "r", ...V, seq: 0 }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    expect(parseWrapInput({ response: "r", ...V, page: "x" }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    expect(parseWrapInput({ response: "r", ...V, after: [{ page: "x", seq: 1 }] }, ctx)).toEqual({ error: RESPONDENT_ERRORS.badShape });
+    expect(parseWrapInput({ response: "r", ...V, after: [{ page: "page-old-0000", seq: 4 }] }, ctx)).toMatchObject({ input: { after: [{ page: "page-old-0000", seq: 4 }] } });
     // The sign-off sentence the page showed must still be the PM's.
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, signOffText: "Old text." }, { ...ctx, signOff: "New text." })).toEqual({ error: RESPONDENT_ERRORS.signOffChanged });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, signOffText: "New text." }, { ...ctx, signOff: "New text." })).toMatchObject({ input: { response: "r", confidence: 3 } });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, signOffText: "Old text." }, { ...ctx, signOff: "New text." })).toEqual({ error: RESPONDENT_ERRORS.signOffChanged });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, signOffText: "New text." }, { ...ctx, signOff: "New text." })).toMatchObject({ input: { response: "r", confidence: 3 } });
     // A list with no areas asks none: an area named anyway is refused, none is taken.
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, missing: { text: "x", area: "Mileage" } }, { ...ctx, areas: [] })).toEqual({ error: RESPONDENT_ERRORS.badMissing });
-    expect(parseSubmitInput({ response: "r", confidence: 3, signedOff: true, missing: { text: "x", area: "" } }, { ...ctx, areas: [] })).toEqual({ input: { response: "r", confidence: 3, closingAnswer: null, missing: { text: "x", area: null, value: null } } });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, missing: { text: "x", area: "Mileage" } }, { ...ctx, areas: [] })).toEqual({ error: RESPONDENT_ERRORS.badMissing });
+    expect(parseSubmitInput({ response: "r", ...V, confidence: 3, signedOff: true, missing: { text: "x", area: "" } }, { ...ctx, areas: [] })).toEqual({ input: { response: "r", confidence: 3, closingAnswer: null, missing: { text: "x", area: null, value: null }, ...out } });
+  });
+  it("takes a Wrap up write made on the stored one, or on top of the last writer's save", () => {
+    const P = "page-wrap-0001";
+    const Q = "page-wrap-0002";
+    const stored = { version: 5, writer: P, writerSeq: 4 };
+    expect(wrapTakes(stored, { base: 5, page: Q, seq: 1, after: [] })).toBe(true);
+    expect(wrapTakes(stored, { base: 3, page: P, seq: 5, after: [] })).toBe(true);
+    // A late copy of the same page's earlier write, another page's write on an old version.
+    expect(wrapTakes(stored, { base: 3, page: P, seq: 4, after: [] })).toBe(false);
+    expect(wrapTakes(stored, { base: 3, page: Q, seq: 9, after: [] })).toBe(false);
+    // Made on top of that save of P, or a later one (a change kept from an earlier visit).
+    expect(wrapTakes(stored, { base: 3, page: Q, seq: 1, after: [{ page: P, seq: 4 }] })).toBe(true);
+    expect(wrapTakes(stored, { base: 3, page: Q, seq: 1, after: [{ page: P, seq: 3 }] })).toBe(false);
+    expect(wrapTakes({ version: 0, writer: null, writerSeq: 0 }, { base: 0, page: Q, seq: 1, after: [] })).toBe(true);
   });
   it("lands a submitted response on Done, and reads ?at=done", () => {
     const it_ = (id: string) => ({ id, reference: null, title: id, details: null, area: null, proposed: null, perspectives: [] });
@@ -130,14 +160,6 @@ describe("the Wrap up's rules", () => {
     expect(areasOf([ch("Submitting"), ch("Paying"), ch("Other items", true)])).toEqual(["Submitting", "Paying"]);
     expect(areasOf([ch(null)])).toEqual([]);
   });
-  it("keeps the Wrap up on the device for its response, never the sign-off", () => {
-    const value = { confidence: 4, signed: true, closingAnswer: "Fine", missing: { text: "Mileage", area: "Submitting", value: "S" } };
-    const raw = wrapDraft("r1", value);
-    expect(wrapDraftOf(raw, "r1")).toEqual({ ...value, signed: false });
-    expect(wrapDraftOf(raw, "r2")).toBeNull();
-    expect([wrapDraftOf(null, "r1"), wrapDraftOf("{", "r1"), wrapDraftOf("[]", "r1")]).toEqual([null, null, null]);
-    expect(wrapDraftOf(JSON.stringify({ response: "r1", value: { confidence: 9, closingAnswer: 3, missing: { text: "x".repeat(600) } } }), "r1")).toEqual({ ...EMPTY_WRAP, missing: { text: "x".repeat(500), area: "", value: "" } });
-  });
 });
 
 describe("Submit", () => {
@@ -151,30 +173,38 @@ describe("Submit", () => {
     const sent: Mail[] = [];
     const send = async (m: Mail) => { sent.push(m); };
     const body = { response: rid, confidence: 4, signedOff: true, closingAnswer: " All good ", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } };
-    expect(await submitResponse(link.token, device, body, BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(2) });
+    // Each Submit is a write of the test page with its next number.
+    const sub = (extra: Record<string, unknown> = {}) => ({ ...body, ...v(), ...extra });
+    expect(await submitResponse(link.token, device, sub(), BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(2) });
     await save(link.token, device, rid, { itemId: one.id, picked: "M" });
     await save(link.token, device, rid, { itemId: two.id, picked: "C" });
-    expect(await submitResponse(link.token, device, body, BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(1) });
+    expect(await submitResponse(link.token, device, sub(), BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(1) });
     await save(link.token, device, rid, { itemId: two.id, picked: "C", reason: "Nice to have" });
-    expect(await submitResponse(link.token, device, { ...body, confidence: null }, BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.confidence });
-    expect(await submitResponse(link.token, device, { ...body, signedOff: false }, BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.signOff });
-    expect(await submitResponse(link.token, {}, body, BASE, now, send)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    expect(await submitResponse(link.token, device, sub({ confidence: null }), BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.confidence });
+    expect(await submitResponse(link.token, device, sub({ signedOff: false }), BASE, now, send)).toEqual({ status: 422, error: RESPONDENT_ERRORS.signOff });
+    expect(await submitResponse(link.token, {}, sub(), BASE, now, send)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
     // A Submit for a response this device no longer answers for (a window whose cookie was
-    // replaced) is "not started", and nothing is marked.
-    expect(await submitResponse(link.token, device, { ...body, response: "00000000-0000-4000-8000-000000000000" }, BASE, now, send)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    // replaced) is "not started" before anything else in the body is read, and nothing is
+    // marked.
+    expect(await submitResponse(link.token, device, sub({ response: "00000000-0000-4000-8000-000000000000", confidence: 9 }), BASE, now, send)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
     expect((await responses.get(a.ws, rid))?.submittedAt).toBeNull();
-    // The Wrap up saves as it is written (not a Submit): stored, read back on the next visit,
-    // the response not submitted.
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" } }, now)).toEqual({ saved: true });
+    // The Wrap up saves as it is written (not a Submit): stored, read back with its version on
+    // the next visit, the response not submitted.
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" }, ...v() }, now)).toEqual({ saved: true, version: 1, writer: WPAGE, writerSeq: wseq });
     const drafted = await loadRespondent(link.token, device, now);
-    expect(drafted.kind === "ready" ? [drafted.wrap, drafted.response?.submittedAt] : null).toEqual([{ confidence: 3, signed: false, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" } }, null]);
-    expect(await saveWrap(link.token, device, { response: rid, confidence: null, closingAnswer: "", missing: null }, now)).toEqual({ saved: true });
+    expect(drafted.kind === "ready" ? [drafted.wrap, drafted.wrapSync.version, drafted.response?.submittedAt] : null).toEqual([{ confidence: 3, signed: false, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" } }, 1, null]);
+    // The missing item keeps its id from one save to the next (E9-1 cites it by id).
+    const [kept] = await missingItems.forResponse(a.ws, rid);
+    expect((await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage claims", area: "Submitting", value: "" }, ...v() }, now))).toMatchObject({ saved: true, version: 2 });
+    expect((await missingItems.forResponse(a.ws, rid)).map((m) => [m.id, m.text])).toEqual([[kept.id, "Mileage claims"]]);
+    expect(await saveWrap(link.token, device, { response: rid, confidence: null, closingAnswer: "", missing: null, ...v() }, now)).toMatchObject({ saved: true, version: 3 });
     expect(await missingItems.forResponse(a.ws, rid)).toEqual([]);
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 9 }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.confidence });
-    expect(await saveWrap(link.token, device, { response: rid, missing: { text: "x", area: "Nowhere" } }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badMissing });
-    expect(await saveWrap(link.token, device, { response: "00000000-0000-4000-8000-000000000000", confidence: 1 }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
-    expect(await saveWrap(link.token, {}, { response: rid, confidence: 1 }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
-    expect(await submitResponse(link.token, device, body, BASE, now, send)).toEqual({ submittedAt: now, name: "Ana", receipt: null });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 9, ...v() }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.confidence });
+    expect(await saveWrap(link.token, device, { response: rid, missing: { text: "x", area: "Nowhere" }, ...v() }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badMissing });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 1 }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badShape });
+    expect(await saveWrap(link.token, device, { response: "00000000-0000-4000-8000-000000000000", confidence: 9, ...v() }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    expect(await saveWrap(link.token, {}, { response: rid, confidence: 1, ...v() }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    expect(await submitResponse(link.token, device, sub(), BASE, now, send)).toEqual({ submittedAt: now, name: "Ana", version: 4, receipt: null });
     const row = (await responses.get(a.ws, rid))!;
     expect([row.submittedAt?.toISOString(), row.firstSubmittedAt?.toISOString(), row.signedOff, row.confidence, row.signOffText, row.closingAnswer]).toEqual([now.toISOString(), now.toISOString(), true, 4, DEFAULT_SIGN_OFF, "All good"]);
     const missing = await missingItems.forResponse(a.ws, row.id);
@@ -184,30 +214,46 @@ describe("Submit", () => {
     expect(await missingItems.forResponse(b.ws, row.id)).toEqual([]);
     // The next visit reads the Wrap up as stored, so a Submit again keeps what was not changed.
     const view = await loadRespondent(link.token, device, now);
-    expect(view.kind === "ready" ? view.wrap : null).toEqual({ confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } });
+    expect(view.kind === "ready" ? [view.wrap, view.wrapSync] : null).toEqual([{ confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, { version: 4, writer: WPAGE, writerSeq: wseq }]);
+    // An old change kept on another device (made on version 1, by a page whose write the
+    // server never took) is stale: it gets the stored Wrap up back and changes nothing.
+    const old = { response: rid, confidence: null, closingAnswer: "A", missing: null, base: 1, page: "page-laptop-0001", seq: 1, after: [] };
+    expect(await saveWrap(link.token, device, old, now)).toEqual({ stale: { wrap: { confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, version: 4, writer: WPAGE, writerSeq: wseq } });
+    expect(await submitResponse(link.token, device, { ...old, confidence: 2, signedOff: true }, BASE, now, send)).toMatchObject({ stale: { version: 4 } });
+    const untouched = (await responses.get(a.ws, rid))!;
+    expect([untouched.confidence, untouched.closingAnswer, untouched.signedOff, untouched.submittedAt?.toISOString(), untouched.wrapVersion]).toEqual([4, "All good", true, now.toISOString(), 4]);
+    // A save that says what is stored moves nothing but the version: not the last save.
+    const quiet = new Date("2026-10-05T18:00:00Z");
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 4, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" }, ...v() }, quiet)).toMatchObject({ saved: true, version: 5 });
+    expect((await responses.get(a.ws, rid))?.updatedAt.toISOString()).toBe(untouched.updatedAt.toISOString());
+    expect((await missingItems.forResponse(a.ws, rid)).map((m) => m.id)).toEqual(missing.map((m) => m.id));
     // Again, later, without the missing item: the same response, the first time kept.
     const later = new Date("2026-10-06T08:30:00Z");
-    expect(await submitResponse(link.token, device, { response: rid, confidence: 5, signedOff: true, missing: null }, BASE, later, send)).toEqual({ submittedAt: later, name: "Ana", receipt: null });
+    expect(await submitResponse(link.token, device, { response: rid, confidence: 5, signedOff: true, missing: null, ...v() }, BASE, later, send)).toEqual({ submittedAt: later, name: "Ana", version: 6, receipt: null });
     const again = (await responses.get(a.ws, rid))!;
     expect([again.submittedAt?.toISOString(), again.firstSubmittedAt?.toISOString(), again.confidence, again.closingAnswer]).toEqual([later.toISOString(), now.toISOString(), 5, null]);
     expect(await missingItems.forResponse(a.ws, row.id)).toEqual([]);
     expect((await responses.list(a.ws)).filter((r) => r.inviteId === link.id)).toHaveLength(1);
     // Another workspace reads and writes nothing of it: no missing item, no change to the row.
+    const wrapWrite = { confidence: 1, closingAnswer: "x", missing: { text: "x", area: null, value: null }, base: 6, page: "page-other-0001", seq: 1, after: [] };
     expect(await missingItems.forResponse(b.ws, row.id)).toEqual([]);
-    expect(await responses.submit(b.ws, link.id, row.id, { confidence: 1, closingAnswer: "x", signOffText: "x", missing: { text: "x", area: null, value: null } }, () => true, () => null, later)).toBeNull();
+    expect(await responses.submit(b.ws, link.id, row.id, { ...wrapWrite, signOffText: "x" }, () => true, () => null, later)).toBeNull();
     // Through an invite of B's own, past the invite's lock: the response row of A is not found.
     const { link: bLink } = await publishedProjectIn(b, "Submit B");
-    expect(await responses.submit(b.ws, bLink.id, row.id, { confidence: 1, closingAnswer: "x", signOffText: "x", missing: { text: "x", area: null, value: null } }, () => true, () => null, later)).toBeNull();
-    expect(await responses.saveWrap(b.ws, bLink.id, row.id, { confidence: 1, closingAnswer: "x", missing: { text: "x", area: null, value: null } }, () => true, later)).toBeNull();
+    expect(await responses.submit(b.ws, bLink.id, row.id, { ...wrapWrite, signOffText: "x" }, () => true, () => null, later)).toBeNull();
+    expect(await responses.saveWrap(b.ws, bLink.id, row.id, wrapWrite, () => true, later)).toBeNull();
     expect((await responses.get(a.ws, row.id))?.confidence).toBe(5);
     expect(await responses.get(b.ws, row.id)).toBeNull();
-    // Under the response's lock, the check sees the answers as stored; its sentence refuses.
-    expect(await responses.submit(a.ws, link.id, row.id, { confidence: 1, closingAnswer: null, signOffText: "x", missing: null }, () => true, (rows) => (rows.length === 2 ? "seen" : null), later)).toEqual({ invalid: "seen" });
+    // Under the response's lock, the check sees the answers as stored and the perspectives as
+    // locked; its sentence refuses.
+    const seen: string[][] = [];
+    expect(await responses.submit(a.ws, link.id, row.id, { ...wrapWrite, base: 6, closingAnswer: null, missing: null, signOffText: "x" }, () => true, (rows, perspectives) => { seen.push(perspectives); return rows.length === 2 ? "seen" : null; }, later)).toEqual({ invalid: "seen" });
+    expect(seen).toEqual([[]]);
     expect((await responses.get(a.ws, row.id))?.confidence).toBe(5);
     // A revoked link takes nothing more.
     const revoked = await revokeLink(a.ws, project.id, instrument.id, link.id, later);
     if (!("invite" in revoked)) throw new Error(revoked.error);
-    expect(await submitResponse(link.token, device, { response: rid, confidence: 2, signedOff: true }, BASE, later, send)).toEqual({ status: 410, error: "revoked" });
+    expect(await submitResponse(link.token, device, { response: rid, confidence: 2, signedOff: true, ...v() }, BASE, later, send)).toEqual({ status: 410, error: "revoked" });
     expect((await responses.get(a.ws, row.id))?.confidence).toBe(5);
   }, 60_000);
 
@@ -223,8 +269,9 @@ describe("Submit", () => {
     await save(ana.token, {}, rid, { itemId: two.id, picked: "unclear", reason: "Which team?" });
     const sent: Mail[] = [];
     const send = async (m: Mail) => { sent.push(m); };
-    const first = await submitResponse(ana.token, {}, { response: rid, confidence: 3, signedOff: true }, BASE, now, send);
+    const first = await submitResponse(ana.token, {}, { response: rid, confidence: 3, signedOff: true, ...v() }, BASE, now, send);
     if ("status" in first) throw new Error(first.error);
+    if ("stale" in first) throw new Error("stale");
     expect([first.submittedAt, first.name]).toEqual([now, "Ana"]);
     // The receipt goes after the reply (the route runs it with after()).
     expect(sent).toEqual([]);
@@ -234,7 +281,7 @@ describe("Submit", () => {
     expect(sent[0].text).toContain(`${BASE}/r/${ana.token}`);
     expect(sent[0].text).not.toContain("Later");
     // A second Submit sends none; the Done page is its receipt.
-    const second = await submitResponse(ana.token, {}, { response: rid, confidence: 4, signedOff: true }, BASE, new Date("2026-10-05T13:00:00Z"), send);
+    const second = await submitResponse(ana.token, {}, { response: rid, confidence: 4, signedOff: true, ...v() }, BASE, new Date("2026-10-05T13:00:00Z"), send);
     expect("receipt" in second ? second.receipt : "refused").toBeNull();
   }, 60_000);
 
@@ -245,11 +292,20 @@ describe("Submit", () => {
     const device = { device: started.device! };
     await save(link.token, device, started.response.id, { itemId: one.id, picked: "M" }, new Date());
     await save(link.token, device, started.response.id, { itemId: two.id, picked: "S" }, new Date());
-    const post = (body: string, type = "application/json") => submitRoute(new Request(`${BASE}/r/${link.token}/submit`, { method: "POST", body, headers: { "content-type": type, cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
+    const headers = (type: string) => ({ "content-type": type, cookie: `${DEVICE_COOKIE}=${started.device}` });
+    const params = { params: Promise.resolve({ token: link.token }) };
+    const post = (body: string, type = "application/json") => submitRoute(new Request(`${BASE}/r/${link.token}/submit`, { method: "POST", body, headers: headers(type) }), params);
+    const put = (body: string, type = "application/json") => wrapRoute(new Request(`${BASE}/r/${link.token}/wrap`, { method: "PUT", body, headers: headers(type) }), params);
     expect((await post("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
-    const ok = await post(JSON.stringify({ response: started.response.id, confidence: 3, signedOff: true }));
+    expect((await put("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
+    const saved = await put(JSON.stringify({ response: started.response.id, confidence: 2, ...v() }));
+    expect([saved.status, await saved.json()]).toEqual([200, { saved: true, version: 1, writer: WPAGE, writerSeq: wseq }]);
+    // A stale write: 409 with the stored Wrap up.
+    const stale = await put(JSON.stringify({ response: started.response.id, confidence: 5, base: 0, page: "page-other-0002", seq: 1 }));
+    expect([stale.status, await stale.json()]).toEqual([409, { error: "stale", wrap: { confidence: 2, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } }, version: 1, writer: WPAGE, writerSeq: wseq }]);
+    const ok = await post(JSON.stringify({ response: started.response.id, confidence: 3, signedOff: true, ...v(1) }));
     expect(ok.status).toBe(200);
     const reply = await ok.json();
-    expect([typeof reply.submittedAt, reply.name]).toEqual(["string", "Bo"]);
+    expect([typeof reply.submittedAt, reply.name, reply.version]).toEqual(["string", "Bo", 2]);
   }, 60_000);
 });

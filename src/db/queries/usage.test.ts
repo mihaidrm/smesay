@@ -1,7 +1,9 @@
 // usage() (stories/E2-6, acceptance 2): rows created here, numbers read back by SQL, the month
-// boundary in UTC, and nothing from another workspace.
+// boundary in UTC, and nothing from another workspace. The month counts the first Submit, so
+// migration 0018's backfill of first_submitted_at is run here too (E7-5).
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -70,5 +72,16 @@ describe("usage", () => {
     await workspaceWithRows("D");
     expect(await internal.productAiCostCentsThisMonth(now)).toBe(before + 18);
     expect(await internal.productAiCostCentsThisMonth(november)).toBe(beforeNovember);
+  });
+
+  it("counts a response submitted before migration 0018 once its backfill runs", async () => {
+    const ws = await workspaceWithRows("Backfill");
+    const [rid] = (await responses.list(ws)).filter((r) => r.submittedAt?.toISOString() === "2026-10-14T09:00:00.000Z").map((r) => r.id);
+    await sql`update response set first_submitted_at = null where id = ${rid}`;
+    expect((await usage(ws, now)).responsesThisMonth).toBe(1);
+    // The migration's own statement, as drizzle-kit runs it (split on its breakpoints).
+    const statement = readFileSync("drizzle/0018_submit.sql", "utf8").split("--> statement-breakpoint").find((part) => part.includes("UPDATE"))!;
+    await sql.unsafe(statement);
+    expect((await usage(ws, now)).responsesThisMonth).toBe(2);
   });
 });

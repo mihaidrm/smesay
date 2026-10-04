@@ -116,6 +116,8 @@ Your answers on [PROJECT NAME] for [WORKSPACE NAME] were submitted on
 
 [ITEM COUNT] items answered. [PUSHED BACK] with a different priority, [DISAGREED] not needed,
 [UNCLEAR] marked unclear, [MISSING] missing items suggested. Confidence [CONFIDENCE] of 5.
+(A list that does not show the proposed priority, rate-blind: [RATED] rated in place of
+"[PUSHED BACK] with a different priority", since there was nothing to differ from.)
 
 You can change your answers until the link closes on [CLOSE DATE AND TIME]. Open the same link
 and press Change my answers. (A link with no close date: You can change your answers while the

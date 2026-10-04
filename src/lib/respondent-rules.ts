@@ -83,6 +83,7 @@ export const RESPONDENT_ERRORS = {
   hiddenItem: "This item is not in your list. Reload the page to see your items.",
   // E7-3: a newer answer for this item reached the server first (another window or device).
   changedElsewhere: "This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand.",
+  wrapChanged: "Your Wrap up was changed in another window or on another device. This page shows the saved one now; change it again if yours should stand.",
   // E7-3: Start worked but the next save found no response: the browser refused the cookie.
   cookiesBlocked: "This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser.",
   itemsOpen: (n: number) => `${n} ${n === 1 ? "item is" : "items are"} still to finish. Finish ${n === 1 ? "it" : "them"} in the chapters, then submit.`,
@@ -173,33 +174,15 @@ export function chaptersFor(areas: AreaMeta[], items: RespondentItem[], picks: s
 // asks no area).
 export const areasOf = (chapters: Chapter[]): string[] => chapters.flatMap((c) => (c.name && !c.loose ? [c.name] : []));
 
-// The Wrap up's answers as the respondent leaves them (E7-5): kept on the device under
-// smesay-wrap:[token], tied to the response, until a Submit the server took; a page that opens
-// reads them before the values stored with the last Submit. The sign-off is never kept: it
-// is ticked for each Submit.
+// The Wrap up's answers as the respondent leaves them (E7-5): the form's values, saved to
+// the server as the respondent writes (and kept on the device under smesay-wrap:[token] until
+// the server holds them: src/lib/wrap-queue.ts). The sign-off is never kept or saved: it is
+// ticked for each Submit.
 export type WrapValue = { confidence: number | null; signed: boolean; closingAnswer: string; missing: { text: string; area: string; value: string } };
 export const EMPTY_WRAP: WrapValue = { confidence: null, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } };
 export const wrapKey = (token: string) => `smesay-wrap:${token}`;
-export function wrapDraftOf(raw: string | null, responseId: string): WrapValue | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw) as { response?: unknown; value?: { confidence?: unknown; closingAnswer?: unknown; missing?: { text?: unknown; area?: unknown; value?: unknown } } };
-    if (!v || v.response !== responseId || !v.value || typeof v.value !== "object") return null;
-    const { confidence, closingAnswer, missing } = v.value;
-    const text = (x: unknown, max: number) => (typeof x === "string" ? x.slice(0, max) : "");
-    return {
-      confidence: typeof confidence === "number" && Number.isInteger(confidence) && confidence >= 1 && confidence <= 5 ? confidence : null,
-      signed: false,
-      closingAnswer: text(closingAnswer, REASON_MAX),
-      missing: { text: text(missing?.text, MISSING_MAX), area: text(missing?.area, 200), value: text(missing?.value, 20) },
-    };
-  } catch {
-    return null;
-  }
-}
 // Whether two Wrap ups say the same (the sign-off aside).
 export const sameWrap = (a: WrapValue, b: WrapValue): boolean => a.confidence === b.confidence && a.closingAnswer === b.closingAnswer && a.missing.text === b.missing.text && a.missing.area === b.missing.area && a.missing.value === b.missing.value;
-export const wrapDraft = (responseId: string, value: WrapValue): string => JSON.stringify({ response: responseId, value: { confidence: value.confidence, closingAnswer: value.closingAnswer, missing: value.missing } });
 
 // An answer as stored (INTERFACES.md, AnswerKind) and when it is complete.
 export type AnswerState = { kind: AnswerKind; value: string | null; reason: string | null; comment: string | null };
@@ -375,12 +358,18 @@ export function tallyOf(method: ScoringMethod, items: { id: string; proposed: st
 // confidence 1 to 5 or none yet, the closing answer (kept only when the PM asked a question),
 // and the missing item (text up to 500 characters, an area of the list the respondent sees,
 // a value of the scale).
+// Every write carries the Wrap up's version it was made on, the page that sends it, that
+// page's number for it and the saves of other pages it was made on top of, as an answer's
+// (base, page, seq, after; src/lib/answer-queue.ts), and the server applies the same rule
+// (wrapTakes).
 export type WrapCtx = { method: ScoringMethod; areas: string[]; hasQuestion: boolean; missingForm: boolean; signOff?: string };
-export type WrapInput = { response: string; confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null };
+export type WrapInput = { response: string; confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null; base: number; page: string; seq: number; after: SaveRef[] };
 export function parseWrapInput(raw: unknown, ctx: WrapCtx): { error: string } | { input: WrapInput } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badShape };
   const r = raw as Record<string, unknown>;
-  if (typeof r.response !== "string") return { error: RESPONDENT_ERRORS.badShape };
+  if (typeof r.response !== "string" || !validCount(r.base) || !validPage(r.page) || !validCount(r.seq, 1)) return { error: RESPONDENT_ERRORS.badShape };
+  const after = parseAfter(r.after);
+  if (!after) return { error: RESPONDENT_ERRORS.badShape };
   const confidence = r.confidence === null || r.confidence === undefined ? null : r.confidence;
   if (confidence !== null && (typeof confidence !== "number" || !Number.isInteger(confidence) || confidence < 1 || confidence > 5)) return { error: RESPONDENT_ERRORS.confidence };
   const answer = typeof r.closingAnswer === "string" ? r.closingAnswer.trim() : "";
@@ -396,8 +385,16 @@ export function parseWrapInput(raw: unknown, ctx: WrapCtx): { error: string } | 
     if ((area !== null && !ctx.areas.includes(area)) || (value !== null && !SCALES[ctx.method].some((v) => v.code === value))) return { error: RESPONDENT_ERRORS.badMissing };
     if (text) missing = { text, area, value };
   }
-  return { input: { response: r.response, confidence: confidence as number | null, closingAnswer: ctx.hasQuestion && answer ? answer : null, missing } };
+  return { input: { response: r.response, confidence: confidence as number | null, closingAnswer: ctx.hasQuestion && answer ? answer : null, missing, base: r.base, page: r.page, seq: r.seq, after } };
 }
+
+// The Wrap up's version as the server holds it (response.wrap_version, wrap_writer,
+// wrap_writer_seq), and whether a write lands on it: made on that version, or the same page
+// wrote last with a lower number, or the last write is one this write was made on top of
+// (the rule src/db/queries/answers.ts applies to an answer). Otherwise the write is stale.
+export type WrapSync = { version: number; writer: string | null; writerSeq: number };
+export const wrapTakes = (stored: WrapSync, write: { base: number; page: string; seq: number; after: SaveRef[] }): boolean =>
+  stored.version === write.base || (stored.writer === write.page && stored.writerSeq < write.seq) || write.after.some((a) => stored.writer === a.page && stored.writerSeq <= a.seq);
 
 // Submit (E7-5, acceptance 2 and 3): the Wrap up as above, with confidence given and the
 // sign-off ticked on the sentence the PM has now.

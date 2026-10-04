@@ -31,7 +31,7 @@ export const RETRY_MS = 5000;
 export { COUNT_MAX };
 export const queueKey = (token: string) => `smesay-answers:${token}`;
 
-export type QueueEntry = { draft: CardDraft; base: number; page: string; seq: number; after: SaveRef[] };
+export type QueueEntry = Entry<CardDraft>;
 type StoredEntry = { picked: string; reason: string; comment: string; base: number; page: string; seq: number; after?: unknown };
 type Stored = { response: string; entries: Record<string, StoredEntry> };
 
@@ -123,7 +123,9 @@ export function rebased(raw: string | null, responseId: string, itemId: string, 
 // from an earlier visit) is the version this change is really made on: the new change keeps
 // that change's base and names it, with the saves that change named, among the saves it was
 // made on top of (the newest AFTER_MAX).
-export function nextEntry(prev: QueueEntry | undefined, draft: CardDraft, known: number, page: string, seq: number): QueueEntry {
+// The Wrap up's queue (src/lib/wrap-queue.ts) takes the same rule for its one value.
+export type Entry<D> = { draft: D; base: number; page: string; seq: number; after: SaveRef[] };
+export function nextEntry<D>(prev: Entry<D> | undefined, draft: D, known: number, page: string, seq: number): Entry<D> {
   if (!prev || (prev.page === page && prev.after.length === 0)) return { draft, base: known, page, seq, after: [] };
   if (prev.page === page) return { draft, base: prev.base, page, seq, after: prev.after };
   const after = [...prev.after.filter((a) => a.page !== prev.page), { page: prev.page, seq: prev.seq }].slice(-AFTER_MAX);

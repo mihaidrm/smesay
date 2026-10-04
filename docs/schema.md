@@ -237,6 +237,9 @@ one respondent's session against one instrument, pinned to the set version it wa
 | first_submitted_at | timestamp with time zone |  |
 | closing_answer | text |  |
 | sign_off_text | text |  |
+| wrap_version | integer | not null, default 0 |
+| wrap_writer | text |  |
+| wrap_writer_seq | integer | not null, default 0 |
 | created_at | timestamp with time zone | not null, default now() |
 | updated_at | timestamp with time zone | not null, default now() |
 

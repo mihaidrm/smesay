@@ -24,7 +24,13 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E7-5, under deci
   phone was missing on the laptop). Until the server holds them they stay on the device too
   (smesay-wrap:[token], tied to the response), so a closed tab keeps them. A visit on any
   device starts from what the server holds, so Submit again keeps the missing item and the
-  closing answer. The sign-off is never kept: it is ticked for each Submit. Submit names the
+  closing answer. The third audit found a kept change landing over a newer one (a laptop's
+  week-old draft over a phone's Submit): every Wrap up write and Submit now carries the
+  cards' version, page and number (wrap_version, wrap_writer, wrap_writer_seq; wrapTakes),
+  the page sends a kept change only when the server would still take it, and a stale write
+  gets the stored Wrap up back (src/lib/wrap-queue.ts). A write that changes nothing moves
+  nothing but the version, ticking the sign-off sends nothing, Submit first waits for the
+  Wrap up's save without dropping it, and the form cannot change while Submit posts. The sign-off is never kept: it is ticked for each Submit. Submit names the
   response the page answers for (409 "not started" otherwise, and the page returns to About
   you with everything kept) and first waits for the cards: it stops when one cannot be
   saved, or when one was refused or changed in another window meanwhile. A list with no areas asks no area for a missing

@@ -30,7 +30,8 @@
 // the closing answer, confidence, the sign-off) is held here; Submit posts it to
 // /r/[token]/submit and lands on the Done screen (?at=done: "Thank you, [NAME]." and the
 // time in UTC, with Change my answers, which reopens the Wrap up with the sign-off
-// cleared). A Submit that fails keeps everything and says so.
+// cleared). The form is saved as the respondent writes (wrap-saver.ts) and cannot be changed
+// while Submit posts. A Submit that fails keeps everything and says so.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "cn";
 import { AboutYou } from "@/components/respondent/about-you";
@@ -45,7 +46,8 @@ import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLab
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
-import { areasOf, chaptersFor, sameWrap, gapsOf, wrapDraft, wrapDraftOf, wrapKey, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
+import { areasOf, chaptersFor, gapsOf, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 
 export type RespondentAppProps = {
@@ -72,8 +74,9 @@ export type RespondentAppProps = {
   welcome: { name: string | null; answered: number; total: number } | null;
   // A response already submitted (E7-5 and E7-6): when, and the first name for the thanks.
   submitted: { at: string; name: string | null } | null;
-  // The Wrap up as the last Submit stored it (E7-5), empty before one.
+  // The Wrap up as the server holds it and its version (E7-5), empty before a save.
   wrap: WrapValue;
+  wrapSync: WrapSync;
 };
 
 const firstName = (fields: ResponseFields): string | null => (fields.name ?? "").trim().split(/\s+/)[0] || null;
@@ -100,35 +103,25 @@ export function RespondentApp(props: RespondentAppProps) {
   useEffect(() => { screenRef.current = screen; }, [screen]);
   const lost = useRef(false);
   const [responseId, setResponseId] = useState<string | null>(props.responseId);
-  // The Wrap up as the server last held it; the device's own draft, when it has one for this
-  // response (changes the server had not taken), replaces it after the first render (an
-  // outside store the server render cannot read) and goes to the server. Every change is
-  // kept there and saved within a second (wrap-saver.ts) until the server holds it (E7-5).
+  // The Wrap up as the server holds it; the change this device kept, when the server would
+  // still take it, replaces it after the first render (an outside store the server render
+  // cannot read). Every change goes to the server within a second (wrap-saver.ts, E7-5).
   const [wrap, setWrapState] = useState<WrapValue>(props.wrap);
-  const wrapDirty = useRef(false);
-  const wrapSaver = useWrapSaver(token, responseId, {
-    onGone: () => window.location.reload(),
-    onNotStarted: () => lostResponse(),
-    onHeld: () => { wrapDirty.current = false; try { window.localStorage.removeItem(wrapKey(token)); } catch { /* Nothing kept. */ } },
-  });
   // A missing item's area that the list no longer offers (perspectives changed) is not sent.
   const areaNames = areasOf(chapters);
-  const cleanWrap = (w: WrapValue): WrapValue => (areaNames.includes(w.missing.area) ? w : { ...w, missing: { ...w.missing, area: "" } });
+  const cleanWrap = (w: WrapValue): WrapValue => (w.missing.area === "" || areaNames.includes(w.missing.area) ? w : { ...w, missing: { ...w.missing, area: "" } });
+  const wrapSaver = useWrapSaver(token, responseId, { wrap: props.wrap, ...props.wrapSync }, {
+    onGone: () => window.location.reload(),
+    onNotStarted: () => lostResponse(),
+    onRestore: (value) => setWrapState((w) => ({ ...value, signed: w.signed })),
+    // Another window or device changed it: the stored one shows, and the sign-off is ticked
+    // again for it.
+    onStale: (value) => setWrapState({ ...value, signed: false }),
+    clean: cleanWrap,
+  });
   const wrapNow = useRef(wrap);
   useEffect(() => { wrapNow.current = wrap; }, [wrap]);
-  const queueWrap = wrapSaver.queue;
-  const setWrap = (next: WrapValue) => { wrapDirty.current = true; setWrapState(next); wrapSaver.queue(cleanWrap(next)); };
-  useEffect(() => {
-    if (!props.responseId) return;
-    let raw: string | null = null;
-    try { raw = window.localStorage.getItem(wrapKey(token)); } catch { return; }
-    const kept = wrapDraftOf(raw, props.responseId);
-    if (kept) queueMicrotask(() => { wrapDirty.current = true; setWrapState(kept); queueWrap(kept); });
-  }, [token, props.responseId, queueWrap]);
-  useEffect(() => {
-    if (!wrapDirty.current || !responseId) return;
-    try { window.localStorage.setItem(wrapKey(token), wrapDraft(responseId, wrap)); } catch { /* Kept in the page only. */ }
-  }, [wrap, responseId, token]);
+  const setWrap = (next: WrapValue) => { setWrapState(next); setSubmitError(null); wrapSaver.queue(next); };
   // Whether a Start in this visit has been followed by a save the server took: a "not
   // started" before that means the browser did not keep the device cookie.
   const startedHere = useRef(false);
@@ -181,6 +174,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const go = (next: Screen, itemIndex = 0, itemId: string | null = null) => {
     target.current = itemId;
     saver.flush();
+    setSubmitError(null);
     setWelcomeDone(true);
     // About you shows what Start saved; picks ticked and not saved are dropped.
     if (next.kind === "about") setPicks(savedPicks);
@@ -227,14 +221,17 @@ export function RespondentApp(props: RespondentAppProps) {
       // can name a response other than the one the page answered for (another window
       // replaced the cookie): that is a lost response too, and the cards go again.
       if (typeof body.response === "string") {
-        if (responseId !== null && body.response !== responseId && !lost.current) { saver.reset(); lost.current = true; }
+        if (responseId !== null && body.response !== responseId && !lost.current) { saver.reset(); wrapSaver.reset(); lost.current = true; }
         setResponseId(body.response);
         saver.bind(body.response);
+        wrapSaver.bind(body.response);
       }
       startedHere.current = true;
       savedSinceStart.current = false;
       setStarted(true);
-      if (lost.current) { lost.current = false; saver.resend(drafts); if (wrapDirty.current) wrapSaver.queue(cleanWrap(wrap)); }
+      // After a lost response the cards and the Wrap up on the page go to the new one (the
+      // saver holds nothing for it, so whatever the form says is a change).
+      if (lost.current) { lost.current = false; saver.resend(drafts); wrapSaver.queue(wrapNow.current); }
       go({ kind: "chapter", index: 0 });
     } catch {
       setStartError(RESPONDENT_COPY.startFailed);
@@ -265,30 +262,29 @@ export function RespondentApp(props: RespondentAppProps) {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // Every change on the cards reaches the server first, so the Submit is of what the
-      // respondent sees: a change that cannot be saved stops it, and so does a card refused or
-      // changed elsewhere meanwhile. The Wrap up's own save in flight lands first, as Submit
-      // carries the same values.
+      // Every change on the cards and the Wrap up reaches the server first, so the Submit is
+      // of what the respondent sees: a change that cannot be saved stops it, and so does one
+      // refused or changed elsewhere meanwhile (the card or the Wrap up says which). The form
+      // cannot change while Submit posts.
       const cards = await saver.settle();
       if (cards !== "ok") { setSubmitError(cards === "check" ? RESPONDENT_ERRORS.checkCards : RESPONDENT_COPY.submitFailed); return; }
-      if (!(await wrapSaver.settle())) { setSubmitError(RESPONDENT_COPY.submitFailed); return; }
-      const posted = cleanWrap(wrap);
+      const held = await wrapSaver.settle();
+      if (held !== "ok") { setSubmitError(held === "check" ? null : RESPONDENT_COPY.submitFailed); return; }
+      const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
-      const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing }) });
-      const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string };
+      const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
+      const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue };
       if (response.ok && body.submittedAt) {
-        // The server holds the Wrap up now: the device's draft goes, unless the respondent
-        // changed it while Submit posted (that change is on its way, wrap-saver.ts), and the
-        // sign-off is ticked again for the next Submit (Back from Done shows it unticked).
-        if (sameWrap(cleanWrap(wrapNow.current), posted)) {
-          wrapDirty.current = false;
-          try { window.localStorage.removeItem(wrapKey(token)); } catch { /* Nothing kept. */ }
-        }
+        // The server holds the Wrap up now; the sign-off is ticked again for the next Submit
+        // (Back from Done shows it unticked).
+        wrapSaver.submitted(body.version, posted);
         setWrapState((w) => ({ ...w, signed: false }));
         setSubmitted({ at: body.submittedAt, name: body.name ?? props.welcome?.name ?? firstName(fields) });
         go({ kind: "done" });
         return;
       }
+      // Another window or device changed the Wrap up since: it shows the stored one.
+      if (response.status === 409 && body.error === "stale") { wrapSaver.adopt(body); return; }
       if (response.status === 410 || response.status === 404 || (response.status === 403 && body.error !== RESPONDENT_ERRORS.planFull) || (response.status === 409 && body.error === "notOpen")) { window.location.reload(); return; }
       if (response.status === 409) { lostResponse(); return; }
       setSubmitError(body.error ?? RESPONDENT_COPY.submitFailed);
@@ -350,7 +346,7 @@ export function RespondentApp(props: RespondentAppProps) {
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
-          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError ?? wrapSaver.error} onSubmit={submit} />
+          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={submit} />
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
