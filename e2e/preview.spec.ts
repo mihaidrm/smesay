@@ -53,6 +53,8 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   await page.goto(`${project}/share`);
   await expect(panel.getByTestId("preview-caption")).toHaveText("Share sets the closing date in the header.");
+  // Publish is a form the page handles once it has loaded (as the revoke and share specs wait).
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("link-state")).toHaveText("Published");
