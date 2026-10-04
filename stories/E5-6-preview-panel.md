@@ -39,7 +39,9 @@ stores a response (decision 0021).
 ## Technical notes
 Sequencing (decision 0045, Mihai, 2026-10-04): built after E7-5, once the respondent app
 exists to load in the iframe; until then the Build preview draws the shared components
-(src/components/respondent/) in its own panel (E5-2 to E5-5).
+(src/components/respondent/) in its own panel (E5-2 to E5-5). Placed 2026-10-04 under
+decision 0044: the first story after the pause that follows E8, before E9-1, since Mihai
+asked for E8 straight after E7 (docs/review-list.md).
 
 The iframe loads /r/preview?instrument=[draft id]&device=desktop|phone with a short-lived
 preview token tied to the PM's session; the respondent app treats the token as "render only".
