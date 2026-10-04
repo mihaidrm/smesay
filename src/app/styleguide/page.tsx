@@ -212,29 +212,37 @@ export default function Styleguide() {
 
       <Section id="data" title="Data">
         <p className="max-w-[720px] text-ink-soft">
-          Thin marks, 2 px gaps between segments, direct labels, text in ink tokens never in series colour, never a pie,
-          never two y-axes. Agreement per item: agree, pushed back, unclear; the percent is agree over answered.
+          Thin marks, 2 px gaps between segments, counts in words under a bar, text in ink tokens never in series colour,
+          a donut per area, for the whole list and per group, never per item, never two y-axes. Agreement per item: agree, different priority,
+          disagree, unclear; the percent is agree over answered.
         </p>
         <div className="flex max-w-[560px] flex-col gap-3">
           {[
-            ["Receipt photos", 60, 20, 20, "60%"],
-            ["Split receipts", 40, 40, 20, "40%"],
-            ["Policy flags", 40, 60, 0, "40%"],
-          ].map(([name, a, p, u, pct]) => (
-            <div key={name as string} className="grid grid-cols-[160px_1fr_48px] items-center gap-3 text-[13px]">
-              <div>{name}</div>
-              <div className="flex h-2.5 gap-[2px] overflow-hidden rounded-full bg-tint">
-                <div className="bg-agree" style={{ width: a + "%" }} />
-                <div className="bg-pushed" style={{ width: p + "%" }} />
-                <div className="bg-unclear" style={{ width: u + "%" }} />
+            ["Receipt photos", [6, 2, 1, 1, 0], "60%"],
+            ["Split receipts", [4, 3, 1, 1, 1], "44%"],
+            ["Policy flags", [4, 4, 2, 0, 0], "40%"],
+          ].map(([name, counts, pct]) => (
+            <div key={name as string} className="grid grid-cols-[160px_1fr_48px] items-start gap-3 text-[13px]">
+              <div>{name as string}</div>
+              <div className="flex flex-col gap-1">
+                <div className="flex h-2.5 gap-[2px] overflow-hidden rounded-full">
+                  {(counts as number[]).map((n, i) => n > 0 && (
+                    <div key={i} style={{ flexGrow: n }} className={["bg-agree", "bg-pushed", "bg-disagree", "bg-unclear", "border border-dashed border-hairline-strong bg-surface"][i]} />
+                  ))}
+                </div>
+                <div className="font-mono text-[11px] text-ink-muted">
+                  {(counts as number[]).map((n, i) => (n > 0 ? `${n} ${["agree", "different priority", "disagree", "unclear", "not answered"][i]}` : null)).filter(Boolean).join(" · ")}
+                </div>
               </div>
-              <div className="text-right font-mono text-xs">{pct}</div>
+              <div className="text-right font-mono text-xs">{pct as string}</div>
             </div>
           ))}
-          <div className="flex gap-4 text-xs text-ink-muted">
+          <div className="flex flex-wrap gap-4 text-xs text-ink-muted">
             <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-agree align-middle" />Agree</span>
-            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-pushed align-middle" />Pushed back</span>
+            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-pushed align-middle" />Different priority</span>
+            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-disagree align-middle" />Disagree</span>
             <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-unclear align-middle" />Unclear</span>
+            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm border border-dashed border-hairline-strong bg-surface align-middle" />Not answered</span>
           </div>
         </div>
       </Section>

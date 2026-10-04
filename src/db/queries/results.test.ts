@@ -9,10 +9,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
+import { figureOf, percentOf } from "@/lib/results-agreement";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { results, resultsPrefs, tracker, type ResultRow } from "@/db/queries/results";
+import { agreement, results, resultsPrefs, tracker, type ItemCounts, type ResultRow } from "@/db/queries/results";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { answers as fixture, expected, people, missingItem } from "@/db/seed/sample";
 import type { WorkspaceId } from "@/db/types";
@@ -25,7 +26,7 @@ let wsA: WorkspaceId;
 let wsB: WorkspaceId;
 let instrumentA: string;
 
-const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null };
+const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null };
 
 async function sampleInstrument(ws: WorkspaceId): Promise<string> {
   const [project] = (await projects.list(ws)).filter((p) => p.isSample);
@@ -286,5 +287,116 @@ describe("the Responses tab", () => {
   it("sorts on its own columns only, never on a member every object has", async () => {
     const order = async (key: string) => (await tracker.people(wsA, instrumentA, { ...NONE, sort: { key, dir: "asc" } }, keys)).map((p) => p.id);
     expect(await order("constructor")).toEqual(await order("name"));
+  });
+});
+
+describe("the Agreement tab's numbers", () => {
+  // Every count per item (and group) equals the answer rows the same filter keeps, filtered to
+  // that item (E8-3, acceptance 7): the CSV cells reconcile with the screen.
+  async function reconcile(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, split: string | null) {
+    const byItem = await agreement.byItem(ws, instrumentId, f, split);
+    const rows = await results.rows(ws, instrumentId, f);
+    const responses = new Map((await sql`select id, fields, perspectives from response where workspace_id = ${ws} and instrument_id = ${instrumentId}`).map((r) => [r.id as string, { fields: r.fields as Record<string, string>, perspectives: r.perspectives as string[] }]));
+    const itemPerspectives = new Map((await sql`select it.id, it.perspectives from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws}`).map((r) => [r.id as string, r.perspectives as string[]]));
+    const counted = (await results.people(ws, instrumentId, f)).filter((p) => p.counted).map((p) => p.id);
+    const groupOf = (responseId: string) => (split === null ? null : (responses.get(responseId)?.fields[split] || null));
+    const sees = (responseId: string, itemId: string) => { const its = itemPerspectives.get(itemId) ?? []; return its.length === 0 || its.some((x) => responses.get(responseId)!.perspectives.includes(x)); };
+    for (const c of byItem) {
+      const mine = rows.filter((r) => r.itemId === c.itemId && groupOf(r.responseId) === c.group);
+      const k = (kind: string) => mine.filter((r) => r.kind === kind).length;
+      expect([c.agree, c.change, c.disagree, c.unclear, c.pick]).toEqual([k("agree"), k("change"), k("disagree"), k("unclear"), k("pick")]);
+      const answered = c.agree + c.change + c.disagree + c.unclear;
+      expect(c.percent).toBe(answered === 0 ? null : Math.round((100 * c.agree) / answered));
+      // The screen's rule (src/lib/results-agreement.ts percentOf) gives the SQL's number.
+      expect(percentOf(c)).toBe(c.percent);
+      // The values per code, and the people of the cell who could see the item (Not answered
+      // is those people less the answers).
+      const codes: Record<string, number> = {};
+      for (const r of mine) if (r.value !== null) codes[r.value] = (codes[r.value] ?? 0) + 1;
+      expect(c.values).toEqual(codes);
+      expect(c.couldSee).toBe(counted.filter((id) => groupOf(id) === c.group && sees(id, c.itemId)).length);
+    }
+    // Every answer row lands in one cell.
+    expect(byItem.reduce((a, c) => a + c.agree + c.change + c.disagree + c.unclear + c.pick, 0)).toBe(rows.length);
+    return byItem;
+  }
+  const sum = (cs: ItemCounts[], k: "agree" | "change" | "disagree" | "unclear") => cs.reduce((a, c) => a + c[k], 0);
+
+  it("counts the sample per item, and the list adds up to the strip", async () => {
+    const cs = await reconcile(wsA, instrumentA, NONE, null);
+    expect(cs).toHaveLength(6);
+    expect([sum(cs, "agree"), sum(cs, "change"), sum(cs, "disagree"), sum(cs, "unclear")]).toEqual([expected.agree, expected.change, expected.disagree, expected.unclear]);
+    // Every one of the five submitted people could see every item (no perspectives).
+    expect(cs.every((c) => c.couldSee === 5)).toBe(true);
+    for (const f of [{ ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, fields: { role: ["Sales"] }, includeUnsubmitted: true }]) {
+      const n = (await results.numbers(wsA, instrumentA, f))!;
+      const per = await reconcile(wsA, instrumentA, f, null);
+      expect([sum(per, "agree"), sum(per, "change")]).toEqual([n.agree, n.change]);
+      await reconcile(wsA, instrumentA, f, "role");
+    }
+    // Split by role: one row per item and role among the people counted.
+    const split = await reconcile(wsA, instrumentA, NONE, "role");
+    expect(new Set(split.map((c) => c.group))).toEqual(new Set(["Sales", "Finance", "Engineering manager", "HR"]));
+  });
+
+  it("reconciles 600 generated responses in every view's query under 500 ms", async () => {
+    const stamp = Date.now();
+    const c = await createWorkspaceWithSample({ name: "Results C", slug: `results-c-${stamp}` }, userId);
+    made.push(c.id);
+    const wsC = unsafeWorkspaceId(c.id);
+    const instrumentC = await sampleInstrument(wsC);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentC} and i.kind = 'public'`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, submitted_at, first_submitted_at, signed_off)
+      select ${wsC}, ${instrumentC}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(g::text),
+          jsonb_build_object('name', 'Person ' || g, 'role', (array['Sales', 'Finance', 'HR', 'Engineering manager', 'Office manager'])[1 + g % 5]),
+          case when g % 4 = 0 then null else now() end, case when g % 4 = 0 then null else now() end, g % 4 <> 0
+      from generate_series(1, 600) g`;
+    await sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind, value, reason)
+      select ${wsC}, r.id, r.item_set_id, it.id, k.kind, case k.kind when 'agree' then 'S' when 'change' then 'M' when 'disagree' then 'W' end, case when k.kind = 'agree' then null else 'Because.' end
+      from response r join item it on it.item_set_id = r.item_set_id
+        cross join lateral (select (array['agree', 'agree', 'change', 'disagree', 'unclear'])[1 + abs(hashtext(r.id::text || it.id::text)) % 5] as kind) k
+      where r.workspace_id = ${wsC} and r.instrument_id = ${instrumentC} and r.fields ? 'role' and r.fields ->> 'name' like 'Person %' and abs(hashtext(r.id::text || it.id::text)) % 7 <> 0`;
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, fields: { role: ["Sales"] }, includeUnsubmitted: true }]) {
+      for (const split of [null, "role"]) {
+        const started = performance.now();
+        await agreement.byItem(wsC, instrumentC, f, split);
+        expect(performance.now() - started).toBeLessThan(500);
+        await reconcile(wsC, instrumentC, f, split);
+      }
+    }
+  }, 120_000);
+
+  it("counts a rate-blind list as values rated, the perspectives' coverage, and an empty split field", async () => {
+    const g = await createWorkspaceWithSample({ name: "Results G", slug: `results-g-${Date.now()}` }, userId);
+    made.push(g.id);
+    const wsG = unsafeWorkspaceId(g.id);
+    const instrumentG = await sampleInstrument(wsG);
+    // Rate-blind (E5-2): every answer but a question becomes the value rated with no proposal
+    // (the proposal for an agree, the value picked for a different priority, Not needed for a
+    // disagree).
+    await sql`update instrument set show_proposed = false, perspectives = '["Finance", "Sales"]'::jsonb where id = ${instrumentG}`;
+    await sql`update answer set kind = 'pick', value = case answer.kind when 'agree' then it.proposed_value when 'disagree' then 'W' else answer.value end
+      from item it where it.id = answer.item_id and answer.workspace_id = ${wsG} and answer.kind <> 'unclear'`;
+    // CL-05 is for Finance only; Dana is Finance; Tom left his role empty.
+    await sql`update item set perspectives = array['Finance'] where workspace_id = ${wsG} and source_ref = 'CL-05'`;
+    await sql`update response set perspectives = array['Finance'] where workspace_id = ${wsG} and fields ->> 'name' = 'Dana Okafor'`;
+    await sql`update response set fields = fields - 'role' where workspace_id = ${wsG} and fields ->> 'name' = 'Tom Reyes'`;
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }]) for (const split of [null, "role"]) await reconcile(wsG, instrumentG, f, split);
+    const ref = new Map((await sql`select id, source_ref from item where workspace_id = ${wsG}`).map((r) => [r.id as string, r.source_ref as string]));
+    const cs = await agreement.byItem(wsG, instrumentG, NONE, null);
+    const cl05 = cs.find((c) => ref.get(c.itemId) === "CL-05")!;
+    // Only Dana sees CL-05 among the five who submitted.
+    expect(cl05.couldSee).toBe(1);
+    const cl01 = cs.find((c) => ref.get(c.itemId) === "CL-01")!;
+    expect([cl01.agree, cl01.change, cl01.pick > 0, figureOf({ ...cl01 })]).toEqual([0, 0, true, { rated: cl01.pick }]);
+    // Tom is in the empty group of the split, and the groups add up to the item.
+    const split = (await agreement.byItem(wsG, instrumentG, NONE, "role")).filter((c) => c.itemId === cl01.itemId);
+    expect(split.some((c) => c.group === null)).toBe(true);
+    expect(split.reduce((a, c) => a + c.pick + c.agree + c.change + c.disagree + c.unclear, 0)).toBe(cl01.pick + cl01.change + cl01.disagree + cl01.unclear);
+  });
+
+  it("reads nothing of another workspace's instrument", async () => {
+    expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
+    expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, "role")).toEqual([]);
   });
 });

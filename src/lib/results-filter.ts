@@ -14,9 +14,10 @@
 // kind). Every number is then counted over the answers of the people kept.
 //
 // URL: f.[key] per field (repeated for a dropdown's options), kind (repeated), comment=1,
-// perspective, status (repeated), unsubmitted=1 or 0 (absent: the PM's stored choice), and
-// the table's sort, sort=[column]&dir=asc or desc (E8-2; each table checks the column against
-// its own list, so the sort never narrows anything and is no filter).
+// perspective, status (repeated), unsubmitted=1 or 0 (absent: the PM's stored choice), the
+// table's sort, sort=[column]&dir=asc or desc (E8-2; each table checks the column against
+// its own list, so the sort never narrows anything and is no filter), and split=[key] (E8-3,
+// a dropdown field of the instrument).
 import type { RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
@@ -47,6 +48,9 @@ export type ResultsFilter = {
   // The table's sort (E8-2): a column key in a safe shape; each table maps it to SQL from its
   // own list, never from the URL.
   sort: ResultsSort | null;
+  // The Agreement tab's "Split by [field]" (E8-3): a dropdown field's key, or none. Not a
+  // filter: it draws a bar per group.
+  split: string | null;
 };
 export type ResultsSort = { key: string; dir: "asc" | "desc" };
 const SORT_KEY = /^[a-z][a-zA-Z0-9._-]{0,60}$/;
@@ -88,6 +92,7 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     status: RESULTS_STATUSES.filter((s) => status.includes(s)),
     includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
+    split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
   };
 }
 
@@ -119,11 +124,12 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   for (const s of f.status) q.append("status", s);
   q.append("unsubmitted", f.includeUnsubmitted ? "1" : "0");
   if (f.sort) { q.append("sort", f.sort.key); q.append("dir", f.sort.dir); }
+  if (f.split) q.append("split", f.split);
   return q.toString();
 }
 
-// The filter with nothing narrowing (Clear filters keeps the switch and the sort).
-export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort });
+// The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).
+export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort, split: f.split });
 
 // The sort a column header links to: the column ascending, or descending when it is the
 // current ascending sort.
