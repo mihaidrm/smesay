@@ -106,3 +106,16 @@ is not on anyone's screen. The cost printed per spec is read from that workspace
 rows, so a call the provider billed and the app refused counts too. Two runs of the same
 commit can differ: the model is not deterministic, so a spec near a line can pass in one run
 and fail in the next (design note 32).
+
+## Actions set (stories/E9-1)
+
+evals/insights/NN-domain.json: two invented response sets (a dental clinic's online booking,
+a food bank's volunteer rota), each with the items and their counts, the respondents by their
+dropdown fields, the answers that carry a reason or a question, the missing items, and
+expectedKinds, the action kinds a good run writes. `npm run evals -- insights` runs them
+through the Write actions prompt and client (evals/insights.ts) and writes
+evals/results/insights.json; a spec passes when every expected kind is among the kept actions
+and the model wrote no action that cites nothing or a ref it was not given. Exit 1 unless both
+pass. evals/insights.test.ts runs it against a fetch that answers in place of the network. As
+for the shaping set, the real run is Mihai's (decision 0039).
+

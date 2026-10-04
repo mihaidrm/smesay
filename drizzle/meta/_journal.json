@@ -148,6 +148,13 @@
       "when": 1791134171878,
       "tag": "0020_results_notify",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791146752213,
+      "tag": "0021_insight_citations",
+      "breakpoints": true
     }
   ]
 }

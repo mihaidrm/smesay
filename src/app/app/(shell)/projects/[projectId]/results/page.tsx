@@ -35,14 +35,15 @@ import { ReturnFocus } from "./detail-shell";
 import { PushedTab, QuestionsTab } from "./registers-tab";
 import { ResponsesTab } from "./responses-tab";
 import { PanelSkeleton } from "./skeletons";
+import { ActionsTab } from "./actions-tab";
 import { TileChooser } from "./tile-chooser";
 import { UnsubmittedSwitch } from "./unsubmitted-switch";
 
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
 type Tab = (typeof TABS)[number];
 // The story each tab's content comes with.
-type Later = Exclude<Tab, "responses" | "agreement" | "pushed" | "questions">;
-const TAB_STORY: Record<Later, string> = { actions: "E9-1", export: "E10-1" };
+type Later = Exclude<Tab, "responses" | "agreement" | "pushed" | "questions" | "actions">;
+const TAB_STORY: Record<Later, string> = { export: "E10-1" };
 const parseTab = (v: string | string[] | undefined): Tab => (typeof v === "string" && (TABS as readonly string[]).includes(v) ? (v as Tab) : "agreement");
 
 export default async function ResultsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<SearchParams> }) {
@@ -72,15 +73,15 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
     <>
     {!project.isSample && <LiveUpdates projectId={project.id} />}
     <ResultsBoundary what={RESULTS_COPY.strip}>
-      <ResultsBody projectId={project.id} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
+      <ResultsBody projectId={project.id} isSample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
     </ResultsBoundary>
     </>
   );
 }
 
-type BodyProps = { projectId: string; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; tab: Tab; item: string | null; tiles: TileId[]; view: AgreementView };
+type BodyProps = { projectId: string; isSample: boolean; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; tab: Tab; item: string | null; tiles: TileId[]; view: AgreementView };
 
-async function ResultsBody({ projectId, sampleId, instrument, ws, filter, ctx, tab, item, tiles, view }: BodyProps) {
+async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filter, ctx, tab, item, tiles, view }: BodyProps) {
   const n = await results.numbers(ws, instrument.id, filter);
   if (!n) notFound();
   if (!n.anyAnswer) return <NoAnswers projectId={projectId} sampleId={sampleId} link={await linkPhrase(ws, projectId)} />;
@@ -129,7 +130,7 @@ async function ResultsBody({ projectId, sampleId, instrument, ws, filter, ctx, t
           <h2 className="sr-only">{tabName(tab, n)}</h2>
           <ResultsBoundary key={tab} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
-              <TabPanel tab={tab} n={n} ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} href={(f) => href(f, tab)} itemHref={itemHref} />
+              <TabPanel tab={tab} n={n} ws={ws} projectId={projectId} isSample={isSample} instrument={instrument} filter={filter} ctx={ctx} view={view} href={(f) => href(f, tab)} itemHref={itemHref} />
               <ReturnFocus />
             </Suspense>
           </ResultsBoundary>
@@ -168,10 +169,11 @@ function TabRow({ n, tab, href }: { n: ResultsNumbers; tab: Tab; href: (t: Tab) 
 }
 
 // Each tab's content comes with its story; until then the tab says which.
-async function TabPanel({ tab, ws, projectId, instrument, filter, ctx, view, href, itemHref }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string; itemHref: (id: string) => string }) {
+async function TabPanel({ tab, ws, projectId, isSample, instrument, filter, ctx, view, href, itemHref }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; isSample: boolean; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string; itemHref: (id: string) => string }) {
   if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={href} />;
   if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
+  if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} itemHref={itemHref} />;
   if (tab === "agreement") return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
   return <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="tab-panel">{RESULTS_COPY.comesWith(RESULTS_COPY.tabs[tab], TAB_STORY[tab as Later])}</p>;
 }

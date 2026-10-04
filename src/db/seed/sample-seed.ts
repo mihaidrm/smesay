@@ -90,10 +90,10 @@ export async function seedSampleInto(ws: WorkspaceId, projectName: string): Prom
       answerIds.set(`${it.n}:${personN}`, row.id);
     }
   }
-  await missingItems.create(ws, { responseId: responseIds.get(sample.missingItem.person)!, text: sample.missingItem.text, suggestedArea: sample.missingItem.suggestedArea });
+  const missing = await missingItems.create(ws, { responseId: responseIds.get(sample.missingItem.person)!, text: sample.missingItem.text, suggestedArea: sample.missingItem.suggestedArea });
   for (const ins of sample.insights) {
     const cited = ins.cites.map(([i, p]) => answerIds.get(`${i}:${p}`)!);
-    await insights.create(ws, { projectId: project.id, title: ins.title, why: ins.why, citedAnswerIds: cited, state: "open", model: "sample" });
+    await insights.create(ws, { projectId: project.id, kind: ins.kind, title: ins.title, why: ins.why, citedAnswerIds: cited, citedMissingItemIds: ins.missing ? [missing.id] : [], state: "open", model: "sample", createdAt: new Date(Date.UTC(2026, 9, 9, 10, 0, ins.n)) });
   }
   for (const run of sample.aiRuns) await aiRuns.create(ws, { projectId: project.id, ...run });
 }

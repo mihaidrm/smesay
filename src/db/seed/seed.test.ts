@@ -64,6 +64,10 @@ describe("npm run db:seed", () => {
     expect(cited("Answer two open questions")).toEqual([answerId("CL-02", "Tom Reyes"), answerId("CL-06", "Lukas Berg")].sort());
     expect(cited("Rewrite CL-06")).toEqual([answerId("CL-06", "Priya Nair"), answerId("CL-06", "Lukas Berg")].sort());
     expect(cited("Consider adding mileage")).toEqual([]);
+    // The fourth cites the missing item (E9-1); each carries its kind.
+    const mileage = list.find((i) => i.title.startsWith("Consider adding mileage"))!;
+    expect(mileage.citedMissingItemIds).toEqual((await missingItems.list(ws)).map((m) => m.id));
+    expect(list.map((i) => i.kind).sort()).toEqual(["conflict", "coverage", "followUp", "rewrite"]);
   });
 
   it("adds up to the numbers on the PM app board, over submitted responses", async () => {

@@ -1,7 +1,7 @@
 # E9-1 Generate actions from the responses, each citing the answers behind it
 
 User: a PM who wants to know what to do next
-Status: ready
+Status: built
 Outcome: a short list of actions written from the answers; every action names the responses
 it comes from; an action without a citation is never shown.
 
@@ -36,8 +36,38 @@ it comes from; an action without a citation is never shown.
 - None.
 
 ## Technical notes
-Prompt in src/lib/ai/prompts/insights.md. Citations are two lists: answer ids in
+Prompt in src/lib/ai/prompts/insights.ts. Citations are two lists: answer ids in
 insight.cited_answer_ids and missing-item ids in insight.cited_missing_item_ids (uuid[], added
-in migration 0002 by this story; decision 0033). INTERFACES.md gets InsightOutput with both
+in migration 0021 by this story; decision 0033). INTERFACES.md gets InsightOutput with both
 before the first run. The four seeded actions (E1-4) are the fixture for tests; the seed fills
 the fourth action's missing-item citation once the column exists.
+
+Built 2026-10-04 (design note 66, decision 0044):
+- Acceptance 1: the Actions tab (results/actions-tab.tsx): Write actions, Write again once
+  there are actions (write-actions.tsx, a form on writeActionsAction with Try again for a
+  failed or unusable answer); each action shows its kind, title, why, and the citations from
+  citationLines (src/lib/insights.ts): "[Name] and [Name] on [REF]" (an item with no
+  reference by its text in quotes) linking to the item's detail (E8-5), and "[Name], missing
+  item". Open first, then done and dismissed.
+- Acceptance 2: buildActionsPrompt (src/lib/ai/prompts/insights.ts, a .ts module as the
+  shaping prompt is) sends the project context, the scale, the items with
+  their counts, the respondents by their dropdown fields (no name or email), the answers
+  with a reason or a question and the missing items, each by a ref (I, R, A, M); the output
+  is InsightOutput (src/lib/ai/insights-schema.ts, INTERFACES.md) with four kinds; an action
+  citing a ref that was not sent is dropped (keptActions).
+- Acceptance 3: an action citing nothing is dropped; src/lib/insights.test.ts feeds one
+  uncited and one citing an unknown ref and sees four of six kept.
+- Acceptance 4: insight rows with kind, cited_answer_ids, cited_missing_item_ids (migration
+  0021, not 0002 as the notes said), the model and each action's share of the run's tokens
+  and cost; insights.replaceOpen keeps done and dismissed (tested); the ai_run has purpose
+  insights.
+- Acceptance 5: evals/insights/ holds two invented response sets (a dental clinic, a food
+  bank) with the expected kinds; `npm run evals -- insights` runs them through the same
+  prompt and client (evals/insights.ts); evals/insights.test.ts proves pass and fail with a
+  fake fetch. The real run is Mihai's (decision 0039).
+- Acceptance 6: e2e/actions.spec.ts publishes a list, submits one response with a reason
+  and a missing item, writes actions with the fake transport (four kept of five), checks the
+  kinds, the citations and the link to the detail, and Write again.
+- Acceptance 7: the sample shows its four seeded actions with their kinds and citations (the
+  fourth cites the missing item now) and no Write actions; writeActions refuses the sample.
+
