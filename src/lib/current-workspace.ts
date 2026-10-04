@@ -14,7 +14,7 @@ import { redirect } from "next/navigation";
 import { workspaces } from "@/db/queries";
 import { acceptPendingInvites } from "@/db/queries/onboarding";
 import { INVITE_VALID_MINUTES } from "@/lib/invites";
-import type { Workspace } from "@/db/queries/workspaces";
+import type { DeletedWorkspace, Workspace } from "@/db/queries/workspaces";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { requireSession, type Session } from "@/lib/session";
@@ -22,7 +22,9 @@ import { requireWorkspace } from "@/lib/workspace";
 import { chooseWorkspace } from "@/lib/workspace-choice";
 
 export type Current = { workspace: Workspace; ws: WorkspaceId };
-export type AppContext = { session: Session; memberships: Workspace[]; current: Current | null; storedId: string | null };
+// deleted: the stored workspace was deleted (stories/E11-2) and the person was in it; the app
+// shows the deleted page (/app/deleted) until they leave it, instead of choosing another.
+export type AppContext = { session: Session; memberships: Workspace[]; current: Current | null; storedId: string | null; deleted: DeletedWorkspace | null };
 
 export const getAppContext = cache(async (nextPath: string): Promise<AppContext> => {
   const session = await requireSession(nextPath);
@@ -30,14 +32,15 @@ export const getAppContext = cache(async (nextPath: string): Promise<AppContext>
   await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES);
   const memberships = await workspaces.listForUser(session.user.id);
   const storedId = session.session.currentWorkspaceId ?? null;
+  const deleted = storedId !== null && !memberships.some((w) => w.id === storedId) ? await workspaces.deletedForUser(session.user.id, storedId) : null;
   const choice = chooseWorkspace(memberships, storedId);
   let current: Current | null = null;
-  if (choice.kind === "current" || choice.kind === "select") {
+  if (!deleted && (choice.kind === "current" || choice.kind === "select")) {
     const ws = await requireWorkspace(await headers(), choice.workspace.id);
     if (choice.kind === "select") await setCurrentWorkspace(session, ws);
     current = { workspace: choice.workspace, ws };
   }
-  return { session, memberships, current, storedId };
+  return { session, memberships, current, storedId, deleted };
 });
 
 // The shell and every page in it: no membership goes to the create page, memberships without
@@ -45,10 +48,11 @@ export const getAppContext = cache(async (nextPath: string): Promise<AppContext>
 export async function requireCurrentWorkspace(nextPath: string): Promise<AppContext & { current: Current }> {
   const context = await getAppContext(nextPath);
   if (context.current) return { ...context, current: context.current };
+  if (context.deleted) redirect("/app/deleted");
   redirect(context.memberships.length === 0 ? "/app/new" : "/app/switch");
 }
 
-export async function setCurrentWorkspace(session: Session, ws: WorkspaceId): Promise<void> {
+export async function setCurrentWorkspace(session: Session, ws: WorkspaceId | null): Promise<void> {
   const context = await auth.$context;
   await context.internalAdapter.updateSession(session.session.token, { currentWorkspaceId: ws });
 }

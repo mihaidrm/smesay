@@ -627,3 +627,17 @@ a page request, else { error: [sentence], code: "rateLimited", waitMinutes }; a 
 (a POST with the next-action header to /r/[token] itself) is not counted there. The magic link endpoint over its
 limit answers 429 { code: "RATE_LIMITED", message, waitMinutes }.
 
+## Workspace export and deletion (E11-2)
+Owner: E11-2. Consumers: Settings, Data; the removal job; E11-3's privacy policy.
+Version 1, 2026-10-04. GET /api/workspace/export: application/zip, owner only (403), with
+projects/[NNN]-[PROJECT].json (ProjectExport), workspace.json { name, slug, plan, accentHex,
+aiBudgetEur, createdAt, logo, exportedAt }, members.csv (Name, Email, Role, Joined) and
+logo/[FILE]; export_log gets file "workspace", project_id null (migration 0026).
+exportWorkspace(actor, now) and deleteWorkspace(actor, typedName, now) in
+src/lib/workspace-data.ts; zip(entries, now) in src/lib/export/zip.ts; listKeys(prefix) in
+src/lib/storage.ts. workspace.deleted_by (user id, set null). workspaces.markDeleted(ws, userId,
+now) and deletedForUser(userId, id) give DeletedWorkspace { id, name, deletedAt, deletedByEmail };
+AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id) for
+purgeDeletedWorkspaces(send) in src/lib/workspace-removal.ts (`npm run jobs:purge`). A deleted
+workspace's link from links.byToken carries revokedAt = deleted_at.
+

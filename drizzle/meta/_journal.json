@@ -183,6 +183,13 @@
       "when": 1791152245008,
       "tag": "0025_export_log_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791154249641,
+      "tag": "0026_workspace_deletion",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,8 @@ import type { CsvFile, ExportFile } from "@/db/types";
 export const SUMMARY_PAGE_LIMIT = 30;
 
 export const EXPORT_COPY = {
+  // Export everything (E11-2): [WORKSPACE]-everything-[DATE].zip.
+  everythingSuffix: "everything",
   watermark: "Sample data, invented",
   filtered: (filters: string) => `Filtered: ${filters}`,
   withUnsubmitted: "Includes answers not submitted yet",

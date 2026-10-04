@@ -54,6 +54,15 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Usage line under the plan note (E2-6; the spend added with E9-3) | [N] projects, [N] responses this month, [N] AI runs this month, EUR [SPENT] on AI this month. |
 | Note | No AI budget on the page: the workspace budget will be set and seen in the admin area only (decision 0036; E14-2, not built yet). |
 
+## Settings, Data (E11-2; owners only)
+
+| Where | Text |
+|---|---|
+| Section title | Data |
+| Export everything | Export everything / One zip file with every project's JSON file, the workspace's settings, the members and the logo. / [Button: Download zip], while it waits Preparing the file; a failed download: The zip export did not finish. Try again; if it fails again, reload the page and export again. File name: [WORKSPACE]-everything-[YYYY-MM-DD].zip, holding projects/[NNN]-[PROJECT].json, workspace.json, members.csv (Name, Email, Role, Joined) and logo/[FILE] |
+| Delete this workspace | Delete this workspace / Every project, response and file in this workspace is removed within 24 hours, and every member loses access at once. This cannot be undone. Export everything first if you want a copy. / Field: Type the workspace's name, [WORKSPACE], to confirm / [Button: Delete workspace] (destructive; off until the name matches); refusals in docs/copy/errors.md, Sign-in and workspace |
+| Deleted page | Workspace deleted / the line from docs/copy/errors.md / [Button: Go to your workspaces] |
+
 ## Settings, Members (E2-4)
 
 | Where | Text |

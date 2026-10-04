@@ -35,7 +35,9 @@ of the content; page means it replaces the screen.
 | Inline, settings logo | File is not a PNG or an SVG by content | The file is not a PNG or an SVG. Export the logo as one of those and try again. |
 | Inline, settings logo | SVG with a script or an event handler | The SVG contains a script or an event handler, so it was refused. Export it again without them. |
 | Banner, settings | Save by a member (the server answers 403) | Only an owner of this workspace can do this. |
-| Page | Workspace deleted by its owner | This workspace was deleted on [DATE]. Its data is removed within 24 hours. Contact [OWNER EMAIL] if you did not expect this. |
+| Page (E11-2) | Workspace deleted by its owner | This workspace was deleted on [DATE, HH:MM] UTC. Its data is removed within 24 hours. Contact [OWNER EMAIL] if you did not expect this. (Title: Workspace deleted; the owner who deleted it; no contact sentence when that account is gone) |
+| Inline, Settings, Data (E11-2) | The typed name does not match | The name does not match. Type the workspace's name exactly as it is shown, then press Delete workspace. |
+| Inline, Settings, Data (E11-2) | A member exports or deletes (a guard; members do not see the section) | Only an owner can export or delete the workspace. Ask an owner. |
 
 ## Import (E3)
 
@@ -266,7 +268,7 @@ of the content; page means it replaces the screen.
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on an action another tab or member changed, or a new run replaced | This action changed since the page loaded: someone marked it in another tab, or a new run replaced it. Reload the page to see the current actions. |
 | Inline, Actions tab (E9-2) | A change no action can take (a crafted request) | That change is not one an action can take. Reload the page and use its buttons. |
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on the sample (a guard; the sample shows no buttons) | The sample's actions are invented and cannot be marked. Mark the actions of your own project. |
-| Inline, export | Export failed (E10-1 to E10-3) | The [FORMAT] export did not finish. Try again; if it fails again, reload the page and export again. ([FORMAT]: CSV, JSON, PDF) |
+| Inline, export | Export failed (E10-1 to E10-3, E11-2) | The [FORMAT] export did not finish. Try again; if it fails again, reload the page and export again. ([FORMAT]: CSV, JSON, PDF, zip) |
 | Inline, PDF | PDF over the page limit (E10-3; the limit is 30) | The summary runs to [N] pages, over the 30 a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again. |
 | Inline, sample project | Delete sample | The sample project and its invented answers are deleted. Your own projects are not affected. [Button: Delete sample] |
 

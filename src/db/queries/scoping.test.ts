@@ -190,7 +190,7 @@ describe("workspaces and membership", () => {
   });
 
   it("a deleted workspace is not handed out", async () => {
-    await workspaces.markDeleted(B.ws);
+    await workspaces.markDeleted(B.ws, B.userId);
     expect(await workspaces.getForUser(B.userId, B.ws)).toBeNull();
     expect((await workspaces.listForUser(B.userId)).length).toBe(0);
     await expect(requireWorkspaceForUser(B.userId, B.ws)).rejects.toBeInstanceOf(NotFoundError);

@@ -15,6 +15,6 @@ describe("can", () => {
     expect(can("member", "billing.change")).toBe(false);
   });
   it("names the eight owner-only actions of the story (the budget left with decision 0036)", () => {
-    expect([...OWNER_ONLY].sort()).toEqual(["billing.change", "members.invite", "members.remove", "members.role", "workspace.accent", "workspace.delete", "workspace.logo", "workspace.rename"]);
+    expect([...OWNER_ONLY].sort()).toEqual(["billing.change", "members.invite", "members.remove", "members.role", "workspace.accent", "workspace.delete", "workspace.export", "workspace.logo", "workspace.rename"]);
   });
 });

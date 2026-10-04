@@ -20,7 +20,7 @@ const TOKEN = "0123456789abcdef0123456789abcdef";
 const AUTH_TABLES = ["user", "session", "account", "verification"];
 const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log"];
 // Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
-const USER_COLUMNS = ["user_id", "created_by", "made_by"];
+const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by"];
 
 type Fk = { table_name: string; constraint_name: string; columns: string[]; ref_table: string; ref_columns: string[] };
 async function foreignKeys(): Promise<Fk[]> {
