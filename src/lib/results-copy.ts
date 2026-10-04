@@ -132,14 +132,17 @@ export const REGISTERS_COPY = {
 
 // The item detail (stories/E8-5; docs/copy/app.md, Results).
 export const DETAIL_COPY = {
+  back: (tab: string) => `Back to ${tab.toLowerCase()}`,
   original: "Original",
   proposed: "Proposed",
-  close: "Close",
-  counts: (agree: number, change: number, disagree: number, unclear: number, notYet: number) => `${agree} agree · ${change} different priority · ${disagree} disagree · ${unclear} unclear · ${notYet} not yet answered`,
-  ratedCounts: (rated: number, unclear: number, notYet: number) => `${rated} rated · ${unclear} unclear · ${notYet} not yet answered`,
+  onItem: "On this item",
+  countLabels: { agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notYet: "Not yet answered" },
+  caption: "Every answer on this item",
+  columns: { who: "Respondent", answer: "Answer", text: "Reason, question or comment" },
   inProgress: "In progress",
   notStarted: "Not started",
   notSubmitted: "Not submitted",
   noAnswer: "No answer yet.",
-  open: (ref: string) => `Open the detail of ${ref}`,
+  noRows: "No one the filter keeps sees this item. Change the filter to see their answers.",
+  notFound: "This item is not in the survey's current version. Go back and open an item from the list.",
 };

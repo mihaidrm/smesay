@@ -19,7 +19,8 @@ import { instruments, invites, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { results, resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { RESULTS_COPY } from "@/lib/results-copy";
+import { DETAIL_COPY, RESULTS_COPY } from "@/lib/results-copy";
+import { itemParam } from "@/lib/results-detail";
 import { describeFilter, filterActive, filterQuery, parseResultsFilter, RESULTS_KINDS, type FilterContext, type ResultsFilter, type SearchParams } from "@/lib/results-filter";
 import { DEFAULT_TILES, storedTiles, tabCounts, tileView, type ResultsNumbers, type TileId } from "@/lib/results-tiles";
 import { formatUtc, linkState } from "@/lib/sharing";
@@ -28,6 +29,7 @@ import { ResultsBoundary } from "./results-boundary";
 import { AgreementTab } from "./agreement-tab";
 import type { AgreementView } from "./agreement-controls";
 import { DetailPanel } from "./detail-panel";
+import { ReturnFocus } from "./detail-shell";
 import { PushedTab, QuestionsTab } from "./registers-tab";
 import { ResponsesTab } from "./responses-tab";
 import { PanelSkeleton } from "./skeletons";
@@ -58,7 +60,7 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   // The URL always says which answers count (the switch), so a link copied from the address
   // bar reads the same for whoever opens it: a first open without it goes to the full URL
   // (redirect: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md).
-  const item = typeof query.item === "string" && query.item.length <= 40 ? query.item : null;
+  const item = itemParam(query.item);
   if (query.unsubmitted === undefined) redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
   return (
     <ResultsBoundary what={RESULTS_COPY.strip}>
@@ -98,8 +100,16 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
       <p role="status" className={cn("text-sm text-ink-muted", !active && "sr-only")} data-testid={active ? "showing-line" : undefined}>{active ? RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx)) : ""}</p>
       {none ? (
         <EmptyState title={RESULTS_COPY.noMatch} className="py-8">
-          <Link href={href(cleared, tab)} className={cn(buttonVariants({ variant: "secondary", size: "small" }), "mt-2")} data-testid="no-match-clear">{RESULTS_COPY.clearFilters}</Link>
+          <Link href={href(cleared, tab, item)} className={cn(buttonVariants({ variant: "secondary", size: "small" }), "mt-2")} data-testid="no-match-clear">{RESULTS_COPY.clearFilters}</Link>
         </EmptyState>
+      ) : item ? (
+        // An item's detail (E8-5) in place of the tabs, as the PM app board draws it; Back
+        // returns to the tab.
+        <ResultsBoundary key={`detail:${item}`} what={RESULTS_COPY.detail}>
+          <Suspense fallback={<PanelSkeleton />}>
+            <DetailPanel ws={ws} instrument={instrument} itemId={item} filter={filter} closeHref={href(filter, tab)} backLabel={DETAIL_COPY.back(RESULTS_COPY.tabs[tab])} />
+          </Suspense>
+        </ResultsBoundary>
       ) : (
         <>
           <TabRow n={n} tab={tab} href={(t) => href(filter, t)} />
@@ -112,15 +122,9 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
           <ResultsBoundary key={tab} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
               <TabPanel tab={tab} n={n} ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} href={(f) => href(f, tab)} itemHref={itemHref} />
+              <ReturnFocus />
             </Suspense>
           </ResultsBoundary>
-          {item && (
-            <ResultsBoundary key={`detail:${item}`} what={RESULTS_COPY.detail}>
-              <Suspense fallback={null}>
-                <DetailPanel ws={ws} instrument={instrument} itemId={item} filter={filter} closeHref={href(filter, tab)} />
-              </Suspense>
-            </ResultsBoundary>
-          )}
         </>
       )}
     </div>

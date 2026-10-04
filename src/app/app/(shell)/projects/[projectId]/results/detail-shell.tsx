@@ -1,26 +1,39 @@
 "use client";
-// The item detail's frame (stories/E8-5): a 560 px panel on the right of the viewport, labelled
-// by the item's text, which takes the focus when it opens (the heading) and closes on Escape
-// back to the tab (router.push to the URL without the item). It is a dialog that leaves the
-// page usable (aria-modal false: developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/
-// Roles/dialog_role), so the tab behind can still be read and the filter changed.
+// The item detail's frame (stories/E8-5; design note 62): a region in place of the tab,
+// labelled by the item's text. The heading takes the focus when it opens; Escape inside it
+// goes back to the tab (router.push to the URL without the item), and the item link that
+// opened it takes the focus again (ReturnFocus, rendered with the tab's content).
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-export function DetailShell({ closeHref, titleId, children }: { closeHref: string; titleId: string; children: React.ReactNode }) {
+// The item last opened in this tab of the browser; module state survives client navigation.
+let opened: string | null = null;
+
+export function DetailShell({ itemId, closeHref, titleId, children }: { itemId: string; closeHref: string; titleId: string; children: React.ReactNode }) {
   const router = useRouter();
-  const panel = useRef<HTMLElement>(null);
-  // Focus on opening only: the panel is remounted for another item (its boundary is keyed by
-  // the item), and a filter change with the panel open leaves the focus where the PM is.
+  const region = useRef<HTMLElement>(null);
+  // On opening only: the shell is remounted for another item (its boundary is keyed by the
+  // item), and a filter change with the detail open leaves the focus where the PM is.
   useEffect(() => {
-    panel.current?.querySelector<HTMLElement>(`#${titleId}`)?.focus();
-  }, [titleId]);
+    opened = itemId;
+    region.current?.querySelector<HTMLElement>(`#${titleId}`)?.focus();
+  }, [itemId, titleId]);
   return (
-    <aside ref={panel} role="dialog" aria-modal="false" aria-labelledby={titleId}
+    <section ref={region} aria-labelledby={titleId}
       onKeyDown={(e) => { if (e.key === "Escape") router.push(closeHref, { scroll: false }); }}
-      className="fixed inset-y-0 right-0 z-30 flex w-[560px] max-w-full flex-col gap-4 overflow-y-auto border-l border-hairline bg-surface p-6 shadow-card"
-      data-testid="detail-panel">
+      className="flex flex-col gap-4" data-testid="detail-panel">
       {children}
-    </aside>
+    </section>
   );
+}
+
+// Back on the tab: the focus returns to the link of the item just closed, when it is shown.
+export function ReturnFocus() {
+  useEffect(() => {
+    if (opened === null) return;
+    const id = opened;
+    opened = null;
+    document.querySelector<HTMLElement>(`[data-item-link="${CSS.escape(id)}"]`)?.focus();
+  }, []);
+  return null;
 }

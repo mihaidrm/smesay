@@ -34,22 +34,26 @@ Built 2026-10-04 (design note 62, decision 0044; docs/review-list.md):
 - Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/detail-panel.tsx from
   src/db/queries/results.ts detail.item: reference and area, the reader text as the title
   with the original under it when they differ, the proposed value with the instrument's
-  label, the four counts and "[N] not yet answered" (rated and unclear on a rate-blind
-  list), a row per person the page's filter keeps who sees the item, answers first, with
-  the pill, "Not submitted" on an answer that counts before a Submit, their value where it
-  differs from the proposal, and the reason, question or comment. The counts are the
-  Agreement tab's for the item under the same filter and switch (a test checks four filters).
+  label, On this item with the four counts and Not yet answered (Rated and Unclear for an
+  item with no proposal), and a table with a row per person the page's filter keeps who
+  sees the item or answered it, answers first, with the pill, "Not submitted" on an answer
+  that counts before a Submit, their value where it differs from the proposal, and the
+  reason, question or comment. The counts are computed in SQL and are the Agreement tab's
+  for the item under the same filter and switch (a test checks four filters, an item with
+  no proposal and a change of perspective).
 - Acceptance 2: an item's title on the Agreement table and in the three answer registers
-  opens the panel; the URL carries item=[id] with the filter and the tab, so the link opens
-  the same panel within the workspace; Close and Escape return to the tab. The actions'
-  citations are E9-1's.
+  opens the detail in place of the tabs, as the board draws it; the URL carries item=[id]
+  with the filter and the tab, so the link opens the same detail within the workspace; Back
+  and Escape return to the tab, and the focus to the item's link. The actions' citations
+  are E9-1's.
 - Acceptance 3: src/db/queries/results.test.ts times the query with 100 generated responses
   under 500 ms, under three filters.
 - Acceptance 4: a person with no answer that counts reads "No answer yet." in muted text
   (In progress, or Not started for an invite not opened); the query is scoped by the
   session's workspace and returns null for another workspace's item or instrument (tested).
 - Acceptance 5: e2e/results-detail.spec.ts opens CL-04 from the Agreement table and from
-  the Different priority register and reads Ioana Marin's reason.
-- The panel is a 560 px region on the right that leaves Results usable (a dialog with
-  aria-modal false), not a modal sheet: the PM can change the filter with it open, and the
-  counts follow (design note 62).
+  the Different priority register, reads Ioana Marin's reason, and checks the counts, the
+  filter and the way back.
+- The story's technical notes named a 560 px sheet; the build follows the board's layout in
+  place of the tabs instead, since the sheet covered controls that stayed in the tab order
+  (design note 62). Loading, error, no-row and item-not-found states have their own lines.

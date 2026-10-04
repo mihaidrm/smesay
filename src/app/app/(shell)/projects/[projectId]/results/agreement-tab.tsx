@@ -114,7 +114,7 @@ function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { r
     <>
       <tr className="border-t border-hairline" data-testid="agreement-row" data-ref={row.reference ?? ""}>
         <th scope="row" className="w-[42%] px-4 py-2.5 font-normal">
-          <Link href={itemHref(row.id)} scroll={false} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="agreement-item">
+          <Link href={itemHref(row.id)} scroll={false} data-item-link={row.id} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="agreement-item">
             {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
             {row.title}
           </Link>

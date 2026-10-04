@@ -23,6 +23,7 @@ import type { ScoringMethod, WorkspaceId } from "@/db/types";
 import type { ResultsFilter } from "@/lib/results-filter";
 import { proposedCode, SCALES } from "@/lib/scoring";
 import type { ResultsNumbers } from "@/lib/results-tiles";
+import type { DetailCounts } from "@/lib/results-detail";
 import { isUuid } from "./scoped";
 
 const list = (values: string[]) => sql.join(values.map((v) => sql`${v}`), sql`, `);
@@ -420,27 +421,39 @@ export const registers = {
 
 // One item's detail (E8-5): the item, and a row for every person the page's filter keeps who
 // sees the item (E5-4), with their answer when it counts (the include-unsubmitted switch), so
-// the counts are the Agreement tab's for that item. A person started without a counted answer
-// on it, or invited and not started, has a row with no answer.
+// the counts (computed here) are the Agreement tab's for that item. A person started without a
+// counted answer on it, or invited and not started, has a row with no answer.
 export type DetailItem = { id: string; reference: string | null; area: string | null; originalText: string; readerText: string | null; readerStatus: string | null; proposedValue: string | null };
 export type DetailRow = { personId: string; invited: boolean; submitted: boolean; fields: Record<string, string>; who: string | null; anon: number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null };
 
 export const detail = {
-  item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<{ item: DetailItem; rows: DetailRow[] } | null> => {
+  item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<{ item: DetailItem; counts: DetailCounts; rows: DetailRow[] } | null> => {
     if (!isUuid(instrumentId) || !isUuid(itemId)) return null;
-    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f)},
       one as (select its.id, its.perspectives from its where its.id = ${itemId})
       select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value,
           p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.fields, p.who, p.anon,
-          x.kind, x.value, x.reason, x.comment
+          x.kind, x.value, x.reason, x.comment,
+          -- The counts in SQL, over the rows (aggregate FILTER with OVER:
+          -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).
+          (count(*) filter (where x.kind = 'agree') over ())::int as n_agree,
+          (count(*) filter (where x.kind = 'change') over ())::int as n_change,
+          (count(*) filter (where x.kind = 'disagree') over ())::int as n_disagree,
+          (count(*) filter (where x.kind = 'unclear') over ())::int as n_unclear,
+          (count(*) filter (where x.kind = 'pick') over ())::int as n_pick,
+          (count(p.id) filter (where x.kind is null) over ())::int as n_not_yet
         from one join item it on it.id = one.id and it.workspace_id = ${ws}
+          -- A person who sees the item, or who answered it before a Start again changed their
+          -- perspectives (responses.restart keeps the answers), as agreement.byItem counts them.
           left join sel p on cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
+            or exists (select 1 from ans a2 where a2.item_id = one.id and a2.response_id = p.id)
           left join ans x on x.item_id = one.id and x.response_id = p.id
         order by (x.kind is null), lower(p.who) nulls last, p.anon nulls last, p.id`);
     if (rows.length === 0) return null;
     const r0 = rows[0];
     return {
       item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
+      counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
       rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
     };
   },

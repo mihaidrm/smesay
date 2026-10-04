@@ -73,7 +73,7 @@ function Respondent({ who, anon, submitted, changedSince }: { who: string | null
 // The item, linked to its detail (E8-5).
 function Item({ row, itemHref }: { row: RegisterRow; itemHref: Props["itemHref"] }) {
   return (
-    <Link href={itemHref(row.itemId)} scroll={false} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="register-item">
+    <Link href={itemHref(row.itemId)} scroll={false} data-item-link={row.itemId} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="register-item">
       {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
       {textFor({ readerStatus: row.readerStatus as ReaderFields["readerStatus"], readerText: row.readerText, originalText: row.itemText })}
     </Link>
