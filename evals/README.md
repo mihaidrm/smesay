@@ -98,7 +98,8 @@ Exit 1 when fewer than 7 of the 10 specs pass (PASS_BAR in run.ts, decision 0038
 the model is not deterministic, and one spec near a line moves between runs). The Evals job
 (.github/workflows/evals.yml) is started by hand only, from the Actions tab, by Mihai
 (decision 0039): it spends his API credit, so no push or pull request starts it. It uses the
-repository secret ANTHROPIC_API_KEY scoped to the two steps that need it; without it the job
+repository secret ANTHROPIC_API_KEY scoped to the three steps that need it (the check and the
+two runs: `npm run evals`, then `npm run evals -- insights`, the actions set below); without it the job
 prints that it skipped and passes. Claude never runs `npm run evals` or `npm run ai:smoke`. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
 other call, in a throwaway workspace with a fixed id (EVALS_WORKSPACE_ID in run.ts)
 and a project "Golden set" that the runner creates once and reuses; it has no members, so it

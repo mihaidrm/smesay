@@ -80,8 +80,8 @@ export const insights = {
     return rows
       .sort((a, b) => order[a.state] - order[b.state] || a.createdAt.getTime() - b.createdAt.getTime())
       .map((r) => ({ ...r, answers: r.citedAnswerIds.flatMap((id) => answerOf.get(id) ?? []), missing: r.citedMissingItemIds.flatMap((id) => missingOf.get(id) ?? []) }))
-      // An action whose every citation is gone (an answer changed, a missing item cleared) is
-      // never shown (the story's outcome); the open count leaves it out too (results.ts).
+      // An action whose every citation is gone (a missing item cleared; an answer changed in
+      // place keeps its id and its citation) is never shown (the story's outcome); the open count leaves it out too (results.ts).
       .filter((r) => r.answers.length + r.missing.length > 0);
   },
 

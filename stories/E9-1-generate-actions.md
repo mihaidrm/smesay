@@ -60,7 +60,7 @@ Built 2026-10-04 (design note 66, decision 0044):
 - Acceptance 4: insight rows with kind, cited_answer_ids, cited_missing_item_ids (migration
   0021, not 0002 as the notes said), the model and each action's share of the run's tokens
   and cost; insights.replaceOpen keeps done and dismissed (tested); the ai_run has purpose
-  insights.
+  insights. A run that keeps no action leaves the open ones as they are.
 - Acceptance 5: evals/insights/ holds two invented response sets (a dental clinic, a food
   bank) with the expected kinds; `npm run evals -- insights` runs them through the same
   prompt and client (evals/insights.ts); evals/insights.test.ts proves pass and fail with a

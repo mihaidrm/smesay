@@ -15,7 +15,7 @@ export const ACTIONS_COPY = {
   citedBy: "From",
   states: { open: "Open", done: "Done", dismissed: "Dismissed" },
   kinds: { rewrite: "Rewrite", conflict: "Groups disagree", followUp: "Follow up", coverage: "Coverage" } as Record<InsightKind, string>,
-  tooLong: "There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree and the Questions and gaps tabs; work from those.",
+  tooLong: "There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree tab and the Questions and gaps tab; work from those.",
   // A model call that did not go through (src/lib/ai/client.ts Refusal; docs/copy/errors.md,
   // Dashboard and exports). The answers stay on the other tabs whatever happens here.
   refusals: {

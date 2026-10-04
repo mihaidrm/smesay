@@ -252,7 +252,7 @@ of the content; page means it replaces the screen.
 | Inline, Actions tab (E9-1) | The AI did not answer | The AI did not answer. No action changed. Try again in a minute. [Button: Try again] |
 | Inline, Actions tab (E9-1) | The AI answered in a form the app could not use | The AI answered in a form the app could not use. No action changed. Try again. [Button: Try again] |
 | Inline, Actions tab (E9-1) | Too many AI requests at once | Too many AI requests at once. Wait a minute and try again. |
-| Inline, Actions tab (E9-1) | The prompt would be over the input limit | There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree and the Questions and gaps tabs; work from those. |
+| Inline, Actions tab (E9-1) | The prompt would be over the input limit | There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree tab and the Questions and gaps tab; work from those. |
 | Inline, Actions tab (E9-1) | Write actions before any submitted answer (a guard; the tab shows only once there are answers) | Actions are written from the submitted answers. Write them once someone has submitted. |
 | Inline, export | Export failed | The [FORMAT] export did not finish. Try again; if it fails again, export the answers as CSV, which always works. |
 | Inline, PDF | PDF over the page limit | The summary runs to [N] pages. It still downloads; the deck version is the first [N]. |
