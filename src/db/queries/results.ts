@@ -57,7 +57,10 @@ function personConditions(ws: WorkspaceId, f: ResultsFilter): SQL[] {
 
 // The shared head of both queries: the instrument, its items, the people, the people kept,
 // and the started responses whose answers count.
-function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter): SQL {
+// `once`: for a query that reads counted only once, which Postgres would inline; the planner,
+// misjudging fresh rows, then re-ran the people per answer (minutes on 600 responses), so
+// counted is materialized there (postgresql.org/docs/current/queries-with.html, MATERIALIZED).
+function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = false): SQL {
   const conds = personConditions(ws, f);
   const where = conds.length > 0 ? sql`where ${sql.join(conds, sql` and `)}` : sql``;
   return sql`with inst as (
@@ -95,7 +98,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter): SQL {
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
     ),
     sel as (select * from people p ${where}),
-    counted as (select * from sel where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)),
+    counted as ${once ? sql`materialized ` : sql``}(select * from sel where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)),
     ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment, c.fields as rfields from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws}),
     -- Per item, in one pass over the answers (not a scan of them per item).
     per_item as (
@@ -389,7 +392,7 @@ export const registers = {
       reason: sql`lower(x.reason) ${dir} nulls last`,
       status: sql`(c.submitted_at is not null) ${dir}`,
     };
-    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
       select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from ans x join counted c on c.id = x.response_id join item it on it.id = x.item_id and it.workspace_id = ${ws}
         where x.kind in (${list(kinds)})
@@ -410,7 +413,7 @@ export const registers = {
       respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
       status: sql`(c.submitted_at is not null) ${dir}`,
     };
-    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
       select x.id, x.text, x.suggested_area, x.suggested_value, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
         order by ${registerOrder(f.sort, fieldKeys, columns)}`);
@@ -429,7 +432,7 @@ export type DetailRow = { personId: string; invited: boolean; submitted: boolean
 export const detail = {
   item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<{ item: DetailItem; counts: DetailCounts; rows: DetailRow[] } | null> => {
     if (!isUuid(instrumentId) || !isUuid(itemId)) return null;
-    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true)},
       one as (select its.id, its.perspectives from its where its.id = ${itemId})
       select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value,
           p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.fields, p.who, p.anon,

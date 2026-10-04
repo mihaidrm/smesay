@@ -31,7 +31,7 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
     return (
       <DetailShell itemId={itemId} closeHref={closeHref} titleId="detail-title">
         <div>{back}</div>
-        <p id="detail-title" tabIndex={-1} className="text-sm text-ink-muted outline-none" data-testid="detail-not-found">{DETAIL_COPY.notFound}</p>
+        <h2 id="detail-title" tabIndex={-1} className="text-sm font-normal text-ink-muted outline-none" data-testid="detail-not-found">{DETAIL_COPY.notFound}</h2>
       </DetailShell>
     );
   }

@@ -6,7 +6,8 @@ Outcome: one panel with the item, its original text, the proposal, the counts, a
 respondent, loaded under 500 ms with 100 responses.
 
 Amended 2026-10-04 (decision 0044, item 6): the pill for the change kind reads "Different
-priority", as everywhere on screen.
+priority", as everywhere on screen. Amended the same day (decision 0044, docs/review-list.md):
+the detail opens in place of the tabs, as the board draws it, and Back returns to the tab.
 
 ## Acceptance criteria
 1. The detail (PM app board, item detail panel): reference, area, reader text, original text
@@ -14,7 +15,7 @@ priority", as everywhere on screen.
    with status pill (Agree, Different priority, Disagree, Unclear, In progress, Not started), their value
    where it differs, and the reason, question or comment.
 2. Opens from the agreement table, the registers and the actions' citations (E9-1); the URL
-   carries the item so the panel can be linked within the workspace; Close returns to the tab.
+   carries the item so the detail can be linked within the workspace; Back returns to the tab.
 3. Loads under 500 ms with 100 responses: measured in a test with generated rows.
 4. In-progress respondents show "No answer yet." in muted text; the panel never shows
    another workspace's rows (E1-3 helpers; the cross-workspace test covers the query).
@@ -27,8 +28,8 @@ priority", as everywhere on screen.
 - None.
 
 ## Technical notes
-A sheet component (shadcn Sheet restyled) at 560 px; the query joins answer, response and the
-unpacked respondent fields.
+The detail in place of the tabs, as the board draws it (first named as a 560 px sheet; design
+note 62); the query joins answer, response and the unpacked respondent fields.
 
 Built 2026-10-04 (design note 62, decision 0044; docs/review-list.md):
 - Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/detail-panel.tsx from

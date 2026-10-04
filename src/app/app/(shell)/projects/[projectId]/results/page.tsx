@@ -105,7 +105,7 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
       ) : item ? (
         // An item's detail (E8-5) in place of the tabs, as the PM app board draws it; Back
         // returns to the tab.
-        <ResultsBoundary key={`detail:${item}`} what={RESULTS_COPY.detail}>
+        <ResultsBoundary key={`detail:${item}`} what={RESULTS_COPY.detail} back={{ href: href(filter, tab), label: DETAIL_COPY.back(RESULTS_COPY.tabs[tab]) }}>
           <Suspense fallback={<PanelSkeleton />}>
             <DetailPanel ws={ws} instrument={instrument} itemId={item} filter={filter} closeHref={href(filter, tab)} backLabel={DETAIL_COPY.back(RESULTS_COPY.tabs[tab])} />
           </Suspense>

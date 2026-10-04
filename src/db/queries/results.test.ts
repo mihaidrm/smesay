@@ -364,6 +364,13 @@ describe("the Agreement tab's numbers", () => {
         expect(performance.now() - started).toBeLessThan(500);
         await reconcile(wsC, instrumentC, f, split);
       }
+      // The item detail (E8-5) on the same rows.
+      const cl04 = (await sql`select it.id from item it where it.workspace_id = ${wsC} and it.item_set_id = ${item_set_id} and it.source_ref = 'CL-04'`)[0].id as string;
+      const started = performance.now();
+      const one = await detail.item(wsC, instrumentC, cl04, f);
+      expect(performance.now() - started).toBeLessThan(500);
+      const c = (await agreement.byItem(wsC, instrumentC, f, null)).find((x) => x.itemId === cl04)!;
+      expect([one!.counts.agree, one!.counts.change, one!.counts.disagree, one!.counts.unclear]).toEqual([c.agree, c.change, c.disagree, c.unclear]);
     }
   }, 120_000);
 

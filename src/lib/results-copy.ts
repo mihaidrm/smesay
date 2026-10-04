@@ -144,5 +144,5 @@ export const DETAIL_COPY = {
   notSubmitted: "Not submitted",
   noAnswer: "No answer yet.",
   noRows: "No one the filter keeps sees this item. Change the filter to see their answers.",
-  notFound: "This item is not in the survey's current version. Go back and open an item from the list.",
+  notFound: "This item is not in the list's current version. Go back and open an item from the list.",
 };

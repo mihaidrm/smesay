@@ -420,7 +420,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="width: 90px">Proposed</div>
 <div style="width: 200px">Answers</div>
 <div style="width: 60px; text-align: right">Agree</div>
-<div style="width: 60px; text-align: right">Changed</div>
+<div style="width: 60px; text-align: right">Different priority</div>
 <div style="width: 60px; text-align: right">Disagree</div>
 <div style="width: 60px; text-align: right">Unclear</div>
 </div>
@@ -957,7 +957,7 @@ const members = [
 const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
 const exportDefs = [
 { id: 'x1', title: 'Answers', format: 'CSV, UTF-8', what: 'One row per answer: respondent, role, item, area, proposed value, answer, their value, reason or question, submitted at.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
-{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: text, original, area, proposed value, counts of agree, changed, disagree, unclear, and the agreement percentage.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: text, original, area, proposed value, counts of agree, different priority, disagree, unclear, and the agreement percentage.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
 { id: 'x3', title: 'Whole project', format: 'JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
 { id: 'x4', title: 'Summary for the deck', format: 'PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
 ];

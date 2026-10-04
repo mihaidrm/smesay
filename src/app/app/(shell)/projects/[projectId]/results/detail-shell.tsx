@@ -6,8 +6,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-// The item last opened in this tab of the browser; module state survives client navigation.
-let opened: string | null = null;
+// The item whose detail closed last, and when; module state survives client navigation.
+// ReturnFocus acts only right after a close, so leaving by the stepper and coming back later
+// does not move the focus.
+let closed: { id: string; at: number } | null = null;
+const RECENT_MS = 3000;
 
 export function DetailShell({ itemId, closeHref, titleId, children }: { itemId: string; closeHref: string; titleId: string; children: React.ReactNode }) {
   const router = useRouter();
@@ -15,8 +18,8 @@ export function DetailShell({ itemId, closeHref, titleId, children }: { itemId: 
   // On opening only: the shell is remounted for another item (its boundary is keyed by the
   // item), and a filter change with the detail open leaves the focus where the PM is.
   useEffect(() => {
-    opened = itemId;
     region.current?.querySelector<HTMLElement>(`#${titleId}`)?.focus();
+    return () => { closed = { id: itemId, at: Date.now() }; };
   }, [itemId, titleId]);
   return (
     <section ref={region} aria-labelledby={titleId}
@@ -30,10 +33,10 @@ export function DetailShell({ itemId, closeHref, titleId, children }: { itemId: 
 // Back on the tab: the focus returns to the link of the item just closed, when it is shown.
 export function ReturnFocus() {
   useEffect(() => {
-    if (opened === null) return;
-    const id = opened;
-    opened = null;
-    document.querySelector<HTMLElement>(`[data-item-link="${CSS.escape(id)}"]`)?.focus();
+    const last = closed;
+    closed = null;
+    if (last === null || Date.now() - last.at > RECENT_MS) return;
+    document.querySelector<HTMLElement>(`[data-item-link="${CSS.escape(last.id)}"]`)?.focus();
   }, []);
   return null;
 }
