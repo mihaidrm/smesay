@@ -8,7 +8,11 @@
 // instrument has perspectives (stories/E5-4), and the footer. One component for the Build preview and
 // the real page, so the two cannot drift (stories/E5-6, acceptance 3). In preview mode the
 // header says nothing is saved and Start does nothing (E5-6, acceptance 4). Phone first:
-// the column is the screen width; on desktop E7-1 puts it in the 560 px column.
+// the column is the screen width; on desktop E7-1 puts it in the 560 px column, where the
+// fields are 360 px and Start is 280 px, left-aligned (docs/design-system.md, Respondent
+// columns). The widths follow the component's own width, not the window's (a container
+// query: tailwindcss.com/docs/responsive-design, container queries; @lg is 32rem), so the
+// Build preview's 390 px frame keeps the phone layout on a desktop screen.
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
@@ -56,7 +60,7 @@ export type AboutYouProps = {
   className?: string;
 };
 
-const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
+const FIELD = "h-12 w-full @lg:w-[360px] rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
 export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
@@ -74,7 +78,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
   const disabled = missing.length > 0;
   const set = (key: string, value: string) => setValues((v) => ({ ...v, [key]: value }));
   return (
-    <div className={cn("flex min-h-full flex-col bg-ground text-ink", className)} data-testid="about-you" data-preview={preview || undefined}>
+    <div className={cn("@container flex min-h-full flex-col bg-ground text-ink", className)} data-testid="about-you" data-preview={preview || undefined}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
       <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} noteTestId="about-you-note" />
       <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
@@ -128,7 +132,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="about-you-start">
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @lg:w-[280px] @lg:self-start" data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
         <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>

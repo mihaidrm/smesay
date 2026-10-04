@@ -6,7 +6,10 @@
 // step through the history API so Back and a reload land on the same screen
 // (?at=about, ?at=[chapter number]; the native history API in Next:
 // node_modules/next/dist/docs/01-app/02-guides/single-page-applications.md). Start posts
-// About you to /r/[token]/start and lands on the first chapter (E7-1, acceptance 6).
+// About you to /r/[token]/start and lands on the first chapter (E7-1, acceptance 6). The
+// first load writes ?at= into its own history entry (replaceState), so Back from the first
+// chapter returns to About you. About you again after Start shows the values and picks
+// Start saved; picks ticked there change the chapters only when Start saves them.
 // The desktop column is 560 px for About you and 1000 px for a chapter
 // (docs/design-system.md, Respondent columns).
 import { useEffect, useMemo, useState } from "react";
@@ -38,16 +41,23 @@ export function RespondentApp(props: RespondentAppProps) {
   const { token, workspaceName, accent, logoUrl, headerNote, instrument, prefilled, items, areas } = props;
   const [started, setStarted] = useState(props.started);
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
+  const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
+  const [fields, setFields] = useState<ResponseFields>(props.initialFields);
   const [screen, setScreen] = useState<Screen>(props.initialScreen);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
-  const chapters = useMemo(() => chaptersFor(areas, items, picks), [areas, items, picks]);
+  const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
 
   const go = (next: Screen) => {
     setScreen(next);
     window.history.pushState(null, "", `?at=${screenParam(next)}`);
     window.scrollTo(0, 0);
   };
+  // The first entry carries its screen too, so Back from a pushed screen lands on it.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("at")) { url.searchParams.set("at", screenParam(props.initialScreen)); window.history.replaceState(null, "", url); }
+  }, [props.initialScreen]);
   // Back and Forward in the browser move between screens.
   useEffect(() => {
     const onPop = () => setScreen(parseScreen(new URLSearchParams(window.location.search).get("at"), started, chapters.length));
@@ -68,6 +78,8 @@ export function RespondentApp(props: RespondentAppProps) {
         return;
       }
       setPicks(chosen);
+      setSavedPicks(chosen);
+      setFields(values);
       setStarted(true);
       go({ kind: "chapter", index: 0 });
     } catch {
@@ -82,7 +94,7 @@ export function RespondentApp(props: RespondentAppProps) {
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", wide ? "max-w-[1000px]" : "max-w-[560px]")}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={headerNote} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={props.initialFields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} className="min-h-screen" />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={headerNote} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} className="min-h-screen" />
       ) : chapters[screen.index] ? (
         <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={headerNote} title={instrument.title} chapter={chapters[screen.index]} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} onBack={() => go(screen.index === 0 ? { kind: "about" } : { kind: "chapter", index: screen.index - 1 })} />
       ) : (

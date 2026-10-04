@@ -18,7 +18,6 @@ import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
 import { areaNames, groupByArea } from "@/lib/shaping";
-import { SHAPE_COPY } from "@/lib/shaping-copy";
 import { RESPONDENT_COPY } from "@/lib/respondent-rules";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
@@ -69,7 +68,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   // chaptersFor names them; one unnamed chapter when the set has no areas), so the page
   // layout's count matches what is drawn. Each chapter carries every row's tags and the
   // cards of its candidate rows, by position in the chapter.
-  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name === SHAPE_COPY.notShaped ? RESPONDENT_COPY.otherItems : g.name, rows: g.items })) : [{ name: null, rows }];
+  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.items.length > 0 && g.items.every((it) => !it.area) ? RESPONDENT_COPY.otherItems : g.name, rows: g.items })) : [{ name: null, rows }];
   const left = new Map<string, number>([["", PREVIEW_CARDS], ...instrument.perspectives.map((n): [string, number] => [n, PREVIEW_CARDS])]);
   const candidate = (it: (typeof rows)[number]) => {
     const classes = it.perspectives.length === 0 ? [""] : it.perspectives;

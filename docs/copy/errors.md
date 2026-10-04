@@ -183,7 +183,7 @@ of the content; page means it replaces the screen.
 | Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
 | Page (E7-1) | The sample project's link (it never collects answers, E8-8 acceptance 2) | This is a sample link. It belongs to the sample project in [WORKSPACE] and does not collect answers. Ask the person who sent it for the real link. |
-| Page, under the closed line (E7-1, acceptance 3) | A closed personal link whose respondent started and did not submit | You answered [N] of [M] items before it closed. They were not submitted; the project team sees them marked as not submitted. |
+| Page, under the closed line (E7-1, acceptance 3) | A closed personal link whose respondent started, answered at least one item and did not submit (none answered: the closed page alone; submitted: E7-6) | You answered [N] of [M] items before it closed. They were not submitted; the project team sees them marked as not submitted. ("item" when [M] is 1) |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
 | Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 60 per link, in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
 | Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |

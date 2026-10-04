@@ -7,7 +7,7 @@
 // and a revoked link write nothing; a closed personal link with a response shows the
 // respondent's own state; another workspace's rows are never touched.
 import { beforeAll, describe, expect, it } from "vitest";
-import { invites, items, projects, responses } from "@/db/queries";
+import { answers, invites, items, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { RespondentFieldSpec, WorkspaceId } from "@/db/types";
@@ -18,7 +18,10 @@ import { listInvitees, sendInvites } from "@/lib/invitees";
 import { checkPasscode, clearAttempts } from "@/lib/link-access";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { DEVICE_COOKIE, loadRespondent, startResponse } from "@/lib/respondent";
-import { carriedFields, chaptersFor, parseFieldValues, parsePicks, RESPONDENT_COPY, RESPONDENT_ERRORS, type RespondentItem } from "@/lib/respondent-rules";
+import { cookieValue } from "@/lib/request-cookies";
+import { isJsonType, JSON_BODY_MAX, readJson } from "@/lib/request-json";
+import { answeredCount, carriedFields, chaptersFor, isComplete, needsReason, parseFieldValues, parsePicks, parseScreen, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type RespondentItem } from "@/lib/respondent-rules";
+import { linkState } from "@/lib/sharing";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -73,6 +76,38 @@ describe("the field rules", () => {
     expect(parsePicks(["Finance", "Sales"], ["Sales", "Finance", "Sales"])).toEqual({ picks: ["Finance", "Sales"] });
     expect(parsePicks(["Finance"], ["Ops"])).toEqual({ error: RESPONDENT_ERRORS.badPerspective });
     expect(parsePicks(["Finance"], undefined)).toEqual({ picks: [] });
+  });
+});
+
+describe("screens, completeness and the request readers", () => {
+  it("reads the screen from the address; before Start only About you", () => {
+    expect(parseScreen("2", false, 3)).toEqual({ kind: "about" });
+    expect(parseScreen("about", true, 3)).toEqual({ kind: "about" });
+    expect(parseScreen("2", true, 3)).toEqual({ kind: "chapter", index: 1 });
+    expect([parseScreen("9", true, 3), parseScreen("1.5", true, 3), parseScreen(null, true, 3)]).toEqual([{ kind: "chapter", index: 0 }, { kind: "chapter", index: 0 }, { kind: "chapter", index: 0 }]);
+    expect(parseScreen("1", true, 0)).toEqual({ kind: "about" });
+    expect([screenParam({ kind: "about" }), screenParam({ kind: "chapter", index: 2 })]).toEqual(["about", "3"]);
+  });
+  it("counts an answer only when complete: a reason for change, disagree and unclear", () => {
+    expect((["agree", "pick", "change", "disagree", "unclear"] as const).map(needsReason)).toEqual([false, false, true, true, true]);
+    expect(isComplete({ kind: "change", value: "S", reason: "Later", comment: null })).toBe(true);
+    expect(isComplete({ kind: "unclear", value: null, reason: "  ", comment: null })).toBe(false);
+    expect(isComplete({ kind: "agree", value: "M", reason: null, comment: null })).toBe(true);
+    expect(isComplete(undefined)).toBe(false);
+    const done = { kind: "agree" as const, value: "M", reason: null, comment: null };
+    expect(answeredCount([{ id: "1" }, { id: "2" }, { id: "3" }], { "1": done, "2": { ...done, kind: "disagree", reason: null }, "9": done })).toBe(1);
+  });
+  it("reads a cookie, and takes JSON only, within 16 KB", async () => {
+    const req = (cookie: string) => new Request("http://x.example/", { headers: { cookie } });
+    expect(cookieValue(req("a=1; smesay-device=ab%20c; b=2"), "smesay-device")).toBe("ab c");
+    expect(cookieValue(req("smesay-device=%E0%A4%A"), "smesay-device")).toBeUndefined();
+    expect(cookieValue(req("a=1"), "smesay-device")).toBeUndefined();
+    expect([isJsonType("application/json; charset=utf-8"), isJsonType("Application/JSON"), isJsonType("text/plain; x=application/json"), isJsonType(null)]).toEqual([true, true, false, false]);
+    const post = (body: string, type = "application/json") => new Request("http://x.example/", { method: "POST", body, headers: { "content-type": type } });
+    expect(await readJson(post('{"a":1}'))).toEqual({ body: { a: 1 } });
+    expect(await readJson(post('{"a":1}', "text/plain; x=application/json"))).toEqual({ status: 415 });
+    expect(await readJson(post("{"))).toEqual({ status: 400 });
+    expect(await readJson(post(JSON.stringify({ a: "x".repeat(JSON_BODY_MAX) })))).toEqual({ status: 413 });
   });
 });
 
@@ -162,6 +197,22 @@ describe("Start", () => {
     expect(stored?.fields).toEqual({ name: "Ana Pop", role: "Finance" });
     const view = await loadRespondent(ana.token, {}, now);
     expect(view.kind === "ready" ? view.response?.id : null).toBe(ids[0]);
+    // Another workspace cannot start, read or change this invite's response.
+    const data = { instrumentId: instrument.id, itemSetId: instrument.itemSetId, inviteId: ana.id, deviceToken: "f".repeat(32), fields: {}, perspectives: [] };
+    expect(await responses.startPersonal(b.ws, data, () => true)).toBeNull();
+    expect(await responses.createPublic(b.ws, { ...data, inviteId: (await invites.livePublic(a.ws, project.id))!.id }, () => true)).toBeNull();
+    expect(await responses.update(b.ws, ids[0]!, { fields: { name: "Changed" } })).toBeNull();
+    expect((await responses.forInvite(a.ws, ana.id))?.fields).toEqual({ name: "Ana Pop", role: "Finance" });
+  }, 60_000);
+
+  it("re-reads the link under the invite's lock: a Revoke committed after the check wins", async () => {
+    const { project, instrument, link } = await publishedProject("Race revoke");
+    const revoked = await revokeLink(a.ws, project.id, instrument.id, link.id, now);
+    if (!("invite" in revoked)) throw new Error(revoked.error);
+    const data = { instrumentId: instrument.id, itemSetId: instrument.itemSetId, inviteId: link.id, deviceToken: "e".repeat(32), fields: {}, perspectives: [] };
+    const result = await responses.createPublic(a.ws, data, (d) => linkState(d, now) === "open");
+    expect(result && "refused" in result ? linkState(result.refused, now) : null).toBe("revoked");
+    expect(await responses.forDevice(a.ws, link.id, "e".repeat(32))).toBeNull();
   }, 60_000);
 
   it("writes nothing on a passcode link without the proof, a sample, a not-yet-open, a closed or a revoked link", async () => {
@@ -193,11 +244,21 @@ describe("Start", () => {
     const [bo] = await listInvitees(a.ws, instrument.id);
     const later = new Date("2027-02-01T00:00:00Z");
     expect((await loadRespondent(bo.token, {}, later)).kind).toBe("closed");
-    await startResponse(bo.token, {}, { fields: {} }, now);
+    const boStart = await startResponse(bo.token, {}, { fields: {} }, now);
+    if ("status" in boStart) throw new Error(boStart.error);
+    // Started with nothing answered: the plain closed page.
+    expect((await loadRespondent(bo.token, {}, later)).kind).toBe("closed");
+    const [first] = (await items.forSet(a.ws, instrument.itemSetId));
+    await answers.create(a.ws, { responseId: boStart.response.id, itemSetId: instrument.itemSetId, itemId: first.id, kind: "agree", value: "M", reason: null, comment: null });
     const own = await loadRespondent(bo.token, {}, later);
     expect(own.kind).toBe("closedOwn");
     if (own.kind !== "closedOwn") throw new Error();
-    expect([own.answered, own.total]).toEqual([0, 2]);
+    expect([own.answered, own.total]).toEqual([1, 2]);
+    // Another workspace reads none of its answers.
+    expect(await answers.forResponse(b.ws, boStart.response.id)).toEqual([]);
+    // Submitted: the closed page is E7-6's, not the unsubmitted count.
+    await responses.update(a.ws, boStart.response.id, { submittedAt: now });
+    expect((await loadRespondent(bo.token, {}, later)).kind).toBe("closed");
     const pub = await startResponse(link.token, {}, { fields: { name: "Cy", role: "Sales" } }, now);
     if ("status" in pub) throw new Error(pub.error);
     expect((await loadRespondent(link.token, { device: pub.device! }, later)).kind).toBe("closed");

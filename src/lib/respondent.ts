@@ -17,6 +17,7 @@ import { textFor } from "@/lib/item-text";
 import { viewOf, type LinkView } from "@/lib/link-access";
 import { answeredCount, carriedFields, parseFieldValues, parsePicks, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
+import { linkState } from "@/lib/sharing";
 
 export const DEVICE_COOKIE = "smesay-device";
 export const DEVICE_COOKIE_SECONDS = 365 * 24 * 60 * 60;
@@ -48,7 +49,9 @@ export async function itemsOf(link: Link): Promise<{ items: RespondentItem[]; ar
     items: rows.map((it) => {
       const title = textFor(it);
       const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, unknown>).find((v): v is string => typeof v === "string" && v.trim() !== "") : undefined;
-      return { id: it.id, reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), area: it.area, proposed: proposedCode(method, it.proposedValue), perspectives: it.perspectives };
+      // Rate-blind (E5-2, acceptance 2): the proposal never reaches the page when it is hidden.
+      const proposed = link.instrument.showProposed ? proposedCode(method, it.proposedValue) : null;
+      return { id: it.id, reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), area: it.area, proposed, perspectives: it.perspectives };
     }),
   };
 }
@@ -62,13 +65,16 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   const view = viewOf(link, cookies.passcode, now);
   if (view.kind === "closed" && link.invite.kind === "personal") {
     // A closed personal link shows the respondent's own state (E7-1, acceptance 3; note
-    // 12, finding 33); a closed public link shows none (decision 0031).
+    // 12, finding 33) when they started, answered something and did not submit
+    // (docs/copy/errors.md); a submitted response's closed page is E7-6's; a closed public
+    // link shows none (decision 0031).
     const response = await responseOf(link, undefined);
-    if (response) {
+    if (response && !response.submittedAt) {
       const { items: all } = await itemsOf(link);
       const rows = answerMap(await answers.forResponse(link.ws, response.id));
       const visible = all.filter((it) => it.perspectives.length === 0 || it.perspectives.some((p) => response.perspectives.includes(p)));
-      return { kind: "closedOwn", link, closedAt: view.closedAt, response, answered: answeredCount(visible, rows), total: visible.length };
+      const answered = answeredCount(visible, rows);
+      if (answered > 0) return { kind: "closedOwn", link, closedAt: view.closedAt, response, answered, total: visible.length };
     }
   }
   if (view.kind !== "open") return view;
@@ -92,6 +98,12 @@ export async function openLinkFor(token: string, cookies: RespondentCookies, now
   return { link };
 }
 
+// The refusal for a link that stopped being open between the check and the write.
+function refusalOf(dates: Parameters<typeof linkState>[0], now: Date): WriteRefusal {
+  const state = linkState(dates, now);
+  return state === "notOpen" ? { status: 409, error: "notOpen" } : { status: 410, error: state === "revoked" ? "revoked" : "closed" };
+}
+
 // Start (E7-1, acceptance 1 and 2): the About you values and the perspectives, checked
 // against the PM's configuration; the response created or its fields updated. A public
 // link's first Start returns the new device token for the cookie.
@@ -106,9 +118,13 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   const picks = parsePicks(link.instrument.perspectives, input.perspectives);
   if ("error" in picks) return { status: 422, error: picks.error };
   const data = { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, fields: fields.values, perspectives: picks.picks };
+  // The link re-read under the invite row's lock: a Revoke or a date change committed since
+  // openLinkFor wins (src/db/queries/responses.ts).
+  const stillOpen = (dates: Parameters<typeof linkState>[0]) => linkState(dates, now) === "open";
   if (link.invite.kind === "personal") {
-    const started = await responses.startPersonal(link.ws, { ...data, deviceToken: newDeviceToken() });
+    const started = await responses.startPersonal(link.ws, { ...data, deviceToken: newDeviceToken() }, stillOpen);
     if (!started) return { status: 404, error: "unknown" };
+    if ("refused" in started) return refusalOf(started.refused, now);
     if (started.created) return { response: started.response, device: null };
     const updated = await responses.update(link.ws, started.response.id, { fields: fields.values, perspectives: picks.picks, updatedAt: now });
     return { response: updated ?? started.response, device: null };
@@ -119,6 +135,8 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
     return { response: updated ?? existing, device: null };
   }
   const device = newDeviceToken();
-  const created = await responses.create(link.ws, { ...data, deviceToken: device });
+  const created = await responses.createPublic(link.ws, { ...data, deviceToken: device }, stillOpen);
+  if (!created) return { status: 404, error: "unknown" };
+  if ("refused" in created) return refusalOf(created.refused, now);
   return { response: created, device };
 }

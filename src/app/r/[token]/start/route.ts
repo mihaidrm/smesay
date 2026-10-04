@@ -5,11 +5,13 @@
 // public link's first Start sets the device cookie on the link's path, httpOnly, SameSite
 // Lax (developer.mozilla.org/docs/Web/HTTP/Cookies; NextResponse cookies:
 // node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-response.md). Only
-// JSON is taken, so a plain cross-site form cannot post here. The answer carries no
-// project data: { ok } or { error }.
+// JSON is taken, up to 16 KB (src/lib/request-json.ts: 415, 413, 400), so a plain
+// cross-site form cannot post here. The answer carries no project data: { ok } or { error }.
+// No rate limit yet: E11-1 adds the respondent routes' limit (docs/review-list.md).
 import { NextResponse } from "next/server";
 import { cookiePath, PASSCODE_COOKIE } from "@/lib/link-access";
 import { cookieValue } from "@/lib/request-cookies";
+import { readJson } from "@/lib/request-json";
 import { DEVICE_COOKIE, DEVICE_COOKIE_SECONDS, startResponse } from "@/lib/respondent";
 import { RESPONDENT_ERRORS } from "@/lib/respondent-rules";
 
@@ -17,10 +19,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  if (!(request.headers.get("content-type") ?? "").includes("application/json")) return NextResponse.json({ error: RESPONDENT_ERRORS.badShape }, { status: 415 });
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: RESPONDENT_ERRORS.badShape }, { status: 400 }); }
-  const result = await startResponse(token, { passcode: cookieValue(request, PASSCODE_COOKIE), device: cookieValue(request, DEVICE_COOKIE) }, body);
+  const read = await readJson(request);
+  if ("status" in read) return NextResponse.json({ error: RESPONDENT_ERRORS.badShape }, { status: read.status, headers: { "cache-control": "no-store" } });
+  const result = await startResponse(token, { passcode: cookieValue(request, PASSCODE_COOKIE), device: cookieValue(request, DEVICE_COOKIE) }, read.body);
   if ("status" in result) return NextResponse.json({ error: result.error }, { status: result.status, headers: { "cache-control": "no-store" } });
   const response = NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   if (result.device) response.cookies.set(DEVICE_COOKIE, result.device, { path: cookiePath(token), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: DEVICE_COOKIE_SECONDS });

@@ -4,15 +4,23 @@
 // then its id, the same order as the invite list and the reminder claim. forDevice and
 // startPersonal (E7-1): a public link's response by the device token in its cookie, and a
 // personal invite's one response, created under the invite row's lock so two Starts on two
-// devices make one row (postgresql.org/docs/current/explicit-locking.html, row-level locks).
+// devices make one row (postgresql.org/docs/current/explicit-locking.html, row-level locks;
+// Drizzle's .for(): node_modules/drizzle-orm/pg-core/query-builders/select.d.ts).
+// createPublic (E7-1): a public link's new response, under a shared lock on the invite row.
+// Both re-read the invite's dates and revocation under the lock (`stillOpen`), so a Start
+// that races a Revoke or a date change writes nothing once the change is committed: the
+// revoke's UPDATE waits for the lock or the Start waits for the revoke (E6-4).
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { invite, response } from "@/db/schema";
+import type { Invite } from "./invites";
 import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
 export type Response = typeof response.$inferSelect;
 export type NewResponse = Pick<typeof response.$inferInsert, "instrumentId" | "itemSetId" | "inviteId" | "deviceToken" | "fields" | "perspectives">;
+export type InviteDates = Pick<Invite, "opensAt" | "closesAt" | "revokedAt">;
+const DATES = { opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt };
 
 export const responses = {
   ...scoped(response),
@@ -30,15 +38,26 @@ export const responses = {
   },
   // A personal invite's one response: the existing one, or a new one created with `data`,
   // both under the invite row's lock. created tells which.
-  startPersonal: async (workspaceId: WorkspaceId, data: NewResponse): Promise<{ response: Response; created: boolean } | null> => {
+  startPersonal: async (workspaceId: WorkspaceId, data: NewResponse, stillOpen: (dates: InviteDates) => boolean): Promise<{ response: Response; created: boolean } | { refused: InviteDates } | null> => {
     if (!isUuid(data.inviteId)) return null;
     return db.transaction(async (tx) => {
-      const [locked] = await tx.select({ id: invite.id }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, data.inviteId), eq(invite.kind, "personal"))).for("update");
+      const [locked] = await tx.select(DATES).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, data.inviteId), eq(invite.kind, "personal"))).for("update");
       if (!locked) return null;
+      if (!stillOpen(locked)) return { refused: locked };
       const [existing] = await tx.select().from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, data.inviteId))).orderBy(desc(response.updatedAt), desc(response.id)).limit(1);
       if (existing) return { response: existing, created: false };
       const [created] = await tx.insert(response).values({ ...data, workspaceId }).returning();
       return { response: created, created: true };
+    });
+  },
+  createPublic: async (workspaceId: WorkspaceId, data: NewResponse, stillOpen: (dates: InviteDates) => boolean): Promise<Response | { refused: InviteDates } | null> => {
+    if (!isUuid(data.inviteId)) return null;
+    return db.transaction(async (tx) => {
+      const [locked] = await tx.select(DATES).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, data.inviteId), eq(invite.kind, "public"))).for("share");
+      if (!locked) return null;
+      if (!stillOpen(locked)) return { refused: locked };
+      const [created] = await tx.insert(response).values({ ...data, workspaceId }).returning();
+      return created;
     });
   },
 };

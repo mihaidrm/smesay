@@ -11,8 +11,11 @@ respondent-app.tsx, src/components/respondent/respondent-header.tsx and chapter-
 - The respondent journey is one client component over the screens (About you, the
   chapters, later the Wrap up and Done), rendered on the server with this device's response
   so the first paint carries the screen. Moving between screens happens in the browser and
-  keeps the address in step through the history API (?at=about, ?at=[chapter number]), so
-  Back and a reload land on the same screen. The story's "server-rendered cards with client
+  keeps the address in step through the history API (?at=about, ?at=[chapter number]); the
+  first load writes its own ?at= with replaceState, so the browser's Back from the first
+  chapter lands on About you and a reload lands on the same screen. About you again after
+  Start shows the values and picks Start saved; a pick ticked there changes the chapters
+  only when Start saves it. The story's "server-rendered cards with client
   islands" is met by the server render of the client component; the cards are not separate
   islands (docs/review-list.md).
 - Start posts About you as JSON to /r/[token]/start. The server keeps only the fields the
@@ -37,6 +40,18 @@ respondent-app.tsx, src/components/respondent/respondent-header.tsx and chapter-
   when it has one (from the workspace row through the link, never the URL), else its
   initials on the accent, the name, and the note. Items with no area form a last chapter
   named "Other items", in the Build preview too.
+
+## After the audit, same day
+
+- About you on desktop: the fields 360 px and Start 280 px, left-aligned, by a container
+  query on the component's own width, so the Build preview's 390 px frame keeps the phone
+  layout (docs/design-system.md, Respondent columns). The link pages put their header in
+  the same 560 px column.
+- The closed own state appears only when the respondent answered at least one item and did
+  not submit; a submitted response's closed page is E7-6's.
+- A rate-blind instrument sends no proposed value to the page.
+- Start reads at most 16 KB of JSON (the media type exactly application/json) and creates a
+  response only after re-reading the link under the invite row's lock.
 
 ## What was not decided
 

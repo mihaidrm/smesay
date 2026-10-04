@@ -1,9 +1,11 @@
 // The main path of E7-1: sign in, create a project with a list in two areas, build, publish
 // the public link; open it in a fresh context on a phone (390 by 844): About you with the
 // workspace in the header and "Closes", Start disabled with the hint until Name and Role
-// are filled, Start, the first chapter with its cards; reload lands on the same chapter
-// (the device cookie); the same at 1440 by 900 with the About you column at 560 px; the
-// sample project's link shows its own page and collects nothing.
+// are filled, Start, the first chapter with its cards; the browser's Back returns to About
+// you with the saved values and Forward to the chapter; the chapter's Back the same without
+// a reload; a reload lands on the same chapter (the device cookie); at 1440 by 900 the
+// About you column is 560 px with the name field at 360 px and Start at 280 px; the sample
+// project's link shows its own page and collects nothing.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -59,12 +61,21 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await expect(link.getByTestId("item-card")).toHaveCount(2);
   await expect(link).toHaveURL(/\?at=1$/);
+  // The browser's Back and Forward move between About you and the chapter.
+  await link.goBack();
+  await expect(link).toHaveURL(/\?at=about$/);
+  await expect(link.getByLabel("Name")).toHaveValue("Ana Pop");
+  await link.goForward();
+  await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
+  // The chapter's Back keeps the saved values without a reload.
+  await link.getByTestId("chapter-back").click();
+  await expect(link.getByLabel("Name")).toHaveValue("Ana Pop");
+  await expect(link.getByTestId("about-you-start")).toBeEnabled();
+  await link.getByTestId("about-you-start").click();
+  await expect(link).toHaveURL(/\?at=1$/);
   // A reload on this device lands on the same chapter: the response is found by the cookie.
   await link.reload();
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
-  // Back to About you keeps the saved values.
-  await link.getByTestId("chapter-back").click();
-  await expect(link.getByLabel("Name")).toHaveValue("Ana Pop");
   await phone.close();
 
   // The desktop: About you in a 560 px column.
@@ -73,6 +84,8 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await deskPage.goto(url);
   const box = await deskPage.getByTestId("about-you").boundingBox();
   expect(box?.width).toBeLessThanOrEqual(560);
+  expect((await deskPage.getByLabel("Name").boundingBox())?.width).toBe(360);
+  expect((await deskPage.getByTestId("about-you-start").boundingBox())?.width).toBe(280);
   await deskPage.getByLabel("Name").fill("Bo");
   await deskPage.getByLabel("Role").fill("Sales");
   await deskPage.getByTestId("about-you-start").click();

@@ -183,11 +183,15 @@ The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) 
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
 revoked, passcode, or ready with the device's response, the items and areas, the answers);
 startResponse(token, cookies, body, now) (POST /r/[token]/start, JSON { fields,
-perspectives }; refusals 404, 403, 409, 410, 422 with the sentence; a public link's first
-Start returns the device token for the smesay-device cookie on the link's path);
+perspectives }; refusals 404, 403, 409, 410, 422 with the sentence, and from the route 415
+not JSON, 413 over 16 KB, 400 not parsable, by readJson in src/lib/request-json.ts; a
+public link's first Start returns the device token for the smesay-device cookie on the
+link's path);
 openLinkFor(token, cookies, now) (the same check for every respondent write);
-responses.forDevice(ws, inviteId, deviceToken), responses.startPersonal(ws, data) (one
-response per personal invite, under the invite row's lock), answers.forResponse(ws,
+responses.forDevice(ws, inviteId, deviceToken), responses.startPersonal(ws, data,
+stillOpen) (one response per personal invite, under the invite row's lock) and
+responses.createPublic(ws, data, stillOpen) (under a shared lock), both returning
+{ refused: dates } when the link stopped being open, answers.forResponse(ws,
 responseId). Client-safe rules in src/lib/respondent-rules.ts: parseFieldValues,
 parsePicks, carriedFields, chaptersFor (RespondentItem, AreaMeta, Chapter), isComplete,
 answeredCount, parseScreen.
