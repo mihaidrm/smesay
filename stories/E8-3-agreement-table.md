@@ -10,8 +10,10 @@ other types; the pushed back split; sort and filter).
 
 Amended 2026-10-04 (decision 0044, after the audit; docs/review-list.md): acceptance 3 reads
 "rate-blind" only, since a 1 to 5 fit list may show its proposal (E5-2); acceptance 2's five
-slices are the kinds' view, and a rate-blind donut has a slice per value; the percentage is
-summed into areas and groups in the model with the SQL's rule, tested to agree.
+slices are the kinds' view, and a rate-blind donut has a slice per value; the stacked bar's
+direct labels are its counts in words under it, since no number in a status colour passes
+contrast; the percentage is summed into areas and groups in the model with the SQL's rule,
+tested to agree.
 
 ## Acceptance criteria
 1. Agreement tab (PM app board): areas in order, each with its items: reference, text,
@@ -70,8 +72,9 @@ Built 2026-10-04 (design note 61, decision 0044; docs/review-list.md):
   in the list's order (src/lib/results-agreement.ts buildAgreement), each with its total bar,
   its counts in words and its figure, then its items under visible column headers:
   reference, text, proposed value, the bar with its counts in words under it (no number
-  inside a segment, for contrast), the figure: the percentage, "[N] rated" where only values
-  were rated with no proposal, or "No answers".
+  inside a segment, for contrast), the figure: the percentage, "[N] rated" where no proposal
+  was shown (even "0 rated" beside questions alone), or "No answers". The area's totals are
+  the first row of its table, so the bars line up; group rows have their counts too.
 - Acceptance 2: Table, Columns and Share (src/components/app/charts.tsx, note 61), the
   choice kept per PM per instrument (results_prefs.view, saveView); the legend names the
   series.
@@ -84,7 +87,8 @@ Built 2026-10-04 (design note 61, decision 0044; docs/review-list.md):
   The people who left the field empty are the last group, "Not given", so the groups add up
   to the item. Columns draws the groups of an area on one scale; Share draws a donut per group
   for the whole list. A group summed over items (Columns, Share) is compared only with 3
-  answers and 3 people or more, so one person is never singled out (decision 0031).
+  answers and 3 people who answered one item, so one person is never singled out (decision
+  0031); its label says which is short. Each aligned bar is named under it.
 - Acceptance 5: the filter bar narrows every count; the sort within an area by reference,
   agreement, different priority, disagree or unclear, both ways, in the URL; ties keep the
   list's order in the same direction.

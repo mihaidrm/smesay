@@ -17,7 +17,7 @@ import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
 import { addCounts, agreementSortOf, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
-import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
+import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { AgreementControls, type AgreementView } from "./agreement-controls";
 
@@ -46,19 +46,21 @@ export async function AgreementTab({ ws, projectId, instrument, filter, ctx, vie
       {small && <Banner data-testid="small-groups">{AGREEMENT_COPY.smallGroups}</Banner>}
       <Legend series={series(list)} />
       {blind && <p className="text-xs text-ink-muted">{AGREEMENT_COPY.valuesLegend}</p>}
-      {view === "table" && areas.map((a) => <TableArea key={a.name ?? ""} area={a} series={series} coverage={coverage} proposedLabel={proposedLabel} />)}
+      {view === "table" && areas.map((a) => <TableArea key={a.name ?? ""} area={a} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
       {view === "columns" && <ColumnsView areas={areas} series={series} split={split} />}
-      {view === "share" && <ShareView areas={areas} list={list} series={series} blind={blind} split={split} />}
+      {view === "share" && <ShareView areas={areas} list={list} series={series} blind={blind} split={split} none={filterActive(filter) ? AGREEMENT_COPY.noAnswersLine : AGREEMENT_COPY.noAnswersYet} />}
     </div>
   );
 }
 
 const areaName = (a: AreaBlock) => a.name ?? AGREEMENT_COPY.otherItems;
+// Why a summed group is not compared (decision 0031).
+const shortText = (g: GroupTotal) => (g.short === "people" ? AGREEMENT_COPY.notComparedPeople : AGREEMENT_COPY.notCompared);
 
-// The figure beside a bar: the agreement percentage, "[N] rated" where only values were rated
-// with no proposal, or "No answers".
-function figureText(c: Counts): string {
-  const f = figureOf(c);
+// The figure beside a bar: the agreement percentage, "[N] rated" where no proposal was shown
+// (`rated`) or only values were rated, or "No answers".
+function figureText(c: Counts, rated: boolean): string {
+  const f = figureOf(c, rated);
   if (f === null) return AGREEMENT_COPY.noPercent;
   return "percent" in f ? `${f.percent}%` : AGREEMENT_COPY.ratedLine(f.rated);
 }
@@ -71,36 +73,44 @@ function countsText(series: Series[]): string {
   return shown.map((s) => `${s.value} ${s.key.startsWith("value-") ? s.label : s.label.toLowerCase()}`).join(" · ");
 }
 
-function TableArea({ area, series, coverage, proposedLabel }: { area: AreaBlock; series: SeriesOf; coverage: boolean; proposedLabel: (code: string | null) => string }) {
+// One table per area, its totals as the first row so the area's bar lines up with the items'.
+// A rate-blind list has no Proposed column, and its figure column reads Rated.
+function TableArea({ area, series, coverage, blind, proposedLabel }: { area: AreaBlock; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string }) {
+  const cols = 3 + (blind ? 0 : 1) + (coverage ? 1 : 0);
   return (
-    <section className="card flex flex-col p-0" aria-label={areaName(area)} data-testid="agreement-area" data-area={areaName(area)}>
-      <div className="grid grid-cols-[minmax(0,1fr)_260px_88px] items-center gap-x-4 gap-y-1 border-b border-hairline px-4 py-3">
-        <h3 className="text-[15px] font-bold">{areaName(area)}</h3>
-        <StackedBar title={AGREEMENT_COPY.chartTitle(AGREEMENT_COPY.areaTotal(areaName(area)))} series={series(area.totals)} />
-        <span className="text-right font-mono text-sm font-bold">{figureText(area.totals)}</span>
-        <span />
-        <span className="font-mono text-[11px] text-ink-muted" data-testid="area-counts">{countsText(series(area.totals))}</span>
-      </div>
+    <section className="card flex flex-col p-0" aria-labelledby={`area-${area.name ?? ""}`} data-testid="agreement-area" data-area={areaName(area)}>
+      <h3 id={`area-${area.name ?? ""}`} className="px-4 pt-3 text-[15px] font-bold">{areaName(area)}</h3>
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="text-xs text-ink-muted">
             <th scope="col" className="px-4 pt-2 font-semibold">{AGREEMENT_COPY.item}</th>
-            <th scope="col" className="px-2 pt-2 font-semibold">{AGREEMENT_COPY.proposed}</th>
+            {!blind && <th scope="col" className="px-2 pt-2 font-semibold">{AGREEMENT_COPY.proposed}</th>}
             <th scope="col" className="px-2 pt-2 font-semibold">{AGREEMENT_COPY.answers}</th>
-            <th scope="col" className="px-4 pt-2 text-right font-semibold">{AGREEMENT_COPY.agreement}</th>
+            <th scope="col" className="px-4 pt-2 text-right font-semibold">{blind ? AGREEMENT_COPY.rated : AGREEMENT_COPY.agreement}</th>
             {coverage && <th scope="col" className="px-4 pt-2 text-right font-semibold">{AGREEMENT_COPY.coverage}</th>}
           </tr>
         </thead>
         <tbody>
-          {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} proposedLabel={proposedLabel} />)}
+          <tr className="border-t border-hairline bg-tint" data-testid="area-totals">
+            <th scope="row" colSpan={blind ? 1 : 2} className="px-4 py-2.5 text-xs font-semibold">{AGREEMENT_COPY.allItems}</th>
+            <td className="w-[260px] px-2 py-2">
+              <StackedBar title={AGREEMENT_COPY.chartTitle(AGREEMENT_COPY.areaTotal(areaName(area)))} series={series(area.totals)} />
+              <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="area-counts">{countsText(series(area.totals))}</p>
+            </td>
+            <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(area.totals, area.rated)}</td>
+            {coverage && <td />}
+          </tr>
+          {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
+          {area.rows.length === 0 && <tr><td colSpan={cols} /></tr>}
         </tbody>
       </table>
     </section>
   );
 }
 
-function ItemRows({ row, series, coverage, proposedLabel }: { row: Row; series: SeriesOf; coverage: boolean; proposedLabel: (code: string | null) => string }) {
+function ItemRows({ row, series, coverage, blind, proposedLabel }: { row: Row; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string }) {
   const what = [row.reference, row.title].filter(Boolean).join(" ");
+  const rated = row.proposed === null;
   return (
     <>
       <tr className="border-t border-hairline" data-testid="agreement-row" data-ref={row.reference ?? ""}>
@@ -108,20 +118,22 @@ function ItemRows({ row, series, coverage, proposedLabel }: { row: Row; series: 
           {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
           {row.title}
         </th>
-        <td className="px-2 text-xs whitespace-nowrap text-ink-muted">{proposedLabel(row.proposed)}</td>
+        {!blind && <td className="px-2 text-xs whitespace-nowrap text-ink-muted">{proposedLabel(row.proposed)}</td>}
         <td className="w-[260px] px-2 py-2">
           <StackedBar title={AGREEMENT_COPY.chartTitle(what)} series={series(row.counts)} />
           <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="row-counts">{countsText(series(row.counts))}</p>
         </td>
-        <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(row.counts)}</td>
+        <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(row.counts, rated)}</td>
         {coverage && <td className="px-4 text-right font-mono text-xs whitespace-nowrap text-ink-muted" data-testid="row-coverage">{`${answeredOf(row.counts) + row.counts.pick} of ${row.counts.couldSee}`}</td>}
       </tr>
       {row.groups.map((g) => (
-        <tr key={g.group} className={g.compared ? "" : "opacity-60"} data-testid="agreement-group" data-group={g.group}>
-          <th scope="row" className="px-4 py-1.5 pl-10 text-xs font-semibold text-ink-muted">{g.group}</th>
-          <td />
-          <td className="px-2"><StackedBar title={AGREEMENT_COPY.chartTitle(`${what}, ${g.group}`)} series={series(g.counts)} className="h-3" /></td>
-          <td className="px-4 text-right font-mono text-xs">{g.compared ? figureText(g.counts) : ""}</td>
+        <tr key={`${g.empty}:${g.group}`} className={g.compared ? "" : "opacity-60"} data-testid="agreement-group" data-group={g.group}>
+          <th scope="row" colSpan={blind ? 1 : 2} className="px-4 py-1.5 pl-10 text-xs font-semibold text-ink-muted">{g.group}</th>
+          <td className="px-2 py-1">
+            <StackedBar title={AGREEMENT_COPY.chartTitle(`${what}, ${g.group}`)} series={series(g.counts)} className="h-3" />
+            <p className="mt-0.5 font-mono text-[11px] text-ink-muted" data-testid="group-counts">{countsText(series(g.counts))}</p>
+          </td>
+          <td className="px-4 text-right font-mono text-xs">{g.compared ? figureText(g.counts, rated) : ""}</td>
           {coverage && <td />}
         </tr>
       ))}
@@ -138,10 +150,10 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
         const max = Math.max(1, ...groups.flatMap((g) => series(g.counts).map((s) => s.value)));
         return (
           <section key={a.name ?? ""} className="card flex flex-col gap-3 p-4" aria-label={areaName(a)} data-testid="columns-area" data-area={areaName(a)}>
-            <h3 className="text-[15px] font-bold">{areaName(a)} <span className="font-mono text-sm text-ink-muted">{figureText(a.totals)}</span></h3>
+            <h3 className="text-[15px] font-bold">{areaName(a)} <span className="font-mono text-sm text-ink-muted">{figureText(a.totals, a.rated)}</span></h3>
             {!split ? <AlignedBars title={AGREEMENT_COPY.chartTitle(areaName(a))} series={series(a.totals)} /> : groups.map((g) => (
-              <div key={g.group} className={g.compared ? "" : "opacity-60"} data-testid="columns-group" data-group={g.group}>
-                <p className="text-xs font-semibold text-ink-muted">{g.group}{g.compared ? "" : `, ${AGREEMENT_COPY.notCompared}`}</p>
+              <div key={`${g.empty}:${g.group}`} className={g.compared ? "" : "opacity-60"} data-testid="columns-group" data-group={g.group}>
+                <p className="text-xs font-semibold text-ink-muted">{g.group}{g.compared ? "" : `, ${shortText(g)}`}</p>
                 <AlignedBars title={AGREEMENT_COPY.chartTitle(`${areaName(a)}, ${g.group}`)} series={series(g.counts)} max={max} className="h-24" />
               </div>
             ))}
@@ -152,8 +164,13 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
   );
 }
 
-function ShareView({ areas, list, series, blind, split }: { areas: AreaBlock[]; list: Counts; series: SeriesOf; blind: boolean; split: boolean }) {
-  const line = (c: Counts) => (answeredOf(c) + c.pick === 0 ? AGREEMENT_COPY.noAnswersLine : blind ? AGREEMENT_COPY.ratedLine(c.pick) : AGREEMENT_COPY.agreeLine(c.agree, answeredOf(c)));
+function ShareView({ areas, list, series, blind, split, none }: { areas: AreaBlock[]; list: Counts; series: SeriesOf; blind: boolean; split: boolean; none: string }) {
+  // The line beside a donut follows the figure's rule: nothing answered, values rated (a
+  // rate-blind list, or answers that are all values rated), or agree of answered.
+  const line = (c: Counts) => {
+    const f = figureOf(c, blind);
+    return f === null ? none : "rated" in f ? AGREEMENT_COPY.ratedLine(f.rated) : AGREEMENT_COPY.agreeLine(c.agree, answeredOf(c));
+  };
   const groups: GroupTotal[] = split ? groupTotals(areas.flatMap((a) => a.rows)) : [];
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -162,9 +179,9 @@ function ShareView({ areas, list, series, blind, split }: { areas: AreaBlock[]; 
         <Donut title={AGREEMENT_COPY.chartTitle(AGREEMENT_COPY.wholeList)} series={series(list)} line={line(list)} />
       </section>
       {split ? groups.map((g) => (
-        <section key={g.group} className={g.compared ? "card p-4" : "card p-4 opacity-60"} aria-label={g.group} data-testid="share-group">
+        <section key={`${g.empty}:${g.group}`} className={g.compared ? "card p-4" : "card p-4 opacity-60"} aria-label={g.group} data-testid="share-group">
           <h3 className="mb-3 text-[15px] font-bold">{g.group}</h3>
-          <Donut title={AGREEMENT_COPY.chartTitle(g.group)} series={series(g.counts)} line={g.compared ? line(g.counts) : AGREEMENT_COPY.notCompared} />
+          <Donut title={AGREEMENT_COPY.chartTitle(g.group)} series={series(g.counts)} line={g.compared ? line(g.counts) : shortText(g)} />
         </section>
       )) : areas.map((a) => (
         <section key={a.name ?? ""} className="card p-4" aria-label={areaName(a)} data-testid="share-area">

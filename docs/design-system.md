@@ -261,10 +261,11 @@ ramp from the missing-item solid, apart in hue from Unclear's violet.
   2026-10-04, design note 53).
 - Values picked where no proposal was shown (rate-blind, E8-3): one blue ramp, a step per
   value of the scale (the missing-item solid at 100, 78, 58, 42 and 28 percent over the
-  surface; the first violet ramp read as Unclear, 1.09:1, so it moved to blue after the E8-3
-  audit), the same colour per value in every view, each value also named in the counts under
-  the bar; Unclear keeps its status colour, Not answered its dashed outline. Built in
-  src/lib/results-agreement.ts and src/components/app/charts.tsx (design note 61).
+  surface), apart in hue from Unclear's violet but close in lightness (1.05:1), so every value
+  is also named: the counts in words under a bar, the label under each aligned bar, the
+  legend. The same colour per value in every view; Unclear keeps its status colour, Not
+  answered its dashed outline. Built in src/lib/results-agreement.ts and
+  src/components/app/charts.tsx (design note 61).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
 - Where groups disagree: two bars on one scale, coral for the share that disagreed, any

@@ -20,7 +20,7 @@ const counts = [
 
 describe("the Agreement tab's model", () => {
   it("keeps the list's areas in order, then the loose items, with totals and percentages", () => {
-    const areas = buildAgreement(items, ["Paying", "Submitting"], counts, false, { key: "ref", dir: "asc" });
+    const areas = buildAgreement(items, ["Paying", "Submitting"], counts, false, { key: "ref", dir: "asc" }, "Not given");
     expect(areas.map((a) => a.name)).toEqual(["Paying", "Submitting", null]);
     const submitting = areas[1];
     expect(submitting.rows.map((r) => r.reference)).toEqual(["CL-01", "CL-02"]);
@@ -30,7 +30,7 @@ describe("the Agreement tab's model", () => {
   });
 
   it("sorts within an area both ways, ties in the list's order", () => {
-    const rows = buildAgreement(items, ["Submitting"], counts, false, { key: "ref", dir: "asc" })[0].rows;
+    const rows = buildAgreement(items, ["Submitting"], counts, false, { key: "ref", dir: "asc" }, "Not given")[0].rows;
     expect(sortRows(rows, { key: "change", dir: "desc" }).map((r) => r.id)).toEqual(["i2", "i1"]);
     expect(sortRows(rows, { key: "agreement", dir: "asc" }).map((r) => r.id)).toEqual(["i2", "i1"]);
     expect(sortRows(rows, { key: "ref", dir: "desc" }).map((r) => r.id)).toEqual(["i2", "i1"]);
@@ -44,7 +44,7 @@ describe("the Agreement tab's model", () => {
       { itemId: "i1", group: "Sales", ...c(2, 1, 0, 0, 3) },
       { itemId: "i1", group: "Finance", ...c(1, 0, 0, 0, 1) },
     ];
-    const row = buildAgreement(items, ["Submitting"], split, true, { key: "ref", dir: "asc" })[0].rows[0];
+    const row = buildAgreement(items, ["Submitting"], split, true, { key: "ref", dir: "asc" }, "Not given")[0].rows[0];
     expect(row.groups.map((g) => [g.group, g.compared, g.percent])).toEqual([["Finance", false, 100], ["Sales", true, 67]]);
     expect([row.counts.agree, row.counts.change, row.percent]).toEqual([3, 1, 75]);
   });
@@ -60,13 +60,21 @@ describe("the Agreement tab's model", () => {
   it("reads values rated with no proposal as rated, never as no answers or 0%", () => {
     expect(figureOf(c(0, 0, 0, 0, 10, 10))).toEqual({ rated: 10 });
     expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ rated: 10 });
+    // A proposal shown and only a question: 0%. No proposal shown (rated): 0 rated, never 0%.
     expect(figureOf(c(0, 0, 0, 1))).toEqual({ percent: 0 });
+    expect(figureOf(c(0, 0, 0, 1), true)).toEqual({ rated: 0 });
+    expect(figureOf(c(0, 0, 0, 1, 5, 4), true)).toEqual({ rated: 4 });
+    expect(figureOf(c(0), true)).toBeNull();
+    // An item with no proposal has no percentage, so it sorts with the unanswered.
+    const blind = buildAgreement(items, [], [{ itemId: "i4", group: null, ...c(0, 0, 0, 1, 5, 4) }], false, { key: "ref", dir: "asc" }, "Not given");
+    expect(blind.at(-1)!.rows[0].percent).toBeNull();
+    expect(blind.at(-1)!.rated).toBe(true);
     expect(figureOf(c(3, 1))).toEqual({ percent: 75 });
     expect(figureOf(c(0))).toBeNull();
   });
 
   it("sorts by agreement with the items that have no percentage last, both ways", () => {
-    const rows = buildAgreement(items, ["Submitting"], [{ itemId: "i1", group: null, ...c(1, 1) }, { itemId: "i2", group: null, ...c(0, 0, 0, 0, 3, 3) }], false, { key: "ref", dir: "asc" })[0].rows;
+    const rows = buildAgreement(items, ["Submitting"], [{ itemId: "i1", group: null, ...c(1, 1) }, { itemId: "i2", group: null, ...c(0, 0, 0, 0, 3, 3) }], false, { key: "ref", dir: "asc" }, "Not given")[0].rows;
     expect(sortRows(rows, { key: "agreement", dir: "asc" }).map((r) => r.id)).toEqual(["i1", "i2"]);
     expect(sortRows(rows, { key: "agreement", dir: "desc" }).map((r) => r.id)).toEqual(["i1", "i2"]);
   });
@@ -90,8 +98,15 @@ describe("the Agreement tab's model", () => {
       { itemId: "i1", group: "Sales", ...c(2, 1, 0, 0, 3) }, { itemId: "i2", group: "Sales", ...c(3, 0, 0, 0, 3) },
     ];
     const one = [{ itemId: "i1", group: "HR", ...c(1, 0, 0, 0, 1) }, { itemId: "i2", group: "HR", ...c(1, 0, 0, 0, 1) }, { itemId: "i3", group: "HR", ...c(1, 0, 0, 0, 1) }];
-    const rows = buildAgreement(items, ["Submitting", "Paying"], [...split, ...one], true, { key: "ref", dir: "asc" }).flatMap((a) => a.rows);
-    // HR: 3 answers from one person, never compared.
-    expect(groupTotals(rows).map((g) => [g.group, g.counts.agree, g.compared])).toEqual([["Finance", 2, false], ["HR", 3, false], ["Sales", 5, true]]);
+    const rows = buildAgreement(items, ["Submitting", "Paying"], [...split, ...one], true, { key: "ref", dir: "asc" }, "Not given").flatMap((a) => a.rows);
+    // HR: 3 answers from one person, never compared, and said why.
+    expect(groupTotals(rows).map((g) => [g.group, g.counts.agree, g.compared, g.short])).toEqual([["Finance", 2, false, "answers"], ["HR", 3, false, "people"], ["Sales", 5, true, null]]);
+    // People who could see an item but answered nothing do not make a group comparable.
+    const seen = [{ itemId: "i1", group: "Finance", ...c(1, 0, 0, 0, 3) }, { itemId: "i2", group: "Finance", ...c(1, 0, 0, 0, 3) }, { itemId: "i3", group: "Finance", ...c(1, 0, 0, 0, 3) }];
+    const seenRows = buildAgreement(items, ["Submitting", "Paying"], seen, true, { key: "ref", dir: "asc" }, "Not given").flatMap((a) => a.rows);
+    expect(groupTotals(seenRows).map((g) => [g.group, g.compared, g.short])).toEqual([["Finance", false, "people"]]);
+    // A dropdown option named like the empty group stays its own group.
+    const named = buildAgreement(items, ["Submitting"], [{ itemId: "i1", group: "Not given", ...c(1) }, { itemId: "i1", group: null, ...c(1) }], true, { key: "ref", dir: "asc" }, "Not given")[0].rows;
+    expect(groupTotals(named).map((g) => [g.group, g.empty])).toEqual([["Not given", false], ["Not given", true]]);
   });
 });

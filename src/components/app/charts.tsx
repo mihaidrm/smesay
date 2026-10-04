@@ -1,8 +1,9 @@
 // The charts of Results (stories/E8-3; docs/design-system.md, Data; design note 40), drawn on
 // the server with no script: a stacked bar (the compact view; its counts are printed in words
-// beside it by the caller, never inside a segment), aligned bars on a common baseline (the
-// readable one), a donut (area and list level only; a slice per series of the view: the four
-// kinds and Not answered, or one per value where no proposal was shown) and the legend. Thin
+// under it by the caller, never inside a segment), aligned bars on a common baseline (the
+// readable one; each bar named under it), a donut (per area, for the whole list and per group
+// of a split, never per item; a slice per series of the view: the four kinds and Not
+// answered, or one per value where no proposal was shown) and the legend. Thin
 // marks, 2 px surface gaps between segments, text in ink tokens never in a series colour, the
 // numbers always printed beside a donut. Each
 // chart is an image to assistive technology with every count in its name (role="img",
@@ -27,17 +28,23 @@ export function StackedBar({ title, series, className }: { title: string; series
   );
 }
 
-// One vertical bar per series on a common baseline, the value printed above each.
+// One vertical bar per series on a common baseline, the value printed above each and the
+// series named under it, so a bar is never told by its colour alone.
 export function AlignedBars({ title, series, max, className }: { title: string; series: Series[]; max?: number; className?: string }) {
   const top = Math.max(1, max ?? Math.max(...series.map((s) => s.value), 0));
   return (
-    <div role="img" aria-label={describe(title, series)} className={cn("flex h-40 items-end gap-3 border-b border-hairline-strong pb-0", className)} data-testid="aligned-bars">
-      {series.map((s) => (
-        <div key={s.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1" data-series={s.key}>
-          <span aria-hidden="true" className="font-mono text-xs font-bold text-ink">{s.value}</span>
-          <div style={{ height: `${(s.value / top) * 100}%`, background: s.dashed ? undefined : s.color }} className={cn("w-full max-w-10 rounded-t-sm", s.dashed && "border border-b-0 border-dashed border-hairline-strong bg-surface")} />
-        </div>
-      ))}
+    <div role="img" aria-label={describe(title, series)} className="flex flex-col gap-1" data-testid="aligned-bars">
+      <div className={cn("flex h-40 items-end gap-3 border-b border-hairline-strong pb-0", className)}>
+        {series.map((s) => (
+          <div key={s.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1" data-series={s.key}>
+            <span aria-hidden="true" className="font-mono text-xs font-bold text-ink">{s.value}</span>
+            <div style={{ height: `${(s.value / top) * 100}%`, background: s.dashed ? undefined : s.color }} className={cn("w-full max-w-10 rounded-t-sm", s.dashed && "border border-b-0 border-dashed border-hairline-strong bg-surface")} />
+          </div>
+        ))}
+      </div>
+      <div aria-hidden="true" className="flex gap-3">
+        {series.map((s) => <span key={s.key} className="flex-1 text-center text-[10px] leading-3 text-ink-muted">{s.label}</span>)}
+      </div>
     </div>
   );
 }
@@ -56,7 +63,8 @@ export function Donut({ title, series, line, size = 120 }: { title: string; seri
         {total > 0 && series.filter((s) => s.value > 0).map((s) => {
           const len = (s.value / total) * c;
           // 2 px in the drawing's units (the view box is 100 wide).
-          const dash = `${Math.max(0, len - (series.filter((x) => x.value > 0).length > 1 ? (2 * 100) / size : 0))} ${c}`;
+          // A slice shorter than the gap keeps a sliver, so no count disappears from the ring.
+          const dash = `${Math.max(0.6, len - (series.filter((x) => x.value > 0).length > 1 ? (2 * 100) / size : 0))} ${c}`;
           const el = <circle key={s.key} cx="50" cy="50" r={r} fill="none" stroke={s.dashed ? "var(--hairline-strong)" : s.color} strokeWidth="14" strokeDasharray={dash} strokeDashoffset={-at} data-series={s.key} />;
           at += len;
           return el;

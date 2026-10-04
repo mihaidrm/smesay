@@ -97,7 +97,7 @@ export function Demos() {
         <Tabs defaultValue="agreement" className="w-full">
           <TabsList variant="line">
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
-            <TabsTrigger value="pushed">Pushed back</TabsTrigger>
+            <TabsTrigger value="pushed">Different priority and Disagree</TabsTrigger>
             <TabsTrigger value="questions">Questions and gaps</TabsTrigger>
           </TabsList>
           <TabsContent value="agreement" className="pt-3 text-[13px] text-ink-muted">Agreement per item and area.</TabsContent>
