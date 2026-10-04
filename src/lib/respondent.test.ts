@@ -198,8 +198,8 @@ describe("Start", () => {
     const ok = await startRoute(new Request(`${BASE}/r/${link.token}/start`, { method: "POST", body: JSON.stringify({ fields: { name: "Cy", role: "Sales" } }), headers: { "content-type": "application/json" } }), { params: Promise.resolve({ token: link.token }) });
     expect(ok.status).toBe(200);
     // The reply names the response, which ties this device's queue to it (E7-3).
-    const started = (await ok.json()) as { ok: boolean; response: string };
-    expect(started.ok).toBe(true);
+    const started = (await ok.json()) as { ok: boolean; response: string; submittedAt: string | null; changedSince: boolean };
+    expect([started.ok, started.submittedAt, started.changedSince]).toEqual([true, null, false]);
     expect(started.response).toMatch(/^[0-9a-f-]{36}$/);
     const cookie = ok.headers.getSetCookie().find((c) => c.startsWith(`${DEVICE_COOKIE}=`))!;
     expect(cookie).toMatch(new RegExp(`^${DEVICE_COOKIE}=[0-9a-f]{32};`));

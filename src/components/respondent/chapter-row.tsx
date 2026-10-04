@@ -27,11 +27,13 @@ export type ChapterRowProps = {
   screen: Screen;
   showRow: boolean;
   onGo: (screen: Screen) => void;
+  // While a Submit posts (E7-6) the pills do not move the page.
+  locked?: boolean;
 };
 
 const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap outline-none transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo }: ChapterRowProps) {
+export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false }: ChapterRowProps) {
   const active = useRef<HTMLAnchorElement | null>(null);
   const key = screenParam(screen);
   useEffect(() => {
@@ -48,7 +50,8 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo }
           href={`?at=${screenParam(target)}`}
           aria-current={on ? "step" : undefined}
           aria-label={name}
-          onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); onGo(target); }}
+          aria-disabled={locked || undefined}
+          onClick={(e) => { if (locked) { e.preventDefault(); return; } if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); onGo(target); }}
           className={cn(PILL, on ? "border-transparent text-white" : "border-hairline-strong bg-surface text-ink-muted hover:text-ink")}
           style={on ? { background: accent } : undefined}
           data-testid={testId}

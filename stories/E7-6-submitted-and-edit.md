@@ -117,3 +117,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   requests; Start answers the response's submittedAt, so a response started in another
   window comes with its own Submit; the review list's row; the notice rule and the version
   rule are functions with tests (showsChanged, freshReply).
+- Check of that fix 2026-10-04: 0 blocking, 1 should-fix (a page with no response yet, or
+  one whose response was submitted elsewhere since it opened, did not learn of that Submit
+  from Start), 4 nits. Fixed: every Start's answer sets the response's Submit and its
+  changes since as the server holds them; Back, the chapter row and the Wrap up's Go to and
+  Change are disabled while a Submit posts, and the copy says so; the name for another
+  response is its own; tests for the Start answer's fields and, in the browser, for Back
+  disabled and the browser's Back held while a Submit posts. A Submit made in another
+  window shows on this page at its next Start or load.

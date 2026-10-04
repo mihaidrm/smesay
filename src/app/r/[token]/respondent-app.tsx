@@ -120,8 +120,9 @@ export function RespondentApp(props: RespondentAppProps) {
   const [changedSince, setChangedSince] = useState(props.changedSince);
   // Times are the page's own monotonic clock (developer.mozilla.org/docs/Web/API/Performance/
   // now), so a phone's clock set back never hides a change. Nothing on the page can change
-  // while a Submit posts (`posting`: every move between screens waits), so a request sent
-  // before it posted was settled before it or is a copy of one that was.
+  // while a Submit posts (`posting`: a move between screens is refused then, and the controls
+  // that move are disabled), so a request sent before it posted was settled before it or is a
+  // copy of one that was.
   const lastSubmit = useRef(-1);
   const posting = useRef(false);
   const heldSince = (since: boolean | null, sentAt = performance.now()) => { if (showsChanged(since, sentAt, lastSubmit.current, submitted !== null)) setChangedSince(true); };
@@ -254,22 +255,24 @@ export function RespondentApp(props: RespondentAppProps) {
       // can name a response other than the one the page answered for (another window
       // replaced the cookie): that is a lost response too, and the cards go again.
       if (typeof body.response === "string") {
-        if (responseId !== null && body.response !== responseId && !lost.current) { saver.reset(); wrapSaver.reset(); lost.current = true; }
-        // Another response (one started in another window on this device): its own Submit, as
-        // the server holds it, replaces the old one's.
-        if (responseId !== null && body.response !== responseId) {
-          const at = typeof body.submittedAt === "string" ? body.submittedAt : null;
-          setSubmitted(at ? { at, name: firstName(values) ?? props.welcome?.name ?? null, returning: true } : null);
-          setChangedSince(at !== null && body.changedSince === true);
-          lastSubmit.current = -1;
-        }
+        const other = responseId !== null && body.response !== responseId;
+        if (other && !lost.current) { saver.reset(); wrapSaver.reset(); lost.current = true; }
         setResponseId(body.response);
         saver.bind(body.response);
         wrapSaver.bind(body.response);
+        // The response's Submit and its changes since, as the server holds them after this
+        // Start (E7-6): it may be another response (started in another window on this
+        // device), or have been submitted in another window or on another device since the
+        // page opened; a Start that changes the details or the picks of a submitted response
+        // takes its sign-off back. Answers to requests sent before a Submit the page learns of
+        // here say nothing about it.
+        const at = typeof body.submittedAt === "string" ? body.submittedAt : null;
+        if (other || at !== (submitted?.at ?? null)) {
+          setSubmitted(at ? { at, name: firstName(values) ?? (other ? null : submitted?.name ?? null), returning: true } : null);
+          lastSubmit.current = performance.now();
+        }
+        setChangedSince(at !== null && body.changedSince === true);
       }
-      // A Start that changes the details or the picks of a submitted response takes its
-      // sign-off back, as the server does (E7-6).
-      if (typeof body.changedSince === "boolean" && body.response === responseId) heldSince(body.changedSince);
       startedHere.current = true;
       savedSinceStart.current = false;
       setStarted(true);
@@ -345,7 +348,7 @@ export function RespondentApp(props: RespondentAppProps) {
       setSubmitting(false);
     }
   };
-  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} />;
+  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} />;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
     <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>

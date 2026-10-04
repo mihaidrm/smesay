@@ -83,8 +83,14 @@ test("submit, reopen, welcome back, change, submit again", async ({ page, reques
   // A change after Submit: the page says it must be submitted again (E7-6, acceptance 6).
   await expect(again.getByTestId("changed-since")).toHaveText("You changed answers after submitting. Submit again to send them.");
   await again.getByTestId("wrap-up-signoff").click();
+  // While the Submit posts nothing moves (held 1.5 s here): Back is disabled and the
+  // browser's Back keeps the Wrap up.
+  await again.route("**/submit", async (route) => { await new Promise((r) => setTimeout(r, 1500)); await route.continue(); });
   const before = Date.now();
   await again.getByTestId("wrap-up-submit").click();
+  await expect(again.getByTestId("wrap-up-back")).toBeDisabled();
+  await again.goBack();
+  await expect(again).toHaveURL(/\?at=wrap$/);
   await expect(again.getByTestId("done-thanks")).toHaveText("Thank you, Ana.");
   // The new time: the minute the Submit was made in (the server's clock, the same machine).
   expect(minutesBetween(before, Date.now())).toContain(await again.getByTestId("done-when").innerText());
