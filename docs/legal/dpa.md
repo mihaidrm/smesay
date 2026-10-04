@@ -33,12 +33,12 @@ This agreement applies when an organisation (the customer) uses SMEsay to collec
 
 ## Security measures
 
-- Queries are limited to the workspace taken from the signed-in member's session, never from what a request sends, and tests prove one workspace cannot read another's. Two internal reads span workspaces: the sum of AI spend across the product, and the removal job's list of deleted workspaces with the deleting owner's email. Neither shows one workspace's data to another.
-- Data is encrypted in transit (HTTPS) and at rest by the providers. [LAWYER: confirm the providers' encryption at rest from their documents.]
+- Queries are limited to one workspace: for members, the workspace taken from the signed-in session, never from what a request sends; for respondents, who have no account, the workspace of the link they opened. Tests prove one workspace cannot read another's. Two internal reads span workspaces: the sum of AI spend across the product, and the removal job's list of deleted workspaces with the deleting owner's email. Neither shows one workspace's data to another.
+- Data is to be encrypted in transit (HTTPS) once SMEsay is hosted, and at rest by the providers. [LAWYER: confirm both at launch, the providers' encryption at rest from their documents.]
 - Sign-in is by email link or Google; no passwords are kept.
 - Respondent links are long random tokens; a link can carry a passcode and can be revoked.
-- Respondent pages, the logo address, sign-in and passcode attempts have a limit on requests per connection; uploads and imports are checked for type and size.
-- Backups of the database and the files, with a restore that is tested. [LAWYER: confirm the backup schedule and retention once they are set for the host.]
+- Respondent pages, the logo address, sign-in and passcode attempts have a limit on requests per IP address, as the host's proxy reports it; uploads and imports are checked for type and size.
+- Backups: [LAWYER: confirm the backup schedule, the retention and the restore test once backups are set up for the host.]
 - Logs: [LAWYER: confirm before launch what the application's and the hosting provider's logs hold, including the IP addresses in request logs, and how long they are kept.]
 
 ## Transfers outside the EU

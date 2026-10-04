@@ -14,8 +14,9 @@ confirm, each showing its version and date, and every instrument links to the pr
    subprocessor, what is sent), exports ("exports you make": the CSV files of E10-1 and the
    whole-project JSON of E10-2 hold respondents' names, emails and free text, the values of
    every respondent field the PM configured, invite role hints, and the email of the workspace
-   member who closed an action; E10-2, acceptance 4), contact, and the landing page's questions (E12-5,
-   decision 0046: emailed to SMEsay with the visitor's address, nothing kept in the app).
+   member who closed an action; E10-2, acceptance 4) and contact. The landing page's questions
+   (E12-5) are not covered here: E12-5 is deferred (decision 0046) and its acceptance 7 adds the
+   paragraph when the form is built (changed 2026-10-04 under decision 0044, docs/review-list.md).
 2. Each page shows "Version [N], [DATE]" at the top; versions are files in docs/legal/ and
    the pages render them, so a change is a commit.
 3. The respondent About you page and the Done page link to the privacy notice ("How your
@@ -37,11 +38,13 @@ The sign-in email's footer already links to /legal/privacy (E2-1, src/lib/mail/s
 so the address is fixed; until this story the link opens the 404 page.
 Markdown in docs/legal/ rendered through a small renderer with the design system's type;
 subprocessors list from docs/accounts.md (hosting, database, email, storage, AI, errors,
-analytics) with "none yet" where the account does not exist (decision 0006).
+analytics) with "none yet" where the account does not exist (decision 0006). Built: no account
+for the launch providers exists, so the list names them under "Planned for launch" with their
+planned regions and says no error reports or visit counts are in use (docs/review-list.md).
 
 Built 2026-10-04 (design note 74, decision 0044):
 - Acceptance 1: docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md, drafted in plain
-  English with 36 "[LAWYER: ...]" markers; /legal/privacy, /legal/terms, /legal/dpa and
+  English with 39 "[LAWYER: ...]" markers; /legal/privacy, /legal/terms, /legal/dpa and
   /legal/subprocessors render them (src/app/legal/[page]/page.tsx, src/lib/legal.ts), built
   once at build time; any other name under /legal is the 404 page. The privacy policy covers
   every topic this criterion lists. The subprocessor list marks Anthropic as in use, the launch

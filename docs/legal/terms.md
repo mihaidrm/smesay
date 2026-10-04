@@ -15,7 +15,7 @@ You sign in with a link sent to your email address or with Google. A workspace b
 
 ## The free plan
 
-While SMEsay is being built with its first users, the free plan has no limit on projects or responses. Each workspace has a monthly allowance for the AI features; when it is used up, Shape and Write actions stop until the next month. Paid plans come later; nothing built on the free plan is lost or locked when they do. [LAWYER: confirm the wording on the AI allowance, on future paid plans and on changes to the free plan.]
+While SMEsay is being built with its first users, the free plan has no limit on projects or responses. Each workspace has a monthly allowance for the AI features, and SMEsay as a whole has a monthly limit on what it spends on AI; when either is reached, Shape and Write actions stop until the next month. Paid plans come later; nothing built on the free plan is lost or locked when they do. [LAWYER: confirm the wording on the AI allowance, on future paid plans and on changes to the free plan.]
 
 ## Your content
 
@@ -27,7 +27,7 @@ Do not use SMEsay to collect data you have no right to collect, to send unwanted
 
 ## The AI
 
-Some features use Anthropic's models to suggest wording, group items and write actions from answers. Their suggestions can be wrong. Every suggestion is shown for you to accept, change or ignore, and each action names the answers behind it.
+Some features use Anthropic's models to suggest wording, group items into areas and write actions from answers. What they produce can be wrong. Shape's grouping is applied to the items when it runs, and you can move items between areas afterwards. Each action names the answers or suggested missing items behind it, and you decide what to do with it.
 
 ## Availability
 

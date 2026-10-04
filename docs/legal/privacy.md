@@ -25,9 +25,10 @@ For what respondents give in a workspace, the organisation that owns the workspa
 - Your workspaces: their names, logo and accent colour, the members and their roles, and the invitations sent.
 - What you put in: the lists you import (the rows and the original file), the projects and their context, the instruments, the personal invites you send (each person's name, email and role hint, when the invite was sent and reminded, and the email provider's error text if a send failed), and the actions written from the answers, with who closed each one.
 - Records the product keeps to work: each AI run (what it was for, the tokens used and the cost), and each export (who made it, when, which file and the filter used; a text filter is kept without what was typed).
-- Each signed-in session: the IP address and the browser's user agent at sign-in, kept with the session until it ends.
+- When you ask for a sign-in link: your email address (and your name, if you gave one), kept with the link until it is used, or after it expires until the link records are next cleared.
+- Each signed-in session: the IP address and the browser's user agent at sign-in, kept with the session's record. The record is deleted when you sign out, or when the session is next used after it has ended; a session nobody returns to stays in the database. [LAWYER: SMEsay does not yet delete ended sessions on a schedule; confirm the retention to promise.]
 - A session cookie that keeps you signed in. It lasts 30 days and is renewed at most once a day while you use SMEsay, so it ends between 29 and 30 days after you last used it. Signing in with Google also sets a cookie that lasts at most 10 minutes.
-- To slow down repeated sign-in attempts, your email address and IP address are counted in the server's memory, for up to 24 hours after the last attempt. They are not written to the database.
+- To slow down repeated sign-in attempts, your email address and IP address are counted in the server's memory. They are not written to the database. They stay in memory until the server restarts or the count store fills up (50,000 entries), whichever comes first. [LAWYER: confirm whether a fixed maximum is needed.]
 - On your device, the browser's storage keeps your light or dark mode choice (smesay-mode).
 
 ## What we collect from respondents
@@ -37,7 +38,7 @@ For what respondents give in a workspace, the organisation that owns the workspa
 - Your answers: each rating, the reason or question you wrote, your comments, the perspectives you picked, any missing item you suggested, your answer to the closing question, your confidence and your sign-off, with the times they were saved.
 - A cookie named smesay-device that lets you come back to your answers on the same device, kept for one year, with a matching record in the database. If the link has a passcode, a cookie named smesay-passcode remembers that you entered it, kept for one year.
 - On your device, the browser's storage keeps the answers and the Wrap up you have not yet saved (smesay-answers and smesay-wrap), so a closed tab loses nothing. They are removed once they are saved, or when you open the link after it has closed.
-- Your connection's address (IP) is counted in the server's memory to limit how many requests one connection can make: for one minute at a time on the answer pages, and for 15 minutes when a passcode is tried. It is not written to the database. [LAWYER: confirm whether the hosting provider's own request logs, which hold IP addresses, need a line here and their retention.]
+- Your IP address, as the host reports it, is counted in the server's memory to limit how many requests one address can make on the answer pages and the logo address (100 a minute) and how many passcodes it can try (counted over 15 minutes). It is not written to the database. It stays in memory until the server restarts or the count store fills up, whichever comes first. [LAWYER: confirm whether a fixed maximum is needed, and whether the hosting provider's own request logs, which hold IP addresses, need a line here and their retention.]
 
 ## What the AI sees
 
@@ -63,6 +64,7 @@ SMEsay is not hosted yet. The plan for launch is below; the subprocessor list (/
 
 ## How long it is kept
 
+- Your account (your name, email, Google sign-in details and sessions) is kept until you ask for it to be deleted; SMEsay has no button for that yet, so write to hello@smesay.app. [LAWYER: confirm the account retention and the deletion process.]
 - Everything in a workspace is kept while the workspace exists. Archiving a project hides it; it does not delete it.
 - An owner can delete a workspace in Settings. Every member loses access at once. The removal job then deletes every row and file in it and sends the owner who deleted it one email. [LAWYER: the removal job runs every hour from launch, so removal takes under 24 hours; until then it is started by hand. Confirm the period to promise.]
 - Backups: [LAWYER: confirm the backup retention period once it is set for the host.]

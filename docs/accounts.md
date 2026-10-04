@@ -236,7 +236,7 @@ lawyer must confirm. You send the drafts to a Romanian lawyer once and tell Clau
 
 The drafts are docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md (stories/E11-3), shown
 at /legal/privacy, /legal/terms, /legal/dpa and /legal/subprocessors. `npm run legal:markers`
-lists every "[LAWYER: ...]" marker per page: 36 on 2026-10-04 (privacy 12, terms 9, DPA 12,
+lists every "[LAWYER: ...]" marker per page: 39 on 2026-10-04 (privacy 15, terms 9, DPA 12,
 subprocessors 3). Send the lawyer the four files and that list; when the lawyer has answered,
 tell Claude, and one commit replaces the markers.
 
