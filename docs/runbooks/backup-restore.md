@@ -16,7 +16,10 @@ In `.env.local` (`.env.example` lists them):
   network (CI). Empty: the PATH if pg_dump is there, else compose.
 - `DATABASE_URL` and the `S3_*` variables, as the app uses them.
 
-A missing variable is named and nothing runs.
+A missing variable is named and nothing runs. The connection reaches pg_dump and pg_restore in
+libpq's environment variables (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGSSLMODE), never on a command
+line, and an error from either has the password taken out. Backup folders are created readable by
+their owner only (0700, files 0600): they hold personal data. Delete old local backups by hand.
 
 ## Back up
 
@@ -30,14 +33,21 @@ row count, the number of objects), and prints the counts.
 
 1. Create an empty database, for example on the compose server:
    `docker compose exec postgres createdb -U smesay smesay_restore`
-2. Point `DATABASE_URL` at it for this one command and give the backup's folder:
+2. Point `DATABASE_URL` at it for this one command and give the backup's folder (or, at the
+   gate, its `s3://[BUCKET]/[PREFIX]/[TIME]`, which is copied to a private temporary folder
+   first):
 
         DATABASE_URL=postgres://smesay:smesay@localhost:5432/smesay_restore npm run restore -- ./backups/[FOLDER]
 
-3. Type the database's name when asked. A database that already has tables is refused.
+3. Type the database's name when asked (the prompt does not show it). A database that holds any
+   table, sequence, index or type is refused.
 
-The restore puts back the dump, then every object the bucket does not already have, and prints
-the row counts against the manifest; a difference is printed and the command fails.
+The restore runs pg_restore in one transaction: if it fails, the database is left empty, and
+the command can run again after the cause is fixed. Objects go back only into an empty bucket:
+into a bucket in use, the app's own, they would bring back files deleted since the backup (a
+purged workspace's, a replaced logo), so they are skipped and counted. For a full restore after
+losing the bucket, point `S3_BUCKET` at the new, empty bucket. Every object put back is checked,
+then the row counts are printed against the manifest; a difference fails the command.
 
 To make the restored database the app's, point `DATABASE_URL` at it in `.env.local`.
 
@@ -46,6 +56,7 @@ To make the restored database the app's, point `DATABASE_URL` at it in `.env.loc
 | When (UTC) | Where | Backup | Tables | Rows before | Rows after | Objects | Time |
 |---|---|---|---|---|---|---|---|
 | 2026-10-04 23:27 | The Claude Code cloud session (Postgres 16.14, tools on the PATH) into a fresh database | 4.3 MB, the dump 4,482,017 bytes | 20 | 78,114 | 78,114 | 0 (the session's bucket is in memory) | 1.0 s |
+| 2026-10-04 23:57 | The cloud session, `npm run backup:check` after the audit fixes (the migration log now counted, one probe object) | the dump 4,489,909 bytes | 21 | 78,283 | 78,283 | 1 | 0.8 s |
 | [DATE] | Mihai's PC, with compose, into a fresh database | | | | | | |
 
 The second row is Mihai's to fill (SECURITY.md: one restore performed and documented before
@@ -64,5 +75,7 @@ jobs:purge`.
 ## In CI
 
 `npm run backup:check` runs after the end-to-end tests on every push: it backs up the CI
-database, creates an empty one beside it, restores into it, compares every table's row count and
-drops it.
+database, creates an empty one beside it, restores into it, compares every table's row count
+(the migration log included), drops it and deletes the backup folder. With the in-memory bucket
+(S3_ENDPOINT=memory:) it also puts a probe object before the backup, deletes it, and fails unless
+the restore puts it back byte for byte.
