@@ -97,6 +97,7 @@ export const AGREEMENT_COPY = {
   agreeLine: (agree: number, answered: number) => `${agree} of ${answered} agree`,
   ratedLine: (n: number) => `${n} rated`,
   noPercent: "No answers",
+  noAnswersLine: "No answers under this filter",
   notCompared: "Fewer than 3 answers: not compared",
   groupNone: "Not given",
   valuesLegend: "Values picked, where no proposal was shown",

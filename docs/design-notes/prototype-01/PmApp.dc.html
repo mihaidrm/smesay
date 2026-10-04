@@ -379,7 +379,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.submittedOf}}</div><div style="color: #5B6069; font-size: 13px">Submitted</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.agreePct}}</div><div style="color: #5B6069; font-size: 13px">Agreement, {{t.agreeOf}} answers</div></div>
-<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.pushed}}</div><div style="color: #5B6069; font-size: 13px">Pushed back</div></div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.pushed}}</div><div style="color: #5B6069; font-size: 13px">Different priority</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.disagreed}}</div><div style="color: #5B6069; font-size: 13px">Disagreed</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.unclear}}</div><div style="color: #5B6069; font-size: 13px">Unclear</div></div>
 <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E3E1DC"><div style="font-family: 'Geist Mono', monospace; font-size: 26px">{{t.missing}}</div><div style="color: #5B6069; font-size: 13px">Missing items suggested</div></div>
@@ -903,7 +903,7 @@ gaps.sort((a, b) => b.gap - a.gap);
 const statusStyle = { 'Submitted': ['#E6F4EC', '#22643F'], 'In progress': ['#FBF1DC', '#7A5210'], 'Invited': ['#F0F0EE', '#454A52'] };
 const tracker = d.people.map((p) => ({ name: p.name, role: p.role, status: p.status, bg: statusStyle[p.status][0], fg: statusStyle[p.status][1], progress: p.done + ' of ' + d.items.length, date: p.date || 'Not yet', source: p.source }));
 
-const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Pushed back (' + (totalPushed + totalDisagreed) + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)'], ['export', 'Export']];
+const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Different priority and Disagree (' + (totalPushed + totalDisagreed) + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)'], ['export', 'Export']];
 const tabs = tabDefs.map((x) => {
 const active = s.tab === x[0];
 return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg: active ? '#16181C' : '#5B6069', pick: () => this.setState({ tab: x[0] }) };

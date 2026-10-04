@@ -24,6 +24,16 @@ export const answeredOf = (c: Counts) => c.agree + c.change + c.disagree + c.unc
 export const percentOf = (c: Counts): number | null => (answeredOf(c) === 0 ? null : Math.round((100 * c.agree) / answeredOf(c)));
 export const notAnsweredOf = (c: Counts) => Math.max(0, c.couldSee - answeredOf(c) - c.pick);
 
+// What an item, an area or a group reads as its figure: the agreement percentage where a
+// proposal was shown and answered, the values rated where none was (decision 0014: a value
+// rated with no proposal is not an agreement, so it is never "No answers" or 0%), or nothing.
+export type Figure = { percent: number } | { rated: number } | null;
+export function figureOf(c: Counts): Figure {
+  if (c.agree + c.change + c.disagree === 0 && c.pick > 0) return { rated: c.pick };
+  const p = percentOf(c);
+  return p === null ? null : { percent: p };
+}
+
 export function addCounts(a: Counts, b: Counts): Counts {
   const values = { ...a.values };
   for (const [k, v] of Object.entries(b.values)) values[k] = (values[k] ?? 0) + v;
@@ -36,31 +46,40 @@ export type AgreementSort = (typeof AGREEMENT_SORTS)[number];
 export const agreementSortOf = (sort: ResultsSort | null): { key: AgreementSort; dir: "asc" | "desc" } =>
   sort && (AGREEMENT_SORTS as readonly string[]).includes(sort.key) ? { key: sort.key as AgreementSort, dir: sort.dir } : { key: "ref", dir: "asc" };
 
-const refKey = (r: Row) => [r.position, r.reference ?? ""] as const;
 function compare(a: Row, b: Row, key: AgreementSort): number {
-  if (key === "ref") return refKey(a)[0] - refKey(b)[0];
-  // An item nobody answered sorts after every percentage, whatever the direction.
-  const v = (r: Row) => (key === "agreement" ? (r.percent ?? -1) : r.counts[key]);
+  if (key === "ref") return a.position - b.position;
+  const v = (r: Row) => (key === "agreement" ? (r.percent ?? 0) : r.counts[key]);
   return v(a) - v(b);
 }
 
 export function sortRows(rows: Row[], sort: { key: AgreementSort; dir: "asc" | "desc" }): Row[] {
   const sign = sort.dir === "desc" ? -1 : 1;
-  // Ties fall back to the list's order in the same direction.
-  return [...rows].sort((a, b) => sign * (compare(a, b, sort.key) || compare(a, b, "ref")));
+  // By agreement, an item with no percentage (nobody answered, or values rated with no
+  // proposal) sorts after every percentage, whatever the direction. Ties fall back to the
+  // list's order in the same direction.
+  const unrated = (r: Row) => (sort.key === "agreement" && r.percent === null ? 1 : 0);
+  return [...rows].sort((a, b) => unrated(a) - unrated(b) || sign * (compare(a, b, sort.key) || compare(a, b, "ref")));
 }
 
 type ByItem = { itemId: string; group: string | null } & Counts;
 
+// The groups of a split, in name order, with the people who left the field empty last, under
+// `noGroup` ("Not given"), so the group bars always add up to the item's bar.
+function groupsOf(mine: ByItem[], noGroup: string): GroupRow[] {
+  return [...mine]
+    .sort((a, b) => Number(a.group === null) - Number(b.group === null) || (a.group ?? "").localeCompare(b.group ?? ""))
+    .map((c) => ({ group: c.group ?? noGroup, counts: c, percent: percentOf(c), notAnswered: notAnsweredOf(c), compared: answeredOf(c) + c.pick >= MIN_GROUP }));
+}
+
 // The areas in the list's order (the shaped areas first, then any other area an item names,
 // then the items with no area), each with its rows, sorted, and its totals.
-export function buildAgreement(items: AgreementItem[], areaNames: string[], counts: ByItem[], split: boolean, sort: { key: AgreementSort; dir: "asc" | "desc" }): AreaBlock[] {
+export function buildAgreement(items: AgreementItem[], areaNames: string[], counts: ByItem[], split: boolean, sort: { key: AgreementSort; dir: "asc" | "desc" }, noGroup = "Not given"): AreaBlock[] {
   const names = [...areaNames];
   for (const it of items) if (it.area && !names.includes(it.area)) names.push(it.area);
   const rowsOf = (list: AgreementItem[]): Row[] => list.map((it) => {
     const mine = counts.filter((c) => c.itemId === it.id);
     const total = mine.reduce<Counts>((a, c) => addCounts(a, c), EMPTY_COUNTS);
-    const groups = split ? mine.filter((c) => c.group !== null).map((c) => ({ group: c.group!, counts: c, percent: percentOf(c), notAnswered: notAnsweredOf(c), compared: answeredOf(c) + c.pick >= MIN_GROUP })).sort((a, b) => a.group.localeCompare(b.group)) : [];
+    const groups = split ? groupsOf(mine, noGroup) : [];
     return { ...it, counts: total, percent: percentOf(total), notAnswered: notAnsweredOf(total), groups };
   });
   const blocks: { name: string | null; items: AgreementItem[] }[] = names.map((name) => ({ name, items: items.filter((it) => it.area === name) }));
@@ -73,12 +92,32 @@ export function buildAgreement(items: AgreementItem[], areaNames: string[], coun
   });
 }
 
+// A group summed over an area or the whole list (the split in Columns and Share). It is
+// compared only with 3 answers and 3 people or more: a sum over items can reach 3 answers
+// from one person, who must not be singled out (decision 0031). The people are the most who
+// could see one item of the sum.
+export type GroupTotal = { group: string; counts: Counts; compared: boolean };
+export function groupTotals(rows: Row[]): GroupTotal[] {
+  const by = new Map<string, { counts: Counts; people: number }>();
+  for (const r of rows) for (const g of r.groups) {
+    const was = by.get(g.group) ?? { counts: EMPTY_COUNTS, people: 0 };
+    by.set(g.group, { counts: addCounts(was.counts, g.counts), people: Math.max(was.people, g.counts.couldSee) });
+  }
+  // The order of the first row's groups (names, the empty group last), then any other.
+  const order = [...new Set(rows.flatMap((r) => r.groups.map((g) => g.group)))];
+  return order.map((group) => {
+    const { counts, people } = by.get(group)!;
+    return { group, counts, compared: answeredOf(counts) + counts.pick >= MIN_GROUP && people >= MIN_GROUP };
+  });
+}
+
 // The colours of the kinds (docs/design-system.md, the status solids; Not answered is an
-// absence, a dashed outline) and of the values picked (one violet ramp, a step per value of the
-// scale, the same in every view).
+// absence, a dashed outline) and of the values picked: one blue ramp from the missing-item
+// solid, a step per value of the scale, the same in every view, apart in hue from Unclear's
+// violet. color-mix(in oklch, ...): developer.mozilla.org/docs/Web/CSS/color_value/color-mix.
 export const KIND_COLORS = { agree: "var(--agree)", change: "var(--pushed)", disagree: "var(--disagree)", unclear: "var(--unclear)" } as const;
-const RAMP = [100, 80, 62, 46, 32];
-const rampColor = (i: number) => `color-mix(in oklch, var(--violet) ${RAMP[i % RAMP.length]}%, var(--surface))`;
+const RAMP = [100, 78, 58, 42, 28];
+const rampColor = (i: number) => `color-mix(in oklch, var(--missing) ${RAMP[i % RAMP.length]}%, var(--surface))`;
 
 export function kindSeries(c: Counts, rated = c.pick > 0): Series[] {
   return [

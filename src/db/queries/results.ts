@@ -264,11 +264,12 @@ export const tracker = {
   },
 };
 
-// The Agreement tab's numbers (E8-3): for each item of the instrument, in the list's order,
-// the counted answers by kind, the values picked (for the distribution of a value rated with
+// The Agreement tab's numbers (E8-3): for each item of the instrument (in item id order; the
+// tab puts them in the list's order), the counted answers by kind, the values picked (for the distribution of a value rated with
 // no proposal shown), the people who could see the item (the counted responses whose
 // perspectives show it, E5-4) and the agreement percentage, agree over answered rounded half
-// up, computed here so the screen and the CSV cannot differ. With `split` (a dropdown field's
+// up, for the CSV (E10-1); the tab sums items into areas and groups with the same rule in
+// src/lib/results-agreement.ts percentOf, and a test checks the two agree on every item. With `split` (a dropdown field's
 // key, checked by the caller against the instrument), one row per item and group value
 // (null: the field left empty). Aggregates in SQL (group by item, kind, value, group).
 export type ItemCounts = {
@@ -328,7 +329,8 @@ export const agreement = {
 };
 
 // The PM's choices on Results, per instrument (user.results_prefs, INTERFACES.md
-// ResultsPrefs): the tiles and the include-unsubmitted switch. Keyed by the signed-in person's
+// ResultsPrefs): the tiles, the include-unsubmitted switch and the Agreement tab's view (E8-3).
+// Keyed by the signed-in person's
 // id; the caller checks first that the instrument is in the current workspace.
 export type ResultsPref = { tiles?: unknown; includeUnsubmitted?: unknown; view?: unknown };
 export const resultsPrefs = {

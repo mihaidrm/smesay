@@ -1,6 +1,7 @@
 "use server";
-// Server actions of Results (stories/E8-1, acceptance 2 and 7): the PM's tiles and the
-// include-unsubmitted switch, kept per PM per instrument (user.results_prefs). The project is
+// Server actions of Results (stories/E8-1, acceptance 2 and 7; E8-3, acceptance 2): the PM's
+// tiles, the include-unsubmitted switch and the Agreement tab's view, kept per PM per
+// instrument (user.results_prefs). The project is
 // read through the current workspace first, so an instrument of another workspace is never
 // written to anyone's choices; the tiles are checked on the server (one to six known ids).
 // Server Functions: node_modules/next/dist/docs/01-app/01-getting-started/07-mutating-data.md.

@@ -128,7 +128,7 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   return q.toString();
 }
 
-// The filter with nothing narrowing (Clear filters keeps the switch and the sort).
+// The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).
 export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort, split: f.split });
 
 // The sort a column header links to: the column ascending, or descending when it is the

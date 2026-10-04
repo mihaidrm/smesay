@@ -6,7 +6,7 @@
 // a view can be shared. Copy: docs/copy/app.md, Results.
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cn } from "cn";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { AGREEMENT_SORTS, type AgreementSort } from "@/lib/results-agreement";
 import { filterQuery, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
@@ -34,15 +34,7 @@ export function AgreementControls({ projectId, view, filter, ctx, sort }: { proj
   const splits = ctx.fields.filter((f) => f.type === "dropdown");
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3" aria-busy={pending || undefined} data-testid="agreement-controls">
-      <div role="group" aria-label={AGREEMENT_COPY.viewLabel} className="inline-flex rounded-xl bg-tint p-1">
-        {VIEWS.map((v) => (
-          <button key={v} type="button" aria-pressed={view === v} onClick={() => view !== v && pick(v)}
-            className={cn("h-8 rounded-lg px-3 text-sm font-semibold text-ink-muted outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-tint aria-pressed:bg-surface aria-pressed:text-ink aria-pressed:shadow-card")}
-            data-testid={`view-${v}`}>
-            {AGREEMENT_COPY.views[v]}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl label={AGREEMENT_COPY.viewLabel} value={view} onChange={(v) => v !== view && pick(v)} options={VIEWS.map((v) => ({ value: v, label: AGREEMENT_COPY.views[v] }))} />
       {splits.length > 0 && (
         <label className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
           {AGREEMENT_COPY.splitBy}

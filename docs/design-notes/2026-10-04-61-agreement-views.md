@@ -28,6 +28,20 @@ Design note 40 decided the three views; this note records how they are drawn.
   split needs no second join (a first version took 680 ms at 600 responses split by role; it
   takes under 100 ms now).
 
+## Changed after the audit (same day)
+
+- No number sits inside a segment of the stacked bar: white on the status solids measured
+  1.89 to 4.02 against the 4.5 needed, so each bar's counts are printed in words under it
+  ("3 agree · 1 different priority"), in muted ink, every count with a name.
+- The values picked take a blue ramp from the missing-item solid; the violet ramp's first
+  step read as Unclear (1.09:1 light).
+- A rate-blind figure reads "[N] rated", never "No answers" or 0%.
+- The donut's gap is 2 px at its drawn size and shows the card, not a track.
+- A split keeps the people who left the field empty as "Not given", last; a group summed over
+  items is compared only with 3 answers and 3 people or more; Columns draws an area's groups
+  on one scale; the banner shows once, for the view on screen.
+- The view switch is the design system's segmented control.
+
 ## Checks
 
 - src/lib/results-agreement.test.ts, src/db/queries/results.test.ts (every cell against the

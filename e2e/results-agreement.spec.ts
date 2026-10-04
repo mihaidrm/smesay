@@ -24,16 +24,17 @@ test("agreement tab: three views, split by role, sort by disagree", async ({ pag
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
   await expect(page.getByTestId("agreement-row")).toHaveCount(6);
 
-  await page.getByTestId("view-columns").click();
+  const views = page.getByRole("group", { name: "View" });
+  await views.getByRole("button", { name: "Columns" }).click();
   const submitting = page.locator('[data-testid=columns-area][data-area="Submitting"]');
   await expect(submitting.locator("[data-series]")).toHaveCount(5);
-  await page.getByTestId("view-share").click();
+  await views.getByRole("button", { name: "Share" }).click();
   await expect(page.getByTestId("share-list").getByTestId("donut-line")).toHaveText("19 of 30 agree");
   await page.reload();
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
-  await expect(page.getByTestId("view-share")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("group", { name: "View" }).getByRole("button", { name: "Share" })).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByTestId("view-table").click();
+  await page.getByRole("group", { name: "View" }).getByRole("button", { name: "Table" }).click();
   await expect(page.getByTestId("agreement-row")).toHaveCount(6);
   await page.getByTestId("split-by").selectOption("role");
   await expect(page).toHaveURL(/split=role/);

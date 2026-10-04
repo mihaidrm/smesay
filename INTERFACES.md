@@ -138,7 +138,8 @@ missing items of the counted people as MissingRow { id, responseId, text }, the 
 E10-1's "People" and "Missing items" files; agreement.byItem(ws, instrumentId, filter, split)
 (E8-3) the counts per item (and per group of the split field) as ItemCounts { itemId, group,
 agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
-answered, rounded half up in SQL) }; tracker.people(ws, instrumentId, filter,
+answered, rounded half up in SQL, for the CSV; the tab sums with the same rule,
+src/lib/results-agreement.ts percentOf, figureOf for "[N] rated") }; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
 fields, who (the name shown: the name field, else a personal invite's name or email; null
 for a public-link response with no name), anon (for a public-link response with no
@@ -146,7 +147,7 @@ name, its number among the instrument's public-link responses by start; null oth
 the items seen), visible, submittedAt, reminders, withComment (answers that count under the
 switch) }, sorted by the filter's sort from the tab's list of columns (a field
 column only for a key in fieldKeys); resultsPrefs.get(userId, instrumentId) and
-resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted? }) read and merge the
+resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites

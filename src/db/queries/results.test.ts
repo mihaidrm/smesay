@@ -9,6 +9,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
+import { figureOf, percentOf } from "@/lib/results-agreement";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -295,14 +296,25 @@ describe("the Agreement tab's numbers", () => {
   async function reconcile(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, split: string | null) {
     const byItem = await agreement.byItem(ws, instrumentId, f, split);
     const rows = await results.rows(ws, instrumentId, f);
-    const fields = new Map((await sql`select id, fields from response where workspace_id = ${ws} and instrument_id = ${instrumentId}`).map((r) => [r.id as string, r.fields as Record<string, string>]));
+    const responses = new Map((await sql`select id, fields, perspectives from response where workspace_id = ${ws} and instrument_id = ${instrumentId}`).map((r) => [r.id as string, { fields: r.fields as Record<string, string>, perspectives: r.perspectives as string[] }]));
+    const itemPerspectives = new Map((await sql`select it.id, it.perspectives from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws}`).map((r) => [r.id as string, r.perspectives as string[]]));
+    const counted = (await results.people(ws, instrumentId, f)).filter((p) => p.counted).map((p) => p.id);
+    const groupOf = (responseId: string) => (split === null ? null : (responses.get(responseId)?.fields[split] || null));
+    const sees = (responseId: string, itemId: string) => { const its = itemPerspectives.get(itemId) ?? []; return its.length === 0 || its.some((x) => responses.get(responseId)!.perspectives.includes(x)); };
     for (const c of byItem) {
-      const mine = rows.filter((r) => r.itemId === c.itemId && (split === null || (fields.get(r.responseId)?.[split] ?? null) === c.group));
+      const mine = rows.filter((r) => r.itemId === c.itemId && groupOf(r.responseId) === c.group);
       const k = (kind: string) => mine.filter((r) => r.kind === kind).length;
       expect([c.agree, c.change, c.disagree, c.unclear, c.pick]).toEqual([k("agree"), k("change"), k("disagree"), k("unclear"), k("pick")]);
       const answered = c.agree + c.change + c.disagree + c.unclear;
       expect(c.percent).toBe(answered === 0 ? null : Math.round((100 * c.agree) / answered));
-      expect(Object.values(c.values).reduce((a, b) => a + b, 0)).toBe(mine.filter((r) => r.value !== null).length);
+      // The screen's rule (src/lib/results-agreement.ts percentOf) gives the SQL's number.
+      expect(percentOf(c)).toBe(c.percent);
+      // The values per code, and the people of the cell who could see the item (Not answered
+      // is those people less the answers).
+      const codes: Record<string, number> = {};
+      for (const r of mine) if (r.value !== null) codes[r.value] = (codes[r.value] ?? 0) + 1;
+      expect(c.values).toEqual(codes);
+      expect(c.couldSee).toBe(counted.filter((id) => groupOf(id) === c.group && sees(id, c.itemId)).length);
     }
     // Every answer row lands in one cell.
     expect(byItem.reduce((a, c) => a + c.agree + c.change + c.disagree + c.unclear + c.pick, 0)).toBe(rows.length);
@@ -354,7 +366,37 @@ describe("the Agreement tab's numbers", () => {
     }
   }, 120_000);
 
+  it("counts a rate-blind list as values rated, the perspectives' coverage, and an empty split field", async () => {
+    const g = await createWorkspaceWithSample({ name: "Results G", slug: `results-g-${Date.now()}` }, userId);
+    made.push(g.id);
+    const wsG = unsafeWorkspaceId(g.id);
+    const instrumentG = await sampleInstrument(wsG);
+    // Rate-blind (E5-2): every answer but a question becomes the value rated with no proposal
+    // (the proposal for an agree, the value picked for a different priority, Not needed for a
+    // disagree).
+    await sql`update instrument set show_proposed = false, perspectives = '["Finance", "Sales"]'::jsonb where id = ${instrumentG}`;
+    await sql`update answer set kind = 'pick', value = case answer.kind when 'agree' then it.proposed_value when 'disagree' then 'W' else answer.value end
+      from item it where it.id = answer.item_id and answer.workspace_id = ${wsG} and answer.kind <> 'unclear'`;
+    // CL-05 is for Finance only; Dana is Finance; Tom left his role empty.
+    await sql`update item set perspectives = array['Finance'] where workspace_id = ${wsG} and source_ref = 'CL-05'`;
+    await sql`update response set perspectives = array['Finance'] where workspace_id = ${wsG} and fields ->> 'name' = 'Dana Okafor'`;
+    await sql`update response set fields = fields - 'role' where workspace_id = ${wsG} and fields ->> 'name' = 'Tom Reyes'`;
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }]) for (const split of [null, "role"]) await reconcile(wsG, instrumentG, f, split);
+    const ref = new Map((await sql`select id, source_ref from item where workspace_id = ${wsG}`).map((r) => [r.id as string, r.source_ref as string]));
+    const cs = await agreement.byItem(wsG, instrumentG, NONE, null);
+    const cl05 = cs.find((c) => ref.get(c.itemId) === "CL-05")!;
+    // Only Dana sees CL-05 among the five who submitted.
+    expect(cl05.couldSee).toBe(1);
+    const cl01 = cs.find((c) => ref.get(c.itemId) === "CL-01")!;
+    expect([cl01.agree, cl01.change, cl01.pick > 0, figureOf({ ...cl01 })]).toEqual([0, 0, true, { rated: cl01.pick }]);
+    // Tom is in the empty group of the split, and the groups add up to the item.
+    const split = (await agreement.byItem(wsG, instrumentG, NONE, "role")).filter((c) => c.itemId === cl01.itemId);
+    expect(split.some((c) => c.group === null)).toBe(true);
+    expect(split.reduce((a, c) => a + c.pick + c.agree + c.change + c.disagree + c.unclear, 0)).toBe(cl01.pick + cl01.change + cl01.disagree + cl01.unclear);
+  });
+
   it("reads nothing of another workspace's instrument", async () => {
     expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
+    expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, "role")).toEqual([]);
   });
 });

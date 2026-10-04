@@ -212,8 +212,9 @@ export default function Styleguide() {
 
       <Section id="data" title="Data">
         <p className="max-w-[720px] text-ink-soft">
-          Thin marks, 2 px gaps between segments, direct labels, text in ink tokens never in series colour, never a pie,
-          never two y-axes. Agreement per item: agree, pushed back, unclear; the percent is agree over answered.
+          Thin marks, 2 px gaps between segments, counts in words beside a bar, text in ink tokens never in series colour,
+          a donut only per area and for the whole list, never two y-axes. Agreement per item: agree, different priority,
+          disagree, unclear; the percent is agree over answered.
         </p>
         <div className="flex max-w-[560px] flex-col gap-3">
           {[
@@ -233,7 +234,7 @@ export default function Styleguide() {
           ))}
           <div className="flex gap-4 text-xs text-ink-muted">
             <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-agree align-middle" />Agree</span>
-            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-pushed align-middle" />Pushed back</span>
+            <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-pushed align-middle" />Different priority</span>
             <span><span className="mr-1.5 inline-block size-2.5 rounded-sm bg-unclear align-middle" />Unclear</span>
           </div>
         </div>

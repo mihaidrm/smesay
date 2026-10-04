@@ -82,4 +82,11 @@ describe("the tiles", () => {
     expect(agreementPercent({ agree: 23, answered: 34 })).toBe(68);
     expect(tabCounts(n)).toEqual({ pushed: 9, questions: 3, actions: 4 });
   });
+
+  it("reads a split only of the instrument's dropdown fields, and writes it", () => {
+    expect(read("unsubmitted=1&split=role").split).toBe("role");
+    expect(read("unsubmitted=1&split=name").split).toBeNull();
+    expect(read("unsubmitted=1&split=bogus").split).toBeNull();
+    expect(filterQuery(read("unsubmitted=1&split=role"), ctx)).toBe("unsubmitted=1&split=role");
+  });
 });

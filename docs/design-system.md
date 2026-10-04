@@ -244,10 +244,13 @@ one column on a phone and two on desktop, 12 px apart.
 
 Follows the dataviz rules: thin marks, 2 px surface gaps between segments, direct labels on at
 most four series, a legend whenever there are two or more series, text in ink tokens never in
-series colour, never two y-axes. A donut only at the area and list level, never per item,
-at most five slices, the numbers printed beside it (design note 40 relaxes the earlier "never
-a pie" on Cleveland and McGill's ranking and Mihai's ask; waits for his answer to its
-question 1).
+series colour (no number inside a status-coloured segment: white or ink there fails 4.5:1 in
+one mode or the other, so a stacked bar's counts are printed in words under it), never two
+y-axes. A donut only at the area and list level, never per item, the numbers printed beside it
+(design note 40 relaxed the earlier "never a pie"; decision 0044 item 5): five slices for the
+kinds (the four and Not answered), six with Rated, and one per value of the scale with Unclear
+and Not answered on a rate-blind list (docs/review-list.md). The values picked use one blue
+ramp from the missing-item solid, apart in hue from Unclear's violet.
 
 - Agreement per item and per area, three views (E8-3): the stacked bar per item (agree,
   different priority, disagree, unclear, not answered segments; the compact default), the
@@ -256,10 +259,12 @@ question 1).
   same filter. The kinds are named Agree, Different priority, Disagree, Unclear (decision
   0014; the landing page's results fragment uses these names and the status colours since
   2026-10-04, design note 53).
-- Values picked where no proposal was shown (rate-blind, E8-3): one violet ramp, a step per
-  value of the scale (the violet at 100, 80, 62, 46 and 32 percent over the surface), the same
-  colour per value in every view; Unclear keeps its status colour, Not answered its dashed
-  outline. Built in src/components/app/charts.tsx (design note 61).
+- Values picked where no proposal was shown (rate-blind, E8-3): one blue ramp, a step per
+  value of the scale (the missing-item solid at 100, 78, 58, 42 and 28 percent over the
+  surface; the first violet ramp read as Unclear, 1.09:1, so it moved to blue after the E8-3
+  audit), the same colour per value in every view, each value also named in the counts under
+  the bar; Unclear keeps its status colour, Not answered its dashed outline. Built in
+  src/lib/results-agreement.ts and src/components/app/charts.tsx (design note 61).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
 - Where groups disagree: two bars on one scale, coral for the share that disagreed, any

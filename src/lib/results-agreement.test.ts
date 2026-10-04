@@ -3,7 +3,7 @@
 // ways with ties in the list's order, groups of fewer than 3 answers drawn but not compared,
 // and the series every view draws (the kinds, or the values picked where no proposal was shown).
 import { describe, expect, it } from "vitest";
-import { buildAgreement, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
+import { buildAgreement, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
 
 const c = (agree: number, change = 0, disagree = 0, unclear = 0, couldSee = agree + change + disagree + unclear, pick = 0, values: Record<string, number> = {}): Counts => ({ agree, change, disagree, unclear, pick, values, couldSee });
 const items = [
@@ -55,5 +55,43 @@ describe("the Agreement tab's model", () => {
     expect(valueSeries(blind, "moscow", { M: "Essential" }).map((s) => [s.label, s.value])).toEqual([["Essential", 3], ["Should", 1], ["Could", 0], ["Not needed", 0], ["Unclear", 1], ["Not answered", 1]]);
     expect(kindSeries(blind).some((s) => s.key === "pick" && s.value === 4)).toBe(true);
     expect(notAnsweredOf(c(3, 0, 0, 0, 2))).toBe(0);
+  });
+
+  it("reads values rated with no proposal as rated, never as no answers or 0%", () => {
+    expect(figureOf(c(0, 0, 0, 0, 10, 10))).toEqual({ rated: 10 });
+    expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ rated: 10 });
+    expect(figureOf(c(0, 0, 0, 1))).toEqual({ percent: 0 });
+    expect(figureOf(c(3, 1))).toEqual({ percent: 75 });
+    expect(figureOf(c(0))).toBeNull();
+  });
+
+  it("sorts by agreement with the items that have no percentage last, both ways", () => {
+    const rows = buildAgreement(items, ["Submitting"], [{ itemId: "i1", group: null, ...c(1, 1) }, { itemId: "i2", group: null, ...c(0, 0, 0, 0, 3, 3) }], false, { key: "ref", dir: "asc" })[0].rows;
+    expect(sortRows(rows, { key: "agreement", dir: "asc" }).map((r) => r.id)).toEqual(["i1", "i2"]);
+    expect(sortRows(rows, { key: "agreement", dir: "desc" }).map((r) => r.id)).toEqual(["i1", "i2"]);
+  });
+
+  it("keeps the people who left the split field empty as a last group, so the groups add up", () => {
+    const split = [
+      { itemId: "i1", group: "Sales", ...c(2, 1, 0, 0, 3) },
+      { itemId: "i1", group: null, ...c(1, 0, 1, 0, 2) },
+      { itemId: "i1", group: "Finance", ...c(1, 0, 0, 0, 1) },
+    ];
+    const row = buildAgreement(items, ["Submitting"], split, true, { key: "ref", dir: "asc" }, "Not given")[0].rows[0];
+    expect(row.groups.map((g) => g.group)).toEqual(["Finance", "Sales", "Not given"]);
+    const sum = row.groups.reduce((a, g) => a + g.counts.agree + g.counts.change + g.counts.disagree + g.counts.unclear, 0);
+    expect(sum).toBe(row.counts.agree + row.counts.change + row.counts.disagree + row.counts.unclear);
+  });
+
+  it("compares a group summed over items only with 3 answers and 3 people", () => {
+    // One person in Finance answers both items: 2 answers, 1 person; Sales has 3 people.
+    const split = [
+      { itemId: "i1", group: "Finance", ...c(1, 0, 0, 0, 1) }, { itemId: "i2", group: "Finance", ...c(1, 0, 0, 0, 1) },
+      { itemId: "i1", group: "Sales", ...c(2, 1, 0, 0, 3) }, { itemId: "i2", group: "Sales", ...c(3, 0, 0, 0, 3) },
+    ];
+    const one = [{ itemId: "i1", group: "HR", ...c(1, 0, 0, 0, 1) }, { itemId: "i2", group: "HR", ...c(1, 0, 0, 0, 1) }, { itemId: "i3", group: "HR", ...c(1, 0, 0, 0, 1) }];
+    const rows = buildAgreement(items, ["Submitting", "Paying"], [...split, ...one], true, { key: "ref", dir: "asc" }).flatMap((a) => a.rows);
+    // HR: 3 answers from one person, never compared.
+    expect(groupTotals(rows).map((g) => [g.group, g.counts.agree, g.compared])).toEqual([["Finance", 2, false], ["HR", 3, false], ["Sales", 5, true]]);
   });
 });
