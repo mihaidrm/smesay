@@ -1,6 +1,7 @@
-// The main path of E8-8: a new workspace's sample opens on Results with the watermark band;
-// the band is on Shape and Build too, with Shape's read-only line; Delete sample on the
-// sample's header asks first, then the sample is gone from the project list.
+// The main path of E8-8: a new workspace's sample opens on Results with the watermark band,
+// from the sidebar and from the project list; the band is on Shape, Build, Share and Import
+// too, with Shape's read-only line; Delete sample on the sample's header asks first, then the
+// sample is gone from the project list.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -39,7 +40,12 @@ test("sample project: the band on every step, delete from its header", async ({ 
   await expect(page).toHaveURL(/\/import$/);
   await expect(page.getByTestId("sample-band")).toHaveText(band);
   // The band is in the pinned header, so it stays in view while the page scrolls.
-  await expect(page.getByTestId("project-header").getByTestId("sample-band")).toBeVisible();
+  await page.mouse.wheel(0, 2_000);
+  await expect(page.getByTestId("project-header").getByTestId("sample-band")).toBeInViewport();
+  // From the project list, the sample's name opens Results too.
+  await page.goto("/app");
+  await page.getByRole("main").getByRole("link", { name: "Sample project", exact: true }).click();
+  await expect(page).toHaveURL(/\/results/);
 
   await page.getByTestId("project-header").getByRole("button", { name: "Delete sample" }).click();
   await expect(page.getByTestId("delete-sample-confirm")).toContainText("The sample project and its invented answers are deleted. Your own projects are not affected.");

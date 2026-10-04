@@ -6,8 +6,9 @@
 // for the listed projects' instruments. deleteSample() removes the sample project
 // (stories/E8-8, acceptance 3, built with E3-1): responses first, because the database refuses
 // to drop an instrument with responses (decision 0028), then the project, whose cascades take
-// the rest, in one transaction that rolls back when the project row is not the sample. update
-// refuses is_sample (E8-8, acceptance 4). count()
+// the rest, in one transaction that rolls back when the project row is not the sample. create
+// and update refuse is_sample (E8-8, acceptance 4); createSampleProject, outside the projects
+// object and the @/db/queries barrel, is the seed's way to make one. count()
 // and groupBy: orm.drizzle.team/docs/select#aggregations; inArray() with a subquery:
 // node_modules/drizzle-orm/sql/expressions/conditions.d.ts (values: SQLWrapper).
 import { and, count, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
@@ -23,7 +24,7 @@ const base = scoped(project);
 class NotSampleError extends Error {}
 
 // The watermark goes only with the sample (stories/E8-8, acceptance 4): is_sample is set only
-// when the sample is seeded (src/db/seed/sample-seed.ts, through createSample), any other
+// when the sample is seeded (src/db/seed/sample-seed.ts, through createSampleProject), any other
 // create or any update that carries it is refused, so the only way to lose it is to delete the
 // sample and the only way to get one is the seed.
 export class SampleFlagError extends Error {
@@ -32,13 +33,11 @@ export class SampleFlagError extends Error {
 
 export const projects = {
   ...base,
-  // Only the seed makes a sample (createSample); any other create is refused the flag.
+  // Only the seed makes a sample (createSampleProject); any other create is refused the flag.
   create: async (workspaceId: WorkspaceId, values: Parameters<typeof base.create>[1]): Promise<Project> => {
     if ((values as { isSample?: boolean }).isSample) throw new SampleFlagError();
     return base.create(workspaceId, values);
   },
-  createSample: async (workspaceId: WorkspaceId, values: Parameters<typeof base.create>[1]): Promise<Project> =>
-    base.create(workspaceId, { ...values, isSample: true }),
   update: async (workspaceId: WorkspaceId, id: string, patch: Parameters<typeof base.update>[2]): Promise<Project | null> => {
     if (Object.hasOwn(patch, "isSample")) throw new SampleFlagError();
     return base.update(workspaceId, id, patch);
@@ -100,3 +99,8 @@ export const projects = {
     }
   },
 };
+
+// The seed's way to make the sample (src/db/seed/sample-seed.ts), imported from this file only;
+// it is not on the projects object and not in the @/db/queries barrel, so no action reaches it.
+export const createSampleProject = async (workspaceId: WorkspaceId, values: Parameters<typeof base.create>[1]): Promise<Project> =>
+  base.create(workspaceId, { ...values, isSample: true });

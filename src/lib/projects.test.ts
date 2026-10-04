@@ -7,6 +7,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { instruments, invites, itemSets, items, projects, responses, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
+import * as barrel from "@/db/queries";
 import { SampleFlagError } from "@/db/queries/projects";
 import { prepareTestDatabase } from "@/db/test-db";
 import { auth } from "@/lib/auth";
@@ -117,7 +118,10 @@ describe("archive and the sample", () => {
     // Archiving, the other helper that writes the row, cannot reach the sample (E3-1).
     await expect(setArchived(ws, sample.id, true)).rejects.toMatchObject({ status: 403 });
     // Only the seed makes a sample: create refuses the flag.
-    await expect(projects.create(ws, { name: "Not a sample", isSample: true } as Parameters<typeof projects.create>[1])).rejects.toBeInstanceOf(SampleFlagError);
+    await expect(projects.create(ws, { name: "Not a sample", isSample: true })).rejects.toBeInstanceOf(SampleFlagError);
+    // The seed's helper is not reachable from the barrel the actions use.
+    expect(Object.keys(barrel)).not.toContain("createSampleProject");
+    expect(Object.keys(projects)).not.toContain("createSample");
     expect((await projects.summaries(ws)).filter((r) => r.isSample)).toHaveLength(1);
     // The query helper behind archiving writes archived_at only.
     await projects.setArchived(ws, sample.id, false);

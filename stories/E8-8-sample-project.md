@@ -57,7 +57,8 @@ Built 2026-10-04 (decision 0044; docs/review-list.md):
   Archive's place, with the same confirm line and the same action.
 - Acceptance 4: projects.update refuses a patch that carries isSample (SampleFlagError),
   whatever its value, and projects.create refuses isSample true; only the seed makes a sample
-  (projects.createSample). src/lib/projects.test.ts checks both.
+  (createSampleProject in src/db/queries/projects.ts, not in the @/db/queries barrel).
+  src/lib/projects.test.ts checks both, and that the barrel does not carry it.
 - Acceptance 5: e2e/sample.spec.ts opens the sample on Results, sees the band there, on
   Shape (with its line), Build, Share and Import, deletes it from its header and sees it
   gone from the list; e2e/respondent-start.spec.ts sees the band on the sample's link page.

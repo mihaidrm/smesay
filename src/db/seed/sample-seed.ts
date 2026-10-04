@@ -6,8 +6,9 @@
 // src/db/queries/onboarding.ts). A failure half way removes the fixture workspace again (the
 // cascades take the rest), so the next run starts clean.
 import { randomBytes } from "node:crypto";
-import { aiRuns, answers, insights, instruments, invites, itemSets, items, missingItems, projects, responses } from "@/db/queries";
+import { aiRuns, answers, insights, instruments, invites, itemSets, items, missingItems, responses } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
+import { createSampleProject } from "@/db/queries/projects";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import type { WorkspaceId } from "@/db/types";
 import * as sample from "./sample";
@@ -43,7 +44,7 @@ export async function seedSample(): Promise<SeedResult> {
 // One copy of the sample under the given workspace. Throws half way on a failure; the caller
 // decides what to remove.
 export async function seedSampleInto(ws: WorkspaceId, projectName: string): Promise<void> {
-  const project = await projects.createSample(ws, { ...sample.project, name: projectName });
+  const project = await createSampleProject(ws, { ...sample.project, name: projectName });
   const set = await itemSets.create(ws, { projectId: project.id, version: 1, source: "xlsx", sourceFilename: sample.sourceFilename, importReport: sample.importReport });
   const itemIds = new Map<number, string>();
   for (const it of sample.items) {

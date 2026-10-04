@@ -21,7 +21,8 @@ const BUILT: StepKey[] = ["import", "shape", "build", "share", "results"];
 
 export default async function ProjectLayout({ children, params }: { children: React.ReactNode; params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  // After sign-in, the project's address opens its current step (the sample on Results).
+  // After sign-in, the project's address: Results for the sample, Import otherwise
+  // ([projectId]/page.tsx).
   const { current } = await requireCurrentWorkspace(`/app/projects/${projectId}`);
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();

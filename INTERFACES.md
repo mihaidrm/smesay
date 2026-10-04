@@ -179,7 +179,8 @@ resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) r
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Projects (E8-8): projects.update refuses a patch that carries isSample and projects.create
 refuses isSample true (SampleFlagError); the flag is set only when the sample is seeded
-(projects.createSample from src/db/seed/sample-seed.ts).
+(createSampleProject, imported from src/db/queries/projects.ts by src/db/seed/sample-seed.ts
+only; not in the @/db/queries barrel).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
