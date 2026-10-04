@@ -110,6 +110,8 @@ test("write actions from the answers, each citing the answers behind it", async 
   await expect(page.getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
 
   // E9-3, acceptance 4: Settings' usage line counts the same month as the tab's line.
+  // Read after a fresh load, so the line counts every run above.
+  await page.goto(`${projectUrl}/results?tab=actions`);
   const month = (await page.getByTestId("actions-cost").textContent())!.match(/This workspace this month: (EUR \d+\.\d{2})\./)![1];
   await page.goto("/app/settings");
   await expect(page.getByTestId("usage-line")).toContainText(`${month} on AI this month.`);
