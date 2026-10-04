@@ -37,7 +37,7 @@ src/lib/ratelimit.ts so it is testable without HTTP.
 
 Built 2026-10-04 (design note 72, decision 0044):
 - Acceptance 1 and 6 (the logo): src/proxy.ts runs on /r and /brand and counts requests per
-  address (the first X-Forwarded-For entry) in a 60 second window, 100 at most
+  address (the last X-Forwarded-For entry, the one the host's proxy appends) in a 60 second window, 100 at most
   (src/lib/ratelimit.ts respondentLimit). Over it: 429 with Retry-After, the plain page "Too
   many requests" for a page request, JSON { error: [the sentence], code: "rateLimited",
   waitMinutes } for the respondent app's calls: the answer and Wrap up queues read 429 as

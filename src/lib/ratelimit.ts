@@ -21,8 +21,8 @@ export type Verdict = { allowed: true } | { allowed: false; retryAfterMs: number
 
 type Slot = { count: number; until: number };
 
-// Map keeps insertion order, and an entry is set again when its window starts, so the oldest
-// entries expire first: the trim walks from the front and stops at the first live entry, then
+// The window's store: Map keeps insertion order, and an entry is set again when its window
+// starts, so the oldest entries expire first: the trim walks from the front and stops at the first live entry, then
 // drops the oldest while the store is still full. Cost per call: the entries it removes.
 function trim<T>(map: Map<string, T>, expired: (v: T) => boolean): void {
   if (map.size < CAP) return;
@@ -58,6 +58,19 @@ export function windowLimiter({ max, windowMs }: { max: number; windowMs: number
 
 type Track = { count: number; windowUntil: number; blockedUntil: number; strikes: number; lastAt: number };
 
+// The backoff's store changes entries in place, so its order is not expiry order: when full, it
+// drops every quiet entry, then the oldest that is not blocked. A blocked key is never dropped,
+// so filling the store cannot lift a block (and a blocked address counts nothing new,
+// src/lib/auth.ts). If every entry is blocked the store grows past CAP, by blocked keys only.
+function trimTracks(map: Map<string, Track>, now: number, quietMs: number): void {
+  if (map.size < CAP) return;
+  for (const [k, v] of map) if (v.blockedUntil <= now && now - v.lastAt >= quietMs) map.delete(k);
+  for (const [k, v] of map) {
+    if (map.size < CAP) break;
+    if (v.blockedUntil <= now) map.delete(k);
+  }
+}
+
 export function backoffLimiter({ max, windowMs, baseMs, quietMs, capMs }: { max: number; windowMs: number; baseMs: number; quietMs: number; capMs: number }) {
   const tracks = new Map<string, Track>();
   const fresh = (now: number): Track => ({ count: 0, windowUntil: now + windowMs, blockedUntil: 0, strikes: 0, lastAt: now });
@@ -73,7 +86,7 @@ export function backoffLimiter({ max, windowMs, baseMs, quietMs, capMs }: { max:
       if (t && t.blockedUntil > now) return { allowed: false, retryAfterMs: t.blockedUntil - now };
       if (!t || now - t.lastAt >= quietMs) {
         tracks.delete(key);
-        trim(tracks, (x) => x.blockedUntil <= now && now - x.lastAt >= quietMs);
+        trimTracks(tracks, now, quietMs);
         t = fresh(now);
         tracks.set(key, t);
       }

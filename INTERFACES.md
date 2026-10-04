@@ -624,6 +624,6 @@ addressOf(headers) gives the last X-Forwarded-For entry or LOCAL ("local", never
 address). respondentLimit (100 a minute) and signInLimit (5 in 15 minutes, then 1, 2, 4
 minutes, capped at 60). A respondent route over its limit answers 429 with Retry-After: HTML for
 a page request, else { error: [sentence], code: "rateLimited", waitMinutes }; a server action
-(next-action header) is not counted there. The magic link endpoint over its
+(a POST with the next-action header to /r/[token] itself) is not counted there. The magic link endpoint over its
 limit answers 429 { code: "RATE_LIMITED", message, waitMinutes }.
 

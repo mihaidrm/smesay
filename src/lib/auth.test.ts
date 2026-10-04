@@ -4,17 +4,21 @@
 // for, and an off-site callback is refused. auth.handler(request): better-auth.com/docs/
 // installation (the framework-agnostic handler). Fake Date only, so the database driver keeps its
 // timers: vitest.dev/api/vi#vi-usefaketimers (toFake) and #vi-setsystemtime.
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { prepareTestDatabase } from "@/db/test-db";
 import { auth, createAuth, GOOGLE_ERROR_PATH, readAuthEnv, readGoogleEnv, SESSION_DAYS } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
+import { signInLimit } from "@/lib/ratelimit";
 
 type Auth = ReturnType<typeof createAuth>;
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const email = `signin-${Date.now()}@example.com`;
 
 beforeAll(async () => { await prepareTestDatabase(); }, 60_000);
+// These tests ask for many links for one address; the sign-in limit (E11-1, its own test in
+// auth-limit.test.ts) starts empty for each.
+beforeEach(() => signInLimit.clear());
 afterEach(() => { vi.useRealTimers(); });
 
 async function requestLink(instance: Auth = auth, base = BASE, body: Record<string, string> = {}): Promise<Response> {

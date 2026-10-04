@@ -30,7 +30,11 @@ export function proxy(request: NextRequest) {
     const address = addressOf(request.headers);
     // A server action (the passcode form, the only one on /r) has its own limit
     // (src/lib/link-access.ts), and a 429 here would reach Next's client as an unexpected reply.
-    if (address === LOCAL || request.headers.has("next-action")) return NextResponse.next();
+    // Next takes a server action only as a POST with the next-action header to a page
+    // (node_modules/next/dist/server/lib/server-action-request-meta.js); the link's page is
+    // /r/[token] and nothing under it, so only that shape is let through.
+    const serverAction = request.method === "POST" && request.headers.has("next-action") && /^\/r\/[^/]+\/?$/.test(path);
+    if (address === LOCAL || serverAction) return NextResponse.next();
     const verdict = respondentLimit.hit(address, Date.now());
     if (verdict.allowed) return NextResponse.next();
     const headers = { "retry-after": String(Math.ceil(verdict.retryAfterMs / 1000)), "cache-control": "no-store" };

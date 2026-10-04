@@ -102,9 +102,11 @@ const limitSignIn = createAuthMiddleware(async (ctx) => {
   const address = ip === LOCAL ? null : `address:${ip}`;
   if (ctx.path === "/sign-in/magic-link") {
     const email = typeof ctx.body?.email === "string" ? ctx.body.email.trim().toLowerCase().slice(0, 320) : "";
-    const verdicts = [...(address ? [signInLimit.attempt(address, now)] : []), ...(email ? [signInLimit.attempt(`email:${email}`, now)] : [])];
-    const refused = verdicts.find((v) => !v.allowed);
-    if (refused && !refused.allowed) throw tooMany(refused.retryAfterMs);
+    // The address first: a blocked address is refused before its email is counted.
+    const byAddress = address ? signInLimit.attempt(address, now) : null;
+    if (byAddress && !byAddress.allowed) throw tooMany(byAddress.retryAfterMs);
+    const byEmail = email ? signInLimit.attempt(`email:${email}`, now) : null;
+    if (byEmail && !byEmail.allowed) throw tooMany(byEmail.retryAfterMs);
   }
   if (address && ctx.path.startsWith("/callback/")) {
     const verdict = signInLimit.check(address, now);

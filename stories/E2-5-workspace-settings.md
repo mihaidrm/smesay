@@ -66,7 +66,7 @@ accent, the contrast line, the banner, the logo served by the route.
   nothing but the logo, and an hour of caching with a version in the URL keeps it fast. It is
   served under "default-src 'none'; sandbox" with nosniff, so a file runs and loads nothing
   when opened directly. The alternative, signed URLs from the store, would tie the respondent
-  page to the store's signing scheme. E11-1 adds the route to the rate-limited set.
+  page to the store's signing scheme. E11-1 put the route in the rate-limited set (src/proxy.ts).
 - Logo validation (src/lib/logo.ts, tested): the PNG signature; an SVG root element after an
   optional declaration, comments or doctype; an SVG with a script element in any namespace, an
   event handler attribute, a javascript: or data: reference, a foreignObject or an animation

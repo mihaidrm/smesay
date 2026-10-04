@@ -15,7 +15,7 @@ of the content; page means it replaces the screen.
 | Inline, email field | Email empty or not an address | Enter the email address you signed up with. |
 | Banner, sign-in page | Link sent | Check your email. The link works once and stops working in [N] minutes. |
 | Page | Link used twice or expired | This sign-in link has already been used or has expired. Ask for a new one. [Button: Send a new link] |
-| Inline, email field; the Google page (E11-1) | Five sign-in attempts per email or address in 15 minutes, then a wait of one minute that doubles each time | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. (1 minute) |
+| Inline, email field; the Google page (E11-1) | Five sign-in attempts per email or address in 15 minutes, then a wait of one minute that doubles each time, up to an hour | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. (1 minute) |
 | Inline, email field | The server refused the request for another reason | The link was not sent. Try again in a minute. |
 | Inline, workspace name field | Name empty or over 80 characters | Enter a name for your workspace, up to 80 characters. |
 | Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |

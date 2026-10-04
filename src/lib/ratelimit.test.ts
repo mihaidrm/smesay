@@ -49,6 +49,14 @@ describe("backoffLimiter", () => {
     }
     expect(last).toBe(60 * MIN);
   });
+  it("keeps a blocked key when the store is full", () => {
+    const l = backoffLimiter({ max: 1, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
+    l.attempt("address:blocked", 0);
+    expect(l.attempt("address:blocked", 0).allowed).toBe(false);
+    for (let i = 0; i < CAP + 5; i++) l.attempt(`email:${i}@x`, 1);
+    expect(l.check("address:blocked", 2).allowed).toBe(false);
+    expect(l.size()).toBeLessThanOrEqual(CAP);
+  });
   it("starts a new window of 5 when the old one ends without a block", () => {
     const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
     for (let i = 0; i < 5; i++) l.attempt("k", i * MIN);
@@ -57,7 +65,7 @@ describe("backoffLimiter", () => {
 });
 
 describe("helpers", () => {
-  it("reads the first forwarded address and rounds a wait up to whole minutes", () => {
+  it("reads the last forwarded address and rounds a wait up to whole minutes", () => {
     // The rightmost entry is the one the host's proxy added; the client chose the ones before.
     expect(addressOf(new Headers({ "x-forwarded-for": " 6.6.6.6 , 10.0.0.2" }))).toBe("10.0.0.2");
     expect(addressOf(new Headers({ "x-forwarded-for": "10.0.0.1" }))).toBe("10.0.0.1");
