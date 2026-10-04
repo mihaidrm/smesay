@@ -37,7 +37,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
   if (file === "project") {
     const body = await exportProject({ ws: current.ws, userId: session.user.id }, project.id);
     await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: "project", filter: null, rows: body.responses.length });
-    return new Response(JSON.stringify(body, null, 2), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "project", date)), "cache-control": "no-store" } });
+    return new Response(JSON.stringify(body), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "project", date)), "cache-control": "no-store" } });
   }
   if (!instrument) return new Response(null, { status: 404 });
   const query: SearchParams = {};

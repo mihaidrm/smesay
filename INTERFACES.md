@@ -595,5 +595,11 @@ responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind,
 citedAnswerIds, citedMissingItemIds, state, closedAt, closedBy (an email), model, tokensIn,
 tokensOut, costEurCents, createdAt }] }. Dates are ISO 8601 with an offset. Ids are keys inside
 the file; the import makes new ones. No token, passcode hash or device token is in the file.
+The JSON columns (importReport, areas, contextUsed, custom, flags, respondentFields,
+scaleLabels, closing) have the shapes listed at the top of this file. The file is one line of
+JSON, at most 5 MB on import (PROJECT_FILE_MAX). importProject returns { projectId } or
+{ error } (the sentences of docs/copy/errors.md, Import a project), never throws on a file.
+roomInPlan(ws, kind, now) in src/lib/plans.ts gives how many more of a kind the plan takes
+this month, or null.
 EXPORT_FILES gains "project" (migration 0024); CSV_FILES are the four CSV files.
 

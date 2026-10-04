@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; align-items: flex-end; justify-content: space-between">
 <div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Projects</h2><div style="color: #5B6069">One project per validation. Free plan while we build it: no limit on projects or responses.</div></div>
-<button type="button" onClick="{{goProject}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">New project</button>
+<div style="display: flex; gap: 8px"><button type="button" style="min-height: 40px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Import a project</button><button type="button" onClick="{{goProject}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">New project</button></div>
 </div>
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="flex-grow: 1">Project</div><div style="width: 90px">Items</div><div style="width: 120px">Responses</div><div style="width: 120px">Status</div><div style="width: 140px">Updated</div><div style="width: 90px"></div></div>
@@ -1005,7 +1005,7 @@ const exportDefs = [
 { id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The Agreement tab\'s counts are these rows.', size: '2 KB' },
 { id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
 { id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
-{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
+{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'One JSON file with every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
 { id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
 ];
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));

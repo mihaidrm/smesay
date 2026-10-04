@@ -25,7 +25,7 @@ export const EXPORT_COPY = {
       missing: { title: "Missing items", line: "One row per missing item suggested, with who suggested it." },
     } satisfies Record<CsvFile, { title: string; line: string }>,
     // E10-2: the whole project as one JSON file.
-    project: { title: "Whole project", line: "One JSON file with every version of the list, the instrument, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, export the answers as CSV, which always works." },
+    project: { title: "Whole project", line: "One JSON file with every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, reload the page and export again." },
     download: "Download CSV",
     downloading: "Preparing the file",
     // docs/copy/errors.md, Dashboard and exports: Export failed.
@@ -35,7 +35,7 @@ export const EXPORT_COPY = {
   // E10-2: the import page.
   importPage: {
     title: "Import a project",
-    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instrument, responses and actions. Its public link comes in withdrawn: publish it again when you are ready, then send each personal invite a new link.",
+    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instruments, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a link to the people who have not started; for anyone else, revoke their invite and press New link.",
     field: "Project file (.json)",
     submit: "Import project",
     link: "Import a project",
@@ -43,12 +43,13 @@ export const EXPORT_COPY = {
   // E10-2: the import's refusals (docs/copy/errors.md, Projects).
   importErrors: {
     noFile: "Choose the .json file made with Whole project on a project's Export tab.",
-    tooLarge: "This file is over 6 MB. A project export is smaller; check that it is the file SMEsay made.",
+    tooLarge: "This file is over 5 MB, the most an import reads, so this project cannot move by file. Its answers export as CSV on the project's Export tab.",
     notJson: "This file is not a project export: it is not JSON. Choose the .json file SMEsay made with Whole project.",
     notProject: "This file is not a project export from SMEsay. Choose the .json file made with Whole project on a project's Export tab.",
-    newer: (version: number, ours: number) => `This file was made by a newer SMEsay (format version ${version}; this one reads up to ${ours}). Export it again from the same SMEsay, or ask us.`,
+    newer: (version: number, ours: number) => `This file was made by a newer SMEsay (format version ${version}; this one reads up to ${ours}). Export it again from the same SMEsay.`,
     damaged: (where: string) => `This file is damaged or was edited: ${where} does not read as SMEsay wrote it. Export the project again and import the new file.`,
     sample: "This file is the sample project's. Every workspace has the sample already, so it is not imported.",
+    responsesFull: (n: number, room: number) => `This file has ${n} responses submitted this month, and the workspace's plan takes ${room} more this month. Import it once the month turns.`,
   },
   fileName: (project: string, file: ExportFile, date: string) => `${project.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60) || "project"}-${file}-${date}.${file === "project" ? "json" : "csv"}`,
 };

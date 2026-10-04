@@ -12,8 +12,9 @@ confirm, each showing its version and date, and every instrument links to the pr
    placeholder, the hosting region, retention (24 hour deletion, E11-2), the respondent data
    stored (only the fields the PM configured, CLAUDE.md), the AI processing (Anthropic as a
    subprocessor, what is sent), exports ("exports you make": the CSV files of E10-1 and the
-   whole-project JSON of E10-2 hold respondents' names, emails and free text; E10-2,
-   acceptance 4), contact, and the landing page's questions (E12-5,
+   whole-project JSON of E10-2 hold respondents' names, emails and free text, the values of
+   every respondent field the PM configured, invite role hints, and the email of the workspace
+   member who closed an action; E10-2, acceptance 4), contact, and the landing page's questions (E12-5,
    decision 0046: emailed to SMEsay with the visitor's address, nothing kept in the app).
 2. Each page shows "Version [N], [DATE]" at the top; versions are files in docs/legal/ and
    the pages render them, so a change is a commit.

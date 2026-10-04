@@ -14,15 +14,20 @@ import { projectTransfer } from "@/db/queries";
 import type { TransferInput, TransferRows } from "@/db/queries/projectTransfer";
 import { NotFoundError } from "@/lib/errors";
 import { requireRole, type Actor } from "@/lib/members";
-import { withinPlan } from "@/lib/plans";
+import { monthStart } from "@/db/queries/usage";
+import { roomInPlan, withinPlan } from "@/lib/plans";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
+import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
+import { FIELDS_MAX } from "@/lib/respondent-fields";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
 
 export const PROJECT_FORMAT = "smesay.project";
 export const PROJECT_VERSION = 1;
-// The largest file the import reads: the server action's body limit (next.config.ts, 6 MB).
-export const PROJECT_FILE_MAX = 6 * 1024 * 1024;
+// The largest file the import reads: 5 MB, as an upload (SECURITY.md, Data), inside the server
+// action's 6 MB body limit, which leaves room for the multipart framing (next.config.ts), so
+// the app's own sentence answers a file over it, not Next's 413.
+export const PROJECT_FILE_MAX = 5 * 1024 * 1024;
 
 // The enums as the schema has them (src/db/schema.ts); projectTransfer.test.ts checks they agree.
 export const FILE_ENUMS = {
@@ -39,7 +44,25 @@ export const FILE_ENUMS = {
 const date = z.iso.datetime({ offset: true });
 const text = (max: number) => z.string().max(max);
 const id = z.string().min(1).max(64);
-const json = z.unknown();
+// Postgres integer (postgresql.org/docs/current/datatype-numeric.html: -2147483648 to
+// +2147483647); a count in the file is never negative.
+const count = z.number().int().min(0).max(2147483647);
+
+// The JSON columns, each as src/db/types.ts declares it, so a file cannot write a shape the
+// app cannot read (RespondentFieldSpec, ClosingSpec, ScaleLabels, ShapeArea, ImportReport,
+// ProjectContext, ItemFlags; custom holds the extra columns of an import, text by name).
+const importReport = z.strictObject({
+  emptyRows: count, exactDuplicates: count, overLimit: count, rowsRead: count, headerRow: count, unrecognisedValues: count,
+  duplicateRefs: z.array(z.strictObject({ kept: text(200), folded: z.array(text(200)).max(2000) })).max(2000),
+}).nullable();
+const areas = z.array(z.strictObject({ name: text(200), rationale: text(1000) })).max(50).nullable();
+const contextUsed = z.strictObject({ goal: text(2000).nullable(), terms: text(2000).nullable() }).nullable();
+const flags = z.strictObject({ duplicateOf: text(200).optional(), ambiguity: text(1000).optional(), dismissed: z.boolean().optional(), foldedRefs: z.array(text(200)).max(2000).optional(), areaBy: z.enum(["ai", "pm"]).optional(), importedArea: text(200).optional() }).nullable();
+const custom = z.record(text(200), text(5000)).nullable();
+const respondentFields = z.array(z.strictObject({ key: z.string().min(1).max(60), label: z.string().min(1).max(200), type: z.enum(["text", "dropdown", "email"]), mandatory: z.boolean(), options: z.array(z.string().min(1).max(200)).max(50).optional() }))
+  .max(FIELDS_MAX).refine((list) => new Set(list.map((f) => f.key)).size === list.length);
+const scaleLabels = z.record(text(50), text(200)).nullable();
+const closing = z.strictObject({ confidence: z.literal(true), missingForm: z.boolean(), signOffText: text(SIGN_OFF_MAX), closingQuestion: text(CLOSING_QUESTION_MAX).optional() });
 
 const ProjectFile = z.strictObject({
   format: z.literal(PROJECT_FORMAT),
@@ -49,20 +72,20 @@ const ProjectFile = z.strictObject({
   note: text(200).nullable(),
   project: z.strictObject({ name: text(80), contextGoal: text(2000).nullable(), contextTerms: text(2000).nullable(), createdAt: date }),
   itemSets: z.array(z.strictObject({
-    id, version: z.number().int().min(1), source: z.enum(FILE_ENUMS.source), sourceFilename: text(300).nullable(), importReport: json, importedAt: date,
-    areas: json, shapeRuns: z.number().int().min(0), shapedAt: date.nullable(), contextUsed: json,
+    id, version: count.min(1), source: z.enum(FILE_ENUMS.source), sourceFilename: text(300).nullable(), importReport, importedAt: date,
+    areas, shapeRuns: count, shapedAt: date.nullable(), contextUsed,
     items: z.array(z.strictObject({
-      id, position: z.number().int().min(1), sourceRef: text(200).nullable(), originalText: text(5000), readerText: text(5000).nullable(), readerStatus: z.enum(FILE_ENUMS.readerStatus).nullable(),
-      area: text(200).nullable(), areaRationale: text(1000).nullable(), proposedValue: text(200).nullable(), custom: json, flags: json, perspectives: z.array(text(100)),
+      id, position: count.min(1), sourceRef: text(200).nullable(), originalText: text(5000), readerText: text(5000).nullable(), readerStatus: z.enum(FILE_ENUMS.readerStatus).nullable(),
+      area: text(200).nullable(), areaRationale: text(1000).nullable(), proposedValue: text(200).nullable(), custom, flags, perspectives: z.array(text(100)),
     })).max(2000),
   })).max(100),
   instruments: z.array(z.strictObject({
     id, itemSetId: id, title: text(200), intro: text(5000).nullable(), method: z.enum(FILE_ENUMS.method), showProposed: z.boolean(), layout: z.enum(FILE_ENUMS.layout),
-    respondentFields: json, scaleLabels: json, perspectives: z.array(text(100)), closing: json, publishedAt: date.nullable(), createdAt: date,
+    respondentFields, scaleLabels, perspectives: z.array(text(100)), closing, publishedAt: date.nullable(), createdAt: date,
   })).max(100),
   invites: z.array(z.strictObject({
     id, instrumentId: id, kind: z.enum(FILE_ENUMS.inviteKind), email: text(320).nullable(), name: text(200).nullable(), roleHint: text(200).nullable(),
-    opensAt: date.nullable(), closesAt: date.nullable(), hadPasscode: z.boolean(), revokedAt: date.nullable(), remindersSent: z.number().int().min(0), lastReminderAt: date.nullable(), sentAt: date.nullable(), createdAt: date,
+    opensAt: date.nullable(), closesAt: date.nullable(), hadPasscode: z.boolean(), revokedAt: date.nullable(), remindersSent: count, lastReminderAt: date.nullable(), sentAt: date.nullable(), createdAt: date,
   })),
   responses: z.array(z.strictObject({
     id, instrumentId: id, itemSetId: id, inviteId: id, fields: z.record(z.string(), text(500)), perspectives: z.array(text(100)), confidence: z.number().int().min(1).max(5).nullable(),
@@ -72,7 +95,7 @@ const ProjectFile = z.strictObject({
   missingItems: z.array(z.strictObject({ id, responseId: id, text: text(5000), suggestedArea: text(200).nullable(), suggestedValue: text(50).nullable(), createdAt: date })),
   insights: z.array(z.strictObject({
     kind: z.enum(FILE_ENUMS.insightKind).nullable(), title: text(500), why: text(2000).nullable(), citedAnswerIds: z.array(id), citedMissingItemIds: z.array(id),
-    state: z.enum(FILE_ENUMS.insightState), closedAt: date.nullable(), closedBy: text(320).nullable(), model: text(100).nullable(), tokensIn: z.number().int().nullable(), tokensOut: z.number().int().nullable(), costEurCents: z.number().int().nullable(), createdAt: date,
+    state: z.enum(FILE_ENUMS.insightState), closedAt: date.nullable(), closedBy: text(320).nullable(), model: text(100).nullable(), tokensIn: count.nullable(), tokensOut: count.nullable(), costEurCents: count.nullable(), createdAt: date,
   })),
 });
 export type ProjectExport = z.infer<typeof ProjectFile>;
@@ -89,7 +112,7 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
     itemSets: rows.itemSets.map((s) => ({
       id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport, importedAt: s.importedAt.toISOString(),
       areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: iso(s.shapedAt), contextUsed: s.contextUsed,
-      items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom, flags: it.flags, perspectives: it.perspectives })),
+      items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, flags: it.flags, perspectives: it.perspectives })),
     })),
     instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
     invites: rows.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),
@@ -112,7 +135,9 @@ export async function exportProject(actor: Actor, projectId: string, now = new D
 
 const D = (s: string | null) => (s === null ? null : new Date(s));
 
-// Every id a row refers to is a row of the file (the database would refuse it half way otherwise).
+// Every id a row refers to is a row of the file, and every rule the database holds the rows to
+// (src/db/schema.ts: unique indexes, checks, composite keys) holds, so a file the checks pass
+// is written whole; otherwise the database would refuse it half way, with its own error.
 function missingReference(f: ProjectExport): string | null {
   const sets = new Set(f.itemSets.map((s) => s.id));
   const items = new Set(f.itemSets.flatMap((s) => s.items.map((it) => it.id)));
@@ -129,6 +154,24 @@ function missingReference(f: ProjectExport): string | null {
   if (f.responses.some((r) => r.answers.some((a) => !items.has(a.itemId)))) return "an answer's item";
   if (f.missingItems.some((m) => !responses.has(m.responseId))) return "a missing item's response";
   if (f.insights.some((s) => s.citedAnswerIds.some((x) => !answers.has(x)) || s.citedMissingItemIds.some((x) => !missing.has(x)))) return "an action's citation";
+  // item_set_project_version_idx: one list per version.
+  if (new Set(f.itemSets.map((s) => s.version)).size !== f.itemSets.length) return "a list's version";
+  // item_original_text_check and missing_item_text_check: text that is not only spaces.
+  if (f.itemSets.some((s) => s.items.some((it) => it.originalText.trim() === ""))) return "an item's text";
+  if (f.missingItems.some((m) => m.text.trim() === "")) return "a missing item's text";
+  // response_instrument_set_fk and answer_response_set_fk: a response answers its instrument's
+  // list, and every answer is on an item of that list, once (answer_response_item_idx).
+  const setOfInstrument = new Map(f.instruments.map((i) => [i.id, i.itemSetId]));
+  const setOfItem = new Map(f.itemSets.flatMap((s) => s.items.map((it) => [it.id, s.id] as const)));
+  if (f.responses.some((r) => setOfInstrument.get(r.instrumentId) !== r.itemSetId)) return "a response's list";
+  if (f.responses.some((r) => r.answers.some((a) => setOfItem.get(a.itemId) !== r.itemSetId) || new Set(r.answers.map((a) => a.itemId)).size !== r.answers.length)) return "an answer's item";
+  // invite_personal_email_check and invite_personal_email_idx: a personal invite has an email,
+  // one per instrument.
+  const personal = f.invites.filter((v) => v.kind === "personal");
+  if (personal.some((v) => !v.email)) return "a personal invite's email";
+  if (new Set(personal.map((v) => `${v.instrumentId} ${v.email}`)).size !== personal.length) return "a personal invite's email";
+  // insight_closed_check: an open action has no closing date, a closed one has one.
+  if (f.insights.some((s) => (s.state === "open") !== (s.closedAt === null))) return "an action's state";
   return null;
 }
 
@@ -152,17 +195,29 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
   const broken = missingReference(f);
   if (broken) return { error: E.damaged(broken) };
   if (!(await withinPlan(actor.ws, "projects"))) return { error: PROJECTS_COPY.planFull };
+  const thisMonth = f.responses.filter((r) => r.firstSubmittedAt !== null && new Date(r.firstSubmittedAt) >= monthStart(now)).length;
+  const room = thisMonth > 0 ? await roomInPlan(actor.ws, "responses", now) : null;
+  if (room !== null && thisMonth > room) return { error: E.responsesFull(thisMonth, room) };
+  // A response keeps only the fields its instrument asks for (CLAUDE.md, respondent side).
+  const keysOf = new Map(f.instruments.map((i) => [i.id, new Set(i.respondentFields.map((s) => s.key))]));
+  const fieldsOf = (r: ProjectExport["responses"][number]) => Object.fromEntries(Object.entries(r.fields).filter(([k]) => keysOf.get(r.instrumentId)?.has(k)));
   const input: TransferInput = {
     project: { name: name.data, contextGoal: f.project.contextGoal, contextTerms: f.project.contextTerms },
     itemSets: f.itemSets.map((s) => ({ id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport as TransferInput["itemSets"][number]["importReport"], importedAt: new Date(s.importedAt), areas: s.areas as TransferInput["itemSets"][number]["areas"], shapeRuns: s.shapeRuns, shapedAt: D(s.shapedAt), contextUsed: s.contextUsed as TransferInput["itemSets"][number]["contextUsed"] })),
     items: f.itemSets.flatMap((s) => s.items.map((it) => ({ ...it, itemSetId: s.id, flags: it.flags as TransferInput["items"][number]["flags"] }))),
     instruments: f.instruments.map((i) => ({ ...i, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),
     invites: f.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: D(v.opensAt), closesAt: D(v.closesAt), revokedAt: D(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: D(v.lastReminderAt), sentAt: D(v.sentAt), createdAt: new Date(v.createdAt) })),
-    responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
+    responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: fieldsOf(r), perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
     answers: f.responses.flatMap((r) => r.answers.map((a) => ({ id: a.id, responseId: r.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: new Date(a.updatedAt) }))),
     missingItems: f.missingItems.map((m) => ({ ...m, createdAt: new Date(m.createdAt) })),
     insights: f.insights.map((s) => ({ kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds, citedMissingItemIds: s.citedMissingItemIds, state: s.state, closedAt: D(s.closedAt), model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: new Date(s.createdAt) })),
   };
-  const projectId = await projectTransfer.writeProject(actor.ws, input, actor.userId, now);
-  return { projectId };
+  // A database refusal the checks above did not foresee: the transaction rolls back, and the
+  // error, which carries the rows' values (drizzle-orm's DrizzleQueryError puts the query's
+  // params in its message), is not rethrown, so no respondent's data reaches the server log.
+  try {
+    return { projectId: await projectTransfer.writeProject(actor.ws, input, actor.userId, now) };
+  } catch {
+    return { error: E.damaged("the file") };
+  }
 }
