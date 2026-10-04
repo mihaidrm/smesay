@@ -136,8 +136,11 @@ count under the switch), minutesToSubmit } and results.missing(ws, instrumentId,
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
 E10-1's "People" and "Missing items" files; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
-fields, anon, status, changedSince, submittedAgain, answered, visible, submittedAt,
-reminders, withComment }, sorted by the filter's sort from the tab's list of columns (a field
+fields, who (the name shown: the name field, else a personal invite's name or email; null
+for a public-link response with no name), anon (its number among the instrument's
+public-link responses), status, changedSince, submittedAgain, answered (complete answers to
+the items seen), visible, submittedAt, reminders, withComment (answers that count under the
+switch) }, sorted by the filter's sort from the tab's list of columns (a field
 column only for a key in fieldKeys); resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).

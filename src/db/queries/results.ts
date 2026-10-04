@@ -61,18 +61,30 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter): SQL {
     its as (
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
     ),
+    -- E8-2: "Anonymous [N]" numbers the instrument's public-link responses by when they
+    -- started, before any filter and whatever the names, so a number never moves when a
+    -- filter changes or another respondent adds a name (a named response keeps its number
+    -- unseen). Kept out of people so the filters still reach the response scan.
+    anon_n as (
+      select r.id, row_number() over (order by r.created_at, r.id) as n
+        from response r join inst on r.instrument_id = inst.id
+          join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
+        where r.workspace_id = ${ws} and iv.kind = 'public'
+    ),
     people as (
       select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at,
           r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' then iv.reminders_sent end as reminders,
-          -- E8-2: "Anonymous [N]" for a response with no name, numbered over the instrument's
-          -- nameless responses by when they started, before any filter, so N never moves.
-          case when coalesce(r.fields ->> 'name', '') = '' then row_number() over (partition by coalesce(r.fields ->> 'name', '') = '' order by r.created_at, r.id) end as anon
+          -- The name shown: the name field, else a personal invite's name or email (the PM
+          -- typed them, E6-2); a public-link response with no name has its number instead.
+          coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) as who,
+          case when coalesce(r.fields ->> 'name', '') = '' then anon_n.n end as anon
         from response r join inst on r.instrument_id = inst.id
           join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
+          left join anon_n on anon_n.id = r.id
         where r.workspace_id = ${ws}
       union all
       select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
-          false, i.created_at, i.kind, i.reminders_sent, null::bigint
+          false, i.created_at, i.kind, i.reminders_sent, coalesce(nullif(i.name, ''), i.email), null::bigint
         from invite i join inst on i.instrument_id = inst.id
         where i.workspace_id = ${ws} and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
@@ -164,7 +176,9 @@ export type PersonRow = {
   id: string;
   source: "public" | "personal";
   fields: Record<string, string>;
-  // "Anonymous [N]" when the response has no name.
+  // The name shown: the name field, else a personal invite's name or email; null for a
+  // public-link response with no name, which reads "Anonymous [anon]".
+  who: string | null;
   anon: number | null;
   status: "invited" | "inProgress" | "submitted";
   // E7-6: submitted with changes not submitted again; or changed and submitted again.
@@ -182,7 +196,7 @@ export type PersonRow = {
 function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
   const dir = sort?.dir === "desc" ? sql`desc` : sql`asc`;
   const key = sort?.key ?? "name";
-  const name = sql`lower(nullif(p.fields ->> 'name', '')) ${dir} nulls last, p.anon ${dir} nulls last`;
+  const name = sql`lower(p.who) ${dir} nulls last, p.anon ${dir} nulls last`;
   const by: Record<string, SQL> = {
     name,
     status: sql`(case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) ${dir}`,
@@ -193,14 +207,14 @@ function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
     comments: sql`coalesce(given.with_comment, 0) ${dir}`,
   };
   const field = key.startsWith("field.") ? key.slice(6) : null;
-  const first = field !== null && fieldKeys.includes(field) ? sql`lower(p.fields ->> ${field}) ${dir} nulls last` : (by[key] ?? name);
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(p.fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(by, key) ? by[key] : name);
   return sql`${first}, ${name}, p.id`;
 }
 
 export const tracker = {
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<PersonRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; anon: string | number | null; src: string; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; who: string | null; anon: string | number | null; src: string; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
       -- One pass each over the items and the answers, grouped by person (a subquery per person
       -- was too slow at 500 people).
       shown as (
@@ -208,15 +222,20 @@ export const tracker = {
           from sel p left join its on cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives
           group by p.id
       ),
+      -- Progress counts the complete answers to the items the person sees, as the respondent's
+      -- own count does (src/lib/respondent-rules.ts isComplete: a reason where the kind needs
+      -- one); the answers with a reason or comment are those that count under the switch, so
+      -- the column adds up to the strip's tile.
       given as (
         select a.response_id,
-            count(*) filter (where cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives)::int as answered,
-            count(*) filter (where a.reason is not null or a.comment is not null)::int as with_comment
+            count(*) filter (where (cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives)
+              and (a.kind not in ('change', 'disagree', 'unclear') or a.reason ~ '\\S'))::int as answered,
+            count(*) filter (where (a.reason is not null or a.comment is not null) and (${f.includeUnsubmitted} or p.submitted_at is not null))::int as with_comment
           from answer a join sel p on p.id = a.response_id join its on its.id = a.item_id
           where a.workspace_id = ${ws}
           group by a.response_id
       )
-      select p.id, p.src, p.source, p.fields, p.anon, p.submitted_at, p.signed_off, p.reminders,
+      select p.id, p.src, p.source, p.fields, p.who, p.anon, p.submitted_at, p.signed_off, p.reminders,
           (p.first_submitted_at is not null and p.updated_at > p.first_submitted_at) as changed_after,
           shown.visible, coalesce(given.answered, 0) as answered, coalesce(given.with_comment, 0) as with_comment
         from sel p join shown on shown.id = p.id left join given on given.response_id = p.id
@@ -227,6 +246,7 @@ export const tracker = {
         id: r.id,
         source: r.source === "public" ? "public" : "personal",
         fields: r.fields ?? {},
+        who: r.who,
         anon: r.anon === null ? null : Number(r.anon),
         status: r.src === "i" ? "invited" : submitted ? "submitted" : "inProgress",
         changedSince: submitted && !r.signed_off,

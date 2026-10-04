@@ -1,11 +1,13 @@
 // The Responses tab (stories/E8-2; the PM app board, Responses): one row per person the page's
-// filter keeps, started or invited (src/db/queries/results.ts tracker.people): the name (or
-// "Anonymous [N]" for a public-link response with no name), every other respondent field, the
-// status with E7-6's "changes not submitted again" or "submitted again", the progress against
-// the items the person sees (E5-4), the submitted date, the source, the reminders sent and the
-// answers with a reason or comment. Every column header sorts, ascending then descending,
-// with the sort in the URL (aria-sort on the header: developer.mozilla.org/docs/Web/
-// Accessibility/ARIA/Reference/Attributes/aria-sort). Copy: docs/copy/app.md, Results.
+// filter keeps, started or invited (src/db/queries/results.ts tracker.people): the name (a
+// personal invite's name or email when the field is empty, "Anonymous [N]" for a public-link
+// response with no name), every other respondent field, the status with E7-6's "changes not
+// submitted again" or "submitted again", the progress against the items the person sees
+// (E5-4), the submitted date, the source, the reminders sent and the answers with a reason or
+// comment that count under the switch. Every column header sorts, ascending then descending,
+// with the sort in the URL (aria-sort on the sorted header only, "should only be added to a
+// single table or grid header at a time": developer.mozilla.org/docs/Web/Accessibility/ARIA/
+// Reference/Attributes/aria-sort). Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import type { WorkspaceId } from "@/db/types";
@@ -39,8 +41,8 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
             {columns.map((c) => {
               const on = sort.key === c.key;
               return (
-                <th key={c.key} scope="col" aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className="h-9 px-4 text-xs font-semibold whitespace-nowrap text-ink-muted">
-                  <Link href={href({ ...filter, sort: nextSort(filter.sort, c.key) })} scroll={false} className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid={`sort-${c.key}`}>
+                <th key={c.key} scope="col" aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : undefined} className="h-9 px-4 text-xs font-semibold whitespace-nowrap text-ink-muted">
+                  <Link href={href({ ...filter, sort: nextSort(sort, c.key) })} scroll={false} className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid={`sort-${c.key}`}>
                     {c.label}
                     <span aria-hidden="true" className="font-mono">{on ? (sort.dir === "asc" ? "↑" : "↓") : ""}</span>
                   </Link>
@@ -68,7 +70,7 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
   );
 }
 
-const nameOf = (p: PersonRow) => p.fields.name || (p.anon !== null ? RESPONSES_COPY.anonymous(p.anon) : RESPONSES_COPY.anonymous(0));
+const nameOf = (p: PersonRow) => p.who ?? RESPONSES_COPY.anonymous(p.anon ?? 0);
 
 function Status({ p }: { p: PersonRow }) {
   if (p.status === "invited") return <NeutralPill>{RESPONSES_COPY.invited}</NeutralPill>;

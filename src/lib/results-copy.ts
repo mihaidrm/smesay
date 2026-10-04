@@ -53,7 +53,7 @@ export const RESULTS_COPY = {
 
 // The Responses tab (stories/E8-2; docs/copy/app.md, Results).
 export const RESPONSES_COPY = {
-  caption: (n: number) => `${n} people`,
+  caption: (n: number) => (n === 1 ? "1 person" : `${n} people`),
   name: "Name",
   status: "Status",
   progress: "Progress",

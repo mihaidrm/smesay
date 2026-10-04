@@ -8,6 +8,10 @@ bar.
 Amended 2026-10-03 (design note 40): the filters moved to the page's filter bar (E8-1,
 acceptance 3), which this tab honours like every other.
 
+Amended 2026-10-04 (decision 0044, after the audit): acceptance 3 numbers by start (the
+response row is made at Start, before the first answer); acceptance 5 times the query, as
+the test does.
+
 ## Acceptance criteria
 1. Responses tab (PM app board): name, role (and every other respondent field as a column,
    up to the 8 of E5-1), status (Invited, In progress, Submitted, with "changed after
@@ -19,11 +23,11 @@ acceptance 3), which this tab honours like every other.
 2. The page's filter bar (E8-1) narrows the rows: a respondent is listed when at least one
    of their answers matches the answer-kind and comment filters, and when their fields match
    the field filters; the tracker adds no filter of its own.
-3. Public-link responses with no name field show "Anonymous [N]" in order of first answer.
+3. Public-link responses with no name field show "Anonymous [N]" in the order they started.
 4. In-progress rows show the count answered; their answers count in the numbers while the
    include-unsubmitted switch is on (E8-1, decision 0030).
-5. Sort by any column, ascending and descending, the sort in the URL; 500 rows render under
-   500 ms from the SQL query (measured in a test against generated rows, decision 0004 keeps
+5. Sort by any column, ascending and descending, the sort in the URL; the SQL query for 500
+   rows returns under 500 ms (measured in a test against generated rows, decision 0004 keeps
    it to one measurement).
 6. Playwright: filter the seeded project by role Sales in the filter bar, see three rows;
    sort by submitted date and see the order flip.
@@ -44,16 +48,21 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):
 - Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/responses-tab.tsx and
   tracker.people in src/db/queries/results.ts: name, every other respondent field, status
   (Invited, In progress, Submitted, with "Changes not submitted again" or "Submitted again"),
-  progress against the items the person sees, submitted date, source, reminders (None on the
-  public link), the answers with a reason or comment.
+  progress (the complete answers to the items the person sees, as the respondent's own count),
+  submitted date, source, reminders (None on the public link), the answers with a reason or
+  comment that count under the switch (the column adds up to the strip's tile). A personal
+  invite with an empty name field shows the invite's name, else its email.
 - Acceptance 2: the people are E8-1's selection (the same SQL head), so the tab and the strip
   always agree; the tab adds no filter of its own.
-- Acceptance 3: "Anonymous [N]" numbers the nameless responses by when they started (the
-  response row is made at Start, before the first answer), over the whole instrument before
-  any filter, so a number never moves.
+- Acceptance 3: "Anonymous [N]" numbers the instrument's public-link responses by when they
+  started, before any filter and whatever the names, so no filter and no name added later
+  moves a number (a named response holds its number unseen, so numbers can skip).
 - Acceptance 4: in-progress rows show their count; their answers count in the numbers while
-  the switch is on (E8-1); the rows are listed whatever the switch.
+  the switch is on (E8-1); the rows are listed whatever the switch. The In progress pill is
+  the row's "not submitted" mark of E8-1, acceptance 7.
+- Before the first answer Results shows E8-1's empty state, so the tab is not reached; the
+  Share page's invite list (E6-2, acceptance 4) shows who was invited and their status.
 - Acceptance 5: every column header sorts both ways (sort and dir in the URL, aria-sort on
-  the header), mapped to SQL from the tab's own list; src/db/queries/results.test.ts times
-  500 generated people from the query under 500 ms.
+  the sorted header only), mapped to SQL from the tab's own list; src/db/queries/results.test.ts
+  times the query for 500 generated people under 500 ms.
 - Acceptance 6: e2e/results-responses.spec.ts.
