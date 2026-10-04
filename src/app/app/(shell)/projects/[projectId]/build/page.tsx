@@ -18,6 +18,7 @@ import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
 import { areaNames, groupByArea } from "@/lib/shaping";
+import { RESPONDENT_COPY } from "@/lib/respondent-rules";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
 import { PreviewScreenProvider } from "./preview-screen";
@@ -62,11 +63,12 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
     return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent, perspectives: it.perspectives };
   };
   const tagged = rows.filter((it) => it.perspectives.length > 0).length;
-  // Every area in the list's order, then the items with no area under the Shape page's
-  // name for them (groupByArea; one unnamed chapter when the set has no areas), so the page
+  // Every area in the list's order, then the items with no area under the respondent's
+  // name for them, "Other items" (groupByArea, renamed as src/lib/respondent-rules.ts
+  // chaptersFor names them; one unnamed chapter when the set has no areas), so the page
   // layout's count matches what is drawn. Each chapter carries every row's tags and the
   // cards of its candidate rows, by position in the chapter.
-  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.name, rows: g.items })) : [{ name: null, rows }];
+  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.items.length > 0 && g.items.every((it) => !it.area) ? RESPONDENT_COPY.otherItems : g.name, rows: g.items })) : [{ name: null, rows }];
   const left = new Map<string, number>([["", PREVIEW_CARDS], ...instrument.perspectives.map((n): [string, number] => [n, PREVIEW_CARDS])]);
   const candidate = (it: (typeof rows)[number]) => {
     const classes = it.perspectives.length === 0 ? [""] : it.perspectives;

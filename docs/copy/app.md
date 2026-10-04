@@ -208,7 +208,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Labels (E5-2) | Labels, optional. Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters. (one field per value, named "Label for [VALUE]", the default as placeholder) |
 | Scoring card once published (E5-2) | Published instruments keep their method. Build a new instrument to change it. (the method, the switch and the labels disabled; the layout stays) |
 | Layout cards (E5-3; the board's three, chapters first and default) | Layout. How the list is split into screens. Chapters are the default; a published instrument can still change its layout. Chapters (One area per screen, compact cards); One item per screen (One card at a time, with the chapter row); Single long page (Every area in order, no chapter row) |
-| Items preview per layout (E5-3) | The chapter row: About you, every area (the first active), Wrap up, fading at the right edge when long. One item per screen: "Item 1 of [N] in [AREA]" (the instrument's title when the list has no areas) over one card; Single long page: "All [N] on one page", every area with its heading (items without an area under "Not shaped yet", as on Shape), no chapter row; Chapters: the chapter row and the first area's cards. Under an area with fewer cards drawn than it holds: "The first [N] of [M] items. The rest follow in the same way." |
+| Items preview per layout (E5-3) | The chapter row: About you, every area (the first active), Wrap up, fading at the right edge when long. One item per screen: "Item 1 of [N] in [AREA]" (the instrument's title when the list has no areas) over one card; Single long page: "All [N] on one page", every area with its heading (items without an area under "Other items", as on the live link), no chapter row; Chapters: the chapter row and the first area's cards. Under an area with fewer cards drawn than it holds: "The first [N] of [M] items. The rest follow in the same way." |
 | Scoring card on the sample | Method: [METHOD]: [LABELS], Unclear; Show the proposed value to respondents: On / Off; The sample project cannot be edited. |
 | Perspectives card (E5-4) | Perspectives. Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone. Field: Perspectives, one per line. Under it: "[N] of [M] items carry a perspective. Tag items on Shape. Go to Shape" or "No perspectives yet. Every item goes to everyone." |
 | Perspectives card once published (E5-4) | Published instruments keep their perspectives and tags. Build a new instrument to change them. (the field disabled, no Save, no link to Shape) |
@@ -272,16 +272,18 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Preview strip (E5-6, acceptance 4) | Preview: nothing you enter here is saved |
-| Header | [WORKSPACE INITIALS] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
+| Header | [WORKSPACE LOGO at 24 px, or the INITIALS when there is none] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
 | Personal link (E6-2), above the fields | Answering as [NAME], [ROLE]. The person who invited you filled this in. Tell them if it is wrong. (the fields the invite carries are not asked) |
 | Title and intro | [INSTRUMENT TITLE], [INTRO] |
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |
 | Dropdown first option | Choose one |
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
-| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas) |
+| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
+| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] |
+| Chapter name for items with no area (E7-1; the Build preview uses it too) | Other items |
 | Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
-| Items screen when the picks leave nothing to rate (E5-4; in the preview now, the real screen in E7-4) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. |
+| Items screen when the picks leave nothing to rate (E5-4 in the preview; E7-1 on the live link) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. [Button: About you] |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
 ## Wrap up (the respondent instrument, E5-5 preview and E7-5)

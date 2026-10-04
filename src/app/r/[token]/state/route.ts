@@ -6,19 +6,9 @@
 // autosave route uses the same check before a write. Not cached. Route handlers:
 // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md.
 import { linkStatus, PASSCODE_COOKIE } from "@/lib/link-access";
+import { cookieValue } from "@/lib/request-cookies";
 
 export const dynamic = "force-dynamic";
-
-// The passcode cookie from the request's Cookie header (the route gets a plain Request,
-// so no request-scope helper is needed and the handler runs in a unit test too).
-function cookieValue(request: Request, name: string): string | undefined {
-  const header = request.headers.get("cookie") ?? "";
-  for (const part of header.split(";")) {
-    const [key, ...rest] = part.trim().split("=");
-    if (key === name) { try { return decodeURIComponent(rest.join("=")); } catch { return undefined; } }
-  }
-  return undefined;
-}
 
 export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

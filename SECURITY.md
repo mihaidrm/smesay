@@ -17,6 +17,14 @@ Multi-tenancy
 
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
+- A public link's response is found by a device token (128 bits from crypto.randomBytes) in
+  an httpOnly, SameSite Lax cookie on the link's path, set on Start (E7-1); a personal
+  link's by its invite. Every respondent write checks the link is open for the device first
+  (the passcode proof included), and a write that creates a response re-reads the link
+  under the invite row's lock, so a revoke committed in between wins. The respondent routes
+  take JSON only (the media type exactly application/json) up to 16 KB, so a plain
+  cross-site form or a no-preflight request cannot post to them. The sample project's links
+  collect nothing. In a rate-blind instrument the proposed value never reaches the page.
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
   status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
   Passcode attempts rate-limited.
