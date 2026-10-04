@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 export const DOC = 'docs/schema.md';
 
-const ORDER = ['workspace', 'workspace_member', 'workspace_invite', 'project', 'item_set', 'item', 'instrument', 'invite', 'response', 'answer', 'missing_item', 'insight', 'ai_run', 'upload', 'workspace_mapping', 'user', 'session', 'account', 'verification'];
+const ORDER = ['workspace', 'workspace_member', 'workspace_invite', 'project', 'item_set', 'item', 'instrument', 'invite', 'response', 'answer', 'missing_item', 'insight', 'ai_run', 'export_log', 'upload', 'workspace_mapping', 'user', 'session', 'account', 'verification'];
 const PURPOSE = {
   workspace: 'organisation: members, AI budget, branding defaults (accent and logo); deleted_at starts the 24-hour removal (E11)',
   workspace_member: 'who belongs to a workspace and as what (owner, member); user_id is better-auth\'s',
@@ -24,6 +24,7 @@ const PURPOSE = {
   missing_item: 'what a respondent said was missing, with the area they suggested',
   insight: 'an AI-written action on a project with the answers it cites and its cost',
   ai_run: 'every call to the model: purpose, tokens, cost in euro cents, duration (E4 budget)',
+  export_log: 'every download of an export: who, when, the file, the filter in words, the rows (E10-1, for E11-2)',
   user: 'better-auth: the signed-in person',
   session: 'better-auth: a browser session',
   account: 'better-auth: a sign-in method (magic link, Google; Microsoft and Apple after launch, decision 0034) attached to a user',

@@ -36,14 +36,13 @@ import { PushedTab, QuestionsTab } from "./registers-tab";
 import { ResponsesTab } from "./responses-tab";
 import { PanelSkeleton } from "./skeletons";
 import { ActionsTab } from "./actions-tab";
+import { ExportTab } from "./export-tab";
 import { TileChooser } from "./tile-chooser";
 import { UnsubmittedSwitch } from "./unsubmitted-switch";
 
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
 type Tab = (typeof TABS)[number];
 // The story each tab's content comes with.
-type Later = Exclude<Tab, "responses" | "agreement" | "pushed" | "questions" | "actions">;
-const TAB_STORY: Record<Later, string> = { export: "E10-1" };
 const parseTab = (v: string | string[] | undefined): Tab => (typeof v === "string" && (TABS as readonly string[]).includes(v) ? (v as Tab) : "agreement");
 
 export default async function ResultsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<SearchParams> }) {
@@ -168,14 +167,14 @@ function TabRow({ n, tab, href }: { n: ResultsNumbers; tab: Tab; href: (t: Tab) 
   );
 }
 
-// Each tab's content comes with its story; until then the tab says which.
+// Each tab's content (E8-2 to E8-4, E9-1, E10-1).
 async function TabPanel({ tab, ws, projectId, isSample, instrument, filter, ctx, view, href, itemHref }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; isSample: boolean; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string; itemHref: (id: string) => string }) {
   if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={href} />;
   if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
+  if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} />;
   if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} itemHref={itemHref} />;
-  if (tab === "agreement") return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
-  return <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="tab-panel">{RESULTS_COPY.comesWith(RESULTS_COPY.tabs[tab], TAB_STORY[tab as Later])}</p>;
+  return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
 }
 
 async function linkPhrase(ws: BodyProps["ws"], projectId: string): Promise<string> {

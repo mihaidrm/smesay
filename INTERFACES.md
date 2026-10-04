@@ -556,3 +556,17 @@ insights.setState(ws, projectId, insightId, from, state, userId, now) under the 
 lock; replaceOpen skips an action matching a done or dismissed one (sameAction: kind and the sets of cited answers and missing
 items). citationLines(answers, missing, anonymous) gives "[Name] and [Name] on [REF]" (an item with no
 reference by its text in quotes, cut at 40 characters) and "[Name], missing item".
+
+## CSV exports (results -> files)
+Owner: E10-1. Consumer: the Export tab; E11-2 reads export_log.
+Version 1, 2026-10-04. GET /api/projects/[projectId]/export/[file] with the Results page's
+query (file: answers, items, people, missing; EXPORT_FILES in src/db/types.ts): the project
+through the session's workspace, else 404; the filter by parseResultsFilter with the PM's
+stored switch. exportTable(ws, instrument, file, filter, ctx, sample) in
+src/lib/export/files.ts returns { preamble, header, rows } from results.rows (each ResultRow
+now carries who, anon, fields, perspectives, source, submittedAt), agreement.byItem,
+tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
+header, rows), line, field, isoUtc and BOM in src/lib/export/csv.ts. Every download writes an
+export_log row (workspace_id, project_id, made_by, file, filter in words or null, rows,
+created_at; exportLogs in src/db/queries).
+
