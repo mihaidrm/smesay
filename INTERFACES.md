@@ -541,9 +541,10 @@ rows) replaces the open actions in one transaction, under the project row's lock
 done and dismissed; insights.listWithCitations
 (ws, projectId) leaves out an action whose every citation is gone and gives each action its cited answers (item, reference, item text, the name as on
 Results) and missing items, open first, then done, then dismissed, each in the order written.
-E9-2: setActionState(actor, projectId, insightId, state) marks an action done or dismissed
-(closed_at, closed_by) or open again (both null), refusing the sample and an action not the
-project's; insights.setState(ws, projectId, insightId, state, userId, now); replaceOpen skips
-an action matching a dismissed one (sameAction: kind and the sets of cited answers and missing
+E9-2: setActionState(actor, projectId, insightId, from, state) marks an action done or
+dismissed (closed_at, closed_by) or open again (both null) when it is still in `from`, the state
+the page showed, refusing the sample, an action not the project's and an unknown state;
+insights.setState(ws, projectId, insightId, from, state, userId, now) under the project row's
+lock; replaceOpen skips an action matching a done or dismissed one (sameAction: kind and the sets of cited answers and missing
 items). citationLines(answers, missing, anonymous) gives "[Name] and [Name] on [REF]" (an item with no
 reference by its text in quotes, cut at 40 characters) and "[Name], missing item".

@@ -3,9 +3,9 @@
 // with their citations resolved for the Actions tab (listWithCitations), and the store that
 // replaces a project's open actions and keeps the done and dismissed ones (replaceOpen).
 // E9-2: setState marks one done, dismissed or open again, with the date and the person; a new
-// run skips an action that matches a dismissed one (sameAction: the kind and the sets of
+// run skips an action that matches a done or dismissed one (sameAction: the kind and the sets of
 // cited answers and missing items).
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { insight, project } from "@/db/schema";
 import type { InsightKind, InsightState, WorkspaceId } from "@/db/types";
@@ -102,20 +102,28 @@ export const insights = {
       // Two runs at once (two tabs) write one after the other: the project row's lock.
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, ws), eq(project.id, projectId))).for("update");
       await tx.delete(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "open")));
-      const dismissed = await tx.select().from(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "dismissed")));
-      const rows = written.filter((r) => !dismissed.some((d) => sameAction(d, r)));
+      // Done and dismissed actions stay where the PM put them across runs (E9-2): a new action
+      // that matches one is not written again.
+      const closed = await tx.select().from(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), ne(insight.state, "open")));
+      const rows = written.filter((r) => !closed.some((d) => sameAction(d, r)));
       if (rows.length === 0) return [];
       const at = Date.now();
       return tx.insert(insight).values(rows.map((r, i) => ({ ...r, workspaceId: ws, projectId, state: "open" as const, createdAt: new Date(at + i) }))).returning();
     }),
 
   // Marks one of the project's actions done or dismissed (with the date and the person) or
-  // open again (both cleared). Null when the action is not the project's in this workspace.
-  setState: async (ws: WorkspaceId, projectId: string, insightId: string, state: InsightState, userId: string, now = new Date()): Promise<Insight | null> => {
+  // open again (both cleared), when it is still in the state the page showed (`from`), so a
+  // stale tab does not override another member's change. Under the project row's lock, as a
+  // run is, so a run never reads the closed actions half way through a change. Null when the
+  // action is not the project's in this workspace or is no longer in that state.
+  setState: async (ws: WorkspaceId, projectId: string, insightId: string, from: InsightState, state: InsightState, userId: string, now = new Date()): Promise<Insight | null> => {
     if (!isUuid(projectId) || !isUuid(insightId)) return null;
     const closed = state === "open" ? { closedAt: null, closedBy: null } : { closedAt: now, closedBy: userId };
-    const [row] = await db.update(insight).set({ state, ...closed })
-      .where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.id, insightId))).returning();
-    return row ?? null;
+    return db.transaction(async (tx) => {
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, ws), eq(project.id, projectId))).for("update");
+      const [row] = await tx.update(insight).set({ state, ...closed })
+        .where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.id, insightId), eq(insight.state, from))).returning();
+      return row ?? null;
+    });
   },
 };

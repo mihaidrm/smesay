@@ -38,7 +38,10 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
         <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="actions-empty">{sample ? ACTIONS_COPY.sampleEmpty : ACTIONS_COPY.empty}</p>
       ) : (
         <>
-          {open.length > 0 && <ol className="flex flex-col gap-3" data-testid="actions-list">{open.map(card)}</ol>}
+          <section className="flex flex-col gap-3" aria-labelledby="actions-open">
+            <h3 id="actions-open" className="sr-only">{ACTIONS_COPY.openHeading} ({open.length})</h3>
+            {open.length > 0 ? <ol className="flex flex-col gap-3" data-testid="actions-list">{open.map(card)}</ol> : <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-4 text-sm text-ink-muted" data-testid="actions-none-open">{ACTIONS_COPY.noneOpen}</p>}
+          </section>
           {closed.map((s) => (
             <section key={s.state} className="flex flex-col gap-3" aria-labelledby={`actions-${s.state}`} data-testid={`actions-${s.state}`}>
               <h3 id={`actions-${s.state}`} className="text-sm font-semibold text-ink-muted">{s.state === "done" ? ACTIONS_COPY.doneHeading : ACTIONS_COPY.dismissedHeading} ({s.rows.length})</h3>
@@ -54,12 +57,12 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
 function ActionCard({ r, projectId, sample, itemHref }: { r: InsightWithCitations; projectId: string; sample: boolean; itemHref: (id: string) => string }) {
   const closed = r.state !== "open";
   return (
-    <li className={cn("card flex flex-col gap-2 p-4", closed && "opacity-70")} data-testid="action" data-state={r.state}>
+    <li className={cn("card flex flex-col gap-2 p-4", closed && "bg-ground shadow-none")} data-testid="action" data-state={r.state}>
       <div className="flex flex-wrap items-center gap-2">
         {r.kind && <NeutralPill data-testid="action-kind">{ACTIONS_COPY.kinds[r.kind]}</NeutralPill>}
         {r.state !== "open" && <NeutralPill data-testid="action-closed">{r.closedAt ? ACTIONS_COPY.closedOn(r.state, formatUtc(r.closedAt)) : ACTIONS_COPY.states[r.state]}</NeutralPill>}
       </div>
-      <h4 className="text-[15px] font-bold" data-testid="action-title">{r.title}</h4>
+      <h4 className={cn("text-[15px] font-bold", closed && "text-ink-muted")} data-testid="action-title">{r.title}</h4>
       {r.why && <p className="text-sm" data-testid="action-why">{r.why}</p>}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-ink-muted">
         <span aria-hidden="true">{ACTIONS_COPY.citedBy}:</span>

@@ -9,8 +9,7 @@
 import { instruments, projects } from "@/db/queries";
 import { agreement } from "@/db/queries/results";
 import { insights, type Insight } from "@/db/queries/insights";
-import type { InsightKind, InsightState } from "@/db/types";
-import { INSIGHT_STATES } from "@/db/types";
+import { INSIGHT_STATES, type InsightKind, type InsightState } from "@/db/types";
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
 import { contextOf } from "@/lib/ai/context";
 import { InsightOutput } from "@/lib/ai/insights-schema";
@@ -96,15 +95,17 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
 }
 
 // Mark done, Dismiss and Reopen (stories/E9-2, acceptance 1 and 2): one of the project's
-// actions to the state asked for, with the date and the person; the sample is read-only. An
-// action that is not the project's in this workspace, or a state that is not one, is refused.
-export async function setActionState(actor: Actor, projectId: string, insightId: string, state: unknown, now = new Date()): Promise<{ error: string } | { insight: Insight }> {
+// actions from the state the page showed to the state asked for, with the date and the person;
+// the sample is read-only. An action that is not the project's in this workspace, or no longer
+// in the state shown (another tab, a new run), is refused, as is a state that is not one.
+const isState = (v: unknown): v is InsightState => typeof v === "string" && (INSIGHT_STATES as readonly string[]).includes(v);
+export async function setActionState(actor: Actor, projectId: string, insightId: string, from: unknown, state: unknown, now = new Date()): Promise<{ error: string } | { insight: Insight }> {
   await requireRole(actor, "results.read");
   const project = await projects.get(actor.ws, projectId);
   if (!project) throw new NotFoundError();
   if (project.isSample) return { error: ACTIONS_COPY.sampleState };
-  if (typeof state !== "string" || !(INSIGHT_STATES as readonly string[]).includes(state)) return { error: ACTIONS_COPY.gone };
-  const row = await insights.setState(actor.ws, project.id, insightId, state as InsightState, actor.userId, now);
+  if (!isState(from) || !isState(state) || from === state) return { error: ACTIONS_COPY.badState };
+  const row = await insights.setState(actor.ws, project.id, insightId, from, state, actor.userId, now);
   return row ? { insight: row } : { error: ACTIONS_COPY.gone };
 }
 

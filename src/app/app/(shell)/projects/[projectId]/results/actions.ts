@@ -65,9 +65,9 @@ export async function writeActionsAction(projectId: string): Promise<WriteAction
 // Mark done, Dismiss and Reopen (stories/E9-2): the state comes from the button pressed and is
 // checked again in src/lib/insights.ts.
 export type ActionStateResult = { error: string | null };
-export async function setActionStateAction(projectId: string, insightId: string, state: string): Promise<ActionStateResult> {
+export async function setActionStateAction(projectId: string, insightId: string, from: string, state: string): Promise<ActionStateResult> {
   const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
-  const result = await setActionState({ ws: current.ws, userId: session.user.id }, projectId, insightId, state);
+  const result = await setActionState({ ws: current.ws, userId: session.user.id }, projectId, insightId, from, state);
   if ("error" in result) return { error: result.error };
   revalidatePath(`/app/projects/${projectId}/results`);
   return { error: null };

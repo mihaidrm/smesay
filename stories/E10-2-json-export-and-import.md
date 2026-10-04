@@ -8,7 +8,7 @@ workspace recreates it.
 ## Acceptance criteria
 1. "Whole project" export: items in every set version, the instrument(s), invites (tokens
    excluded, emails included), responses with answers, sign-offs, missing items, insights with
-   state, the import log, the project context; a schema version at the top. Documented in
+   state, closed_at and closed_by (E9-2, acceptance 4), the import log, the project context; a schema version at the top. Documented in
    INTERFACES.md as ProjectExport.
 2. "Import a project" on the project list takes the file and recreates the project under the
    current workspace with new ids and new tokens; respondent fields and answers are kept;

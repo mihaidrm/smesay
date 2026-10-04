@@ -133,14 +133,14 @@ describe("writeActions", () => {
     expect(citationLines(listed[3].answers, listed[3].missing, (n) => `Anonymous ${n}`)).toEqual([{ text: "Bo Lind, missing item", itemId: null }]);
 
     // Write again: the open ones are replaced, a done and a dismissed one stay.
-    await insights.setState(a.ws, p.project.id, listed[0].id, "done", a.userId);
-    await insights.setState(a.ws, p.project.id, listed[1].id, "dismissed", a.userId);
+    await insights.setState(a.ws, p.project.id, listed[0].id, "open", "done", a.userId);
+    await insights.setState(a.ws, p.project.id, listed[1].id, "open", "dismissed", a.userId);
     const again = await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
-    // The dismissed one (a rewrite citing A1) is not written again (E9-2).
-    expect("written" in again && again.written).toHaveLength(3);
+    // The done and the dismissed one are not written again (E9-2).
+    expect("written" in again && again.written).toHaveLength(2);
     const after = await insights.listWithCitations(a.ws, p.project.id);
-    expect(after.map((r) => r.state)).toEqual(["open", "open", "open", "done", "dismissed"]);
-    expect(after.slice(3).map((r) => r.id)).toEqual([listed[0].id, listed[1].id]);
+    expect(after.map((r) => r.state)).toEqual(["open", "open", "done", "dismissed"]);
+    expect(after.slice(2).map((r) => r.id)).toEqual([listed[0].id, listed[1].id]);
   });
 
   it("refuses the sample and another workspace's project, and shows nothing across workspaces", async () => {
@@ -196,35 +196,42 @@ describe("setActionState", () => {
     await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
     const [first, second, third] = await insights.listWithCitations(a.ws, p.project.id);
     const at = new Date("2026-10-05T09:30:00Z");
-    const done = await setActionState(a, p.project.id, first.id, "done", at);
+    const done = await setActionState(a, p.project.id, first.id, "open", "done", at);
     expect("insight" in done && [done.insight.state, done.insight.closedAt?.toISOString(), done.insight.closedBy]).toEqual(["done", at.toISOString(), a.userId]);
-    await setActionState(a, p.project.id, second.id, "dismissed", at);
-    const reopened = await setActionState(a, p.project.id, second.id, "open");
+    await setActionState(a, p.project.id, second.id, "open", "dismissed", at);
+    // A stale tab: the page still shows it open, another member dismissed it.
+    expect(await setActionState(a, p.project.id, second.id, "open", "done")).toEqual({ error: ACTIONS_COPY.gone });
+    const reopened = await setActionState(a, p.project.id, second.id, "dismissed", "open");
     expect("insight" in reopened && [reopened.insight.state, reopened.insight.closedAt, reopened.insight.closedBy]).toEqual(["open", null, null]);
-    expect(await setActionState(a, p.project.id, third.id, "archived")).toEqual({ error: ACTIONS_COPY.gone });
-    expect(await setActionState(a, p.project.id, randomUUID(), "done")).toEqual({ error: ACTIONS_COPY.gone });
+    expect(await setActionState(a, p.project.id, third.id, "open", "archived")).toEqual({ error: ACTIONS_COPY.badState });
+    expect(await setActionState(a, p.project.id, third.id, "open", "open")).toEqual({ error: ACTIONS_COPY.badState });
+    expect(await setActionState(a, p.project.id, randomUUID(), "open", "done")).toEqual({ error: ACTIONS_COPY.gone });
     // Another workspace cannot see the project; another project's action is not this one's.
-    await expect(setActionState(b, p.project.id, third.id, "done")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(setActionState(b, p.project.id, third.id, "open", "done")).rejects.toBeInstanceOf(NotFoundError);
     const other = await answeredProject();
-    expect(await setActionState(a, other.project.id, third.id, "done")).toEqual({ error: ACTIONS_COPY.gone });
+    expect(await setActionState(a, other.project.id, third.id, "open", "done")).toEqual({ error: ACTIONS_COPY.gone });
+    // At the query layer: workspace B with A's ids, and B's own project with A's action.
+    expect(await insights.setState(b.ws, p.project.id, third.id, "open", "done", b.userId)).toBeNull();
+    const bProject = await projects.create(b.ws, { name: "B's own", createdBy: b.userId });
+    expect(await insights.setState(b.ws, bProject.id, third.id, "open", "done", b.userId)).toBeNull();
+    expect((await insights.get(a.ws, third.id))?.state).toBe("open");
     const sample = (await projects.list(a.ws)).find((x) => x.isSample)!;
     const seeded = (await insights.listWithCitations(a.ws, sample.id))[0];
-    expect(await setActionState(a, sample.id, seeded.id, "done")).toEqual({ error: ACTIONS_COPY.sampleState });
+    expect(await setActionState(a, sample.id, seeded.id, "open", "done")).toEqual({ error: ACTIONS_COPY.sampleState });
     // The tab counts the open ones only (E8-1 numbers).
-    const counts = (await insights.listWithCitations(a.ws, p.project.id)).map((r) => r.state);
-    expect(counts.filter((st) => st === "open")).toHaveLength(3);
+    expect((await results.numbers(a.ws, p.instrument.id, COUNTED_VIEW))?.actions).toBe(3);
   });
 
-  it("does not write again an action matching a dismissed one; a done one may come back", async () => {
+  it("does not write again an action matching a done or a dismissed one", async () => {
     const p = await answeredProject();
     await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
     const listed = await insights.listWithCitations(a.ws, p.project.id);
-    await setActionState(a, p.project.id, listed[0].id, "dismissed");
-    await setActionState(a, p.project.id, listed[2].id, "done");
+    await setActionState(a, p.project.id, listed[0].id, "open", "dismissed");
+    await setActionState(a, p.project.id, listed[2].id, "open", "done");
     const again = await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
-    expect("written" in again && again.written.map((w) => w.kind)).toEqual(["rewrite", "followUp", "coverage"]);
+    expect("written" in again && again.written.map((w) => w.kind)).toEqual(["rewrite", "coverage"]);
     const after = await insights.listWithCitations(a.ws, p.project.id);
-    expect(after.map((r) => `${r.state}:${r.kind}`)).toEqual(["open:rewrite", "open:followUp", "open:coverage", "done:followUp", "dismissed:conflict"]);
+    expect(after.map((r) => `${r.state}:${r.kind}`)).toEqual(["open:rewrite", "open:coverage", "done:followUp", "dismissed:conflict"]);
   });
 
   it("matches by kind and the sets of citations, in any order", () => {
