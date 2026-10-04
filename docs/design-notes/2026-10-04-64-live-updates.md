@@ -33,7 +33,16 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E8-7, under deci
 - The route answers HEAD with 405 (Next would otherwise run GET and leave a stream with no
   reader), and opens nothing for a request that aborted while it looked the project up.
 - The banner sits in a status region that is always on the page, so it is announced when it
-  appears.
+  appears; empty, the region is out of the flow and adds no gap.
+- Only "ping" and "change" prove the stream works, since both travel through Postgres; the
+  route's own "ready" does not clear the banner or reset the backoff. A reopened stream that
+  stays silent for 15 seconds is reopened again with a longer wait, so a stream that hangs
+  without an error is not left alone; the first ping after a reopen reads the page.
+- Notifications with the same payload handled in the same tick collapse into one, which
+  covers postgres.js holding the handler twice after a LISTEN that failed and was asked
+  again. Each such retry during an outage still adds a handler to postgres.js's list for the
+  life of the process; the collapse keeps the pages from reading more than once (review
+  list).
 - A changed cell fades (design system, Motion: 400 ms): a violet-soft layer over the cell
   that clears, on the tiles, the tracker's status and progress, and the Agreement table's
   percentages. The first render does not fade. Nothing moves under prefers-reduced-motion,

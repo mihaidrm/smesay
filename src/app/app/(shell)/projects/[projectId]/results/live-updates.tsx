@@ -31,10 +31,11 @@ export function LiveUpdates({ projectId }: { projectId: string }) {
       client.stop();
     };
   }, [projectId, router]);
-  // The region is always there; the banner inside it is not a second region.
+  // The region is always there; the banner inside it is not a second region. Empty, it is
+  // taken out of the page's flow (absolute), so it adds no gap to the column it sits in.
   return (
-    <div role="status" data-testid="live-region">
-      {stale && <Banner role="presentation" className="mb-5" data-testid="live-stale">{RESULTS_COPY.liveStopped}</Banner>}
+    <div role="status" className={stale ? undefined : "absolute"} data-testid="live-region">
+      {stale && <Banner role="presentation" data-testid="live-stale">{RESULTS_COPY.liveStopped}</Banner>}
     </div>
   );
 }

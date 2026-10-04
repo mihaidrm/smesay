@@ -1,7 +1,7 @@
 // The stream route of live updates (stories/E8-7; src/app/api/projects/[projectId]/events/
 // route.ts, tested here because database access lives under src/db): a project of another
-// workspace is 404, HEAD opens no stream, a request that aborted while the route looked the
-// project up leaves no listener, and a stream that ends removes its listener. The session is replaced by a stub
+// workspace is 404, HEAD opens no stream, a request that aborted before the route set the
+// stream up leaves no listener, and a stream that ends removes its listener. The session is replaced by a stub
 // (vi.mock: vitest.dev/api/vi.html#vi-mock) that returns the workspace the test chooses.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { drizzle } from "drizzle-orm/postgres-js";

@@ -1,9 +1,12 @@
 // The client side of live updates on Results (stories/E8-7), without the browser, so it can be
 // tested with fake timers and a fake stream (src/lib/results-live.test.ts). The page
 // (live-updates.tsx) gives it an EventSource factory and router.refresh.
-// - A stream with no event for 15 seconds is stale: the banner shows, the stream is closed and
-//   opened again after 1, 2, 4, 8, 16, then 30 seconds; the first event clears the banner.
-// - Every "ready" after the first (a reconnect) and every "change" reads the page again.
+// - Only "ping" and "change" prove the chain works, since both travel through Postgres; the
+//   route's own "ready" does not. A stream with neither for 15 seconds is stale: the banner
+//   shows, the stream is closed and opened again after 1, 2, 4, 8, 16, then 30 seconds, and
+//   again each time a reopened stream stays silent for 15 seconds; the first ping or change
+//   clears the banner and resets the backoff.
+// - Every "change", and the first ping after a reconnect, reads the page again.
 // - Reads are throttled: the first 250 ms after a change, then at most one a second, and none
 //   while the tab is hidden; a change in a hidden tab is read when it shows again.
 export const HEARTBEAT_MS = 5_000;
@@ -35,7 +38,8 @@ export function createLiveClient({ open: openStream, refresh, setStale, hidden }
   let lastRead: number | null = null;
   let dirty = false;
   let stale = false;
-  let readies = 0;
+  let opened = 0;
+  let catchUp = false;
   let stopped = false;
 
   const readSoon = () => {
@@ -46,7 +50,8 @@ export function createLiveClient({ open: openStream, refresh, setStale, hidden }
   const alive = () => {
     lastBeat = Date.now();
     attempt = 0;
-    if (stale) { stale = false; setStale(false); readSoon(); }
+    if (stale) { stale = false; setStale(false); catchUp = true; }
+    if (catchUp) { catchUp = false; readSoon(); }
   };
   const again = () => {
     source?.close();
@@ -56,19 +61,21 @@ export function createLiveClient({ open: openStream, refresh, setStale, hidden }
   const open = () => {
     if (stopped) return;
     lastBeat = Date.now();
+    // A reopened stream reads the page once it proves alive: changes may have been missed.
+    if (opened++ > 0) catchUp = true;
     const s = openStream();
     source = s;
-    s.addEventListener("ready", () => { alive(); if (readies++ > 0) readSoon(); });
     s.addEventListener("ping", alive);
     s.addEventListener("change", () => { alive(); readSoon(); });
     // A drop or a refused stream: close it and open it again after the backoff; the browser's
     // own retry would not back off, and stops for good after a refused one.
     s.onerror = again;
   };
+  // Silent for 15 seconds, the first time or again after a reopen: the banner (once), and
+  // another reopen with a longer wait. open() starts the 15 seconds again.
   const watch = setInterval(() => {
-    if (stale || !isStale(lastBeat, Date.now())) return;
-    stale = true;
-    setStale(true);
+    if (retry || !isStale(lastBeat, Date.now())) return;
+    if (!stale) { stale = true; setStale(true); }
     again();
   }, 1_000);
   open();

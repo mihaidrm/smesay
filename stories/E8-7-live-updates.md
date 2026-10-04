@@ -49,8 +49,9 @@ Built 2026-10-04 (design note 64, decision 0044; docs/review-list.md):
   changes; none under prefers-reduced-motion.
 - Acceptance 3: the heartbeat travels through Postgres (NOTIFY results 'ping' every 5
   seconds), so it also stops when the LISTEN is broken; no event for 15 seconds shows the
-  banner, closes the stream and opens it again after 1, 2, 4, 8, 16, then 30 seconds; the
-  next event clears the banner and reads the page again, and so does every reconnect.
+  banner, closes the stream and opens it again after 1, 2, 4, 8, 16, then 30 seconds, and
+  again when a reopened stream stays silent; the first ping or change clears the banner and
+  reads the page again, and so does the first ping after every reconnect.
   src/lib/results-live.test.ts runs the client with fake timers.
 - Acceptance 4: the payload is the instrument's id; the stream adds a version counter;
   nothing else travels. src/db/queries/results-events.test.ts checks that another

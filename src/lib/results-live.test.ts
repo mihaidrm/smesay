@@ -59,8 +59,11 @@ describe("the live client", () => {
     expect(streams).toHaveLength(2);
     vi.advanceTimersByTime(1);
     expect(streams).toHaveLength(3);
-    // It comes back: the banner clears and the page is read once to catch up.
+    // It comes back: the first ping through Postgres clears the banner and the page is read
+    // once to catch up.
     streams[2].fire("ready");
+    expect(stale).toEqual([true]);
+    streams[2].fire("ping");
     expect(stale).toEqual([true, false]);
     vi.advanceTimersByTime(250);
     expect(reads).toHaveLength(1);
@@ -74,7 +77,38 @@ describe("the live client", () => {
     vi.advanceTimersByTime(1_000);
     streams[1].fire("ready");
     vi.advanceTimersByTime(250);
+    expect(reads).toHaveLength(0);
+    streams[1].fire("ping");
+    vi.advanceTimersByTime(250);
     expect(reads).toHaveLength(1);
+    client.stop();
+  });
+
+  it("keeps the banner while reopened streams only say ready, and waits longer each time", () => {
+    const { client, streams, stale } = make();
+    vi.advanceTimersByTime(16_000);
+    expect(stale).toEqual([true]);
+    const opens: number[] = [];
+    for (let t = 0; t < 120_000; t += 1_000) {
+      const n = streams.length;
+      vi.advanceTimersByTime(1_000);
+      if (streams.length > n) { opens.push(Date.now()); streams.at(-1)!.fire("ready"); }
+    }
+    expect(stale).toEqual([true]);
+    // Each silent stream is given 15 s, then the wait before the next grows: 2, 4, 8 s...
+    const gaps = opens.slice(1).map((t, i) => t - opens[i]);
+    expect(gaps.slice(0, 3)).toEqual([18_000, 20_000, 24_000]);
+    client.stop();
+  });
+
+  it("reopens a stream that hangs with no event and no error", () => {
+    const { client, streams } = make();
+    vi.advanceTimersByTime(16_000);
+    vi.advanceTimersByTime(1_000);
+    expect(streams).toHaveLength(2);
+    vi.advanceTimersByTime(16_000 + 2_000);
+    expect(streams).toHaveLength(3);
+    expect(streams[1].closed).toBe(true);
     client.stop();
   });
 
