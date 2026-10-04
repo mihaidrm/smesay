@@ -58,7 +58,7 @@ describe("withinPlan", () => {
     const instrument = await instruments.create(ws, { projectId: p.id, itemSetId: set.id, title: "I" });
     const invite = await invites.create(ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
     for (let i = 0; i < PLANS.pro.limits.responsesPerMonth!; i++) {
-      await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-03T10:00:00Z") });
+      await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-03T10:00:00Z"), firstSubmittedAt: new Date("2026-10-03T10:00:00Z") });
       if (i === 0) expect(await withinPlan(ws, "responses", now)).toBe(true);
     }
     expect(await withinPlan(ws, "responses", now)).toBe(false);
