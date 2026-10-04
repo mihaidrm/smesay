@@ -15,13 +15,15 @@ import { cn } from "cn";
 import type { ScaleLabels, ScoringMethod } from "@/db/types";
 import { scaleFor, SCORING_COPY, UNCLEAR } from "@/lib/scoring";
 
-export function RatingRow({ method, labels, proposed, showProposed, value, accent, onChange, name, ring }: {
+// idKey: a stable key for the ids (the item's id on the respondent page; two items may
+// share a title).
+export function RatingRow({ method, labels, proposed, showProposed, value, accent, onChange, name, idKey, ring }: {
   method: ScoringMethod; labels: ScaleLabels | null; proposed: string | null; showProposed: boolean; value: string | null; accent: string;
-  onChange?: (code: string) => void; name: string; ring?: boolean;
+  onChange?: (code: string) => void; name: string; idKey?: string; ring?: boolean;
 }) {
   const pills = [...scaleFor(method, labels).map((v) => ({ code: v.code, label: v.label, caption: v.caption })), { code: UNCLEAR, label: SCORING_COPY.unclear, caption: undefined as string | undefined }];
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const groupId = `rating-${name.replace(/[^a-z0-9]+/gi, "-").slice(0, 40)}-${method}`;
+  const groupId = `rating-${(idKey ?? name).replace(/[^a-z0-9]+/gi, "-").slice(0, 40)}-${method}`;
   const selectedIndex = pills.findIndex((p) => p.code === value);
   const move = (from: number, delta: number) => {
     const to = (from + delta + pills.length) % pills.length;

@@ -1,7 +1,7 @@
 # E7-2 Rate items in the chosen method; reasons and questions are mandatory
 
 User: an expert going through the chapters
-Status: ready
+Status: built
 Outcome: each card takes one of the four answers through the rating row, and a card does not
 count as answered until its reason or question is written.
 
@@ -42,3 +42,33 @@ count as answered until its reason or question is written.
 answer rows (kind, value, reason, comment; INTERFACES.md AnswerKind) with the mapping from
 src/lib/scoring.ts (E5-2). Cards are server-rendered with client islands for the row and the
 box; the first paint on a phone carries no JavaScript heavier than the island.
+
+Built 2026-10-04 (design note 51, decision 0044):
+- Acceptance 1: the chapter screen shows the chapter's name and intro over its cards, one
+  column on a phone and two from 768 px (src/components/respondent/chapter-screen.tsx). The
+  card is the Build preview's ItemCard, now controlled by the page: fieldset and legend,
+  the rating row, the details text in the card's slot (with a Details toggle when a box
+  takes the slot), "+ comment" on an answer that takes one
+  (src/components/respondent/item-card.tsx). The card is 260 px; with a box in the slot it
+  grows so the box keeps two lines and the footer can wrap the server's sentence.
+- Acceptance 2: the pick goes to PUT /r/[token]/answers; the server maps it with classify
+  (src/lib/scoring.ts) and stores kind, value, reason and comment, keeping the reason only
+  when the answer needs one and the comment only when it does not (src/lib/respondent.ts
+  saveAnswer, respondent-rules.ts answerFor). The boxes carry the story's prompts.
+- Acceptance 3: the note says Not rated yet, Say why., Write your question., or Saved once
+  the server has the complete answer and no newer change for the card waits (noteFor); a
+  refused answer shows the server's sentence instead. One save per card is in flight at a
+  time and the server locks the response row, so the stored answer is the newest (residual
+  case in docs/review-list.md). A device whose response is gone (cookie cleared) returns to
+  About you with every card not saved, and Start sends the cards again.
+- Acceptance 4: the three layouts render on the live link; e2e/respondent-rate.spec.ts opens
+  each at 375 by 667 on the test's own published project (the sample link collects
+  nothing, docs/review-list.md) and checks the document width and the 38 px pills.
+- Acceptance 5: the reason and comment stay in the card's draft whatever the answer; the
+  test switches Should, Not needed, Should and keeps the text.
+- Acceptance 6: the same test answers Change with a reason and sees Saved, and Unclear with
+  no question and sees "Write your question."
+- Acceptance 7: the selected pill fills with effectiveAccent(); the test reads the default
+  violet. The ink fallback for a failing accent is E7-7's.
+- Saving: a change waits 400 ms for the next, then goes out; focus leaving any control and
+  the page being hidden send what waits. E7-3 adds the offline queue and its banner.

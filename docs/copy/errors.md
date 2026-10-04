@@ -203,10 +203,14 @@ of the content; page means it replaces the screen.
 | Note under the Start button (E7-1), from the server | An email field that is not an address | [TEXT] is not an email address. Check it and try again. |
 | Note under the Start button (E7-1), from the server | A field over 200 characters | Keep [LABEL] to 200 characters. |
 | Note under the Start button (E7-1), from the server | The form did not arrive as JSON, or a perspective not on the list (a stale page) | Your details did not reach the server as a form. Reload the page and try again. / Pick the perspectives from the list on the page. Reload the page and try again. |
-| Card note (already on the board) | Not rated | Not rated yet |
-| Card note (already on the board) | Different priority or Not needed, no reason | Say why. |
-| Card note (already on the board) | Unclear, no question | Write your question. |
-| Card note (already on the board) | Saved | Saved |
+| Card note (E7-2) | Not rated | Not rated yet |
+| Card note (E7-2) | Different priority or Not needed, no reason | Say why. |
+| Card note (E7-2) | Unclear, no question | Write your question. |
+| Card note (E7-2) | Saved: the server has the complete answer | Saved |
+| Card note (E7-2), from the server | The answer is not one of the card's values, or did not arrive as JSON (a stale page) | The answer did not reach the server as one of the card's values. Reload the page and try again. |
+| Card note (E7-2), from the server | A reason or comment over 2,000 characters | Keep the reason and the comment to 2000 characters each. |
+| Card note (E7-2), from the server | The item is not in the respondent's list (a perspective changed, a stale page) | This item is not in your list. Reload the page to see your items. |
+| Note under the Start button (E7-2), from the server | An answer sent for a response this device does not have (cookies cleared in another tab); the page returns to About you, marks every card not saved, and sends the cards again after Start | Your details were not found on this device. Press Start again and the answers on this page are saved with them. |
 | Banner (already on the board) | Connection lost | Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects. |
 | Page | Saved answers on this device belong to a newer version of the list | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
 | Wrap up, list (already on the board) | Still to finish | [N] still to finish, with the item and what is missing. |

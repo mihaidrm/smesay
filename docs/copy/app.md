@@ -265,7 +265,14 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Pills, 1 to 5 fit | 1, 2, 3, 4, 5, Unclear, with "no fit" under 1 and "fits fully" under 5 |
 | Pills, keep change drop | Keep, Change, Drop, Unclear |
 | Caption under the proposed pill | proposed |
-| Footer note before an answer | Not rated yet (then the picked label; "Saved" and the missing lines are E7-2 and E7-3) |
+| Footer note | Not rated yet; Say why.; Write your question.; Saved (the respondent page, E7-2). The Build preview shows the picked label once complete (it saves nothing) |
+| Reason box over a value other than the proposal (E7-2) | Why [VALUE] and not [PROPOSED]? The team reads every reason. |
+| Reason box over Not needed (E7-2) | Why is it not needed, or what should it say instead? |
+| Question box over Unclear (E7-2) | What would you need to know to rate it? |
+| Comment (E7-2; an answer that needs no reason) | [Toggle: + comment / Hide comment], box label: Comment, optional |
+| Details (E7-2; when the import carried more text and a box is open) | [Toggle: Details / Hide details] |
+| One item per screen (E7-2) | Item [N] of [M] in [AREA] over one card; [Button: Previous item] [Button: Next item] |
+| Single long page (E7-2) | All [N] on one page, every area as a heading over its cards |
 
 ## About you (the respondent instrument, E5-1 preview and E7-1)
 

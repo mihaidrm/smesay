@@ -17,7 +17,7 @@ import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
-import { carriedFields, chaptersFor, parseScreen, RESPONDENT_COPY } from "@/lib/respondent-rules";
+import { carriedFields, chaptersFor, parseScreen, RESPONDENT_COPY, screenCount } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
 import { LinkWatch } from "./link-watch";
@@ -78,7 +78,8 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         started={response !== null}
         initialFields={response?.fields ?? {}}
         initialPicks={picks}
-        initialScreen={parseScreen(at, response !== null, chapters.length)}
+        initialScreen={parseScreen(at, response !== null, screenCount(instrument.layout, chapters.length))}
+        answers={view.answers}
       />
     </>
   );
