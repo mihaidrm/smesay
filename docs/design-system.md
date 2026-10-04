@@ -252,7 +252,8 @@ question 1).
   aligned bars per kind per area (the readable one), the donut per area and list; percent is
   agree over answered, printed as mono text; the number matches the CSV to the row under the
   same filter. The kinds are named Agree, Different priority, Disagree, Unclear (decision
-  0014; the landing page legend follows when E8 is built, decision 0042).
+  0014; the landing page's results fragment uses these names and the status colours since
+  2026-10-04, design note 53).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
 - Where groups disagree: two bars on one scale, coral for the share that disagreed, any

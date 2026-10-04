@@ -49,7 +49,8 @@ other types; the pushed back split; sort and filter).
 
 ## Open questions
 - None. The donut and the kind's name are decided (decision 0044, items 5 and 6); the
-  design system's Data section and the landing page legend follow when E8 is built.
+  design system's Data section follows when E8 is built; the landing page's legend already
+  names the four kinds (design note 53, 2026-10-04).
 
 ## Technical notes
 src/db/queries/results.ts `agreementByItem(workspaceId, instrumentId, filter, split?)`; the

@@ -3,9 +3,11 @@
 // /landing-page until Mihai moves it to /: a dark hero with the aurora, the dot grid and the
 // cursor light, the live card tilted with the mascot at its corner, light
 // "three steps" and "what you get back" sections, the questions, dark pricing and footer.
-// Amended 2026-10-04 (design note 53, Mihai's review): the Shape card shows one item before
-// and after; the third step no longer speaks of phones, the questions do; "What you get
-// back" leads with what the PM gains, over the results fragment with its three views. Desktop 1440 and
+// Amended 2026-10-04 (design note 53, Mihai's review): the Shape card switches between the
+// spreadsheet as imported and the shaped list (concept 3 of the brainstorm); the third step
+// no longer speaks of phones, the questions do; "What you get back" leads with what the PM
+// gains, over the results fragment with its three views. The fragments use the Marlow
+// sample's own rows and numbers (src/db/seed/sample.ts). Desktop 1440 and
 // phone 390 in one pass (decision 0015): one column under 1024 px, the card upright and full
 // width, the type one step smaller. The landing keeps its own light and dark sections
 // whatever the app's mode (decision 0041, point 2), so its colours are written out, not read
@@ -24,6 +26,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { CursorLight } from "./cursor-light";
 import { ResultsDemo } from "./results-demo";
 import { Reveal } from "./reveal";
+import { ShapeDemo } from "./shape-demo";
 
 export const metadata: Metadata = {
   title: "SMEsay: send the list as a link",
@@ -81,10 +84,10 @@ function LiveCard() {
 const QUESTIONS: [string, string][] = [
   ["Do my experts need an account?", "No. They open the link and answer. There is nothing to install and nothing to sign up for."],
   ["Does it work on a phone?", "Yes. The link is made for a phone first and works the same on a laptop. Answers save as they go, so an expert can stop and pick up where they left off."],
-  ["What does the AI do?", "It sorts your list into areas, rewrites unclear items in plain words, flags duplicates, and writes the to-do list from the answers, naming the answers behind each line. It never answers for your experts, and you approve every change it suggests."],
-  ["Can I see who said what?", "You choose what to ask, such as name, role or department, or nothing at all. Answers carry only the fields you asked for."],
+  ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and writes the to-do list from the answers, naming the answers behind each line. It never answers for your experts, and you can change anything it does."],
+  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the name and email you sent it to."],
   ["Can the link carry our logo and colour?", "Yes. Your experts see your logo and your colour on the link."],
-  ["What happens to my list and the answers?", "They stay in your workspace. Export them as CSV whenever you like, or delete the project and everything is gone within 24 hours."],
+  ["What happens to my list and the answers?", "They stay in your workspace, where only its members see them. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and everything in it is gone within 24 hours."],
   ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
 ];
 
@@ -138,7 +141,7 @@ export default function LandingPage() {
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Three steps. The AI does the dull one.</h2>
-            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Upload the spreadsheet you already have. Shaping groups it into areas and writes each item in plain words. Send one link.</p>
+            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Start from the spreadsheet you already have. Let the AI make it readable. Send one link.</p>
           </Reveal>
           <div className="mt-10 grid gap-6 md:mt-12 md:grid-cols-3">
             <Reveal className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
@@ -148,12 +151,8 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={120} className="flex flex-col gap-3.5 rounded-[20px] border border-[#6D4CF5] bg-white p-[26px] shadow-[0_16px_40px_rgba(109,76,245,0.22)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">2</span><span className="text-[18px] font-bold">Shape it</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the items into areas and rewrites each one in plain words. You approve every line.</p>
-              <div className="mt-auto flex flex-col gap-1.5 rounded-[14px] bg-[#F7F6FB] p-3.5 text-[13px]" data-testid="shape-fragment">
-                <div className="flex items-center justify-between gap-2"><span className="font-mono text-[11px] text-[#5E5A72]">CL-09</span><Pill tint="#EEEAFF" text="#5A3BE0">Paying</Pill></div>
-                <span className="truncate text-[#5E5A72] line-through decoration-[#CFCBE0]">mileage pd acc. state rate?</span>
-                <span className="font-semibold">Mileage is paid at the state rate.</span>
-              </div>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the list into areas and writes each item in plain words. You can change any of it.</p>
+              <div className="mt-auto"><ShapeDemo /></div>
             </Reveal>
             <Reveal delay={240} className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">3</span><span className="text-[18px] font-bold">Send one link</span></div>
@@ -173,31 +172,35 @@ export default function LandingPage() {
           <div className="mt-8 grid gap-6 md:mt-10 lg:grid-cols-[1.35fr_1fr]">
             <Reveal className="flex flex-col gap-4 rounded-[20px] border border-[#E6E3F0] bg-[#F7F6FB] p-5 md:p-6">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-bold text-[#5A3BE0]">See where the list is weak</span>
+                <h3 className="text-xs font-bold text-[#5A3BE0]">See where the list is weak</h3>
                 <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item, every area, as answers arrive.</span>
                 <span className="text-[14px] leading-[21px] text-[#5E5A72]">Pick the numbers you watch, filter by role or by who left a reason, and switch the chart to the view your meeting needs.</span>
               </div>
               <ResultsDemo />
             </Reveal>
             <div className="flex flex-col gap-4">
-              <Reveal delay={120} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]" data-testid="gain-groups">
-                <div className="text-xs font-bold text-[#9E3321]">Know who disagrees, and why</div>
-                <div className="text-[16px] leading-[22px] font-semibold">Finance and everyone else split on cash advances.</div>
-                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" aria-label="Share that disagreed, by group">
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Finance</span><div className="h-2 grow rounded-full bg-[#F0EEF7]"><div className="h-2 w-full rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 text-right font-mono whitespace-nowrap">0 of 3 agree</span></div>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" /><span className="shrink-0 text-right font-mono whitespace-nowrap">3 of 3 agree</span></div>
+              <Reveal delay={120} testId="gain-groups" className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
+                <h3 className="text-xs font-bold text-[#9E3321]">Know who disagrees, and why</h3>
+                <div className="text-[16px] leading-[22px] font-semibold">Sales and everyone else split on the policy flags.</div>
+                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]">
+                  <span>Did not agree with Should have</span>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
                 </div>
-                <blockquote className="border-l-2 border-[#FF6B57] pl-3 text-[14px] leading-[21px] text-[#15131F]">&ldquo;We almost never pay advances. Reimburse after the trip.&rdquo; <span className="text-[#5E5A72]">Ana, finance</span></blockquote>
+                <figure className="flex flex-col gap-1 border-l-2 border-[#FF6B57] pl-3">
+                  <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;Sales gets most of the rejections, and always after the fact.&rdquo;</blockquote>
+                  <figcaption className="text-[13px] text-[#5E5A72]">Tom, sales</figcaption>
+                </figure>
               </Reveal>
-              <Reveal delay={240} className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]" data-testid="gain-actions">
-                <div className="text-xs font-bold text-[#5FD3B3]">Walk into the meeting with the decisions listed</div>
+              <Reveal delay={240} testId="gain-actions" className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]">
+                <h3 className="text-xs font-bold text-[#5FD3B3]">Walk into the meeting with the decisions listed</h3>
                 <ul className="flex flex-col gap-2 text-[15px] leading-[21px]">
-                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 3 answers</span></li>
-                  <li className="flex flex-col"><span>Explain per diem rates before the next round.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 questions</span></li>
+                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
+                  <li className="flex flex-col"><span>Answer two open questions before the link closes.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
                 </ul>
               </Reveal>
-              <Reveal delay={360} className="flex flex-col gap-2 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]" data-testid="gain-exports">
-                <div className="text-xs font-bold text-[#166A52]">Numbers that hold up</div>
+              <Reveal delay={360} testId="gain-exports" className="flex flex-col gap-2 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
+                <h3 className="text-xs font-bold text-[#166A52]">Numbers that hold up</h3>
                 <div className="text-[15px] leading-[22px]">Every number on the dashboard matches the export to the row, so the result stands up in the steering meeting.</div>
                 <div className="flex gap-2"><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">CSV</span><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">PDF summary</span></div>
               </Reveal>
@@ -231,12 +234,12 @@ export default function LandingPage() {
         <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
           <Reveal className="flex flex-col gap-4">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Questions</h2>
-            <p className="max-w-[360px] text-[16px] leading-6 text-[#5E5A72]">Something else on your mind? Write to hello@smesay.app and a person answers.</p>
+            <p className="max-w-[360px] text-[16px] leading-6 text-[#5E5A72]">Something else on your mind? Write to hello@smesay.app.</p>
           </Reveal>
           <Reveal delay={120} className="flex flex-col divide-y divide-[#E6E3F0] rounded-[20px] border border-[#E6E3F0] bg-white px-5 md:px-6">
             {QUESTIONS.map(([q, a]) => (
               <details key={q} className="group py-4" data-testid="faq-item">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-[17px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-[17px] font-semibold outline-hidden focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
                   {q}<span aria-hidden="true" className="text-[22px] leading-none font-medium text-[#6D4CF5] transition-transform duration-150 group-open:rotate-45 motion-reduce:transition-none">+</span>
                 </summary>
                 <p className="mt-2.5 max-w-[620px] text-[15px] leading-[23px] text-[#5E5A72]">{a}</p>

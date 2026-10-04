@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 
-export function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+export function Reveal({ children, className, delay = 0, testId }: { children: React.ReactNode; className?: string; delay?: number; testId?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"rest" | "hidden" | "shown">("rest");
   useEffect(() => {
@@ -32,6 +32,7 @@ export function Reveal({ children, className, delay = 0 }: { children: React.Rea
     <div
       ref={ref}
       data-reveal={state}
+      data-testid={testId}
       style={{ transitionDelay: state === "shown" ? `${delay}ms` : undefined }}
       className={cn("transition-[opacity,transform] duration-700 ease-out", state === "hidden" && "translate-y-[18px] opacity-0", className)}
     >

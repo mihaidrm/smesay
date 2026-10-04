@@ -25,18 +25,30 @@ test("the landing page loads with the headline and fits a phone", async ({ page 
   await expect(wrapper).toHaveCSS("opacity", "1");
 });
 
-// Design note 53: the third step names no phone (the questions do), the results fragment's
-// view switch changes the chart, and a question opens in place.
-test("the steps, the results views and the questions", async ({ page }) => {
+// Design note 53: the third step names no phone (the questions do), the Shape switch turns
+// between the sheet and the shaped list, the results card carries the seed's tiles and its
+// view switch changes the chart, a question opens in place, and on a phone neither the
+// Columns nor the Share view scrolls sideways.
+test("the steps, the Shape switch, the results views and the questions", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/landing-page");
   const steps = page.locator("#how");
   await expect(steps.getByText("Send one link", { exact: true })).toBeVisible();
   expect((await steps.innerText()).toLowerCase()).not.toContain("phone");
+  const shape = page.getByTestId("shape-demo");
+  await shape.scrollIntoViewIfNeeded();
+  await expect(shape).toHaveAttribute("data-side", "Shaped");
+  await shape.getByRole("button", { name: "Your sheet" }).click();
+  await expect(shape.getByRole("button", { name: "Your sheet" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("shape-sheet")).toContainText("OCR receipt capture via mobile");
+  await shape.getByRole("button", { name: "Shaped" }).click();
+  await expect(page.getByTestId("shape-shaped")).toContainText("Managers approve or reject from the email, without logging in.");
   const demo = page.getByTestId("results-demo");
   await demo.scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("results-tiles")).toContainText("5 of 7");
+  await expect(page.getByTestId("results-tiles")).toContainText("63%");
   await expect(demo).toHaveAttribute("data-view", "Table");
-  await expect(page.getByTestId("results-table")).toBeVisible();
+  await expect(page.getByTestId("results-table").getByRole("listitem")).toHaveCount(6);
   await demo.getByRole("button", { name: "Share" }).click();
   await expect(demo.getByRole("button", { name: "Share" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("results-share")).toBeVisible();
@@ -46,4 +58,11 @@ test("the steps, the results views and the questions", async ({ page }) => {
   await phone.locator("summary").click();
   await expect(phone.getByText("The link is made for a phone first")).toBeVisible();
   await expect(page.getByTestId("faq-item")).toHaveCount(7);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const view of ["Columns", "Share"]) {
+    await demo.getByRole("button", { name: view }).click();
+    const widths = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+    expect(widths[0]).toBeLessThanOrEqual(widths[1]);
+  }
 });
