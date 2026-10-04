@@ -24,7 +24,7 @@ import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
-import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
+import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, showsChanged, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -334,6 +334,12 @@ describe("after Submit", () => {
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: first })).toBe(false);
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: new Date("2026-10-08T09:00:00Z") })).toBe(true);
     expect([changedSinceSubmit({ submittedAt: null, signedOff: false }), changedSinceSubmit({ submittedAt: first, signedOff: true }), changedSinceSubmit({ submittedAt: first, signedOff: false })]).toEqual([false, false, true]);
+    // The page's notice: a "changed" for a submitted response, from a request sent once its
+    // last Submit had posted; not before a Submit, and not "not changed".
+    expect(showsChanged(true, 120, 100, true)).toBe(true);
+    expect(showsChanged(true, 100, 100, true)).toBe(true);
+    expect(showsChanged(true, 99, 100, true)).toBe(false);
+    expect([showsChanged(true, 120, -1, false), showsChanged(false, 120, 100, true), showsChanged(null, 120, 100, true)]).toEqual([false, false, false]);
   });
 
   it("opens a submitted personal link on Done, takes the sign-off back only on a change, and after the close shows the submitted page", async () => {
@@ -405,7 +411,7 @@ describe("after Submit", () => {
     if ("status" in renamed) throw new Error(renamed.error);
     expect([changedSinceSubmit(renamed.response), changedAfterSubmit(await row())]).toEqual([true, true]);
     const post = (body: unknown) => startRoute(new Request(`${BASE}/r/${link.token}/start`, { method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json", cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
-    expect(await (await post({ fields: { name: "Di Moss-Hale" } })).json()).toEqual({ ok: true, response: rid, changedSince: true });
+    expect(await (await post({ fields: { name: "Di Moss-Hale" } })).json()).toEqual({ ok: true, response: rid, submittedAt: now.toISOString(), changedSince: true });
     // Submitted again, then new picks: taken back again. The last save never moves back.
     await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, ...v() }, BASE, later, async () => {});
     expect(changedSinceSubmit(await row())).toBe(false);

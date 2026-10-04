@@ -303,8 +303,9 @@ version, writer and save number and the response id added the same day after the
   { error } with 404 unknown, 403 sample or passcode, 409 notOpen or not started (the
   sentence), 410 revoked or closed, 413, 415, 400, 422 (the sentence). Nothing is written
   on a refusal or a stale write. POST /r/[token]/start answers { ok: true, response,
-  changedSince } with the response's id, which ties the device's queue to it, and from E7-6
-  whether the response is submitted with changes not submitted again.
+  submittedAt, changedSince } with the response's id, which ties the device's queue to it,
+  and from E7-6 when it was last submitted (ISO, or null) and whether it is submitted with
+  changes not submitted again.
 - The stored answer (table answer, one per response and item; a write lands only when the
   stored version is its base, or the stored writer is its page with a lower writer_seq, or
   the stored writer is a page it names in after with writer_seq at most that save's; the

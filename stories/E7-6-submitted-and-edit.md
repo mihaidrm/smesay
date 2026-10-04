@@ -109,3 +109,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   change go at once; a new response after a lost one starts with no Submit and no notice;
   the comment; tests for an answer's and a Submit's stale answer carrying "changed". The
   mark's two-device races are recorded in docs/review-list.md.
+- Check of those fixes 2026-10-04: 0 blocking, 1 should-fix (a card could still be changed
+  while a Submit posted, by moving off the Wrap up, and the new "sent before the last Submit"
+  rule could then hide that change), 4 nits. Fixed: no move between screens while a Submit
+  posts (Back and Forward included; a lost response still goes to About you), so nothing on
+  the page changes during it; the page's own monotonic clock (performance.now) times the
+  requests; Start answers the response's submittedAt, so a response started in another
+  window comes with its own Submit; the review list's row; the notice rule and the version
+  rule are functions with tests (showsChanged, freshReply).

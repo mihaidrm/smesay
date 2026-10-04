@@ -7,8 +7,9 @@
 // node_modules/next/dist/docs/01-app/03-api-reference/04-functions/next-response.md). Only
 // JSON is taken, up to 16 KB (src/lib/request-json.ts: 415, 413, 400), so a plain
 // cross-site form cannot post here. The answer carries no project data: { ok, response,
-// changedSince } (the response's id, which ties this device's queue of unsent answers to it,
-// E7-3; whether a submitted response has changes not submitted again, E7-6) or { error }.
+// submittedAt, changedSince } (the response's id, which ties this device's queue of unsent
+// answers to it, E7-3; when it was last submitted or null, and whether a submitted response
+// has changes not submitted again, E7-6) or { error }.
 // No rate limit yet: E11-1 adds the respondent routes' limit (docs/review-list.md).
 import { NextResponse } from "next/server";
 import { cookiePath, PASSCODE_COOKIE } from "@/lib/link-access";
@@ -27,7 +28,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   if ("status" in result) return NextResponse.json({ error: result.error }, { status: result.status, headers: { "cache-control": "no-store" } });
   // changedSince (E7-6): a submitted response with changes not submitted again, a Start that
   // changed the details or the picks included.
-  const response = NextResponse.json({ ok: true, response: result.response.id, changedSince: changedSinceSubmit(result.response) }, { headers: { "cache-control": "no-store" } });
+  const response = NextResponse.json({ ok: true, response: result.response.id, submittedAt: result.response.submittedAt?.toISOString() ?? null, changedSince: changedSinceSubmit(result.response) }, { headers: { "cache-control": "no-store" } });
   if (result.device) response.cookies.set(DEVICE_COOKIE, result.device, { path: cookiePath(token), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: DEVICE_COOKIE_SECONDS });
   return response;
 }

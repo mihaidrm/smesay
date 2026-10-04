@@ -89,6 +89,9 @@ export type WrapStep = {
   // Mark the Wrap up failed (true, it retries), clear it (false), or leave it (null).
   failed: boolean | null;
 };
+// Whether a reply is about the version the page knows or a later one (a reply with no
+// readable version counts): an older one says nothing new.
+export const freshReply = (version: number | null, known: number): boolean => version === null || version >= known;
 export const sameEntry = (a: WrapEntry | null, b: WrapEntry) => a !== null && a.page === b.page && a.seq === b.seq;
 const same = sameEntry;
 
@@ -115,7 +118,7 @@ export function wrapReplyStep(status: number, body: WrapReplyBody, sent: WrapEnt
   const step: WrapStep = { outcome, version: null, rebase: null, done: false, held: null, changedElsewhere: false, error: null, failed: null };
   if (outcome === "saved" || outcome === "stale") {
     step.version = validCount(body.version) ? body.version : null;
-    if (step.version !== null && step.version < known) return step;
+    if (!freshReply(step.version, known)) return step;
     const stored = outcome === "saved" ? sent.draft : (body.wrap ?? null);
     const writer = typeof body.writer === "string" ? body.writer : null;
     // The page's own: the server took it, or holds a write of this page, or exactly that

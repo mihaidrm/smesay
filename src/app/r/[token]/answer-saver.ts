@@ -190,7 +190,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       inflight.current.set(itemId, entry);
       firstAt.current.delete(itemId);
     }
-    const sentAt = Date.now();
+    const sentAt = performance.now();
     const settle = () => { if (!keepalive && inflight.current.get(itemId) === entry) inflight.current.delete(itemId); };
     try {
       const reply = await fetch(`/r/${encodeURIComponent(token)}/answers`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId, picked: entry.draft.picked, reason: entry.draft.reason, comment: entry.draft.comment, base: entry.base, page: entry.page, seq: entry.seq, after: entry.after, response }) });

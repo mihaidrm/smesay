@@ -50,7 +50,7 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
 import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
-import { areasOf, chaptersFor, gapsOf, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { areasOf, chaptersFor, gapsOf, showsChanged, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 
 export type RespondentAppProps = {
@@ -118,8 +118,13 @@ export function RespondentApp(props: RespondentAppProps) {
   // undone before it was saved, or kept from an earlier visit and sent on opening, reads as
   // the server has it.
   const [changedSince, setChangedSince] = useState(props.changedSince);
-  const lastSubmit = useRef(0);
-  const heldSince = (since: boolean | null, sentAt = Date.now()) => { if (since === true && submitted && sentAt >= lastSubmit.current) setChangedSince(true); };
+  // Times are the page's own monotonic clock (developer.mozilla.org/docs/Web/API/Performance/
+  // now), so a phone's clock set back never hides a change. Nothing on the page can change
+  // while a Submit posts (`posting`: every move between screens waits), so a request sent
+  // before it posted was settled before it or is a copy of one that was.
+  const lastSubmit = useRef(-1);
+  const posting = useRef(false);
+  const heldSince = (since: boolean | null, sentAt = performance.now()) => { if (showsChanged(since, sentAt, lastSubmit.current, submitted !== null)) setChangedSince(true); };
   const itemIds = useMemo(() => items.map((it) => it.id), [items]);
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -170,7 +175,7 @@ export function RespondentApp(props: RespondentAppProps) {
     wrapSaver.reset();
     setStarted(false);
     setStartError(startedHere.current && !savedSinceStart.current ? RESPONDENT_ERRORS.cookiesBlocked : RESPONDENT_ERRORS.notStarted);
-    if (screenRef.current.kind !== "about") go({ kind: "about" });
+    if (screenRef.current.kind !== "about") go({ kind: "about" }, 0, null, true);
   };
   const change = (itemId: string, draft: CardDraft) => {
     setDrafts((d) => ({ ...d, [itemId]: draft }));
@@ -194,7 +199,10 @@ export function RespondentApp(props: RespondentAppProps) {
     document.querySelector<HTMLElement>("[data-screen-heading]")?.focus({ preventScroll: true });
   }, [where]);
 
-  const go = (next: Screen, itemIndex = 0, itemId: string | null = null) => {
+  const go = (next: Screen, itemIndex = 0, itemId: string | null = null, force = false) => {
+    // While a Submit posts the respondent stays on the Wrap up (see `posting`); a lost
+    // response still goes to About you (its Submit then stops).
+    if (posting.current && !force) return;
     target.current = itemId;
     saver.flush();
     setSubmitError(null);
@@ -218,6 +226,8 @@ export function RespondentApp(props: RespondentAppProps) {
   // Back and Forward in the browser move between screens.
   useEffect(() => {
     const onPop = () => {
+      // Back or Forward while a Submit posts: the Wrap up stays, with its address.
+      if (posting.current) { window.history.pushState(null, "", `?at=${screenParam(screenRef.current)}`); return; }
       if (screenRef.current.kind !== "about") setStorageNoticeDone(true);
       setScreen(parseScreen(new URLSearchParams(window.location.search).get("at"), started, screenCount(instrument.layout, chapters.length)));
     };
@@ -230,7 +240,7 @@ export function RespondentApp(props: RespondentAppProps) {
     setStartError(null);
     try {
       const response = await fetch(`/r/${encodeURIComponent(token)}/start`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fields: values, perspectives: chosen }) });
-      const body = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; response?: string; changedSince?: unknown };
+      const body = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; response?: string; submittedAt?: unknown; changedSince?: unknown };
       if (!response.ok || !body.ok) {
         // A link that changed (closed, revoked) since the page opened: the page shows its state.
         if (response.status === 410 || response.status === 404 || response.status === 403 || response.status === 409) { window.location.reload(); return; }
@@ -245,15 +255,21 @@ export function RespondentApp(props: RespondentAppProps) {
       // replaced the cookie): that is a lost response too, and the cards go again.
       if (typeof body.response === "string") {
         if (responseId !== null && body.response !== responseId && !lost.current) { saver.reset(); wrapSaver.reset(); lost.current = true; }
-        // Another response: nothing of the old one's Submit applies to it.
-        if (responseId !== null && body.response !== responseId) { setSubmitted(null); setChangedSince(false); }
+        // Another response (one started in another window on this device): its own Submit, as
+        // the server holds it, replaces the old one's.
+        if (responseId !== null && body.response !== responseId) {
+          const at = typeof body.submittedAt === "string" ? body.submittedAt : null;
+          setSubmitted(at ? { at, name: firstName(values) ?? props.welcome?.name ?? null, returning: true } : null);
+          setChangedSince(at !== null && body.changedSince === true);
+          lastSubmit.current = -1;
+        }
         setResponseId(body.response);
         saver.bind(body.response);
         wrapSaver.bind(body.response);
       }
       // A Start that changes the details or the picks of a submitted response takes its
       // sign-off back, as the server does (E7-6).
-      if (typeof body.changedSince === "boolean") heldSince(body.changedSince);
+      if (typeof body.changedSince === "boolean" && body.response === responseId) heldSince(body.changedSince);
       startedHere.current = true;
       savedSinceStart.current = false;
       setStarted(true);
@@ -288,6 +304,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const fieldsMissing = missingMandatory(instrument.fields, { ...fields, ...(prefilled ?? {}) }).length > 0;
   const submit = async () => {
     setSubmitting(true);
+    posting.current = true;
     setSubmitError(null);
     try {
       // Every change on the cards and the Wrap up reaches the server first, so the Submit is
@@ -300,9 +317,11 @@ export function RespondentApp(props: RespondentAppProps) {
       if (held !== "ok") { setSubmitError(held === "check" ? wrapSaver.lastProblem() : RESPONDENT_COPY.submitFailed); return; }
       const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
-      const postedAt = Date.now();
+      const postedAt = performance.now();
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
       const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue; changedSince?: unknown };
+      // Answered: the page can move again.
+      posting.current = false;
       if (response.ok && body.submittedAt) {
         // The server holds the Wrap up now; the sign-off is ticked again for the next Submit
         // (Back from Done shows it unticked).
@@ -322,6 +341,7 @@ export function RespondentApp(props: RespondentAppProps) {
     } catch {
       setSubmitError(RESPONDENT_COPY.submitFailed);
     } finally {
+      posting.current = false;
       setSubmitting(false);
     }
   };

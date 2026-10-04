@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { nextEntry } from "@/lib/answer-queue";
 import { EMPTY_WRAP, sameWrap, type WrapValue } from "@/lib/respondent-rules";
-import { answered, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry } from "@/lib/wrap-queue";
+import { answered, freshReply, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry } from "@/lib/wrap-queue";
 
 const P = "page-wrap-0001";
 const Q = "page-wrap-0002";
@@ -137,5 +137,10 @@ describe("the Wrap up's device queue", () => {
     expect(answered(wrapReplyStep(500, {}, sent, sent, P, 0))).toBe(false);
     // A reply with no readable version still settles the change (as the cards' does).
     expect(wrapReplyStep(200, {}, sent, sent, P, 3)).toMatchObject({ done: true, failed: false });
+  });
+
+  it("tells a reply about an older version than the page has seen", () => {
+    expect([freshReply(5, 5), freshReply(6, 5), freshReply(null, 5)]).toEqual([true, true, true]);
+    expect(freshReply(4, 5)).toBe(false);
   });
 });

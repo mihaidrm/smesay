@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { delayFor, nextEntry, RETRY_MS, SAVE_TIMEOUT_MS, settleState } from "@/lib/answer-queue";
 import { EMPTY_WRAP, RESPONDENT_ERRORS, wrapKey, type SaveRef, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
-import { answered, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
+import { answered, freshReply, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
 import { newPageId } from "./answer-saver";
 
 export type WrapSaverEvents = {
@@ -109,7 +109,7 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       inflight.current = entry;
       firstAt.current = null;
     }
-    const sentAt = Date.now();
+    const sentAt = performance.now();
     const settled = () => { if (!keepalive && inflight.current === entry) inflight.current = null; };
     try {
       const reply = await fetch(`/r/${encodeURIComponent(token)}/wrap`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: bodyOf(response, entry) });
@@ -121,7 +121,7 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
       // A reply about an older version than the page has seen says nothing new.
-      if ((step.outcome === "saved" || step.outcome === "stale") && (step.version === null || step.version >= known.current)) eventsRef.current.onSaved?.(typeof body.changedSince === "boolean" ? body.changedSince : null, sentAt);
+      if ((step.outcome === "saved" || step.outcome === "stale") && freshReply(step.version, known.current)) eventsRef.current.onSaved?.(typeof body.changedSince === "boolean" ? body.changedSince : null, sentAt);
       if (step.version !== null) known.current = Math.max(known.current, step.version);
       if (step.held) { held.current = step.held; refused.current = null; }
       if (step.failed !== null) markFailed(step.failed);

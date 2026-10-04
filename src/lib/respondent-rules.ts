@@ -431,6 +431,11 @@ export function parseSubmitInput(raw: unknown, ctx: WrapCtx): { error: string } 
 export function changedAfterSubmit(r: { firstSubmittedAt: Date | null; updatedAt: Date }): boolean {
   return r.firstSubmittedAt !== null && r.updatedAt.getTime() > r.firstSubmittedAt.getTime();
 }
+// Whether an answer's changedSince turns the page's "You changed answers after submitting"
+// on (E7-6): a "changed" for a submitted response, from a request sent once the page's last
+// Submit had posted (an earlier one was settled before that Submit, or is a copy of one).
+// Times are the page's monotonic clock; -1 before any Submit.
+export const showsChanged = (since: boolean | null, sentAt: number, lastSubmit: number, submitted: boolean): boolean => since === true && submitted && sentAt >= lastSubmit;
 // A submitted response with changes not submitted again (E7-6, acceptance 6): every change
 // takes the sign-off back until the next Submit.
 export const changedSinceSubmit = (r: { submittedAt: Date | null; signedOff: boolean }): boolean => r.submittedAt !== null && !r.signedOff;
