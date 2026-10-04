@@ -10,7 +10,7 @@
 // a revoked row reads Revoked with the date). The box and the buttons are on
 // while the public link is published and not closed or revoked. The sample shows its list
 // read-only. Copy: docs/copy/app.md (Share, Personal invites).
-import { listInvitees, inviteStatus } from "@/lib/invitees";
+import { linkMark, listInvitees, inviteStatus } from "@/lib/invitees";
 import { INVITEES_COPY } from "@/lib/invitees-rules";
 import { formatUtc, type LinkState } from "@/lib/sharing";
 import type { WorkspaceId } from "@/db/types";
@@ -76,7 +76,7 @@ export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkS
                           const check = canRemind(row, now);
                           return <RemindForm projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} show={check.ok ? "button" : check.why === "tooSoon" ? { tooSoon: tooSoonLine(check) } : "none"} />;
                         })()}
-                        {row.revokedAt ? <RenewInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} /> : <RevokeInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} token={row.token} />}
+                        {row.revokedAt ? <RenewInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} /> : <RevokeInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} mark={linkMark(row.token)} />}
                       </div>
                     )}
                   </TableCell>

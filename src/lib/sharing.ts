@@ -93,21 +93,24 @@ export async function publishLink(ws: WorkspaceId, projectId: string, instrument
 
 // The dates and the passcode of a published link (acceptance 5: dates change after
 // publishing). An empty passcode keeps the one set; "remove" clears it.
-export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId: string, rawOpens: unknown, rawCloses: unknown, rawPasscode: unknown, removePasscode: boolean, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+// `inviteId` is the row the page showed (E6-4): a tab left open across a revoke and a
+// Publish again is refused rather than putting its dates on the new link.
+export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, rawOpens: unknown, rawCloses: unknown, rawPasscode: unknown, removePasscode: boolean, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   const existing = await invites.publicForInstrument(ws, instrumentId);
   if (!existing) return { error: LINK_ERRORS.notPublished };
   if (existing.revokedAt) return { error: LINK_ERRORS.revokedSave };
+  if (existing.id !== inviteId) return { error: LINK_ERRORS.changed };
   const parsed = parseLinkInput(rawOpens, rawCloses, rawPasscode, now, true);
   if ("error" in parsed) return { error: parsed.error };
   const { opensAt, closesAt, passcode } = parsed.input;
   const patch: { opensAt: Date | null; closesAt: Date; passcodeHash?: string | null } = { opensAt, closesAt };
   if (removePasscode) patch.passcodeHash = null;
   else if (passcode) patch.passcodeHash = await hashPasscode(passcode);
-  const result = await invites.updatePublic(ws, instrumentId, patch);
+  const result = await invites.updatePublic(ws, instrumentId, inviteId, patch);
   if (!result) throw new NotFoundError();
-  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.revokedSave : BUILD_COPY.replaced };
+  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.revokedSave : result.refused === "changed" ? LINK_ERRORS.changed : BUILD_COPY.replaced };
   return { invite: result.invite };
 }
 
@@ -119,7 +122,6 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
 export async function revokeLink(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  if (!/^[0-9a-f-]{36}$/.test(inviteId)) return { error: LINK_ERRORS.changed };
   const result = await invites.revokePublic(ws, instrumentId, inviteId, now);
   if (!result) throw new NotFoundError();
   if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.alreadyRevoked : result.refused === "changed" ? LINK_ERRORS.changed : BUILD_COPY.replaced };

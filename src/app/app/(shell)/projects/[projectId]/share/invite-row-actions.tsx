@@ -9,15 +9,16 @@ import { Button } from "@/components/ui/button";
 import { INVITEES_COPY } from "@/lib/invitees-rules";
 import { renewInviteAction, revokeInviteAction, type InvitesFormState, type ProjectFormState } from "../../actions";
 
-// token: the link the row showed, so a stale tab cannot revoke a fresh one.
-export function RevokeInvite({ projectId, instrumentId, inviteId, token }: { projectId: string; instrumentId: string; inviteId: string; token: string }) {
+// mark: a short hash of the link the row showed (src/lib/invitees.ts linkMark; never the
+// token), so a stale tab cannot revoke a fresh one.
+export function RevokeInvite({ projectId, instrumentId, inviteId, mark }: { projectId: string; instrumentId: string; inviteId: string; mark: string }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(revokeInviteAction, { error: null, saved: false });
   return (
     <form action={action} className="flex flex-col items-end gap-1" data-testid="revoke-invite-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="inviteId" value={inviteId} />
-      <input type="hidden" name="token" value={token} />
+      <input type="hidden" name="mark" value={mark} />
       <Button type="submit" variant="destructive" size="small" loading={pending}>{INVITEES_COPY.revoke}</Button>
       {state.error && <p role="alert" className="text-[13px] text-danger">{state.error}</p>}
     </form>

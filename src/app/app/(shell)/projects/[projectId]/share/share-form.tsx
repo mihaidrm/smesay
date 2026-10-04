@@ -30,7 +30,9 @@ const noop = () => () => {};
 const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 
 // again: after a revoke (E6-4), the button reads "Publish again" and makes a new link.
-export function ShareForm({ projectId, instrumentId, published, again = false, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
+// inviteId: the published row the page showed, so a Save from a tab left open across a
+// revoke and a Publish again is refused (E6-4).
+export function ShareForm({ projectId, instrumentId, inviteId = null, published, again = false, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; inviteId?: string | null; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(published ? saveLinkAction : publishAction, { error: null, saved: false });
   const mounted = useMounted();
   const [opensTyped, setOpens] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export function ShareForm({ projectId, instrumentId, published, again = false, o
     <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="share-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
+      {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
       <input type="hidden" name="opensAt" value={toIso(opens)} />
       <input type="hidden" name="closesAt" value={toIso(closes)} />
       <input type="hidden" name="removePasscode" value={remove ? "1" : "0"} />

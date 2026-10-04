@@ -20,6 +20,7 @@ export const INVITEES_COPY = {
   linkClosed: "The public link is closed. Move its close date to send invites.",
   linkRevoked: "The public link is revoked. Publish again to send invites.",
   linkReplaced: "A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link.",
+  newLinkReplaced: "A newer version of the list was published since the page opened. Nothing was sent. Reload the page to see where things stand.",
   headers: { person: "Person", status: "Status", reminders: "Reminders", actions: "Actions" },
   status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent", revoked: "Revoked" },
   revoke: "Revoke",

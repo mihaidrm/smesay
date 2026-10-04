@@ -170,6 +170,8 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-4) | New link on a row that is not revoked (a stale tab) | [EMAIL] is not revoked, so it has its link. Reload the page to see the row as it is. |
 | Inline, invites (E6-4), under New link | The new link's email failed (the row reads Not sent with the reason) | The new link for [EMAIL] was made but not sent: [PROVIDER REASON]. Paste the address again to send it. |
 | Inline, invites (E6-4) | New link while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
+| Inline, invites (E6-4) | New link on an instrument whose link a newer version replaced since the page opened | A newer version of the list was published since the page opened. Nothing was sent. Reload the page to see where things stand. |
+| Inline, Share (E6-4) | Save the dates in a tab that showed a link published again since | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. ([PROVIDER REASON] is the server's first line, cut to 200 characters, its final period dropped, with every word holding a host, an address or a login cut to "[server]" (SECURITY.md); when nothing but servers was in it: the mail server refused it, and its reason named only servers; when it was empty: the mail server refused it) |
 
 ## Respondent link states (E7)

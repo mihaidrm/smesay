@@ -127,9 +127,10 @@ export const invites = {
       return { created };
     });
   },
-  // Claims a personal invite for sending again (E6-2): one never sent whose send failed,
-  // or one whose last send started RESEND_AFTER_MINUTES ago with no outcome (a request
-  // that died); one started more recently with no outcome is in flight on another request.
+  // Claims a personal invite for sending again (E6-2): one never sent and not revoked
+  // (E6-4) whose send failed, or one whose last send started RESEND_AFTER_MINUTES ago with
+  // no outcome (a request that died); one started more recently with no outcome is in
+  // flight on another request.
   // One statement that moves send_started_at, so two sends cannot both claim it. Null when
   // it cannot be claimed.
   claimResend: async (workspaceId: WorkspaceId, id: string, patch: { name: string | null; roleHint: string | null }, now = new Date()): Promise<Invite | null> => {
@@ -241,8 +242,10 @@ export const invites = {
   // that waited on the publish of a newer draft finds its link replaced and is refused. The
   // dates go to the instrument's personal links too (E6-2: they follow the public link);
   // the passcode does not.
-  updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" | "revoked" } | null> => {
-    if (!isUuid(instrumentId)) return null;
+  // `inviteId` is the row the page showed: a tab left open across a revoke and a Publish
+  // again is refused ("changed") rather than putting its dates on the new link.
+  updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, inviteId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" | "revoked" | "changed" } | null> => {
+    if (!isUuid(instrumentId) || !isUuid(inviteId)) return null;
     return db.transaction(async (tx) => {
       const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
       if (!own) return null;
@@ -254,6 +257,7 @@ export const invites = {
       if (!live) return { refused: "none" as const };
       if (live.instrumentId !== instrumentId) return { refused: "replaced" as const };
       if (live.revokedAt) return { refused: "revoked" as const };
+      if (live.id !== inviteId) return { refused: "changed" as const };
       const rows = await tx.update(invite).set(patch).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, live.id))).returning();
       const dates: Partial<Pick<PublicLinkData, "opensAt" | "closesAt">> = {};
       if ("opensAt" in patch) dates.opensAt = patch.opensAt;

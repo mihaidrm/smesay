@@ -25,8 +25,10 @@ export function LinkWatch({ token }: { token: string }) {
       }
     };
     const id = setInterval(tick, LINK_POLL_SECONDS * 1000);
-    // A tab coming back to the front asks at once (a background tab's timer may have been
-    // held back by the browser).
+    // A tab coming back to the front asks at once: browsers slow timers in background tabs
+    // (developer.mozilla.org/docs/Web/API/Page_Visibility_API, "Policies in place to aid
+    // background page performance"; the visibilitychange event:
+    // developer.mozilla.org/docs/Web/API/Document/visibilitychange_event).
     const onVisible = () => { if (document.visibilityState === "visible") void tick(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => { stopped = true; clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };

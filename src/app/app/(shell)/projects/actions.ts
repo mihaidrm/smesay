@@ -381,7 +381,7 @@ export async function saveLinkAction(_previous: ProjectFormState, formData: Form
   const { current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
-    const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
+    const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), String(formData.get("inviteId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
     if ("error" in result) return { ...NONE, error: result.error };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
@@ -470,9 +470,9 @@ export async function revokeInviteAction(_previous: ProjectFormState, formData: 
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");
-  const token = String(formData.get("token") ?? "");
+  const mark = String(formData.get("mark") ?? "");
   try {
-    const result = await revokeInvitee(current.ws, projectId, instrumentId, inviteId, token);
+    const result = await revokeInvitee(current.ws, projectId, instrumentId, inviteId, mark);
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error };
     return { ...NONE, saved: true };

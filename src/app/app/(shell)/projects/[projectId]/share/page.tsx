@@ -91,7 +91,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
         </ul>
       ) : (
         <>
-          <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${state === "revoked" ? "revoked" : "live"}`} projectId={projectId} instrumentId={instrument.id} published={invite !== null && state !== "revoked"} again={state === "revoked"} opensAt={state === "revoked" ? null : (invite?.opensAt?.toISOString() ?? null)} closesAt={state === "revoked" ? null : (invite?.closesAt?.toISOString() ?? null)} hasPasscode={state !== "revoked" && invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
+          <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${state === "revoked" ? "revoked" : "live"}`} projectId={projectId} instrumentId={instrument.id} inviteId={invite && state !== "revoked" ? invite.id : null} published={invite !== null && state !== "revoked"} again={state === "revoked"} opensAt={state === "revoked" ? null : (invite?.opensAt?.toISOString() ?? null)} closesAt={state === "revoked" ? null : (invite?.closesAt?.toISOString() ?? null)} hasPasscode={state !== "revoked" && invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
           {invite && state !== "revoked" && <RevokeLink projectId={projectId} instrumentId={instrument.id} inviteId={invite.id} />}
         </>
       )}
