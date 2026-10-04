@@ -94,12 +94,14 @@ the check constraints use them). Change this file first.
   status: ("submitted" | "inProgress")[], includeUnsubmitted: boolean, sort: { key, dir:
   "asc" | "desc" } | null } (E8-2: a column key in a safe shape, which each table maps to
   SQL from its own list; never a filter), split: string | null (E8-3: a dropdown field's key
-  for "Split by"; never a filter). It selects people (started responses, and personal invites not opened yet
+  for "Split by"; never a filter), gaps: string | null (E8-6: the dropdown field "Where groups
+  disagree" compares by, Role by default when the instrument has it, else its first dropdown
+  field; never a filter). It selects people (started responses, and personal invites not opened yet
   with the name and role their About you starts with): a person with at least one answer of
   a chosen kind (or an item they see unanswered), with a reason or comment, whose fields,
   perspective and status match; the numbers count those people's answers. It travels in the
   URL (f.[key], kind, comment=1, perspective, status, unsubmitted=1 or 0, absent for the
-  PM's stored choice, sort and dir, split) and is read and written by parseResultsFilter and filterQuery in
+  PM's stored choice, sort and dir, split, gaps when it is not the default) and is read and written by parseResultsFilter and filterQuery in
   src/lib/results-filter.ts, against the instrument's fields and perspectives.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
@@ -153,7 +155,11 @@ for a public-link response with no name), anon (for a public-link response with 
 name, its number among the instrument's public-link responses by start; null otherwise), status, changedSince, submittedAgain, answered (complete answers to
 the items seen), visible, submittedAt, reminders, withComment (answers that count under the
 switch) }, sorted by the filter's sort from the tab's list of columns (a field
-column only for a key in fieldKeys); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
+column only for a key in fieldKeys); gaps.byField(ws, instrumentId, filter, fieldKey) (E8-6)
+every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
+share between two groups with 3 answers or more, in percentage points; null when fewer than
+two are compared), groups: GapGroup { group, agree, answered, compared }[] }, largest gap
+first, then the list's order; detail.item(ws, instrumentId, itemId, filter) (E8-5) one
 item of the instrument as DetailItem { id, reference, area, originalText, readerText,
 readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
 notYet } counted in SQL and a DetailRow { personId, invited, submitted, fields, who,

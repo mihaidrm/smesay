@@ -220,6 +220,11 @@ screen:
   the respondent side (E7), the dashboard (E8), the to-do list (E9) and the CSV (E10).
 - Step 3 "Send one link" and "Experts answer without an account or an app. Their answers
   arrive while they work": E5 to E7, and E8-7 (live updates) for "arrive while they work".
+- What you get back, "Know who disagrees, and why": its bars compare Sales, 2 answers, with
+  everyone else. Decision 0031 does not compare a group with fewer than 3 answers, and the
+  conflict view (E8-6, built 2026-10-04) compares the field's groups, not one group with
+  everyone else; at the launch gate the card's example gets groups of 3 or more, or the card
+  is cut (docs/review-list.md).
 - What you get back: "as answers arrive" (E8-7, live updates), the tiles a PM picks ("+ Choose tiles") and the filter chips (E8-1), the
   three views Table, Columns and Share (E8-3), the group split and the quoted reason (E8-4 to
   E8-6), the to-do list that cites answers (E9-1), "matches the export to the row" with CSV
