@@ -89,8 +89,8 @@ Built 2026-10-04 (design note 55, decision 0044):
   goes to a typed address.
 - Acceptance 6: e2e/respondent-submit.spec.ts completes a two-item list on a personal link,
   submits, sees Done and the receipt, changes an answer, submits again and sees the new time
-  and Submitted on the PM's invite row. The PM tracker the story names is E8-2, not built;
-  the invite row stands in (docs/review-list.md).
+  and Submitted on the PM's invite row. The PM tracker the story names is E8-2 (built
+  2026-10-04 after this story); the invite row stands in (docs/review-list.md).
 - withinPlan(ws, "responses") is checked on the first Submit (always true on the free entry);
   the month counts the first Submit (first_submitted_at).
 - Audit 2026-10-04: 5 blocking (the receipt to a typed address on a public link; a Submit

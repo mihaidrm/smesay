@@ -33,15 +33,16 @@ the test does.
    sort by submitted date and see the order flip.
 
 ## Out of scope
-- Exporting the tracker: E10-1's answers CSV carries the same columns and the same filter.
+- Exporting the tracker: E10-1's "People" file carries the tab's columns, names each person
+  as the tab does and takes the same filter (E10-1, acceptance 3, amended 2026-10-04).
 
 ## Open questions
 - None.
 
 ## Technical notes
 One query with the respondent fields unpacked from response.fields (jsonb) by key; the
-visible-set count per respondent comes from src/lib/perspectives.ts in SQL form (a lateral
-count over items filtered by perspectives). The sort is a whitelist of column keys, never a
+visible-set count per respondent comes from src/lib/perspectives.ts in SQL form (as built: one
+grouped join of the people with the items they see, not a count per person). The sort is a whitelist of column keys, never a
 string from the URL in the query.
 
 Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):

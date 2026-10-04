@@ -21,7 +21,6 @@ type Props = { ws: WorkspaceId; instrumentId: string; filter: ResultsFilter; ctx
 export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Props) {
   const fields = ctx.fields.filter((f) => f.key !== "name");
   const rows = await tracker.people(ws, instrumentId, filter, ctx.fields.map((f) => f.key));
-  const sort = filter.sort ?? { key: "name", dir: "asc" as const };
   const columns: { key: string; label: string }[] = [
     { key: "name", label: RESPONSES_COPY.name },
     ...fields.map((f) => ({ key: `field.${f.key}`, label: f.label })),
@@ -32,6 +31,8 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
     { key: "reminders", label: RESPONSES_COPY.reminders },
     { key: "comments", label: RESPONSES_COPY.withComment },
   ];
+  // The header marked is the column the query sorted by: an unknown key sorts by name.
+  const sort = filter.sort && columns.some((c) => c.key === filter.sort!.key) ? filter.sort : { key: "name", dir: "asc" as const };
   return (
     <div className="card overflow-x-auto p-0" data-testid="responses-tab">
       <table className="w-full min-w-[880px] text-left text-sm">

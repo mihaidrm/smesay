@@ -267,6 +267,8 @@ describe("the Responses tab", () => {
     expect((await tracker.people(wsE, instrumentE, NONE, keys)).find((p) => p.who === "Sam Hill")!.withComment).toBe(0);
     expect(by("cy@x.example")).toMatchObject({ status: "inProgress", anon: null, source: "personal" });
     expect(by("bo@x.example")).toMatchObject({ status: "invited", anon: null });
+    // The Name filter finds what the tab shows.
+    expect((await tracker.people(wsE, instrumentE, { ...NONE, fields: { name: "x.example" } }, keys)).map((p) => p.who).sort()).toEqual(["bo@x.example", "cy@x.example"]);
     const nameless = () => tracker.people(wsE, instrumentE, { ...NONE, sort: { key: "name", dir: "asc" } }, keys).then((rows) => rows.filter((p) => p.who === null).map((p) => p.anon));
     const [a, b, c] = await nameless();
     expect(b! - a!).toBe(1);

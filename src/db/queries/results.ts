@@ -30,7 +30,10 @@ const list = (values: string[]) => sql.join(values.map((v) => sql`${v}`), sql`, 
 function personConditions(ws: WorkspaceId, f: ResultsFilter): SQL[] {
   const conds: SQL[] = [];
   for (const [key, v] of Object.entries(f.fields)) {
-    conds.push(Array.isArray(v) ? sql`(p.fields ->> ${key}) in (${list(v)})` : sql`strpos(lower(coalesce(p.fields ->> ${key}, '')), lower(${v})) > 0`);
+    // A text filter on the name reads the name shown (E8-2: a personal invite's name or email
+    // when the field is empty), so what the filter finds is what the tab shows.
+    const text = key === "name" ? sql`p.who` : sql`(p.fields ->> ${key})`;
+    conds.push(Array.isArray(v) ? sql`(p.fields ->> ${key}) in (${list(v)})` : sql`strpos(lower(coalesce(${text}, '')), lower(${v})) > 0`);
   }
   if (f.perspective !== null) conds.push(sql`${f.perspective} = any(p.perspectives)`);
   if (f.status.length === 1) conds.push(f.status[0] === "submitted" ? sql`p.src = 'r' and p.submitted_at is not null` : sql`p.src = 'r' and p.submitted_at is null`);
