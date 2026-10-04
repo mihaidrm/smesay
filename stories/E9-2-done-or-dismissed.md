@@ -6,7 +6,7 @@ Outcome: actions move to done or dismissed and stay there across runs.
 
 ## Acceptance criteria
 1. Each open action has Mark done and Dismiss (PM app board); a closed action shows its state
-   pill, greyed, with Reopen.
+   pill, greyed, with Reopen. Not on the sample, which is read-only (E8-8; E9-1 acceptance 7).
 2. State is insight.state (open, done, dismissed; INTERFACES.md). A new run (E9-1) never
    creates an action that matches a dismissed one: matching is by the set of cited answer ids
    and kind; a test dismisses an action, runs again with the same output and sees it absent.

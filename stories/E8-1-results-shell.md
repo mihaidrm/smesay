@@ -98,8 +98,8 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the poi
   unsubmitted answers from every answer count; the people tiles (submitted of invited, in
   progress) count people whatever the switch. The rows' "not submitted" mark is the rows'
   stories' (E8-2: the In progress pill; E8-4).
-- Acceptance 8: the sample's Results carries the watermark band; the band on every other
-  screen of the sample is E8-8's.
+- Acceptance 8: the sample's Results carries the watermark band; since E8-8 (built
+  2026-10-04) the project frame draws it on every step of the sample.
 - Acceptance 9: e2e/results.spec.ts.
 - Audit 2026-10-04: 0 blocking, 9 should-fix, 6 nits. Fixed: a text field's box resets with
   the URL; the no-match state only when the filter keeps nobody (people with no counted

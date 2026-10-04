@@ -43,7 +43,8 @@ existing parts.
 - A personal invite counts among the invited once its email went out (sent), not while the
   mail failed.
 - The sample's Results carries the watermark band "Sample data: invented answers, for looking
-  around" (CLAUDE.md, dashboard rules); E8-8 puts it on every screen of the sample.
+  around" (CLAUDE.md, dashboard rules); E8-8 (built 2026-10-04) moved it to the project
+  frame, so every step of the sample has it.
 
 ## Components added
 
@@ -57,9 +58,10 @@ existing parts.
   box per text field and a select for the perspective.
 - The error banner of a part is the design system's Banner with Try again in the Dismiss
   pill's place.
-- The sample's band (SampleBand in the Results page): the dashed outline on the tint, the
-  watermark line from E8-8 in soft ink, never dismissed. The PM app board's band now opens
-  with the same line; its Delete sample button comes with E8-8.
+- The sample's band: the dashed outline on the tint, the watermark line from E8-8 in soft
+  ink, never dismissed. Moved with E8-8 to src/components/app/sample-band.tsx, drawn in the
+  project's pinned header on every step; Delete sample sits in the header in Archive's place
+  (the board's band no longer carries the button).
 
 - Added with E8-2 (the Responses tab), after its audit: the sortable header is a link in
   the column header (the label, then an arrow hidden from assistive technology), with

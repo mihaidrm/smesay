@@ -3,6 +3,7 @@
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
 // one, the member count), the nav (Projects, Settings), the project list,
 // then at the bottom the sample card, the mode toggle and the signed-in email with Sign out.
+// The sample opens on Results from the list and the card (stories/E8-8, acceptance 1).
 // The sidebar is pinned to the viewport (sticky, the viewport's height) so the whole menu
 // stays in view however long the page is; only its project list scrolls, inside the
 // sidebar (Mihai, 2026-10-03).
@@ -47,7 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/app" className="rounded-sm text-xs font-semibold text-violet-text outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">All</Link>
           </div>
           {projectRows.filter((p) => p.archivedAt === null).map((p) => (
-            <Link key={p.id} href={`/app/projects/${p.id}/import`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+            <Link key={p.id} href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
               <span className="truncate">{p.name}</span>
               {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
             </Link>
@@ -58,7 +59,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="flex flex-col gap-2 rounded-xl border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
               <div className="text-[13px] font-bold">Try the sample</div>
               <div className="text-xs leading-[17px] text-ink-muted">{sample.name}: every screen has data, nothing to set up.</div>
-              <Link href={`/app/projects/${sample.id}/import`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
+              <Link href={`/app/projects/${sample.id}/results`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
             </div>
           )}
           <ModeToggle />

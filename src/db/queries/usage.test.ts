@@ -11,6 +11,7 @@ import { ensureTestDatabase } from "../test-db";
 import { aiRuns, instruments, invites, itemSets, projects, responses, workspaces } from "@/db/queries";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { internal } from "@/db/queries/internal";
+import { createSampleProject } from "@/db/queries/projects";
 import { monthStart, usage } from "@/db/queries/usage";
 
 let sql: ReturnType<typeof postgres>;
@@ -39,7 +40,7 @@ async function workspaceWithRows(label: string) {
     await sql`update ai_run set created_at = ${createdAt} where id = ${run.id}`;
   }
   // The sample project's rows never count.
-  const sample = await projects.create(ws, { name: "Sample project", isSample: true });
+  const sample = await createSampleProject(ws, { name: "Sample project" });
   const sampleSet = await itemSets.create(ws, { projectId: sample.id, version: 1, source: "csv" });
   const sampleInstrument = await instruments.create(ws, { projectId: sample.id, itemSetId: sampleSet.id, title: "S" });
   const sampleInvite = await invites.create(ws, { instrumentId: sampleInstrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });

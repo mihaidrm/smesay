@@ -72,15 +72,15 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
     <>
     {!project.isSample && <LiveUpdates projectId={project.id} />}
     <ResultsBoundary what={RESULTS_COPY.strip}>
-      <ResultsBody projectId={project.id} sample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
+      <ResultsBody projectId={project.id} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
     </ResultsBoundary>
     </>
   );
 }
 
-type BodyProps = { projectId: string; sample: boolean; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; tab: Tab; item: string | null; tiles: TileId[]; view: AgreementView };
+type BodyProps = { projectId: string; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; tab: Tab; item: string | null; tiles: TileId[]; view: AgreementView };
 
-async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter, ctx, tab, item, tiles, view }: BodyProps) {
+async function ResultsBody({ projectId, sampleId, instrument, ws, filter, ctx, tab, item, tiles, view }: BodyProps) {
   const n = await results.numbers(ws, instrument.id, filter);
   if (!n) notFound();
   if (!n.anyAnswer) return <NoAnswers projectId={projectId} sampleId={sampleId} link={await linkPhrase(ws, projectId)} />;
@@ -98,7 +98,6 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
   const none = active && n.invited === 0;
   return (
     <div className="flex flex-col gap-5" data-testid="results">
-      {sample && <SampleBand />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />
         <TileChooser projectId={projectId} tiles={tiles} />
@@ -185,12 +184,6 @@ async function linkPhrase(ws: BodyProps["ws"], projectId: string): Promise<strin
   if (state === "closed") return RESULTS_COPY.link.closed;
   if (state === "notOpen") return RESULTS_COPY.link.notOpen(formatUtc(link.opensAt!));
   return link.closesAt ? RESULTS_COPY.link.openUntil(formatUtc(link.closesAt)) : RESULTS_COPY.link.open;
-}
-
-// The sample's watermark (CLAUDE.md, dashboard rules; stories/E8-8, which puts the band on
-// every screen of the sample): it cannot be dismissed.
-function SampleBand() {
-  return <p className="rounded-xl border border-dashed border-hairline-strong bg-tint px-4 py-2 text-sm font-semibold text-ink-soft" data-testid="sample-band">{RESULTS_COPY.sampleBand}</p>;
 }
 
 function NoAnswers({ projectId, sampleId, link }: { projectId: string; sampleId: string | null; link: string }) {

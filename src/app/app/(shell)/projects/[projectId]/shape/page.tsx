@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { instruments, items, itemSets, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
+import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { isPublished } from "@/lib/instruments";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
@@ -69,6 +70,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
         ) : (
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
+        {project.isSample && <p className="text-[13px] text-ink-muted" data-testid="sample-read-only">{PROJECTS_COPY.sample}</p>}
         {set && rows.length > 0 && !project.isSample && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={`/app/projects/${project.id}/import#about-title`} />}
         {perspectivesNote && (
           <p className="text-[13px] text-ink-muted" data-testid="perspectives-note">
