@@ -14,11 +14,12 @@ import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
-import { DEFAULT_MODEL } from "@/lib/ai/prices";
+import { costEurCents, DEFAULT_MODEL, estimateCents, formatEur } from "@/lib/ai/prices";
+import { internal } from "@/db/queries/internal";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { citationLines, keptActions, setActionState, share, writeActions } from "@/lib/insights";
+import { ACTIONS_EXPECTED_OUTPUT, citationLines, keptActions, setActionState, share, writeActions } from "@/lib/insights";
 import { sameAction } from "@/db/queries/insights";
 import { openDraft, saveFields } from "@/lib/instruments";
 import type { ResultsFilter } from "@/lib/results-filter";
@@ -290,5 +291,45 @@ describe("the pure parts", () => {
       { text: "Bo on \"Limits\"", itemId: "i3" },
       { text: "Anonymous 1, missing item", itemId: null },
     ]);
+  });
+});
+
+// E9-3: the estimate in front of a refusal for the budget or the product cap, no call made;
+// the last run and the month's spend for the cost line, scoped to the workspace.
+describe("the cost of a run", () => {
+  it("prices the input at four characters a token and the expected output", () => {
+    expect(estimateCents(DEFAULT_MODEL, "x".repeat(4_000), ACTIONS_EXPECTED_OUTPUT)).toBe(costEurCents(DEFAULT_MODEL, 1_000, 1_500));
+    expect(formatEur(5)).toBe("EUR 0.05");
+    expect(formatEur(1234)).toBe("EUR 12.34");
+  });
+
+  it("puts the estimate in front of a budget or a cap refusal and calls nothing", async () => {
+    const p = await answeredProject();
+    const { fetch, calls } = transport(fourAndABadOne);
+    await internal.setAiBudgetEur(a.ws, 0);
+    try {
+      const budget = await writeActions(a, p.project.id, { fetch });
+      expect("error" in budget && budget.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. This workspace has used its AI budget for the month\./);
+    } finally {
+      await internal.setAiBudgetEur(a.ws, 10);
+    }
+    process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "0";
+    try {
+      const paused = await writeActions(a, p.project.id, { fetch });
+      expect("error" in paused && paused.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. AI is paused until next month\./);
+    } finally {
+      process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
+    }
+    expect(calls).toHaveLength(0);
+  });
+
+  it("reads the project's last run of Write actions, and nothing across workspaces", async () => {
+    const p = await answeredProject();
+    expect(await aiRuns.lastFor(a.ws, p.project.id, "insights")).toBeNull();
+    await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
+    const last = await aiRuns.lastFor(a.ws, p.project.id, "insights");
+    expect(last && [last.tokensIn, last.tokensOut, last.costEurCents]).toEqual([1001, 301, costEurCents(DEFAULT_MODEL, 1001, 301)]);
+    expect(await aiRuns.lastFor(b.ws, p.project.id, "insights")).toBeNull();
+    expect(await aiRuns.lastFor(a.ws, p.project.id, "shape")).toBeNull();
   });
 });

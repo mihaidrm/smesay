@@ -18,6 +18,8 @@ const EXCEPTIONS = {
   [path.join(SRC, "lib", "workspace.ts")]: ["queries/internal"],
   [path.join(SRC, "lib", "ai", "client.ts")]: ["queries/internal"],
   [path.join(SRC, "lib", "ai", "client.test.ts")]: ["queries/internal"],
+  // E9-3: the actions test sets a workspace budget to see the refusal with its estimate.
+  [path.join(SRC, "lib", "insights.test.ts")]: ["queries/internal"],
 };
 
 function resolve(spec, fromFile) {

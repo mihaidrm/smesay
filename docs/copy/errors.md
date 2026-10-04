@@ -246,8 +246,8 @@ of the content; page means it replaces the screen.
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
 | Inline, Actions tab (E9-1) | Write actions on the sample | The sample's actions are invented and cannot be written again. Write actions on your own project. |
-| Inline, Actions tab (E9-1) | The AI budget for the month is used | This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
-| Inline, Actions tab (E9-1) | AI paused by the product cap | AI is paused until next month. The answers are all on the other tabs. |
+| Inline, Actions tab (E9-1, E9-3) | The AI budget for the month is used | This run would cost about EUR [ESTIMATE]. This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
+| Inline, Actions tab (E9-1, E9-3) | AI paused by the product cap | This run would cost about EUR [ESTIMATE]. AI is paused until next month. The answers are all on the other tabs. |
 | Inline, Actions tab (E9-1) | The plan's AI runs for the month are used | This workspace has used its AI runs for the month on its plan. The answers are all on the other tabs. Change the plan, or come back next month. |
 | Inline, Actions tab (E9-1) | The AI did not answer | The AI did not answer. No action changed. Try again in a minute. [Button: Try again] |
 | Inline, Actions tab (E9-1) | The AI answered in a form the app could not use | The AI answered in a form the app could not use. No action changed. Try again. [Button: Try again] |

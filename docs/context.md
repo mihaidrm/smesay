@@ -129,7 +129,7 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 8 of 15 steps. Left: 7 steps
+Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 9 of 15 steps. Left: 6 steps
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
@@ -138,7 +138,7 @@ Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about
 - E6 Sharing: done.
 - E7 Respondent: done.
 - E8 Dashboard: done.
-- E9 Insights: open.
+- E9 Insights: done.
 - E10 Exports: open.
 - E11 Trust: open.
 - E12 Landing and onboarding: open.

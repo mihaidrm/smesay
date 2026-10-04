@@ -27,7 +27,7 @@ test("owner sets the name, the logo and the accent", async ({ page, request }) =
   // line: the AI budget is not shown to the workspace (decision 0036).
   await expect(page.getByTestId("budget-line")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "AI budget" })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Plan" }).getByTestId("usage-line")).toHaveText("0 projects, 0 responses this month, 0 AI runs this month.");
+  await expect(page.getByRole("region", { name: "Plan" }).getByTestId("usage-line")).toHaveText("0 projects, 0 responses this month, 0 AI runs this month, EUR 0.00 on AI this month.");
 
   await page.getByLabel("Workspace name").fill("Marlow Group Ltd");
   await page.getByLabel("Accent colour").fill("#1F4F7A");

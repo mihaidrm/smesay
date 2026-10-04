@@ -1,7 +1,7 @@
 # E9-3 Insight cost shown per run
 
 User: the workspace owner watching the euros
-Status: ready
+Status: built
 Outcome: every run shows what it cost, and a run that would exceed the workspace's budget or
 the product's cap is refused before it starts. The budget itself is never shown (decision 0036).
 
@@ -25,6 +25,23 @@ the product's cap is refused before it starts. The budget itself is never shown 
 - None.
 
 ## Technical notes
-The estimate uses the SDK's token counting endpoint when available (docs.anthropic.com, token
-counting; unverified until the story) or a character-based estimate at 4 characters per token,
-recorded in the story when chosen.
+The estimate uses a character-based estimate at 4 characters per token (chosen 2026-10-04:
+the token counting endpoint would be a second call before every run and was not checked
+against the SDK in this session, so it stays unverified and unused).
+
+Built 2026-10-04 (design note 68, decision 0044):
+- Acceptance 1: under the actions, "Last run [DATE AND TIME] UTC: [N] tokens, EUR [COST]. This
+  month: EUR [SPENT]." from the project's last insights ai_run (aiRuns.lastFor) and usage()
+  (E2-6); no budget number.
+- Acceptance 2: runModel checks the estimate (estimateCents: the input at four characters a
+  token plus the 1,500 output tokens Write actions expects) against the product cap and the
+  workspace budget; a refused run shows "This run would cost about EUR [ESTIMATE]." in front
+  of the E4-1 sentence. src/lib/insights.test.ts sets the budget to 0, then the cap to 0, and
+  sees both messages with no call made.
+- Acceptance 3: not verified. The tests have no real usage to compare with (the fake
+  transport reports fixed numbers, and decision 0039 rules out a real call); every answered
+  run now logs "estimate [N] cents, actual [N] cents" on the server, so the first real Write
+  actions run, or `npm run evals -- insights`, shows how close it came (docs/review-list.md).
+- Acceptance 4: Settings' usage line adds "EUR [SPENT] on AI this month." from the same
+  usage() call; e2e/settings.spec.ts reads it.
+
