@@ -16,7 +16,7 @@
 import { cookies } from "next/headers";
 import { LinkPage } from "@/components/respondent/link-page";
 import { logoUrlFor } from "@/components/respondent/respondent-header";
-import { effectiveAccent } from "@/lib/brand-rules";
+import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
 import { carriedFields, changedSinceSubmit, chaptersFor, landingOf, RESPONDENT_COPY, type Screen } from "@/lib/respondent-rules";
@@ -35,12 +35,14 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const store = await cookies();
   const view = await loadRespondent(token, { passcode: store.get(PASSCODE_COOKIE)?.value, device: store.get(DEVICE_COOKIE)?.value });
   if (view.kind === "unknown") {
-    return <><ForgetQueue token={token} /><LinkPage workspaceName={null} accent="" title={LINK_PAGE_COPY.unknownTitle} line={LINK_PAGE_COPY.unknownLine} /></>;
+    // No workspace: the header is SMEsay's own, so no "Powered by" line under it.
+    return <><ForgetQueue token={token} /><LinkPage workspaceName={null} accent="" title={LINK_PAGE_COPY.unknownTitle} line={LINK_PAGE_COPY.unknownLine} poweredBy={false} /></>;
   }
   const { link } = view;
   const accent = effectiveAccent(link.brand.accentHex);
   const logoUrl = logoUrlFor(link.ws, link.brand.logoObjectKey);
-  const page = { workspaceName: link.brand.name, accent, logoUrl };
+  // "Powered by SMEsay" while the workspace is on the Free plan (E7-7, acceptance 5).
+  const page = { workspaceName: link.brand.name, accent, logoUrl, poweredBy: showsPoweredBy(link.brand.plan) };
   if (view.kind === "sample") return <LinkPage {...page} title={RESPONDENT_COPY.sampleTitle} line={RESPONDENT_COPY.sampleLine(link.brand.name)} />;
   if (view.kind === "revoked") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(link.brand.name)} /></>;
   if (view.kind === "notOpen") return <LinkPage {...page} title={LINK_PAGE_COPY.notOpenTitle(formatUtc(link.invite.opensAt!))} line={LINK_PAGE_COPY.notOpenLine} />;
@@ -101,6 +103,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         submitted={response?.submittedAt ? { at: response.submittedAt.toISOString(), name: firstName, returning: true } : null}
         changedSince={response ? changedSinceSubmit(response) : false}
         closesAt={link.invite.closesAt ? link.invite.closesAt.toISOString() : null}
+        poweredBy={page.poweredBy}
       />
     </>
   );

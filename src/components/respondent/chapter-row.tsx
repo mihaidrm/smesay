@@ -2,8 +2,9 @@
 // The chapter row and the progress bar (stories/E7-4, acceptance 1 and 6; decision 0016;
 // the respondent board, note 12): About you, each area with "[done]/[count]", Wrap up, every
 // pill a link to its screen (?at=about, ?at=[N], ?at=wrap) that moves in the page without a
-// reload; the active pill in the workspace's accent (effectiveAccent(), white text: the
-// accent passes 4.5 to 1 on white, src/lib/brand-rules.ts), the others white with a
+// reload; the active pill in the workspace's accent with white text (effectiveAccent(): the
+// accent passes 4.5 to 1 on white), on dark lifted with the dark ink (ACCENT_FILL,
+// src/lib/brand-rules.ts, E7-7), the others white with a
 // hairline. A pill is 32 px high and takes a 48 px hit area (docs/design-system.md,
 // Respondent tap targets; the row's 8 px padding keeps the hit area inside its scroll box);
 // its count reads "[done] of [count] answered" to a screen reader. A click with a modifier
@@ -18,6 +19,7 @@
 // row (E5-3), only the bar.
 import { useEffect, useRef } from "react";
 import { cn } from "cn";
+import { ACCENT_BAR, ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 import { RESPONDENT_COPY, screenParam, type ChapterProgress, type Screen } from "@/lib/respondent-rules";
 
 export type ChapterRowProps = {
@@ -31,7 +33,7 @@ export type ChapterRowProps = {
   locked?: boolean;
 };
 
-const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap outline-none transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
+const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap focus:outline-hidden transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
 export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false }: ChapterRowProps) {
   const active = useRef<HTMLAnchorElement | null>(null);
@@ -52,8 +54,8 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
           aria-label={name}
           aria-disabled={locked || undefined}
           onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); if (!locked) onGo(target); }}
-          className={cn(PILL, on ? "border-transparent text-white" : cn("border-hairline-strong bg-surface text-ink-muted", !locked && "hover:text-ink"), locked && "cursor-default opacity-40")}
-          style={on ? { background: accent } : undefined}
+          className={cn(PILL, on ? cn("border-transparent", ACCENT_FILL) : cn("border-hairline-strong bg-surface text-ink-muted", !locked && "hover:text-ink"), locked && "cursor-default opacity-40")}
+          style={on ? (accentVars(accent) as React.CSSProperties) : undefined}
           data-testid={testId}
         >{label}</a>
       </li>
@@ -71,7 +73,7 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
         </nav>
       )}
       <div role="progressbar" aria-label={RESPONDENT_COPY.answeredBar} aria-valuemin={0} aria-valuemax={total} aria-valuenow={answered} aria-valuetext={RESPONDENT_COPY.barValue(answered, total)} className="h-1 w-full bg-hairline" data-testid="progress-bar">
-        <div className="h-1 transition-[width] duration-[250ms] motion-reduce:transition-none" style={{ width: total ? `${(answered / total) * 100}%` : "0%", background: accent }} />
+        <div className={cn("h-1 transition-[width] duration-[250ms] motion-reduce:transition-none", ACCENT_BAR)} style={{ width: total ? `${(answered / total) * 100}%` : "0%", ...(accentVars(accent) as React.CSSProperties) }} />
       </div>
     </div>
   );

@@ -97,7 +97,8 @@ Modes: the PM app and the admin area follow the system setting with a toggle at 
 the sidebar (src/components/app/mode-toggle.tsx; the choice is kept in the browser). The
 landing page has a dark hero and pricing with light sections between. The respondent side
 follows the phone's setting; the PM's accent still marks the selected answer, the active
-chapter and the progress bar (decision 0016), lifted two steps on dark. With no accent set the
+chapter and the progress bar (decision 0016), and from E7-7 the confidence picked and the
+header's initials, lifted two steps on dark. With no accent set the
 respondent side uses violet 600 (src/lib/brand-rules.ts).
 
 ## Type
@@ -233,7 +234,8 @@ Details). The label "Your rating" over one row of pills, the method's values the
 slot that shows either the details text (the ground on light, the raised surface on dark,
 13/18, scrolls) or the comment box, never both. A 24 px footer with Details, the comment
 toggle and the status note. The proposed value has a dashed muted border. The selected pill
-fills with the PM's accent and white text. The comment box (radius 12, 14/20) takes the slot
+fills with the PM's accent and white text, and on dark with the lifted accent and the dark
+ink. The comment box (radius 12, 14/20) takes the slot
 when required; "+ comment" opens it otherwise and closes Details. The status note: Saved in
 mint text, what is missing in sun text inside the card, Not rated yet in muted. Cards sit in
 one column on a phone and two on desktop, 12 px apart.
@@ -263,12 +265,14 @@ question 1).
 ## Respondent theming
 
 The PM's logo and accent come from workspace settings (E2). The accent is used on the selected
-answer, the active chapter and the progress bar (decision 0016; the focus ring and links stay
-violet). Buttons stay ink. Neutrals and type never change. An accent under 4.5:1 on white
+answer, the active chapter and the progress bar (decision 0016), and from E7-7 on the
+confidence picked on the Wrap up and the header's initials when there is no logo (the focus
+ring and links stay violet). Buttons stay ink. Neutrals and type never change. An accent under 4.5:1 on white
 falls back to ink and settings says why; with none set the accent is violet 600. The
 respondent side follows the phone's setting for the mode, with the PM's accent lifted two
-steps on dark, and a lifted accent that still fails on the dark surface falls back to violet
-400 (note 33).
+steps on dark (OKLCH lightness 0.72 with the hue kept: design note 57), drawn with the dark
+ink; violet 600 and ink take violet 400 on dark, and so would a lifted accent that read
+under 4.5:1 on the dark surface or under the dark ink (note 33).
 
 ## Email
 

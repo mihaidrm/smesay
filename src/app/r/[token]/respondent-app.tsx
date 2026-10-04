@@ -44,6 +44,7 @@ import { answerOfDraft, EMPTY_DRAFT, type CardDraft } from "@/components/respond
 import { WrapUp, type WrapSection } from "@/components/respondent/wrap-up";
 import { useWrapSaver } from "./wrap-saver";
 import { signOffFor } from "@/lib/closing";
+import { PoweredBy } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
 import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
@@ -83,6 +84,7 @@ export type RespondentAppProps = {
   // The Wrap up as the server holds it and its version (E7-5), empty before a save.
   wrap: WrapValue;
   wrapSync: WrapSync;
+  poweredBy: boolean;
 };
 
 // The page has hydrated (false in the server render and while hydrating, then true:
@@ -368,25 +370,26 @@ export function RespondentApp(props: RespondentAppProps) {
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
-        onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} />
+        onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy} />
     );
   };
   const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && chapters.length > 0 ? "max-w-[760px]" : "max-w-[560px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (
         chapterScreen(screen.index)
       ) : screen.kind === "done" && submitted ? (
         <div className="flex min-h-screen flex-col" data-testid="done-screen">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
           <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8">
-            <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{submitted.returning ? RESPONDENT_COPY.welcomeSubmitted(submitted.name) : RESPONDENT_COPY.thanks(submitted.name)}</h1>
+            <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{submitted.returning ? RESPONDENT_COPY.welcomeSubmitted(submitted.name) : RESPONDENT_COPY.thanks(submitted.name)}</h1>
             <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
             {changedSince && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p>}
             <p className="text-[15px] leading-[23px]" data-testid="done-summary">{RESPONDENT_COPY.summary({ agreed: tally.agreed, changed: tally.higher + tally.lower, notNeeded: tally.notNeeded, unclear: tally.unclear, rated: tally.rated, added: wrap.missing.text.trim() ? 1 : 0 }, !instrument.showProposed)}</p>
-            <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
+            <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
+            <PoweredBy show={props.poweredBy} className="mt-auto" />
           </main>
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && chapters.length > 0 ? (
@@ -395,13 +398,14 @@ export function RespondentApp(props: RespondentAppProps) {
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
-          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={submit} />
+          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={submit} poweredBy={props.poweredBy} />
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
           <main className="flex flex-col gap-4 px-5 pt-6">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
-            <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold">{RESPONDENT_COPY.aboutYou}</button>
+            <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{RESPONDENT_COPY.aboutYou}</button>
+            <PoweredBy show={props.poweredBy} />
           </main>
         </div>
       )}

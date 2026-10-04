@@ -3,7 +3,9 @@
 // workspace's initials on its accent, the workspace's name, and a note on the right (the
 // close date, the progress, the save state). The logo comes from the workspace row through
 // the link (/brand/[workspaceId]/logo, E2-5), never from the URL. Server and client safe.
+import { cn } from "cn";
 import { initials } from "@/components/app/tiles";
+import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 
 export function RespondentHeader({ workspaceName, accent, logoUrl = null, note = null, noteTestId = "respondent-note", children }: { workspaceName: string; accent: string; logoUrl?: string | null; note?: React.ReactNode; noteTestId?: string; children?: React.ReactNode }) {
   return (
@@ -13,7 +15,7 @@ export function RespondentHeader({ workspaceName, accent, logoUrl = null, note =
         // eslint-disable-next-line @next/next/no-img-element
         <img src={logoUrl} alt="" className="size-6 shrink-0 rounded-md object-contain" data-testid="respondent-logo" />
       ) : (
-        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-extrabold text-white" style={{ background: accent }}>{initials(workspaceName)}</span>
+        <span aria-hidden="true" className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-extrabold", ACCENT_FILL)} style={accentVars(accent) as React.CSSProperties}>{initials(workspaceName)}</span>
       )}
       <span className="grow text-[15px] font-bold">{workspaceName}</span>
       {note && <span className="font-mono text-xs text-ink-muted" data-testid={noteTestId}>{note}</span>}

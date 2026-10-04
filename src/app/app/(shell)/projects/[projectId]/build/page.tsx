@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
-import { effectiveAccent } from "@/lib/brand-rules";
+import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { PREVIEW_CARDS } from "@/lib/build-copy";
 import { CLOSING_COPY, signOffFor } from "@/lib/closing";
@@ -166,7 +166,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         </div>
         <PreviewPanel
           key={instrument.id}
-          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields }}
+          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, poweredBy: showsPoweredBy(current.workspace.plan) }}
           chapters={chapters}
           layout={instrument.layout}
           perspectives={instrument.perspectives}

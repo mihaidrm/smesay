@@ -71,6 +71,7 @@ test("submit, reopen, welcome back, change, submit again", async ({ page, reques
   // Opened again: welcome back, the dates, the summary.
   const again = await phone.newPage();
   await again.goto(invite.link);
+  await again.locator("[data-ready]").waitFor();
   await expect(again.getByTestId("done-thanks")).toHaveText("Welcome back, Ana.");
   await expect(again.getByTestId("done-when")).toHaveText(new RegExp(`^You submitted on ${firstWhen}\\. You can change your answers until 20 Jan 2027, \\d{2}:\\d{2} UTC\\.$`));
   await expect(again.getByTestId("done-summary")).toHaveText("2 agreed, 0 changed, 0 not needed, 0 unclear, 0 items added");

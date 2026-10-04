@@ -47,6 +47,7 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const link = await phone.newPage();
   await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
   await expect(link.getByTestId("about-you")).toBeVisible();
   await expect(link.getByTestId("respondent-header")).toContainText("Marlow Group");
   await expect(link.getByTestId("about-you-note")).toContainText("Closes 20 Jan 2027");
@@ -75,6 +76,7 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await expect(link).toHaveURL(/\?at=1$/);
   // A reload on this device lands on the same chapter: the response is found by the cookie.
   await link.reload();
+  await link.locator("[data-ready]").waitFor();
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await phone.close();
 
@@ -82,6 +84,7 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const deskPage = await desk.newPage();
   await deskPage.goto(url);
+  await deskPage.locator("[data-ready]").waitFor();
   const box = await deskPage.getByTestId("about-you").boundingBox();
   expect(box?.width).toBeLessThanOrEqual(560);
   expect((await deskPage.getByLabel("Name").boundingBox())?.width).toBe(360);

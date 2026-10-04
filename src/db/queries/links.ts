@@ -10,18 +10,18 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, invite, project, workspace } from "@/db/schema";
-import type { WorkspaceId } from "@/db/types";
+import type { PlanKey, WorkspaceId } from "@/db/types";
 import type { Instrument } from "./instruments";
 import type { Invite } from "./invites";
 import type { Project } from "./projects";
 import { unsafeWorkspaceId } from "./scoped";
 
-export type Link = { ws: WorkspaceId; invite: Invite; instrument: Instrument; project: Project; brand: { name: string; accentHex: string | null; logoObjectKey: string | null } };
+export type Link = { ws: WorkspaceId; invite: Invite; instrument: Instrument; project: Project; brand: { name: string; accentHex: string | null; logoObjectKey: string | null; plan: PlanKey } };
 
 export const links = {
   byToken: async (token: string): Promise<Link | null> => {
     if (typeof token !== "string" || token.length < 32 || token.length > 128 || !/^[0-9a-f]+$/i.test(token)) return null;
-    const rows = await db.select({ invite, instrument, project, name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey })
+    const rows = await db.select({ invite, instrument, project, name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey, plan: workspace.plan })
       .from(invite)
       .innerJoin(instrument, eq(instrument.id, invite.instrumentId))
       .innerJoin(project, eq(project.id, instrument.projectId))
@@ -29,6 +29,6 @@ export const links = {
       .where(eq(invite.token, token)).limit(1);
     const row = rows[0];
     if (!row) return null;
-    return { ws: unsafeWorkspaceId(row.invite.workspaceId), invite: row.invite, instrument: row.instrument, project: row.project, brand: { name: row.name, accentHex: row.accentHex, logoObjectKey: row.logoObjectKey } };
+    return { ws: unsafeWorkspaceId(row.invite.workspaceId), invite: row.invite, instrument: row.instrument, project: row.project, brand: { name: row.name, accentHex: row.accentHex, logoObjectKey: row.logoObjectKey, plan: row.plan } };
   },
 };

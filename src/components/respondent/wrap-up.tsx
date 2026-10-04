@@ -23,10 +23,11 @@
 // buttons keep their pill and take a 48 px hit area.
 import { useId, useRef, useState } from "react";
 import { cn } from "cn";
-import { Mark } from "@/components/brand/mark";
+import { PoweredBy } from "./powered-by";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
+import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS, type Bucket, type Gap, type WrapValue } from "@/lib/respondent-rules";
 import { labelFor, scaleFor } from "@/lib/scoring";
 
@@ -64,6 +65,7 @@ export type WrapUpProps = {
   submitError?: string | null;
   saveNote?: string | null;
   onSubmit?: () => void;
+  poweredBy?: boolean;
 };
 
 export type WrapSection = { bucket: "higher" | "lower" | "notNeeded" | "unclear"; itemId: string; reference: string | null; title: string; value: string | null; text: string | null; chapter: number };
@@ -73,9 +75,9 @@ const SECTION_TITLE: Record<WrapSection["bucket"], string> = { higher: WRAP_UP_C
 
 const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRated, sayWhy: RESPONDENT_COPY.sayWhy, writeQuestion: RESPONDENT_COPY.writeQuestion, notSaved: RESPONDENT_COPY.notSavedYet };
 
-const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
+const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = preview ? "div" : "main";
   const firstGap = gaps?.[0];
@@ -110,7 +112,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
         </header>
       )}
       <Body className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
-        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={Heading === "h1" && !preview ? -1 : undefined} data-screen-heading={(Heading === "h1" && !preview) || undefined}>{WRAP_UP_COPY.title}</Heading>
+        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" && !preview ? -1 : undefined} data-screen-heading={(Heading === "h1" && !preview) || undefined}>{WRAP_UP_COPY.title}</Heading>
         <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
           {tileKeys.map((key) => (
             <div key={key} className="card flex flex-col items-center gap-0.5 px-1 py-2" data-tile={key}>
@@ -123,7 +125,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
             <span className="font-semibold">{WRAP_UP_COPY.toFinish(open)}</span>
             {gaps && firstGap && onGo && chapters[firstGap.chapter] ? (
-              <button type="button" disabled={submitting} onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
+              <button type="button" disabled={submitting} onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words focus:outline-hidden after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-sun-soft disabled:opacity-40" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
             ) : (
               !gaps && chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0])}</span>
             )}
@@ -139,7 +141,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
             <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline bg-surface">
               {gaps.map((g) => (
                 <li key={g.itemId}>
-                  <button type="button" disabled={submitting} onClick={() => onGo?.(g.chapter, g.itemId)} className="flex min-h-12 w-full items-baseline gap-2 px-4 py-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-violet disabled:opacity-40" data-testid="unfinished-item">
+                  <button type="button" disabled={submitting} onClick={() => onGo?.(g.chapter, g.itemId)} className="flex min-h-12 w-full items-baseline gap-2 px-4 py-3 text-left text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="unfinished-item">
                     {g.reference && <span className="shrink-0 font-mono text-[11px] text-ink-muted">{g.reference}</span>}
                     <span className="min-w-0 grow">{g.title}</span>
                     <span className={cn("shrink-0 text-xs font-semibold", g.note === "notRated" ? "font-normal text-ink-muted" : "text-sun-text")}>{GAP_NOTE[g.note]}</span>
@@ -162,7 +164,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
                       <span>{r.reference && <span className="mr-2 font-mono text-[11px] text-ink-muted">{r.reference}</span>}{r.title}</span>
                       {(r.value || r.text) && <span className="text-[13px] text-ink-muted">{[r.value ? labelFor(method, labels, r.value) : null, r.text].filter(Boolean).join(": ")}</span>}
                     </div>
-                    <button type="button" disabled={submitting} onClick={() => onGo?.(r.chapter, r.itemId)} aria-label={`${RESPONDENT_COPY.change}: ${r.title}`} className="relative shrink-0 rounded-full border border-hairline-strong px-3 py-1 text-[13px] font-semibold outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="section-change">{RESPONDENT_COPY.change}</button>
+                    <button type="button" disabled={submitting} onClick={() => onGo?.(r.chapter, r.itemId)} aria-label={`${RESPONDENT_COPY.change}: ${r.title}`} className="relative shrink-0 rounded-full border border-hairline-strong px-3 py-1 text-[13px] font-semibold focus:outline-hidden after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="section-change">{RESPONDENT_COPY.change}</button>
                   </li>
                 ))}
               </ul>
@@ -213,23 +215,23 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
                     if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); moveConfidence(n, -1); }
                     if (e.key === " " || e.key === "Enter") { e.preventDefault(); setConfidence(n); }
                   }}
-                  style={on ? { background: accent, borderColor: accent } : undefined} className={cn("h-12 flex-1 rounded-full border text-base font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground", on ? "text-white" : "border-hairline-strong bg-surface text-ink-muted")}>{n}</button>
+                  style={on ? (accentVars(accent) as React.CSSProperties) : undefined} className={cn("h-12 flex-1 rounded-full border text-base font-semibold transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground", on ? cn("border-transparent", ACCENT_FILL) : "border-hairline-strong bg-surface text-ink-muted")}>{n}</button>
               );
             })}
           </div>
           <div className="flex justify-between font-mono text-[10px] text-ink-muted"><span id={`${prefix}-guessing`}>{WRAP_UP_COPY.guessing}</span><span id={`${prefix}-certain`}>{WRAP_UP_COPY.certain}</span></div>
         </div>
         <label htmlFor={`${prefix}-signoff`} className="flex min-h-12 items-start gap-3 rounded-xl border border-hairline-strong bg-surface px-4 py-3 text-[15px] leading-5 has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground" data-testid="wrap-up-signoff">
-          <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)]" />
+          <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)] focus:outline-hidden" />
           <span>{signOffFor(closing)}</span>
         </label>
         </fieldset>
-        <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
+        <PoweredBy show={poweredBy} />
       </Body>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
-        {onBack && <button type="button" disabled={submitting} onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
-        <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
+        {onBack && <button type="button" disabled={submitting} onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
+        <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
         </div>
         <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>
       </div>

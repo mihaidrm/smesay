@@ -54,6 +54,7 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   const phone = await browser.newContext({ viewport: { width: 375, height: 667 } });
   const link = await phone.newPage();
   await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
   await link.getByLabel("Name").fill("Ana Pop");
   await link.getByLabel("Role").fill("Finance lead");
   await link.getByTestId("about-you-start").click();
@@ -100,6 +101,7 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   // A reload shows what the server has (the page sends a change 400 ms after it is made;
   // the test waits for the server's answer before reloading).
   await link.reload();
+  await link.locator("[data-ready]").waitFor();
   await expect(receipts.getByTestId("item-card-note")).toHaveText("Saved");
   await expect(receipts.getByTestId("card-reason")).toHaveValue("Most receipts arrive by email.");
   await expect(split.getByTestId("item-card-note")).toHaveText("Write your question.");
@@ -113,6 +115,7 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   };
   await layout("One item per screen");
   await link.reload();
+  await link.locator("[data-ready]").waitFor();
   await expect(link.getByTestId("chapter-screen")).toHaveAttribute("data-layout", "item");
   await expect(link.getByTestId("layout-note")).toHaveText("Item 1 of 2 in Submitting");
   await expect(link.getByTestId("item-card")).toHaveCount(1);
@@ -124,6 +127,7 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   // The single page.
   await layout("Single long page");
   await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
   await expect(link.getByTestId("chapter-screen")).toHaveAttribute("data-layout", "page");
   await expect(link.getByTestId("layout-note")).toHaveText("All 3 on one page");
   await expect(link.getByTestId("item-card")).toHaveCount(3);

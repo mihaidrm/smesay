@@ -21,3 +21,7 @@ templates in stories/backlog.md: chapters (default), one item per screen, single
 
 Consequence: respondent boards rebuilt (note 12); docs/design-system.md updated; the PM app
 builder lists chapters first.
+
+Amended 2026-10-04 (E7-7, recorded in docs/review-list.md for Mihai's review, decision 0044):
+the accent also marks the confidence picked on the Wrap up (an answer, as the selected pill
+is) and the header's initials when the workspace has no logo. Buttons still stay ink.

@@ -50,6 +50,7 @@ test("chapter row, progress, Continue, Wrap up still to finish, welcome back", a
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const link = await phone.newPage();
   await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
   await link.getByLabel("Name").fill("Ana Pop");
   await link.getByLabel("Role").fill("Finance lead");
   await link.getByTestId("about-you-start").click();
@@ -100,6 +101,7 @@ test("chapter row, progress, Continue, Wrap up still to finish, welcome back", a
   // A new visit lands on the unfinished chapter with Welcome back.
   const again = await phone.newPage();
   await again.goto(url);
+  await again.locator("[data-ready]").waitFor();
   await expect(again.getByTestId("welcome-back")).toContainText("Welcome back, Ana.");
   await expect(again.getByTestId("welcome-back")).toContainText("You answered 1 of 2 last time.");
   await again.getByTestId("chapter-continue").click();
