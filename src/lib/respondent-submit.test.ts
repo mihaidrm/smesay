@@ -28,6 +28,7 @@ import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, p
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
+import { PUT as answersRoute } from "@/app/r/[token]/answers/route";
 import { POST as startRoute } from "@/app/r/[token]/start/route";
 import { POST as submitRoute } from "@/app/r/[token]/submit/route";
 import { PUT as wrapRoute } from "@/app/r/[token]/wrap/route";
@@ -416,8 +417,12 @@ describe("after Submit", () => {
     const held = (await loadRespondent(link.token, device, later));
     if (held.kind !== "ready") throw new Error(held.kind);
     expect(await saveWrap(link.token, device, { response: rid, confidence: 3, ...v() }, later)).toMatchObject({ saved: true, changedSince: true });
-    // A stale write says it too.
+    // A stale write says it too: the Wrap up's, an answer's on the route, a Submit's.
     expect(await saveWrap(link.token, device, { response: rid, confidence: 1, base: 0, page: "page-other-0003", seq: 1 }, later)).toMatchObject({ stale: { changedSince: true } });
+    const answerPut = (body: unknown) => answersRoute(new Request(`${BASE}/r/${link.token}/answers`, { method: "PUT", body: JSON.stringify(body), headers: { "content-type": "application/json", cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
+    const staleAnswer = await answerPut({ itemId: one.id, picked: "C", base: 0, page: "page-other-0004", seq: 1, response: rid });
+    expect([staleAnswer.status, (await staleAnswer.json()).changedSince]).toEqual([409, true]);
+    expect(await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, base: 0, page: "page-other-0005", seq: 1 }, BASE, later, async () => {})).toMatchObject({ stale: { changedSince: true } });
   }, 60_000);
 
   it("shows a revoked personal link that was started and not submitted as closed, not as the respondent's own", async () => {

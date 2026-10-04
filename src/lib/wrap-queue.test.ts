@@ -132,6 +132,8 @@ describe("the Wrap up's device queue", () => {
     expect(answered(wrapReplyStep(200, { version: 4 }, sent, next, P, 3))).toBe(true);
     expect(answered(wrapReplyStep(200, { version: 4 }, sent, sent, P, 3))).toBe(true);
     expect(answered(wrapReplyStep(422, { error: "No." }, sent, sent, P, 0))).toBe(true);
+    // Refused while a newer change waits: answered too, so the newer one goes at once.
+    expect(answered(wrapReplyStep(422, { error: "No." }, sent, next, P, 0))).toBe(true);
     expect(answered(wrapReplyStep(500, {}, sent, sent, P, 0))).toBe(false);
     // A reply with no readable version still settles the change (as the cards' does).
     expect(wrapReplyStep(200, {}, sent, sent, P, 3)).toMatchObject({ done: true, failed: false });

@@ -101,3 +101,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   still set goes once the server answers, a lost response forgets the refused value, the
   saver's header, a comment that cited no source, one import, and unit tests for the send
   rules (answered, sendsNext).
+- Fourth audit 2026-10-04: 0 blocking, 2 should-fix (a keepalive copy's answer cleared the
+  retry a newer Wrap up change waited for and sent nothing; no workspace test for
+  responses.restart), 6 nits. Fixed: a keepalive copy's answer drives the queue like any
+  other; restart has its cross-workspace test; an answer to a request sent before the
+  page's last Submit posted does not bring the notice back; a refusal also lets the newer
+  change go at once; a new response after a lost one starts with no Submit and no notice;
+  the comment; tests for an answer's and a Submit's stale answer carrying "changed". The
+  mark's two-device races are recorded in docs/review-list.md.

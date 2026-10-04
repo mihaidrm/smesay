@@ -41,8 +41,8 @@ export type WrapSaverEvents = {
   // A missing item's area the list no longer offers is not sent.
   clean: (value: WrapValue) => WrapValue;
   // A save the server answered (taken or stale): whether the response is submitted with
-  // changes not submitted again (E7-6).
-  onSaved?: (changedSince: boolean | null) => void;
+  // changes not submitted again (E7-6), and when the request was sent.
+  onSaved?: (changedSince: boolean | null, sentAt: number) => void;
 };
 
 const bodyOf = (response: string, entry: WrapEntry) => {
@@ -109,6 +109,7 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       inflight.current = entry;
       firstAt.current = null;
     }
+    const sentAt = Date.now();
     const settled = () => { if (!keepalive && inflight.current === entry) inflight.current = null; };
     try {
       const reply = await fetch(`/r/${encodeURIComponent(token)}/wrap`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: bodyOf(response, entry) });
@@ -119,7 +120,8 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       const step = wrapReplyStep(reply.status, body, entry, current.current, pageId(), known.current);
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
-      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved?.(typeof body.changedSince === "boolean" ? body.changedSince : null);
+      // A reply about an older version than the page has seen says nothing new.
+      if ((step.outcome === "saved" || step.outcome === "stale") && (step.version === null || step.version >= known.current)) eventsRef.current.onSaved?.(typeof body.changedSince === "boolean" ? body.changedSince : null, sentAt);
       if (step.version !== null) known.current = Math.max(known.current, step.version);
       if (step.held) { held.current = step.held; refused.current = null; }
       if (step.failed !== null) markFailed(step.failed);
@@ -162,7 +164,8 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       // A change made while this one was in flight goes now, unless its timer still runs or it
       // waits for its retry.
       const next = current.current;
-      if (alive.current && !keepalive && sendsNext(next, entry, { inflight: inflight.current !== null, timer: timer.current !== null, retry: retry.current !== null })) void sendRef.current();
+      // A keepalive copy's answer drives the queue too: it may have cleared the retry.
+      if (alive.current && sendsNext(next, entry, { inflight: inflight.current !== null, timer: timer.current !== null, retry: retry.current !== null })) void sendRef.current();
     }
   }, [token, update, pageId, markFailed, scheduleRetry, clearTimer]);
   useEffect(() => { sendRef.current = send; }, [send]);

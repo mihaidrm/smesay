@@ -66,8 +66,9 @@ export type SaverEvents = {
   onStale: (itemId: string, answer: AnswerState) => void;
   // The server took an answer for this device's response (the cookie works).
   // A save the server took or answered stale for, and whether the response is submitted with
-  // changes not submitted again (E7-6), or null when the answer does not say.
-  onSaved: (changedSince: boolean | null) => void;
+  // changes not submitted again (E7-6), or null when the answer does not say, and when the
+  // request was sent.
+  onSaved: (changedSince: boolean | null, sentAt: number) => void;
 };
 
 let probed: { storage: Storage | null } | null = null;
@@ -189,6 +190,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       inflight.current.set(itemId, entry);
       firstAt.current.delete(itemId);
     }
+    const sentAt = Date.now();
     const settle = () => { if (!keepalive && inflight.current.get(itemId) === entry) inflight.current.delete(itemId); };
     try {
       const reply = await fetch(`/r/${encodeURIComponent(token)}/answers`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId, picked: entry.draft.picked, reason: entry.draft.reason, comment: entry.draft.comment, base: entry.base, page: entry.page, seq: entry.seq, after: entry.after, response }) });
@@ -208,7 +210,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
         setDone((d) => ({ ...d, [itemId]: taken.complete }));
       }
       if (step.failed !== null) markFailed(itemId, step.failed);
-      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved(typeof body.changedSince === "boolean" ? body.changedSince : null);
+      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved(typeof body.changedSince === "boolean" ? body.changedSince : null, sentAt);
       if (step.rebase !== null && current) {
         // A newer change waits: it goes on top of the page's own confirmed save.
         const base = step.rebase;

@@ -111,12 +111,15 @@ export function RespondentApp(props: RespondentAppProps) {
   const [submitted, setSubmitted] = useState(props.submitted);
   // E7-6: any change after a Submit takes the sign-off back on the server; the page says so
   // on Done and on the Wrap up until the next Submit, as the server holds it: every answer to
-  // a save, a Start or a Submit carries changedSince. Between two Submits the server's state
-  // only goes from signed off to changed, so the page takes the first "changed" it hears and
-  // keeps it until a Submit, whatever order the answers arrive in; a change undone before it
-  // was saved, or kept from an earlier visit and sent on opening, reads as the server has it.
+  // a save, a Start or a stale Submit carries changedSince. Between two Submits the server's
+  // state only goes from signed off to changed, so the page takes the first "changed" it hears
+  // and keeps it until a Submit, whatever order the answers arrive in; an answer to a request
+  // sent before the page's last Submit posted is left out (the Submit came after it). A change
+  // undone before it was saved, or kept from an earlier visit and sent on opening, reads as
+  // the server has it.
   const [changedSince, setChangedSince] = useState(props.changedSince);
-  const heldSince = (since: boolean | null) => { if (since === true && submitted) setChangedSince(true); };
+  const lastSubmit = useRef(0);
+  const heldSince = (since: boolean | null, sentAt = Date.now()) => { if (since === true && submitted && sentAt >= lastSubmit.current) setChangedSince(true); };
   const itemIds = useMemo(() => items.map((it) => it.id), [items]);
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -153,7 +156,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
-    onSaved: (since) => { savedSinceStart.current = true; heldSince(since); },
+    onSaved: (since, sentAt) => { savedSinceStart.current = true; heldSince(since, sentAt); },
     onGone: () => window.location.reload(),
     onNotStarted: () => lostResponse(),
   });
@@ -242,6 +245,8 @@ export function RespondentApp(props: RespondentAppProps) {
       // replaced the cookie): that is a lost response too, and the cards go again.
       if (typeof body.response === "string") {
         if (responseId !== null && body.response !== responseId && !lost.current) { saver.reset(); wrapSaver.reset(); lost.current = true; }
+        // Another response: nothing of the old one's Submit applies to it.
+        if (responseId !== null && body.response !== responseId) { setSubmitted(null); setChangedSince(false); }
         setResponseId(body.response);
         saver.bind(body.response);
         wrapSaver.bind(body.response);
@@ -295,11 +300,13 @@ export function RespondentApp(props: RespondentAppProps) {
       if (held !== "ok") { setSubmitError(held === "check" ? wrapSaver.lastProblem() : RESPONDENT_COPY.submitFailed); return; }
       const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
+      const postedAt = Date.now();
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
       const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue; changedSince?: unknown };
       if (response.ok && body.submittedAt) {
         // The server holds the Wrap up now; the sign-off is ticked again for the next Submit
         // (Back from Done shows it unticked).
+        lastSubmit.current = postedAt;
         wrapSaver.submitted(body.version, posted);
         setWrapState((w) => ({ ...w, signed: false }));
         setChangedSince(false);

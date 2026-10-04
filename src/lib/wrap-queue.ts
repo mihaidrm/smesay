@@ -93,8 +93,8 @@ export const sameEntry = (a: WrapEntry | null, b: WrapEntry) => a !== null && a.
 const same = sameEntry;
 
 // After a reply, whether a retry still set for an earlier failure goes: the server answered,
-// so the change is settled or the newer one is rebased and goes now.
-export const answered = (step: WrapStep): boolean => step.failed === false || step.rebase !== null;
+// so the change is settled, or refused, or the newer one is rebased and goes now.
+export const answered = (step: WrapStep): boolean => step.failed === false || step.rebase !== null || step.outcome === "refused";
 // Whether the change waiting goes at once when a request ends: another change than the one
 // sent, with nothing in flight, no timer of its own and no retry waiting after a failure.
 export const sendsNext = (next: WrapEntry | null, sent: WrapEntry, s: { inflight: boolean; timer: boolean; retry: boolean }): boolean =>

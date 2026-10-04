@@ -232,6 +232,7 @@ describe("Start", () => {
     expect(await responses.startPersonal(b.ws, data, () => true)).toBeNull();
     expect(await responses.createPublic(b.ws, { ...data, inviteId: (await invites.livePublic(a.ws, project.id))!.id }, () => true)).toBeNull();
     expect(await responses.update(b.ws, ids[0]!, { fields: { name: "Changed" } })).toBeNull();
+    expect(await responses.restart(b.ws, ids[0]!, { fields: { name: "Changed" }, perspectives: [] }, new Date())).toBeNull();
     expect((await responses.forInvite(a.ws, ana.id))?.fields).toEqual({ name: "Ana Pop", role: "Finance" });
   }, 60_000);
 
