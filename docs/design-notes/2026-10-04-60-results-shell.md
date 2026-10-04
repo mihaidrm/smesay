@@ -70,6 +70,18 @@ existing parts.
   E7-6's marks beside it as text: "Changes not submitted again" in the sun text colour,
   "Submitted again" in muted ink.
 
+- Added with E8-4 (the registers), after its audit: each register is a card with its title
+  and count, a table under it named by the title for screen readers, the sortable header of
+  the Responses tab and rows that tint on hover. The disagree register sits under the
+  different-priority register (both keep their columns at 1440). The respondent cell carries
+  a Not submitted pill (the Responses tab's In progress, for an answer) and the Responses
+  tab's "Changes not submitted again". The value columns sort in the scale's order. Each
+  tab's panel has a heading for screen readers under the project's h1. The PM app board
+  draws the register titles and stacks them as built, with Respondent and Role in one column
+  and Proposed and Their value in one (the build has four columns); its Unclear and Missing
+  items lists stay drawn as cards there. The Results screens as built go on the canvas at
+  the end of E8.
+
 ## Checks
 
 - src/lib/results-filter.test.ts, src/db/queries/results.test.ts, results-boundary.test.tsx.

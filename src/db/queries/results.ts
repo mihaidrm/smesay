@@ -19,8 +19,9 @@
 import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
-import type { WorkspaceId } from "@/db/types";
+import type { ScoringMethod, WorkspaceId } from "@/db/types";
 import type { ResultsFilter } from "@/lib/results-filter";
+import { proposedCode, SCALES } from "@/lib/scoring";
 import type { ResultsNumbers } from "@/lib/results-tiles";
 import { isUuid } from "./scoped";
 
@@ -325,6 +326,95 @@ export const agreement = {
           left join vals v on v.item_id = k.item_id and v.grp is not distinct from k.grp
         order by k.item_id, k.grp nulls last`);
     return rows.map((r) => ({ itemId: r.item_id, group: r.grp, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent }));
+  },
+};
+
+// The registers (E8-4): the answers of one or more kinds and the missing items the page's
+// filter keeps (the same selection as the strip, so a heading's count is its tile), one row
+// each with the item, the respondent's name and fields, whether they have submitted and
+// whether they changed answers since (E7-6), sorted from the register's own list of columns.
+// The value columns (Proposed, Their value, Suggested value) sort in the scale's order, not by
+// the stored code, so they are sorted here after the query, which then orders by item.
+export type RegisterRow = {
+  id: string;
+  itemId: string;
+  reference: string | null;
+  itemText: string;
+  readerStatus: string | null;
+  readerText: string | null;
+  proposedValue: string | null;
+  kind: string;
+  value: string | null;
+  reason: string | null;
+  comment: string | null;
+  fields: Record<string, string>;
+  // The name shown and the public-link number, as PersonRow's (E8-2).
+  who: string | null;
+  anon: number | null;
+  submitted: boolean;
+  // Submitted, then answers changed and not submitted again (E7-6; the Responses tab's mark).
+  changedSince: boolean;
+};
+export type MissingRegisterRow = { id: string; text: string; area: string | null; value: string | null; fields: Record<string, string>; who: string | null; anon: number | null; submitted: boolean; changedSince: boolean };
+
+// Stable sort of rows by a value's place in the scale (empty values last, both ways); rows
+// with the same place keep the query's order (the list's order in the same direction).
+function byScale<T>(rows: T[], code: (r: T) => string | null, method: ScoringMethod, dir: "asc" | "desc"): T[] {
+  const place = (r: T) => { const c = code(r); const i = c === null ? -1 : SCALES[method].findIndex((v) => v.code === c); return i < 0 ? Number.MAX_SAFE_INTEGER : i; };
+  const sign = dir === "desc" ? -1 : 1;
+  return rows.map((r, i) => ({ r, i, p: place(r) })).sort((a, b) => {
+    const empty = Number(a.p === Number.MAX_SAFE_INTEGER) - Number(b.p === Number.MAX_SAFE_INTEGER);
+    return empty || sign * (a.p - b.p) || a.i - b.i;
+  }).map((x) => x.r);
+}
+
+// The register's columns already carry the direction; a field column (field.[key]) only for a
+// key of the instrument; ties in the list's order, then by row.
+function registerOrder(sort: ResultsFilter["sort"], fieldKeys: string[], columns: Record<string, SQL>): SQL {
+  const dir = sort?.dir === "desc" ? sql`desc` : sql`asc`;
+  const key = sort?.key ?? "item";
+  const field = key.startsWith("field.") ? key.slice(6) : null;
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(c.fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(columns, key) ? columns[key] : columns.item);
+  return sql`${first}, ${columns.item}, x.id ${dir}`;
+}
+
+export const registers = {
+  answers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, kinds: ("change" | "disagree" | "unclear")[], fieldKeys: string[], method: ScoringMethod): Promise<RegisterRow[]> => {
+    if (!isUuid(instrumentId) || kinds.length === 0) return [];
+    const dir = f.sort?.dir === "desc" ? sql`desc` : sql`asc`;
+    const columns: Record<string, SQL> = {
+      item: sql`it.position ${dir}`,
+      respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
+      reason: sql`lower(x.reason) ${dir} nulls last`,
+      status: sql`(c.submitted_at is not null) ${dir}`,
+    };
+    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+      select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
+        from ans x join counted c on c.id = x.response_id join item it on it.id = x.item_id and it.workspace_id = ${ws}
+        where x.kind in (${list(kinds)})
+        order by ${registerOrder(f.sort, fieldKeys, columns)}`);
+    const out: RegisterRow[] = rows.map((r) => ({ id: r.id, itemId: r.item_id, reference: r.source_ref, itemText: r.original_text, readerStatus: r.reader_status, readerText: r.reader_text, proposedValue: r.proposed_value, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted, changedSince: r.submitted && !r.signed_off }));
+    const dirOf = f.sort?.dir ?? "asc";
+    if (f.sort?.key === "value") return byScale(out, (r) => r.value, method, dirOf);
+    if (f.sort?.key === "proposed") return byScale(out, (r) => proposedCode(method, r.proposedValue), method, dirOf);
+    return out;
+  },
+  missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[], method: ScoringMethod): Promise<MissingRegisterRow[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const dir = f.sort?.dir === "desc" ? sql`desc` : sql`asc`;
+    const columns: Record<string, SQL> = {
+      item: sql`lower(x.text) ${dir}`,
+      text: sql`lower(x.text) ${dir}`,
+      area: sql`x.suggested_area ${dir} nulls last`,
+      respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
+      status: sql`(c.submitted_at is not null) ${dir}`,
+    };
+    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+      select x.id, x.text, x.suggested_area, x.suggested_value, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
+        from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
+        order by ${registerOrder(f.sort, fieldKeys, columns)}`);
+    const out: MissingRegisterRow[] = rows.map((r) => ({ id: r.id, text: r.text, area: r.suggested_area, value: r.suggested_value, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted, changedSince: r.submitted && !r.signed_off }));
+    return f.sort?.key === "value" ? byScale(out, (r) => r.value, method, f.sort.dir) : out;
   },
 };
 

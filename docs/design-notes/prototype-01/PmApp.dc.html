@@ -465,10 +465,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{tabDisagree}}" hint-placeholder-val="{{false}}">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Different priority</div>
 <div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
 <div style="width: 300px">Item</div>
-<div style="width: 150px">Respondent</div>
-<div style="width: 170px">Proposed, changed to</div>
+<div style="width: 150px">Respondent, Role</div>
+<div style="width: 170px">Proposed, Their value</div>
 <div style="flex-grow: 1">Reason</div>
 </div>
 <sc-for list="{{disagreements}}" as="dg" hint-placeholder-count="8">
@@ -481,8 +482,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-for>
 </div>
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; margin-top: 16px">
-<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Disagree with the item</div>
-<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="width: 300px">Item</div><div style="width: 150px">Respondent</div><div style="flex-grow: 1">What should it say instead, or why it is not needed</div></div>
+<div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Disagree</div>
+<div style="display: flex; gap: 16px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069"><div style="width: 300px">Item</div><div style="width: 150px">Respondent, Role</div><div style="flex-grow: 1">Reason</div></div>
 <sc-for list="{{disagreeList}}" as="dl" hint-placeholder-count="1">
 <div style="display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid #F0EFEB"><div style="width: 300px; flex-shrink: 0">{{dl.item}}</div><div style="width: 150px; flex-shrink: 0; display: flex; flex-direction: column"><span style="font-weight: 500">{{dl.name}}</span><span style="color: #5B6069; font-size: 12px">{{dl.role}}</span></div><div style="flex-grow: 1; min-width: 0">{{dl.reason}}</div></div>
 </sc-for>
@@ -492,7 +493,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{tabOpen}}" hint-placeholder-val="{{false}}">
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
-<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Unclear items and questions</div>
+<div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Unclear</div>
 <sc-for list="{{questions}}" as="qu" hint-placeholder-count="2">
 <div style="padding: 12px 16px; border-bottom: 1px solid #F0EFEB; display: flex; flex-direction: column; gap: 6px">
 <div style="color: #5B6069; font-size: 13px">{{qu.item}}</div>

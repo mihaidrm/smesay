@@ -131,6 +131,18 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).
 export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort, split: f.split });
 
+// The sort a register's rows are in (E8-4), to mark its header: the one asked when the
+// register shows that column (an alias names the column a query key sorts, the missing
+// register's item is its text), the first column when the query fell back to it (an unknown
+// key, or none), none when the query sorted by a column this register does not show (Proposed
+// on the disagree register). `queryKeys` are the keys the register's query knows.
+export function registerShownSort(sort: ResultsSort | null, columnKeys: string[], queryKeys: string[], aliases: Record<string, string> = {}): ResultsSort | null {
+  if (!sort) return { key: columnKeys[0], dir: "asc" };
+  const key = Object.hasOwn(aliases, sort.key) ? aliases[sort.key] : sort.key;
+  if (columnKeys.includes(key)) return { key, dir: sort.dir };
+  return queryKeys.includes(sort.key) ? null : { key: columnKeys[0], dir: sort.dir };
+}
+
 // The sort a column header links to: the column ascending, or descending when it is the
 // current ascending sort.
 export const nextSort = (current: ResultsSort | null, key: string): ResultsSort => (current?.key === key && current.dir === "asc" ? { key, dir: "desc" } : { key, dir: "asc" });
