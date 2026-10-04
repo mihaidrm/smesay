@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, timestamp, boolean, index, uuid, jsonb } from "drizzle-orm/pg-core";
+import type { ResultsPrefs } from "./types";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -12,6 +14,8 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  // E8-1: the person's choices on Results, per instrument (INTERFACES.md ResultsPrefs).
+  resultsPrefs: jsonb("results_prefs").$type<ResultsPrefs>().notNull().default(sql`'{}'::jsonb`),
 });
 
 export const session = pgTable(

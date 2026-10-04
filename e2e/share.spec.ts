@@ -60,7 +60,8 @@ test("publish a public link, open it with the passcode, close it", async ({ page
   await expect(page.getByTestId("link-note")).toHaveText("Anyone with the link can respond until the close date.");
   const url = await page.getByTestId("share-link").inputValue();
   expect(url).toMatch(/\/r\/[0-9a-f]{32}$/);
-  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Share/);
+  // Published: Share is done and Results is the step the project has reached (E8-1).
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Results/);
   await expect(page.getByText("A passcode is set. Type a new one to change it.")).toBeVisible();
 
   // A fresh context (no session, no cookie): the passcode page, a wrong one refused, the

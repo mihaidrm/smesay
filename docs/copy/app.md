@@ -248,6 +248,21 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Invite list, empty | Nobody invited yet. |
 | Personal invites on the sample | The sample project cannot be edited. (the list shows) |
 
+## Results (E8-1)
+
+| Where | Text |
+|---|---|
+| Band on the sample's Results (E8-1; every screen of the sample with E8-8) | Sample data: invented answers, for looking around |
+| Switch at the top | Include unsubmitted answers (on by default, decision 0030; kept per PM per instrument; the URL always carries it, so a shared view counts the same answers) |
+| Button and dialog | [Button: Choose tiles]; title: Choose the tiles; line: Up to six, shown in this order. Only you see your choice.; count: [N] of 6 chosen; [Button: Cancel] [Button: Save] |
+| Dialog errors | Pick at least one tile. / Pick up to six tiles. |
+| The twelve tiles (the checklist, in this order) | Submitted of invited; Agreement; Different priority; Disagree; Unclear; Missing items suggested; Answers with a reason or comment; Items with no answer yet; Items fully agreed; Items with a different priority or disagree; Median minutes to submit; Responses in progress. The first six are on by default. |
+| Tile values and labels on the strip | [N] of [M], Submitted of invited; [P]%, Agreement, [A] of [B] answers (None yet with no answer); a count with the tile's name for the rest; Median minutes to submit reads None yet before a Submit |
+| Filter bar (labelled Filter the results) | Each respondent field by its label (a dropdown's options as chips; a text field as [LABEL] contains); Answer: Agree, Different priority, Disagree, Unclear, Rated (only where the proposal is hidden), Not answered, With a reason or comment; Status: Submitted, In progress; Perspective: Any perspective / [NAME]; [Button: Clear filters] while a filter is on |
+| Tabs (labelled Results views) | Agreement; Different priority and Disagree ([N]); Questions and gaps ([N]); Responses; Actions ([N]); Export |
+| A tab whose content comes later | [TAB] comes with story [STORY]. (Agreement E8-3, Different priority and Disagree E8-4, Questions and gaps E8-4, Responses E8-2, Actions E9-1, Export E10-1) |
+| Empty states, filter line and errors | docs/copy/errors.md, Dashboard and exports |
+
 ## Respondent link pages (E6-1; the words in docs/copy/errors.md, Respondent link states)
 
 | Where | Text |

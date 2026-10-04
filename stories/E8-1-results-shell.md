@@ -1,7 +1,7 @@
 # E8-1 Results page: configurable headline tiles, one filter bar, tabs, empty state
 
 User: a PM opening Results while the link is open
-Status: ready
+Status: built
 Outcome: the headline numbers the PM chose, a filter bar that every tab, number and export
 honours, the tabs the prototype shows, and an empty state before the first answer.
 
@@ -66,5 +66,57 @@ The filter and the include-unsubmitted switch are one ResultsFilter parameter
 (INTERFACES.md) on every results query (src/db/queries/results.ts), so the CSV export
 (E10-1) takes the same parameter and the reconciliation holds for any filter. The
 respondent-field filters unpack response.fields (jsonb) by key, as E8-2's tracker does.
-user.results_prefs jsonb { [instrumentId]: { tiles: string[], view: "table" | "columns" |
-"share" } } (INTERFACES.md), one migration.
+user.results_prefs jsonb { [instrumentId]: { tiles: string[], includeUnsubmitted: boolean,
+view: "table" | "columns" | "share" } } (INTERFACES.md), one migration (0019).
+
+Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the points taken):
+- Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/page.tsx: the strip, then
+  the tabs with their counts as links (the tab in the URL); each tab says which story brings
+  its content (E8-2 to E8-4, E9-1, E10-1). "Pushed back" is on no label of Results; the
+  E15 guide line that named a "Pushed back tab" now names the Different priority and
+  Disagree tab. The stepper's Results step is a page from here, the project's current step
+  once its link is published (Share done).
+- Acceptance 2: src/lib/results-tiles.ts, the catalogue of twelve and the six by default;
+  Choose tiles (tile-chooser.tsx) a checklist in a modal dialog, at most six, saved per PM
+  per instrument (user.results_prefs, migration 0019), checked again on the server.
+- Acceptance 3: src/lib/results-filter.ts and filter-bar.tsx: the bar selects people, as
+  the Responses tab will list them (E8-2, acceptance 2); in the URL; Clear filters; the
+  "Showing" line. A value rated with no proposal shown (Rated) is a kind of the bar where the
+  instrument hides the proposal, and never counts in agreement.
+- Acceptance 4: the empty state names the link's state (open until, open, not open until,
+  closed, revoked, not published) with Share it and Open the sample project; the no-match
+  state with Clear filters.
+- Acceptance 5: loading.tsx and skeletons.tsx (the Skeleton component, note 60); the
+  numbers and the tab each in their own error boundary (catchError) with a banner naming
+  the part and Try again.
+- Acceptance 6: src/db/queries/results.ts numbers(), one query per instrument with the
+  filter; rows() the answers the same filter keeps (what E10-1's CSV writes);
+  src/db/queries/results.test.ts adds the rows up against the numbers with no filter, the
+  role filter, a kind and the comment filter, the switch off and on, and reads nothing of
+  another workspace.
+- Acceptance 7: the switch, on by default, kept per PM per instrument; off it removes the
+  unsubmitted answers from every answer count; the people tiles (submitted of invited, in
+  progress) count people whatever the switch. The rows' "not submitted" mark is the rows'
+  stories' (E8-2, E8-4).
+- Acceptance 8: the sample's Results carries the watermark band; the band on every other
+  screen of the sample is E8-8's.
+- Acceptance 9: e2e/results.spec.ts.
+- Audit 2026-10-04: 0 blocking, 9 should-fix, 6 nits. Fixed: a text field's box resets with
+  the URL; the no-match state only when the filter keeps nobody (people with no counted
+  answer still show, for the Responses tab); every tile reconciles in the test with rows of
+  people and missing items too (results.people, results.missing; an empty start and a bounced
+  invite in the test), and E10-1 adds the two files (review list); the filter bar and the
+  "Showing" line under the strip; the URL always carries the switch, so a shared view reads
+  the same; each tab and each filter gets its own error boundary; the action errors are
+  named in the copy and the switch shows its own; the sample's watermark band; E10-1's
+  "Rated", E6-1's stepper line and the guide's tips on Results; nits: one pass over the
+  answers per item, invites counted once sent, the "Showing" line a status region, the
+  switch fetches once, unused copy gone, the empty state without a sample button says
+  only "Share it".
+- Check of those fixes 2026-10-04: 0 blocking, 6 should-fix, 2 nits. Fixed: the page's
+  boundary is no longer keyed, so a filter change keeps the focus and the status line (each
+  tab keeps a boundary of its own); a first open goes to the URL with the switch, and the
+  switch writes its value there; INTERFACES.md lists results.people and results.missing;
+  E10-1 names its four files; the cross-workspace test covers people and missing items; the
+  PM app board's band opens with the watermark line; the tile chooser and the switch render
+  once (revalidatePath); the actions' workspace guard is recorded as checked by reading.

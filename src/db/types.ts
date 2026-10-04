@@ -57,3 +57,8 @@ export type PlanKey = "free" | "pro" | "team" | "enterprise";
 // produces from the session (stories/E1-3). A plain string from a URL or a body does not fit.
 declare const workspaceIdBrand: unique symbol;
 export type WorkspaceId = string & { readonly [workspaceIdBrand]: true };
+// E8-1: the PM's choices on Results, per instrument id (INTERFACES.md ResultsPrefs): the tiles
+// (ids of src/lib/results-tiles.ts, up to six), the include-unsubmitted switch and the
+// Agreement tab's view (E8-3). Read through src/lib/results-tiles.ts storedTiles, which drops
+// anything else.
+export type ResultsPrefs = { [instrumentId: string]: { tiles?: string[]; includeUnsubmitted?: boolean; view?: "table" | "columns" | "share" } };
