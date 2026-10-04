@@ -268,8 +268,10 @@ ramp from the missing-item solid, apart in hue from Unclear's violet.
   src/components/app/charts.tsx (design note 61).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
-- Where groups disagree: two bars on one scale, coral for the share that disagreed, any
-  respondent field as the split, four largest gaps by default.
+- Where groups disagree: a bar per group on one scale, the agree solid for the share that
+  agreed on the tint track, a group under 3 answers as a dashed empty track with no number,
+  any dropdown respondent field as the split, the four largest gaps above 0 by default
+  (design note 63).
 - Live update: the changed cell fades over 400 ms. No spinning counters.
 
 ## Respondent theming

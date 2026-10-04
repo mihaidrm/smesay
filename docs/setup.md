@@ -36,7 +36,7 @@ npm run check:bundle     # after a build: no client bundle carries the AI key na
 npm run ai:smoke         # one real call to the model with the key in .env.local (docs/accounts.md step 9)
 npm test                 # Vitest: logic, and the database tests against smesay_test on the compose Postgres (created by the tests, never the dev database)
 npm run build
-npm run test:e2e         # Playwright, one test per user-facing flow
+npm run test:e2e         # Playwright, one test per user-facing flow; export DATABASE_URL first (e2e/results-conflict.spec.ts adds respondents to the sample)
 ```
 
 On a machine with a preinstalled Chromium and no download access, set

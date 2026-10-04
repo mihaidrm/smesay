@@ -450,11 +450,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </div>
 <div style="background: #ECEAE5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
-<div style="font-weight: 500">Where groups disagree, by role: Sales and everyone else</div>
+<div style="font-weight: 500">Where groups disagree, by role</div>
+<sc-if value="{{gapsSmall}}" hint-placeholder-val="{{true}}"><div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 6px; padding: 10px 14px; font-size: 13px">Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.</div></sc-if>
+<sc-if value="{{gapsNone}}" hint-placeholder-val="{{false}}"><div style="color: #5B6069; font-size: 13px">No item has two groups with 3 answers or more yet.</div></sc-if>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
 <sc-for list="{{gaps}}" as="gp" hint-placeholder-count="2">
 <div style="background: #FFFFFF; border: 1px solid #E3E1DC; border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
-<div>{{gp.text}}</div>
+<div style="display: flex; justify-content: space-between; gap: 12px"><span>{{gp.text}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; white-space: nowrap">{{gp.points}}</span></div>
 <div style="color: #5B6069; font-size: 13px">{{gp.line}}</div>
 </div>
 </sc-for>
@@ -885,21 +887,23 @@ const questions = [];
 const gaps = [];
 const agreement = d.items.map((it) => {
 let agree = 0, pushed = 0, disagreed = 0, unclear = 0;
-let salesAgree = 0, salesAll = 0, restAgree = 0, restAll = 0;
+const byRole = {};
 submitted.forEach((p) => {
 const a = d.answers[it.id][p.id];
-const isSales = p.role === 'Sales';
-if (isSales) salesAll += 1; else restAll += 1;
-if (a[0] === 'A') { agree += 1; if (isSales) salesAgree += 1; else restAgree += 1; }
+const grp = byRole[p.role || 'Not given'] = byRole[p.role || 'Not given'] || { agree: 0, all: 0 };
+grp.all += 1;
+if (a[0] === 'A') { agree += 1; grp.agree += 1; }
 if (a[0] === 'D') { pushed += 1; disagreements.push({ item: it.reader, name: p.name, role: p.role, proposed: LABEL[it.proposed], value: LABEL[a[1]], reason: a[2] }); }
 if (a[0] === 'G') { disagreed += 1; disagreeList.push({ item: it.reader, name: p.name, role: p.role, reason: a[1] }); }
 if (a[0] === 'U') { unclear += 1; questions.push({ item: it.reader, name: p.name, role: p.role, question: a[1] }); }
 });
 totalAgree += agree; totalPushed += pushed; totalDisagreed += disagreed; totalUnclear += unclear; totalAnswers += submitted.length;
-gaps.push({ text: it.reader, gap: Math.abs(salesAgree / salesAll - restAgree / restAll), line: 'Sales: ' + salesAgree + ' of ' + salesAll + ' agree. Everyone else: ' + restAgree + ' of ' + restAll + ' agree.' });
+const roles = Object.keys(byRole).sort((x, y) => (x === 'Not given' ? 1 : y === 'Not given' ? -1 : x.localeCompare(y)));
+const compared = roles.filter((r) => byRole[r].all >= 3).map((r) => byRole[r].agree / byRole[r].all);
+gaps.push({ text: it.reader, small: roles.some((r) => byRole[r].all < 3), gap: compared.length >= 2 ? Math.round(100 * (Math.max(...compared) - Math.min(...compared))) : null, line: roles.map((r) => byRole[r].all >= 3 ? r + ': ' + byRole[r].agree + ' of ' + byRole[r].all + ' agree.' : r + ': fewer than 3 answers.').join(' ') });
 return { id: it.id, area: it.area, text: it.reader, proposed: LABEL[it.proposed], agree: agree, pushed: pushed, disagreed: disagreed, unclear: unclear, open: () => this.setState({ detailId: it.id }) };
 });
-gaps.sort((a, b) => b.gap - a.gap);
+gaps.sort((a, b) => (b.gap ?? -1) - (a.gap ?? -1));
 
 const statusStyle = { 'Submitted': ['#E6F4EC', '#22643F'], 'In progress': ['#FBF1DC', '#7A5210'], 'Invited': ['#F0F0EE', '#454A52'] };
 const tracker = d.people.map((p) => ({ name: p.name, role: p.role, status: p.status, bg: statusStyle[p.status][0], fg: statusStyle[p.status][1], progress: p.done + ' of ' + d.items.length, date: p.date || 'Not yet', source: p.source }));
@@ -1087,7 +1091,9 @@ pushed: totalPushed, disagreed: totalDisagreed, unclear: totalUnclear, missing: 
 tabs: tabs,
 tabAgreement: s.tab === 'agreement', tabDisagree: s.tab === 'disagree', tabOpen: s.tab === 'open', tabResponses: s.tab === 'responses', tabActions: s.tab === 'actions', tabExport: s.tab === 'export',
 agreement: agreement,
-gaps: gaps.slice(0, 2),
+gaps: gaps.filter((g) => g.gap !== null && g.gap > 0).slice(0, 4).map((g) => ({ ...g, points: g.gap === 1 ? '1 point apart' : g.gap + ' points apart' })),
+gapsNone: !gaps.some((g) => g.gap !== null),
+gapsSmall: gaps.some((g) => g.small),
 disagreements: disagreements,
 questions: questions,
 tracker: tracker,

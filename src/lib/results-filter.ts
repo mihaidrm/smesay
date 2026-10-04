@@ -16,8 +16,9 @@
 // URL: f.[key] per field (repeated for a dropdown's options), kind (repeated), comment=1,
 // perspective, status (repeated), unsubmitted=1 or 0 (absent: the PM's stored choice), the
 // table's sort, sort=[column]&dir=asc or desc (E8-2; each table checks the column against
-// its own list, so the sort never narrows anything and is no filter), and split=[key] (E8-3,
-// a dropdown field of the instrument).
+// its own list, so the sort never narrows anything and is no filter), split=[key] (E8-3, a
+// dropdown field of the instrument) and gaps=[key] (E8-6, a dropdown field; written only when
+// it is not the default).
 import type { RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
@@ -51,6 +52,9 @@ export type ResultsFilter = {
   // The Agreement tab's "Split by [field]" (E8-3): a dropdown field's key, or none. Not a
   // filter: it draws a bar per group.
   split: string | null;
+  // "Where groups disagree, by [field]" (E8-6): a dropdown field's key, Role by default when
+  // the instrument has it (else its first dropdown field), null with no dropdown field.
+  gaps: string | null;
 };
 export type ResultsSort = { key: string; dir: "asc" | "desc" };
 const SORT_KEY = /^[a-z][a-zA-Z0-9._-]{0,60}$/;
@@ -93,7 +97,14 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
     split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
+    gaps: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.gaps)) ? first(params.gaps)! : defaultGapField(ctx),
   };
+}
+
+// The field the conflict view compares by when the URL does not say (E8-6, acceptance 1).
+export function defaultGapField(ctx: FilterContext): string | null {
+  const dropdowns = ctx.fields.filter((f) => f.type === "dropdown");
+  return (dropdowns.find((f) => f.key === "role") ?? dropdowns[0])?.key ?? null;
 }
 
 function sortOf(key: string | undefined, dir: string | undefined): ResultsSort | null {
@@ -125,11 +136,12 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   q.append("unsubmitted", f.includeUnsubmitted ? "1" : "0");
   if (f.sort) { q.append("sort", f.sort.key); q.append("dir", f.sort.dir); }
   if (f.split) q.append("split", f.split);
+  if (f.gaps && f.gaps !== defaultGapField(ctx)) q.append("gaps", f.gaps);
   return q.toString();
 }
 
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).
-export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort, split: f.split });
+export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort, split: f.split, gaps: f.gaps });
 
 // The sort a register's rows are in (E8-4), to mark its header: the one asked when the
 // register shows that column (an alias names the column a query key sorts, the missing

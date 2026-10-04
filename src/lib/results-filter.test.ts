@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -18,7 +18,7 @@ const read = (q: string, stored: boolean | null = null) => parseResultsFilter(Ob
 describe("the Results filter", () => {
   it("reads only what the instrument has", () => {
     const f = read("f.role=Sales&f.role=Nope&f.role=Sales&f.name=%20okafor%20&f.secret=x&kind=disagree&kind=agree&kind=bogus&comment=1&perspective=Finance&status=inProgress&status=x");
-    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true, sort: null, split: null });
+    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true, sort: null, split: null, gaps: "role" });
     expect(read("perspective=HR&comment=yes").perspective).toBeNull();
     expect(read("comment=yes").withComment).toBe(false);
     expect(read("f.name=" + "x".repeat(150)).fields.name).toHaveLength(100);
@@ -52,7 +52,7 @@ describe("the Results filter", () => {
     const f = read("f.role=Sales&f.role=Finance&f.name=ok&kind=change&comment=1&perspective=Sales&status=submitted", false);
     expect(describeFilter(f, ctx)).toBe('Name contains "ok"; Role: Sales, Finance; Different priority; With a reason or comment; Perspective: Sales; Submitted');
     expect(filterActive(f)).toBe(true);
-    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null });
+    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: "role" });
     expect(filterActive(read("unsubmitted=0"))).toBe(false);
   });
 });
@@ -100,5 +100,16 @@ describe("the tiles", () => {
     expect(registerShownSort({ key: "proposed", dir: "asc" }, ["item", "respondent", "reason"], answers)).toBeNull();
     // The missing register's item is its text.
     expect(registerShownSort({ key: "item", dir: "desc" }, ["text", "area", "value", "respondent"], ["item", "text", "area", "value", "respondent", "status"], { item: "text" })).toEqual({ key: "text", dir: "desc" });
+  });
+
+  it("reads the conflict view's field, Role by default, and writes it only when it is not", () => {
+    expect(read("unsubmitted=1").gaps).toBe("role");
+    expect(read("unsubmitted=1&gaps=name").gaps).toBe("role");
+    expect(read("unsubmitted=1&gaps=nope").gaps).toBe("role");
+    expect(filterQuery(read("unsubmitted=1"), ctx)).toBe("unsubmitted=1");
+    const noRole: FilterContext = { fields: [{ key: "team", label: "Team", type: "dropdown", mandatory: false, options: ["A", "B"] }, { key: "dept", label: "Dept", type: "dropdown", mandatory: false, options: ["X"] }], perspectives: [] };
+    expect(defaultGapField(noRole)).toBe("team");
+    expect(filterQuery({ ...read("unsubmitted=1"), gaps: "dept" }, noRole)).toBe("unsubmitted=1&gaps=dept");
+    expect(defaultGapField({ fields: [ctx.fields[0]], perspectives: [] })).toBeNull();
   });
 });

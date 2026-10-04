@@ -52,6 +52,20 @@ export const RESULTS_COPY = {
   detail: "The item's detail",
 };
 
+// Where groups disagree (stories/E8-6; docs/copy/app.md, Results).
+export const CONFLICT_COPY = {
+  title: (field: string) => `Where groups disagree, by ${field}`,
+  compareBy: "Compare by",
+  points: (n: number) => `${n} ${n === 1 ? "point" : "points"} apart`,
+  groupLine: (group: string, agree: number, answered: number) => `${group}: ${agree} of ${answered} agree.`,
+  smallLine: (group: string) => `${group}: fewer than 3 answers.`,
+  noGap: "No item has two groups with 3 answers or more yet.",
+  noGapFiltered: "No item has two groups with 3 answers or more under this filter. Clear the filter or compare by another field.",
+  noGroups: "No answers to compare.",
+  allAgree: "Where groups have 3 answers or more, they agree on every item.",
+  showAll: (n: number) => `Show all ${n} items`,
+};
+
 // The Responses tab (stories/E8-2; docs/copy/app.md, Results).
 export const RESPONSES_COPY = {
   caption: (n: number) => (n === 1 ? "1 person" : `${n} people`),

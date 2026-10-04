@@ -20,6 +20,7 @@ import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import type { ScoringMethod, WorkspaceId } from "@/db/types";
+import { MIN_GROUP } from "@/lib/results-agreement";
 import type { ResultsFilter } from "@/lib/results-filter";
 import { proposedCode, SCALES } from "@/lib/scoring";
 import type { ResultsNumbers } from "@/lib/results-tiles";
@@ -459,6 +460,50 @@ export const detail = {
       counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
       rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
     };
+  },
+};
+
+// Where groups disagree (E8-6): per item, the agreement share of each group of a dropdown
+// field among the answers that count (agree over agree, different priority, disagree and
+// unclear; a value rated with no proposal is no agreement), and the gap, the largest
+// difference in share between two groups with at least MIN_GROUP answers (decision 0031:
+// smaller groups are shown, not compared), in percentage points rounded half up; null when
+// fewer than two groups are compared. Items in order of the gap, largest first (the caller
+// orders ties by the list, src/lib/results-gaps.ts). People without a value on the field are
+// the group '' (Not given on screen).
+export type GapGroup = { group: string; agree: number; answered: number; compared: boolean };
+export type GapItem = { itemId: string; gap: number | null; groups: GapGroup[] };
+
+export const gaps = {
+  byField: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKey: string): Promise<GapItem[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
+      g as (
+        -- The people who left the field empty are a group of their own, '' (Not given on
+        -- screen), as in the Agreement tab's split.
+        select ans.item_id, coalesce(nullif(ans.rfields ->> ${fieldKey}, ''), '') as grp,
+            count(*) filter (where ans.kind = 'agree')::int as agree,
+            count(*) filter (where ans.kind in ('agree', 'change', 'disagree', 'unclear'))::int as answered
+          from ans
+          group by 1, 2
+      ),
+      shares as (select g.*, case when g.answered >= ${MIN_GROUP} then g.agree::numeric / g.answered end as share from g),
+      gap as (
+        select item_id, case when count(share) >= 2 then round(100 * (max(share) - min(share)))::int end as gap
+          from shares group by item_id
+      )
+      select its.id as item_id, s.grp, s.agree, s.answered, gap.gap
+        from its join item it on it.id = its.id and it.workspace_id = ${ws}
+          left join shares s on s.item_id = its.id
+          left join gap on gap.item_id = its.id
+        order by gap.gap desc nulls last, it.position, its.id, s.grp`);
+    const out: GapItem[] = [];
+    for (const r of rows) {
+      let last = out.at(-1);
+      if (!last || last.itemId !== r.item_id) out.push((last = { itemId: r.item_id, gap: r.gap, groups: [] }));
+      if (r.grp !== null) last.groups.push({ group: r.grp, agree: r.agree ?? 0, answered: r.answered ?? 0, compared: (r.answered ?? 0) >= MIN_GROUP });
+    }
+    return out;
   },
 };
 
