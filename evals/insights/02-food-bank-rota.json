@@ -1,0 +1,31 @@
+{
+  "id": "insights-02",
+  "domain": "Food bank volunteer rota (invented)",
+  "scale": ["Must", "Should", "Could", "Not needed"],
+  "items": [
+    { "ref": "FB-01", "area": "Shifts", "text": "Volunteers sign up for shifts from their phone.", "proposed": "Must", "counts": { "agree": 5, "change": 0, "disagree": 0, "unclear": 0, "couldSee": 5 } },
+    { "ref": "FB-02", "area": "Shifts", "text": "Shift leads see who has a food hygiene certificate.", "proposed": "Should", "counts": { "agree": 2, "change": 0, "disagree": 0, "unclear": 1, "couldSee": 5 } },
+    { "ref": "FB-03", "area": "Deliveries", "text": "Drivers get the route for home deliveries.", "proposed": "Should", "counts": { "agree": 0, "change": 1, "disagree": 0, "unclear": 0, "couldSee": 1 } },
+    { "ref": "FB-04", "area": "Deliveries", "text": "Clients confirm they are home before a delivery leaves.", "proposed": "Could", "counts": { "agree": 0, "change": 0, "disagree": 0, "unclear": 1, "couldSee": 1 } },
+    { "ref": "FB-05", "area": "Stock", "text": "Donations are logged by weight at the door.", "proposed": "Must", "counts": { "agree": 1, "change": 2, "disagree": 2, "unclear": 0, "couldSee": 5 } }
+  ],
+  "respondents": [
+    { "key": "r1", "groups": { "Role": "Warehouse" } },
+    { "key": "r2", "groups": { "Role": "Warehouse" } },
+    { "key": "r3", "groups": { "Role": "Coordinator" } },
+    { "key": "r4", "groups": { "Role": "Coordinator" } },
+    { "key": "r5", "groups": { "Role": "Driver" } }
+  ],
+  "answers": [
+    { "item": "FB-05", "respondent": "r1", "kind": "disagree", "value": null, "text": "Weighing every bag at the door makes a queue in the rain." },
+    { "item": "FB-05", "respondent": "r2", "kind": "disagree", "value": null, "text": "We weigh pallets in the back already." },
+    { "item": "FB-05", "respondent": "r3", "kind": "change", "value": "Must", "text": "The grant report needs kilos per month; we lose money without it." },
+    { "item": "FB-05", "respondent": "r4", "kind": "change", "value": "Must", "text": "The supermarket partners ask for weights." },
+    { "item": "FB-02", "respondent": "r3", "kind": "unclear", "value": null, "text": "Do we store the certificate or only that one exists?" },
+    { "item": "FB-03", "respondent": "r5", "kind": "change", "value": "Must", "text": "I plan the route on paper every week." },
+    { "item": "FB-04", "respondent": "r5", "kind": "unclear", "value": null, "text": "By phone call or a message? Many clients have no smartphone." }
+  ],
+  "missing": [],
+  "expectedKinds": ["conflict", "followUp", "coverage"],
+  "note": "Warehouse and coordinators split on FB-05 (conflict); FB-02 and FB-04 carry open questions (followUp); the Deliveries area was seen by one respondent of five (coverage)."
+}

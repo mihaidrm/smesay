@@ -4,7 +4,11 @@
 // sends ("[ref] (area: name) text" lines, src/lib/ai/prompts/shape.ts) and answers with a
 // message in the API's shape: imported areas kept with the loose items in the first one, or
 // three areas by thirds when the list has none; an item marked (keep in: name) stays in that
-// area. One ambiguity and one duplicate flag are raised by item text. GET /health says it is up.
+// area. One ambiguity and one duplicate flag are raised by item text. Write actions (E9-1) is
+// told apart by its system prompt ("actions"): it reads the answer and missing-item refs
+// ("[A1] ...", "[M1] ...", src/lib/ai/prompts/insights.ts) and answers with four actions, one
+// of each kind, citing them, and a fifth citing a ref that was not sent, which the app drops
+// (acceptance 3). GET /health says it is up.
 import http from "node:http";
 
 const PORT = Number(process.env.FAKE_ANTHROPIC_PORT ?? 4010);
@@ -37,6 +41,21 @@ function shape(data) {
   };
 }
 
+function actions(data) {
+  const answers = [...data.matchAll(/^\[(A\d+)\]/gm)].map((m) => m[1]);
+  const missing = [...data.matchAll(/^\[(M\d+)\]/gm)].map((m) => m[1]);
+  const first = answers.slice(0, 1);
+  return {
+    actions: [
+      { kind: "rewrite", title: "Rewrite the first item so its scope is clear.", why: "A respondent read it differently from the proposal.", answers: first, missing: [] },
+      { kind: "conflict", title: "Settle the priority of the first item with both groups.", why: "The answers on it pull in two directions.", answers: answers.slice(0, 2), missing: [] },
+      { kind: "followUp", title: "Answer the open question before the link closes.", why: "A respondent could not rate an item without more detail.", answers: first, missing: [] },
+      { kind: "coverage", title: "Consider adding the missing item respondents suggested.", why: "It was suggested as missing from the list.", answers: missing.length ? [] : first, missing: missing.slice(0, 1) },
+      { kind: "rewrite", title: "An action citing an answer that was never sent.", why: "Dropped by the app.", answers: ["A999"], missing: [] },
+    ],
+  };
+}
+
 const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/health") { res.writeHead(200); res.end("ok"); return; }
   if (req.method !== "POST" || !req.url?.startsWith("/v1/messages")) { res.writeHead(404); res.end(); return; }
@@ -45,7 +64,8 @@ const server = http.createServer((req, res) => {
   req.on("end", () => {
     const request = JSON.parse(body);
     const data = request.messages?.[0]?.content?.[0]?.text ?? "";
-    const out = shape(data);
+    const system = request.system?.[0]?.text ?? "";
+    const out = /Write at most \d+ actions/.test(system) ? actions(data) : shape(data);
     const message = { id: "msg_fake", type: "message", role: "assistant", model: request.model, content: [{ type: "text", text: JSON.stringify(out) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1000, output_tokens: 500, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(message));

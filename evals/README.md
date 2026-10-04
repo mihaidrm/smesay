@@ -98,7 +98,8 @@ Exit 1 when fewer than 7 of the 10 specs pass (PASS_BAR in run.ts, decision 0038
 the model is not deterministic, and one spec near a line moves between runs). The Evals job
 (.github/workflows/evals.yml) is started by hand only, from the Actions tab, by Mihai
 (decision 0039): it spends his API credit, so no push or pull request starts it. It uses the
-repository secret ANTHROPIC_API_KEY scoped to the two steps that need it; without it the job
+repository secret ANTHROPIC_API_KEY scoped to the three steps that need it (the check and the
+two runs: `npm run evals`, then `npm run evals -- insights`, the actions set below); without it the job
 prints that it skipped and passes. Claude never runs `npm run evals` or `npm run ai:smoke`. The runs count against ANTHROPIC_MONTHLY_BUDGET_EUR like any
 other call, in a throwaway workspace with a fixed id (EVALS_WORKSPACE_ID in run.ts)
 and a project "Golden set" that the runner creates once and reuses; it has no members, so it
@@ -106,3 +107,16 @@ is not on anyone's screen. The cost printed per spec is read from that workspace
 rows, so a call the provider billed and the app refused counts too. Two runs of the same
 commit can differ: the model is not deterministic, so a spec near a line can pass in one run
 and fail in the next (design note 32).
+
+## Actions set (stories/E9-1)
+
+evals/insights/NN-domain.json: two invented response sets (a dental clinic's online booking,
+a food bank's volunteer rota), each with the items and their counts, the respondents by their
+dropdown fields, the answers that carry a reason or a question, the missing items, and
+expectedKinds, the action kinds a good run writes. `npm run evals -- insights` runs them
+through the Write actions prompt and client (evals/insights.ts) and writes
+evals/results/insights.json; a spec passes when every expected kind is among the kept actions
+and the model wrote no action that cites nothing or a ref it was not given. Exit 1 unless both
+pass. evals/insights.test.ts runs it against a fetch that answers in place of the network. As
+for the shaping set, the real run is Mihai's (decision 0039).
+

@@ -147,7 +147,9 @@ export const results = {
         (select round((percentile_cont(0.5) within group (order by greatest(0, extract(epoch from (first_submitted_at - created_at)) / 60)))::numeric)::int
           from sel where src = 'r' and first_submitted_at is not null) as median_minutes,
         exists (select 1 from answer a join response r on r.id = a.response_id join inst on r.instrument_id = inst.id where a.workspace_id = ${ws} and r.workspace_id = ${ws}) as any_answer,
-        (select count(*) from insight s join inst on s.project_id = inst.project_id where s.workspace_id = ${ws} and s.state = 'open')::int as actions,
+        (select count(*) from insight s join inst on s.project_id = inst.project_id where s.workspace_id = ${ws} and s.state = 'open'
+          and (exists (select 1 from answer ca where ca.workspace_id = ${ws} and ca.id = any(s.cited_answer_ids))
+            or exists (select 1 from missing_item cm where cm.workspace_id = ${ws} and cm.id = any(s.cited_missing_item_ids))))::int as actions,
         (select count(*) from inst)::int as found`);
     if (!row || (row as NumbersRow & { found: number }).found === 0) return null;
     return {

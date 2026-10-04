@@ -11,6 +11,7 @@ import { resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { RESULTS_COPY } from "@/lib/results-copy";
 import { parseTileChoice } from "@/lib/results-tiles";
+import { writeActions } from "@/lib/insights";
 
 export type ResultsActionState = { error: string | null };
 
@@ -47,4 +48,16 @@ export async function saveView(projectId: string, view: string): Promise<Results
   await resultsPrefs.set(found.userId, found.instrumentId, { view });
   revalidatePath(`/app/projects/${projectId}/results`);
   return { error: null };
+}
+
+// Write actions (stories/E9-1): the model writes the project's actions from the answers;
+// the sample is refused in src/lib/insights.ts (no model call).
+// written: how many actions the run kept, so a run that kept none says so.
+export type WriteActionsState = { error: string | null; retry: boolean; written: number | null };
+export async function writeActionsAction(projectId: string): Promise<WriteActionsState> {
+  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const result = await writeActions({ ws: current.ws, userId: session.user.id }, projectId);
+  if ("error" in result) return { error: result.error, retry: result.retry, written: null };
+  revalidatePath(`/app/projects/${projectId}/results`);
+  return { error: null, retry: false, written: result.written.length };
 }

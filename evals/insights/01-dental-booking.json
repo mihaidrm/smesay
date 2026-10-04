@@ -1,0 +1,35 @@
+{
+  "id": "insights-01",
+  "domain": "Dental clinic online booking (invented)",
+  "scale": ["Must", "Should", "Could", "Not needed"],
+  "items": [
+    { "ref": "DB-01", "area": "Booking", "text": "Patients book a check-up online without calling.", "proposed": "Must", "counts": { "agree": 6, "change": 0, "disagree": 0, "unclear": 0, "couldSee": 6 } },
+    { "ref": "DB-02", "area": "Booking", "text": "Emergency slots are held back each morning.", "proposed": "Should", "counts": { "agree": 1, "change": 3, "disagree": 2, "unclear": 0, "couldSee": 6 } },
+    { "ref": "DB-03", "area": "Reminders", "text": "Reminders go out before the appointment.", "proposed": "Must", "counts": { "agree": 3, "change": 0, "disagree": 0, "unclear": 3, "couldSee": 6 } },
+    { "ref": "DB-04", "area": "Payments", "text": "A deposit is taken for treatments over 200 euro.", "proposed": "Could", "counts": { "agree": 4, "change": 0, "disagree": 0, "unclear": 1, "couldSee": 6 } }
+  ],
+  "respondents": [
+    { "key": "r1", "groups": { "Team": "Reception" } },
+    { "key": "r2", "groups": { "Team": "Reception" } },
+    { "key": "r3", "groups": { "Team": "Reception" } },
+    { "key": "r4", "groups": { "Team": "Dentists" } },
+    { "key": "r5", "groups": { "Team": "Dentists" } },
+    { "key": "r6", "groups": { "Team": "Practice manager" } }
+  ],
+  "answers": [
+    { "item": "DB-02", "respondent": "r1", "kind": "change", "value": "Must", "text": "Every morning we turn away people in pain because the day is full." },
+    { "item": "DB-02", "respondent": "r2", "kind": "change", "value": "Must", "text": "Half our calls before nine are emergencies." },
+    { "item": "DB-02", "respondent": "r3", "kind": "change", "value": "Must", "text": "Without held slots we double-book." },
+    { "item": "DB-02", "respondent": "r4", "kind": "disagree", "value": null, "text": "Empty held slots cost us chair time; we fit emergencies in anyway." },
+    { "item": "DB-02", "respondent": "r5", "kind": "disagree", "value": null, "text": "Held slots go unused most days." },
+    { "item": "DB-03", "respondent": "r1", "kind": "unclear", "value": null, "text": "By text, email or both? Patients without a phone number get nothing?" },
+    { "item": "DB-03", "respondent": "r4", "kind": "unclear", "value": null, "text": "How long before: a day, or a week for long treatments?" },
+    { "item": "DB-03", "respondent": "r6", "kind": "unclear", "value": null, "text": "Does reminder mean the same as confirmation, where the patient has to answer?" },
+    { "item": "DB-04", "respondent": "r6", "kind": "unclear", "value": null, "text": "Is the deposit refunded if we cancel?" }
+  ],
+  "missing": [
+    { "respondent": "r6", "text": "A waiting list that offers a cancelled slot to the next patient.", "area": "Booking", "value": "Should" }
+  ],
+  "expectedKinds": ["conflict", "rewrite", "followUp", "coverage"],
+  "note": "Reception and the dentists split on DB-02 (conflict); DB-03 is read three ways (rewrite); DB-04 has an open question (followUp); a missing item was suggested (coverage)."
+}

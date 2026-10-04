@@ -12,6 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
+import { INSIGHT_KINDS } from "./types";
 import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
@@ -362,6 +363,10 @@ export const insight = pgTable("insight", {
   title: text("title").notNull(),
   why: text("why"),
   citedAnswerIds: uuid("cited_answer_ids").array().notNull().default(sql`'{}'::uuid[]`),
+  // E9-1 (decision 0033): the missing items an action cites, and its kind (null for rows from
+  // before E9-1).
+  citedMissingItemIds: uuid("cited_missing_item_ids").array().notNull().default(sql`'{}'::uuid[]`),
+  kind: text("kind", { enum: INSIGHT_KINDS }),
   state: text("state", { enum: INSIGHT_STATES }).notNull().default("open"),
   model: text("model"),
   tokensIn: integer("tokens_in"),
@@ -373,6 +378,7 @@ export const insight = pgTable("insight", {
   index("insight_workspace_idx").on(t.workspaceId),
   index("insight_project_idx").on(t.projectId),
   check("insight_state_check", oneOf("state", INSIGHT_STATES)),
+  check("insight_kind_check", sql`"kind" is null or ${oneOf("kind", INSIGHT_KINDS)}`),
 ]);
 
 export const aiRun = pgTable("ai_run", {

@@ -245,6 +245,15 @@ of the content; page means it replaces the screen.
 | Banner, results (E8-1) | The headline numbers, a tab or an item's detail fail to load | [PART] could not load. It has been logged. Try again in a minute. [Button: Try again] ([PART]: The headline numbers, the tab's name, or The item's detail (E8-5)) |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
+| Inline, Actions tab (E9-1) | Write actions on the sample | The sample's actions are invented and cannot be written again. Write actions on your own project. |
+| Inline, Actions tab (E9-1) | The AI budget for the month is used | This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
+| Inline, Actions tab (E9-1) | AI paused by the product cap | AI is paused until next month. The answers are all on the other tabs. |
+| Inline, Actions tab (E9-1) | The plan's AI runs for the month are used | This workspace has used its AI runs for the month on its plan. The answers are all on the other tabs. Change the plan, or come back next month. |
+| Inline, Actions tab (E9-1) | The AI did not answer | The AI did not answer. No action changed. Try again in a minute. [Button: Try again] |
+| Inline, Actions tab (E9-1) | The AI answered in a form the app could not use | The AI answered in a form the app could not use. No action changed. Try again. [Button: Try again] |
+| Inline, Actions tab (E9-1) | Too many AI requests at once | Too many AI requests at once. Wait a minute and try again. |
+| Inline, Actions tab (E9-1) | The prompt would be over the input limit | There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree tab and the Questions and gaps tab; work from those. |
+| Inline, Actions tab (E9-1) | Write actions before any submitted answer (a guard; the tab shows only once there are answers) | Actions are written from the submitted answers. Write them once someone has submitted. |
 | Inline, export | Export failed | The [FORMAT] export did not finish. Try again; if it fails again, export the answers as CSV, which always works. |
 | Inline, PDF | PDF over the page limit | The summary runs to [N] pages. It still downloads; the deck version is the first [N]. |
 | Inline, sample project | Delete sample | The sample project and its invented answers are deleted. Your own projects are not affected. [Button: Delete sample] |

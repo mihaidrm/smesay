@@ -540,13 +540,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{tabActions}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 12px">
-<div style="color: #5B6069">Written by AI from the responses. Every action cites the answers behind it. This run cost EUR 0.04.</div>
+<div style="display: flex; align-items: center; gap: 12px"><button type="button" style="min-height: 36px; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Write again</button></div>
 <sc-for list="{{actions}}" as="ac" hint-placeholder-count="4">
 <div style="display: flex; align-items: center; gap: 20px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px; background: {{ac.bg}}">
 <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.kind}}</span></div>
 <div style="font-size: 15px; font-weight: 500; color: {{ac.fg}}">{{ac.title}}</div>
 <div style="color: #5B6069">{{ac.why}}</div>
-<div style="font-size: 12px; color: #5B6069">Cites: {{ac.cites}}</div>
+<div style="font-size: 12px; color: #5B6069">From: {{ac.cites}}</div>
 </div>
 <div style="flex-shrink: 0; display: flex; gap: 6px; align-items: center">
 <sc-if value="{{ac.open}}" hint-placeholder-val="{{true}}">
@@ -915,15 +916,15 @@ return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg
 });
 
 const actionDefs = [
-{ id: 'a1', title: 'Decide whether policy flags move to Must have.', why: 'Both salespeople pushed it up from Should have. Nobody outside Sales did.', cites: 'Ioana Marin and Tom Reyes on CL-04' },
-{ id: 'a2', title: 'Answer two open questions before the link closes.', why: 'Two respondents could not rate an item without more detail.', cites: 'Tom Reyes on CL-02, Lukas Berg on CL-06' },
-{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.', cites: 'Priya Nair and Lukas Berg on CL-06' },
-{ id: 'a4', title: 'Consider adding mileage from addresses to Submitting.', why: 'One respondent suggested it as a missing item.', cites: 'Dana Okafor, missing item' }
+{ id: 'a1', title: 'Decide whether policy flags move to Must have.', why: 'Both salespeople pushed it up from Should have. Nobody outside Sales did.', kind: 'Groups disagree', cites: 'Ioana Marin and Tom Reyes on CL-04' },
+{ id: 'a2', title: 'Answer two open questions before the link closes.', why: 'Two respondents could not rate an item without more detail.', kind: 'Follow up', cites: 'Tom Reyes on CL-02, Lukas Berg on CL-06' },
+{ id: 'a3', title: 'Rewrite CL-06 to say who repays an advance if the trip is cancelled.', why: 'HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.', kind: 'Rewrite', cites: 'Priya Nair and Lukas Berg on CL-06' },
+{ id: 'a4', title: 'Consider adding mileage from addresses to Submitting.', why: 'One respondent suggested it as a missing item.', kind: 'Coverage', cites: 'Dana Okafor, missing item' }
 ];
 const actions = actionDefs.map((a) => {
 const st = s.actionState[a.id];
 return {
-title: a.title, why: a.why, cites: a.cites,
+title: a.title, why: a.why, kind: a.kind, cites: a.cites,
 open: !st, closed: !!st,
 stateLabel: st === 'done' ? 'Done' : 'Dismissed',
 bg: st ? '#F6F6F4' : '#FFFFFF', fg: st ? '#5B6069' : '#16181C',

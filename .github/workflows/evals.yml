@@ -1,8 +1,9 @@
 name: Evals
 
-# The golden set (stories/E4-6, acceptance 3; decision 0039): started by hand only, from the
-# Actions tab, by Mihai. It calls the real model on the repository secret ANTHROPIC_API_KEY
-# and costs 34 to 40 cents a run, so nothing starts it on a push or a pull request. Without
+# The golden set (stories/E4-6, acceptance 3; decision 0039) and the actions set (E9-1,
+# acceptance 5): started by hand only, from the Actions tab, by Mihai. It calls the real model
+# on the repository secret ANTHROPIC_API_KEY and costs 34 to 40 cents for the golden set plus a
+# few cents for the two action specs (an estimate, not yet measured), so nothing starts it on a push or a pull request. Without
 # the secret the job prints that it skipped and passes.
 on:
   workflow_dispatch:
@@ -45,7 +46,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # The key reaches the two steps that need it, not npm ci or the upload.
+      # The key reaches the three steps that need it (the check and the two runs), not npm ci
+      # or the upload.
       - id: key
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -62,9 +64,16 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run evals
+      # The actions set (stories/E9-1, acceptance 5), on the same run and key.
+      - if: always() && steps.key.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npm run evals -- insights
       - uses: actions/upload-artifact@v4
         if: always() && steps.key.outputs.run == 'true'
         with:
           name: evals-results
-          path: evals/results/latest.json
+          path: |
+            evals/results/latest.json
+            evals/results/insights.json
           retention-days: 30

@@ -62,3 +62,8 @@ export type WorkspaceId = string & { readonly [workspaceIdBrand]: true };
 // Agreement tab's view (E8-3). Read through src/lib/results-tiles.ts storedTiles, which drops
 // anything else.
 export type ResultsPrefs = { [instrumentId: string]: { tiles?: string[]; includeUnsubmitted?: boolean; view?: "table" | "columns" | "share" } };
+
+// E9-1: the four kinds of action the model returns (INTERFACES.md, InsightOutput); the
+// check constraint on insight.kind (src/db/schema.ts) uses the same list.
+export const INSIGHT_KINDS = ["rewrite", "conflict", "followUp", "coverage"] as const;
+export type InsightKind = (typeof INSIGHT_KINDS)[number];

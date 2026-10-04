@@ -82,14 +82,13 @@ export const answers: Record<number, Record<number, A>> = {
 
 export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in.", suggestedArea: "Submitting" };
 
-// Four actions; cites are (item, person) answer pairs. The fourth action cites the missing item;
-// its column (cited_missing_item_ids) arrives with E9-1 (decision 0033), so it is seeded without
-// a citation until then.
+// Four actions with their kind (stories/E9-1); cites are (item, person) answer pairs, and the
+// fourth cites the missing item (cited_missing_item_ids, decision 0033).
 export const insights = [
-  { n: 1, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][] },
-  { n: 2, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][] },
-  { n: 3, title: "Rewrite CL-06 to say who repays an advance if the trip is cancelled.", why: "HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.", cites: [[6, 5], [6, 4]] as [number, number][] },
-  { n: 4, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][] },
+  { n: 1, kind: "conflict" as const, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][], missing: false },
+  { n: 2, kind: "followUp" as const, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][], missing: false },
+  { n: 3, kind: "rewrite" as const, title: "Rewrite CL-06 to say who repays an advance if the trip is cancelled.", why: "HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.", cites: [[6, 5], [6, 4]] as [number, number][], missing: false },
+  { n: 4, kind: "coverage" as const, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][], missing: true },
 ];
 
 // Two model calls, invented numbers in the shape E4 logs (euro cents).

@@ -22,6 +22,7 @@ import { buildShapePrompt } from "@/lib/ai/prompts/shape";
 import { ShapeOutput } from "@/lib/ai/shape-schema";
 import { checkShape } from "@/lib/shaping";
 import { line, needsJudge, score, type Expected, type SpecScore, type Verdict } from "./score";
+import { insightLine, loadInsightSpecs, runInsightSpec, type InsightRun } from "./insights";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 // A fixed id, as the sample workspace has (src/db/seed/sample.ts), so no workspace a person
@@ -115,6 +116,25 @@ export async function evalsWorkspace(): Promise<{ ws: WorkspaceId; projectId: st
   return { ws, projectId };
 }
 
+// `npm run evals -- insights` runs the actions set (stories/E9-1, acceptance 5) instead of
+// the shaping set: every spec must pass, and the results go to evals/results/insights.json.
+export async function mainInsights(): Promise<number> {
+  const { ws, projectId } = await evalsWorkspace();
+  const runs: InsightRun[] = [];
+  for (const spec of loadInsightSpecs()) {
+    const run = await runInsightSpec(spec, ws, projectId);
+    runs.push(run);
+    console.log(insightLine(run));
+    if (run.error) console.error(`  ${run.error}`);
+  }
+  const cost = runs.reduce((n, r) => n + r.costCents, 0);
+  const passed = runs.filter((r) => r.pass).length;
+  mkdirSync(HERE + "results", { recursive: true });
+  writeFileSync(HERE + "results/insights.json", JSON.stringify({ ranAt: new Date().toISOString(), costCents: cost, passed, runs }, null, 2) + "\n");
+  console.log(`${passed} of ${runs.length} action specs pass, ${cost} euro cent(s). Results in evals/results/insights.json.`);
+  return passed === runs.length ? 0 : 1;
+}
+
 export async function main(): Promise<number> {
   const specs = loadExpected();
   const { ws, projectId } = await evalsWorkspace();
@@ -136,7 +156,7 @@ export async function main(): Promise<number> {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  main().then((code) => process.exit(code)).catch((error: unknown) => {
+  (process.argv.includes("insights") ? mainInsights() : main()).then((code) => process.exit(code)).catch((error: unknown) => {
     const cause = error instanceof Error && error.cause instanceof Error ? ` Cause: ${error.cause.message}` : "";
     console.error("The evals did not run. " + (error instanceof Error ? error.message : String(error)) + cause);
     console.error("Check that Docker is up (docker compose up -d), the database is migrated (npm run db:migrate), and ANTHROPIC_API_KEY and ANTHROPIC_MONTHLY_BUDGET_EUR are in .env.local.");
