@@ -49,6 +49,8 @@ export function RespondentApp(props: RespondentAppProps) {
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
 
   const go = (next: Screen) => {
+    // About you shows what Start saved; picks ticked and not saved are dropped.
+    if (next.kind === "about") setPicks(savedPicks);
     setScreen(next);
     window.history.pushState(null, "", `?at=${screenParam(next)}`);
     window.scrollTo(0, 0);
@@ -56,7 +58,8 @@ export function RespondentApp(props: RespondentAppProps) {
   // The first entry carries its screen too, so Back from a pushed screen lands on it.
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (!url.searchParams.has("at")) { url.searchParams.set("at", screenParam(props.initialScreen)); window.history.replaceState(null, "", url); }
+    const at = screenParam(props.initialScreen);
+    if (url.searchParams.get("at") !== at) { url.searchParams.set("at", at); window.history.replaceState(null, "", url); }
   }, [props.initialScreen]);
   // Back and Forward in the browser move between screens.
   useEffect(() => {
@@ -79,7 +82,7 @@ export function RespondentApp(props: RespondentAppProps) {
       }
       setPicks(chosen);
       setSavedPicks(chosen);
-      setFields(values);
+      setFields(Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v.trim()])));
       setStarted(true);
       go({ kind: "chapter", index: 0 });
     } catch {
@@ -90,7 +93,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
 
   const firstChapter = chaptersFor(areas, items, picks)[0]?.name ?? null;
-  const wide = screen.kind === "chapter";
+  const wide = screen.kind === "chapter" && Boolean(chapters[screen.index]);
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", wide ? "max-w-[1000px]" : "max-w-[560px]")}>
       {screen.kind === "about" ? (

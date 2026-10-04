@@ -2,8 +2,9 @@
 // link (src/lib/link-access.ts, no session), and each state has a page: unknown token, not
 // yet open, closed, inactive (revoked, E6-4), passcode required, the sample project's link
 // (it does not collect answers, E8-8 acceptance 2), and the open instrument. A closed
-// personal link with a response shows the respondent's own state (E7-1, acceptance 3;
-// note 12, finding 33); a closed public link shows none (decision 0031). The open
+// personal link whose respondent answered at least one item and did not submit shows the
+// respondent's own state (E7-1, acceptance 3; note 12, finding 33); a closed public link
+// shows none (decision 0031). The open
 // instrument is the respondent app (respondent-app.tsx) over this device's response (the
 // personal invite's, or the one the device cookie names, src/lib/respondent.ts); a
 // personal link carries the name and role the PM typed and does not ask them (E6-2). The

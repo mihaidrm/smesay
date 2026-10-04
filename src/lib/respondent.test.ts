@@ -4,8 +4,10 @@
 // link creates one response per device with a 32-hex device token in a cookie on the
 // link's path, a second Start on that device updates it; a personal link has one response
 // even when two Starts race; a passcode link without the proof, a sample link, a closed
-// and a revoked link write nothing; a closed personal link with a response shows the
-// respondent's own state; another workspace's rows are never touched.
+// and a revoked link write nothing, and a link that changed under the invite's lock wins;
+// a closed personal link whose respondent answered something and did not submit shows the
+// respondent's own state; a rate-blind instrument sends no proposed value; another
+// workspace's rows are never touched.
 import { beforeAll, describe, expect, it } from "vitest";
 import { answers, invites, items, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -13,7 +15,7 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { RespondentFieldSpec, WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
-import { openDraft, saveFields, savePerspectives, tagItem } from "@/lib/instruments";
+import { openDraft, saveFields, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { listInvitees, sendInvites } from "@/lib/invitees";
 import { checkPasscode, clearAttempts } from "@/lib/link-access";
 import { memoryOutbox, type Mail } from "@/lib/mail";
@@ -123,7 +125,7 @@ describe("chaptersFor", () => {
   });
 });
 
-async function publishedProject(name: string, opts: { passcode?: string } = {}) {
+async function publishedProject(name: string, opts: { passcode?: string; blind?: boolean } = {}) {
   const project = await projects.create(a.ws, { name, createdBy: a.userId });
   const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should", "Three | Paying | Could"].join("\n"));
   if (!("upload" in pasted)) throw new Error(pasted.error);
@@ -132,12 +134,26 @@ async function publishedProject(name: string, opts: { passcode?: string } = {}) 
   const fields = await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Name", type: "text", mandatory: true }, { label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]));
   if (!("instrument" in fields)) throw new Error(fields.error);
   await savePerspectives(a.ws, project.id, instrument.id, "Finance");
+  if (opts.blind) {
+    const blind = await saveScoring(a.ws, project.id, instrument.id, "moscow", false, null, "chapters");
+    if (!("instrument" in blind)) throw new Error(blind.error);
+  }
   const rows = await items.forSet(a.ws, instrument.itemSetId);
   await tagItem(a.ws, project.id, rows[2].id, JSON.stringify(["Finance"]));
   const published = await publishLink(a.ws, project.id, instrument.id, "", "2027-01-20T15:00:00Z", opts.passcode ?? "", new Date("2026-10-03T12:00:00Z"));
   if (!("invite" in published)) throw new Error(published.error);
   return { project, instrument, link: published.invite };
 }
+
+describe("rate-blind", () => {
+  it("sends no proposed value to the page when the proposal is hidden", async () => {
+    const now = new Date("2026-10-05T12:00:00Z");
+    const shown = await loadRespondent((await publishedProject("Shown")).link.token, {}, now);
+    expect(shown.kind === "ready" ? shown.items.map((it) => it.proposed) : null).toEqual(["M", "S", "C"]);
+    const blind = await loadRespondent((await publishedProject("Blind", { blind: true })).link.token, {}, now);
+    expect(blind.kind === "ready" ? blind.items.map((it) => it.proposed) : null).toEqual([null, null, null]);
+  }, 60_000);
+});
 
 describe("Start", () => {
   const now = new Date("2026-10-05T12:00:00Z");
@@ -213,6 +229,14 @@ describe("Start", () => {
     const result = await responses.createPublic(a.ws, data, (d) => linkState(d, now) === "open");
     expect(result && "refused" in result ? linkState(result.refused, now) : null).toBe("revoked");
     expect(await responses.forDevice(a.ws, link.id, "e".repeat(32))).toBeNull();
+    // A personal invite renewed under another token: the old token's Start is refused.
+    const live = await publishedProject("Race renew");
+    const sent = await sendInvites(a.ws, live.project.id, live.instrument.id, "cy@x.example, Cy, Sales", { name: "Dana", email: "dana@x.example" }, BASE, new Date("2026-10-03T12:00:00Z"), async () => {});
+    if (!("outcomes" in sent)) throw new Error(sent.error);
+    const [cy] = await listInvitees(a.ws, live.instrument.id);
+    const personal = await responses.startPersonal(a.ws, { ...data, instrumentId: live.instrument.id, itemSetId: live.instrument.itemSetId, inviteId: cy.id, deviceToken: "d".repeat(32) }, (d) => d.token === "an-old-token");
+    expect(personal && "refused" in personal ? personal.refused.token : null).toBe(cy.token);
+    expect(await responses.forInvite(a.ws, cy.id)).toBeNull();
   }, 60_000);
 
   it("writes nothing on a passcode link without the proof, a sample, a not-yet-open, a closed or a revoked link", async () => {

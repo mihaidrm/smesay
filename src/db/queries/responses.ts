@@ -7,7 +7,7 @@
 // devices make one row (postgresql.org/docs/current/explicit-locking.html, row-level locks;
 // Drizzle's .for(): node_modules/drizzle-orm/pg-core/query-builders/select.d.ts).
 // createPublic (E7-1): a public link's new response, under a shared lock on the invite row.
-// Both re-read the invite's dates and revocation under the lock (`stillOpen`), so a Start
+// Both re-read the invite's token, dates and revocation under the lock (`stillOpen`), so a Start
 // that races a Revoke or a date change writes nothing once the change is committed: the
 // revoke's UPDATE waits for the lock or the Start waits for the revoke (E6-4).
 import { and, desc, eq } from "drizzle-orm";
@@ -19,8 +19,8 @@ import { isUuid, scoped } from "./scoped";
 
 export type Response = typeof response.$inferSelect;
 export type NewResponse = Pick<typeof response.$inferInsert, "instrumentId" | "itemSetId" | "inviteId" | "deviceToken" | "fields" | "perspectives">;
-export type InviteDates = Pick<Invite, "opensAt" | "closesAt" | "revokedAt">;
-const DATES = { opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt };
+export type InviteDates = Pick<Invite, "token" | "opensAt" | "closesAt" | "revokedAt">;
+const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt };
 
 export const responses = {
   ...scoped(response),

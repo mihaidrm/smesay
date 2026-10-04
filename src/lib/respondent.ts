@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 import { answers, items, itemSets, links, responses } from "@/db/queries";
 import type { Answer } from "@/db/queries/answers";
 import type { Link } from "@/db/queries/links";
-import type { Response } from "@/db/queries/responses";
+import type { InviteDates, Response } from "@/db/queries/responses";
 import { textFor } from "@/lib/item-text";
 import { viewOf, type LinkView } from "@/lib/link-access";
 import { answeredCount, carriedFields, parseFieldValues, parsePicks, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
@@ -98,8 +98,10 @@ export async function openLinkFor(token: string, cookies: RespondentCookies, now
   return { link };
 }
 
-// The refusal for a link that stopped being open between the check and the write.
-function refusalOf(dates: Parameters<typeof linkState>[0], now: Date): WriteRefusal {
+// The refusal for a link that stopped being open between the check and the write: a
+// renewed personal link (a new token on the same row) reads as revoked for the old one.
+function refusalOf(dates: InviteDates, token: string, now: Date): WriteRefusal {
+  if (dates.token !== token) return { status: 410, error: "revoked" };
   const state = linkState(dates, now);
   return state === "notOpen" ? { status: 409, error: "notOpen" } : { status: 410, error: state === "revoked" ? "revoked" : "closed" };
 }
@@ -120,11 +122,11 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   const data = { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, fields: fields.values, perspectives: picks.picks };
   // The link re-read under the invite row's lock: a Revoke or a date change committed since
   // openLinkFor wins (src/db/queries/responses.ts).
-  const stillOpen = (dates: Parameters<typeof linkState>[0]) => linkState(dates, now) === "open";
+  const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
   if (link.invite.kind === "personal") {
     const started = await responses.startPersonal(link.ws, { ...data, deviceToken: newDeviceToken() }, stillOpen);
     if (!started) return { status: 404, error: "unknown" };
-    if ("refused" in started) return refusalOf(started.refused, now);
+    if ("refused" in started) return refusalOf(started.refused, token, now);
     if (started.created) return { response: started.response, device: null };
     const updated = await responses.update(link.ws, started.response.id, { fields: fields.values, perspectives: picks.picks, updatedAt: now });
     return { response: updated ?? started.response, device: null };
@@ -137,6 +139,6 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   const device = newDeviceToken();
   const created = await responses.createPublic(link.ws, { ...data, deviceToken: device }, stillOpen);
   if (!created) return { status: 404, error: "unknown" };
-  if ("refused" in created) return refusalOf(created.refused, now);
+  if ("refused" in created) return refusalOf(created.refused, token, now);
   return { response: created, device };
 }

@@ -57,7 +57,8 @@ Built 2026-10-04 (design note 50, decision 0044):
   (src/lib/respondent-rules.ts parseFieldValues); dropdowns are native selects at 48 px.
 - Acceptance 3: every link state has its page (unknown, not yet open, closed, revoked,
   passcode, attempts exceeded, and the sample's own page); a closed public link shows no
-  per-device state; a closed personal link shows the respondent's own count.
+  per-device state; a closed personal link whose respondent answered at least one item and
+  did not submit shows the respondent's own count.
 - Acceptance 4: Playwright runs Chromium at 390 by 844 and 1440 by 900
   (e2e/respondent-start.spec.ts); Mihai checks iOS and Android on his devices.
 - Acceptance 5: About you sits in a 560 px column on the desktop; a chapter in 1000 px with
