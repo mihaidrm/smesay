@@ -59,7 +59,9 @@ describe("the Agreement tab's model", () => {
 
   it("reads values rated with no proposal as rated, never as no answers or 0%", () => {
     expect(figureOf(c(0, 0, 0, 0, 10, 10))).toEqual({ rated: 10 });
-    expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ rated: 10 });
+    expect(figureOf(c(0, 0, 0, 1, 11, 10), true)).toEqual({ rated: 10 });
+    // A mix with proposals: a question on a proposed item keeps the percentage (0 of 1 agree).
+    expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ percent: 0 });
     // A proposal shown and only a question: 0%. No proposal shown (rated): 0 rated, never 0%.
     expect(figureOf(c(0, 0, 0, 1))).toEqual({ percent: 0 });
     expect(figureOf(c(0, 0, 0, 1), true)).toEqual({ rated: 0 });

@@ -88,7 +88,9 @@ Built 2026-10-04 (design note 61, decision 0044; docs/review-list.md):
   to the item. Columns draws the groups of an area on one scale; Share draws a donut per group
   for the whole list. A group summed over items (Columns, Share) is compared only with 3
   answers and 3 people who answered one item, so one person is never singled out (decision
-  0031); its label says which is short. Each aligned bar is named under it.
+  0031); its label says "Fewer than 3 answers" or, short of people, "Not compared, so one
+  person cannot be singled out" (the people are a lower bound, so no number). Each aligned
+  bar is named under it.
 - Acceptance 5: the filter bar narrows every count; the sort within an area by reference,
   agreement, different priority, disagree or unclear, both ways, in the URL; ties keep the
   list's order in the same direction.

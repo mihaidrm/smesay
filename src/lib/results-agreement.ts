@@ -34,7 +34,7 @@ export const notAnsweredOf = (c: Counts) => Math.max(0, c.couldSee - answeredOf(
 export type Figure = { percent: number } | { rated: number } | null;
 export function figureOf(c: Counts, rated = false): Figure {
   if (answeredOf(c) + c.pick === 0) return null;
-  if (rated || (c.agree + c.change + c.disagree === 0 && c.pick > 0)) return { rated: c.pick };
+  if (rated || (answeredOf(c) === 0 && c.pick > 0)) return { rated: c.pick };
   const p = percentOf(c);
   return p === null ? null : { percent: p };
 }
