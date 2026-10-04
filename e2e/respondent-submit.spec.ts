@@ -50,6 +50,8 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const link = await phone.newPage();
   await link.goto(invite.link);
+  // Start is a button the page handles once it has hydrated (data-ready).
+  await link.locator("[data-ready]").waitFor();
   await link.getByTestId("about-you-start").click();
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await link.getByTestId("item-card").getByRole("radio", { name: "Must" }).click();

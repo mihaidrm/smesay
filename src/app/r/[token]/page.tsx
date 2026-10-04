@@ -3,8 +3,9 @@
 // yet open, closed, inactive (revoked, E6-4), passcode required, the sample project's link
 // (it does not collect answers, E8-8 acceptance 2), and the open instrument. A closed
 // personal link whose respondent answered at least one item and did not submit shows the
-// respondent's own state (E7-1, acceptance 3; note 12, finding 33); a closed public link
-// shows none (decision 0031). The open
+// respondent's own state (E7-1, acceptance 3; note 12, finding 33), and one with a submitted
+// response its submitted line (E7-6), both clearing what the device kept for the link; a
+// closed public link shows none (decision 0031). The open
 // instrument is the respondent app (respondent-app.tsx) over this device's response (the
 // personal invite's, or the one the device cookie names, src/lib/respondent.ts); a
 // personal link carries the name and role the PM typed and does not ask them (E6-2). The
@@ -18,7 +19,7 @@ import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
-import { carriedFields, chaptersFor, landingOf, RESPONDENT_COPY, type Screen } from "@/lib/respondent-rules";
+import { carriedFields, changedSinceSubmit, chaptersFor, landingOf, RESPONDENT_COPY, type Screen } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
 import { ForgetQueue } from "./forget-queue";
@@ -59,6 +60,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
       </LinkPage>
     );
   }
+  if (view.kind === "closedSubmitted") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={RESPONDENT_COPY.closedSubmitted(formatUtc(view.submittedAt), formatUtc(view.closedAt), view.changed)} /></>;
   if (view.kind !== "ready") return null;
   const { instrument } = link;
   const response = view.response;
@@ -96,7 +98,9 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         responseId={response?.id ?? null}
         closing={instrument.closing}
         welcome={welcome}
-        submitted={response?.submittedAt ? { at: response.submittedAt.toISOString(), name: firstName } : null}
+        submitted={response?.submittedAt ? { at: response.submittedAt.toISOString(), name: firstName, returning: true } : null}
+        changedSince={response ? changedSinceSubmit(response) : false}
+        closesAt={link.invite.closesAt ? link.invite.closesAt.toISOString() : null}
       />
     </>
   );

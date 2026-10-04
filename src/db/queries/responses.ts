@@ -24,7 +24,9 @@ type Missing = { text: string; area: string | null; value: string | null };
 // A Wrap up write (E7-5): the values and the version rule's fields (src/lib/respondent-rules.ts).
 export type WrapWrite = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; base: number; page: string; seq: number; after: SaveRef[] };
 // The Wrap up as stored, with its version: what a stale write gets back.
-export type StoredWrap = { confidence: number | null; closingAnswer: string | null; missing: Missing | null } & WrapSync;
+// changedSince (E7-6): the response is submitted and has changes not submitted again, after
+// its latest Submit (submittedAt).
+export type StoredWrap = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; changedSince: boolean; submittedAt: Date | null } & WrapSync;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 // The response row locked for update, its Wrap up and its missing item (the first, the
@@ -35,7 +37,7 @@ async function lockedWrap(tx: Tx, workspaceId: WorkspaceId, inviteId: string, re
   const kept = await tx.select().from(missingItem).where(and(eq(missingItem.workspaceId, workspaceId), eq(missingItem.responseId, responseId))).orderBy(asc(missingItem.createdAt), asc(missingItem.id));
   const missing = kept[0] ? { text: kept[0].text, area: kept[0].suggestedArea, value: kept[0].suggestedValue } : null;
   const sync: WrapSync = { version: row.wrapVersion, writer: row.wrapWriter, writerSeq: row.wrapWriterSeq };
-  return { perspectives: row.perspectives, missing: kept, sync, stored: { confidence: row.confidence, closingAnswer: row.closingAnswer, missing, ...sync } satisfies StoredWrap };
+  return { perspectives: row.perspectives, missing: kept, sync, stored: { confidence: row.confidence, closingAnswer: row.closingAnswer, missing, changedSince: row.submittedAt !== null && !row.signedOff, submittedAt: row.submittedAt, ...sync } satisfies StoredWrap };
 }
 const sameStored = (stored: StoredWrap, data: Pick<WrapWrite, "confidence" | "closingAnswer" | "missing">): boolean =>
   stored.confidence === data.confidence && stored.closingAnswer === data.closingAnswer && (stored.missing === null ? data.missing === null : data.missing !== null && stored.missing.text === data.missing.text && stored.missing.area === data.missing.area && stored.missing.value === data.missing.value);
@@ -99,7 +101,7 @@ export const responses = {
       if (!own) return null;
       if (!wrapTakes(own.sync, data)) return { stale: own.stored };
       const changed = !sameStored(own.stored, data);
-      const set = changed ? { confidence: data.confidence, closingAnswer: data.closingAnswer, updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {};
+      const set = changed ? { confidence: data.confidence, closingAnswer: data.closingAnswer, signedOff: false, updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {};
       const [row] = await tx.update(response).set({ ...set, wrapVersion: sql`${response.wrapVersion} + 1`, wrapWriter: data.page, wrapWriterSeq: data.seq }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
       if (changed) await writeMissing(tx, workspaceId, responseId, own.missing, data.missing);
       return { saved: row, changed };
@@ -111,7 +113,12 @@ export const responses = {
   // answers are read and checked against the items its perspectives show as locked (`check`:
   // a sentence when one is still to finish), so no answer changes between the check and the
   // mark; then the response is marked submitted (the first Submit kept), its confidence,
-  // closing answer, missing item and sign-off sentence stored as saveWrap stores them.
+  // closing answer, missing item and sign-off sentence stored as saveWrap stores them. The
+  // Submit's time only moves forward (E7-6): two Submits at once can reach the lock in the
+  // other order from their clocks, so the later one stored is at least a millisecond after
+  // the one before (greatest ignores a null: postgresql.org/docs/current/
+  // functions-conditional.html), and pages that compare Submits by time see them in the
+  // order they were stored.
   submit: async (workspaceId: WorkspaceId, inviteId: string, responseId: string, data: WrapWrite & { confidence: number; signOffText: string }, stillOpen: (dates: InviteDates) => boolean, check: (rows: Answer[], perspectives: string[]) => string | null, now: Date): Promise<Response | { refused: InviteDates } | { invalid: string } | { stale: StoredWrap } | null> => {
     if (!isUuid(inviteId) || !isUuid(responseId)) return null;
     return db.transaction(async (tx) => {
@@ -125,10 +132,18 @@ export const responses = {
       const problem = check(rows, own.perspectives);
       if (problem) return { invalid: problem };
       const changed = !sameStored(own.stored, data);
-      const [row] = await tx.update(response).set({ submittedAt: now, firstSubmittedAt: sql`coalesce(${response.firstSubmittedAt}, ${now.toISOString()}::timestamptz)`, signedOff: true, confidence: data.confidence, closingAnswer: data.closingAnswer, signOffText: data.signOffText, wrapVersion: sql`${response.wrapVersion} + 1`, wrapWriter: data.page, wrapWriterSeq: data.seq, ...(changed ? { updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {}) }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
+      const [row] = await tx.update(response).set({ submittedAt: sql`greatest(${now.toISOString()}::timestamptz, ${response.submittedAt} + interval '1 millisecond')`, firstSubmittedAt: sql`coalesce(${response.firstSubmittedAt}, ${now.toISOString()}::timestamptz)`, signedOff: true, confidence: data.confidence, closingAnswer: data.closingAnswer, signOffText: data.signOffText, wrapVersion: sql`${response.wrapVersion} + 1`, wrapWriter: data.page, wrapWriterSeq: data.seq, ...(changed ? { updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {}) }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
       if (changed) await writeMissing(tx, workspaceId, responseId, own.missing, data.missing);
       return row;
     });
+  },
+  // A Start again that changes the details or the picks (E7-6): stored, the sign-off taken
+  // back, and the last save moved forward only (a Start that waited for a lock behind a
+  // later write never moves it back).
+  restart: async (workspaceId: WorkspaceId, responseId: string, data: Pick<NewResponse, "fields" | "perspectives">, now: Date): Promise<Response | null> => {
+    if (!isUuid(responseId)) return null;
+    const [row] = await db.update(response).set({ fields: data.fields, perspectives: data.perspectives, signedOff: false, updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
+    return row ?? null;
   },
   createPublic: async (workspaceId: WorkspaceId, data: NewResponse, stillOpen: (dates: InviteDates) => boolean): Promise<Response | { refused: InviteDates } | null> => {
     if (!isUuid(data.inviteId)) return null;

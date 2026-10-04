@@ -8,24 +8,28 @@
 // one, a save that changes nothing moving nothing, the missing item keeping its id; the
 // receipt only to a personal invite, on its first Submit, never to an address typed on a
 // public link; a revoked link and another workspace writing nothing; both routes taking JSON
-// only. The migration's backfill of the first Submit: src/db/queries/usage.test.ts.
+// only. The migration's backfill of the first Submit: src/db/queries/usage.test.ts. After
+// Submit (stories/E7-6): the summary line, the welcome back, the "changed after submitting"
+// mark, a closed personal link's submitted page.
 import { beforeAll, describe, expect, it } from "vitest";
-import { items, missingItems, projects, responses } from "@/db/queries";
+import { invites, items, missingItems, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { DEFAULT_SIGN_OFF } from "@/lib/closing";
 import { commitUpload } from "@/lib/imports";
-import { openDraft, saveClosing, saveFields } from "@/lib/instruments";
+import { openDraft, saveClosing, saveFields, savePerspectives } from "@/lib/instruments";
 import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
-import { areasOf, bucketOf, landingOf, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
+import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, heardSubmit, landingOf, NO_SUBMIT, showsChanged, startSubmit, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
+import { PUT as answersRoute } from "@/app/r/[token]/answers/route";
+import { POST as startRoute } from "@/app/r/[token]/start/route";
 import { POST as submitRoute } from "@/app/r/[token]/submit/route";
 import { PUT as wrapRoute } from "@/app/r/[token]/wrap/route";
 
@@ -63,10 +67,10 @@ let wseq = 0;
 const WPAGE = "page-wrap-0001";
 const v = (base = 0) => ({ base, page: WPAGE, seq: ++wseq, after: [] as { page: string; seq: number }[] });
 
-async function publishedProject(name: string, options: { question?: string; emailField?: boolean } = {}) {
+async function publishedProject(name: string, options: { question?: string; emailField?: boolean; perspectives?: string } = {}) {
   return publishedProjectIn(a, name, options);
 }
-async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: string, options: { question?: string; emailField?: boolean } = {}) {
+async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: string, options: { question?: string; emailField?: boolean; perspectives?: string } = {}) {
   const project = await projects.create(w.ws, { name, createdBy: w.userId });
   const pasted = await savePaste({ ws: w.ws, userId: w.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should"].join("\n"));
   if (!("upload" in pasted)) throw new Error(pasted.error);
@@ -74,6 +78,10 @@ async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: 
   const { instrument } = (await openDraft(w.ws, project))!;
   const fields = await saveFields(w.ws, project.id, instrument.id, JSON.stringify([{ label: "Name", type: "text", mandatory: true }, ...(options.emailField ? [{ label: "Email", type: "email", mandatory: false }] : [])]));
   if (!("instrument" in fields)) throw new Error(fields.error);
+  if (options.perspectives) {
+    const saved = await savePerspectives(w.ws, project.id, instrument.id, options.perspectives);
+    if (!("instrument" in saved)) throw new Error(saved.error);
+  }
   if (options.question) {
     const closing = await saveClosing(w.ws, project.id, instrument.id, options.question, "1", DEFAULT_SIGN_OFF, "1");
     if (!("instrument" in closing)) throw new Error(closing.error);
@@ -190,7 +198,7 @@ describe("Submit", () => {
     expect((await responses.get(a.ws, rid))?.submittedAt).toBeNull();
     // The Wrap up saves as it is written (not a Submit): stored, read back with its version on
     // the next visit, the response not submitted.
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" }, ...v() }, now)).toEqual({ saved: true, version: 1, writer: WPAGE, writerSeq: wseq });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" }, ...v() }, now)).toEqual({ saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null });
     const drafted = await loadRespondent(link.token, device, now);
     expect(drafted.kind === "ready" ? [drafted.wrap, drafted.wrapSync.version, drafted.response?.submittedAt] : null).toEqual([{ confidence: 3, signed: false, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" } }, 1, null]);
     // The missing item keeps its id from one save to the next (E9-1 cites it by id).
@@ -218,7 +226,7 @@ describe("Submit", () => {
     // An old change kept on another device (made on version 1, by a page whose write the
     // server never took) is stale: it gets the stored Wrap up back and changes nothing.
     const old = { response: rid, confidence: null, closingAnswer: "A", missing: null, base: 1, page: "page-laptop-0001", seq: 1, after: [] };
-    expect(await saveWrap(link.token, device, old, now)).toEqual({ stale: { wrap: { confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, version: 4, writer: WPAGE, writerSeq: wseq } });
+    expect(await saveWrap(link.token, device, old, now)).toEqual({ stale: { wrap: { confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, version: 4, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: now.toISOString() } });
     expect(await submitResponse(link.token, device, { ...old, confidence: 2, signedOff: true }, BASE, now, send)).toMatchObject({ stale: { version: 4 } });
     const untouched = (await responses.get(a.ws, rid))!;
     expect([untouched.confidence, untouched.closingAnswer, untouched.signedOff, untouched.submittedAt?.toISOString(), untouched.wrapVersion]).toEqual([4, "All good", true, now.toISOString(), 4]);
@@ -299,13 +307,175 @@ describe("Submit", () => {
     expect((await post("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
     expect((await put("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
     const saved = await put(JSON.stringify({ response: started.response.id, confidence: 2, ...v() }));
-    expect([saved.status, await saved.json()]).toEqual([200, { saved: true, version: 1, writer: WPAGE, writerSeq: wseq }]);
+    expect([saved.status, await saved.json()]).toEqual([200, { saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null }]);
     // A stale write: 409 with the stored Wrap up.
     const stale = await put(JSON.stringify({ response: started.response.id, confidence: 5, base: 0, page: "page-other-0002", seq: 1 }));
-    expect([stale.status, await stale.json()]).toEqual([409, { error: "stale", wrap: { confidence: 2, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } }, version: 1, writer: WPAGE, writerSeq: wseq }]);
+    expect([stale.status, await stale.json()]).toEqual([409, { error: "stale", wrap: { confidence: 2, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } }, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null }]);
     const ok = await post(JSON.stringify({ response: started.response.id, confidence: 3, signedOff: true, ...v(1) }));
     expect(ok.status).toBe(200);
     const reply = await ok.json();
     expect([typeof reply.submittedAt, reply.name, reply.version]).toEqual(["string", "Bo", 2]);
+  }, 60_000);
+});
+
+describe("after Submit", () => {
+  it("words the summary and the welcome back, and tells a change after Submit apart", () => {
+    expect(RESPONDENT_COPY.summary({ agreed: 4, changed: 2, notNeeded: 0, unclear: 0, rated: 0, added: 1 }, false)).toBe("4 agreed, 2 changed, 0 not needed, 0 unclear, 1 item added");
+    // An item with no proposal in a list that shows one counts as rated.
+    expect(RESPONDENT_COPY.summary({ agreed: 1, changed: 0, notNeeded: 0, unclear: 0, rated: 1, added: 0 }, false)).toBe("1 agreed, 0 changed, 1 rated, 0 not needed, 0 unclear, 0 items added");
+    expect(RESPONDENT_COPY.summary({ agreed: 0, changed: 0, notNeeded: 1, unclear: 2, rated: 3, added: 0 }, true)).toBe("3 rated, 1 not needed, 2 unclear, 0 items added");
+    expect(RESPONDENT_COPY.welcomeSubmitted("Ana")).toBe("Welcome back, Ana.");
+    expect(RESPONDENT_COPY.submittedOn("7 Oct 2026, 14:05 UTC", "20 Oct 2026, 15:00 UTC")).toBe("You submitted on 7 Oct 2026, 14:05 UTC. You can change your answers until 20 Oct 2026, 15:00 UTC.");
+    expect(RESPONDENT_COPY.submittedOn("7 Oct 2026, 14:05 UTC", null)).toBe("You submitted on 7 Oct 2026, 14:05 UTC. You can change your answers while the link is open.");
+    expect(RESPONDENT_COPY.closedSubmitted("7 Oct 2026, 14:05 UTC", "20 Oct 2026, 15:00 UTC", false)).toBe("Your answers were submitted on 7 Oct 2026, 14:05 UTC. The link closed on 20 Oct 2026, 15:00 UTC; nothing can be changed now.");
+    expect(RESPONDENT_COPY.closedSubmitted("7 Oct 2026, 14:05 UTC", "20 Oct 2026, 15:00 UTC", true)).toBe("Your answers were submitted on 7 Oct 2026, 14:05 UTC. You changed some after that and did not submit them again. The link closed on 20 Oct 2026, 15:00 UTC; nothing can be changed now.");
+    const first = new Date("2026-10-07T14:05:00Z");
+    expect(changedAfterSubmit({ firstSubmittedAt: null, updatedAt: first })).toBe(false);
+    expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: first })).toBe(false);
+    expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: new Date("2026-10-08T09:00:00Z") })).toBe(true);
+    expect([changedSinceSubmit({ submittedAt: null, signedOff: false }), changedSinceSubmit({ submittedAt: first, signedOff: true }), changedSinceSubmit({ submittedAt: first, signedOff: false })]).toEqual([false, false, true]);
+    // The page's notice: a "changed" counts for the Submit it was heard about, and shows while
+    // that is the latest Submit the page knows, whatever order the answers arrive in.
+    const S0 = "2026-10-07T14:05:00.000Z"; const S1 = "2026-10-08T09:00:00.000Z";
+    const knows = (at: string | null, changedFor: string | null = null) => ({ at, changedFor });
+    expect(heardSubmit(NO_SUBMIT, { submittedAt: null, changedSince: false })).toEqual(NO_SUBMIT);
+    expect(heardSubmit(knows(S0), { submittedAt: S0, changedSince: true })).toEqual(knows(S0, S0));
+    expect(heardSubmit(knows(S0, S0), { submittedAt: S0, changedSince: false })).toEqual(knows(S0, S0));
+    // A newer Submit made elsewhere ends a change heard for an older one.
+    expect(heardSubmit(knows(S0, S0), { submittedAt: S1, changedSince: false })).toEqual(knows(S1, S0));
+    expect(showsChanged(knows(S1, S0))).toBe(false);
+    // An answer about the older Submit that arrives late changes neither.
+    expect(heardSubmit(knows(S1), { submittedAt: S0, changedSince: true })).toEqual(knows(S1, S0));
+    expect(heardSubmit(knows(S1, S1), { submittedAt: S0, changedSince: false })).toEqual(knows(S1, S1));
+    // A change after a Submit the page did not know: the notice shows for it.
+    expect(showsChanged(heardSubmit(knows(S0), { submittedAt: S1, changedSince: true }))).toBe(true);
+    // A time that does not read is left out.
+    expect(heardSubmit(knows(S0), { submittedAt: "yesterday", changedSince: true })).toEqual(knows(S0));
+    expect([showsChanged(NO_SUBMIT), showsChanged(knows(S0)), showsChanged(knows(S0, S0)), showsChanged(knows(S0, "2026-10-07T14:05:00Z"))]).toEqual([false, false, true, true]);
+    // A Start's answer: another response replaces what the page knows; for the same response
+    // the page shows the latest Submit it knows, and the answer is heard as any other.
+    expect(startSubmit(null, NO_SUBMIT, { submittedAt: null, changedSince: false }, false)).toEqual({ submitted: "keep", seen: NO_SUBMIT });
+    expect(startSubmit(null, NO_SUBMIT, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1) });
+    // The laptop's notice for S0, the phone's Submit S1, then Start on the laptop: no notice.
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S0) });
+    expect(startSubmit(S0, knows(S0), { submittedAt: S1, changedSince: true }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
+    // A save's "changed" heard first is kept: the Start read before it.
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: "keep", seen: knows(S0, S0) });
+    // A save named a Submit the page did not show yet: Start shows it.
+    expect(startSubmit(S0, knows(S1, S1), { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: null, changedSince: false }, true)).toEqual({ submitted: null, seen: NO_SUBMIT });
+    expect(startSubmit(S0, knows(S0), { submittedAt: S1, changedSince: true }, true)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
+  });
+
+  it("opens a submitted personal link on Done, takes the sign-off back only on a change, and after the close shows the submitted page", async () => {
+    const { project, instrument, one, two } = await publishedProject("After submit");
+    const result = await sendInvites(a.ws, project.id, instrument.id, "cy@x.example, Cy Lee", { name: "Dana", email: "dana@x.example" }, BASE, new Date("2026-10-03T12:00:00Z"), async () => {});
+    if (!("outcomes" in result)) throw new Error(result.error);
+    const [cy] = await listInvitees(a.ws, instrument.id);
+    const started = await startResponse(cy.token, {}, { fields: {} }, now);
+    if ("status" in started) throw new Error(started.error);
+    const rid = started.response.id;
+    await save(cy.token, {}, rid, { itemId: one.id, picked: "M" });
+    await save(cy.token, {}, rid, { itemId: two.id, picked: "S" });
+    await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, now, async () => {});
+    const day = new Date("2026-10-06T00:00:00Z");
+    const open = await loadRespondent(cy.token, {}, day);
+    expect(open.kind === "ready" ? [open.response?.submittedAt?.toISOString(), open.wrap.missing.text] : null).toEqual([now.toISOString(), "Mileage"]);
+    const mark = async () => { const row = (await responses.forInvite(a.ws, cy.id))!; return [changedAfterSubmit(row), changedSinceSubmit(row)]; };
+    // Neither the Submit, nor a Start that changes nothing, nor a save that says what is
+    // stored (an answer or the Wrap up) is a change.
+    expect(await mark()).toEqual([false, false]);
+    await startResponse(cy.token, {}, { fields: {} }, day);
+    expect(await mark()).toEqual([false, false]);
+    expect(await save(cy.token, {}, rid, { itemId: one.id, picked: "M" }, day)).toMatchObject({ changedSince: false, submittedAt: now.toISOString() });
+    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 4, missing: { text: "Mileage" }, ...v() }, day)).toMatchObject({ saved: true, changedSince: false, submittedAt: now.toISOString() });
+    expect(await mark()).toEqual([false, false]);
+    // An answer changed later: the mark, and the sign-off taken back until the next Submit;
+    // the save's answer says so.
+    expect(await save(cy.token, {}, rid, { itemId: two.id, picked: "C", reason: "Later" }, day)).toMatchObject({ changedSince: true, submittedAt: now.toISOString() });
+    expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.submittedAt?.toISOString()]).toEqual([true, true, now.toISOString()]);
+    const later = new Date("2026-10-06T01:00:00Z");
+    await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, later, async () => {});
+    expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.signedOff]).toEqual([true, false, true]);
+    // A Submit stored after another whose clock was ahead (two at once), here with the first
+    // Submit's own clock: its time still moves forward, a millisecond on, its answer says the
+    // stored time, the first Submit stays, and no second receipt goes.
+    const ahead = new Date(later.getTime() + 1);
+    const behind = await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, now, async () => {});
+    if (!("submittedAt" in behind)) throw new Error(JSON.stringify(behind));
+    const stored = (await responses.forInvite(a.ws, cy.id))!;
+    expect([behind.submittedAt.toISOString(), stored.submittedAt?.toISOString(), stored.firstSubmittedAt?.toISOString(), behind.receipt]).toEqual([ahead.toISOString(), ahead.toISOString(), now.toISOString(), null]);
+    // The Wrap up changed after Submit takes it back too.
+    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: ahead.toISOString() });
+    expect((await mark())[1]).toBe(true);
+    const closed = await loadRespondent(cy.token, {}, new Date("2027-02-01T00:00:00Z"));
+    if (closed.kind !== "closedSubmitted") throw new Error(closed.kind);
+    expect([closed.submittedAt.toISOString(), closed.changed]).toEqual([ahead.toISOString(), true]);
+    // Revoked (the row's revoked time, as a revoke writes it), then the project archived: the
+    // link reads "closed" for the archive and shows nothing of the respondent's.
+    await invites.update(a.ws, cy.id, { revokedAt: later });
+    await projects.setArchived(a.ws, project.id, true);
+    expect((await loadRespondent(cy.token, {}, later)).kind).toBe("closed");
+  }, 60_000);
+
+  it("takes the sign-off back on a Start that changes the details or the picks, on a public link too", async () => {
+    const { link, one, two } = await publishedProject("After submit public", { perspectives: "Finance" });
+    const started = await startResponse(link.token, {}, { fields: { name: "Di Moss" } }, now);
+    if ("status" in started) throw new Error(started.error);
+    const device = { device: started.device! };
+    const rid = started.response.id;
+    await save(link.token, device, rid, { itemId: one.id, picked: "M" });
+    await save(link.token, device, rid, { itemId: two.id, picked: "S" });
+    await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, ...v() }, BASE, now, async () => {});
+    // The same device opens it on Done (the landing reads the submitted response); another
+    // device has none.
+    const back = await loadRespondent(link.token, device, now);
+    expect(back.kind === "ready" ? back.response?.submittedAt?.toISOString() : null).toBe(now.toISOString());
+    const other = await loadRespondent(link.token, {}, now);
+    expect(other.kind === "ready" ? other.response : "not ready").toBeNull();
+    const row = async () => (await responses.get(a.ws, rid))!;
+    // A Start with the same details (an empty optional field is not a value) changes nothing.
+    const same = await startResponse(link.token, device, { fields: { name: "Di Moss" } }, new Date("2026-10-06T00:00:00Z"));
+    if ("status" in same) throw new Error(same.error);
+    expect([changedSinceSubmit(same.response), changedAfterSubmit(await row())]).toEqual([false, false]);
+    // New details: the sign-off taken back, the last save moved; the route says so.
+    const later = new Date("2026-10-06T00:00:00Z");
+    const renamed = await startResponse(link.token, device, { fields: { name: "Di Moss-Hale" } }, later);
+    if ("status" in renamed) throw new Error(renamed.error);
+    expect([changedSinceSubmit(renamed.response), changedAfterSubmit(await row())]).toEqual([true, true]);
+    const post = (body: unknown) => startRoute(new Request(`${BASE}/r/${link.token}/start`, { method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json", cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
+    expect(await (await post({ fields: { name: "Di Moss-Hale" } })).json()).toEqual({ ok: true, response: rid, submittedAt: now.toISOString(), changedSince: true });
+    // Submitted again, then new picks: taken back again. The last save never moves back.
+    await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, ...v() }, BASE, later, async () => {});
+    expect(changedSinceSubmit(await row())).toBe(false);
+    const picked = await startResponse(link.token, device, { fields: { name: "Di Moss-Hale" }, perspectives: ["Finance"] }, now);
+    if ("status" in picked) throw new Error(picked.error);
+    expect([changedSinceSubmit(picked.response), picked.response.updatedAt.toISOString()]).toEqual([true, later.toISOString()]);
+    // A write that changes nothing on a response already changed still says so.
+    expect(await save(link.token, device, rid, { itemId: one.id, picked: "M" }, later)).toMatchObject({ changedSince: true, submittedAt: later.toISOString() });
+    const held = (await loadRespondent(link.token, device, later));
+    if (held.kind !== "ready") throw new Error(held.kind);
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: later.toISOString() });
+    // A stale write says it too: the Wrap up's, an answer's on the route, a Submit's.
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 1, base: 0, page: "page-other-0003", seq: 1 }, later)).toMatchObject({ stale: { changedSince: true, submittedAt: later.toISOString() } });
+    const answerPut = (body: unknown) => answersRoute(new Request(`${BASE}/r/${link.token}/answers`, { method: "PUT", body: JSON.stringify(body), headers: { "content-type": "application/json", cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
+    const staleAnswer = await answerPut({ itemId: one.id, picked: "C", base: 0, page: "page-other-0004", seq: 1, response: rid });
+    const staleBody = (await staleAnswer.json()) as { changedSince: unknown; submittedAt: unknown };
+    expect([staleAnswer.status, staleBody.changedSince, staleBody.submittedAt]).toEqual([409, true, later.toISOString()]);
+    expect(await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, base: 0, page: "page-other-0005", seq: 1 }, BASE, later, async () => {})).toMatchObject({ stale: { changedSince: true, submittedAt: later.toISOString() } });
+  }, 60_000);
+
+  it("shows a revoked personal link that was started and not submitted as closed, not as the respondent's own", async () => {
+    const { project, instrument, one } = await publishedProject("After submit revoked");
+    const result = await sendInvites(a.ws, project.id, instrument.id, "eve@x.example, Eve Ng", { name: "Dana", email: "dana@x.example" }, BASE, new Date("2026-10-03T12:00:00Z"), async () => {});
+    if (!("outcomes" in result)) throw new Error(result.error);
+    const [eve] = await listInvitees(a.ws, instrument.id);
+    const started = await startResponse(eve.token, {}, { fields: {} }, now);
+    if ("status" in started) throw new Error(started.error);
+    await save(eve.token, {}, started.response.id, { itemId: one.id, picked: "M" });
+    expect((await loadRespondent(eve.token, {}, new Date("2027-02-01T00:00:00Z"))).kind).toBe("closedOwn");
+    await invites.update(a.ws, eve.id, { revokedAt: now });
+    await projects.setArchived(a.ws, project.id, true);
+    expect((await loadRespondent(eve.token, {}, new Date("2027-02-01T00:00:00Z"))).kind).toBe("closed");
   }, 60_000);
 });

@@ -307,7 +307,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Gaps box | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: the first chapter) |
 | Live link, nothing left to finish (E7-4) | All [M] items are answered. (one item: The item is answered.) |
 | Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Say why., Write your question., Not saved yet), each opening its own item |
-| Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |
+| Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts; Back, the chapter row and the Wrap up's Go to, Change and Still to finish rows are disabled until it answers, E7-6) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |
 | When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
 | When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |
 | Missing-item form (when the PM switched it on) | Is anything missing from the list? Optional. What is missing; Where it belongs (Choose one, then the chapters); How important it is (Choose one, then the method's values) |
@@ -317,7 +317,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Submit and the line under it | Submit; "Still needed: [N] items, your details on About you, how confident you are, the confirmation." (the parts that apply) or "Everything is in. Submit when you are ready."; while posting: Submitting |
 | Sections (E7-5; agreed items are not listed) | Higher priority [N], Lower priority [N], Not needed [N], Your questions [N]: each row the reference, the item, the value picked and the reason or question, [Button: Change] (named "Change: [ITEM]" for screen readers) |
 | Tally on the live link (E7-5) | the five tiles with the respondent's counts; "Rated" appears beside them when an item had no proposal |
-| Done (E7-5; E7-6 adds the summary line and the welcome back) | Thank you, [FIRST NAME]. (Thank you. without a name) Submitted [DATE], [HH:MM] UTC. [Button: Change my answers] (reopens the Wrap up with the sign-off cleared) |
+| Done (E7-5 and E7-6) | Thank you, [FIRST NAME]. (Thank you. without a name) Submitted [DATE], [HH:MM] UTC. Then the summary line: [N] agreed, [N] changed, [N] not needed, [N] unclear, [N] items added (with ", [N] rated" after "changed" when items without a proposal were rated; rate-blind: [N] rated, [N] not needed, [N] unclear, [N] items added). After a change not submitted again (E7-6), on Done and over the Wrap up: You changed answers after submitting. Submit again to send them. [Button: Change my answers] (reopens the Wrap up with the sign-off cleared) |
 | Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview; once everything is picked the line under it says "Submit is off in the preview.") |
 
 ## Import, column mapping (E3-3)

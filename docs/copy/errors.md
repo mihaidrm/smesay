@@ -189,8 +189,9 @@ of the content; page means it replaces the screen.
 | Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, passcode page (E6-1) | The process's attempt table is full of live entries (docs/review-list.md) | Too many people are entering passcodes right now. Wait a few minutes and try again. |
 | Page (E6-1; E11-6 builds the full error pages) | The link page failed to load (a server error) | This page could not be loaded. Something went wrong on our side. Try again in a moment. [Button: Try again] |
-| Page | Personal link already submitted, answers still editable | Welcome back, [NAME]. You submitted on [DATE]. You can change your answers until [CLOSE DATE]. [Button: Change my answers] |
-| Page | Personal link already submitted, link closed | Your answers were submitted on [DATE]. The link closed on [CLOSE DATE]; nothing can be changed now. |
+| Page (E7-6) | A submitted response opened again while the link is open (personal link, or a public link on the same device) | Welcome back, [FIRST NAME]. You submitted on [DATE AND TIME UTC]. You can change your answers until [CLOSE DATE AND TIME UTC]. (without a close date: while the link is open) Then the summary line and [Button: Change my answers] |
+| Page under "Link closed." (E7-6) | Personal link already submitted, link closed (a closed public link shows no per-device state, decision 0031) | Your answers were submitted on [DATE AND TIME UTC]. The link closed on [CLOSE DATE AND TIME UTC]; nothing can be changed now. |
+| Page under "Link closed." (E7-6) | The same, with answers changed after the last Submit and not submitted again | Your answers were submitted on [DATE AND TIME UTC]. You changed some after that and did not submit them again. The link closed on [CLOSE DATE AND TIME UTC]; nothing can be changed now. |
 
 ## Respondent answering (E7)
 

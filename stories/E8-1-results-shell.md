@@ -39,7 +39,10 @@ department, by those who pushed back, by those who left comments; the pushed bac
    same filter to the row; the reconciliation test is written here against the seed with no
    filter and with a role filter, and extended in E10.
 7. Unsubmitted answers (decision 0030): the answers of a respondent who has not submitted
-   appear in every number, register and detail, marked as not submitted (the respondent's
+   appear in every number, register and detail, marked as not submitted (a submitted
+   respondent's answers changed after the Submit and not submitted again are stored in
+   place, so they count as that respondent's answers, with E8-2's "changes not submitted
+   again" mark; docs/review-list.md) (the respondent's
    status pill and a "not submitted" mark on the row). A switch at the top of Results,
    "Include unsubmitted answers", defaults on; off removes them from the headline strip, the
    charts, the tally, the registers and the item detail, and the setting is kept per PM. A

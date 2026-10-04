@@ -71,7 +71,7 @@ export function restorableWrap(raw: string | null, responseId: string, server: {
 // What the page does with the server's answer to a write (the cards' replyStep for the one
 // Wrap up). `sent` is the change the request carried; `current` the change waiting now (the
 // same, a newer one, or none).
-export type WrapReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; wrap?: WrapValue };
+export type WrapReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; wrap?: WrapValue; changedSince?: unknown; submittedAt?: unknown };
 export type WrapStep = {
   outcome: Outcome;
   // The server's version to remember (the page keeps the highest).
@@ -89,8 +89,19 @@ export type WrapStep = {
   // Mark the Wrap up failed (true, it retries), clear it (false), or leave it (null).
   failed: boolean | null;
 };
+// Whether a reply is about the version the page knows or a later one (a reply with no
+// readable version counts): an older one says nothing new.
+export const freshReply = (version: number | null, known: number): boolean => version === null || version >= known;
 export const sameEntry = (a: WrapEntry | null, b: WrapEntry) => a !== null && a.page === b.page && a.seq === b.seq;
 const same = sameEntry;
+
+// After a reply, whether a retry still set for an earlier failure goes: the server answered,
+// so the change is settled, or refused, or the newer one is rebased and goes now.
+export const answered = (step: WrapStep): boolean => step.failed === false || step.rebase !== null || step.outcome === "refused";
+// Whether the change waiting goes at once when a request ends: another change than the one
+// sent, with nothing in flight, no timer of its own and no retry waiting after a failure.
+export const sendsNext = (next: WrapEntry | null, sent: WrapEntry, s: { inflight: boolean; timer: boolean; retry: boolean }): boolean =>
+  next !== null && !sameEntry(next, sent) && !s.inflight && !s.timer && !s.retry;
 
 // Whether a change of the form goes in the queue: not when it says what the change waiting
 // already says, nor, with none waiting, what the server holds or what it last refused (a
@@ -107,7 +118,7 @@ export function wrapReplyStep(status: number, body: WrapReplyBody, sent: WrapEnt
   const step: WrapStep = { outcome, version: null, rebase: null, done: false, held: null, changedElsewhere: false, error: null, failed: null };
   if (outcome === "saved" || outcome === "stale") {
     step.version = validCount(body.version) ? body.version : null;
-    if (step.version === null || step.version < known) return step;
+    if (!freshReply(step.version, known)) return step;
     const stored = outcome === "saved" ? sent.draft : (body.wrap ?? null);
     const writer = typeof body.writer === "string" ? body.writer : null;
     // The page's own: the server took it, or holds a write of this page, or exactly that

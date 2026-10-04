@@ -123,7 +123,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
             <span className="font-semibold">{WRAP_UP_COPY.toFinish(open)}</span>
             {gaps && firstGap && onGo && chapters[firstGap.chapter] ? (
-              <button type="button" onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
+              <button type="button" disabled={submitting} onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
             ) : (
               !gaps && chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0])}</span>
             )}
@@ -139,7 +139,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
             <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline bg-surface">
               {gaps.map((g) => (
                 <li key={g.itemId}>
-                  <button type="button" onClick={() => onGo?.(g.chapter, g.itemId)} className="flex min-h-12 w-full items-baseline gap-2 px-4 py-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-violet" data-testid="unfinished-item">
+                  <button type="button" disabled={submitting} onClick={() => onGo?.(g.chapter, g.itemId)} className="flex min-h-12 w-full items-baseline gap-2 px-4 py-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-violet disabled:opacity-40" data-testid="unfinished-item">
                     {g.reference && <span className="shrink-0 font-mono text-[11px] text-ink-muted">{g.reference}</span>}
                     <span className="min-w-0 grow">{g.title}</span>
                     <span className={cn("shrink-0 text-xs font-semibold", g.note === "notRated" ? "font-normal text-ink-muted" : "text-sun-text")}>{GAP_NOTE[g.note]}</span>
@@ -162,7 +162,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
                       <span>{r.reference && <span className="mr-2 font-mono text-[11px] text-ink-muted">{r.reference}</span>}{r.title}</span>
                       {(r.value || r.text) && <span className="text-[13px] text-ink-muted">{[r.value ? labelFor(method, labels, r.value) : null, r.text].filter(Boolean).join(": ")}</span>}
                     </div>
-                    <button type="button" onClick={() => onGo?.(r.chapter, r.itemId)} aria-label={`${RESPONDENT_COPY.change}: ${r.title}`} className="relative shrink-0 rounded-full border border-hairline-strong px-3 py-1 text-[13px] font-semibold outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="section-change">{RESPONDENT_COPY.change}</button>
+                    <button type="button" disabled={submitting} onClick={() => onGo?.(r.chapter, r.itemId)} aria-label={`${RESPONDENT_COPY.change}: ${r.title}`} className="relative shrink-0 rounded-full border border-hairline-strong px-3 py-1 text-[13px] font-semibold outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="section-change">{RESPONDENT_COPY.change}</button>
                   </li>
                 ))}
               </ul>
@@ -228,7 +228,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
       </Body>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
-        {onBack && <button type="button" onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
+        {onBack && <button type="button" disabled={submitting} onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 disabled:opacity-40" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
         <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
         </div>
         <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>

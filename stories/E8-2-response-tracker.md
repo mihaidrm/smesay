@@ -11,7 +11,9 @@ acceptance 3), which this tab honours like every other.
 ## Acceptance criteria
 1. Responses tab (PM app board): name, role (and every other respondent field as a column,
    up to the 8 of E5-1), status (Invited, In progress, Submitted, with "changed after
-   submitting" from E7-6), progress "[N] of [M]" against the respondent's visible set (E5-4),
+   submitting" from E7-6, which tells "changes not submitted again" (changedSinceSubmit:
+   submitted, signed_off false) apart from "submitted again" (changedAfterSubmit and signed
+   off)), progress "[N] of [M]" against the respondent's visible set (E5-4),
    submitted date, source (Public link or Personal invite), reminders sent, and the count of
    answers with a reason or comment.
 2. The page's filter bar (E8-1) narrows the rows: a respondent is listed when at least one

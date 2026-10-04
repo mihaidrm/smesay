@@ -138,3 +138,6 @@ Built 2026-10-04 (design note 55, decision 0044):
   after a rebase; SECURITY.md lists the kept saves; the queue's decisions have unit tests
   (src/lib/wrap-queue.test.ts). The area check against perspectives as of the save is
   recorded in docs/review-list.md.
+- Fifth audit 2026-10-04 (on those fixes): 0 blocking, 0 should-fix, 7 nits. Merged (PR
+  92); the nits are fixed with E7-6, whose saver changes touch the same code
+  (stories/E7-6-submitted-and-edit.md).

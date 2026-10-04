@@ -3,8 +3,9 @@
 // to PUT /r/[token]/wrap as the respondent writes them, within a second like the cards
 // (answer-saver.ts; the same timing: src/lib/answer-queue.ts delayFor), one request at a time,
 // the newest values each time (they replace the stored ones whole). Ticking the sign-off
-// sends nothing: it is never saved, only posted with Submit. A change that says what the
-// server holds sends nothing either.
+// sends nothing: it is never saved, only posted with Submit. With no change waiting, a change
+// that says what the server holds, or what it last refused, sends nothing either; with one
+// waiting it goes, since the waiting one may have landed unanswered (wrapChange).
 //
 // Every write carries the Wrap up's version it was made on, this page's id and its number for
 // the write, and the saves of other pages it was made on top of; the server takes it by the
@@ -26,8 +27,8 @@
 // version the page holds (`claim`).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { delayFor, nextEntry, RETRY_MS, SAVE_TIMEOUT_MS, settleState } from "@/lib/answer-queue";
-import { EMPTY_WRAP, RESPONDENT_ERRORS, wrapKey, type SaveRef, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
-import { rebasedWrap, restorableWrap, sameEntry, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
+import { EMPTY_WRAP, RESPONDENT_ERRORS, wrapKey, type SaveRef, type SinceReply, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
+import { answered, freshReply, rebasedWrap, restorableWrap, sendsNext, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
 import { newPageId } from "./answer-saver";
 
 export type WrapSaverEvents = {
@@ -39,6 +40,9 @@ export type WrapSaverEvents = {
   onStale: (value: WrapValue) => void;
   // A missing item's area the list no longer offers is not sent.
   clean: (value: WrapValue) => WrapValue;
+  // A save the server answered (taken or stale), with what it says of the response's latest
+  // Submit and the changes since (E7-6).
+  onSaved?: (reply: SinceReply) => void;
 };
 
 const bodyOf = (response: string, entry: WrapEntry) => {
@@ -115,11 +119,13 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       const step = wrapReplyStep(reply.status, body, entry, current.current, pageId(), known.current);
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
+      // A reply about an older version than the page has seen says nothing new.
+      if ((step.outcome === "saved" || step.outcome === "stale") && freshReply(step.version, known.current)) eventsRef.current.onSaved?.(body);
       if (step.version !== null) known.current = Math.max(known.current, step.version);
       if (step.held) { held.current = step.held; refused.current = null; }
       if (step.failed !== null) markFailed(step.failed);
       // Answered: a retry still set for an earlier failure is not needed.
-      if (step.failed === false && retry.current) { clearTimeout(retry.current); retry.current = null; }
+      if (answered(step) && retry.current) { clearTimeout(retry.current); retry.current = null; }
       if (step.rebase !== null && current.current) {
         // A newer change waits: it goes on top of the page's own confirmed save.
         const base = step.rebase;
@@ -157,7 +163,8 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       // A change made while this one was in flight goes now, unless its timer still runs or it
       // waits for its retry.
       const next = current.current;
-      if (alive.current && !keepalive && next && !sameEntry(next, entry) && !inflight.current && !timer.current && !retry.current) void sendRef.current();
+      // A keepalive copy's answer drives the queue too: it may have cleared the retry.
+      if (alive.current && sendsNext(next, entry, { inflight: inflight.current !== null, timer: timer.current !== null, retry: retry.current !== null })) void sendRef.current();
     }
   }, [token, update, pageId, markFailed, scheduleRetry, clearTimer]);
   useEffect(() => { sendRef.current = send; }, [send]);
@@ -231,6 +238,7 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
     current.current = null;
     firstAt.current = null;
     held.current = EMPTY_WRAP;
+    refused.current = null;
     known.current = 0;
     responseRef.current = null;
     markFailed(false);

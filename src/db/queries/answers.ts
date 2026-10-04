@@ -29,30 +29,38 @@ import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
 export type Answer = typeof answer.$inferSelect;
+// E7-6: whether the response has changes not submitted again, and its latest Submit.
+type Since = { changedSince: boolean; submittedAt: Date | null };
 export const answers = {
   ...scoped(answer),
   countForResponse: async (workspaceId: WorkspaceId, responseId: string): Promise<number> => {
     if (!isUuid(responseId)) return 0;
     return (await db.select({ n: count() }).from(answer).where(and(eq(answer.workspaceId, workspaceId), eq(answer.responseId, responseId), or(inArray(answer.kind, ["agree", "pick"]), isNotNull(answer.reason)))))[0].n;
   },
-  upsert: async (workspaceId: WorkspaceId, inviteId: string, data: { responseId: string; itemSetId: string; itemId: string; kind: Answer["kind"]; value: string | null; reason: string | null; comment: string | null; base: number; page: string; seq: number; after: { page: string; seq: number }[] }, stillOpen: (dates: InviteDates) => boolean, now: Date): Promise<Answer | { refused: InviteDates } | { stale: Answer } | null> => {
+  upsert: async (workspaceId: WorkspaceId, inviteId: string, data: { responseId: string; itemSetId: string; itemId: string; kind: Answer["kind"]; value: string | null; reason: string | null; comment: string | null; base: number; page: string; seq: number; after: { page: string; seq: number }[] }, stillOpen: (dates: InviteDates) => boolean, now: Date): Promise<(Answer & Since) | { refused: InviteDates } | ({ stale: Answer } & Since) | null> => {
     if (!isUuid(inviteId) || !isUuid(data.responseId)) return null;
     return db.transaction(async (tx) => {
       const [locked] = await tx.select({ token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, inviteId))).for("share");
       if (!locked) return null;
       if (!stillOpen(locked)) return { refused: locked };
-      const [own] = await tx.select({ id: response.id }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.id, data.responseId))).for("update");
+      const [own] = await tx.select({ id: response.id, submittedAt: response.submittedAt, signedOff: response.signedOff }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.id, data.responseId))).for("update");
       if (!own) return null;
+      const [before] = await tx.select({ kind: answer.kind, value: answer.value, reason: answer.reason, comment: answer.comment }).from(answer).where(and(eq(answer.workspaceId, workspaceId), eq(answer.responseId, data.responseId), eq(answer.itemId, data.itemId)));
       const { base, page, seq, after, ...fields } = data;
       const set = { kind: fields.kind, value: fields.value, reason: fields.reason, comment: fields.comment, version: sql`${answer.version} + 1`, writer: page, writerSeq: seq, updatedAt: now };
       const takes = or(eq(answer.version, base), and(eq(answer.writer, page), lt(answer.writerSeq, seq)), ...after.map((a) => and(eq(answer.writer, a.page), lte(answer.writerSeq, a.seq))));
       const [row] = await tx.insert(answer).values({ ...fields, workspaceId, version: 1, writer: page, writerSeq: seq, updatedAt: now }).onConflictDoUpdate({ target: [answer.responseId, answer.itemId], set, setWhere: and(eq(answer.workspaceId, workspaceId), takes) }).returning();
       if (!row) {
         const [stored] = await tx.select().from(answer).where(and(eq(answer.workspaceId, workspaceId), eq(answer.responseId, data.responseId), eq(answer.itemId, data.itemId)));
-        return stored ? { stale: stored } : null;
+        return stored ? { stale: stored, changedSince: own.submittedAt !== null && !own.signedOff, submittedAt: own.submittedAt } : null;
       }
-      await tx.update(response).set({ updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, data.responseId)));
-      return row;
+      // E7-6: a change after a Submit takes the sign-off back until the next Submit; a write
+      // that says what is stored moves neither that nor the response's last save.
+      // changedSince: the response is submitted and has changes not submitted again, after
+      // its Submit at submittedAt.
+      const changed = !before || before.kind !== row.kind || before.value !== row.value || before.reason !== row.reason || before.comment !== row.comment;
+      if (changed) await tx.update(response).set({ updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)`, signedOff: false }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, data.responseId)));
+      return { ...row, changedSince: own.submittedAt !== null && !(own.signedOff && !changed), submittedAt: own.submittedAt };
     });
   },
   forResponse: async (workspaceId: WorkspaceId, responseId: string): Promise<Answer[]> => {

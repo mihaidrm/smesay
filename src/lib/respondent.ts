@@ -21,7 +21,7 @@ import { sendMail, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
-import { answerFor, answeredCount, areasOf, carriedFields, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
+import { answerFor, answeredCount, areasOf, carriedFields, changedSinceSubmit, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
 import { linkState } from "@/lib/sharing";
 
@@ -37,6 +37,7 @@ export type RespondentView =
   | LinkView
   | { kind: "sample"; link: Link }
   | { kind: "closedOwn"; link: Link; closedAt: Date; response: Response; answered: number; total: number }
+  | { kind: "closedSubmitted"; link: Link; closedAt: Date; submittedAt: Date; changed: boolean }
   | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number>; wrap: WrapValue; wrapSync: WrapSync };
 
 // The response this device has on this link: the personal invite's, or the one its device
@@ -69,12 +70,16 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   if (!link) return { kind: "unknown" };
   if (link.project.isSample) return { kind: "sample", link };
   const view = viewOf(link, cookies.passcode, now);
-  if (view.kind === "closed" && link.invite.kind === "personal") {
+  // A revoked link on an archived project reads "closed" too; it shows nothing of its own.
+  if (view.kind === "closed" && link.invite.kind === "personal" && linkState(link.invite, now) !== "revoked") {
     // A closed personal link shows the respondent's own state (E7-1, acceptance 3; note
     // 12, finding 33) when they started, answered something and did not submit
     // (docs/copy/errors.md); a submitted response's closed page is E7-6's; a closed public
     // link shows none (decision 0031).
     const response = await responseOf(link, undefined);
+    // Submitted: when, and that nothing can change now (E7-6, acceptance 2).
+    // Changes made after it and not submitted again are said too.
+    if (response?.submittedAt) return { kind: "closedSubmitted", link, closedAt: view.closedAt, submittedAt: response.submittedAt, changed: changedSinceSubmit(response) };
     if (response && !response.submittedAt) {
       const { items: all } = await itemsOf(link);
       const rows = answerMap(await answers.forResponse(link.ws, response.id));
@@ -121,6 +126,10 @@ function refusalOf(dates: InviteDates, token: string, now: Date): WriteRefusal {
 // Start (E7-1, acceptance 1 and 2): the About you values and the perspectives, checked
 // against the PM's configuration; the response created or its fields updated. A public
 // link's first Start returns the new device token for the cookie.
+// Start again on a started response (E7-1 About you; E7-6): only a change of the fields or the
+// picks writes, moves the last save and, on a submitted response, takes the sign-off back
+// (the sign-off was for the answers as submitted, E7-6 acceptance 6).
+const startChanges = (r: Response, values: Record<string, string>, picks: string[]) => JSON.stringify(Object.entries(r.fields).sort()) !== JSON.stringify(Object.entries(values).sort()) || JSON.stringify([...r.perspectives].sort()) !== JSON.stringify([...picks].sort());
 export async function startResponse(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | { response: Response; device: string | null }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
@@ -140,12 +149,14 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
     if (!started) return { status: 404, error: "unknown" };
     if ("refused" in started) return refusalOf(started.refused, token, now);
     if (started.created) return { response: started.response, device: null };
-    const updated = await responses.update(link.ws, started.response.id, { fields: fields.values, perspectives: picks.picks, updatedAt: now });
+    if (!startChanges(started.response, fields.values, picks.picks)) return { response: started.response, device: null };
+    const updated = await responses.restart(link.ws, started.response.id, { fields: fields.values, perspectives: picks.picks }, now);
     return { response: updated ?? started.response, device: null };
   }
   const existing = cookies.device ? await responses.forDevice(link.ws, link.invite.id, cookies.device) : null;
   if (existing) {
-    const updated = await responses.update(link.ws, existing.id, { fields: fields.values, perspectives: picks.picks, updatedAt: now });
+    if (!startChanges(existing, fields.values, picks.picks)) return { response: existing, device: null };
+    const updated = await responses.restart(link.ws, existing.id, { fields: fields.values, perspectives: picks.picks }, now);
     return { response: updated ?? existing, device: null };
   }
   const device = newDeviceToken();
@@ -167,7 +178,9 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
 // and returns { stale } with the stored answer, its version and who wrote it
 // (src/lib/answer-queue.ts).
 export type Written = { version: number; writer: string | null; writerSeq: number };
-export type SavedAnswer = { answer: AnswerState; complete: boolean } & Written;
+// changedSince (E7-6, on a save the server took): the response is submitted and has changes
+// not submitted again, after its latest Submit (submittedAt, ISO 8601).
+export type SavedAnswer = { answer: AnswerState; complete: boolean; changedSince?: boolean; submittedAt?: string | null } & Written;
 export async function saveAnswer(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | SavedAnswer | { stale: SavedAnswer }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
@@ -188,9 +201,9 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
   if ("refused" in written) return refusalOf(written.refused, token, now);
   if ("stale" in written) {
     const stored = answerMap([written.stale])[row.id];
-    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq } };
+    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null } };
   }
-  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq };
+  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null };
 }
 
 // The Wrap up's answers as the respondent writes them (E7-5; PUT /r/[token]/wrap): the link
@@ -198,8 +211,10 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
 // before anything else is read from the body), the answers read as Submit reads them
 // (parseWrapInput), then stored under the invite row's lock and the response's when the write
 // was made on the stored Wrap up (responses.saveWrap); a stale write gets the stored one back.
-export type WrapReply = { wrap: WrapValue } & WrapSync;
-export type WrapSaved = { saved: true; version: number; writer: string | null; writerSeq: number };
+export type WrapReply = { wrap: WrapValue; changedSince: boolean; submittedAt: string | null } & WrapSync;
+// changedSince (E7-6): the response is submitted and has changes not submitted again, after
+// its latest Submit (submittedAt, ISO 8601).
+export type WrapSaved = { saved: true; version: number; writer: string | null; writerSeq: number; changedSince: boolean; submittedAt: string | null };
 export async function saveWrap(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | WrapSaved | { stale: WrapReply }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
@@ -218,7 +233,7 @@ export async function saveWrap(token: string, cookies: RespondentCookies, body: 
   if (!saved) return { status: 404, error: "unknown" };
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
   if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
-  return { saved: true, version: saved.saved.wrapVersion, writer: saved.saved.wrapWriter, writerSeq: saved.saved.wrapWriterSeq };
+  return { saved: true, version: saved.saved.wrapVersion, writer: saved.saved.wrapWriter, writerSeq: saved.saved.wrapWriterSeq, changedSince: changedSinceSubmit(saved.saved), submittedAt: saved.saved.submittedAt?.toISOString() ?? null };
 }
 
 // The response a write names (E7-3 onwards): an open window whose cookie was replaced since
@@ -228,7 +243,7 @@ const namedResponse = (body: unknown): unknown => (body && typeof body === "obje
 // The stored Wrap up as the page holds it (the sign-off is never stored for the page: it is
 // ticked for each Submit).
 export const wrapOf = (stored: { confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null }): WrapValue => ({ confidence: stored.confidence, signed: false, closingAnswer: stored.closingAnswer ?? "", missing: { text: stored.missing?.text ?? "", area: stored.missing?.area ?? "", value: stored.missing?.value ?? "" } });
-const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq });
+const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq, changedSince: stored.changedSince, submittedAt: stored.submittedAt?.toISOString() ?? null });
 
 // The first word of the respondent's name, for "Thank you, [NAME]." and "Welcome back":
 // the name field Start saved, else a personal invite's name.
@@ -285,16 +300,17 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
   if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
   if ("invalid" in saved) return { status: 422, error: saved.invalid };
-  // The first Submit, decided from the row written under the lock: two Submits at once on
-  // one personal link send one receipt.
-  const first = saved.firstSubmittedAt?.getTime() === now.getTime();
+  // The first Submit, decided from the row written under the lock: its stored time is the
+  // first Submit's, and every later one is stored at least a millisecond after it, so two
+  // Submits at once on one personal link send one receipt, even with the same clock.
+  const first = saved.submittedAt !== null && saved.submittedAt.getTime() === saved.firstSubmittedAt?.getTime();
   const to = link.invite.kind === "personal" && first ? link.invite.email : null;
   const receipt = to
     ? async () => {
         const tally = tallyOf(link.instrument.method, visible, rows);
-        const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
+        const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: saved.submittedAt ?? now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
         try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
       }
     : null;
-  return { submittedAt: now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };
+  return { submittedAt: saved.submittedAt ?? now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };
 }
