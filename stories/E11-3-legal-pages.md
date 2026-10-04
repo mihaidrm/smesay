@@ -41,12 +41,14 @@ analytics) with "none yet" where the account does not exist (decision 0006).
 
 Built 2026-10-04 (design note 74, decision 0044):
 - Acceptance 1: docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md, drafted in plain
-  English with 31 "[LAWYER: ...]" markers; /legal/privacy, /legal/terms, /legal/dpa and
+  English with 36 "[LAWYER: ...]" markers; /legal/privacy, /legal/terms, /legal/dpa and
   /legal/subprocessors render them (src/app/legal/[page]/page.tsx, src/lib/legal.ts), built
   once at build time; any other name under /legal is the 404 page. The privacy policy covers
   every topic this criterion lists. The subprocessor list marks Anthropic as in use, the launch
-  accounts as planned and Sentry and Plausible as not in use yet (decision 0006); no company's
-  legal name is written, the lawyer confirms them.
+  accounts as planned (decision 0006) and says no error reports or visit counts are in use; no
+  company's legal name is written, the lawyer confirms them. After the fresh-context audit (8
+  blocking statements the code contradicted), every statement on what is stored or sent was
+  checked against the code again; design note 74 lists what changed.
 - Acceptance 2: each file starts with "version: N" and "date: YYYY-MM-DD"; each page shows
   "Version [N], [DATE]" at the top; a change is a commit.
 - Acceptance 3: About you and the Done page carry "How your answers are used" beside Powered by

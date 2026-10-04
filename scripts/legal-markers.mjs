@@ -5,9 +5,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const DIR = "docs/legal";
+// The same pattern as src/lib/legal.ts MARKER: one level of brackets inside a marker.
+const MARKER = /\[LAWYER:(?:[^[\]]|\[[^[\]]*\])*\]/g;
 let total = 0;
 for (const file of readdirSync(DIR).filter((f) => f.endsWith(".md")).sort()) {
-  const markers = readFileSync(join(DIR, file), "utf8").match(/\[LAWYER:[^\]]*\]/g) ?? [];
+  const markers = readFileSync(join(DIR, file), "utf8").match(MARKER) ?? [];
   total += markers.length;
   console.log(`${file}: ${markers.length}`);
   for (const m of markers) console.log(`  ${m}`);

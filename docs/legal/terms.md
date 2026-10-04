@@ -7,7 +7,7 @@ These terms are the agreement between Alerty S.R.L. and the organisation or pers
 
 ## The service
 
-SMEsay turns a list of requirements into a short instrument that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L., [REGISTERED ADDRESS]. [LAWYER: confirm the registered address and the registration number.]
+SMEsay turns a list of requirements into a short instrument that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L. [LAWYER: add the registered address and the registration number.]
 
 ## Accounts and workspaces
 
@@ -15,7 +15,7 @@ You sign in with a link sent to your email address or with Google. A workspace b
 
 ## The free plan
 
-While SMEsay is being built with its first users, the free plan has no limit on projects, responses or AI runs. Paid plans come later; nothing built on the free plan is lost or locked when they do. [LAWYER: confirm the wording on future paid plans and on changes to the free plan.]
+While SMEsay is being built with its first users, the free plan has no limit on projects or responses. Each workspace has a monthly allowance for the AI features; when it is used up, Shape and Write actions stop until the next month. Paid plans come later; nothing built on the free plan is lost or locked when they do. [LAWYER: confirm the wording on the AI allowance, on future paid plans and on changes to the free plan.]
 
 ## Your content
 
@@ -39,7 +39,7 @@ Alerty aims to keep SMEsay available but does not promise any level of availabil
 
 ## Ending
 
-You can delete a workspace at any time in Settings. Everything in it is removed within 24 hours. Export everything first if you want a copy. Alerty can end the service with [N] days' notice. [LAWYER: confirm the notice period.]
+You can delete a workspace at any time in Settings. Every member loses access at once, and the removal job then deletes everything in it. Export everything first if you want a copy. [LAWYER: confirm the removal period to promise (the job runs every hour from launch) and the notice period Alerty gives before ending the service.]
 
 ## Law and disputes
 
