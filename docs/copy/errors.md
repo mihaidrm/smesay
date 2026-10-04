@@ -217,11 +217,11 @@ of the content; page means it replaces the screen.
 | Card note (E7-3), from the server | Another window or device saved the item's answer after this page's change was made on it (also for a change the device kept unsent and sent on opening); the card shows the stored answer | This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand. |
 | Note under the Start button (E7-3) | Start worked but the first save found no response: the browser did not keep the device cookie | This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser. |
 | Page | Saved answers on this device belong to a newer version of the list (not built in R1: publishing a newer version closes the older link, so the respondent sees the closed page and the device's unsent answers are removed; docs/review-list.md) | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
-| Wrap up, list (already on the board) | Still to finish | [N] still to finish, with the item and what is missing. |
+| Wrap up, box and list (E7-4) | Still to finish | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST]]; then "Still to finish", each item with its reference and what is missing: Not rated yet, Say why., Write your question., or Not saved yet (complete on the card, not yet on the server); each row opens its own item |
 | Wrap up | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
 | Wrap up | Sign-off not ticked | Tick the confirmation to submit. |
 | Wrap up | Submit failed | Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again. |
-| Banner over the first chapter screen, once (E7-3) | Device storage unavailable: the browser refuses localStorage (blocked site data; MDN, Window.localStorage: a private window's storage is cleared when its last private tab closes) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
+| Banner over the first screen after About you, once (E7-3) | Device storage unavailable: the browser refuses localStorage (blocked site data; MDN, Window.localStorage: a private window's storage is cleared when its last private tab closes) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
 
 ## Dashboard and exports (E8, E10)
 

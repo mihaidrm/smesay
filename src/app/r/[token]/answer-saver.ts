@@ -47,9 +47,14 @@
 // `bind` and `resend`); a reply for a response the page no longer answers for is ignored; an
 // answer the server refused (422, a stale page) shows the server's sentence on its card and
 // is dropped from the queue.
+//
+// `done` holds, per item, whether the server's answer is complete, as the server last said
+// (the answers route's `complete`, also on a stale reply), taken only from a reply whose
+// version is at least the one already applied (doneFrom); the chapter row and the Wrap up
+// count from it (E7-4, technical notes).
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
-import { delayFor, nextEntry, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
+import { delayFor, doneFrom, nextEntry, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
 import { RESPONDENT_ERRORS, type AnswerState } from "@/lib/respondent-rules";
 
 export type SaverEvents = {
@@ -83,8 +88,10 @@ const storageMissing = () => deviceStorage() === null;
 const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
 
 
-export function useAnswerSaver(token: string, responseId: string | null, enabled: boolean, itemIds: string[], initialVersions: Record<string, number>, initialAnswers: Record<string, AnswerState>, initialSaved: Record<string, boolean>, events: SaverEvents) {
+export function useAnswerSaver(token: string, responseId: string | null, enabled: boolean, itemIds: string[], initialVersions: Record<string, number>, initialAnswers: Record<string, AnswerState>, initialSaved: Record<string, boolean>, initialDone: Record<string, boolean>, events: SaverEvents) {
   const [saved, setSaved] = useState<Record<string, boolean>>(initialSaved);
+  const [done, setDone] = useState<Record<string, boolean>>(initialDone);
+  const doneAt = useRef(new Map<string, number>(Object.entries(initialVersions)));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [offline, setOffline] = useState(false);
   const [failing, setFailing] = useState(false);
@@ -191,6 +198,11 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
       if (step.version !== null) known.current.set(itemId, Math.max(known.current.get(itemId) ?? 0, step.version));
+      const taken = doneFrom(doneAt.current.get(itemId), step.version, body.complete);
+      if (taken) {
+        doneAt.current.set(itemId, taken.version);
+        setDone((d) => ({ ...d, [itemId]: taken.complete }));
+      }
       if (step.failed !== null) markFailed(itemId, step.failed);
       if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved();
       if (step.rebase !== null && current) {
@@ -265,6 +277,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
     hideSent.current.clear();
     known.current.clear();
     failed.current.clear();
+    doneAt.current.clear();
     setFailing(false);
   }, []);
   const reset = useCallback(() => {
@@ -273,6 +286,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
     if (lost) update((raw) => withoutResponse(raw, lost));
     responseRef.current = null;
     setSaved({});
+    setDone({});
   }, [forget, update]);
   const bind = useCallback((id: string) => {
     if (responseRef.current !== null && responseRef.current !== id) forget();
@@ -349,5 +363,5 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
     };
   }, []);
 
-  return { saved, errors, offline, unsaved: offline || failing, storageOff, queue, flush, reset, bind, resend };
+  return { saved, done, errors, offline, unsaved: offline || failing, storageOff, queue, flush, reset, bind, resend };
 }

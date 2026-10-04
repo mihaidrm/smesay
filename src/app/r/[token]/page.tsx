@@ -18,7 +18,7 @@ import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
-import { carriedFields, chaptersFor, parseScreen, RESPONDENT_COPY, resumeAt, screenCount } from "@/lib/respondent-rules";
+import { carriedFields, chaptersFor, landingOf, RESPONDENT_COPY, type Screen } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
 import { ForgetQueue } from "./forget-queue";
@@ -65,9 +65,12 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const picks = response?.perspectives ?? [];
   const chapters = chaptersFor(view.areas, view.items, picks);
   const prefilled = carriedFields(link.invite, instrument.respondentFields);
-  // No screen in the address and a response started: where the respondent left off (E7-3).
-  const resume = response && !at && instrument.layout !== "page" ? resumeAt(chapters, view.answers) : { index: 0, item: 0 };
-  const screen = response && !at && chapters.length > 0 ? { kind: "chapter" as const, index: resume.index } : parseScreen(at, response !== null, screenCount(instrument.layout, chapters.length));
+  // Where the visit lands, and "Welcome back" when it returns with answers (landingOf: E7-3,
+  // acceptance 2; E7-4, acceptance 4).
+  const landing = landingOf(chapters, view.answers, instrument.layout, at, response !== null);
+  const firstName = (response?.fields.name ?? (link.invite.kind === "personal" ? link.invite.name : null) ?? "").trim().split(/\s+/)[0] || null;
+  const welcome = landing.welcome ? { name: firstName, ...landing.welcome } : null;
+  const screen: Screen = landing.screen;
   return (
     <>
       <LinkWatch token={token} />
@@ -85,10 +88,12 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         initialFields={response?.fields ?? {}}
         initialPicks={picks}
         initialScreen={screen}
-        initialItem={screen.kind === "chapter" && screen.index === resume.index ? resume.item : 0}
+        initialItem={landing.item}
         answers={view.answers}
         versions={view.versions}
         responseId={response?.id ?? null}
+        closing={instrument.closing}
+        welcome={welcome}
       />
     </>
   );

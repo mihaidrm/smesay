@@ -287,20 +287,27 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
-| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] |
+| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] [Button: Continue to [NEXT AREA] / Continue to Wrap up] |
+| Chapter row (E7-4; not on the single long page) | About you, [AREA] [DONE]/[COUNT] for each chapter (read as "[AREA], [DONE]/[COUNT] answered"), Wrap up; named "Chapters" for screen readers; under it a bar named "Items answered" ([N] of [M]) |
+| Footer note on a chapter (E7-4) | [N] of [M] still to rate here. You can come back later. / All [M] rated in this chapter. (one item: The item in this chapter is rated.) (the single long page: All [M] rated., one item: The item is rated.) (the single long page counts every item) |
+| Chapter pill count, as a screen reader reads it (E7-4) | [CHAPTER], [N] of [M] answered (the pill shows [N]/[M]); the bar: [N] of [M] |
+| Returning visit, over the chapter or the Wrap up it lands on (E7-4) | Welcome back, [FIRST NAME]. (Welcome back. without a name) You answered [N] of [M] last time. (Nothing complete yet: Your answers so far are kept; none is complete yet.) |
 | Chapter name for items with no area (E7-1; the Build preview uses it too) | Other items |
 | Perspectives question (E5-4; only when the instrument has perspectives) | Which of these describe you? Pick every one that fits. You see the items for your perspectives and the ones for everyone. (checkboxes, one per perspective) |
 | Items screen when the picks leave nothing to rate (E5-4 in the preview; E7-1 on the live link) | Nothing to rate yet. Go back to About you and pick the perspectives that describe you. [Button: About you] |
 | Hint under a disabled Start | Fill in your name and role to start. (while the required fields are exactly Name and Role; otherwise, decision 0043: Fill in the required fields to start.) |
 
-## Wrap up (the respondent instrument, E5-5 preview and E7-5)
+## Wrap up (the respondent instrument, E5-5 preview, E7-4 and E7-5)
 
 | Where | Text |
 |---|---|
-| Header | [WORKSPACE NAME], [ANSWERED] of [TOTAL] |
+| Header | Build preview: [WORKSPACE NAME], [ANSWERED] of [TOTAL]. Live link (E7-4): the respondent header with Closes [DATE AND TIME UTC] and the chapter row |
 | Title | Wrap up |
 | Tally tiles (decision 0018 item 5) | Agreed, Higher priority, Lower priority, Not needed, Unclear; rate-blind: Rated, Not needed, Unclear |
-| Gaps box | [N] still to finish. [Button: Go to [FIRST CHAPTER]] |
+| Gaps box | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: the first chapter) |
+| Live link, nothing left to finish (E7-4) | All [M] items are answered. (one item: The item is answered.) |
+| Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Say why., Write your question., Not saved yet), each opening its own item |
+| Live link, footer (E7-4) | [Button: Back] (the tally, the form, confidence, the sign-off and Submit come with E7-5) |
 | When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
 | When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |
 | Missing-item form (when the PM switched it on) | Is anything missing from the list? Optional. What is missing; Where it belongs (Choose one, then the chapters); How important it is (Choose one, then the method's values) |
