@@ -42,8 +42,10 @@ test("export the whole project as JSON and import it", async ({ page, request })
   // The same data as a PM's file imports and shows the same numbers.
   await page.getByLabel("Project file (.json)").setInputFiles({ name: "project.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ ...file, sample: false, note: null, project: { ...file.project, name: "Expense tool" } })) });
   await page.getByTestId("import-project").click();
-  await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/results$/);
+  // Results may add the switch to the address (?unsubmitted=1), so the query is allowed.
+  await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/results(\?.*)?$/);
   await expect(page.getByRole("heading", { name: "Expense tool" })).toBeVisible();
-  await page.goto(`${page.url()}?unsubmitted=0`);
+  const imported = page.url().match(/projects\/([0-9a-f-]{36})/)![1];
+  await page.goto(`/app/projects/${imported}/results?unsubmitted=0`);
   await expect(page.locator('[data-tile="agreement"]')).toHaveText(tile);
 });
