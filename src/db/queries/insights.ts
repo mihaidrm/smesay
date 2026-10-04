@@ -2,10 +2,13 @@
 // first; see scoped.ts for the rule. E9-1: what the actions run reads (inputFor), the actions
 // with their citations resolved for the Actions tab (listWithCitations), and the store that
 // replaces a project's open actions and keeps the done and dismissed ones (replaceOpen).
+// E9-2: setState marks one done, dismissed or open again, with the date and the person; a new
+// run skips an action that matches a dismissed one (sameAction: the kind and the sets of
+// cited answers and missing items).
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { insight, project } from "@/db/schema";
-import type { InsightKind, WorkspaceId } from "@/db/types";
+import type { InsightKind, InsightState, WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
 import { isUuid, scoped } from "./scoped";
 
@@ -22,6 +25,12 @@ export type InputMissing = { id: string; responseId: string; text: string; area:
 export type CitedAnswer = { id: string; itemId: string; reference: string | null; title: string; who: string | null; anon: number | null };
 export type CitedMissing = { id: string; who: string | null; anon: number | null };
 export type InsightWithCitations = Insight & { answers: CitedAnswer[]; missing: CitedMissing[] };
+
+// Two actions are the same when they are of the same kind and cite the same answers and the
+// same missing items, in any order (E9-2, acceptance 2).
+const key = (list: string[]) => [...new Set(list)].sort().join(",");
+export const sameAction = (a: { kind: InsightKind | null; citedAnswerIds: string[]; citedMissingItemIds: string[] }, b: { kind: InsightKind | null; citedAnswerIds: string[]; citedMissingItemIds: string[] }): boolean =>
+  a.kind === b.kind && key(a.citedAnswerIds) === key(b.citedAnswerIds) && key(a.citedMissingItemIds) === key(b.citedMissingItemIds);
 
 const ids = (list: string[]) => sql.join(list.map((id) => sql`${id}`), sql`, `);
 
@@ -88,13 +97,25 @@ export const insights = {
   // A new run (E9-1, acceptance 4): the project's open actions go, the done and dismissed ones
   // stay (E9-2), and the new ones are written, in one transaction, a millisecond apart in the
   // model's order so the tab lists them as written (one statement would stamp them alike).
-  replaceOpen: async (ws: WorkspaceId, projectId: string, rows: { kind: InsightKind; title: string; why: string; citedAnswerIds: string[]; citedMissingItemIds: string[]; model: string; tokensIn: number; tokensOut: number; costEurCents: number }[]): Promise<Insight[]> =>
+  replaceOpen: async (ws: WorkspaceId, projectId: string, written: { kind: InsightKind; title: string; why: string; citedAnswerIds: string[]; citedMissingItemIds: string[]; model: string; tokensIn: number; tokensOut: number; costEurCents: number }[]): Promise<Insight[]> =>
     db.transaction(async (tx) => {
       // Two runs at once (two tabs) write one after the other: the project row's lock.
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, ws), eq(project.id, projectId))).for("update");
       await tx.delete(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "open")));
+      const dismissed = await tx.select().from(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "dismissed")));
+      const rows = written.filter((r) => !dismissed.some((d) => sameAction(d, r)));
       if (rows.length === 0) return [];
       const at = Date.now();
       return tx.insert(insight).values(rows.map((r, i) => ({ ...r, workspaceId: ws, projectId, state: "open" as const, createdAt: new Date(at + i) }))).returning();
     }),
+
+  // Marks one of the project's actions done or dismissed (with the date and the person) or
+  // open again (both cleared). Null when the action is not the project's in this workspace.
+  setState: async (ws: WorkspaceId, projectId: string, insightId: string, state: InsightState, userId: string, now = new Date()): Promise<Insight | null> => {
+    if (!isUuid(projectId) || !isUuid(insightId)) return null;
+    const closed = state === "open" ? { closedAt: null, closedBy: null } : { closedAt: now, closedBy: userId };
+    const [row] = await db.update(insight).set({ state, ...closed })
+      .where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.id, insightId))).returning();
+    return row ?? null;
+  },
 };

@@ -9,7 +9,8 @@
 import { instruments, projects } from "@/db/queries";
 import { agreement } from "@/db/queries/results";
 import { insights, type Insight } from "@/db/queries/insights";
-import type { InsightKind } from "@/db/types";
+import type { InsightKind, InsightState } from "@/db/types";
+import { INSIGHT_STATES } from "@/db/types";
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
 import { contextOf } from "@/lib/ai/context";
 import { InsightOutput } from "@/lib/ai/insights-schema";
@@ -92,6 +93,19 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const cost = share(result.run.costEurCents, kept.length);
   const written = await insights.replaceOpen(actor.ws, project.id, kept.map((a, i) => ({ ...a, model: result.run.model, tokensIn: tokensIn[i], tokensOut: tokensOut[i], costEurCents: cost[i] })));
   return { written };
+}
+
+// Mark done, Dismiss and Reopen (stories/E9-2, acceptance 1 and 2): one of the project's
+// actions to the state asked for, with the date and the person; the sample is read-only. An
+// action that is not the project's in this workspace, or a state that is not one, is refused.
+export async function setActionState(actor: Actor, projectId: string, insightId: string, state: unknown, now = new Date()): Promise<{ error: string } | { insight: Insight }> {
+  await requireRole(actor, "results.read");
+  const project = await projects.get(actor.ws, projectId);
+  if (!project) throw new NotFoundError();
+  if (project.isSample) return { error: ACTIONS_COPY.sampleState };
+  if (typeof state !== "string" || !(INSIGHT_STATES as readonly string[]).includes(state)) return { error: ACTIONS_COPY.gone };
+  const row = await insights.setState(actor.ws, project.id, insightId, state as InsightState, actor.userId, now);
+  return row ? { insight: row } : { error: ACTIONS_COPY.gone };
 }
 
 // The citations as the tab shows them (acceptance 1): the answers grouped by item, "[Name] and

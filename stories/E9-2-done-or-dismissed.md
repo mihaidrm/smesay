@@ -1,7 +1,7 @@
 # E9-2 Mark an action done or dismissed; regeneration does not resurrect a dismissed action
 
 User: a PM working through the list
-Status: ready
+Status: built
 Outcome: actions move to done or dismissed and stay there across runs.
 
 ## Acceptance criteria
@@ -21,5 +21,24 @@ Outcome: actions move to done or dismissed and stay there across runs.
 - None.
 
 ## Technical notes
-insight.state, plus `closed_at` and `closed_by` added in migration 0002 for the date and the
-export.
+insight.state, plus `closed_at` and `closed_by` added in migration 0022 (not 0002) for the
+date and the export.
+
+Built 2026-10-04 (design note 67, decision 0044):
+- Acceptance 1: each open action has Mark done (primary) and Dismiss; a done or dismissed one
+  sits in its section, greyed, with its state and date in a pill and Reopen
+  (results/action-controls.tsx, actions-tab.tsx); setActionState (src/lib/insights.ts)
+  refuses the sample, an action that is not the project's and a state that is not one. The
+  sample shows no controls.
+- Acceptance 2: insight.state with closed_at and closed_by (migration 0022; a check keeps
+  closed_at null exactly while open). A new run skips an action matching a dismissed one by
+  kind and the sets of cited answers and missing items (sameAction; the missing items added
+  so two coverage actions on different missing items do not match); src/lib/insights.test.ts
+  dismisses one, runs again with the same output and sees it absent.
+- Acceptance 3: the Done section lists each with "Done [DATE] UTC"; the tab's count is the
+  open ones (results.numbers), tested in the e2e.
+- Acceptance 4: the exports are E10-2 and E10-3, not built yet; insight.state, closed_at and
+  closed_by are there for them, and their stories carry the criterion.
+- Playwright: e2e/actions.spec.ts dismisses one, marks one done, reads the date and the tab
+  count, reopens, writes again and sees the dismissed one stay out.
+

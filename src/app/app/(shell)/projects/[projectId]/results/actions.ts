@@ -11,7 +11,7 @@ import { resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { RESULTS_COPY } from "@/lib/results-copy";
 import { parseTileChoice } from "@/lib/results-tiles";
-import { writeActions } from "@/lib/insights";
+import { setActionState, writeActions } from "@/lib/insights";
 
 export type ResultsActionState = { error: string | null };
 
@@ -60,4 +60,15 @@ export async function writeActionsAction(projectId: string): Promise<WriteAction
   if ("error" in result) return { error: result.error, retry: result.retry, written: null };
   revalidatePath(`/app/projects/${projectId}/results`);
   return { error: null, retry: false, written: result.written.length };
+}
+
+// Mark done, Dismiss and Reopen (stories/E9-2): the state comes from the button pressed and is
+// checked again in src/lib/insights.ts.
+export type ActionStateResult = { error: string | null };
+export async function setActionStateAction(projectId: string, insightId: string, state: string): Promise<ActionStateResult> {
+  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const result = await setActionState({ ws: current.ws, userId: session.user.id }, projectId, insightId, state);
+  if ("error" in result) return { error: result.error };
+  revalidatePath(`/app/projects/${projectId}/results`);
+  return { error: null };
 }

@@ -556,7 +556,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 <sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}">
 <div style="color: #5B6069">{{ac.stateLabel}}</div>
-<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 12px; border: 0; background: transparent; color: #0E6B63; font-weight: 500">Undo</button>
+<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reopen</button>
 </sc-if>
 </div>
 </div>
@@ -926,7 +926,7 @@ const st = s.actionState[a.id];
 return {
 title: a.title, why: a.why, kind: a.kind, cites: a.cites,
 open: !st, closed: !!st,
-stateLabel: st === 'done' ? 'Done' : 'Dismissed',
+stateLabel: st === 'done' ? 'Done 14 Oct 2026, 09:12 UTC' : 'Dismissed 14 Oct 2026, 09:12 UTC',
 bg: st ? '#F6F6F4' : '#FFFFFF', fg: st ? '#5B6069' : '#16181C',
 done: () => patch('actionState', a.id, 'done'),
 dismiss: () => patch('actionState', a.id, 'dismissed'),

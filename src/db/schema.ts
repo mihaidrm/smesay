@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import { INSIGHT_KINDS } from "./types";
+import { INSIGHT_KINDS, INSIGHT_STATES } from "./types";
 import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
@@ -22,7 +22,7 @@ export const SCORING_METHODS = ["moscow", "fit", "kcd"] as const;
 export const LAYOUTS = ["chapters", "item", "page"] as const;
 export const INVITE_KINDS = ["public", "personal"] as const;
 export const READER_STATUSES = ["suggested", "accepted", "rejected"] as const;
-export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
+export { INSIGHT_STATES };
 export const MEMBER_ROLES = ["owner", "member"] as const;
 export const ITEM_SET_SOURCES = ["xlsx", "csv", "pasted"] as const;
 export const UPLOAD_KINDS = ["xlsx", "csv", "pasted"] as const;
@@ -368,6 +368,9 @@ export const insight = pgTable("insight", {
   citedMissingItemIds: uuid("cited_missing_item_ids").array().notNull().default(sql`'{}'::uuid[]`),
   kind: text("kind", { enum: INSIGHT_KINDS }),
   state: text("state", { enum: INSIGHT_STATES }).notNull().default("open"),
+  // E9-2: when and by whom an action was marked done or dismissed (null while open).
+  closedAt: ts("closed_at"),
+  closedBy: text("closed_by").references(() => user.id, { onDelete: "set null" }),
   model: text("model"),
   tokensIn: integer("tokens_in"),
   tokensOut: integer("tokens_out"),
@@ -377,8 +380,11 @@ export const insight = pgTable("insight", {
   foreignKey({ name: "insight_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
   index("insight_workspace_idx").on(t.workspaceId),
   index("insight_project_idx").on(t.projectId),
+  index("insight_closed_by_idx").on(t.closedBy),
   check("insight_state_check", oneOf("state", INSIGHT_STATES)),
   check("insight_kind_check", sql`"kind" is null or ${oneOf("kind", INSIGHT_KINDS)}`),
+  // An open action has no closed date; a done or dismissed one has one (E9-2).
+  check("insight_closed_check", sql`("state" = 'open') = ("closed_at" is null)`),
 ]);
 
 export const aiRun = pgTable("ai_run", {
