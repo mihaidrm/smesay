@@ -311,7 +311,8 @@ export const answer = pgTable("answer", {
   comment: text("comment"),
   // E7-3: the answer's version, counted up on every write, the open page that wrote it last
   // and that page's number for the save. A write lands when it was made on the stored version,
-  // or comes from the same page with a higher number (src/db/queries/answers.ts).
+  // comes from the same page with a higher number, or names the writer's save among the saves
+  // it was made on top of (src/db/queries/answers.ts).
   version: integer("version").notNull().default(0),
   writer: text("writer"),
   writerSeq: integer("writer_seq").notNull().default(0),

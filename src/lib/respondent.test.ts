@@ -12,8 +12,10 @@
 // comment only when it is not), one answer per item that the last save replaces, and the
 // refusals: not started, an item not in the list, a value not on the scale, a revoked link.
 // E7-3: the landing chapter for a returning visit (resumeAt); a write lands when it was made
-// on the stored version or comes from the page that wrote it last with a higher number, and
-// otherwise changes nothing and gets the stored answer back (409 stale at the route); a write
+// on the stored version, comes from the page that wrote it last with a higher number, or names
+// the last writer's save (or a later one of its own page) among the saves it was made on top
+// of (after), and otherwise changes nothing and gets the stored answer back (409 stale at the
+// route); a write
 // for a response that is not the device's is "not started"; the autosave route after a
 // revocation answers 410 and writes nothing.
 import { beforeAll, describe, expect, it } from "vitest";
@@ -403,6 +405,10 @@ describe("saving an answer", () => {
     const R = "page-r-0003";
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(1, 1, R, [{ page: Q, seq: 1 }]), response: rid }, now)).toMatchObject({ version: 5, writer: R, writerSeq: 1 });
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(1, 1, P, [{ page: Q, seq: 9 }, { page: "page-z-0009", seq: 2 }]), response: rid }, now)).toMatchObject({ stale: { version: 5, writer: R } });
+    // The bound: a change naming R's first save does not reach over R's second (R is a tab
+    // still open that changed the answer again).
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(5, 2, R), response: rid }, now)).toMatchObject({ version: 6, writer: R, writerSeq: 2 });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(1, 1, P, [{ page: R, seq: 1 }]), response: rid }, now)).toMatchObject({ stale: { version: 6, writer: R, writerSeq: 2 } });
     // A version, a number or a page id out of range is refused; a response that is not this
     // device's (an open window whose cookie was replaced) is "not started".
     for (const bad of [{ base: -1 }, { base: 0.5 }, { seq: 0 }, { seq: "2" }, { page: "x" }, { base: undefined }]) expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(4, 6), ...bad, response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badAnswer });
@@ -412,7 +418,7 @@ describe("saving an answer", () => {
     // The reminder's count (E6-3) takes complete answers only: the Unclear with no question is not one.
     expect(await answers.countForResponse(a.ws, started.response.id)).toBe(1);
     const view = await loadRespondent(link.token, device, now);
-    expect(view.kind === "ready" ? [view.answers[one.id], view.versions] : null).toEqual([{ kind: "change", value: "S", reason: "Not this year", comment: null }, { [one.id]: 5, [two.id]: 1 }]);
+    expect(view.kind === "ready" ? [view.answers[one.id], view.versions] : null).toEqual([{ kind: "change", value: "S", reason: "Not this year", comment: null }, { [one.id]: 6, [two.id]: 1 }]);
     // The item tagged Finance is not in a list without that perspective; another set's item is not either.
     expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", ...w(0, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
     const { instrument: other } = await publishedProject("Answers other");

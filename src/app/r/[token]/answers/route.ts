@@ -1,5 +1,6 @@
 // One answer (stories/E7-2; E7-3 sends it within a second of the change): PUT
-// /r/[token]/answers with JSON { itemId, picked, reason, comment, base, page, seq, response }.
+// /r/[token]/answers with JSON { itemId, picked, reason, comment, base, page, seq, after,
+// response }.
 // 200 { saved, kind, complete, version, writer, writerSeq }; a write the stored answer has
 // moved past is 409 { error: "stale", answer, complete, version, writer, writerSeq } with the
 // stored answer (E7-3, src/lib/answer-queue.ts). The link must be open

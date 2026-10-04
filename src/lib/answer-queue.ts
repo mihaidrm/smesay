@@ -154,15 +154,21 @@ export function outcomeOf(status: number, error: string | undefined): Outcome {
   return "retry";
 }
 
-// A stale reply is this page's own when the stored answer was written by this page with this
-// save or a later one, or already says what the save said (a send of an earlier page load,
-// a duplicate after a timeout). Otherwise another window or device changed it.
-export function ownWrite(stored: { writer: string | null; writerSeq: number; answer: AnswerState }, page: string, seq: number, draft: CardDraft): boolean {
-  return (stored.writer === page && stored.writerSeq >= seq) || sameAnswer(stored.answer, draft);
+// A stale reply is this page's own when the stored answer was written by this page (`self`:
+// every save this page made of the item is on top of the one sent, a kept change included),
+// or by the page the save came from with exactly that save (a kept change of an earlier visit
+// or another tab that landed twice), or already says what the save said (a duplicate after a
+// timeout). A later save of that other page is that tab's own newer change, not this one's.
+// Otherwise another window or device changed it.
+export function ownWrite(stored: { writer: string | null; writerSeq: number; answer: AnswerState }, sent: { page: string; seq: number; draft: CardDraft }, self: string): boolean {
+  if (stored.writer === self) return true;
+  if (stored.writer === sent.page && stored.writerSeq === sent.seq) return true;
+  return sameAnswer(stored.answer, sent.draft);
 }
 
 // What the server's reply to one save does to the item's queue (stories/E7-3), worked out
-// apart from the hook so it has unit tests. `sent` is the entry the request carried;
+// apart from the hook so it has unit tests. `self` is this page's id; `sent` is the entry the
+// request carried (this page's, or a kept one of another page);
 // `current` is the item's entry waiting now: the same one, a newer change, or none (another
 // copy of the save was answered first). Entries are told apart by page and number.
 export type ReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; answer?: AnswerState };
@@ -184,12 +190,12 @@ export type ReplyStep = {
   failed: boolean | null;
 };
 const sameEntry = (a: QueueEntry | undefined, b: QueueEntry) => a !== undefined && a.page === b.page && a.seq === b.seq;
-export function replyStep(status: number, body: ReplyBody, sent: QueueEntry, current: QueueEntry | undefined): ReplyStep {
+export function replyStep(status: number, body: ReplyBody, sent: QueueEntry, current: QueueEntry | undefined, self: string): ReplyStep {
   const outcome = outcomeOf(status, body.error);
   const step: ReplyStep = { outcome, version: null, rebase: null, drop: null, saved: false, changedElsewhere: false, error: null, failed: null };
   if (outcome === "saved" || outcome === "stale") {
     const version = validCount(body.version) ? body.version : null;
-    const own = outcome === "saved" || (body.answer !== undefined && ownWrite({ writer: typeof body.writer === "string" ? body.writer : null, writerSeq: validCount(body.writerSeq) ? body.writerSeq : 0, answer: body.answer }, sent.page, sent.seq, sent.draft));
+    const own = outcome === "saved" || (body.answer !== undefined && ownWrite({ writer: typeof body.writer === "string" ? body.writer : null, writerSeq: validCount(body.writerSeq) ? body.writerSeq : 0, answer: body.answer }, sent, self));
     step.version = version;
     if (own && current && !sameEntry(current, sent)) {
       // The newer change keeps its own failed mark: it has not been answered yet.

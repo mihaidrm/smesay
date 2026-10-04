@@ -194,15 +194,15 @@ stillOpen) (one response per personal invite, under the invite row's lock) and
 responses.createPublic(ws, data, stillOpen) (under a shared lock), both returning
 { refused: dates } when the link stopped being open, answers.forResponse(ws,
 responseId). Answers (E7-2): saveAnswer(token, cookies, body, now) in src/lib/respondent.ts
-(PUT /r/[token]/answers, JSON { itemId, picked, reason, comment, base, page, seq, response }
-from E7-3; 200 { saved, kind, complete, version, writer, writerSeq }; 409 stale with the
+(PUT /r/[token]/answers, JSON { itemId, picked, reason, comment, base, page, seq, after,
+response } from E7-3; 200 { saved, kind, complete, version, writer, writerSeq }; 409 stale with the
 stored answer, see Response schema; refusals as Start's, 409 with a sentence when this device has no response or not
 the one named, 422
 for a malformed body, a reason or comment over 2,000 characters, an item not in the
 respondent's list or a value off the scale); answers.upsert(ws, inviteId, data, stillOpen,
 now) (one answer per response and item; from E7-3 a write lands on the version it was made
-on, or after the same page's earlier save, and returns { stale } with the stored answer
-otherwise; under a shared lock on the invite and an
+on, after the same page's earlier save, or after a save it names in after (or an earlier one
+of that page), and returns { stale } with the stored answer otherwise; under a shared lock on the invite and an
 update lock on the response, so writes for one response run in order). Client-safe rules in
 src/lib/respondent-rules.ts: parseFieldValues, parsePicks, carriedFields, chaptersFor
 (RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, from E7-2

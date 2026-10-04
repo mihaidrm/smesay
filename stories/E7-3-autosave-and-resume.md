@@ -73,7 +73,8 @@ Built 2026-10-04 (design note 52, decision 0044):
   the answer was changed elsewhere and shows the saved one. An edit on a card while such a
   kept change still waits for the server keeps that change's version and names it, so it
   lands exactly where that change would have (nextEntry). When the stale answer is the
-  page's own (written by it, or saying the same) nothing changes. The test copies the device
+  page's own (written by it, by a kept change's page with exactly that save, or saying the
+  same) nothing changes. The test copies the device
   cookie into a second browser, types key by key in the first one with saves failing,
   answers in the second, closes the first tab and opens the link again: the card shows the
   second browser's answer with the sentence, then Saved on the next visit. Trade-off: of two
@@ -135,3 +136,7 @@ Built 2026-10-04 (design note 52, decision 0044):
   answered for sends the cards again like a lost one; one keepalive per save also after a
   rebase; a copy of a confirmed save no longer shows the offline banner; a reply for an
   earlier save no longer clears a newer change's failed mark.
+- Sixth audit 2026-10-04: no blocking, 4 should-fix, 5 nits. Fixed: a stale reply counts as
+  the page's own when this page wrote it, or the kept change's page wrote exactly that save
+  (a later save of that page is another tab's newer change, not this one's); the docs and
+  comments that left out after; a test for the bound on after. Recorded: the 8 names.

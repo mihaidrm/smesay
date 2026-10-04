@@ -87,11 +87,14 @@ describe("the device queue", () => {
   });
 
   it("tells this page's own write from another window's", () => {
-    const stored = { writer: P, writerSeq: 3, answer: change("S", "Later") };
-    // Written by this page with this save or a later one.
-    expect([ownWrite(stored, P, 3, draft("M")), ownWrite(stored, P, 2, draft("M"))]).toEqual([true, true]);
-    // An earlier save of this page, or another page, is not, unless the stored answer says the same.
-    expect([ownWrite(stored, P, 4, draft("M")), ownWrite(stored, Q, 1, draft("M")), ownWrite(stored, Q, 1, draft("S", " Later "))]).toEqual([false, false, true]);
+    const sent = (page: string, seq: number, d = draft("M")) => ({ page, seq, draft: d });
+    // Written by this page: its own, whichever save of it landed (a kept change it sent included).
+    expect([ownWrite({ writer: P, writerSeq: 3, answer: change("S", "Later") }, sent(P, 3), P), ownWrite({ writer: P, writerSeq: 1, answer: change("S", "Later") }, sent(Q, 5), P)]).toEqual([true, true]);
+    // A kept change of page Q: own only when exactly that save of Q is stored; a later save of
+    // Q is that tab's newer change.
+    expect([ownWrite({ writer: Q, writerSeq: 5, answer: change("S", "Later") }, sent(Q, 5), P), ownWrite({ writer: Q, writerSeq: 6, answer: change("S", "Later") }, sent(Q, 5), P)]).toEqual([true, false]);
+    // Another page: not own, unless the stored answer says the same.
+    expect([ownWrite({ writer: Q, writerSeq: 1, answer: change("S", "Later") }, sent(P, 4), P), ownWrite({ writer: Q, writerSeq: 1, answer: change("S", "Later") }, sent(P, 4, draft("S", " Later ")), P)]).toEqual([false, true]);
     // The same: the pick and the text the server keeps for the kind (a comment on a Change is dropped).
     expect([sameAnswer(change("S", "Later"), draft("S", "Later", "ignored")), sameAnswer(agree("M", "ok"), draft("M", "dropped", "ok")), sameAnswer(agree("M"), draft("C"))]).toEqual([true, true, false]);
   });
@@ -120,26 +123,33 @@ describe("the device queue", () => {
     const newer = entry(draft("S", "Later on"), 2, 5);
     const stored = { kind: "change" as const, value: "S", reason: "Later", comment: null };
     // Saved, nothing newer: the change leaves the queue, the card reads Saved.
-    expect(replyStep(200, { version: 3, writer: P, writerSeq: 4 }, sent, sent)).toEqual({ outcome: "saved", version: 3, rebase: null, drop: { page: P, seq: 4 }, saved: true, changedElsewhere: false, error: null, failed: false });
+    expect(replyStep(200, { version: 3, writer: P, writerSeq: 4 }, sent, sent, P)).toEqual({ outcome: "saved", version: 3, rebase: null, drop: { page: P, seq: 4 }, saved: true, changedElsewhere: false, error: null, failed: false });
     // Saved with a newer change waiting: it goes on top of version 3 and stays, with its own
     // failed mark (it has not been answered).
-    expect(replyStep(200, { version: 3, writer: P, writerSeq: 4 }, sent, newer)).toMatchObject({ rebase: 3, drop: null, saved: false, failed: null });
+    expect(replyStep(200, { version: 3, writer: P, writerSeq: 4 }, sent, newer, P)).toMatchObject({ rebase: 3, drop: null, saved: false, failed: null });
     // Saved after another copy settled it (a keepalive answered first): nothing waits.
-    expect(replyStep(200, { version: 3 }, sent, undefined)).toMatchObject({ drop: { page: P, seq: 4 }, saved: true });
+    expect(replyStep(200, { version: 3 }, sent, undefined, P)).toMatchObject({ drop: { page: P, seq: 4 }, saved: true });
     // Stale, the page's own (written by this save or a later one of the page, or the same answer).
-    expect(replyStep(409, { error: "stale", version: 4, writer: P, writerSeq: 5, answer: stored }, sent, newer)).toMatchObject({ outcome: "stale", version: 4, rebase: 4, drop: null, changedElsewhere: false });
-    expect(replyStep(409, { error: "stale", version: 4, writer: Q, writerSeq: 1, answer: stored }, sent, sent)).toMatchObject({ drop: { page: P, seq: 4 }, saved: true, changedElsewhere: false });
+    expect(replyStep(409, { error: "stale", version: 4, writer: P, writerSeq: 5, answer: stored }, sent, newer, P)).toMatchObject({ outcome: "stale", version: 4, rebase: 4, drop: null, changedElsewhere: false });
+    expect(replyStep(409, { error: "stale", version: 4, writer: Q, writerSeq: 1, answer: stored }, sent, sent, P)).toMatchObject({ drop: { page: P, seq: 4 }, saved: true, changedElsewhere: false });
     // Stale from another window: the newer change made on the old answer goes too, with the sentence.
     const theirs = { kind: "agree" as const, value: "M", reason: null, comment: null };
-    expect(replyStep(409, { error: "stale", version: 4, writer: Q, writerSeq: 1, answer: theirs }, sent, newer)).toEqual({ outcome: "stale", version: 4, rebase: null, drop: { page: P, seq: 5 }, saved: true, changedElsewhere: true, error: null, failed: false });
+    expect(replyStep(409, { error: "stale", version: 4, writer: Q, writerSeq: 1, answer: theirs }, sent, newer, P)).toEqual({ outcome: "stale", version: 4, rebase: null, drop: { page: P, seq: 5 }, saved: true, changedElsewhere: true, error: null, failed: false });
+    // A kept change of page Q sent by this page P: a later save of Q (Q is another tab, still
+    // open) is not this page's, so the edit waiting on top goes with the sentence; a save of P
+    // (this page's keepalive of that edit landed first) is its own, and the edit goes on top.
+    const kept = entry(draft("S", "Should"), 2, 5, Q);
+    const edit = entry(draft("C", "Could"), 2, 2, P, [{ page: Q, seq: 5 }]);
+    expect(replyStep(409, { error: "stale", version: 5, writer: Q, writerSeq: 6, answer: theirs }, kept, edit, P)).toMatchObject({ rebase: null, drop: { page: P, seq: 2 }, changedElsewhere: true });
+    expect(replyStep(409, { error: "stale", version: 4, writer: P, writerSeq: 1, answer: theirs }, kept, edit, P)).toMatchObject({ rebase: 4, drop: null, changedElsewhere: false });
     // A 422 drops the change it refused, not a newer one.
-    expect(replyStep(422, { error: "Say why." }, sent, sent)).toMatchObject({ outcome: "refused", drop: { page: P, seq: 4 }, error: "Say why.", failed: false });
-    expect(replyStep(422, { error: "Say why." }, sent, newer)).toMatchObject({ drop: null, error: null, failed: null });
+    expect(replyStep(422, { error: "Say why." }, sent, sent, P)).toMatchObject({ outcome: "refused", drop: { page: P, seq: 4 }, error: "Say why.", failed: false });
+    expect(replyStep(422, { error: "Say why." }, sent, newer, P)).toMatchObject({ drop: null, error: null, failed: null });
     // A retry marks the item failed only while a change still waits.
-    expect([replyStep(503, {}, sent, sent).failed, replyStep(503, {}, sent, newer).failed, replyStep(503, {}, sent, undefined).failed]).toEqual([true, true, null]);
+    expect([replyStep(503, {}, sent, sent, P).failed, replyStep(503, {}, sent, newer, P).failed, replyStep(503, {}, sent, undefined, P).failed]).toEqual([true, true, null]);
     // A version that is not a whole number in range is not remembered.
-    expect(replyStep(200, { version: "3" }, sent, sent).version).toBeNull();
-    expect([replyStep(410, { error: "revoked" }, sent, sent).outcome, replyStep(409, { error: "x" }, sent, sent).outcome]).toEqual(["gone", "notStarted"]);
+    expect(replyStep(200, { version: "3" }, sent, sent, P).version).toBeNull();
+    expect([replyStep(410, { error: "revoked" }, sent, sent, P).outcome, replyStep(409, { error: "x" }, sent, sent, P).outcome]).toEqual(["gone", "notStarted"]);
   });
 
   it("retries everything that is not a final answer", () => {

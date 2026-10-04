@@ -12,14 +12,16 @@
 // flight included, since a plain request is cancelled when the page goes; when the page
 // shows again, what is still unconfirmed goes out.
 //
-// Every save carries the answer's version the page knows (base), this page's id (a random
-// id per page load: developer.mozilla.org/docs/Web/API/Crypto/randomUUID) and its number for
-// the save (seq), and the response the page answers for. The server takes it when the stored
-// version is still the base, or when this page wrote it last with a lower number; otherwise it
-// answers "stale" with the stored answer (src/lib/answer-queue.ts). A stale reply that is the
-// page's own (written by this page with this save or a later one, or saying the same thing)
-// changes nothing on the card; any other came from another window or device, and the card
-// shows the stored answer with a sentence. No clock decides.
+// Every save carries the answer's version it was made on (base), the id of the page that made
+// it (a random id per page load: developer.mozilla.org/docs/Web/API/Crypto/randomUUID) and
+// that page's number for the save (seq), the saves of other pages it was made on top of
+// (after), and the response the page answers for. A save is this page's, or one the device
+// kept from an earlier visit, sent as it was queued. The server takes it when the stored
+// version is still the base, when the same page wrote last with a lower number, or when a
+// page it names in after wrote last with that save or an earlier one; otherwise it answers
+// "stale" with the stored answer (src/lib/answer-queue.ts). A stale reply that is the page's
+// own (ownWrite) changes nothing on the card; any other came from another window or device,
+// and the card shows the stored answer with a sentence. No clock decides.
 //
 // Every change the server has not confirmed stays in `pending`, in memory and in
 // localStorage under smesay-answers:[token] (developer.mozilla.org/docs/Web/API/Window/
@@ -185,7 +187,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       if (responseRef.current !== response || !alive.current) return;
       const body = (await reply.json().catch(() => ({}))) as ReplyBody;
       const current = pending.current.get(itemId);
-      const step = replyStep(reply.status, body, entry, current);
+      const step = replyStep(reply.status, body, entry, current, pageId());
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
       if (step.version !== null) known.current.set(itemId, Math.max(known.current.get(itemId) ?? 0, step.version));
