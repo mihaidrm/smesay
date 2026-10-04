@@ -25,5 +25,8 @@ PRs 84, 88 and 90 to 94), under decision 0044.
 
 ## Checks
 
-- The capture is a Playwright script kept out of e2e/ (it is a picture, not a test); it
+- The capture is e2e/board-shots.capture.ts, a Playwright script whose name keeps it out of
+  the test runs (it takes pictures, it tests nothing; its header says how to run it); it
   ran on PR 94's last commit (6f698aa, the same tree as the merge b085000) and passed.
+- Each image on the board carries data-file with its PNG's name in respondent-built/, so
+  the board here says which file each canvas upload is.

@@ -91,10 +91,12 @@ The evals key is in the repository secrets since 2026-10-03. The trademark searc
 Next tasks for Claude: E7 is complete (E7-1 to E7-7 merged 2026-10-04, PRs 84, 88 and 90
 to 94, each audited with fresh context); docs/review-list.md holds every decision taken
 under decision 0044 since E5-4, and the respondent screens as built are on the canvas board
-"Respondent as built" (note 59) beside the Roadmap and Stories boards, republished the same
-day. Mihai's instruction (2026-10-04): build E8 next, then pause before E9. E5-6 (the
-preview panel on every step) is unblocked since E7-5 (decision 0045) and comes after the
-E8 pause unless Mihai says otherwise (docs/review-list.md). E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
+"Respondent as built" (note 59) at the bottom left of the canvas, with the Roadmap and Stories boards republished the same
+day. Mihai, while E7 was being built: "after you finish E7 and test it, if there are no
+errors you can proceed and do E8 then pause and wait for my instructions before starting
+E9". E5-6 (the preview panel on every step) is unblocked since E7-5 (decision 0045) and is
+the first story after that pause, before E9-1, unless Mihai says otherwise
+(docs/review-list.md). E4 is complete (E4-1 to E4-5 merged, PRs 40 to 44; E4-6 built 2026-10-03 on decisions
 0037 and 0038, PR 49). Design v2 (decision 0041, note 33, boards Brand07, LandingF, PmAppV2,
 RespondentV2) is in the code since 2026-10-03 (notes 34 to 37, PRs 56 to 63; Mihai: "Yeah
 looks good"), and E5-1 was built on it the same day (note 38); the asset list he buys from

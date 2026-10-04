@@ -181,7 +181,7 @@
     "RespondentBuilt.dc.html": {
       "h": 3000,
       "title": "Respondent as built, E7 merged 4 October 2026 (product screenshots, note 59)",
-      "w": 3146,
+      "w": 3152,
       "x": 0,
       "y": 15900
     }
@@ -256,8 +256,8 @@
       "maxW": 1440,
       "text": "R1 stories, stories/ (decision 0026)",
       "w": 240,
-      "x": 8227,
-      "y": 975
+      "x": 9847,
+      "y": 860
     },
     "t8": {
       "kind": "title1",
@@ -269,7 +269,7 @@
     },
     "t9": {
       "kind": "title1",
-      "maxW": 3146,
+      "maxW": 3152,
       "text": "Respondent as built, 4 October 2026: screens from the app after E7",
       "w": 240,
       "x": 0,
