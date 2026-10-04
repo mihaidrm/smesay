@@ -211,13 +211,17 @@ of the content; page means it replaces the screen.
 | Card note (E7-2), from the server | A reason or comment over 2,000 characters | Keep the reason and the comment to 2000 characters each. |
 | Card note (E7-2), from the server | The item is not in the respondent's list (a perspective changed, a stale page) | This item is not in your list. Reload the page to see your items. |
 | Note under the Start button (E7-2), from the server | An answer sent for a response this device does not have (cookies cleared in another tab); the page returns to About you, marks every card not saved, and sends the cards again after Start | Your details were not found on this device. Press Start again and the answers on this page are saved with them. |
-| Banner (already on the board) | Connection lost | Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects. |
-| Page | Saved answers on this device belong to a newer version of the list | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
+| Banner over the chapter (E7-3) | Connection lost: an answer could not reach the server | Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects. |
+| Header note (E7-3) | Answers that cannot reach the server: the connection dropped, or the server failed or refused for now (a 5xx, a rate limit); it stays until every failed answer has gone through | Not saved |
+| Card note (E7-3) | A complete answer not yet on the server while the page cannot reach it | Not saved yet |
+| Card note (E7-3), from the server | Another window or device saved the item's answer after this page's change was made on it (also for a change the device kept unsent and sent on opening); the card shows the stored answer | This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand. |
+| Note under the Start button (E7-3) | Start worked but the first save found no response: the browser did not keep the device cookie | This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser. |
+| Page | Saved answers on this device belong to a newer version of the list (not built in R1: publishing a newer version closes the older link, so the respondent sees the closed page and the device's unsent answers are removed; docs/review-list.md) | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
 | Wrap up, list (already on the board) | Still to finish | [N] still to finish, with the item and what is missing. |
 | Wrap up | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
 | Wrap up | Sign-off not ticked | Tick the confirmation to submit. |
 | Wrap up | Submit failed | Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again. |
-| Page | Device storage unavailable (private window, storage cleared) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
+| Banner over the first chapter screen, once (E7-3) | Device storage unavailable: the browser refuses localStorage (blocked site data; MDN, Window.localStorage: a private window's storage is cleared when its last private tab closes) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
 
 ## Dashboard and exports (E8, E10)
 

@@ -54,8 +54,9 @@ Built 2026-10-04 (design note 49, decision 0044):
   src/lib/link-access.ts) answers 200 open, 404 unknown, 410 revoked or closed; the open
   page polls it every 60 seconds, and at once when a background tab comes to the front
   (src/app/r/[token]/link-watch.tsx), and refreshes itself on anything but 200 open, so an
-  open tab turns inactive without a reload. The autosave route is E7-3's and will refuse to
-  write on anything but 200 open through the same check (E7-3, acceptance 7);
+  open tab turns inactive without a reload. The autosave route (E7-2, E7-3) refuses to
+  write on a link that is not open through openLinkFor in src/lib/respondent.ts, the same
+  rule (viewOf), and answers 410 with nothing written (E7-3, acceptance 7);
   src/lib/revoke.test.ts proves the check answers 410 after a revocation and that the
   route handler returns 410 with the state word only (docs/review-list.md).
 - Acceptance 5: e2e/revoke.spec.ts opens the public link in a respondent tab, revokes it

@@ -9,17 +9,19 @@
 // personal invite's, or the one the device cookie names, src/lib/respondent.ts); a
 // personal link carries the name and role the PM typed and does not ask them (E6-2). The
 // open page watches its link (E6-4, link-watch.tsx). Every page is a page, never data
-// (SECURITY.md). Dates are shown in UTC (src/lib/sharing.ts formatUtc). Copy:
-// docs/copy/errors.md (Respondent link states), docs/copy/app.md (About you).
+// (SECURITY.md). A closed, revoked or unknown link's page (a personal link renewed since)
+// removes the answers this device kept unsent for it (forget-queue.tsx, E7-3). Dates are shown in UTC (src/lib/sharing.ts formatUtc).
+// Copy: docs/copy/errors.md (Respondent link states), docs/copy/app.md (About you).
 import { cookies } from "next/headers";
 import { LinkPage } from "@/components/respondent/link-page";
 import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
-import { carriedFields, chaptersFor, parseScreen, RESPONDENT_COPY, screenCount } from "@/lib/respondent-rules";
+import { carriedFields, chaptersFor, parseScreen, RESPONDENT_COPY, resumeAt, screenCount } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
+import { ForgetQueue } from "./forget-queue";
 import { LinkWatch } from "./link-watch";
 import { PasscodeForm } from "./passcode-form";
 import { RespondentApp } from "./respondent-app";
@@ -32,19 +34,20 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const store = await cookies();
   const view = await loadRespondent(token, { passcode: store.get(PASSCODE_COOKIE)?.value, device: store.get(DEVICE_COOKIE)?.value });
   if (view.kind === "unknown") {
-    return <LinkPage workspaceName={null} accent="" title={LINK_PAGE_COPY.unknownTitle} line={LINK_PAGE_COPY.unknownLine} />;
+    return <><ForgetQueue token={token} /><LinkPage workspaceName={null} accent="" title={LINK_PAGE_COPY.unknownTitle} line={LINK_PAGE_COPY.unknownLine} /></>;
   }
   const { link } = view;
   const accent = effectiveAccent(link.brand.accentHex);
   const logoUrl = logoUrlFor(link.ws, link.brand.logoObjectKey);
   const page = { workspaceName: link.brand.name, accent, logoUrl };
   if (view.kind === "sample") return <LinkPage {...page} title={RESPONDENT_COPY.sampleTitle} line={RESPONDENT_COPY.sampleLine(link.brand.name)} />;
-  if (view.kind === "revoked") return <LinkPage {...page} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(link.brand.name)} />;
+  if (view.kind === "revoked") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(link.brand.name)} /></>;
   if (view.kind === "notOpen") return <LinkPage {...page} title={LINK_PAGE_COPY.notOpenTitle(formatUtc(link.invite.opensAt!))} line={LINK_PAGE_COPY.notOpenLine} />;
-  if (view.kind === "closed") return <LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(view.closedAt))} />;
+  if (view.kind === "closed") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(view.closedAt))} /></>;
   if (view.kind === "closedOwn") {
     return (
       <LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(view.closedAt))}>
+        <ForgetQueue token={token} />
         <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="closed-own-state">{RESPONDENT_COPY.closedOwnState(view.answered, view.total)}</p>
       </LinkPage>
     );
@@ -62,6 +65,9 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const picks = response?.perspectives ?? [];
   const chapters = chaptersFor(view.areas, view.items, picks);
   const prefilled = carriedFields(link.invite, instrument.respondentFields);
+  // No screen in the address and a response started: where the respondent left off (E7-3).
+  const resume = response && !at && instrument.layout !== "page" ? resumeAt(chapters, view.answers) : { index: 0, item: 0 };
+  const screen = response && !at && chapters.length > 0 ? { kind: "chapter" as const, index: resume.index } : parseScreen(at, response !== null, screenCount(instrument.layout, chapters.length));
   return (
     <>
       <LinkWatch token={token} />
@@ -78,8 +84,11 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         started={response !== null}
         initialFields={response?.fields ?? {}}
         initialPicks={picks}
-        initialScreen={parseScreen(at, response !== null, screenCount(instrument.layout, chapters.length))}
+        initialScreen={screen}
+        initialItem={screen.kind === "chapter" && screen.index === resume.index ? resume.item : 0}
         answers={view.answers}
+        versions={view.versions}
+        responseId={response?.id ?? null}
       />
     </>
   );

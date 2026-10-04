@@ -11,6 +11,11 @@
 // mapping of a pick to the stored answer (the reason kept only when it is needed, the
 // comment only when it is not), one answer per item that the last save replaces, and the
 // refusals: not started, an item not in the list, a value not on the scale, a revoked link.
+// E7-3: the landing chapter for a returning visit (resumeAt); a write lands when it was made
+// on the stored version or comes from the page that wrote it last with a higher number, and
+// otherwise changes nothing and gets the stored answer back (409 stale at the route); a write
+// for a response that is not the device's is "not started"; the autosave route after a
+// revocation answers 410 and writes nothing.
 import { beforeAll, describe, expect, it } from "vitest";
 import { answers, invites, items, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -25,7 +30,7 @@ import { memoryOutbox, type Mail } from "@/lib/mail";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, startResponse } from "@/lib/respondent";
 import { cookieValue } from "@/lib/request-cookies";
 import { isJsonType, JSON_BODY_MAX, readJson } from "@/lib/request-json";
-import { answeredCount, answerFor, carriedFields, chaptersFor, isComplete, needsReason, noteFor, parseAnswerInput, parseFieldValues, parsePicks, parseScreen, pickedOf, RESPONDENT_COPY, RESPONDENT_ERRORS, screenCount, screenParam, type RespondentItem } from "@/lib/respondent-rules";
+import { answeredCount, answerFor, carriedFields, chaptersFor, isComplete, needsReason, noteFor, parseAnswerInput, parseFieldValues, parsePicks, parseScreen, pickedOf, RESPONDENT_COPY, RESPONDENT_ERRORS, resumeAt, screenCount, screenParam, type RespondentItem } from "@/lib/respondent-rules";
 import { linkState } from "@/lib/sharing";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
@@ -129,7 +134,7 @@ describe("chaptersFor", () => {
   });
 });
 
-async function publishedProject(name: string, opts: { passcode?: string; blind?: boolean } = {}) {
+async function publishedProject(name: string, opts: { passcode?: string; blind?: boolean; closes?: string } = {}) {
   const project = await projects.create(a.ws, { name, createdBy: a.userId });
   const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should", "Three | Paying | Could"].join("\n"));
   if (!("upload" in pasted)) throw new Error(pasted.error);
@@ -144,7 +149,7 @@ async function publishedProject(name: string, opts: { passcode?: string; blind?:
   }
   const rows = await items.forSet(a.ws, instrument.itemSetId);
   await tagItem(a.ws, project.id, rows[2].id, JSON.stringify(["Finance"]));
-  const published = await publishLink(a.ws, project.id, instrument.id, "", "2027-01-20T15:00:00Z", opts.passcode ?? "", new Date("2026-10-03T12:00:00Z"));
+  const published = await publishLink(a.ws, project.id, instrument.id, "", opts.closes ?? "2027-01-20T15:00:00Z", opts.passcode ?? "", new Date("2026-10-03T12:00:00Z"));
   if (!("invite" in published)) throw new Error(published.error);
   return { project, instrument, link: published.invite };
 }
@@ -190,7 +195,10 @@ describe("Start", () => {
     expect(bad.status).toBe(415);
     const ok = await startRoute(new Request(`${BASE}/r/${link.token}/start`, { method: "POST", body: JSON.stringify({ fields: { name: "Cy", role: "Sales" } }), headers: { "content-type": "application/json" } }), { params: Promise.resolve({ token: link.token }) });
     expect(ok.status).toBe(200);
-    expect(await ok.json()).toEqual({ ok: true });
+    // The reply names the response, which ties this device's queue to it (E7-3).
+    const started = (await ok.json()) as { ok: boolean; response: string };
+    expect(started.ok).toBe(true);
+    expect(started.response).toMatch(/^[0-9a-f-]{36}$/);
     const cookie = ok.headers.getSetCookie().find((c) => c.startsWith(`${DEVICE_COOKIE}=`))!;
     expect(cookie).toMatch(new RegExp(`^${DEVICE_COOKIE}=[0-9a-f]{32};`));
     expect(cookie).toContain(`Path=/r/${link.token}`);
@@ -319,13 +327,34 @@ describe("the answer rules", () => {
     expect(noteFor({ kind: "unclear", value: null, reason: "Which team?", comment: null })).toBeNull();
     expect([pickedOf({ kind: "unclear", value: null, reason: null, comment: null }), pickedOf({ kind: "change", value: "S", reason: null, comment: null }), pickedOf(undefined)]).toEqual(["unclear", "S", null]);
   });
-  it("reads a card's post: the item, the pick, trimmed texts within 2000 characters", () => {
-    expect(parseAnswerInput({ itemId: "i", picked: "M", reason: "  why ", comment: "" })).toEqual({ input: { itemId: "i", picked: "M", reason: "why", comment: null } });
-    expect(parseAnswerInput({ itemId: "i", picked: "M" })).toEqual({ input: { itemId: "i", picked: "M", reason: null, comment: null } });
-    expect(parseAnswerInput({ itemId: "i" })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
-    expect(parseAnswerInput({ itemId: "i", picked: "M", reason: 3 })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+  it("reads a card's post: the item, the pick, trimmed texts within 2000 characters, the version, the page and its save number, the response", () => {
+    const post = { base: 0, page: "page-0001", seq: 1, after: [], response: "r" };
+    expect(parseAnswerInput({ itemId: "i", picked: "M", reason: "  why ", comment: "", ...post })).toEqual({ input: { itemId: "i", picked: "M", reason: "why", comment: null, ...post } });
+    expect(parseAnswerInput({ itemId: "i", picked: "M", ...post })).toEqual({ input: { itemId: "i", picked: "M", reason: null, comment: null, ...post } });
+    expect(parseAnswerInput({ itemId: "i", ...post })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+    expect(parseAnswerInput({ itemId: "i", picked: "M", reason: 3, ...post })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
     expect(parseAnswerInput([])).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
-    expect(parseAnswerInput({ itemId: "i", picked: "M", comment: "x".repeat(2001) })).toEqual({ error: RESPONDENT_ERRORS.longText });
+    expect(parseAnswerInput({ itemId: "i", picked: "M", comment: "x".repeat(2001), ...post })).toEqual({ error: RESPONDENT_ERRORS.longText });
+    // E7-3: the version and the save number are whole numbers within Postgres integer (the
+    // number from 1), the page id 8 to 64 letters, digits or hyphens, and the response named.
+    for (const base of [undefined, -1, 0.5, "0", 2_147_483_648]) expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, base })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+    for (const seq of [undefined, 0, 1.5, "1", 2_147_483_648]) expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, seq })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+    for (const page of [undefined, "short", "x".repeat(65), "page 0001", 7]) expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, page })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+    expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, response: undefined })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+    // The saves the change was made on top of: absent is none; at most 8 well-formed.
+    expect(parseAnswerInput({ itemId: "i", picked: "M", base: 0, page: "page-0001", seq: 1, response: "r" })).toEqual({ input: { itemId: "i", picked: "M", reason: null, comment: null, ...post } });
+    expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, after: [{ page: "page-0000", seq: 5 }] })).toMatchObject({ input: { after: [{ page: "page-0000", seq: 5 }] } });
+    for (const after of [{}, [{ page: "x", seq: 1 }], [{ page: "page-0000", seq: 0 }], Array.from({ length: 9 }, () => ({ page: "page-0000", seq: 1 }))]) expect(parseAnswerInput({ itemId: "i", picked: "M", ...post, after })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
+  });
+  it("lands a returning respondent on the first unfinished chapter and item", () => {
+    const it_ = (id: string): RespondentItem => ({ id, reference: null, title: id, details: null, area: null, proposed: null, perspectives: [] });
+    const chapters = [{ name: "A", intro: null, items: [it_("1"), it_("2")] }, { name: "B", intro: null, items: [it_("3"), it_("4")] }];
+    const done = { kind: "agree" as const, value: "M", reason: null, comment: null };
+    expect(resumeAt(chapters, {})).toEqual({ index: 0, item: 0 });
+    expect(resumeAt(chapters, { "1": done, "2": done, "3": done })).toEqual({ index: 1, item: 1 });
+    expect(resumeAt(chapters, { "1": done, "2": { ...done, kind: "change", value: "S" } })).toEqual({ index: 0, item: 1 });
+    expect(resumeAt(chapters, { "1": done, "2": done, "3": done, "4": done })).toEqual({ index: 1, item: 0 });
+    expect(resumeAt([], {})).toEqual({ index: 0, item: 0 });
   });
   it("counts the single page as one screen", () => {
     expect([screenCount("page", 3), screenCount("page", 0), screenCount("chapters", 3), screenCount("item", 2)]).toEqual([1, 0, 3, 2]);
@@ -336,60 +365,98 @@ describe("the answer rules", () => {
 describe("saving an answer", () => {
   const now = new Date("2026-10-05T12:00:00Z");
   it("stores one answer per item that the last save replaces, and refuses what it must", async () => {
-    const { project, instrument, link } = await publishedProject("Answers");
+    // The route calls below run on the real clock, so this link closes far ahead.
+    const { project, instrument, link } = await publishedProject("Answers", { closes: "2099-01-20T15:00:00Z" });
     const rows = await items.forSet(a.ws, instrument.itemSetId);
     const [one, two, three] = rows;
+    // E7-3: every save names the version it was made on, the page that sends it and that
+    // page's number for it. P is this window, Q another window or device.
+    const P = "page-p-0001";
+    const Q = "page-q-0002";
+    const w = (base: number, seq: number, page = P, after: { page: string; seq: number }[] = []) => ({ base, page, seq, after });
     // Not started on this device: nothing stored.
-    expect(await saveAnswer(link.token, {}, { itemId: one.id, picked: "M" }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    expect(await saveAnswer(link.token, {}, { itemId: one.id, picked: "M", ...w(0, 1), response: "00000000-0000-4000-8000-000000000000" }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
     const started = await startResponse(link.token, {}, { fields: { name: "Ana", role: "Sales" }, perspectives: [] }, now);
     if ("status" in started) throw new Error(started.error);
     const device = { device: started.device! };
-    // Change without a reason is stored and not complete; with the reason it is.
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "", comment: "dropped" }, now)).toEqual({ answer: { kind: "change", value: "S", reason: null, comment: null }, complete: false });
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this quarter" }, now)).toEqual({ answer: { kind: "change", value: "S", reason: "Not this quarter", comment: null }, complete: true });
-    expect(await saveAnswer(link.token, device, { itemId: two.id, picked: "unclear" }, now)).toEqual({ answer: { kind: "unclear", value: null, reason: null, comment: null }, complete: false });
+    const rid = started.response.id;
+    // Change without a reason is stored and not complete; with the reason it is. Each write
+    // counts the version up and names its page and number.
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "", comment: "dropped", ...w(0, 1), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 1 });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this quarter", ...w(1, 2), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: "Not this quarter", comment: null }, complete: true, version: 2, writer: P, writerSeq: 2 });
+    expect(await saveAnswer(link.token, device, { itemId: two.id, picked: "unclear", ...w(0, 3), response: rid }, now)).toEqual({ answer: { kind: "unclear", value: null, reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 3 });
+    // A later save of the same page lands even on an older version (its earlier save's reply
+    // was lost, a timeout); an earlier one of the same page does not (a late request).
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(1, 4), response: rid }, now)).toMatchObject({ complete: true, version: 3, writer: P, writerSeq: 4 });
+    const storedOne = { answer: { kind: "change", value: "S", reason: "Not this year", comment: null }, complete: true, version: 3, writer: P, writerSeq: 4 };
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(2, 4), response: rid }, now)).toEqual({ stale: storedOne });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(1, 3), response: rid }, now)).toEqual({ stale: storedOne });
+    // Another page lands only on the version it was made on: a save made on an older one
+    // (another window, a device's old queue) changes nothing and gets the stored answer back.
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(2, 9, Q), response: rid }, now)).toEqual({ stale: storedOne });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(3, 1, Q), response: rid }, now)).toMatchObject({ version: 4, writer: Q, writerSeq: 1 });
+    // After the other page's write, this page's next number on the old version is stale too.
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(3, 5), response: rid }, now)).toMatchObject({ stale: { version: 4, writer: Q, writerSeq: 1 } });
+    // A change made on top of another page's save the server had not answered for (a change
+    // the device kept, restored and edited) names it: it lands when the stored answer is that
+    // save or an earlier one of that page, and not after a later one or another page's.
+    const R = "page-r-0003";
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(1, 1, R, [{ page: Q, seq: 1 }]), response: rid }, now)).toMatchObject({ version: 5, writer: R, writerSeq: 1 });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(1, 1, P, [{ page: Q, seq: 9 }, { page: "page-z-0009", seq: 2 }]), response: rid }, now)).toMatchObject({ stale: { version: 5, writer: R } });
+    // A version, a number or a page id out of range is refused; a response that is not this
+    // device's (an open window whose cookie was replaced) is "not started".
+    for (const bad of [{ base: -1 }, { base: 0.5 }, { seq: 0 }, { seq: "2" }, { page: "x" }, { base: undefined }]) expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(4, 6), ...bad, response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badAnswer });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(4, 6), response: "00000000-0000-4000-8000-000000000000" }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
     const stored = await answers.forResponse(a.ws, started.response.id);
-    expect(stored.map((r) => [r.itemId, r.kind, r.value, r.reason]).sort()).toEqual([[one.id, "change", "S", "Not this quarter"], [two.id, "unclear", null, null]].sort());
+    expect(stored.map((r) => [r.itemId, r.kind, r.value, r.reason]).sort()).toEqual([[one.id, "change", "S", "Not this year"], [two.id, "unclear", null, null]].sort());
     // The reminder's count (E6-3) takes complete answers only: the Unclear with no question is not one.
     expect(await answers.countForResponse(a.ws, started.response.id)).toBe(1);
     const view = await loadRespondent(link.token, device, now);
-    expect(view.kind === "ready" ? view.answers[one.id] : null).toEqual({ kind: "change", value: "S", reason: "Not this quarter", comment: null });
+    expect(view.kind === "ready" ? [view.answers[one.id], view.versions] : null).toEqual([{ kind: "change", value: "S", reason: "Not this year", comment: null }, { [one.id]: 5, [two.id]: 1 }]);
     // The item tagged Finance is not in a list without that perspective; another set's item is not either.
-    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C" }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
+    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", ...w(0, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
     const { instrument: other } = await publishedProject("Answers other");
     const otherItem = (await items.forSet(a.ws, other.itemSetId))[0];
-    expect(await saveAnswer(link.token, device, { itemId: otherItem.id, picked: "M" }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
-    expect(await saveAnswer(link.token, device, { itemId: "not-a-uuid", picked: "M" }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "5" }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badAnswer });
+    expect(await saveAnswer(link.token, device, { itemId: otherItem.id, picked: "M", ...w(0, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
+    expect(await saveAnswer(link.token, device, { itemId: "not-a-uuid", picked: "M", ...w(0, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.hiddenItem });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "5", ...w(4, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badAnswer });
     // After Start with Finance, the tagged item is in the list.
     await startResponse(link.token, device, { fields: { name: "Ana", role: "Sales" }, perspectives: ["Finance"] }, now);
-    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", comment: "fine" }, now)).toEqual({ answer: { kind: "agree", value: "C", reason: null, comment: "fine" }, complete: true });
+    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", comment: "fine", ...w(0, 8), response: rid }, now)).toEqual({ answer: { kind: "agree", value: "C", reason: null, comment: "fine" }, complete: true, version: 1, writer: P, writerSeq: 8 });
     // The route: JSON only, the device cookie read from the request.
     const put = (body: string, type = "application/json", cookie = `${DEVICE_COOKIE}=${started.device}`) => answersRoute(new Request(`${BASE}/r/${link.token}/answers`, { method: "PUT", body, headers: { "content-type": type, cookie } }), { params: Promise.resolve({ token: link.token }) });
     expect((await put("itemId=1", "application/x-www-form-urlencoded")).status).toBe(415);
     expect((await put("{")).status).toBe(400);
-    const ok = await put(JSON.stringify({ itemId: two.id, picked: "unclear", reason: "Which team pays?" }));
-    expect([ok.status, await ok.json()]).toEqual([200, { saved: true, kind: "unclear", complete: true }]);
-    const noCookie = await put(JSON.stringify({ itemId: two.id, picked: "M" }), "application/json", "");
+    const ok = await put(JSON.stringify({ itemId: two.id, picked: "unclear", reason: "Which team pays?", ...w(1, 9), response: rid }));
+    expect([ok.status, await ok.json()]).toEqual([200, { saved: true, kind: "unclear", complete: true, version: 2, writer: P, writerSeq: 9 }]);
+    // The same save again (a duplicate after a timeout): 409 stale with the stored answer and who wrote it.
+    const late = await put(JSON.stringify({ itemId: two.id, picked: "M", ...w(1, 9), response: rid }));
+    expect([late.status, await late.json()]).toEqual([409, { error: "stale", answer: { kind: "unclear", value: null, reason: "Which team pays?", comment: null }, complete: true, version: 2, writer: P, writerSeq: 9 }]);
+    const noCookie = await put(JSON.stringify({ itemId: two.id, picked: "M", ...w(2, 10), response: rid }), "application/json", "");
     expect(noCookie.status).toBe(409);
     expect((await answers.forResponse(a.ws, started.response.id)).length).toBe(3);
     // Under the invite's lock: a link that changed since the check wins, and nothing is written.
-    const refused = await answers.upsert(a.ws, link.id, { responseId: started.response.id, itemSetId: started.response.itemSetId, itemId: three.id, kind: "pick", value: "M", reason: null, comment: null }, () => false, now);
+    const data = { responseId: started.response.id, itemSetId: started.response.itemSetId, itemId: three.id, kind: "agree" as const, value: "C", reason: null, comment: "fine" };
+    const refused = await answers.upsert(a.ws, link.id, { ...data, kind: "pick", value: "M", comment: null, ...w(1, 11) }, () => false, now);
     expect(refused && "refused" in refused ? refused.refused.token : null).toBe(link.token);
     expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === three.id)?.kind).toBe("agree");
-    expect(await answers.upsert(b.ws, link.id, { responseId: started.response.id, itemSetId: started.response.itemSetId, itemId: three.id, kind: "pick", value: "M", reason: null, comment: null }, () => true, now)).toBeNull();
+    expect(await answers.upsert(b.ws, link.id, { ...data, kind: "pick", value: "M", comment: null, ...w(1, 11) }, () => true, now)).toBeNull();
     // The response's last save never moves back: a write stamped earlier than the last one
     // (a request that waited for the response row's lock) leaves it as it was.
     const later = new Date(now.getTime() + 60_000);
-    const data = { responseId: started.response.id, itemSetId: started.response.itemSetId, itemId: three.id, kind: "agree" as const, value: "C", reason: null, comment: "fine" };
-    await answers.upsert(a.ws, link.id, data, () => true, later);
-    await answers.upsert(a.ws, link.id, data, () => true, now);
+    await answers.upsert(a.ws, link.id, { ...data, ...w(1, 12) }, () => true, later);
+    await answers.upsert(a.ws, link.id, { ...data, ...w(2, 13) }, () => true, now);
+    expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === three.id)?.version).toBe(3);
     expect((await responses.get(a.ws, started.response.id))?.updatedAt.toISOString()).toBe(later.toISOString());
     // Another workspace reads none of it; a revoked link takes nothing more.
     expect(await answers.forResponse(b.ws, started.response.id)).toEqual([]);
     const revoked = await revokeLink(a.ws, project.id, instrument.id, link.id, now);
     if (!("invite" in revoked)) throw new Error(revoked.error);
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M" }, now)).toEqual({ status: 410, error: "revoked" });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(4, 14), response: rid }, now)).toEqual({ status: 410, error: "revoked" });
+    // The autosave route after the revocation (E7-3, acceptance 7, owed from E6-4): 410, nothing written.
+    const afterRevoke = await put(JSON.stringify({ itemId: two.id, picked: "M", ...w(2, 15), response: rid }));
+    expect([afterRevoke.status, await afterRevoke.json()]).toEqual([410, { error: "revoked" }]);
+    expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === two.id)?.kind).toBe("unclear");
     expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === one.id)?.kind).toBe("change");
   }, 60_000);
 });

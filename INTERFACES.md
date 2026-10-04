@@ -181,7 +181,8 @@ src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
 no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
 The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
-revoked, passcode, or ready with the device's response, the items and areas, the answers);
+revoked, passcode, or ready with the device's response, the items and areas, the answers
+and, from E7-3, each answer's version);
 startResponse(token, cookies, body, now) (POST /r/[token]/start, JSON { fields,
 perspectives }; refusals 404, 403, 409, 410, 422 with the sentence, and from the route 415
 not JSON, 413 over 16 KB, 400 not parsable, by readJson in src/lib/request-json.ts; a
@@ -193,15 +194,20 @@ stillOpen) (one response per personal invite, under the invite row's lock) and
 responses.createPublic(ws, data, stillOpen) (under a shared lock), both returning
 { refused: dates } when the link stopped being open, answers.forResponse(ws,
 responseId). Answers (E7-2): saveAnswer(token, cookies, body, now) in src/lib/respondent.ts
-(PUT /r/[token]/answers, JSON { itemId, picked, reason, comment }; 200 { saved, kind,
-complete }; refusals as Start's, 409 with a sentence when this device has no response, 422
+(PUT /r/[token]/answers, JSON { itemId, picked, reason, comment, base, page, seq, response }
+from E7-3; 200 { saved, kind, complete, version, writer, writerSeq }; 409 stale with the
+stored answer, see Response schema; refusals as Start's, 409 with a sentence when this device has no response or not
+the one named, 422
 for a malformed body, a reason or comment over 2,000 characters, an item not in the
 respondent's list or a value off the scale); answers.upsert(ws, inviteId, data, stillOpen,
-now) (the last write wins per response and item, under a shared lock on the invite and an
+now) (one answer per response and item; from E7-3 a write lands on the version it was made
+on, or after the same page's earlier save, and returns { stale } with the stored answer
+otherwise; under a shared lock on the invite and an
 update lock on the response, so writes for one response run in order). Client-safe rules in
 src/lib/respondent-rules.ts: parseFieldValues, parsePicks, carriedFields, chaptersFor
-(RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, and from E7-2
-answerFor, noteFor, parseAnswerInput, pickedOf, screenCount.
+(RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, from E7-2
+answerFor, noteFor, parseAnswerInput, pickedOf, screenCount, and from E7-3 resumeAt; the
+device queue's rules in src/lib/answer-queue.ts.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.
@@ -248,7 +254,50 @@ reading.
 
 ## Response schema (runtime -> dashboard, runtime -> exports)
 Owner: runtime. Consumers: dashboard, exports, offline import.
-Status: to be written in E7, on top of the E1-2 shapes.
+Version 1, 2026-10-04 (stories/E7-3, acceptance 6), on top of the E1-2 shapes; the answer's
+version, writer and save number and the response id added the same day after the audits
+(migration 0017).
+
+- The autosave payload: PUT /r/[token]/answers, JSON (application/json, at most 16 KB)
+  { itemId: string, picked: string, reason?: string | null, comment?: string | null,
+  base: number, page: string, seq: number, after?: { page: string, seq: number }[],
+  response: string }. base is the answer's version
+  the change was made on (0 when the page knows no answer for the item), page a random id of
+  the open page (crypto.randomUUID; 8 to 64 letters, digits or hyphens), seq that page's
+  number for the save, counting up from 1; base and seq are whole numbers up to 2147483647
+  (src/lib/respondent-rules.ts validCount, validPage). after names the saves of other pages
+  the change was made on top of while the server had not answered for them (at most 8,
+  parseAfter; src/lib/answer-queue.ts nextEntry). response is the response the page
+  answers for; when it is not the device's (an open window whose cookie was replaced) the
+  answer is "not started".
+  picked is a code of the instrument's scale (MoSCoW M, S, C, W; fit 1 to 5; kcd K, C, D)
+  or "unclear". reason and comment are trimmed, empty means null, each at most 2000
+  characters. The device cookie (smesay-device, public links) or the personal link's
+  invite names the response; the passcode cookie when the link has one.
+- The answer: 200 { saved: true, kind: AnswerKind, complete: boolean, version: number,
+  writer: string, writerSeq: number }; 409 { error: "stale", answer: { kind, value, reason,
+  comment }, complete, version, writer: string | null, writerSeq } when the stored answer has
+  moved past the write (the page shows it when it is not its own: src/lib/answer-queue.ts
+  ownWrite);
+  refusals
+  { error } with 404 unknown, 403 sample or passcode, 409 notOpen or not started (the
+  sentence), 410 revoked or closed, 413, 415, 400, 422 (the sentence). Nothing is written
+  on a refusal or a stale write. POST /r/[token]/start answers { ok: true, response } with
+  the response's id, which ties the device's queue to it.
+- The stored answer (table answer, one per response and item; a write lands only when the
+  stored version is its base, or the stored writer is its page with a lower writer_seq, or
+  the stored writer is a page it names in after with writer_seq at most that save's; the
+  version then counts up by one, writer and writer_seq take the write's page and number,
+  and updated_at moves; a new answer starts at version 1; no clock decides): kind and value from classify (src/lib/scoring.ts) over the method,
+  the switch and the item's proposal, never the client's word; value is the picked code,
+  null for unclear; reason only for change, disagree and unclear, comment only for agree
+  and pick (null otherwise). An answer is complete when it needs no reason or carries one
+  (isComplete, src/lib/respondent-rules.ts); an incomplete answer is stored and does not
+  count as answered.
+- The response (table response): fields (the PM's keys only), perspectives, confidence,
+  signed_off and submitted_at (E7-5), updated_at moving on every answer. A response is
+  pinned to its instrument and item set; the dashboard reads answers per response and
+  item.
 
 ## AI shaping output (ai -> builder)
 Owner: ai route. Consumer: builder review view.

@@ -41,6 +41,8 @@ export type ItemCardProps = {
   saved?: boolean;
   // The server's sentence when it refused the answer (a stale page); shown in the note.
   error?: string | null;
+  // The page cannot reach the server (E7-3): a complete answer not yet saved says so.
+  unsaved?: boolean;
   onChange?: (draft: CardDraft) => void;
 };
 
@@ -54,7 +56,7 @@ export function answerOfDraft(draft: CardDraft, method: ScoringMethod, showPropo
 const BOX = "min-h-[52px] w-full grow resize-none rounded-xl border border-hairline-strong bg-surface px-2.5 py-1.5 text-sm leading-5 text-ink outline-none focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-1 focus-visible:ring-offset-surface";
 const TOGGLE = "rounded-sm text-xs font-semibold text-ink-muted underline-offset-2 outline-none hover:text-ink hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, accent, ring, idKey, draft: controlled, saved = false, error = null, onChange }: ItemCardProps) {
+export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, accent, ring, idKey, draft: controlled, saved = false, unsaved = false, error = null, onChange }: ItemCardProps) {
   const [own, setOwn] = useState<CardDraft>(EMPTY_DRAFT);
   const draft = controlled ?? own;
   const set = (next: CardDraft) => (onChange ? onChange(next) : setOwn(next));
@@ -66,7 +68,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   const commentAllowed = answer !== null && !reasonNeeded;
   const slot: "reason" | "comment" | "details" = detailsOpen && details ? "details" : reasonNeeded ? "reason" : commentAllowed && commentOpen ? "comment" : "details";
   const note = noteFor(answer);
-  const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note === "sayWhy" ? RESPONDENT_COPY.sayWhy : note === "writeQuestion" ? RESPONDENT_COPY.writeQuestion : onChange ? (saved ? RESPONDENT_COPY.saved : "") : (labelFor(method, labels, draft.picked) ?? "");
+  const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note === "sayWhy" ? RESPONDENT_COPY.sayWhy : note === "writeQuestion" ? RESPONDENT_COPY.writeQuestion : onChange ? (saved ? RESPONDENT_COPY.saved : unsaved ? RESPONDENT_COPY.notSavedYet : "") : (labelFor(method, labels, draft.picked) ?? "");
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(labelFor(method, labels, answer.value) ?? "", labelFor(method, labels, proposed) ?? "");
   return (
     <fieldset className={cn("card flex min-w-0 flex-col gap-2 p-3", slot === "details" ? "h-[260px]" : "min-h-[260px]")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>

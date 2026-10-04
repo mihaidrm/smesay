@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-03 (the date of the latest migration, 0016_invite_sent).
+v1, 2026-10-04 (the date of the latest migration, 0017_answer_version).
 
-Generated from the snapshot of the 17 migrations in drizzle/ (0016_snapshot.json) by
+Generated from the snapshot of the 18 migrations in drizzle/ (0017_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -259,6 +259,9 @@ one answer per item per response: kind (agree, change, disagree, unclear, pick),
 | value | text |  |
 | reason | text |  |
 | comment | text |  |
+| version | integer | not null, default 0 |
+| writer | text |  |
+| writer_seq | integer | not null, default 0 |
 | updated_at | timestamp with time zone | not null, default now() |
 
 Foreign keys: answer_response_fk (response_id, workspace_id) references response (id, workspace_id) on delete cascade; answer_item_fk (item_id, workspace_id) references item (id, workspace_id) on delete restrict; answer_response_set_fk (response_id, item_set_id) references response (id, item_set_id) on delete cascade; answer_item_set_fk (item_id, item_set_id) references item (id, item_set_id) on delete restrict.

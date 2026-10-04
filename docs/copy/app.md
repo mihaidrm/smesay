@@ -265,7 +265,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Pills, 1 to 5 fit | 1, 2, 3, 4, 5, Unclear, with "no fit" under 1 and "fits fully" under 5 |
 | Pills, keep change drop | Keep, Change, Drop, Unclear |
 | Caption under the proposed pill | proposed |
-| Footer note | Not rated yet; Say why.; Write your question.; Saved (the respondent page, E7-2). The Build preview shows the picked label once complete (it saves nothing) |
+| Footer note | Not rated yet; Say why.; Write your question.; Saved (the respondent page, E7-2); Not saved yet while the page cannot reach the server (E7-3). The Build preview shows the picked label once complete (it saves nothing) |
 | Reason box over a value other than the proposal (E7-2) | Why [VALUE] and not [PROPOSED]? The team reads every reason. |
 | Reason box over Not needed (E7-2) | Why is it not needed, or what should it say instead? |
 | Question box over Unclear (E7-2) | What would you need to know to rate it? |
@@ -279,7 +279,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Preview strip (E5-6, acceptance 4) | Preview: nothing you enter here is saved |
-| Header | [WORKSPACE LOGO at 24 px, or the INITIALS when there is none] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC] |
+| Header | [WORKSPACE LOGO at 24 px, or the INITIALS when there is none] [WORKSPACE NAME], and on a live link (E6-1): Closes [DATE AND TIME UTC]; "Not saved" instead while answers cannot reach the server (offline, or the server failed or refused for now), until every failed answer has gone through (E7-3) |
 | Personal link (E6-2), above the fields | Answering as [NAME], [ROLE]. The person who invited you filled this in. Tell them if it is wrong. (the fields the invite carries are not asked) |
 | Title and intro | [INSTRUMENT TITLE], [INTRO] |
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |

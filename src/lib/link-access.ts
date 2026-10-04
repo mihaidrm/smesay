@@ -71,10 +71,11 @@ export async function viewLink(token: string, cookie: string | undefined, now = 
 }
 
 // The link's state for the respondent app's checks (stories/E6-4, acceptance 4: the
-// 60-second poll and, from E7-3, every autosave): a status and a word, nothing else. 404
-// for an unknown token, 410 (gone) for a revoked or closed link, 200 otherwise; "passcode"
-// means the device has no proof yet (the page itself asks for it). An autosave route
-// refuses to write on anything but 200 "open".
+// 60-second poll, and from E7-3 the saver's retry while offline): a status and a word,
+// nothing else. 404 for an unknown token, 410 (gone) for a revoked or closed link, 200
+// otherwise; "passcode" means the device has no proof yet (the page itself asks for it).
+// The autosave route checks the link through viewOf (src/lib/respondent.ts openLinkFor), the
+// same rule, and writes only on an open link.
 export type LinkStatus = { status: 200; state: "open" | "notOpen" | "passcode" } | { status: 404; state: "unknown" } | { status: 410; state: "revoked" | "closed" };
 export async function linkStatus(token: string, cookie: string | undefined, now = new Date()): Promise<LinkStatus> {
   const view = await viewLink(token, cookie, now);

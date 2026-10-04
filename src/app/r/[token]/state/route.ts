@@ -2,8 +2,9 @@
 // gives { state } with 200 (open, notOpen, passcode), 404 (unknown) or 410 (revoked,
 // closed), never anything about the project or the answers (SECURITY.md: a revoked or
 // closed link returns a page or a status, not data). The open page polls it every
-// LINK_POLL_SECONDS (link-watch.tsx) and reloads itself on anything but 200; E7-3's
-// autosave route uses the same check before a write. Not cached. Route handlers:
+// LINK_POLL_SECONDS (link-watch.tsx) and reloads itself on anything but 200, and the saver
+// asks it while offline (E7-3); the autosave route checks the link through openLinkFor
+// (src/lib/respondent.ts), the same rule. Not cached. Route handlers:
 // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md.
 import { linkStatus, PASSCODE_COOKIE } from "@/lib/link-access";
 import { cookieValue } from "@/lib/request-cookies";

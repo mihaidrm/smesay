@@ -25,6 +25,21 @@ Public links and respondents
   take JSON only (the media type exactly application/json) up to 16 KB, so a plain
   cross-site form or a no-preflight request cannot post to them. The sample project's links
   collect nothing. In a rate-blind instrument the proposed value never reaches the page.
+- The respondent page keeps answers the server has not confirmed in the browser's
+  localStorage under smesay-answers:[link token] (E7-3): the response id, and per item the
+  pick, the reason, the comment, the answer's version the change was made on, and the
+  random id of the page that made it with its number for the save, and the saves of other
+  pages it was made on top of (page ids and numbers); nothing else. Entries leave when the
+  server holds that save or a later one of the same page, when the server answers that
+  another window or device changed the answer, when it refuses the answer (422), or on a
+  reset (a lost response: that response's queue); a page that opens writes back only what
+  it took, so entries the server already matches, of items not on the page or of another
+  response go; a closed, revoked or unknown link's page removes the key; entries have no
+  expiry otherwise. A queue of another response is never sent, and a
+  write names the response the page answers for, so an open window's changes never land in a
+  response started since in another window. localStorage is per origin, so any script running on an SMEsay
+  page can read it; the CSP with nonces (Headers and transport) is what keeps foreign
+  scripts out, and it is not configured yet (docs/review-list.md).
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
   status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
   Passcode attempts rate-limited.

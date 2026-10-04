@@ -38,6 +38,11 @@ export const RESPONDENT_COPY = {
   unclearPrompt: "What would you need to know to rate it?",
   previousItem: "Previous item",
   nextItem: "Next item",
+  // Saving (E7-3; docs/copy/errors.md, Respondent answering).
+  notSaved: "Not saved",
+  notSavedYet: "Not saved yet",
+  offline: "Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.",
+  storageOff: "This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost.",
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -50,6 +55,10 @@ export const RESPONDENT_ERRORS = {
   longText: `Keep the reason and the comment to ${REASON_MAX} characters each.`,
   notStarted: "Your details were not found on this device. Press Start again and the answers on this page are saved with them.",
   hiddenItem: "This item is not in your list. Reload the page to see your items.",
+  // E7-3: a newer answer for this item reached the server first (another window or device).
+  changedElsewhere: "This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand.",
+  // E7-3: Start worked but the next save found no response: the browser refused the cookie.
+  cookiesBlocked: "This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser.",
 } as const;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -150,6 +159,17 @@ export function parseScreen(raw: string | null | undefined, started: boolean, ch
   return chapterCount > 0 ? { kind: "chapter", index: 0 } : { kind: "about" };
 }
 
+// Where a returning respondent lands when the address names no screen (E7-3, acceptance 2;
+// E7-4, acceptance 4; note 12, finding 9): the first chapter with an item not complete,
+// on that item; every item complete, the last chapter.
+export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerState>): { index: number; item: number } {
+  for (let i = 0; i < chapters.length; i++) {
+    const item = chapters[i].items.findIndex((it) => !isComplete(answers[it.id]));
+    if (item !== -1) return { index: i, item };
+  }
+  return { index: Math.max(chapters.length - 1, 0), item: 0 };
+}
+
 // What the card's note says (E7-2, acceptance 3): the missing part, or null when complete.
 export type CardNote = "notRated" | "sayWhy" | "writeQuestion" | null;
 export function noteFor(answer: AnswerState | null | undefined): CardNote {
@@ -162,17 +182,44 @@ export function noteFor(answer: AnswerState | null | undefined): CardNote {
 // the reason (kept only when the answer needs one) and the comment (kept only when it does
 // not: the slot holds one box, docs/design-system.md, Rating row). The stored kind and
 // value come from src/lib/scoring.ts classify, never from the client.
-export type AnswerInput = { itemId: string; picked: string; reason: string | null; comment: string | null };
+// E7-3: base is the answer's version the page made the change on, page the open page's id,
+// seq that page's number for this save, response the response the page answers for (its id
+// from the page or from Start), after the saves of other pages the change was made on top of
+// while the server had not answered for them (a change the device kept from an earlier visit:
+// at most AFTER_MAX). See src/lib/answer-queue.ts for how the server uses them.
+export type SaveRef = { page: string; seq: number };
+export type AnswerInput = { itemId: string; picked: string; reason: string | null; comment: string | null; base: number; page: string; seq: number; after: SaveRef[]; response: string };
+export const AFTER_MAX = 8;
+// Versions and save numbers are whole numbers that fit Postgres integer.
+export const COUNT_MAX = 2_147_483_647;
+export const validCount = (n: unknown, min = 0): n is number => typeof n === "number" && Number.isInteger(n) && n >= min && n <= COUNT_MAX;
+// A page id: 8 to 64 letters, digits or hyphens (crypto.randomUUID gives 36).
+export const validPage = (p: unknown): p is string => typeof p === "string" && /^[A-Za-z0-9-]{8,64}$/.test(p);
+// The saves a change was made on top of: absent means none; otherwise at most AFTER_MAX
+// well-formed { page, seq }. null when malformed.
+export function parseAfter(raw: unknown): SaveRef[] | null {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw) || raw.length > AFTER_MAX) return null;
+  const out: SaveRef[] = [];
+  for (const a of raw) {
+    if (!a || typeof a !== "object" || !validPage((a as SaveRef).page) || !validCount((a as SaveRef).seq, 1)) return null;
+    out.push({ page: (a as SaveRef).page, seq: (a as SaveRef).seq });
+  }
+  return out;
+}
 export function parseAnswerInput(raw: unknown): { error: string } | { input: AnswerInput } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badAnswer };
   const r = raw as Record<string, unknown>;
   if (typeof r.itemId !== "string" || typeof r.picked !== "string") return { error: RESPONDENT_ERRORS.badAnswer };
+  if (!validCount(r.base) || !validPage(r.page) || !validCount(r.seq, 1) || typeof r.response !== "string") return { error: RESPONDENT_ERRORS.badAnswer };
+  const after = parseAfter(r.after);
+  if (!after) return { error: RESPONDENT_ERRORS.badAnswer };
   const text = (v: unknown): string | null | undefined => (v === undefined || v === null ? null : typeof v === "string" ? (v.trim() ? v.trim() : null) : undefined);
   const reason = text(r.reason);
   const comment = text(r.comment);
   if (reason === undefined || comment === undefined) return { error: RESPONDENT_ERRORS.badAnswer };
   if ((reason?.length ?? 0) > REASON_MAX || (comment?.length ?? 0) > REASON_MAX) return { error: RESPONDENT_ERRORS.longText };
-  return { input: { itemId: r.itemId, picked: r.picked, reason, comment } };
+  return { input: { itemId: r.itemId, picked: r.picked, reason, comment, base: r.base, page: r.page, seq: r.seq, after, response: r.response } };
 }
 
 export function answerFor(method: ScoringMethod, showProposed: boolean, proposed: string | null, input: Pick<AnswerInput, "picked" | "reason" | "comment">): { error: string } | { answer: AnswerState } {
