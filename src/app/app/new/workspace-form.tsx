@@ -9,13 +9,13 @@ import { Label } from "@/components/ui/label";
 import { WORKSPACE_NAME_MAX } from "@/lib/workspace-name";
 import { createWorkspace, type CreateWorkspaceState } from "../actions";
 
-export function WorkspaceForm({ defaultName }: { defaultName: string }) {
+export function WorkspaceForm() {
   const [state, action, pending] = useActionState<CreateWorkspaceState, FormData>(createWorkspace, { error: null });
   return (
     <form action={action} noValidate className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="name">Workspace name</Label>
-        <Input id="name" name="name" defaultValue={defaultName} maxLength={WORKSPACE_NAME_MAX} autoComplete="organization"
+        <Input id="name" name="name" maxLength={WORKSPACE_NAME_MAX} autoComplete="organization"
           aria-invalid={state.error ? true : undefined} aria-describedby={state.error ? "name-error" : undefined} className="h-10" />
         {state.error && <p id="name-error" className="text-sm text-danger">{state.error}</p>}
       </div>

@@ -9,10 +9,10 @@ only.
 ## Name your workspace (/app/new)
 
 The sign-in column (448 px, centred): the lockup, "Name your workspace" at 24 px, one line, the
-"Workspace name" field prefilled with the email's domain capitalised, the primary button
-"Create workspace", then "Signed in as [EMAIL]." with a small secondary Sign out, so a wrong
-address has a way out. The server validates (1 to 80 characters) and the field shows the danger
-line from docs/copy/errors.md. A phone layout because the magic link often opens there.
+"Workspace name" field (empty since decision 0047; it was prefilled with the email's domain
+capitalised), the primary button "Create workspace", then "Signed in as [EMAIL]." with a small
+secondary Sign out, so a wrong address has a way out. The server validates (1 to 80
+characters) and the field shows the danger line from docs/copy/errors.md. A phone layout because the magic link often opens there.
 
 ## Choose a workspace (/app/switch)
 
