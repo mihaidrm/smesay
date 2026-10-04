@@ -1,11 +1,12 @@
 // The removal job (stories/E11-2, acceptance 3): a full workspace (the sample with its responses,
-// a project of its own, an upload and a logo in the bucket) is deleted, the job runs, and every
+// a project of its own, and a row in every other table: an upload with its object, an AI run, an
+// invitation, a mapping, a project and a workspace export; a logo in the bucket) is deleted, the job runs, and every
 // application table holds zero rows of it and the bucket zero objects under it; the owner who
 // deleted it gets one email; a second run finds nothing; another workspace is untouched.
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import postgres from "postgres";
-import { projects, workspaces } from "@/db/queries";
+import { aiRuns, exportLogs, projects, uploads, workspaceInvites, workspaceMappings, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { prepareTestDatabase } from "@/db/test-db";
@@ -34,14 +35,27 @@ describe("purgeDeletedWorkspaces", () => {
     await db.insert(user).values({ id: ownerId, name: "Owner", email: `${ownerId}@example.com`, emailVerified: true });
     const gone = unsafeWorkspaceId((await createWorkspaceWithSample({ name: "Gone Ltd", slug: `gone-${randomUUID()}` }, ownerId)).id);
     const kept = unsafeWorkspaceId((await createWorkspaceWithSample({ name: "Kept Ltd", slug: `kept-${randomUUID()}` }, ownerId)).id);
-    await projects.create(gone, { name: "Own project", createdBy: ownerId });
+    const own = await projects.create(gone, { name: "Own project", createdBy: ownerId });
+    // A row in every table the sample does not fill: an upload with its object, an AI run, an
+    // invitation, a mapping, a project export and a whole-workspace export.
+    await uploads.create(gone, { projectId: own.id, objectKey: `uploads/${gone}/list.csv`, filename: "list.csv", kind: "csv", byteSize: 1, preview: { sheets: ["csv"], sheet: "csv", headerRow: 1, columns: [], rows: [], rowsRead: 0 } });
+    await aiRuns.create(gone, { projectId: own.id, purpose: "shape", model: "test" });
+    await workspaceInvites.create(gone, { email: `invitee-${randomUUID()}@example.com`, invitedBy: ownerId });
+    await workspaceMappings.create(gone, { headersKey: "Ref\u001fRequirement", mapping: { Ref: "ref", Requirement: "text" } });
+    await exportLogs.create(gone, { projectId: own.id, madeBy: ownerId, file: "answers", rows: 1 });
+    await exportLogs.create(gone, { projectId: null, madeBy: ownerId, file: "workspace", rows: 2 });
     await putObject(`uploads/${gone}/list.csv`, new Uint8Array([1]), "text/csv");
     await putObject(`logos/${gone}/logo.png`, new Uint8Array([2]), "image/png");
     await putObject(`uploads/${kept}/list.csv`, new Uint8Array([3]), "text/csv");
     const keptBefore = await rowsOf(kept);
-    expect(await rowsOf(gone)).toBeGreaterThan(30);
+    for (const t of TABLES) expect((await sql`select count(*)::int as n from ${sql(t)} where workspace_id = ${gone}`)[0].n, `${t} has a row`).toBeGreaterThan(0);
     const deletedAt = new Date("2026-10-04T13:00:00Z");
     await workspaces.markDeleted(gone, ownerId, deletedAt);
+
+    // A failed email puts the rows back for the next run, and is logged as that step.
+    const failed = await purgeDeletedWorkspaces(async (m) => { if (m.to === `${ownerId}@example.com`) throw new Error("smtp down"); });
+    expect(failed.failed).toBeGreaterThanOrEqual(1);
+    expect(await rowsOf(gone)).toBeGreaterThan(0);
 
     const sent: Mail[] = [];
     const report = await purgeDeletedWorkspaces(async (m) => { sent.push(m); });

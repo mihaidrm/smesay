@@ -1,5 +1,6 @@
-// Helpers that take no session: the seed, the removal job (E11-2), the product's AI cap
-// (src/lib/ai/client.ts, the one product file lint lets in) and the tests. Lint keeps this
+// Helpers that take no session: the seed, the removal job (E11-2, src/lib/workspace-removal.ts),
+// the product's AI cap (src/lib/ai/client.ts) and the tests; lint lets in only the files
+// eslint-rules/db-access.mjs names. Lint keeps this
 // module out of every other file (eslint-rules/db-access.mjs), and the index barrel does not
 // export it, so a route cannot reach a workspace by a bare id.
 import { and, eq, gte, inArray, isNotNull, sum } from "drizzle-orm";
@@ -30,7 +31,9 @@ export const internal = {
   // responses (their answers and missing items go with them), then its projects (sets, items,
   // instruments, invites, actions, runs, uploads, export rows), then the workspace (members,
   // invitations, mappings). Counts per step. A workspace not marked deleted is left alone.
-  purgeWorkspace: async (workspaceId: string): Promise<{ responses: number; projects: number; workspaces: number }> => {
+  // beforeCommit runs inside the transaction after the deletes (the job's email): if it throws,
+  // the rows come back and the next run tries again.
+  purgeWorkspace: async (workspaceId: string, beforeCommit?: () => Promise<void>): Promise<{ responses: number; projects: number; workspaces: number }> => {
     if (!isUuid(workspaceId)) return { responses: 0, projects: 0, workspaces: 0 };
     return db.transaction(async (tx) => {
       const marked = await tx.select({ id: workspace.id }).from(workspace).where(and(eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt))).for("update");
@@ -38,6 +41,7 @@ export const internal = {
       const responses = (await tx.delete(response).where(eq(response.workspaceId, workspaceId)).returning({ id: response.id })).length;
       const projects = (await tx.delete(project).where(eq(project.workspaceId, workspaceId)).returning({ id: project.id })).length;
       const workspaces = (await tx.delete(workspace).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id })).length;
+      if (beforeCommit) await beforeCommit();
       return { responses, projects, workspaces };
     });
   },

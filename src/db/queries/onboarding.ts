@@ -11,7 +11,7 @@
 import { randomBytes } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { workspaceInvite, workspaceMember } from "@/db/schema";
+import { workspace, workspaceInvite, workspaceMember } from "@/db/schema";
 import { internal } from "./internal";
 import { unsafeWorkspaceId } from "./scoped";
 import { workspaces, type Workspace } from "./workspaces";
@@ -55,8 +55,9 @@ export async function acceptPendingInvites(userId: string, email: string, validM
   const address = email.trim().toLowerCase();
   const since = new Date(Date.now() - validMinutes * 60 * 1000);
   return db.transaction(async (tx) => {
-    const open = await tx.select().from(workspaceInvite)
-      .where(and(eq(workspaceInvite.email, address), isNull(workspaceInvite.acceptedAt), gt(workspaceInvite.invitedAt, since)));
+    // A deleted workspace's invitations are not accepted (stories/E11-2): it takes no new member.
+    const open = (await tx.select({ invite: workspaceInvite }).from(workspaceInvite).innerJoin(workspace, eq(workspace.id, workspaceInvite.workspaceId))
+      .where(and(eq(workspaceInvite.email, address), isNull(workspaceInvite.acceptedAt), gt(workspaceInvite.invitedAt, since), isNull(workspace.deletedAt)))).map((r) => r.invite);
     let added = 0;
     for (const invite of open) {
       const inserted = await tx.insert(workspaceMember).values({ workspaceId: invite.workspaceId, userId, role: invite.role }).onConflictDoNothing().returning();

@@ -351,9 +351,10 @@ name (not in the barrel), creates the workspace with its owner and its own copy 
 The session row carries currentWorkspaceId (uuid, nullable, migration 0002), set only by
 src/lib/current-workspace.ts after a membership check and read back on every request; the
 current workspace is never taken from a URL alone. src/db/queries/internal.ts
-(getWorkspaceById, createEmptyWorkspace, hardDeleteWorkspace, productAiCostCentsThisMonth,
-setAiBudgetEur, requireWorkspaceForUser) takes no session and is importable only from src/db,
-src/lib/workspace.ts and src/lib/ai/client.ts with its test (decision 0036). Importing "@/db",
+(getWorkspaceById, createEmptyWorkspace, deletedWorkspaces, purgeWorkspace, hardDeleteWorkspace,
+productAiCostCentsThisMonth, setAiBudgetEur, requireWorkspaceForUser) takes no session and is
+importable only from src/db, src/lib/workspace.ts, src/lib/ai/client.ts with its test,
+src/lib/insights.test.ts and src/lib/workspace-removal.ts (decision 0036, E11-2). Importing "@/db",
 "@/db/schema", drizzle-orm or postgres outside src/db/ fails lint for every import spelling
 tested (src/db/queries/lint-rule.test.ts); what src/db/queries/ exports is the reviewer's
 reading.
@@ -631,13 +632,14 @@ limit answers 429 { code: "RATE_LIMITED", message, waitMinutes }.
 Owner: E11-2. Consumers: Settings, Data; the removal job; E11-3's privacy policy.
 Version 1, 2026-10-04. GET /api/workspace/export: application/zip, owner only (403), with
 projects/[NNN]-[PROJECT].json (ProjectExport), workspace.json { name, slug, plan, accentHex,
-aiBudgetEur, createdAt, logo, exportedAt }, members.csv (Name, Email, Role, Joined) and
+createdAt, logo, exportedAt } (no AI budget, decision 0036), members.csv (Name, Email, Role, Joined) and
 logo/[FILE]; export_log gets file "workspace", project_id null (migration 0026).
 exportWorkspace(actor, now) and deleteWorkspace(actor, typedName, now) in
 src/lib/workspace-data.ts; zip(entries, now) in src/lib/export/zip.ts; listKeys(prefix) in
 src/lib/storage.ts. workspace.deleted_by (user id, set null). workspaces.markDeleted(ws, userId,
-now) and deletedForUser(userId, id) give DeletedWorkspace { id, name, deletedAt, deletedByEmail };
-AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id) for
+now) and deletedForUser(userId, id or null) give DeletedWorkspace { id, name, deletedAt,
+deletedByEmail }; leaveDeleted(userId, id) ends a membership of a deleted workspace;
+AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id, beforeCommit) for
 purgeDeletedWorkspaces(send) in src/lib/workspace-removal.ts (`npm run jobs:purge`). A deleted
 workspace's link from links.byToken carries revokedAt = deleted_at.
 

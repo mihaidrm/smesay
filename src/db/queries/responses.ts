@@ -12,7 +12,7 @@
 // revoke's UPDATE waits for the lock or the Start waits for the revoke (E6-4).
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { answer, invite, missingItem, response } from "@/db/schema";
+import { answer, invite, missingItem, response, workspace } from "@/db/schema";
 import type { Answer } from "./answers";
 import type { Invite } from "./invites";
 import type { WorkspaceId } from "@/db/types";
@@ -53,7 +53,10 @@ async function writeMissing(tx: Tx, workspaceId: WorkspaceId, responseId: string
 }
 export type NewResponse = Pick<typeof response.$inferInsert, "instrumentId" | "itemSetId" | "inviteId" | "deviceToken" | "fields" | "perspectives">;
 export type InviteDates = Pick<Invite, "token" | "opensAt" | "closesAt" | "revokedAt">;
-const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt };
+// The link's dates as the writes re-read them under the invite row's lock; a deleted workspace's
+// deletion time counts as the revocation (stories/E11-2, as links.byToken reads it), so a
+// deletion committed before the re-read wins as a revoke does.
+const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: sql`coalesce(${invite.revokedAt}, (select ${workspace.deletedAt} from ${workspace} where ${workspace.id} = ${invite.workspaceId}))`.mapWith(invite.revokedAt) };
 
 export const responses = {
   ...scoped(response),

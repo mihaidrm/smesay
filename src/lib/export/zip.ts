@@ -13,7 +13,7 @@ const LIMIT = 0xffffffff;
 
 // MS-DOS time and date (APPNOTE 4.4.6): two-second steps, years from 1980.
 function dos(d: Date): { time: number; date: number } {
-  const y = Math.max(1980, d.getUTCFullYear());
+  const y = Math.min(2107, Math.max(1980, d.getUTCFullYear()));
   return {
     time: (d.getUTCHours() << 11) | (d.getUTCMinutes() << 5) | Math.floor(d.getUTCSeconds() / 2),
     date: ((y - 1980) << 9) | ((d.getUTCMonth() + 1) << 5) | d.getUTCDate(),
@@ -61,6 +61,7 @@ export function zip(entries: ZipEntry[], now = new Date()): Buffer {
     offset += local.length + name.length + packed.length;
   }
   const directory = Buffer.concat(centrals);
+  if (offset > LIMIT || directory.length > LIMIT || offset + directory.length > LIMIT) throw new Error("zip: over 4 GB");
   const end = Buffer.alloc(22);
   end.writeUInt32LE(0x06054b50, 0);
   end.writeUInt16LE(entries.length, 8);

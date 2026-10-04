@@ -45,10 +45,11 @@ export async function switchWorkspace(formData: FormData): Promise<void> {
   redirect("/app");
 }
 
-// Leaves a deleted workspace (stories/E11-2): clears the session's current workspace, then the
-// app chooses again (one membership: that one; several: the chooser; none: the create page).
-export async function leaveDeletedWorkspace(): Promise<void> {
+// Leaves a deleted workspace (stories/E11-2): ends the person's membership of it and clears the
+// session's current workspace if it was that one, then the app chooses again (one membership: that one; several: the chooser; none: the create page).
+export async function leaveDeletedWorkspace(formData: FormData): Promise<void> {
   const session = await requireSession("/app/deleted");
-  await setCurrentWorkspace(session, null);
+  await workspaces.leaveDeleted(session.user.id, String(formData.get("workspaceId") ?? ""));
+  if (session.session.currentWorkspaceId === formData.get("workspaceId")) await setCurrentWorkspace(session, null);
   redirect("/app");
 }

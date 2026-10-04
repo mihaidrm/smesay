@@ -8,7 +8,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { members, projects, workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { links } from "@/db/queries/links";
-import { invites } from "@/db/queries";
+import { invites, responses } from "@/db/queries";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
@@ -96,5 +96,15 @@ describe("deleteWorkspace", () => {
     expect(WORKSPACE_DATA_COPY.deleted(now, owner.email)).toBe(`This workspace was deleted on 4 Oct 2026, 13:00 UTC. Its data is removed within 24 hours. Contact ${owner.email} if you did not expect this.`);
     expect((await links.byToken(token))!.invite.revokedAt).toEqual(now);
     expect(await workspaces.deletedForUser(`someone-${randomUUID()}`, ws)).toBeNull();
+    // A new session stores no workspace: the deleted one is still found for the deleted page.
+    expect((await workspaces.deletedForUser(member.id, null))?.id).toBe(ws);
+    // The writes' re-read under the invite lock sees the deletion as a revocation.
+    const link = (await links.byToken(token))!;
+    const refused = await responses.createPublic(ws, { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, deviceToken: randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "") }, (d) => d.revokedAt === null);
+    expect(refused && "refused" in refused ? refused.refused.revokedAt : null).toEqual(now);
+    // Leaving ends the membership of the deleted workspace only; the page does not come back.
+    expect(await workspaces.leaveDeleted(member.id, ws)).toBe(true);
+    expect(await workspaces.deletedForUser(member.id, null)).toBeNull();
+    expect(await workspaces.leaveDeleted(member.id, ws)).toBe(false);
   });
 });

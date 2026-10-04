@@ -87,7 +87,7 @@ export default async function SettingsPage() {
         ))}
         {manage && <InviteForm />}
       </section>
-      {me !== null && can(me.role, "workspace.delete") && <DataSection workspaceName={workspace.name} />}
+      {me !== null && (can(me.role, "workspace.export") || can(me.role, "workspace.delete")) && <DataSection workspaceName={workspace.name} />}
     </main>
   );
 }

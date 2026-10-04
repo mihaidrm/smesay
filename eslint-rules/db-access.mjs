@@ -20,9 +20,8 @@ const EXCEPTIONS = {
   [path.join(SRC, "lib", "ai", "client.test.ts")]: ["queries/internal"],
   // E9-3: the actions test sets a workspace budget to see the refusal with its estimate.
   [path.join(SRC, "lib", "insights.test.ts")]: ["queries/internal"],
-  // E11-2: the removal job reads every deleted workspace and deletes its rows; its test too.
+  // E11-2: the removal job reads every deleted workspace and deletes its rows.
   [path.join(SRC, "lib", "workspace-removal.ts")]: ["queries/internal"],
-  [path.join(SRC, "lib", "workspace-removal.test.ts")]: ["queries/internal"],
 };
 
 function resolve(spec, fromFile) {

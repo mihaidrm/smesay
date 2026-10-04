@@ -22,8 +22,9 @@ import { requireWorkspace } from "@/lib/workspace";
 import { chooseWorkspace } from "@/lib/workspace-choice";
 
 export type Current = { workspace: Workspace; ws: WorkspaceId };
-// deleted: the stored workspace was deleted (stories/E11-2) and the person was in it; the app
-// shows the deleted page (/app/deleted) until they leave it, instead of choosing another.
+// deleted: a workspace the person is still a member of was deleted (stories/E11-2), the stored
+// one first; the app shows the deleted page (/app/deleted) until they leave it, which ends their
+// membership of it, instead of choosing another without a word.
 export type AppContext = { session: Session; memberships: Workspace[]; current: Current | null; storedId: string | null; deleted: DeletedWorkspace | null };
 
 export const getAppContext = cache(async (nextPath: string): Promise<AppContext> => {
@@ -32,7 +33,7 @@ export const getAppContext = cache(async (nextPath: string): Promise<AppContext>
   await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES);
   const memberships = await workspaces.listForUser(session.user.id);
   const storedId = session.session.currentWorkspaceId ?? null;
-  const deleted = storedId !== null && !memberships.some((w) => w.id === storedId) ? await workspaces.deletedForUser(session.user.id, storedId) : null;
+  const deleted = (storedId !== null && !memberships.some((w) => w.id === storedId) ? await workspaces.deletedForUser(session.user.id, storedId) : null) ?? await workspaces.deletedForUser(session.user.id, null);
   const choice = chooseWorkspace(memberships, storedId);
   let current: Current | null = null;
   if (!deleted && (choice.kind === "current" || choice.kind === "select")) {

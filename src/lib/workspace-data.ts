@@ -8,7 +8,7 @@
 //   read as revoked (src/db/queries/links.ts). The rows and objects go with the removal job
 //   (scripts/jobs-purge.ts) within 24 hours.
 import { members, projects, workspaces } from "@/db/queries";
-import { csv } from "@/lib/export/csv";
+import { csv, isoUtc } from "@/lib/export/csv";
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { exportProject } from "@/lib/export/project";
 import { zip, type ZipEntry } from "@/lib/export/zip";
@@ -29,10 +29,11 @@ export async function exportWorkspace(actor: Actor, now = new Date()): Promise<{
     const file = await exportProject(actor, p.id, now);
     entries.push({ name: `projects/${String(i + 1).padStart(3, "0")}-${fileStem(p.name)}.json`, data: Buffer.from(JSON.stringify(file)) });
   }
-  const settings = { name: ws.name, slug: ws.slug, plan: ws.plan, accentHex: ws.accentHex, aiBudgetEur: ws.aiBudgetEur, createdAt: ws.createdAt.toISOString(), logo: ws.logoObjectKey ? ws.logoObjectKey.split("/").pop() : null, exportedAt: now.toISOString() };
+  // No AI budget: it is set and seen in the admin area only (decision 0036).
+  const settings = { name: ws.name, slug: ws.slug, plan: ws.plan, accentHex: ws.accentHex, createdAt: ws.createdAt.toISOString(), logo: ws.logoObjectKey ? ws.logoObjectKey.split("/").pop() : null, exportedAt: now.toISOString() };
   entries.push({ name: "workspace.json", data: Buffer.from(JSON.stringify(settings, null, 2)) });
   const people = await members.listWithUsers(actor.ws);
-  entries.push({ name: "members.csv", data: Buffer.from(csv([], WORKSPACE_DATA_COPY.membersHeader, people.map((m) => [m.name, m.email, WORKSPACE_DATA_COPY.roles[m.role] ?? m.role, m.createdAt.toISOString()]))) });
+  entries.push({ name: "members.csv", data: Buffer.from(csv([], WORKSPACE_DATA_COPY.membersHeader, people.map((m) => [m.name, m.email, WORKSPACE_DATA_COPY.roles[m.role] ?? m.role, isoUtc(m.createdAt)]))) });
   if (ws.logoObjectKey) {
     const logo = await getObject(ws.logoObjectKey);
     if (logo) entries.push({ name: `logo/${ws.logoObjectKey.split("/").pop()}`, data: Buffer.from(logo.body) });

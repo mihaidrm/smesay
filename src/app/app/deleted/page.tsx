@@ -1,7 +1,6 @@
 // The deleted workspace page (stories/E11-2, acceptance 2; docs/copy/errors.md, Everything else):
-// shown to a member whose current workspace was deleted, until they leave it with the button,
-// which clears the session's current workspace and lets the app choose again. Anyone else is
-// sent on to the app.
+// shown to every member of a deleted workspace, until they leave it with the button, which ends
+// their membership of it and lets the app choose again. Anyone else is sent on to the app.
 import { redirect } from "next/navigation";
 import { Lockup } from "@/components/brand/mark";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ export default async function DeletedWorkspacePage() {
         <p className="text-ink-muted" data-testid="deleted-line">{WORKSPACE_DATA_COPY.deleted(deleted.deletedAt, deleted.deletedByEmail)}</p>
       </div>
       <form action={leaveDeletedWorkspace}>
+        <input type="hidden" name="workspaceId" value={deleted.id} />
         <Button type="submit" variant="primary">{WORKSPACE_DATA_COPY.deletedButton}</Button>
       </form>
       <SignedInFooter email={session.user.email} />
