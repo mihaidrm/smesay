@@ -16,10 +16,17 @@ step no longer speaks of phones; What you get back leads with what the PM gains 
 results fragment whose Table, Columns and Share switch works on the page; a Questions section
 with seven questions sits after Pricing. Acceptance 1, 4, 6 and 7 below carry it.
 
+Amended 2026-10-04 again (design note 58; Mihai: "a section on landing page where we
+absolutely show all the advantages to this way compared to other traditonal ways"): "Why not
+a spreadsheet, a form or a workshop?" between What you get back and Pricing, six points
+against the way the visitor picks, with Compare in the nav. Acceptance 1, 6 and 7 carry it.
+
 ## Acceptance criteria
 1. /landing-page renders landing page F (copy from docs/copy/landing.md): the nav, the dark
    hero with the aurora, the dot grid, the cursor light and the live card with the mascot's
    placeholder at its corner and the agreement chip, "Three steps", "What you get back",
+   "Why not a spreadsheet, a form or a workshop?" (six points, a switch for the way used
+   today),
    pricing (the Free card, decision 0008), "Questions" (seven, each opening in place), the
    one-line footer with SME expanded once.
    Desktop 1440 and phone 390 (decision 0015): one column under 1024 px, the card upright
@@ -42,8 +49,9 @@ with seven questions sits after Pricing. Acceptance 1, 4, 6 and 7 below carry it
 6. Playwright: the page loads with the headline, the two buttons point where they should, and
    a 390 px viewport has no horizontal scroll; the third step names no phone; the Shape
    switch and the results switch change what they show; the seed's tiles are on the results
-   card; a question opens; at 390 the Columns and Share views do not scroll sideways.
-7. The two switches are toggle buttons with aria-pressed in a named group, reachable by
+   card; a question opens; at 390 the Columns and Share views do not scroll sideways; the
+   comparison shows six points and its switch changes the Today column.
+7. The three switches are toggle buttons with aria-pressed in a named group, reachable by
    keyboard with the 2 px focus ring; every chart's kinds and counts are text for screen
    readers; the questions are native details elements that open without JavaScript.
 
@@ -87,3 +95,12 @@ scrolling the whole page: 0 violations, 24 rules passed, at 1440 and at 390.
 After the second audit the same day: the hero's live card and chip follow the seed; the
 steps grid is one column under 1024 px (acceptance 1); e2e/landing.spec.ts checks the
 Shape card's turn (2 tests, both passed).
+
+## Build record, 2026-10-04 (the comparison)
+
+Design note 58. e2e/landing.spec.ts: 4 tests, all passed on the dev server (the new one: six
+points, the switch changes the Today column, no side scroll at 390). Lighthouse CLI 13.5.0 on
+the production build, mobile form factor, Chromium 1194: performance 97, accessibility 100,
+best practices 100, SEO 100; LCP 2.6 s, CLS 0, TBT 50 ms. axe-core (WCAG 2.0 A and AA, best
+practice) through Playwright after scrolling the whole page: 0 violations at 390 and at 1440,
+every section shown.
