@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, describeFilter, filterActive, filterQuery, parseResultsFilter, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -18,7 +18,7 @@ const read = (q: string, stored: boolean | null = null) => parseResultsFilter(Ob
 describe("the Results filter", () => {
   it("reads only what the instrument has", () => {
     const f = read("f.role=Sales&f.role=Nope&f.role=Sales&f.name=%20okafor%20&f.secret=x&kind=disagree&kind=agree&kind=bogus&comment=1&perspective=Finance&status=inProgress&status=x");
-    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true });
+    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true, sort: null });
     expect(read("perspective=HR&comment=yes").perspective).toBeNull();
     expect(read("comment=yes").withComment).toBe(false);
     expect(read("f.name=" + "x".repeat(150)).fields.name).toHaveLength(100);
@@ -39,11 +39,20 @@ describe("the Results filter", () => {
     expect(read(filterQuery(f, ctx), false).includeUnsubmitted).toBe(true);
   });
 
+  it("reads a sort in a safe shape, writes it back, and flips it on the same column", () => {
+    expect(read("sort=submitted&dir=desc").sort).toEqual({ key: "submitted", dir: "desc" });
+    expect(read("sort=field.role").sort).toEqual({ key: "field.role", dir: "asc" });
+    expect([read("sort=1;drop").sort, read("sort=").sort, read("sort=" + "a".repeat(80)).sort]).toEqual([null, null, null]);
+    expect(filterQuery(read("sort=name&dir=desc&f.role=HR"), ctx)).toBe("f.role=HR&unsubmitted=1&sort=name&dir=desc");
+    expect([nextSort(null, "name"), nextSort({ key: "name", dir: "asc" }, "name"), nextSort({ key: "name", dir: "desc" }, "name"), nextSort({ key: "name", dir: "asc" }, "status")]).toEqual([{ key: "name", dir: "asc" }, { key: "name", dir: "desc" }, { key: "name", dir: "asc" }, { key: "status", dir: "asc" }]);
+    expect(filterActive(read("sort=name"))).toBe(false);
+  });
+
   it("says what narrows, and clearing keeps the switch", () => {
     const f = read("f.role=Sales&f.role=Finance&f.name=ok&kind=change&comment=1&perspective=Sales&status=submitted", false);
     expect(describeFilter(f, ctx)).toBe('Name contains "ok"; Role: Sales, Finance; Different priority; With a reason or comment; Perspective: Sales; Submitted');
     expect(filterActive(f)).toBe(true);
-    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false });
+    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null });
     expect(filterActive(read("unsubmitted=0"))).toBe(false);
   });
 });

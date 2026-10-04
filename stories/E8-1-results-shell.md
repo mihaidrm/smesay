@@ -97,7 +97,7 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the poi
 - Acceptance 7: the switch, on by default, kept per PM per instrument; off it removes the
   unsubmitted answers from every answer count; the people tiles (submitted of invited, in
   progress) count people whatever the switch. The rows' "not submitted" mark is the rows'
-  stories' (E8-2, E8-4).
+  stories' (E8-2: the In progress pill; E8-4).
 - Acceptance 8: the sample's Results carries the watermark band; the band on every other
   screen of the sample is E8-8's.
 - Acceptance 9: e2e/results.spec.ts.

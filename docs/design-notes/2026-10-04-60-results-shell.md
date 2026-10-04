@@ -61,6 +61,15 @@ existing parts.
   watermark line from E8-8 in soft ink, never dismissed. The PM app board's band now opens
   with the same line; its Delete sample button comes with E8-8.
 
+- Added with E8-2 (the Responses tab), after its audit: the sortable header is a link in
+  the column header (the label, then an arrow hidden from assistive technology), with
+  aria-sort on the sorted header only ("should only be added to a single table or grid
+  header at a time", developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Attributes/
+  aria-sort); the registers (E8-4) use the same header. The status cell is the design
+  system's status pill (Submitted in the agree tint, Invited and In progress neutral) with
+  E7-6's marks beside it as text: "Changes not submitted again" in the sun text colour,
+  "Submitted again" in muted ink.
+
 ## Checks
 
 - src/lib/results-filter.test.ts, src/db/queries/results.test.ts, results-boundary.test.tsx.

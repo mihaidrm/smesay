@@ -25,6 +25,11 @@ dashboard's numbers.
    tiles that count people and missing items need rows of their own, so the export adds
    "People" (one row per person the filter keeps: status, submitted at, minutes to submit;
    src/db/queries/results.ts people) and "Missing items" (one row per suggestion; results.missing).
+   Amended 2026-10-04 (E8-2 check, docs/review-list.md): every file names a respondent as the
+   Responses tab does (the name field, else a personal invite's name or email, else
+   "Anonymous [N]"; PersonRow who and anon in INTERFACES.md), and "People" adds the tab's
+   columns (every respondent field, progress, source, reminders, the answers with a reason or
+   comment), so the tab exports through it.
 4. Sample project exports carry the watermark in the first row ("Sample data, invented").
 5. Downloads are streamed, scoped by workspace, and logged (who, when, what) for E11-2.
 

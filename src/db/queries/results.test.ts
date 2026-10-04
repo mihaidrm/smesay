@@ -12,7 +12,7 @@ import { ensureTestDatabase } from "../test-db";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { results, resultsPrefs, type ResultRow } from "@/db/queries/results";
+import { results, resultsPrefs, tracker, type ResultRow } from "@/db/queries/results";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { answers as fixture, expected, people, missingItem } from "@/db/seed/sample";
 import type { WorkspaceId } from "@/db/types";
@@ -25,7 +25,7 @@ let wsA: WorkspaceId;
 let wsB: WorkspaceId;
 let instrumentA: string;
 
-const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false };
+const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null };
 
 async function sampleInstrument(ws: WorkspaceId): Promise<string> {
   const [project] = (await projects.list(ws)).filter((p) => p.isSample);
@@ -166,5 +166,125 @@ describe("Results numbers", () => {
     await resultsPrefs.set(userId, instrumentA, { includeUnsubmitted: false });
     expect(await resultsPrefs.get(userId, instrumentA)).toEqual({ tiles: ["agreement", "missing"], includeUnsubmitted: false });
     expect(await resultsPrefs.get(userId, await sampleInstrument(wsB))).toEqual({});
+  });
+});
+
+describe("the Responses tab", () => {
+  const keys = ["name", "role"];
+  it("lists everyone the filter keeps, with status, progress, source and reminders", async () => {
+    const all = await tracker.people(wsA, instrumentA, NONE, keys);
+    expect(all.map((p) => p.fields.name)).toEqual(["Dana Okafor", "Elena Costa", "Ioana Marin", "Lukas Berg", "Priya Nair", "Sam Hill", "Tom Reyes"]);
+    const by = (name: string) => all.find((p) => p.fields.name === name)!;
+    expect(by("Sam Hill")).toMatchObject({ status: "inProgress", answered: 4, visible: 6, source: "personal", reminders: 1, submittedAt: null });
+    expect(by("Elena Costa")).toMatchObject({ status: "invited", answered: 0, visible: 6, reminders: 1, fields: { name: "Elena Costa", role: "Sales" } });
+    expect(by("Dana Okafor")).toMatchObject({ status: "submitted", source: "public", reminders: null, changedSince: false, submittedAgain: false, anon: null });
+    // The fixture's reasons: Lukas gave a reason on every answer that is not agree.
+    const lukas = Object.values(fixture).map((byPerson) => byPerson[4]).filter((a) => a && a.kind !== "agree").length;
+    expect(by("Lukas Berg").withComment).toBe(lukas);
+    // The role filter Sales: Ioana and Tom submitted, Elena invited (E8-2, acceptance 6).
+    expect((await tracker.people(wsA, instrumentA, { ...NONE, fields: { role: ["Sales"] } }, keys)).map((p) => p.fields.name)).toEqual(["Elena Costa", "Ioana Marin", "Tom Reyes"]);
+  });
+
+  it("sorts by any column, both ways, from its own list only", async () => {
+    const order = async (key: string, dir: "asc" | "desc") => (await tracker.people(wsA, instrumentA, { ...NONE, sort: { key, dir } }, keys)).map((p) => p.fields.name);
+    const submitted = people.filter((p) => p.submittedAt).sort((a, b) => a.submittedAt!.localeCompare(b.submittedAt!)).map((p) => p.name);
+    expect((await order("submitted", "asc")).slice(0, 5)).toEqual(submitted);
+    expect((await order("submitted", "desc")).slice(0, 5)).toEqual([...submitted].reverse());
+    expect((await order("field.role", "asc"))[0]).toBe("Lukas Berg");
+    expect((await order("status", "asc"))[0]).toBe("Elena Costa");
+    expect((await order("progress", "desc")).at(-1)).toBe("Elena Costa");
+    // An unknown column, or a field the instrument does not have, sorts by name.
+    expect(await order("drop table", "asc")).toEqual(await order("name", "asc"));
+    expect(await order("field.secret", "asc")).toEqual(await order("name", "asc"));
+  });
+
+  it("numbers nameless responses and answers 500 people from SQL under 500 ms", async () => {
+    const instrumentB = await sampleInstrument(wsB);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentB} and i.kind = 'public'`;
+    // 500 nameless public responses, each with an answer to every item.
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, created_at)
+      select ${wsB}, ${instrumentB}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(g::text), '{}'::jsonb, now() + make_interval(secs => g)
+      from generate_series(1, 500) g`;
+    await sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind, value, reason)
+      select ${wsB}, r.id, r.item_set_id, it.id, 'change', 'S', 'A reason.'
+      from response r join item it on it.item_set_id = r.item_set_id
+      where r.workspace_id = ${wsB} and r.instrument_id = ${instrumentB} and r.fields = '{}'::jsonb`;
+    const started = performance.now();
+    const rows = await tracker.people(wsB, instrumentB, { ...NONE, sort: { key: "progress", dir: "desc" } }, keys);
+    const took = performance.now() - started;
+    expect(rows.length).toBe(507);
+    expect(took).toBeLessThan(500);
+    // The sample's Dana (public link, named, started first) holds number 1 unseen.
+    const anon = (await tracker.people(wsB, instrumentB, { ...NONE, sort: { key: "name", dir: "asc" } }, keys)).filter((p) => p.anon !== null).map((p) => p.anon);
+    expect([anon[0], anon.at(-1), anon.length]).toEqual([2, 501, 500]);
+  }, 60_000);
+
+  it("lists the people the strip counts, and the comment column adds up to its tile", async () => {
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, kinds: ["change" as const] }, { ...NONE, withComment: true, includeUnsubmitted: true }]) {
+      const n = (await results.numbers(wsA, instrumentA, f))!;
+      const rows = await tracker.people(wsA, instrumentA, f, keys);
+      expect(rows.map((p) => p.id).sort()).toEqual((await results.people(wsA, instrumentA, f)).map((p) => p.id).sort());
+      expect(rows.reduce((a, p) => a + p.withComment, 0)).toBe(n.withComment);
+    }
+  });
+
+  it("marks changes after Submit, counts complete answers to the items seen, and names every row", async () => {
+    const e = await createWorkspaceWithSample({ name: "Results E", slug: `results-e-${Date.now()}` }, userId);
+    made.push(e.id);
+    const wsE = unsafeWorkspaceId(e.id);
+    const instrumentE = await sampleInstrument(wsE);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentE} and i.kind = 'public'`;
+    const responseOf = async (name: string) => (await sql`select id from response where workspace_id = ${wsE} and fields ->> 'name' = ${name}`)[0].id as string;
+    const itemOf = async (ref: string) => (await sql`select id from item where workspace_id = ${wsE} and item_set_id = ${item_set_id} and source_ref = ${ref}`)[0].id as string;
+    // Ioana changed an answer after Submit and has not submitted again; Tom submitted again.
+    await sql`update response set signed_off = false where id = ${await responseOf("Ioana Marin")}`;
+    await sql`update response set signed_off = true, updated_at = first_submitted_at + interval '1 hour' where id = ${await responseOf("Tom Reyes")}`;
+    // CL-01 is for Finance only: Lukas no longer sees it, so his answer to it is not progress.
+    await sql`update item set perspectives = array['Finance'] where id = ${await itemOf("CL-01")}`;
+    await sql`update response set perspectives = array['Finance'] where id = ${await responseOf("Dana Okafor")}`;
+    // Sam (who no longer sees CL-01 either): a Disagree with no reason and an Unclear with a
+    // blank question are not complete.
+    const sam = await responseOf("Sam Hill");
+    await sql`update answer set kind = 'disagree', value = null, reason = null where response_id = ${sam} and item_id = ${await itemOf("CL-04")}`;
+    await sql`update answer set kind = 'unclear', value = null, reason = '   ' where response_id = ${sam} and item_id = ${await itemOf("CL-02")}`;
+    await sql`update answer set kind = 'change', value = 'M', reason = 'Payroll first.' where response_id = ${sam} and item_id = ${await itemOf("CL-03")}`;
+    // Personal invites with no name: one not started, one started without a name field.
+    const [{ id: cy }] = await sql`insert into invite (workspace_id, instrument_id, kind, token, email, sent_at) values (${wsE}, ${instrumentE}, 'personal', md5(random()::text) || 'cy', 'cy@x.example', now()) returning id`;
+    await sql`insert into invite (workspace_id, instrument_id, kind, token, email, sent_at) values (${wsE}, ${instrumentE}, 'personal', md5(random()::text) || 'bo', 'bo@x.example', now())`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields) values (${wsE}, ${instrumentE}, ${item_set_id}, ${cy}, md5(random()::text) || md5('cy'), '{}'::jsonb)`;
+    // Three public-link responses with no name, in the HR role.
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, created_at)
+      select ${wsE}, ${instrumentE}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(g::text), '{"role": "HR"}'::jsonb, timestamptz '2030-01-01' + make_interval(secs => g)
+      from generate_series(1, 3) g`;
+
+    const all = await tracker.people(wsE, instrumentE, { ...NONE, includeUnsubmitted: true }, keys);
+    const by = (who: string) => all.find((p) => p.who === who)!;
+    expect(by("Ioana Marin")).toMatchObject({ changedSince: true, submittedAgain: false });
+    expect(by("Tom Reyes")).toMatchObject({ changedSince: false, submittedAgain: true });
+    expect(by("Lukas Berg")).toMatchObject({ answered: 5, visible: 5 });
+    expect(by("Dana Okafor")).toMatchObject({ answered: 6, visible: 6 });
+    expect(by("Sam Hill")).toMatchObject({ answered: 1, visible: 5, withComment: 2 });
+    expect((await tracker.people(wsE, instrumentE, NONE, keys)).find((p) => p.who === "Sam Hill")!.withComment).toBe(0);
+    expect(by("cy@x.example")).toMatchObject({ status: "inProgress", anon: null, source: "personal" });
+    expect(by("bo@x.example")).toMatchObject({ status: "invited", anon: null });
+    // The Name filter finds what the tab shows.
+    expect((await tracker.people(wsE, instrumentE, { ...NONE, fields: { name: "x.example" } }, keys)).map((p) => p.who).sort()).toEqual(["bo@x.example", "cy@x.example"]);
+    const nameless = () => tracker.people(wsE, instrumentE, { ...NONE, sort: { key: "name", dir: "asc" } }, keys).then((rows) => rows.filter((p) => p.who === null).map((p) => p.anon));
+    const [a, b, c] = await nameless();
+    expect(b! - a!).toBe(1);
+    expect(c! - b!).toBe(1);
+    // A filter, or a name added by the first, moves no number.
+    expect((await tracker.people(wsE, instrumentE, { ...NONE, fields: { role: ["HR"] } }, keys)).filter((p) => p.who === null).map((p) => p.anon)).toEqual([a, b, c]);
+    await sql`update response set fields = '{"name": "Ana Pop", "role": "HR"}'::jsonb where workspace_id = ${wsE} and instrument_id = ${instrumentE} and created_at = timestamptz '2030-01-01' + interval '1 second'`;
+    expect(await nameless()).toEqual([b, c]);
+  });
+
+  it("reads nothing of another workspace's instrument", async () => {
+    expect(await tracker.people(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys)).toEqual([]);
+  });
+
+  it("sorts on its own columns only, never on a member every object has", async () => {
+    const order = async (key: string) => (await tracker.people(wsA, instrumentA, { ...NONE, sort: { key, dir: "asc" } }, keys)).map((p) => p.id);
+    expect(await order("constructor")).toEqual(await order("name"));
   });
 });
