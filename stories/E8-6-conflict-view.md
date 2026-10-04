@@ -31,8 +31,8 @@ names each group rather than "Everyone else".
 - None. The threshold is 3 (decision 0031).
 
 ## Technical notes
-src/db/queries/results.ts `gapsByField(workspaceId, instrumentId, fieldKey)`; the landing page
-output "Where groups disagree, by role" is this view.
+src/db/queries/results.ts `gaps.byField(ws, instrumentId, filter, fieldKey)` (built); the landing
+page output "Where groups disagree, by role" is this view.
 
 Built 2026-10-04 (design note 63, decision 0044; docs/review-list.md):
 - Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/conflict-view.tsx under the

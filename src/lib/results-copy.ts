@@ -60,9 +60,9 @@ export const CONFLICT_COPY = {
   groupLine: (group: string, agree: number, answered: number) => `${group}: ${agree} of ${answered} agree.`,
   smallLine: (group: string) => `${group}: fewer than 3 answers.`,
   noGap: "No item has two groups with 3 answers or more yet.",
+  noGapFiltered: "No item has two groups with 3 answers or more under this filter. Clear the filter or compare by another field.",
+  noGroups: "No answers to compare.",
   showAll: (n: number) => `Show all ${n} items`,
-  barTitle: (group: string, agree: number, answered: number) => `${group}, ${agree} of ${answered} agree`,
-  smallBar: (group: string) => `${group}, fewer than 3 answers, not compared`,
 };
 
 // The Responses tab (stories/E8-2; docs/copy/app.md, Results).

@@ -371,6 +371,11 @@ describe("the Agreement tab's numbers", () => {
       expect(performance.now() - started).toBeLessThan(500);
       const c = (await agreement.byItem(wsC, instrumentC, f, null)).find((x) => x.itemId === cl04)!;
       expect([one!.counts.agree, one!.counts.change, one!.counts.disagree, one!.counts.unclear]).toEqual([c.agree, c.change, c.disagree, c.unclear]);
+      // Where groups disagree (E8-6) runs on every render of the Agreement tab.
+      const startedGaps = performance.now();
+      const byRole = await gaps.byField(wsC, instrumentC, f, "role");
+      expect(performance.now() - startedGaps).toBeLessThan(500);
+      expect(byRole).toHaveLength(6);
     }
   }, 120_000);
 
@@ -634,12 +639,14 @@ describe("where groups disagree", () => {
     const wsF = unsafeWorkspaceId(w.id);
     const instrumentF = await sampleInstrument(wsF);
     const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentF} and i.kind = 'public'`;
-    // Teams A and B of three, team C of two (never compared). The sample's people have no team.
-    const team: Record<string, string> = { A1: "A", A2: "A", A3: "A", B1: "B", B2: "B", B3: "B", C1: "C", C2: "C" };
+    // Teams A and B of three, team C of two (never compared), and three people with no team
+    // (the group Not given, ''). The sample's people are removed first.
+    await sql`delete from response where workspace_id = ${wsF}`;
+    const team: Record<string, string> = { A1: "A", A2: "A", A3: "A", B1: "B", B2: "B", B3: "B", C1: "C", C2: "C", N1: "", N2: "", N3: "" };
     const ids: Record<string, string> = {};
     for (const [name, t] of Object.entries(team)) {
       const [{ id }] = await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, submitted_at, first_submitted_at, signed_off)
-        values (${wsF}, ${instrumentF}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(${name}), ${JSON.stringify({ name, team: t })}::jsonb, now(), now(), true) returning id`;
+        values (${wsF}, ${instrumentF}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(${name}), ${JSON.stringify(t ? { name, team: t } : { name })}::jsonb, now(), now(), true) returning id`;
       ids[name] = id as string;
     }
     const answer = async (name: string, ref: string, kind: string) => {
@@ -648,15 +655,21 @@ describe("where groups disagree", () => {
         from item it where it.workspace_id = ${wsF} and it.item_set_id = ${item_set_id} and it.source_ref = ${ref}`;
     };
     const set = async (ref: string, kinds: Record<string, string>) => { for (const [name, kind] of Object.entries(kinds)) await answer(name, ref, kind); };
-    // CL-02: A 0 of 3, B 3 of 3 (gap 100). CL-05: A 1 of 3, B 2 of 3 (gap 33). CL-01: A and B
-    // 3 of 3, C 0 of 2 (gap 0: C is not compared). CL-03: A 3 of 3, B only 2 answers (no gap).
+    // CL-02: A 0 of 3, B 3 of 3 (gap 100). CL-05: A 1 of 3, B 2 of 3, Not given 3 of 3 (gap
+    // 67). CL-01: A and B 3 of 3, C 0 of 2 (gap 0: C is not compared). CL-03: A 3 of 3, B only
+    // 2 answers (no gap).
     await set("CL-02", { A1: "change", A2: "disagree", A3: "unclear", B1: "agree", B2: "agree", B3: "agree" });
-    await set("CL-05", { A1: "agree", A2: "change", A3: "change", B1: "agree", B2: "agree", B3: "disagree" });
+    await set("CL-05", { A1: "agree", A2: "change", A3: "change", B1: "agree", B2: "agree", B3: "disagree", N1: "agree", N2: "agree", N3: "agree" });
     await set("CL-01", { A1: "agree", A2: "agree", A3: "agree", B1: "agree", B2: "agree", B3: "agree", C1: "disagree", C2: "disagree" });
     await set("CL-03", { A1: "agree", A2: "agree", A3: "agree", B1: "change", B2: "change" });
     const refs = new Map((await sql`select id, source_ref from item where workspace_id = ${wsF} and item_set_id = ${item_set_id}`).map((r) => [r.id as string, r.source_ref as string]));
     const out = await gaps.byField(wsF, instrumentF, NONE, "team");
-    expect(out.map((g) => [refs.get(g.itemId), g.gap])).toEqual([["CL-02", 100], ["CL-05", 33], ["CL-01", 0], ["CL-03", null], ["CL-04", null], ["CL-06", null]]);
+    expect(out.map((g) => [refs.get(g.itemId), g.gap])).toEqual([["CL-02", 100], ["CL-05", 67], ["CL-01", 0], ["CL-03", null], ["CL-04", null], ["CL-06", null]]);
+    expect(out.find((g) => refs.get(g.itemId) === "CL-05")!.groups).toEqual([
+      { group: "", agree: 3, answered: 3, compared: true },
+      { group: "A", agree: 1, answered: 3, compared: true },
+      { group: "B", agree: 2, answered: 3, compared: true },
+    ]);
     const cl01 = out.find((g) => refs.get(g.itemId) === "CL-01")!;
     expect(cl01.groups).toEqual([
       { group: "A", agree: 3, answered: 3, compared: true },

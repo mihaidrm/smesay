@@ -13,13 +13,26 @@ starting point; this note records what was decided while building it.
   under the item with a dashed empty track, no bar and no numbers, and is not in the gap.
   The Agreement tab's split (E8-3) draws such a group faded with its counts; here the
   numbers are the comparison, so they are left out.
-- Answers are agree, different priority, disagree and unclear; a value rated with no
-  proposal is not an agreement and does not count towards the 3.
-- The gap is in percentage points ("[N] points apart"), the largest difference in share
-  between two compared groups. Items without two compared groups follow in the list's order.
+- Answers are agree, different priority, disagree and unclear. Only items with a proposal
+  shown are in the view, and the view is not drawn when no item has one (as on a rate-blind
+  list): agreement means nothing where no proposal was shown, as the Agreement tab's figures
+  say (E8-3).
+- The people who left the field empty are a group of their own, Not given, last, as in the
+  Agreement tab's split, so the groups add up to the item; it is compared like any group
+  with 3 answers or more. Groups are in name order.
+- The gap is in percentage points ("[N] points apart", "1 point apart"), the largest
+  difference in share between two compared groups. The top four are items with a gap above
+  0; ties and items without a gap follow in the list's order (areas in the set's order,
+  then position: src/lib/results-gaps.ts).
 - The bar per group is the share that agrees, in the agree solid on the tint track, the
-  label in muted ink at 112 px and "[A] of [N]" in mono, as on Brand 06; each bar is an
-  image with its numbers in its name.
+  label in muted ink at 112 px and "[A] of [N]" in mono, as on Brand 06. The bars are hidden
+  from screen readers, which read the line under them with the same numbers.
+- With no item compared, the line says so ("yet" with no filter on; under a filter it says
+  to clear it or compare by another field). An item nobody answered reads "No answers to
+  compare."
+- A small group's numbers can still be worked out by subtraction from the item's counts in
+  the Agreement table when it is the only small group; decision 0031 as worded is met
+  (no number is shown for it), and the review list carries the point.
 - "Show all" is a native details element, so it works without script and keeps its state
   per page view.
 - The section sits under the views of the Agreement tab and is not drawn on a rate-blind
@@ -31,6 +44,8 @@ starting point; this note records what was decided while building it.
 
 ## Checks
 
-- src/db/queries/results.test.ts (where groups disagree), src/lib/results-filter.test.ts
-  (the field in the URL).
-- e2e/results-conflict.spec.ts.
+- src/db/queries/results.test.ts (where groups disagree, fixed rows with a Not given group,
+  the 600-response timing), src/lib/results-gaps.test.ts (the items kept, the order, the
+  top four), src/lib/results-filter.test.ts (the field in the URL).
+- e2e/results-conflict.spec.ts: the sample by role (no group compared), and the sample with
+  generated respondents (a compared item, its gap and its line).

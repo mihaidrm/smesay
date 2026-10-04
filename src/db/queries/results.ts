@@ -468,20 +468,23 @@ export const detail = {
 // unclear; a value rated with no proposal is no agreement), and the gap, the largest
 // difference in share between two groups with at least MIN_GROUP answers (decision 0031:
 // smaller groups are shown, not compared), in percentage points rounded half up; null when
-// fewer than two groups are compared. Items in order of the gap, largest first, then the
-// list's order. People without a value on the field are in no group.
+// fewer than two groups are compared. Items in order of the gap, largest first (the caller
+// orders ties by the list, src/lib/results-gaps.ts). People without a value on the field are
+// the group '' (Not given on screen).
 export type GapGroup = { group: string; agree: number; answered: number; compared: boolean };
 export type GapItem = { itemId: string; gap: number | null; groups: GapGroup[] };
 
 export const gaps = {
   byField: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKey: string): Promise<GapItem[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
       g as (
-        select ans.item_id, ans.rfields ->> ${fieldKey} as grp,
+        -- The people who left the field empty are a group of their own, '' (Not given on
+        -- screen), as in the Agreement tab's split.
+        select ans.item_id, coalesce(nullif(ans.rfields ->> ${fieldKey}, ''), '') as grp,
             count(*) filter (where ans.kind = 'agree')::int as agree,
             count(*) filter (where ans.kind in ('agree', 'change', 'disagree', 'unclear'))::int as answered
-          from ans where coalesce(ans.rfields ->> ${fieldKey}, '') <> ''
+          from ans
           group by 1, 2
       ),
       shares as (select g.*, case when g.answered >= ${MIN_GROUP} then g.agree::numeric / g.answered end as share from g),
