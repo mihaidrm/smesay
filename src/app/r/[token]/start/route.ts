@@ -10,7 +10,7 @@
 // submittedAt, changedSince } (the response's id, which ties this device's queue of unsent
 // answers to it, E7-3; when it was last submitted or null, and whether a submitted response
 // has changes not submitted again, E7-6) or { error }.
-// No rate limit yet: E11-1 adds the respondent routes' limit (docs/review-list.md).
+// Rate limited per address in src/proxy.ts (E11-1).
 import { NextResponse } from "next/server";
 import { isPreviewToken } from "@/lib/preview-token";
 import { cookiePath, PASSCODE_COOKIE } from "@/lib/link-access";

@@ -22,7 +22,7 @@ describe("windowLimiter", () => {
 describe("backoffLimiter", () => {
   const MIN = 60_000;
   it("takes 5 attempts, then waits one minute, two, four", () => {
-    const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN });
+    const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
     let t = 0;
     for (let i = 0; i < 5; i++) expect(l.attempt("email:a@b.c", t).allowed).toBe(true);
     expect(l.attempt("email:a@b.c", t)).toEqual({ allowed: false, retryAfterMs: MIN });
@@ -38,8 +38,19 @@ describe("backoffLimiter", () => {
     for (let i = 0; i < 5; i++) l.attempt("email:a@b.c", t);
     expect(l.attempt("email:a@b.c", t)).toEqual({ allowed: false, retryAfterMs: MIN });
   });
+  it("never waits longer than the cap", () => {
+    const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
+    let t = 0; let last = 0;
+    for (let round = 0; round < 10; round++) {
+      for (let i = 0; i < 5; i++) l.attempt("k", t);
+      const v = l.attempt("k", t);
+      last = v.allowed ? 0 : v.retryAfterMs;
+      t += last;
+    }
+    expect(last).toBe(60 * MIN);
+  });
   it("starts a new window of 5 when the old one ends without a block", () => {
-    const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN });
+    const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
     for (let i = 0; i < 5; i++) l.attempt("k", i * MIN);
     expect(l.attempt("k", 16 * MIN).allowed).toBe(true);
   });
@@ -47,7 +58,9 @@ describe("backoffLimiter", () => {
 
 describe("helpers", () => {
   it("reads the first forwarded address and rounds a wait up to whole minutes", () => {
-    expect(addressOf(new Headers({ "x-forwarded-for": " 10.0.0.1 , 10.0.0.2" }))).toBe("10.0.0.1");
+    // The rightmost entry is the one the host's proxy added; the client chose the ones before.
+    expect(addressOf(new Headers({ "x-forwarded-for": " 6.6.6.6 , 10.0.0.2" }))).toBe("10.0.0.2");
+    expect(addressOf(new Headers({ "x-forwarded-for": "10.0.0.1" }))).toBe("10.0.0.1");
     expect(addressOf(new Headers())).toBe("local");
     expect([minutesOf(1), minutesOf(60_000), minutesOf(60_001)]).toEqual([1, 1, 2]);
   });

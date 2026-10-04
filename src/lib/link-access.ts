@@ -10,7 +10,8 @@
 // given back on a correct passcode: per link (PASSCODE_LINK_ATTEMPTS wrong in the window,
 // whatever the address, since the address header can be chosen by the client) and per link
 // and address (PASSCODE_ATTEMPTS). An unknown token costs one indexed read and no count.
-// E11-1 moves the limits to the shared store and covers every respondent route.
+// E11-1 kept these as they are and added the per-address limit on every respondent route
+// (src/proxy.ts).
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { links } from "@/db/queries";
 import type { Link } from "@/db/queries/links";

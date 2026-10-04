@@ -10,7 +10,7 @@
 // revocation is refused with nothing written, E6-4), the device's response started (409),
 // the item in its list (422). The answer carries the stored kind and whether it is
 // complete, never project data. JSON only, up to 16 KB, as /r/[token]/start
-// (src/lib/request-json.ts). No rate limit yet: E11-1 (docs/review-list.md).
+// (src/lib/request-json.ts). Rate limited per address in src/proxy.ts (E11-1).
 import { NextResponse } from "next/server";
 import { isPreviewToken } from "@/lib/preview-token";
 import { PASSCODE_COOKIE } from "@/lib/link-access";

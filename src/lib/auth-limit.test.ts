@@ -31,6 +31,13 @@ describe("sign-in limit", () => {
     expect((await ask(`limit-${randomUUID()}@example.com`, "10.8.1.1")).status).toBe(429);
     expect((await ask(`limit-${randomUUID()}@example.com`, "10.8.1.2")).status).toBe(200);
   });
+  it("does not count the app's own server calls (member invitations)", async () => {
+    for (let i = 0; i < 7; i++) {
+      const email = `invitee-${randomUUID()}@example.com`;
+      await expect(auth.api.signInMagicLink({ body: { email, callbackURL: "/app" }, headers: new Headers({ "x-forwarded-for": "10.8.3.1" }) })).resolves.toBeTruthy();
+    }
+    expect((await ask(`limit-${randomUUID()}@example.com`, "10.8.3.1")).status).toBe(200);
+  });
   it("counts failed callbacks and sends a blocked address to the Google page with the wait", async () => {
     for (let i = 0; i < 6; i++) await callback("10.8.2.1");
     const blocked = await callback("10.8.2.1");

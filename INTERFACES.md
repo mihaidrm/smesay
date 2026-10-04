@@ -618,11 +618,12 @@ EXPORT_FILES gains "summary" (migration 0025); the export log keeps the page cou
 ## Rate limits (E11-1)
 Owner: E11-1. Consumers: src/proxy.ts, src/lib/auth.ts.
 Version 1, 2026-10-04. src/lib/ratelimit.ts: windowLimiter({ max, windowMs }) with hit(key,
-now); backoffLimiter({ max, windowMs, baseMs, quietMs }) with check(key, now) and
+now); backoffLimiter({ max, windowMs, baseMs, quietMs, capMs }) with check(key, now) and
 attempt(key, now); both return { allowed: true } or { allowed: false, retryAfterMs }.
-addressOf(headers) gives the first X-Forwarded-For entry or LOCAL ("local", never limited by
+addressOf(headers) gives the last X-Forwarded-For entry or LOCAL ("local", never limited by
 address). respondentLimit (100 a minute) and signInLimit (5 in 15 minutes, then 1, 2, 4
-minutes). A respondent route over its limit answers 429 with Retry-After: HTML for a page
-request, else { error: "rateLimited", message, waitMinutes }. The magic link endpoint over its
+minutes, capped at 60). A respondent route over its limit answers 429 with Retry-After: HTML for
+a page request, else { error: [sentence], code: "rateLimited", waitMinutes }; a server action
+(next-action header) is not counted there. The magic link endpoint over its
 limit answers 429 { code: "RATE_LIMITED", message, waitMinutes }.
 

@@ -22,7 +22,9 @@ describe("proxy", () => {
     expect(await page.text()).toContain(RATE_LIMIT_COPY.respondent);
     const call = proxy(req("/r/abc/answers", "10.9.0.1", { method: "PUT", accept: "application/json" }));
     expect(call.status).toBe(429);
-    expect(await call.json()).toMatchObject({ error: "rateLimited", waitMinutes: 1 });
+    expect(await call.json()).toMatchObject({ error: RATE_LIMIT_COPY.respondent, code: "rateLimited", waitMinutes: 1 });
+    // A server action keeps its own limit.
+    expect(proxy(new NextRequest(`${BASE}/r/abc`, { method: "POST", headers: { "x-forwarded-for": "10.9.0.1", "next-action": "abc" } })).status).toBe(200);
     expect(proxy(req("/r/abc", "10.9.0.2")).status).toBe(200);
   });
   it("does not count a request without X-Forwarded-For", () => {

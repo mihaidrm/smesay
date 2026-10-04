@@ -94,6 +94,9 @@ const tooMany = (retryAfterMs: number) => {
   return new APIError("TOO_MANY_REQUESTS", { code: "RATE_LIMITED", message: SIGN_IN_COPY.tooManyFor(waitMinutes), waitMinutes }, { "retry-after": String(Math.ceil(retryAfterMs / 1000)) });
 };
 const limitSignIn = createAuthMiddleware(async (ctx) => {
+  // A call from the app's own server (auth.api.signInMagicLink for a member invitation,
+  // src/lib/members.ts) carries no request: the workspace's invite limit applies there.
+  if (!ctx.request) return;
   const now = Date.now();
   const ip = addressOfCtx(ctx.getHeader);
   const address = ip === LOCAL ? null : `address:${ip}`;

@@ -3,7 +3,8 @@
 // sign-in form over its limit says how long to wait.
 import { expect, test } from "@playwright/test";
 
-test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.61" } });
+// An address of its own per run, so a second run against the same server starts fresh.
+test.use({ extraHTTPHeaders: { "x-forwarded-for": `10.61.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` } });
 
 test("too many requests from one address get the plain page", async ({ page }) => {
   for (let i = 0; i < 100; i++) expect((await page.request.get("/r/00000000000000000000000000000000")).status()).not.toBe(429);
