@@ -21,7 +21,7 @@ import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { isWithin, limitFor } from "@/lib/plans";
 import { AI_COPY } from "./copy";
-import { costEurCents, DEFAULT_MODEL, estimateTokensIn } from "./prices";
+import { costEurCents, DEFAULT_MODEL, estimateCents } from "./prices";
 import { assertStrict } from "./strict";
 
 // The same list as AI_PURPOSES in src/db/schema.ts (the check constraint on ai_run.purpose).
@@ -51,6 +51,9 @@ export type RunInput<T> = {
   // output is refused; null accepts it. Required, so no caller forgets it.
   check: (output: T) => string | null;
   maxOutputTokens?: number;
+  // The output the caller expects, for the estimate the budget checks use (E9-3); without it
+  // the whole allowance is counted, so the estimate errs high (E4-1).
+  expectedOutputTokens?: number;
 };
 
 // Swapped in by tests: a fetch that answers instead of the network, a short timeout, a fixed
@@ -68,10 +71,16 @@ export type RunResult<T> =
   // the app cannot use: a refusal, a cut-off, a schema or check failure (acceptance 5). The
   // message is what the screen shows; detail is for the server log: codes, counts and paths
   // from this file, plus the caller's check reason, which the caller keeps free of list text.
-  | { ok: false; reason: Refusal; message: string; detail: string };
+  // estimateCents: the call's estimate, on a paused or budget refusal (E9-3).
+  | { ok: false; reason: Refusal; message: string; detail: string; estimateCents?: number };
 
 const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
-const refused = <T>(reason: Refusal, detail: string): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail });
+const refused = <T>(reason: Refusal, detail: string, estimateCents?: number): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail, ...(estimateCents === undefined ? {} : { estimateCents }) });
+
+// The text an estimate counts (E9-3): the prompt and the output schema the API sends with it.
+export const estimateText = (instructions: string, data: string, outputFormat: unknown): string => instructions + data + JSON.stringify(outputFormat);
+// The output format the request sends for a schema (the SDK's helper, which only this file imports).
+export const outputFormatOf = (schema: z.ZodType<unknown>) => zodOutputFormat(schema);
 
 // The product's cap for the month in whole euro, from the environment (decision 0036); null
 // when the variable is missing or not a whole number, and the call is then refused, as for a
@@ -106,11 +115,14 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
     console.error("ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
     return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
   }
-  const estimate = costEurCents(model, estimateTokensIn(input.instructions + input.data), maxOutputTokens);
+  // The estimate counts the output schema too, which the API sends with the prompt (design
+  // note 26 named it as the gap the whole allowance covered; E9-3 lets a caller expect less).
+  const outputFormat = outputFormatOf(input.schema);
+  const estimate = estimateCents(model, estimateText(input.instructions, input.data, outputFormat), Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
   const productSpent = await internal.productAiCostCentsThisMonth(now);
-  if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`);
+  if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
   const used = await usage(input.ws, now);
-  if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`);
+  if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`, estimate);
   if (!isWithin(limitFor(workspace.plan, "aiRuns"), used.aiRunsThisMonth)) return refused("plan", `${used.aiRunsThisMonth} runs this month on plan ${workspace.plan}`);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -142,7 +154,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
       max_tokens: maxOutputTokens,
       system: [{ type: "text", text: input.instructions }],
       messages: [{ role: "user", content: [{ type: "text", text: input.data }] }],
-      output_config: { format: zodOutputFormat(input.schema) },
+      output_config: { format: outputFormat },
     }, { signal: controller.signal });
     // Cache tokens are counted as input in case a later story turns caching on; they are
     // priced at the base rate until the price table learns the cache rates.
@@ -170,6 +182,9 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   }
   if (failure || !message) return failure ?? refused("failed", "no answer");
   const run: Run = { id: row.id, model, tokensIn, tokensOut, costEurCents: row.costEurCents, durationMs };
+  // The estimate next to the actual, counts only, so a real run shows how close the estimate
+  // came (E9-3, acceptance 3; the tests have no real usage to compare with).
+  console.info(`AI run ${input.purpose}: estimate ${estimate} cents, actual ${row.costEurCents} cents (${tokensIn} in, ${tokensOut} out).`);
 
   // A refusal or a cut-off answer: the model answered, but not with something usable.
   if (message.stop_reason !== "end_turn") return refused("invalid", `stop_reason ${message.stop_reason}`);

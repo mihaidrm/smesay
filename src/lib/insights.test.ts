@@ -7,18 +7,19 @@
 // another workspace cannot write or read them. Pure parts: keptActions, share, citationLines.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { aiRuns, answers, invites, items, missingItems, projects, responses } from "@/db/queries";
+import { aiRuns, answers, invites, items, missingItems, projects, responses, workspaces } from "@/db/queries";
 import { results } from "@/db/queries/results";
 import { insights } from "@/db/queries/insights";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
-import { DEFAULT_MODEL } from "@/lib/ai/prices";
+import { costEurCents, DEFAULT_MODEL, estimateCents, formatEur } from "@/lib/ai/prices";
+import { internal } from "@/db/queries/internal";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { citationLines, keptActions, setActionState, share, writeActions } from "@/lib/insights";
+import { ACTIONS_EXPECTED_OUTPUT, citationLines, keptActions, setActionState, share, writeActions } from "@/lib/insights";
 import { sameAction } from "@/db/queries/insights";
 import { openDraft, saveFields } from "@/lib/instruments";
 import type { ResultsFilter } from "@/lib/results-filter";
@@ -80,11 +81,11 @@ async function answeredProject() {
 
 type Out = { actions: { kind: string; title: string; why: string; answers: string[]; missing: string[] }[] };
 function transport(build: (data: string) => Out) {
-  const calls: { system: string; data: string }[] = [];
+  const calls: { system: string; data: string; format: unknown }[] = [];
   const fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body));
     const data = body.messages[0].content[0].text as string;
-    calls.push({ system: body.system[0].text, data });
+    calls.push({ system: body.system[0].text, data, format: body.output_config?.format });
     const message = { id: "msg_test", type: "message", role: "assistant", model: DEFAULT_MODEL, content: [{ type: "text", text: JSON.stringify(build(data)) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1001, output_tokens: 301, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
     return new Response(JSON.stringify(message), { status: 200, headers: { "content-type": "application/json" } });
   }) as unknown as typeof globalThis.fetch;
@@ -290,5 +291,56 @@ describe("the pure parts", () => {
       { text: "Bo on \"Limits\"", itemId: "i3" },
       { text: "Anonymous 1, missing item", itemId: null },
     ]);
+  });
+});
+
+// E9-3: the estimate in front of a refusal for the budget or the product cap, no call made;
+// the last run and the month's spend for the cost line, scoped to the workspace.
+describe("the cost of a run", () => {
+  it("prices the input at four characters a token and the expected output", () => {
+    expect(estimateCents(DEFAULT_MODEL, "x".repeat(4_000), ACTIONS_EXPECTED_OUTPUT)).toBe(costEurCents(DEFAULT_MODEL, 1_000, 1_500));
+    expect(formatEur(5)).toBe("EUR 0.05");
+    expect(formatEur(1234)).toBe("EUR 12.34");
+  });
+
+  it("puts the estimate in front of a budget or a cap refusal and calls nothing", async () => {
+    const p = await answeredProject();
+    // A run first, to read the prompt and schema the refused runs would send: the estimate
+    // shown is theirs at four characters a token plus the 1,500 output tokens expected.
+    const first = transport(fourAndABadOne);
+    await writeActions(a, p.project.id, { fetch: first.fetch });
+    const sent = first.calls[0];
+    const shown = formatEur(estimateCents(DEFAULT_MODEL, sent.system + sent.data + JSON.stringify(sent.format), ACTIONS_EXPECTED_OUTPUT));
+    const { fetch, calls } = transport(fourAndABadOne);
+    const budgetBefore = (await workspaces.getById(a.ws))!.aiBudgetEur;
+    const capBefore = process.env.ANTHROPIC_MONTHLY_BUDGET_EUR;
+    await internal.setAiBudgetEur(a.ws, 0);
+    try {
+      const budget = await writeActions(a, p.project.id, { fetch });
+      expect("error" in budget && budget.error).toMatch(new RegExp(`^This run would cost about ${shown.replace(".", "\\.")}\\. This workspace has used its AI budget for the month\\.`));
+    } finally {
+      await internal.setAiBudgetEur(a.ws, budgetBefore);
+    }
+    process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "0";
+    try {
+      const paused = await writeActions(a, p.project.id, { fetch });
+      expect("error" in paused && paused.error).toMatch(new RegExp(`^This run would cost about ${shown.replace(".", "\\.")}\\. AI is paused until next month\\.`));
+    } finally {
+      process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = capBefore;
+    }
+    expect(calls).toHaveLength(0);
+  });
+
+  it("reads the project's last run of Write actions, and nothing across workspaces", async () => {
+    const p = await answeredProject();
+    expect(await aiRuns.lastFor(a.ws, p.project.id, "insights")).toBeNull();
+    await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
+    const last = await aiRuns.lastFor(a.ws, p.project.id, "insights");
+    expect(last && [last.tokensIn, last.tokensOut, last.costEurCents]).toEqual([1001, 301, costEurCents(DEFAULT_MODEL, 1001, 301)]);
+    expect(await aiRuns.lastFor(b.ws, p.project.id, "insights")).toBeNull();
+    expect(await aiRuns.lastFor(a.ws, p.project.id, "shape")).toBeNull();
+    // A later call the provider did not answer (a row with no tokens) is not the run shown.
+    await aiRuns.create(a.ws, { projectId: p.project.id, purpose: "insights", model: DEFAULT_MODEL, tokensIn: 0, tokensOut: 0, costEurCents: 0 });
+    expect((await aiRuns.lastFor(a.ws, p.project.id, "insights"))?.id).toBe(last!.id);
   });
 });

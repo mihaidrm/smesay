@@ -13,7 +13,7 @@ import { usage } from "@/db/queries/usage";
 import { runModel, type RunDeps } from "@/lib/ai/client";
 import { InsightOutput } from "@/lib/ai/insights-schema";
 import { buildActionsPrompt } from "@/lib/ai/prompts/insights";
-import { keptActions } from "@/lib/insights";
+import { ACTIONS_EXPECTED_OUTPUT, keptActions } from "@/lib/insights";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 
@@ -53,7 +53,7 @@ export async function runInsightSpec(spec: InsightSpec, ws: WorkspaceId, project
   const spentBefore = (await usage(ws, now)).aiCostCentsThisMonth;
   const spent = async () => (await usage(ws, now)).aiCostCentsThisMonth - spentBefore;
   const prompt = promptFor(spec);
-  const result = await runModel({ ws, projectId, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000 }, deps);
+  const result = await runModel({ ws, projectId, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000, expectedOutputTokens: ACTIONS_EXPECTED_OUTPUT }, deps);
   if (!result.ok) return { id: spec.id, pass: false, kinds: [], written: 0, kept: 0, failures: [`refused: ${result.reason}`], costCents: await spent(), model: "", error: `${result.reason}: ${result.detail}` };
   const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
   const kinds = [...new Set(kept.map((a) => a.kind))];

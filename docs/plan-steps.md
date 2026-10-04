@@ -73,7 +73,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch. E6-1 to E6-3 built 2026-10-03, E6-4 built 2026-10-04 (PRs 78, 81, 82 and the E6-4 PR); Mihai's acceptance notes per story still owed | none | 3 | done |
 | E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility. E7-1 to E7-7 built 2026-10-04 (PRs 84, 88, 90 to 94), the screens as built on the canvas (note 59); Mihai's acceptance notes per story still owed | none | 5 | done |
 | E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project. E8-1 to E8-8 built 2026-10-04; Mihai's acceptance notes per story still owed | none | 5 | done |
-| E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |
+| E9 Insights | Actions with citations, done or dismissed, cost per run. E9-1 to E9-3 built 2026-10-04; open until a real run: E9-3 acceptance 3 (the estimate against the actual); waiting on E10-2 and E10-3: E9-2 acceptance 4; Mihai's acceptance notes per story still owed | none | 2 | done |
 | E10 Exports | CSV, JSON, PDF summary | none | 2 | open |
 | E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry and the lawyer at the launch gate | none until launch | 2 | open |
 | E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai, a question bubble on the landing page that emails Mihai (E12-5, decision 0046) | none | 3 | open |

@@ -10,6 +10,7 @@ import { listMembersAndInvites } from "@/lib/members";
 import { can } from "@/lib/permissions";
 import { members } from "@/db/queries";
 import { usage } from "@/db/queries/usage";
+import { formatEur } from "@/lib/ai/prices";
 import { BrandForm } from "./brand";
 import { InviteForm, MemberRow } from "./members";
 
@@ -52,7 +53,7 @@ export default async function SettingsPage() {
             <div className="flex flex-col gap-1.5 px-4 py-4 text-sm">
               <div><span className="font-medium">Free</span> <span className="ml-1 rounded-full bg-violet-soft px-2.5 py-0.5 text-xs font-semibold text-violet-text">While we build it with the first users</span></div>
               <div className="text-xs text-ink-muted">Paid plans come later. Nothing you build now is lost or locked.</div>
-              <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month.`}</div>
+              <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month, ${formatEur(used.aiCostCentsThisMonth)} on AI this month.`}</div>
             </div>
           </section>
         </div>

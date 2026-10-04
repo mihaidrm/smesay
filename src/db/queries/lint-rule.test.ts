@@ -65,6 +65,7 @@ describe("db-access", () => {
     ['import { requireWorkspaceForUser } from "@/db/queries/internal";', "src/lib/workspace.ts"],
     ['import { internal } from "@/db/queries/internal";', "src/lib/ai/client.ts"],
     ['import { internal } from "@/db/queries/internal";', "src/lib/ai/client.test.ts"],
+    ['import { internal } from "@/db/queries/internal";', "src/lib/insights.test.ts"],
     ['import { prepareTestDatabase } from "@/db/test-db";', "src/lib/thing.test.ts"],
     ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/db/queries/x.test.ts"],
   ];

@@ -485,11 +485,12 @@ refused (E4-4, acceptance 4). Before the call: more than 12 imported areas, an i
 name over 60 characters, more than 400 items, or a prompt over E4-1's 500,000 characters are
 refused with their own messages (docs/copy/errors.md, Shaping).
 The route (E4-1): `runModel({ ws, projectId, purpose, instructions, data, schema, check,
-maxOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
+maxOutputTokens?, expectedOutputTokens? }, deps?)` in src/lib/ai/client.ts, the only file that reads
 ANTHROPIC_API_KEY or imports the SDK (lint rule smesay/ai-sdk, which also keeps the module
 out of "use client" files). It returns `{ ok: true, output, run }` (run: id, model, tokensIn,
 tokensOut, costEurCents, durationMs) or `{ ok: false, reason: "paused" | "budget" | "plan" |
-"rateLimited" | "failed" | "invalid", message, detail }` (paused: the product's monthly cap,
+"rateLimited" | "failed" | "invalid", message, detail, estimateCents? }` (estimateCents on a
+paused or budget refusal, E9-3) (paused: the product's monthly cap,
 ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036; budget: the workspace's); message is what the screen shows
 (AI_COPY in src/lib/ai/copy.ts, no database import), detail is for the server log (codes and
 paths from the route, plus the caller's check reason, which the caller keeps free of list text). The instructions are the system prompt; data is
@@ -500,6 +501,13 @@ Ceilings: 500,000 input characters and 16,000 output tokens; a caller over them 
 Error. Every call is an ai_run row, answered or not (zero tokens when not; usage() counts
 them). The price table, the default model and the euro rate, with the dates they were read,
 are in src/lib/ai/prices.ts; costEurCents(model, tokensIn, tokensOut) rounds up to the cent.
+The budget checks use the estimate estimateCents(model, text, outputTokens) over
+estimateText(instructions, data, outputFormat) in src/lib/ai/client.ts: the prompt and the
+output schema the API sends, at four characters a token, and expectedOutputTokens, or the
+whole allowance when the caller gives none (E9-3; Write actions expects 1,500,
+ACTIONS_EXPECTED_OUTPUT); each answered run logs the estimate next to the actual.
+formatEur(cents) gives "EUR 0.05". aiRuns.lastFor(ws, projectId, purpose) is a project's latest
+answered run of one purpose (a row with no tokens, a call not answered, is skipped).
 Shaping (E4-2): `shapeSet(actor, projectId)`, `moveItemTo(actor, projectId, itemId, area)`,
 `groupByArea(set, rows)`, `areaNames(set, rows)` in src/lib/shaping.ts; `applyShaping` and
 `moveItem` in src/db/queries/shaping.ts; `items.forSet(ws, setId)`. Reader versions (E4-3):

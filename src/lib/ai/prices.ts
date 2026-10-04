@@ -25,9 +25,18 @@ export function costEurCents(model: string, tokensIn: number, tokensOut: number)
   return Math.max(1, Math.ceil((usd / USD_PER_EUR.rate) * 100));
 }
 
-// The estimate before a call (acceptance 3): about four characters per token, the pricing
+// The estimate before a call (E4-1, acceptance 3): about four characters per token, the pricing
 // page's own rule of thumb ("1 token is approximately 4 characters or 0.75 words in
-// English"), and the whole output allowance, so the estimate errs high.
+// English"), plus the output the caller expects, or the whole output allowance when it names none
+// (the estimate then errs high; E9-3).
 export function estimateTokensIn(text: string): number {
   return Math.ceil(text.length / 4);
 }
+
+// A call's estimate in euro cents (E9-3): the text at four characters per token (runModel
+// passes the prompt and the output schema, estimateText) and the output the caller expects,
+// priced as a run is.
+export const estimateCents = (model: string, text: string, outputTokens: number): number => costEurCents(model, estimateTokensIn(text), outputTokens);
+
+// Euro cents as the screens show them: "EUR 0.05" (E9-3).
+export const formatEur = (cents: number): string => `EUR ${(cents / 100).toFixed(2)}`;

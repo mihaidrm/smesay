@@ -13,6 +13,7 @@ import { INSIGHT_STATES, type InsightKind, type InsightState } from "@/db/types"
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
 import { contextOf } from "@/lib/ai/context";
 import { InsightOutput } from "@/lib/ai/insights-schema";
+import { formatEur } from "@/lib/ai/prices";
 import { buildActionsPrompt, type ActionsAnswer } from "@/lib/ai/prompts/insights";
 import { NotFoundError } from "@/lib/errors";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
@@ -50,6 +51,10 @@ export function share(total: number, n: number): number[] {
   return Array.from({ length: n }, (_, i) => each + (i === 0 ? total - each * n : 0));
 }
 
+// The output a run is expected to write, for the estimate (E9-3): eight actions of about 150
+// tokens each and the JSON around them; the allowance stays 4,000.
+export const ACTIONS_EXPECTED_OUTPUT = 1_500;
+
 export type WriteResult = { error: string; retry: boolean } | { written: Insight[] };
 
 export async function writeActions(actor: Actor, projectId: string, deps?: RunDeps): Promise<WriteResult> {
@@ -79,10 +84,12 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   }, contextOf({ goal: project.contextGoal, terms: project.contextTerms }));
   if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: ACTIONS_COPY.tooLong, retry: false };
   // The check refuses nothing: an action citing an unknown ref is dropped, not the run.
-  const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000 }, deps);
+  const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000, expectedOutputTokens: ACTIONS_EXPECTED_OUTPUT }, deps);
   if (!result.ok) {
     console.error(`Actions did not run for project ${project.id} (${result.reason}): ${result.detail}.`);
-    return { error: ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
+    // A run refused for the cap or the budget says what it would have cost (E9-3, acceptance 2).
+    const cost = result.estimateCents !== undefined ? `${ACTIONS_COPY.estimate(formatEur(result.estimateCents))} ` : "";
+    return { error: cost + ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
   // A run that keeps nothing leaves the open actions as they are (the tab says so).
