@@ -1,7 +1,7 @@
 # E11-1 Rate limiting on public links, auth routes and passcodes
 
 User: Claude, keeping the public side safe; a respondent who should never notice it
-Status: ready
+Status: built
 Outcome: respondent routes take 100 requests per minute per IP, auth attempts stop after 5,
 passcode guesses are throttled, all with plain pages.
 
@@ -34,3 +34,25 @@ passcode guesses are throttled, all with plain pages.
 Implemented in Next.js 16 `proxy` (decision 0024; nextjs.org/docs/app/api-reference/file-
 conventions/proxy, read when the story starts) for the route match, with the bucket logic in
 src/lib/ratelimit.ts so it is testable without HTTP.
+
+Built 2026-10-04 (design note 72, decision 0044):
+- Acceptance 1 and 5 (the logo): src/proxy.ts runs on /r and /brand and counts requests per
+  address (the first X-Forwarded-For entry) in a 60 second window, 100 at most
+  (src/lib/ratelimit.ts respondentLimit). Over it: 429 with Retry-After, the plain page "Too
+  many requests" for a page request, JSON { error: "rateLimited", waitMinutes } for the
+  respondent app's calls; the answer queue reads 429 as "retry" and keeps the answer
+  (src/lib/answer-queue.ts outcomeOf). src/proxy.test.ts and e2e/ratelimit.spec.ts.
+- Acceptance 2: better-auth's hooks (src/lib/auth.ts limitSignIn, countFailedCallback): a magic
+  link request counts against its email and its address, a provider callback counts against
+  its address when it fails; 5 in 15 minutes, then 429 for one minute, then two, four, and back
+  to one after a quiet day (signInLimit). The sign-in form shows the wait from the 429's
+  waitMinutes; a blocked callback goes to /sign-in/google-failed?wait=[N], which shows it.
+  src/lib/auth-limit.test.ts and e2e/ratelimit.spec.ts.
+- Acceptance 3: built in E6-1 (src/lib/link-access.ts: 5 wrong passcodes per link and address,
+  60 per link, in 15 minutes, with its tests); unchanged.
+- Acceptance 4, decided: in memory, per process (the app is one instance from `docker compose
+  up`); a deploy with more instances needs a table of buckets (docs/review-list.md). A request
+  with no X-Forwarded-For (a local run) is not limited by address, so one shared "local"
+  bucket never locks everyone out; the email limit still applies.
+- Acceptance 5 (unit tests): src/lib/ratelimit.test.ts drives the window and the backoff past
+  their thresholds and across their windows with a test clock.

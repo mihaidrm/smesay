@@ -72,7 +72,11 @@ Public links and respondents
   attempts are limited in the process, counted as a post starts and given back on a right
   passcode: 60 per link and 5 per link and address in 15 minutes (E6-1); the shared store
   and the per-route limit are E11-1.
-- Rate limits: respondent routes 100/min/IP; auth routes 5 attempts then backoff.
+- Rate limits (E11-1, src/lib/ratelimit.ts, in the process's memory): respondent routes and the
+  logo route 100/min/IP (src/proxy.ts); sign-in 5 attempts per email and per IP in 15 minutes,
+  then a wait doubling from one minute (src/lib/auth.ts hooks); passcodes 5 wrong per link and
+  IP in 15 minutes (src/lib/link-access.ts). The IP is the first X-Forwarded-For entry, which
+  the host's proxy must set and overwrite; a request without it is not limited by IP.
 
 Data
 - Uploads validated by type and size (5 MB, 2,000 rows); parsed server-side in the request,

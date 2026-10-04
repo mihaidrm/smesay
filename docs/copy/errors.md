@@ -15,7 +15,7 @@ of the content; page means it replaces the screen.
 | Inline, email field | Email empty or not an address | Enter the email address you signed up with. |
 | Banner, sign-in page | Link sent | Check your email. The link works once and stops working in [N] minutes. |
 | Page | Link used twice or expired | This sign-in link has already been used or has expired. Ask for a new one. [Button: Send a new link] |
-| Page | Five failed attempts | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. |
+| Inline, email field; the Google page (E11-1) | Five sign-in attempts per email or address in 15 minutes, then a wait of one minute that doubles each time | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. (1 minute) |
 | Inline, email field | The server refused the request for another reason | The link was not sent. Try again in a minute. |
 | Inline, workspace name field | Name empty or over 80 characters | Enter a name for your workspace, up to 80 characters. |
 | Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |
@@ -274,6 +274,7 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
+| Page, respondent routes and logo (E11-1) | Over 100 requests a minute from one address (429) | Too many requests from your connection. Wait a minute and try again. (Title: Too many requests) |
 | Page | 404 | This page does not exist. Check the address, or go to your projects. |
 | Page | 500 | The server could not finish this request. It has been logged. Try again in a minute; if it keeps failing, email [SUPPORT EMAIL]. |
 | Page | Maintenance | SMEsay is being updated and is back within [MINUTES] minutes. Respondent links keep their saved answers. |

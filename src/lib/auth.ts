@@ -38,10 +38,13 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendMail } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/sign-in-email";
+import { addressOf, LOCAL, minutesOf, signInLimit } from "@/lib/ratelimit";
+import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
 
 const DAY = 60 * 60 * 24;
 export const SESSION_DAYS = 30;
@@ -85,6 +88,36 @@ function isLocalhost(url: string): boolean {
   }
 }
 
+const addressOfCtx = (getHeader: (key: string) => string | null) => addressOf(new Headers({ "x-forwarded-for": getHeader("x-forwarded-for") ?? "local" }));
+const tooMany = (retryAfterMs: number) => {
+  const waitMinutes = minutesOf(retryAfterMs);
+  return new APIError("TOO_MANY_REQUESTS", { code: "RATE_LIMITED", message: SIGN_IN_COPY.tooManyFor(waitMinutes), waitMinutes }, { "retry-after": String(Math.ceil(retryAfterMs / 1000)) });
+};
+const limitSignIn = createAuthMiddleware(async (ctx) => {
+  const now = Date.now();
+  const ip = addressOfCtx(ctx.getHeader);
+  const address = ip === LOCAL ? null : `address:${ip}`;
+  if (ctx.path === "/sign-in/magic-link") {
+    const email = typeof ctx.body?.email === "string" ? ctx.body.email.trim().toLowerCase().slice(0, 320) : "";
+    const verdicts = [...(address ? [signInLimit.attempt(address, now)] : []), ...(email ? [signInLimit.attempt(`email:${email}`, now)] : [])];
+    const refused = verdicts.find((v) => !v.allowed);
+    if (refused && !refused.allowed) throw tooMany(refused.retryAfterMs);
+  }
+  if (address && ctx.path.startsWith("/callback/")) {
+    const verdict = signInLimit.check(address, now);
+    if (!verdict.allowed) throw ctx.redirect(`${GOOGLE_ERROR_PATH}?wait=${minutesOf(verdict.retryAfterMs)}`);
+  }
+});
+// A callback failed when it answered an error or sent the person to an error address.
+const countFailedCallback = createAuthMiddleware(async (ctx) => {
+  if (!ctx.path.startsWith("/callback/")) return;
+  const returned = ctx.context.returned;
+  const location = ctx.context.responseHeaders?.get("location") ?? (returned instanceof APIError ? new Headers(returned.headers).get("location") : null) ?? "";
+  const failed = (returned instanceof APIError && returned.statusCode >= 400) || location.includes("error=") || location.includes(GOOGLE_ERROR_PATH);
+  const ip = addressOfCtx(ctx.getHeader);
+  if (failed && ip !== LOCAL) signInLimit.attempt(`address:${ip}`, Date.now());
+});
+
 export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disableOriginCheck?: boolean } = {}) {
   return betterAuth({
     baseURL,
@@ -112,6 +145,13 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
       additionalFields: { currentWorkspaceId: { type: "string", required: false, input: false } },
     },
     advanced: { disableOriginCheck: options.disableOriginCheck },
+    // Sign-in attempts (stories/E11-1, acceptance 2): 5 per email and 5 per address, then a wait
+    // that doubles from one minute (src/lib/ratelimit.ts signInLimit). A magic link request is an
+    // attempt; a provider callback counts when it fails, and a blocked address goes to the Google
+    // page with the wait. Hooks: node_modules/@better-auth/core/dist/types/init-options.d.mts
+    // (hooks.before, hooks.after) and createAuthMiddleware (better-auth/api), whose context has
+    // path, body, getHeader and, after the endpoint, context.returned and responseHeaders.
+    hooks: { before: limitSignIn, after: countFailedCallback },
     plugins: [
       magicLink({
         expiresIn: SIGN_IN_LINK_MINUTES * 60,
