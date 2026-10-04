@@ -29,7 +29,7 @@ Under the buttons: No account for the experts. Nothing to install. Free while we
 Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
 "Expenses over the policy limit are flagged before they reach the approver." You proposed
 Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agree. Lukas,
-engineering: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
+engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
 2 answers.
 
 Agreement chip: 63%. Agreement so far. 30 answers from 5 experts.
@@ -122,7 +122,7 @@ Each opens in place (a plus that turns to a cross):
   move items between areas, and dismiss what you do not need.
 - Can I see who said what? You choose the fields the link asks for, such as name, role or
   department. Answers carry those fields and nothing more about the person; a personal invite
-  also carries the email you sent it to, and the name when you gave one.
+  also carries the email you sent it to, and the name and role when you gave them.
 - Can the link carry our logo and colour? Yes. Your experts see your logo and your colour on
   the link.
 - What happens to my list and the answers? They stay in your workspace. Export them as CSV
@@ -183,10 +183,10 @@ screen:
   2026-10-04) and answers saved as they go (E7-3), what the AI does and what the PM controls
   (E4-2 moves items between areas, E4-3 accepts or rejects the wording, E4-4 dismisses
   flags, E9-1 and E9-2 the to-dos, done or dismissed), only the fields asked for and a
-  personal invite's email and optional name (E5-1, E6-2), logo and colour on the link (E2-5,
+  personal invite's email and optional name and role (E5-1, E6-2), logo and colour on the link (E2-5,
   E7-1), CSV export (E10-1), projects archived (decision 0028) and a workspace's rows and
-  files removed within 24 hours (E11-2; backups, E11-4, follow the privacy policy, E11-3,
-  with the lawyer's marker), free (decision 0008), hello@smesay.app (the domain,
+  files removed within 24 hours (E11-2; backups, E11-4, have no retention period in any story
+  yet, a point for the privacy policy, E11-3, and the lawyer), free (decision 0008), hello@smesay.app (the domain,
   docs/accounts.md).
 - The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
   on the link" (the settings, E2-5; the link shows them since E7-1).

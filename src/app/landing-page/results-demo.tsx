@@ -122,7 +122,7 @@ export function ResultsDemo() {
   const [view, setView] = useState<View>("Table");
   return (
     <div className="flex flex-col gap-4" data-testid="results-demo" data-view={view}>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="results-tiles">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4" data-testid="results-tiles">
         {[["Submitted", "5 of 7"], ["Agreement", "63%"], ["Different priority", "7"], ["Unclear", "2"]].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5 rounded-[14px] border border-[#E6E3F0] bg-white px-3 py-2.5">
             <span className="text-[13px] text-[#5E5A72]">{label}</span>

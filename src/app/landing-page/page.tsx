@@ -51,7 +51,7 @@ function LiveCard() {
     ["IM", "Ioana, sales", "#FFE9E5", "#9E3321", "Must have", "#FFF3D6", "#8A5A00"],
     ["TR", "Tom, sales", "#EEEAFF", "#5A3BE0", "Must have", "#FFF3D6", "#8A5A00"],
     ["DO", "Dana, finance", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
-    ["LB", "Lukas, engineering", "#FFF3D6", "#8A5A00", "Agree", "#E1F5EE", "#166A52"],
+    ["LB", "Lukas, engineering manager", "#FFF3D6", "#8A5A00", "Agree", "#E1F5EE", "#166A52"],
   ];
   return (
     <div className="relative w-full max-w-[540px] rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] text-[#15131F] shadow-[0_12px_32px_rgba(45,32,110,0.10)] lg:rotate-[-1.5deg]" data-testid="live-card">
@@ -85,7 +85,7 @@ const QUESTIONS: [string, string][] = [
   ["Do my experts need an account?", "No. They open the link and answer. There is nothing to install and nothing to sign up for."],
   ["Does it work on a phone?", "Yes. The link is made for a phone first and works the same on a laptop. Answers save as they go, so an expert can stop and pick up where they left off."],
   ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and drafts the to-do list from the answers, naming the answers behind each line. It never answers for your experts. You choose which wording goes out, move items between areas, and dismiss what you do not need."],
-  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the email you sent it to, and the name when you gave one."],
+  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the email you sent it to, and the name and role when you gave them."],
   ["Can the link carry our logo and colour?", "Yes. Your experts see your logo and your colour on the link."],
   ["What happens to my list and the answers?", "They stay in your workspace. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and the app removes its data within 24 hours."],
   ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],

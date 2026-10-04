@@ -8,9 +8,9 @@
 // reduced motion, without IntersectionObserver or without JavaScript it rests on "Shaped".
 // Both sides are drawn in one grid cell and the hidden one is invisible, so the card does not
 // change height when it turns.
-// The switch is the landing's variant of the segmented control (design note 53: a violet-soft
-// track, since the tint track does not show on the tint card, 32 px options, the active one
-// white with a small shadow), two toggle buttons with aria-pressed
+// The switch is the landing's variant of the segmented control, the same as the results
+// card's (design note 53: a violet-soft track, 32 px options, the active one white with a
+// small shadow), two toggle buttons with aria-pressed
 // (developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed). The
 // card is watched with IntersectionObserver and its threshold option (developer.mozilla.org/
 // docs/Web/API/IntersectionObserver/IntersectionObserver), the first switch to the sheet is

@@ -35,7 +35,7 @@ test("the steps, the Shape switch, the results views and the questions", async (
   const steps = page.locator("#how");
   await expect(steps.getByText("Send one link", { exact: true })).toBeVisible();
   expect((await steps.innerText()).toLowerCase()).not.toContain("phone");
-  // Below the fold the card waits on the sheet, then turns once when seen; a click holds it.
+  // Below the fold the card waits on the sheet, then turns once when seen.
   const shape = page.getByTestId("shape-demo");
   await expect(shape).toHaveAttribute("data-side", "Your sheet");
   await shape.scrollIntoViewIfNeeded();
@@ -43,8 +43,6 @@ test("the steps, the Shape switch, the results views and the questions", async (
   await shape.getByRole("button", { name: "Your sheet" }).click();
   await expect(shape.getByRole("button", { name: "Your sheet" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("shape-sheet")).toContainText("OCR receipt capture via mobile");
-  await page.waitForTimeout(1200);
-  await expect(shape).toHaveAttribute("data-side", "Your sheet");
   await shape.getByRole("button", { name: "Shaped" }).click();
   await expect(page.getByTestId("shape-shaped")).toContainText("Managers approve or reject from the email, without logging in.");
   const demo = page.getByTestId("results-demo");
@@ -69,4 +67,17 @@ test("the steps, the Shape switch, the results views and the questions", async (
     const widths = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
     expect(widths[0]).toBeLessThanOrEqual(widths[1]);
   }
+});
+
+// A visitor who clicks before the turn keeps the side they chose (design note 53).
+test("a click on the Shape switch before the turn holds it", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/landing-page");
+  const shape = page.getByTestId("shape-demo");
+  await expect(shape).toHaveAttribute("data-side", "Your sheet");
+  await shape.getByRole("button", { name: "Your sheet" }).click();
+  // The turn would come 900 ms after the card is seen; two seconds later it has not come.
+  await expect.poll(async () => shape.getAttribute("data-side"), { intervals: [500, 500, 500, 500], timeout: 2500 }).toBe("Your sheet");
+  await page.waitForTimeout(1500);
+  await expect(shape).toHaveAttribute("data-side", "Your sheet");
 });
