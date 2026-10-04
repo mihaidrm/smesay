@@ -8,15 +8,22 @@
 // In preview mode nothing is answered: the tally is zero, every item is still to finish,
 // the picks stay in memory and Submit stays disabled. The confidence pills are one radio
 // group with a roving tabindex and arrow keys, as the rating row (rating-row.tsx), with
-// Guessing and Certain described on 1 and 5. E7-5 extends the component with the answers
-// (the tally, the gaps, the sections) and the Go to handler; here the tally is zero.
-// Phone first.
+// Guessing and Certain described on 1 and 5. E7-4 renders it on the live link with the
+// header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
+// finish." with Go to the first one's chapter, and the list "Still to finish" naming each
+// item and what is missing (Not rated yet, Say why., Write your question.), each a button
+// to its own item, and Back. On the live link the tally, the closing form and Submit wait
+// for E7-5, which makes them work; until then they are not shown, so nothing on the page
+// takes an answer it does not keep. Phone first. Tap targets on the live link are 48 px
+// (docs/design-system.md, Respondent tap targets): the Go to button keeps its pill and takes
+// a 48 px hit area.
 import { useId, useRef, useState } from "react";
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
+import { RESPONDENT_COPY, type Gap } from "@/lib/respondent-rules";
 import { scaleFor } from "@/lib/scoring";
 
 export type WrapUpProps = {
@@ -36,11 +43,23 @@ export type WrapUpProps = {
   // ringed as one group in the preview (decision 0021).
   ring?: boolean;
   className?: string;
+  // The live link (E7-4): the header and row above, the gaps, moving to a chapter, Back.
+  top?: React.ReactNode;
+  gaps?: Gap[];
+  onGo?: (chapter: number, itemId?: string) => void;
+  onBack?: () => void;
 };
+
+const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRated, sayWhy: RESPONDENT_COPY.sayWhy, writeQuestion: RESPONDENT_COPY.writeQuestion, notSaved: RESPONDENT_COPY.notSavedYet };
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, total, preview = false, heading: Heading = "h1", ring = false, className }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack }: WrapUpProps) {
+  const open = gaps ? gaps.length : total;
+  // The live link before E7-5: the gaps and Back only.
+  const live = Boolean(gaps) && !preview;
+  const Body = preview ? "div" : "main";
+  const firstGap = gaps?.[0];
   const [confidence, setConfidence] = useState<number | null>(null);
   const [signed, setSigned] = useState(false);
   const prefix = useId();
@@ -53,33 +72,60 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
   const tiles = showProposed
     ? [WRAP_UP_COPY.tally.agreed, WRAP_UP_COPY.tally.higher, WRAP_UP_COPY.tally.lower, WRAP_UP_COPY.tally.notNeeded, WRAP_UP_COPY.tally.unclear]
     : [WRAP_UP_COPY.tally.rated, WRAP_UP_COPY.tally.notNeeded, WRAP_UP_COPY.tally.unclear];
-  const needed = [...(total > 0 ? [WRAP_UP_COPY.needItems(total)] : []), ...(confidence === null ? [WRAP_UP_COPY.needConfidence] : []), ...(signed ? [] : [WRAP_UP_COPY.needSignOff])];
+  const needed = [...(open > 0 ? [WRAP_UP_COPY.needItems(open)] : []), ...(confidence === null ? [WRAP_UP_COPY.needConfidence] : []), ...(signed ? [] : [WRAP_UP_COPY.needSignOff])];
   const disabled = needed.length > 0;
   return (
     <div className={cn("flex min-h-full flex-col bg-ground text-ink", className)} data-testid="wrap-up" data-preview={preview || undefined}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
-      <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
-        <span className="grow text-[15px] font-bold">{workspaceName}</span>
-        <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
-      </header>
-      <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
-        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{WRAP_UP_COPY.title}</Heading>
-        <div className={cn("grid gap-1.5", showProposed ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
-          {tiles.map((label) => (
-            <div key={label} className="card flex flex-col items-center gap-0.5 px-1 py-2">
-              <span className="font-mono text-lg font-extrabold">0</span>
-              <span className="text-center text-[10px] leading-3 text-ink-muted">{label}</span>
-            </div>
-          ))}
-        </div>
-        {total > 0 ? (
-          <div className="flex items-center justify-between gap-3 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
-            <span className="font-semibold">{WRAP_UP_COPY.toFinish(total)}</span>
-            {chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0])}</span>}
+      {top ?? (
+        <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
+          <span className="grow text-[15px] font-bold">{workspaceName}</span>
+          <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
+        </header>
+      )}
+      <Body className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
+        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={Heading === "h1" && !preview ? -1 : undefined} data-screen-heading={(Heading === "h1" && !preview) || undefined}>{WRAP_UP_COPY.title}</Heading>
+        {!live && (
+          <div className={cn("grid gap-1.5", showProposed ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
+            {tiles.map((label) => (
+              <div key={label} className="card flex flex-col items-center gap-0.5 px-1 py-2">
+                <span className="font-mono text-lg font-extrabold">0</span>
+                <span className="text-center text-[10px] leading-3 text-ink-muted">{label}</span>
+              </div>
+            ))}
           </div>
+        )}
+        {open > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
+            <span className="font-semibold">{WRAP_UP_COPY.toFinish(open)}</span>
+            {gaps && firstGap && onGo && chapters[firstGap.chapter] ? (
+              <button type="button" onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
+            ) : (
+              !gaps && chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0])}</span>
+            )}
+          </div>
+        ) : gaps ? (
+          <p className="rounded-xl bg-mint-soft px-4 py-3 text-sm font-semibold text-mint-text" data-testid="wrap-up-all">{RESPONDENT_COPY.allAnswered(total)}</p>
         ) : (
           <p className="text-sm text-ink-muted">{WRAP_UP_COPY.noItems}</p>
         )}
+        {gaps && gaps.length > 0 && (
+          <section className="flex flex-col gap-2" aria-labelledby={`${prefix}-gaps-title`} data-testid="wrap-up-unfinished">
+            <h2 id={`${prefix}-gaps-title`} className="text-sm font-semibold">{RESPONDENT_COPY.stillToFinish}</h2>
+            <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline bg-surface">
+              {gaps.map((g) => (
+                <li key={g.itemId}>
+                  <button type="button" onClick={() => onGo?.(g.chapter, g.itemId)} className="flex min-h-12 w-full items-baseline gap-2 px-4 py-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-violet" data-testid="unfinished-item">
+                    {g.reference && <span className="shrink-0 font-mono text-[11px] text-ink-muted">{g.reference}</span>}
+                    <span className="min-w-0 grow">{g.title}</span>
+                    <span className={cn("shrink-0 text-xs font-semibold", g.note === "notRated" ? "font-normal text-ink-muted" : "text-sun-text")}>{GAP_NOTE[g.note]}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {!live && (
         <div className={cn("flex flex-col gap-4", ring && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="wrap-up-closing">
         {closing.missingForm && (
           <fieldset className="flex flex-col gap-2.5" data-testid="wrap-up-missing">
@@ -129,11 +175,15 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span>{signOffFor(closing)}</span>
         </label>
         </div>
+        )}
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
-      </div>
+      </Body>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" disabled={disabled || preview} aria-describedby={`${prefix}-note`} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{WRAP_UP_COPY.submit}</button>
-        <div id={`${prefix}-note`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="wrap-up-note">{disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : WRAP_UP_COPY.allIn}</div>
+        <div className="flex items-center gap-3">
+        {onBack && <button type="button" onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
+        {!live && <button type="button" disabled={disabled || preview} aria-describedby={`${prefix}-note`} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{WRAP_UP_COPY.submit}</button>}
+        </div>
+        {!live && <div id={`${prefix}-note`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="wrap-up-note">{disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : WRAP_UP_COPY.allIn}</div>}
       </div>
     </div>
   );

@@ -57,12 +57,14 @@ export type AboutYouProps = {
   // The part the Build step rings in the preview (stories/E5-6, acceptance 2).
   ring?: "fields";
   onStart?: (values: ResponseFields, picks: string[]) => void;
+  // The live page after Start (E7-4): the chapter row and the bar under the header.
+  nav?: React.ReactNode;
   className?: string;
 };
 
 const FIELD = "h-12 w-full @lg:w-[360px] rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, className }: AboutYouProps) {
+export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, nav, className }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
   const asked = fields.filter((f) => !prefilled?.[f.key]);
   const filled = fields.flatMap((f) => (prefilled?.[f.key] ? [prefilled[f.key]] : []));
@@ -81,9 +83,10 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
     <div className={cn("@container flex min-h-full flex-col bg-ground text-ink", className)} data-testid="about-you" data-preview={preview || undefined}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
       <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} noteTestId="about-you-note" />
+      {nav}
       <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
         <div className="flex flex-col gap-1">
-          <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{title}</Heading>
+          <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{title}</Heading>
           {intro && <p className="text-sm leading-5 text-ink-muted" data-testid="about-you-intro">{intro}</p>}
         </div>
         <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="about-you-fields">

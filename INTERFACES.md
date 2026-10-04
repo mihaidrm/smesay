@@ -206,8 +206,15 @@ of that page), and returns { stale } with the stored answer otherwise; under a s
 update lock on the response, so writes for one response run in order). Client-safe rules in
 src/lib/respondent-rules.ts: parseFieldValues, parsePicks, carriedFields, chaptersFor
 (RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, from E7-2
-answerFor, noteFor, parseAnswerInput, pickedOf, screenCount, and from E7-3 resumeAt; the
-device queue's rules in src/lib/answer-queue.ts.
+answerFor, noteFor, parseAnswerInput, pickedOf, screenCount, from E7-3 resumeAt, and from
+E7-4 landingOf(chapters, answers, layout, at, started) (where a visit lands: the screen, the
+item in the one-item layout, and the Welcome back counts or null), progressOf(chapters,
+done) ({ done, count } per chapter) and gapsOf(chapters, done, card) (each item not
+complete on the server: itemId, reference, title, chapter, and what is missing: notRated,
+sayWhy, writeQuestion or notSaved); Screen is about, chapter (index) or, from E7-4, wrap,
+in the address as ?at=about, ?at=[chapter number] and ?at=wrap. The device queue's rules
+in src/lib/answer-queue.ts, with doneFrom from E7-4 (whether a reply's `complete` replaces
+the page's, by version).
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

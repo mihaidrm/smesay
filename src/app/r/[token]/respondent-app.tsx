@@ -1,10 +1,10 @@
 "use client";
 // The respondent journey on an open link (stories/E7-1 onwards), one client component
-// over the screens: About you, the chapters, and from E7-5 the Wrap up. The page renders it
+// over the screens: About you, the chapters, and from E7-4 the Wrap up. The page renders it
 // on the server with the response this device has (null before Start), so the first paint
 // carries the screen; moving between screens is in the browser, with the address kept in
 // step through the history API so Back and a reload land on the same screen
-// (?at=about, ?at=[chapter number]; the native history API in Next:
+// (?at=about, ?at=[chapter number], ?at=wrap; the native history API in Next:
 // node_modules/next/dist/docs/01-app/02-guides/single-page-applications.md). Start posts
 // About you to /r/[token]/start and lands on the first chapter (E7-1, acceptance 6). The
 // first load writes ?at= into its own history entry (replaceState), so Back from the first
@@ -16,16 +16,27 @@
 // read seed them (E7-2: a complete answer the server has reads "Saved"), and the answers
 // this device had not got to the server yet replace them (E7-3). While answers cannot reach
 // the server the header says "Not saved", and offline the banner says why; a browser that
-// keeps nothing between visits gets its notice once, on the first chapter screen.
+// keeps nothing between visits gets its notice once, on the first screen after About you.
+// E7-4: the chapter row and the bar under the header of every screen once started, About
+// you included (?at=wrap is the Wrap up), Continue to the next chapter or the Wrap up, the
+// footer's count, and a returning visit's "Welcome back" over the chapter or the Wrap up it
+// lands on, until the respondent moves. The row and the Wrap up count what the server holds
+// complete (the saver's `done`); a card's note says what is missing as the respondent left
+// it. A screen change moves focus to the new screen's heading (data-screen-heading, tabIndex
+// -1), so a screen reader hears where it landed; a row of "Still to finish" opens its own
+// item: the item itself in the one-item layout, otherwise its card scrolled into view with
+// focus on its first control. The Wrap up's column is 760 px.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "cn";
 import { AboutYou } from "@/components/respondent/about-you";
+import { ChapterRow } from "@/components/respondent/chapter-row";
 import { ChapterScreen } from "@/components/respondent/chapter-screen";
-import type { CardDraft } from "@/components/respondent/item-card";
+import { answerOfDraft, EMPTY_DRAFT, type CardDraft } from "@/components/respondent/item-card";
+import { WrapUp } from "@/components/respondent/wrap-up";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
-import type { Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
-import { chaptersFor, parseScreen, pickedOf, screenCount, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { chaptersFor, gapsOf, isComplete, parseScreen, pickedOf, progressOf, screenCount, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 
 export type RespondentAppProps = {
@@ -47,6 +58,9 @@ export type RespondentAppProps = {
   // Each stored answer's version, and the response they belong to (E7-3, the queue).
   versions: Record<string, number>;
   responseId: string | null;
+  closing: ClosingSpec;
+  // A returning visit with answers (E7-4, acceptance 4): the first name and the count.
+  welcome: { name: string | null; answered: number; total: number } | null;
 };
 
 export function RespondentApp(props: RespondentAppProps) {
@@ -62,6 +76,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
   const [item, setItem] = useState(props.initialItem);
   const [storageNoticeDone, setStorageNoticeDone] = useState(false);
+  const [welcomeDone, setWelcomeDone] = useState(false);
   const itemIds = useMemo(() => items.map((it) => it.id), [items]);
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -75,7 +90,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // once however many saves were refused; Start then sends the cards' drafts again, so the
   // answers on the page are kept with the new details. Straight after a Start it is the
   // browser refusing the cookie, and the sentence says so instead.
-  const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), {
+  const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
     onSaved: () => { savedSinceStart.current = true; },
@@ -94,14 +109,35 @@ export function RespondentApp(props: RespondentAppProps) {
     saver.queue(itemId, draft);
   };
 
-  const go = (next: Screen) => {
+  // Focus after a screen change (not on the first paint): the asked-for card, or the heading.
+  const moved = useRef(false);
+  const target = useRef<string | null>(null);
+  const where = screenParam(screen);
+  useEffect(() => {
+    if (!moved.current) { moved.current = true; return; }
+    const itemId = target.current;
+    target.current = null;
+    const card = itemId ? document.querySelector<HTMLElement>(`[data-item="${CSS.escape(itemId)}"]`) : null;
+    if (card) {
+      card.scrollIntoView({ block: "start" });
+      card.querySelector<HTMLElement>("[tabindex='0'], input:not([tabindex='-1']), textarea, button")?.focus({ preventScroll: true });
+      return;
+    }
+    document.querySelector<HTMLElement>("[data-screen-heading]")?.focus({ preventScroll: true });
+  }, [where]);
+
+  const go = (next: Screen, itemIndex = 0, itemId: string | null = null) => {
+    target.current = itemId;
     saver.flush();
+    setWelcomeDone(true);
     // About you shows what Start saved; picks ticked and not saved are dropped.
     if (next.kind === "about") setPicks(savedPicks);
-    if (saver.storageOff && screen.kind === "chapter") setStorageNoticeDone(true);
+    // The storage notice shows once: leaving any screen it showed on marks it seen.
+    if (saver.storageOff && screen.kind !== "about") setStorageNoticeDone(true);
     setScreen(next);
-    setItem(0);
-    window.history.pushState(null, "", `?at=${screenParam(next)}`);
+    setItem(itemIndex);
+    // The screen already showing (its own pill tapped) adds no history entry.
+    if (screenParam(next) !== screenParam(screen)) window.history.pushState(null, "", `?at=${screenParam(next)}`);
     window.scrollTo(0, 0);
   };
   // The first entry carries its screen too, so Back from a pushed screen lands on it.
@@ -113,7 +149,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // Back and Forward in the browser move between screens.
   useEffect(() => {
     const onPop = () => {
-      if (screenRef.current.kind === "chapter") setStorageNoticeDone(true);
+      if (screenRef.current.kind !== "about") setStorageNoticeDone(true);
       setScreen(parseScreen(new URLSearchParams(window.location.search).get("at"), started, screenCount(instrument.layout, chapters.length)));
     };
     window.addEventListener("popstate", onPop);
@@ -157,19 +193,54 @@ export function RespondentApp(props: RespondentAppProps) {
 
   const firstChapter = chaptersFor(areas, items, picks)[0]?.name ?? null;
   const note = saver.unsaved ? RESPONDENT_COPY.notSaved : headerNote;
-  const banner = saver.offline || (saver.storageOff && !storageNoticeDone) ? (
-    <div className="flex flex-col gap-1 border-b border-sun bg-sun-soft px-5 py-2.5 text-sm text-sun-text" role="status" data-testid="saving-banner">
-      {saver.offline && <p>{RESPONDENT_COPY.offline}</p>}
-      {saver.storageOff && !storageNoticeDone && <p data-testid="storage-notice">{RESPONDENT_COPY.storageOff}</p>}
+  const page = instrument.layout === "page";
+  const names = chapters.map((c) => c.name ?? instrument.title);
+  const progress = progressOf(chapters, saver.done);
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const gaps = gapsOf(chapters, saver.done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null));
+  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} />;
+  const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
+    <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text" role="status" data-testid="welcome-back">
+      <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
+      <p>{RESPONDENT_COPY.answeredBefore(props.welcome.answered, props.welcome.total)}</p>
     </div>
   ) : null;
-  const wide = screen.kind === "chapter" && Boolean(chapters[screen.index]);
+  const banner = welcome || saver.offline || (saver.storageOff && !storageNoticeDone) ? (
+    <>
+      {welcome}
+      {(saver.offline || (saver.storageOff && !storageNoticeDone)) && (
+        <div className="flex flex-col gap-1 border-b border-sun bg-sun-soft px-5 py-2.5 text-sm text-sun-text" role="status" data-testid="saving-banner">
+          {saver.offline && <p>{RESPONDENT_COPY.offline}</p>}
+          {saver.storageOff && !storageNoticeDone && <p data-testid="storage-notice">{RESPONDENT_COPY.storageOff}</p>}
+        </div>
+      )}
+    </>
+  ) : null;
+  const chapterScreen = (index: number) => {
+    const here = page ? chapters.flatMap((c) => c.items) : chapters[index].items;
+    const left = here.filter((it) => !saver.done[it.id]).length;
+    const last = page || index >= chapters.length - 1;
+    return (
+      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={saver.saved} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+        onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
+        continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
+        footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
+        onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} />
+    );
+  };
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : screen.kind === "wrap" && chapters.length > 0 ? "max-w-[760px]" : "max-w-[560px]";
   return (
-    <div className={cn("mx-auto min-h-screen w-full bg-ground", wide ? "max-w-[1000px]" : "max-w-[560px]")}>
+    <div className={cn("mx-auto min-h-screen w-full bg-ground", width)}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} className="min-h-screen" />
-      ) : chapters[screen.index] ? (
-        <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} banner={banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={screen.index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={saver.saved} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={setItem} onBack={() => go(screen.index === 0 || instrument.layout === "page" ? { kind: "about" } : { kind: "chapter", index: screen.index - 1 })} />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" />
+      ) : screen.kind === "chapter" && chapters[screen.index] ? (
+        chapterScreen(screen.index)
+      ) : screen.kind === "wrap" && chapters.length > 0 ? (
+        <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+          top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />{nav}{banner}</>}
+          gaps={gaps}
+          onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
+          onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })} />
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />

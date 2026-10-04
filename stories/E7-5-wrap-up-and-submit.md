@@ -45,7 +45,7 @@ with the closing answer column on response, `closing_answer`); INTERFACES.md fir
 and sections reuse the respondent board's bucket rules.
 
 Owed from E5-5 (recorded 2026-10-03): the Wrap up is src/components/respondent/wrap-up.tsx,
-shared with the Build preview; E7-5 adds the answers (the tally, the gaps, the sections), the
-Go to handler, the mandatory fields in the "Still needed" line and the "Pick how sure you
-are" line, and stores the sign-off sentence the respondent ticked on the response
-(docs/review-list.md).
+shared with the Build preview; E7-4 built the gaps, the Go to handler and the live page's
+header and row; E7-5 adds the answers to the tally and the sections, the form, Submit, the
+mandatory fields in the "Still needed" line and the "Pick how sure you are" line, and stores
+the sign-off sentence the respondent ticked on the response (docs/review-list.md).

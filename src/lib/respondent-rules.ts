@@ -7,7 +7,7 @@
 // respondent board's complete() rule, design note 12: a value that differs from the
 // proposal, Not needed or Unclear needs its reason or question written). Words:
 // RESPONDENT_COPY (docs/copy/app.md and errors.md, the respondent sections).
-import type { AnswerKind, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
+import type { AnswerKind, Layout, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
 import { isVisible } from "@/lib/perspectives";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
 import { classify, SCALES, UNCLEAR } from "@/lib/scoring";
@@ -43,6 +43,22 @@ export const RESPONDENT_COPY = {
   notSavedYet: "Not saved yet",
   offline: "Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.",
   storageOff: "This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost.",
+  // Moving through the chapters (E7-4; docs/copy/app.md, Respondent navigation).
+  chapters: "Chapters",
+  wrapUp: "Wrap up",
+  answeredBar: "Items answered",
+  // A pill's count and the bar, as a screen reader reads them.
+  pillAnswered: (n: number, m: number) => `${n} of ${m} answered`,
+  barValue: (n: number, m: number) => `${n} of ${m}`,
+  continueTo: (area: string) => `Continue to ${area}`,
+  continueWrap: "Continue to Wrap up",
+  toRateHere: (n: number, m: number) => `${n} of ${m} still to rate here. You can come back later.`,
+  allRated: (m: number) => (m === 1 ? "The item in this chapter is rated." : `All ${m} rated in this chapter.`),
+  welcomeBack: (name: string | null) => (name ? `Welcome back, ${name}.` : "Welcome back."),
+  answeredBefore: (n: number, m: number) => (n === 0 ? "Your answers so far are kept; none is complete yet." : `You answered ${n} of ${m} last time.`),
+  stillToFinish: "Still to finish",
+  allAnswered: (m: number) => (m === 1 ? "The item is answered." : `All ${m} items are answered.`),
+  allRatedPage: (m: number) => (m === 1 ? "The item is rated." : `All ${m} rated.`),
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -144,30 +160,66 @@ export function answeredCount(items: { id: string }[], answers: Record<string, A
   return items.filter((it) => isComplete(answers[it.id])).length;
 }
 
-// The screen in the address (?at=about, ?at=[chapter number]); before Start only About you.
-export type Screen = { kind: "about" } | { kind: "chapter"; index: number };
+// The screen in the address (?at=about, ?at=[chapter number], ?at=wrap); before Start only
+// About you.
+export type Screen = { kind: "about" } | { kind: "chapter"; index: number } | { kind: "wrap" };
 
-export const screenParam = (screen: Screen): string => (screen.kind === "about" ? "about" : String(screen.index + 1));
+export const screenParam = (screen: Screen): string => (screen.kind === "about" ? "about" : screen.kind === "wrap" ? "wrap" : String(screen.index + 1));
 
 // How many chapter screens a layout has: the single page is one screen (E5-3).
 export const screenCount = (layout: string, chapters: number): number => (layout === "page" ? Math.min(chapters, 1) : chapters);
 
 export function parseScreen(raw: string | null | undefined, started: boolean, chapterCount: number): Screen {
   if (!started || raw === "about") return { kind: "about" };
+  if (raw === "wrap") return { kind: "wrap" };
   const n = Number(raw);
   if (Number.isInteger(n) && n >= 1 && n <= chapterCount) return { kind: "chapter", index: n - 1 };
   return chapterCount > 0 ? { kind: "chapter", index: 0 } : { kind: "about" };
 }
 
-// Where a returning respondent lands when the address names no screen (E7-3, acceptance 2;
-// E7-4, acceptance 4; note 12, finding 9): the first chapter with an item not complete,
-// on that item; every item complete, the last chapter.
+// The first chapter with an item not complete, on that item; every item complete, the last
+// chapter (E7-3, acceptance 2; note 12, finding 9). landingOf below decides the screen.
 export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerState>): { index: number; item: number } {
   for (let i = 0; i < chapters.length; i++) {
     const item = chapters[i].items.findIndex((it) => !isComplete(answers[it.id]));
     if (item !== -1) return { index: i, item };
   }
   return { index: Math.max(chapters.length - 1, 0), item: 0 };
+}
+
+// Where a visit lands and what it says (E7-3, acceptance 2; E7-4, acceptance 4): a screen
+// named in the address is taken as it is (parseScreen). A started response with no screen in
+// the address lands on the Wrap up when every item is complete, else on the first chapter
+// with an unfinished item (on that item in the one-item layout; the single page is one
+// screen). "Welcome back" shows on that landing when the response holds any answer, complete
+// or not, with the count of complete ones.
+export type Landing = { screen: Screen; item: number; welcome: { answered: number; total: number } | null };
+export function landingOf(chapters: Chapter[], answers: Record<string, AnswerState>, layout: Layout, at: string | null | undefined, started: boolean): Landing {
+  if (!started || at || chapters.length === 0) return { screen: parseScreen(at ?? null, started, screenCount(layout, chapters.length)), item: 0, welcome: null };
+  const visible = chapters.flatMap((c) => c.items);
+  const answered = answeredCount(visible, answers);
+  const any = visible.some((it) => answers[it.id]);
+  const welcome = any ? { answered, total: visible.length } : null;
+  if (answered === visible.length) return { screen: { kind: "wrap" }, item: 0, welcome };
+  if (layout === "page") return { screen: { kind: "chapter", index: 0 }, item: 0, welcome };
+  const resume = resumeAt(chapters, answers);
+  return { screen: { kind: "chapter", index: resume.index }, item: layout === "item" ? resume.item : 0, welcome };
+}
+
+// The chapter row's counts (E7-4, acceptance 1): per chapter, the items the server holds a
+// complete answer for, and how many there are.
+export type ChapterProgress = { done: number; count: number };
+export function progressOf(chapters: Chapter[], done: Record<string, boolean>): ChapterProgress[] {
+  return chapters.map((c) => ({ done: c.items.filter((it) => done[it.id]).length, count: c.items.length }));
+}
+
+// The Wrap up's "Still to finish" (E7-4, acceptance 3): every item without a complete
+// answer on the server, in chapter order, with what is missing from the card as the
+// respondent left it ("Not rated yet", "Say why.", "Write your question."), or "Not saved
+// yet" when the card is complete and its answer has not reached the server.
+export type Gap = { itemId: string; reference: string | null; title: string; chapter: number; note: Exclude<CardNote, null> | "notSaved" };
+export function gapsOf(chapters: Chapter[], done: Record<string, boolean>, card: (itemId: string) => AnswerState | null): Gap[] {
+  return chapters.flatMap((c, chapter) => c.items.filter((it) => !done[it.id]).map((it) => ({ itemId: it.id, reference: it.reference, title: it.title, chapter, note: noteFor(card(it.id)) ?? "notSaved" })));
 }
 
 // What the card's note says (E7-2, acceptance 3): the missing part, or null when complete.

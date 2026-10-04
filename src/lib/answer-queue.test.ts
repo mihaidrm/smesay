@@ -1,6 +1,6 @@
 // The device queue's rules (src/lib/answer-queue.ts, stories/E7-3).
 import { describe, expect, it } from "vitest";
-import { delayFor, nextEntry, outcomeOf, ownWrite, rebased, replyStep, restorable, SAVE_DELAY_MS, sameAnswer, withEntries, withEntry, withoutEntry, withoutResponse } from "@/lib/answer-queue";
+import { delayFor, doneFrom, nextEntry, outcomeOf, ownWrite, rebased, replyStep, restorable, SAVE_DELAY_MS, sameAnswer, withEntries, withEntry, withoutEntry, withoutResponse } from "@/lib/answer-queue";
 import type { AnswerState } from "@/lib/respondent-rules";
 
 const draft = (picked: string, reason = "", comment = "") => ({ picked, reason, comment });
@@ -150,6 +150,14 @@ describe("the device queue", () => {
     // A version that is not a whole number in range is not remembered.
     expect(replyStep(200, { version: "3" }, sent, sent, P).version).toBeNull();
     expect([replyStep(410, { error: "revoked" }, sent, sent, P).outcome, replyStep(409, { error: "x" }, sent, sent, P).outcome]).toEqual(["gone", "notStarted"]);
+  });
+
+  it("takes whether an answer is complete from the newest version only (E7-4)", () => {
+    // A first reply, a newer one, the same version again (a keepalive copy), another device's
+    // newer write in a stale reply.
+    expect([doneFrom(undefined, 1, false), doneFrom(1, 2, true), doneFrom(2, 2, true), doneFrom(2, 5, false)]).toEqual([{ complete: false, version: 1 }, { complete: true, version: 2 }, { complete: true, version: 2 }, { complete: false, version: 5 }]);
+    // A late copy of an older save, no version, or no flag: nothing changes.
+    expect([doneFrom(3, 2, true), doneFrom(3, null, true), doneFrom(3, 4, undefined)]).toEqual([null, null, null]);
   });
 
   it("retries everything that is not a final answer", () => {

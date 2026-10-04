@@ -171,7 +171,7 @@ export function ownWrite(stored: { writer: string | null; writerSeq: number; ans
 // request carried (this page's, or a kept one of another page);
 // `current` is the item's entry waiting now: the same one, a newer change, or none (another
 // copy of the save was answered first). Entries are told apart by page and number.
-export type ReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; answer?: AnswerState };
+export type ReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; answer?: AnswerState; complete?: unknown };
 export type ReplyStep = {
   outcome: Outcome;
   // The server's version to remember for the item (the page keeps the highest).
@@ -222,4 +222,12 @@ export function replyStep(status: number, body: ReplyBody, sent: QueueEntry, cur
   // A retry only matters while the change still waits: a copy answered first settled it.
   if (outcome === "retry" && current) step.failed = true;
   return step;
+}
+
+// E7-4: whether a reply's `complete` replaces what the page holds for the item. Only a reply
+// whose version is at least the one already applied counts, so a late copy of an older save
+// never turns a newer answer's state back.
+export function doneFrom(applied: number | undefined, version: number | null, complete: unknown): { complete: boolean; version: number } | null {
+  if (typeof complete !== "boolean" || version === null || version < (applied ?? 0)) return null;
+  return { complete, version };
 }

@@ -6,7 +6,10 @@
 // cards one column on a phone and two from the desktop width (docs/design-system.md,
 // Respondent columns: 1000 px); one item per screen, one card with "Item [N] of [M] in
 // [AREA]" and Previous and Next item; the single page, every area in order with its
-// heading and "All [N] on one page". Phone first.
+// heading and "All [N] on one page". Phone first. E7-4: the chapter row and the bar under
+// the header (`nav`), and the footer with Back, "Continue to [NEXT AREA]" or "Continue to
+// Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
+// later." or "All [M] rated in this chapter."
 import { Mark } from "@/components/brand/mark";
 import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
@@ -36,12 +39,16 @@ export type ChapterScreenProps = {
   onItem: (item: number) => void;
   onBack: () => void;
   banner?: React.ReactNode;
+  nav?: React.ReactNode;
+  continueLabel: string;
+  footerNote: string;
+  onContinue: () => void;
 };
 
 const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner } = props;
+  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue } = props;
   const chapter = chapters[index];
   const card = (it: RespondentItem) => (
     <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} />
@@ -51,10 +58,12 @@ export function ChapterScreen(props: ChapterScreenProps) {
   return (
     <div className="flex min-h-screen flex-col bg-ground text-ink" data-testid="chapter-screen" data-layout={layout}>
       <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} />
+      {nav}
       {banner}
       <main className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
         {layout === "page" ? (
           <>
+            <h1 className="sr-only" tabIndex={-1} data-screen-heading>{title}</h1>
             <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>
             {chapters.map((c, n) => (
               <section key={c.name ?? "all"} className="flex flex-col gap-3" aria-labelledby={`chapter-heading-${n}`}>
@@ -69,7 +78,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
         ) : (
           <>
             <div className="flex flex-col gap-1">
-              <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]" data-testid="chapter-title">{chapter.name ?? title}</h1>
+              <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={-1} data-screen-heading data-testid="chapter-title">{chapter.name ?? title}</h1>
               {chapter.intro && <p className="text-sm leading-5 text-ink-muted">{chapter.intro}</p>}
             </div>
             {layout === "item" ? (
@@ -88,8 +97,12 @@ export function ChapterScreen(props: ChapterScreenProps) {
         )}
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </main>
-      <footer className="flex shrink-0 items-center gap-3 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
+      <footer className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
+        <p className="text-sm text-ink-muted" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
+          <button type="button" onClick={onContinue} className="h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface md:grow-0" data-testid="chapter-continue">{continueLabel}</button>
+        </div>
       </footer>
     </div>
   );
