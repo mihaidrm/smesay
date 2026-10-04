@@ -14,7 +14,8 @@ respondents fill in, and the preview refuses to start until the mandatory ones a
    toggle; Name and Role are there by default. Removing the last field shows "Keep at least
    one field, so you can tell answers apart. Name is the usual one." and is refused. An
    optional Email field type exists so the submission receipt can be sent (docs/copy/emails.md,
-   email 4).
+   email 4). (Amended 2026-10-04 by E7-5: the receipt goes only to a personal invite's
+   address; an email typed on a public link gets none, docs/review-list.md.)
 3. The preview's About you page (E5-6) shows the fields; Start stays disabled at 40 percent
    until the mandatory ones are filled, with "Fill in your name and role to start." (the
    respondent board's note) while the mandatory fields are exactly Name and Role, and "Fill

@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0017_answer_version).
+v1, 2026-10-04 (the date of the latest migration, 0018_submit).
 
-Generated from the snapshot of the 18 migrations in drizzle/ (0017_snapshot.json) by
+Generated from the snapshot of the 19 migrations in drizzle/ (0018_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migration
@@ -234,6 +234,12 @@ one respondent's session against one instrument, pinned to the set version it wa
 | confidence | integer |  |
 | signed_off | boolean | not null, default false |
 | submitted_at | timestamp with time zone |  |
+| first_submitted_at | timestamp with time zone |  |
+| closing_answer | text |  |
+| sign_off_text | text |  |
+| wrap_version | integer | not null, default 0 |
+| wrap_writer | text |  |
+| wrap_writer_seq | integer | not null, default 0 |
 | created_at | timestamp with time zone | not null, default now() |
 | updated_at | timestamp with time zone | not null, default now() |
 
@@ -280,6 +286,7 @@ what a respondent said was missing, with the area they suggested.
 | response_id | uuid | fk response.id with workspace_id, on delete cascade, not null |
 | text | text | not null |
 | suggested_area | text |  |
+| suggested_value | text |  |
 | created_at | timestamp with time zone | not null, default now() |
 
 Foreign keys: missing_item_response_fk (response_id, workspace_id) references response (id, workspace_id) on delete cascade.

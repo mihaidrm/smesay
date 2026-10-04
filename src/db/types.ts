@@ -1,7 +1,8 @@
 // TypeScript twins of the INTERFACES.md jsonb shapes (section "Schema v1 enums and shapes").
 // Change INTERFACES.md first, then this file. The enum arrays live in schema.ts.
-// E5-1: email is the field type the submission receipt goes to (docs/copy/emails.md, 4);
-// the rule on labels, keys and options is in src/lib/respondent-fields.ts (INTERFACES.md).
+// E5-1: email is a field type (the receipt goes only to a personal invite's address from
+// E7-5, docs/copy/emails.md, 4); the rule on labels, keys and options is in
+// src/lib/respondent-fields.ts (INTERFACES.md).
 export type RespondentFieldSpec = { key: string; label: string; type: "text" | "dropdown" | "email"; mandatory: boolean; options?: string[] };
 // E5-5: the closing question is optional; "" for signOffText means the default sentence
 // (src/lib/closing.ts); confidence is always asked.

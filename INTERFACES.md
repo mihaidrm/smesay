@@ -28,8 +28,9 @@ the check constraints use them). Change this file first.
 - AiPurpose: shape, insights.
 - RespondentFieldSpec (jsonb, instrument.respondent_fields, array):
   { key: string, label: string, type: "text" | "dropdown" | "email", mandatory: boolean,
-  options?: string[] } (E5-1, 2026-10-03: `email` added for the submission receipt,
-  docs/copy/emails.md email 4; the key is the label's slug, unique per instrument, suffixed
+  options?: string[] } (E5-1, 2026-10-03: `email` added for the submission receipt; from E7-5
+  the receipt goes only to a personal invite's address, so an email field is a field like
+  the others, docs/copy/emails.md email 4; the key is the label's slug, unique per instrument, suffixed
   -2, -3 when two labels slug the same; label 1 to 60 characters, up to 8 fields, a dropdown
   has 2 to 20 options, each up to 60 characters and different from the others ignoring
   case; src/lib/respondent-fields.ts is the code twin of the rule).
@@ -304,7 +305,53 @@ version, writer and save number and the response id added the same day after the
 - The response (table response): fields (the PM's keys only), perspectives, confidence,
   signed_off and submitted_at (E7-5), updated_at moving on every answer. A response is
   pinned to its instrument and item set; the dashboard reads answers per response and
-  item.
+  item. Version 2, 2026-10-04 (E7-5, migration 0018): closing_answer (text, the answer to
+  the PM's closing question, at most 2000 characters, null when none or no question),
+  sign_off_text (the sentence the respondent ticked, as shown), first_submitted_at (the
+  first Submit; submitted_at is the latest, so E8-2's "changed after submitting" needs no
+  history), wrap_version, wrap_writer and wrap_writer_seq (the Wrap up's version, counted up
+  on every Wrap up write and Submit, the page that wrote it last and that page's number: the
+  answer's rule, wrapTakes in src/lib/respondent-rules.ts). missing_item gains
+  suggested_value (a code of the instrument's scale, or null); suggested_area is one of the
+  list's areas the respondent sees (areasOf: not "Other items") or null; a response has at
+  most one missing item, written by every Wrap up save and Submit that changes it, updated
+  in place so it keeps its id. updated_at moves on a Wrap up write or Submit only when it
+  changes the Wrap up. The plan's monthly responses count first_submitted_at
+  (src/db/queries/usage.ts).
+- The Wrap up's save: PUT /r/[token]/wrap, JSON { response, confidence: 1 to 5 or null,
+  closingAnswer?: string, missing?: { text, area?, value? } | null, base, page, seq, after? }
+  (the Wrap up's version the write was made on, the page's id, its number for the write, the
+  saves of other pages it was made on top of, as an answer's), as the respondent writes
+  (saveWrap, parseWrapInput). 200 { saved: true, version, writer, writerSeq }; 409 { error:
+  "stale", wrap: { confidence, signed: false, closingAnswer, missing: { text, area, value } },
+  version, writer, writerSeq } when the stored Wrap up is not one the write was made on;
+  refusals as an answer's (409 when this device has no response or not the one named,
+  checked before the rest of the body, 422 with the sentence). It stores the response's
+  confidence, closing answer and missing item; the response is not submitted. A write that
+  says what is stored moves only the version.
+- The submit payload: POST /r/[token]/submit, JSON { response (the response the page answers
+  for; 409 not started when it is not this device's, checked first), confidence: 1 to 5,
+  signedOff: true, signOffText?: string (the sentence the page showed; refused when the PM's
+  differs), closingAnswer?: string, missing?: { text, area?, value? } | null, base, page,
+  seq, after? (as the Wrap up's save) }. 200 { submittedAt (ISO, UTC), name (the first name,
+  or null), version (the Wrap up's) }; 409 { error: "stale", wrap, version, writer,
+  writerSeq } as the Wrap up's save; refusals { error } with the link's statuses, 409 not
+  started, 422 with the sentence (items to finish, a field missing, confidence, the sign-off
+  or its changed sentence, a bad missing item), 403 when the plan's monthly responses are
+  used (withinPlan). Submitting again updates the same response.
+  submitResponse(token, cookies, body, baseUrl, now, send) in src/lib/respondent.ts returns
+  { submittedAt, name, version, receipt } (receipt: the email 4 send for a personal invite's
+  first Submit, run by the route with after(), or null) or { stale };
+  responses.submit(ws, inviteId, responseId, data, stillOpen, check, now) checks the
+  version, then reads the answers under the response's update lock and returns { invalid:
+  sentence } when check(rows, perspectives as locked) refuses; responses.saveWrap(ws,
+  inviteId, responseId, data, stillOpen, now) under the same locks returns { saved, changed }
+  or { stale }. loadRespondent's ready view carries wrap: { confidence, signed: false,
+  closingAnswer, missing: { text, area, value } } as the server holds it (empty before any)
+  and wrapSync: { version, writer, writerSeq }; the page keeps its newest change the server
+  has not confirmed under smesay-wrap:[token] as JSON { response, value, base, page, seq,
+  after? } (src/lib/wrap-queue.ts) and sends it when it opens if the server would still take
+  it.
 
 ## AI shaping output (ai -> builder)
 Owner: ai route. Consumer: builder review view.

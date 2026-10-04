@@ -1,7 +1,9 @@
 // usage() (stories/E2-6, acceptance 2): rows created here, numbers read back by SQL, the month
-// boundary in UTC, and nothing from another workspace.
+// boundary in UTC, and nothing from another workspace. The month counts the first Submit, so
+// migration 0018's backfill of first_submitted_at is run here too (E7-5).
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -30,7 +32,7 @@ async function workspaceWithRows(label: string) {
   const instrument = await instruments.create(ws, { projectId: p1.id, itemSetId: set.id, title: "I" });
   const invite = await invites.create(ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
   for (const submittedAt of ["2026-10-01T00:00:00Z", "2026-10-14T09:00:00Z", "2026-09-30T23:59:59Z", null]) {
-    await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: submittedAt !== null, submittedAt: submittedAt ? new Date(submittedAt) : null });
+    await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: submittedAt !== null, submittedAt: submittedAt ? new Date(submittedAt) : null, firstSubmittedAt: submittedAt ? new Date(submittedAt) : null });
   }
   for (const [createdAt, cents] of [["2026-10-02T10:00:00Z", 4], ["2026-10-10T10:00:00Z", 5], ["2026-09-28T10:00:00Z", 9]] as const) {
     const run = await aiRuns.create(ws, { projectId: p1.id, purpose: "shape", model: "test", tokensIn: 1, tokensOut: 1, costEurCents: cents, durationMs: 1 });
@@ -41,7 +43,7 @@ async function workspaceWithRows(label: string) {
   const sampleSet = await itemSets.create(ws, { projectId: sample.id, version: 1, source: "csv" });
   const sampleInstrument = await instruments.create(ws, { projectId: sample.id, itemSetId: sampleSet.id, title: "S" });
   const sampleInvite = await invites.create(ws, { instrumentId: sampleInstrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
-  await responses.create(ws, { instrumentId: sampleInstrument.id, itemSetId: sampleSet.id, inviteId: sampleInvite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-05T10:00:00Z") });
+  await responses.create(ws, { instrumentId: sampleInstrument.id, itemSetId: sampleSet.id, inviteId: sampleInvite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-05T10:00:00Z"), firstSubmittedAt: new Date("2026-10-05T10:00:00Z") });
   await aiRuns.create(ws, { projectId: sample.id, purpose: "insights", model: "sample", tokensIn: 1, tokensOut: 1, costEurCents: 50, durationMs: 1 });
   return ws;
 }
@@ -70,5 +72,16 @@ describe("usage", () => {
     await workspaceWithRows("D");
     expect(await internal.productAiCostCentsThisMonth(now)).toBe(before + 18);
     expect(await internal.productAiCostCentsThisMonth(november)).toBe(beforeNovember);
+  });
+
+  it("counts a response submitted before migration 0018 once its backfill runs", async () => {
+    const ws = await workspaceWithRows("Backfill");
+    const [rid] = (await responses.list(ws)).filter((r) => r.submittedAt?.toISOString() === "2026-10-14T09:00:00.000Z").map((r) => r.id);
+    await sql`update response set first_submitted_at = null where id = ${rid}`;
+    expect((await usage(ws, now)).responsesThisMonth).toBe(1);
+    // The migration's own statement, as drizzle-kit runs it (split on its breakpoints).
+    const statement = readFileSync("drizzle/0018_submit.sql", "utf8").split("--> statement-breakpoint").find((part) => part.includes("UPDATE"))!;
+    await sql.unsafe(statement);
+    expect((await usage(ws, now)).responsesThisMonth).toBe(2);
   });
 });

@@ -66,8 +66,8 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const chapters = chaptersFor(view.areas, view.items, picks);
   const prefilled = carriedFields(link.invite, instrument.respondentFields);
   // Where the visit lands, and "Welcome back" when it returns with answers (landingOf: E7-3,
-  // acceptance 2; E7-4, acceptance 4).
-  const landing = landingOf(chapters, view.answers, instrument.layout, at, response !== null);
+  // acceptance 2; E7-4, acceptance 4); a submitted response lands on Done (E7-5).
+  const landing = landingOf(chapters, view.answers, instrument.layout, at, response !== null, Boolean(response?.submittedAt));
   const firstName = (response?.fields.name ?? (link.invite.kind === "personal" ? link.invite.name : null) ?? "").trim().split(/\s+/)[0] || null;
   const welcome = landing.welcome ? { name: firstName, ...landing.welcome } : null;
   const screen: Screen = landing.screen;
@@ -91,9 +91,12 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         initialItem={landing.item}
         answers={view.answers}
         versions={view.versions}
+        wrap={view.wrap}
+        wrapSync={view.wrapSync}
         responseId={response?.id ?? null}
         closing={instrument.closing}
         welcome={welcome}
+        submitted={response?.submittedAt ? { at: response.submittedAt.toISOString(), name: firstName } : null}
       />
     </>
   );

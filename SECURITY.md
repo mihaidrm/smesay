@@ -37,7 +37,17 @@ Public links and respondents
   response go; a closed, revoked or unknown link's page removes the key; entries have no
   expiry otherwise. A queue of another response is never sent, and a
   write names the response the page answers for, so an open window's changes never land in a
-  response started since in another window. localStorage is per origin, so any script running on an SMEsay
+  response started since in another window. From E7-5 the page also keeps the Wrap up's
+  answers under smesay-wrap:[link token]: the response id, confidence, the closing answer
+  and the missing item (text, area, value), the version it was made on, the page and number
+  that wrote it and the saves of other pages it was made on top of (their random page ids
+  and numbers), never the sign-off, until the server holds them (they save as they
+  are written, PUT /r/[link token]/wrap, named for the response like every save, and Submit
+  names it too); removed then and by a closed, revoked or unknown link's page. A kept change
+  goes to the server only when the server holds nothing newer (the version rule), so an old
+  one never replaces a later answer, a submitted one included. A respondent's action sends
+  mail only to an address the PM chose (a personal invite's, the receipt on its first
+  Submit), never to one typed on a public link. localStorage is per origin, so any script running on an SMEsay
   page can read it; the CSP with nonces (Headers and transport) is what keeps foreign
   scripts out, and it is not configured yet (docs/review-list.md).
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a

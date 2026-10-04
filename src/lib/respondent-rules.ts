@@ -10,10 +10,11 @@
 import type { AnswerKind, Layout, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
 import { isVisible } from "@/lib/perspectives";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
-import { classify, SCALES, UNCLEAR } from "@/lib/scoring";
+import { classify, DISAGREE_CODE, SCALES, UNCLEAR } from "@/lib/scoring";
 
 export const FIELD_VALUE_MAX = 200;
 export const REASON_MAX = 2000;
+export const MISSING_MAX = 500;
 
 export const RESPONDENT_COPY = {
   otherItems: "Other items",
@@ -59,6 +60,15 @@ export const RESPONDENT_COPY = {
   stillToFinish: "Still to finish",
   allAnswered: (m: number) => (m === 1 ? "The item is answered." : `All ${m} items are answered.`),
   allRatedPage: (m: number) => (m === 1 ? "The item is rated." : `All ${m} rated.`),
+  // Submit and Done (E7-5; docs/copy/app.md, Wrap up and Done; errors.md, Respondent answering).
+  submitting: "Submitting",
+  submitFailed: "Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again.",
+  change: "Change",
+  yourQuestions: "Your questions",
+  thanks: (name: string | null) => (name ? `Thank you, ${name}.` : "Thank you."),
+  submittedAt: (when: string) => `Submitted ${when}`,
+  changeMine: "Change my answers",
+  needFields: "your details on About you",
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -73,8 +83,21 @@ export const RESPONDENT_ERRORS = {
   hiddenItem: "This item is not in your list. Reload the page to see your items.",
   // E7-3: a newer answer for this item reached the server first (another window or device).
   changedElsewhere: "This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand.",
+  wrapChanged: "Your Wrap up was changed in another window or on another device. This page shows the saved one now; change it again if yours should stand.",
   // E7-3: Start worked but the next save found no response: the browser refused the cookie.
   cookiesBlocked: "This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser.",
+  itemsOpen: (n: number) => `${n} ${n === 1 ? "item is" : "items are"} still to finish. Finish ${n === 1 ? "it" : "them"} in the chapters, then submit.`,
+  fieldsOpen: "Fill in your details on About you, then submit.",
+  confidence: "Pick how sure you are, 1 to 5, before you submit.",
+  signOff: "Tick the confirmation to submit.",
+  // E7-5: the PM changed the sign-off sentence after this page opened.
+  signOffChanged: "The confirmation changed since this page opened. Reload the page, read it and tick it again.",
+  // E7-5: during Submit's wait a card's answer was refused or changed in another window.
+  checkCards: "One of your answers was not saved as you left it. Check the cards with a red note, then submit again.",
+  badMissing: "The missing item did not reach the server as written. Check it and submit again.",
+  missingTooLong: `Keep the missing item to ${MISSING_MAX} characters.`,
+  closingTooLong: `Keep your answer to ${REASON_MAX} characters.`,
+  planFull: "This survey is not taking answers right now. Tell the person who sent you the link; your answers are kept.",
 } as const;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,7 +152,8 @@ export function parsePicks(names: string[], raw: unknown): { error: string } | {
 // proposed value as a code of the method (src/lib/scoring.ts proposedCode).
 export type RespondentItem = { id: string; reference: string | null; title: string; details: string | null; area: string | null; proposed: string | null; perspectives: string[] };
 export type AreaMeta = { name: string; intro: string | null };
-export type Chapter = { name: string | null; intro: string | null; items: RespondentItem[] };
+// `loose` marks the chapter of items with no area, "Other items" (not an area of the list).
+export type Chapter = { name: string | null; intro: string | null; items: RespondentItem[]; loose?: true };
 
 // The chapters a respondent sees: the areas in the list's order (then any area only items
 // name), then the items with no area under "Other items"; a list with no areas is one
@@ -141,9 +165,30 @@ export function chaptersFor(areas: AreaMeta[], items: RespondentItem[], picks: s
   if (names.length === 0) return visible.length > 0 ? [{ name: null, intro: null, items: visible }] : [];
   const chapters: Chapter[] = names.map((name) => ({ name, intro: areas.find((a) => a.name === name)?.intro ?? null, items: visible.filter((it) => it.area === name) }));
   const loose = visible.filter((it) => !it.area || !names.includes(it.area));
-  if (loose.length > 0) chapters.push({ name: RESPONDENT_COPY.otherItems, intro: null, items: loose });
+  if (loose.length > 0) chapters.push({ name: RESPONDENT_COPY.otherItems, intro: null, items: loose, loose: true });
   return chapters.filter((c) => c.items.length > 0);
 }
+
+// The areas a missing item can name (E7-5): the chapters that are areas of the list, not
+// "Other items" and not the unnamed chapter of a list with no areas (none then: the Wrap up
+// asks no area).
+export const areasOf = (chapters: Chapter[]): string[] => chapters.flatMap((c) => (c.name && !c.loose ? [c.name] : []));
+
+// The Wrap up's answers as the respondent leaves them (E7-5): the form's values, saved to
+// the server as the respondent writes (and kept on the device under smesay-wrap:[token] until
+// the server holds them: src/lib/wrap-queue.ts). The sign-off is never kept or saved: it is
+// ticked for each Submit.
+export type WrapValue = { confidence: number | null; signed: boolean; closingAnswer: string; missing: { text: string; area: string; value: string } };
+export const EMPTY_WRAP: WrapValue = { confidence: null, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } };
+export const wrapKey = (token: string) => `smesay-wrap:${token}`;
+// Whether two Wrap ups say the same as the server stores them (the sign-off aside): the texts
+// trimmed, and a missing item with no text is none, whatever its area and value say
+// (parseWrapInput).
+export const sameWrap = (a: WrapValue, b: WrapValue): boolean => {
+  const ma = a.missing.text.trim();
+  const mb = b.missing.text.trim();
+  return a.confidence === b.confidence && a.closingAnswer.trim() === b.closingAnswer.trim() && ma === mb && (ma === "" || (a.missing.area === b.missing.area && a.missing.value === b.missing.value));
+};
 
 // An answer as stored (INTERFACES.md, AnswerKind) and when it is complete.
 export type AnswerState = { kind: AnswerKind; value: string | null; reason: string | null; comment: string | null };
@@ -160,11 +205,11 @@ export function answeredCount(items: { id: string }[], answers: Record<string, A
   return items.filter((it) => isComplete(answers[it.id])).length;
 }
 
-// The screen in the address (?at=about, ?at=[chapter number], ?at=wrap); before Start only
-// About you.
-export type Screen = { kind: "about" } | { kind: "chapter"; index: number } | { kind: "wrap" };
+// The screen in the address (?at=about, ?at=[chapter number], ?at=wrap, ?at=done); before
+// Start only About you.
+export type Screen = { kind: "about" } | { kind: "chapter"; index: number } | { kind: "wrap" } | { kind: "done" };
 
-export const screenParam = (screen: Screen): string => (screen.kind === "about" ? "about" : screen.kind === "wrap" ? "wrap" : String(screen.index + 1));
+export const screenParam = (screen: Screen): string => (screen.kind === "chapter" ? String(screen.index + 1) : screen.kind);
 
 // How many chapter screens a layout has: the single page is one screen (E5-3).
 export const screenCount = (layout: string, chapters: number): number => (layout === "page" ? Math.min(chapters, 1) : chapters);
@@ -172,6 +217,7 @@ export const screenCount = (layout: string, chapters: number): number => (layout
 export function parseScreen(raw: string | null | undefined, started: boolean, chapterCount: number): Screen {
   if (!started || raw === "about") return { kind: "about" };
   if (raw === "wrap") return { kind: "wrap" };
+  if (raw === "done") return { kind: "done" };
   const n = Number(raw);
   if (Number.isInteger(n) && n >= 1 && n <= chapterCount) return { kind: "chapter", index: n - 1 };
   return chapterCount > 0 ? { kind: "chapter", index: 0 } : { kind: "about" };
@@ -194,8 +240,10 @@ export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerStat
 // screen). "Welcome back" shows on that landing when the response holds any answer, complete
 // or not, with the count of complete ones.
 export type Landing = { screen: Screen; item: number; welcome: { answered: number; total: number } | null };
-export function landingOf(chapters: Chapter[], answers: Record<string, AnswerState>, layout: Layout, at: string | null | undefined, started: boolean): Landing {
+export function landingOf(chapters: Chapter[], answers: Record<string, AnswerState>, layout: Layout, at: string | null | undefined, started: boolean, submitted = false): Landing {
   if (!started || at || chapters.length === 0) return { screen: parseScreen(at ?? null, started, screenCount(layout, chapters.length)), item: 0, welcome: null };
+  // Submitted: the Done screen (E7-5; E7-6 adds its welcome back).
+  if (submitted) return { screen: { kind: "done" }, item: 0, welcome: null };
   const visible = chapters.flatMap((c) => c.items);
   const answered = answeredCount(visible, answers);
   const any = visible.some((it) => answers[it.id]);
@@ -282,3 +330,89 @@ export function answerFor(method: ScoringMethod, showProposed: boolean, proposed
 
 // The picked code an answer shows on the card's rating row.
 export const pickedOf = (answer: AnswerState | null | undefined): string | null => (!answer ? null : answer.kind === "unclear" ? UNCLEAR : answer.value);
+
+// The Wrap up's tally and sections (E7-5, acceptance 1; decision 0018 item 5; the respondent
+// board's buckets): agreed, a higher or lower priority than proposed (by the scale's order:
+// MoSCoW Must 4 to Not needed 1, fit by its number, keep 3, change 2, drop 1), not needed,
+// unclear. Rate-blind, and an item with no proposal: rated, not needed (the scale's "not
+// needed" value picked), unclear.
+const RANK: Record<ScoringMethod, Record<string, number>> = {
+  moscow: { M: 4, S: 3, C: 2, W: 1 },
+  fit: { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 },
+  kcd: { K: 3, C: 2, D: 1 },
+};
+export type Bucket = "agreed" | "higher" | "lower" | "notNeeded" | "unclear" | "rated";
+export function bucketOf(method: ScoringMethod, proposed: string | null, answer: AnswerState): Bucket {
+  if (answer.kind === "unclear") return "unclear";
+  if (answer.kind === "disagree") return "notNeeded";
+  if (answer.kind === "agree") return "agreed";
+  if (answer.kind === "pick") return answer.value === DISAGREE_CODE[method] ? "notNeeded" : "rated";
+  const r = RANK[method];
+  return proposed !== null && (r[answer.value ?? ""] ?? 0) > (r[proposed] ?? 0) ? "higher" : "lower";
+}
+export function tallyOf(method: ScoringMethod, items: { id: string; proposed: string | null }[], answers: Record<string, AnswerState | null>): Record<Bucket, string[]> {
+  const out: Record<Bucket, string[]> = { agreed: [], higher: [], lower: [], notNeeded: [], unclear: [], rated: [] };
+  for (const it of items) {
+    const a = answers[it.id];
+    if (a && isComplete(a)) out[bucketOf(method, it.proposed, a)].push(it.id);
+  }
+  return out;
+}
+
+// The Wrap up's answers as the page saves them while the respondent writes (E7-5, saved within
+// a second like the cards) and as Submit posts them: the response the page answers for,
+// confidence 1 to 5 or none yet, the closing answer (kept only when the PM asked a question),
+// and the missing item (text up to 500 characters, an area of the list the respondent sees,
+// a value of the scale).
+// Every write carries the Wrap up's version it was made on, the page that sends it, that
+// page's number for it and the saves of other pages it was made on top of, as an answer's
+// (base, page, seq, after; src/lib/answer-queue.ts), and the server applies the same rule
+// (wrapTakes).
+export type WrapCtx = { method: ScoringMethod; areas: string[]; hasQuestion: boolean; missingForm: boolean; signOff?: string };
+export type WrapInput = { response: string; confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null; base: number; page: string; seq: number; after: SaveRef[] };
+export function parseWrapInput(raw: unknown, ctx: WrapCtx): { error: string } | { input: WrapInput } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badShape };
+  const r = raw as Record<string, unknown>;
+  if (typeof r.response !== "string" || !validCount(r.base) || !validPage(r.page) || !validCount(r.seq, 1)) return { error: RESPONDENT_ERRORS.badShape };
+  const after = parseAfter(r.after);
+  if (!after) return { error: RESPONDENT_ERRORS.badShape };
+  const confidence = r.confidence === null || r.confidence === undefined ? null : r.confidence;
+  if (confidence !== null && (typeof confidence !== "number" || !Number.isInteger(confidence) || confidence < 1 || confidence > 5)) return { error: RESPONDENT_ERRORS.confidence };
+  const answer = typeof r.closingAnswer === "string" ? r.closingAnswer.trim() : "";
+  if (answer.length > REASON_MAX) return { error: RESPONDENT_ERRORS.closingTooLong };
+  let missing: WrapInput["missing"] = null;
+  if (ctx.missingForm && r.missing !== undefined && r.missing !== null) {
+    if (typeof r.missing !== "object" || Array.isArray(r.missing)) return { error: RESPONDENT_ERRORS.badMissing };
+    const m = r.missing as Record<string, unknown>;
+    const text = typeof m.text === "string" ? m.text.trim() : "";
+    const area = typeof m.area === "string" && m.area !== "" ? m.area : null;
+    const value = typeof m.value === "string" && m.value !== "" ? m.value : null;
+    if (text.length > MISSING_MAX) return { error: RESPONDENT_ERRORS.missingTooLong };
+    if ((area !== null && !ctx.areas.includes(area)) || (value !== null && !SCALES[ctx.method].some((v) => v.code === value))) return { error: RESPONDENT_ERRORS.badMissing };
+    if (text) missing = { text, area, value };
+  }
+  return { input: { response: r.response, confidence: confidence as number | null, closingAnswer: ctx.hasQuestion && answer ? answer : null, missing, base: r.base, page: r.page, seq: r.seq, after } };
+}
+
+// The Wrap up's version as the server holds it (response.wrap_version, wrap_writer,
+// wrap_writer_seq), and whether a write lands on it: made on that version, or the same page
+// wrote last with a lower number, or the last write is one this write was made on top of
+// (the rule src/db/queries/answers.ts applies to an answer). Otherwise the write is stale.
+export type WrapSync = { version: number; writer: string | null; writerSeq: number };
+export const wrapTakes = (stored: WrapSync, write: { base: number; page: string; seq: number; after: SaveRef[] }): boolean =>
+  stored.version === write.base || (stored.writer === write.page && stored.writerSeq < write.seq) || write.after.some((a) => stored.writer === a.page && stored.writerSeq <= a.seq);
+
+// Submit (E7-5, acceptance 2 and 3): the Wrap up as above, with confidence given and the
+// sign-off ticked on the sentence the PM has now.
+export type SubmitInput = WrapInput & { confidence: number };
+export function parseSubmitInput(raw: unknown, ctx: WrapCtx): { error: string } | { input: SubmitInput } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badShape };
+  const r = raw as Record<string, unknown>;
+  if (r.signedOff !== true) return { error: RESPONDENT_ERRORS.signOff };
+  // The sentence the respondent ticked, when the page sends it, is the one stored.
+  if (typeof r.signOffText === "string" && ctx.signOff !== undefined && r.signOffText !== ctx.signOff) return { error: RESPONDENT_ERRORS.signOffChanged };
+  const wrap = parseWrapInput(raw, ctx);
+  if ("error" in wrap) return wrap;
+  if (wrap.input.confidence === null) return { error: RESPONDENT_ERRORS.confidence };
+  return { input: { ...wrap.input, confidence: wrap.input.confidence } };
+}

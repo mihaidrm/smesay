@@ -54,7 +54,7 @@
 // count from it (E7-4, technical notes).
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
-import { delayFor, doneFrom, nextEntry, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
+import { delayFor, doneFrom, nextEntry, settleState, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
 import { RESPONDENT_ERRORS, type AnswerState } from "@/lib/respondent-rules";
 
 export type SaverEvents = {
@@ -85,7 +85,7 @@ function deviceStorage(): Storage | null {
 // useSyncExternalStore with a server snapshot (react.dev/reference/react/useSyncExternalStore).
 const noSubscribe = () => () => {};
 const storageMissing = () => deviceStorage() === null;
-const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
+export const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
 
 
 export function useAnswerSaver(token: string, responseId: string | null, enabled: boolean, itemIds: string[], initialVersions: Record<string, number>, initialAnswers: Record<string, AnswerState>, initialSaved: Record<string, boolean>, initialDone: Record<string, boolean>, events: SaverEvents) {
@@ -108,6 +108,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const firstAt = useRef(new Map<string, number>());
   const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // How many replies refused a card's answer or showed another window's (for settle).
+  const upsets = useRef(0);
   const down = useRef(false);
   const alive = useRef(true);
   const eventsRef = useRef(events);
@@ -220,6 +222,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
         update((raw) => withoutEntry(raw, response, itemId, drop.page, drop.seq));
       }
       if (step.saved) setSaved((s) => ({ ...s, [itemId]: true }));
+      if (step.changedElsewhere || step.error) upsets.current += 1;
       if (step.changedElsewhere) {
         if (body.answer) eventsRef.current.onStale(itemId, body.answer);
         setErrors((e) => ({ ...e, [itemId]: RESPONDENT_ERRORS.changedElsewhere }));
@@ -363,5 +366,20 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
     };
   }, []);
 
-  return { saved, done, errors, offline, unsaved: offline || failing, storageOff, queue, flush, reset, bind, resend };
+  // Submit (E7-5) waits for every change on the cards (settleState): "ok" once none waits;
+  // "failed" when one fails, the page is offline or 10 seconds pass; "check" when a card's
+  // answer was refused or changed elsewhere meanwhile, or the response changed.
+  const settle = useCallback(async (): Promise<"ok" | "failed" | "check"> => {
+    flush();
+    const until = Date.now() + SAVE_TIMEOUT_MS;
+    const response = responseRef.current;
+    const upsetAt = upsets.current;
+    for (;;) {
+      const state = settleState({ waiting: pending.current.size, failed: failed.current.size, down: down.current, alive: alive.current, late: Date.now() > until, upset: upsets.current !== upsetAt, moved: responseRef.current !== response });
+      if (state !== "wait") return state;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }, [flush]);
+
+  return { saved, done, settle, errors, offline, unsaved: offline || failing, storageOff, queue, flush, reset, bind, resend };
 }

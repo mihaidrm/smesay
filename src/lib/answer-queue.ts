@@ -31,7 +31,7 @@ export const RETRY_MS = 5000;
 export { COUNT_MAX };
 export const queueKey = (token: string) => `smesay-answers:${token}`;
 
-export type QueueEntry = { draft: CardDraft; base: number; page: string; seq: number; after: SaveRef[] };
+export type QueueEntry = Entry<CardDraft>;
 type StoredEntry = { picked: string; reason: string; comment: string; base: number; page: string; seq: number; after?: unknown };
 type Stored = { response: string; entries: Record<string, StoredEntry> };
 
@@ -123,7 +123,9 @@ export function rebased(raw: string | null, responseId: string, itemId: string, 
 // from an earlier visit) is the version this change is really made on: the new change keeps
 // that change's base and names it, with the saves that change named, among the saves it was
 // made on top of (the newest AFTER_MAX).
-export function nextEntry(prev: QueueEntry | undefined, draft: CardDraft, known: number, page: string, seq: number): QueueEntry {
+// The Wrap up's queue (src/lib/wrap-queue.ts) takes the same rule for its one value.
+export type Entry<D> = { draft: D; base: number; page: string; seq: number; after: SaveRef[] };
+export function nextEntry<D>(prev: Entry<D> | undefined, draft: D, known: number, page: string, seq: number): Entry<D> {
   if (!prev || (prev.page === page && prev.after.length === 0)) return { draft, base: known, page, seq, after: [] };
   if (prev.page === page) return { draft, base: prev.base, page, seq, after: prev.after };
   const after = [...prev.after.filter((a) => a.page !== prev.page), { page: prev.page, seq: prev.seq }].slice(-AFTER_MAX);
@@ -230,4 +232,16 @@ export function replyStep(status: number, body: ReplyBody, sent: QueueEntry, cur
 export function doneFrom(applied: number | undefined, version: number | null, complete: unknown): { complete: boolean; version: number } | null {
   if (typeof complete !== "boolean" || version === null || version < (applied ?? 0)) return null;
   return { complete, version };
+}
+
+// Submit (E7-5) waits for the cards: what the wait says on each check. ok: nothing waits.
+// failed: a change cannot be saved now (it failed, the page is offline or closing, or the
+// time ran out). check: a card's answer was refused or changed elsewhere during the wait, or
+// the page answers for another response now: the respondent looks before submitting.
+export type Settle = "wait" | "ok" | "failed" | "check";
+export function settleState(s: { waiting: number; failed: number; down: boolean; alive: boolean; late: boolean; upset: boolean; moved: boolean }): Settle {
+  if (s.moved || s.upset) return "check";
+  if (s.waiting === 0) return "ok";
+  if (s.failed > 0 || s.down || !s.alive || s.late) return "failed";
+  return "wait";
 }

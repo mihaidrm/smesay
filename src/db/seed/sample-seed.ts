@@ -73,6 +73,8 @@ export async function seedSampleInto(ws: WorkspaceId, projectName: string): Prom
       instrumentId: instrument.id, itemSetId: set.id, inviteId, deviceToken: token(),
       fields: { name: p.name, role: p.role }, confidence: p.confidence, signedOff: p.status === "submitted",
       submittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
+      // E7-5: the sample was submitted once, so the first Submit is the latest.
+      firstSubmittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
     });
     responseIds.set(p.n, response.id);
   }
