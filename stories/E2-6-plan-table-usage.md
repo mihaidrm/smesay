@@ -13,7 +13,8 @@ entry, and every workspace's usage is counted from day one.
    this month, AI cost in euro cents this month. Counts come from SQL over the tables, not
    from counters that can drift; a test creates rows and checks the numbers.
 3. Settings shows the usage line in the Plan card: "[N] projects, [N] responses this month,
-   [N] AI runs this month."
+   [N] AI runs this month, EUR [SPENT] on AI this month." (the spend added with E9-3,
+   2026-10-04, so it matches the Actions tab's line).
 4. Checking a limit is one function, `withinPlan(workspaceId, 'responses')`, called where a
    limit would apply (project creation, submission, AI run) and always true on the free entry.
    Switching a workspace to another plan is a column change on workspace (`plan`, default

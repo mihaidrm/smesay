@@ -6,7 +6,8 @@
 // its state and date and Reopen. The tab's count is the open ones (E8-1 numbers). The sample
 // shows its seeded actions with no controls (E9-1 acceptance 7, E9-2 acceptance 1). Under the
 // actions, the cost line (E9-3): the project's last run of Write actions and the workspace's
-// AI spend this month, the same sum as Settings' usage line (usage(), E2-6). Copy:
+// AI spend this month, the same sum as Settings' usage line (usage(), E2-6); not on the sample,
+// whose seeded runs no month counts (usage() leaves the sample out). Copy:
 // docs/copy/app.md, Results, Actions.
 import Link from "next/link";
 import { NeutralPill } from "@/components/ui/status-pill";
@@ -55,7 +56,7 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
           ))}
         </>
       )}
-      {last && (
+      {last && !sample && (
         <p className="text-xs text-ink-muted" data-testid="actions-cost">
           {ACTIONS_COPY.lastRun(formatUtc(last.createdAt), last.tokensIn + last.tokensOut, formatEur(last.costEurCents))} {ACTIONS_COPY.thisMonth(formatEur(used.aiCostCentsThisMonth))}
         </p>
