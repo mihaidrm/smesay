@@ -13,7 +13,7 @@ import { figureOf, percentOf } from "@/lib/results-agreement";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { agreement, results, resultsPrefs, tracker, type ItemCounts, type ResultRow } from "@/db/queries/results";
+import { agreement, registers, results, resultsPrefs, tracker, type ItemCounts, type ResultRow } from "@/db/queries/results";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { answers as fixture, expected, people, missingItem } from "@/db/seed/sample";
 import type { WorkspaceId } from "@/db/types";
@@ -398,5 +398,41 @@ describe("the Agreement tab's numbers", () => {
   it("reads nothing of another workspace's instrument", async () => {
     expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
     expect(await agreement.byItem(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, "role")).toEqual([]);
+  });
+});
+
+describe("the registers", () => {
+  const keys = ["name", "role"];
+  it("count what the strip counts, under any filter", async () => {
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, withComment: true }, { ...NONE, kinds: ["unclear" as const] }]) {
+      const n = (await results.numbers(wsA, instrumentA, f))!;
+      const pushed = await registers.answers(wsA, instrumentA, f, ["change", "disagree"], keys);
+      const unclear = await registers.answers(wsA, instrumentA, f, ["unclear"], keys);
+      const missing = await registers.missing(wsA, instrumentA, f, keys);
+      expect([pushed.filter((r) => r.kind === "change").length, pushed.filter((r) => r.kind === "disagree").length, unclear.length, missing.length]).toEqual([n.change, n.disagree, n.unclear, n.missing]);
+    }
+    // The fixture's missing item, with Dana's role.
+    const [m] = await registers.missing(wsA, instrumentA, NONE, keys);
+    expect([m.text, m.area, m.fields.name, m.fields.role, m.submitted]).toEqual([missingItem.text, missingItem.suggestedArea, "Dana Okafor", "Finance", true]);
+  });
+
+  it("sort by any column, both ways, ties in the list's order", async () => {
+    const names = async (key: string, dir: "asc" | "desc") => (await registers.answers(wsA, instrumentA, { ...NONE, sort: { key, dir } }, ["change"], keys)).map((r) => r.fields.name);
+    const asc = await names("respondent", "asc");
+    expect(asc).toEqual([...asc].sort((a, b) => a.localeCompare(b)));
+    // Descending is the exact reverse: the ties (one person's answers) fall back to the list's
+    // order in the same direction.
+    expect(await names("respondent", "desc")).toEqual([...asc].reverse());
+    const byItem = (await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).map((r) => r.reference);
+    expect(byItem).toEqual([...byItem].sort());
+    expect(await names("drop table", "asc")).toEqual((await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).map((r) => r.fields.name));
+    expect(await names("constructor", "asc")).toEqual(await names("item", "asc"));
+    // The name shown is the tracker's.
+    expect((await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).every((r) => r.who === r.fields.name)).toBe(true);
+  });
+
+  it("read nothing of another workspace's instrument", async () => {
+    expect(await registers.answers(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, ["change", "disagree", "unclear"], keys)).toEqual([]);
+    expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys)).toEqual([]);
   });
 });

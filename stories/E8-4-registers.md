@@ -1,7 +1,7 @@
 # E8-4 Registers: different priority, disagree, unclear, missing items
 
 User: a PM reading the reasons
-Status: ready
+Status: built
 Outcome: four registers, sortable by any column and narrowed by the page's filter bar,
 each row linking to the item or to the suggested new item.
 
@@ -34,3 +34,19 @@ Amended 2026-10-03 (design note 40): the names, the sort on every column, the fi
 ## Technical notes
 One query per register, scoped by workspace and instrument, taking the ResultsFilter of
 E8-1; the sort is a whitelist of column keys.
+
+Built 2026-10-04 (decision 0044; docs/review-list.md):
+- Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/registers-tab.tsx: the two
+  tabs with their two registers each, from src/db/queries/results.ts registers.answers and
+  registers.missing (one query per register, the page's selection).
+- Acceptance 2: a row reads across its columns, respondent then what they say and why;
+  values and proposals use the instrument's labels; a respondent who has not submitted is
+  marked "Not submitted"; the respondent's name is the Responses tab's (a personal invite's
+  name or email when the field is empty, "Anonymous [N]" on the public link).
+- Acceptance 3: every column sorts both ways, the sort in the URL (item, respondent, the
+  role field, proposed, their value, reason or question; for missing items the text, area
+  and value); the filter bar narrows every register.
+- Acceptance 4: with E8-5 (the item detail); a missing-item row has no action.
+- Acceptance 5: the headings' counts are the strip's and the tab's (the same selection);
+  src/db/queries/results.test.ts checks them under five filters.
+- Playwright: e2e/results-registers.spec.ts.

@@ -108,3 +108,22 @@ export const AGREEMENT_COPY = {
   smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",
   chartTitle: (what: string) => `Answers on ${what}`,
 };
+
+// The registers (stories/E8-4; docs/copy/app.md, Results).
+export const REGISTERS_COPY = {
+  changeTitle: "Different priority",
+  disagreeTitle: "Disagree",
+  unclearTitle: "Unclear",
+  missingTitle: "Missing items suggested",
+  item: "Item",
+  respondent: "Respondent",
+  proposed: "Proposed",
+  theirValue: "Their value",
+  reason: "Reason",
+  question: "Question",
+  missingText: "Suggested item",
+  area: "Suggested area",
+  suggestedValue: "Suggested value",
+  notSubmitted: "Not submitted",
+  none: "None under this filter.",
+};

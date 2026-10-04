@@ -328,6 +328,78 @@ export const agreement = {
   },
 };
 
+// The registers (E8-4): the answers of one or more kinds and the missing items the page's
+// filter keeps (the same selection as the strip, so a heading's count is its tile), one row
+// each with the item, the respondent's name and fields and whether they have submitted, sorted
+// from the register's own list of columns.
+export type RegisterRow = {
+  id: string;
+  itemId: string;
+  reference: string | null;
+  itemText: string;
+  readerStatus: string | null;
+  readerText: string | null;
+  proposedValue: string | null;
+  kind: string;
+  value: string | null;
+  reason: string | null;
+  comment: string | null;
+  fields: Record<string, string>;
+  // The name shown and the public-link number, as PersonRow's (E8-2).
+  who: string | null;
+  anon: number | null;
+  submitted: boolean;
+};
+export type MissingRegisterRow = { id: string; text: string; area: string | null; value: string | null; fields: Record<string, string>; who: string | null; anon: number | null; submitted: boolean };
+
+// The register's columns already carry the direction; a field column (field.[key]) only for a
+// key of the instrument; ties in the list's order, then by row.
+function registerOrder(sort: ResultsFilter["sort"], fieldKeys: string[], columns: Record<string, SQL>): SQL {
+  const dir = sort?.dir === "desc" ? sql`desc` : sql`asc`;
+  const key = sort?.key ?? "item";
+  const field = key.startsWith("field.") ? key.slice(6) : null;
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(c.fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(columns, key) ? columns[key] : columns.item);
+  return sql`${first}, ${columns.item}, x.id`;
+}
+
+export const registers = {
+  answers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, kinds: ("change" | "disagree" | "unclear")[], fieldKeys: string[]): Promise<RegisterRow[]> => {
+    if (!isUuid(instrumentId) || kinds.length === 0) return [];
+    const dir = f.sort?.dir === "desc" ? sql`desc` : sql`asc`;
+    const columns: Record<string, SQL> = {
+      item: sql`it.position ${dir}`,
+      respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
+      proposed: sql`it.proposed_value ${dir} nulls last`,
+      value: sql`x.value ${dir} nulls last`,
+      reason: sql`lower(x.reason) ${dir} nulls last`,
+      status: sql`(c.submitted_at is not null) ${dir}`,
+    };
+    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean }>(sql`${head(ws, instrumentId, f)}
+      select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted
+        from ans x join counted c on c.id = x.response_id join item it on it.id = x.item_id and it.workspace_id = ${ws}
+        where x.kind in (${list(kinds)})
+        order by ${registerOrder(f.sort, fieldKeys, columns)}`);
+    return rows.map((r) => ({ id: r.id, itemId: r.item_id, reference: r.source_ref, itemText: r.original_text, readerStatus: r.reader_status, readerText: r.reader_text, proposedValue: r.proposed_value, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted }));
+  },
+  missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<MissingRegisterRow[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const dir = f.sort?.dir === "desc" ? sql`desc` : sql`asc`;
+    const columns: Record<string, SQL> = {
+      item: sql`lower(x.text) ${dir}`,
+      text: sql`lower(x.text) ${dir}`,
+      area: sql`x.suggested_area ${dir} nulls last`,
+      value: sql`x.suggested_value ${dir} nulls last`,
+      respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
+      status: sql`(c.submitted_at is not null) ${dir}`,
+    };
+    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean }>(sql`${head(ws, instrumentId, f)}
+      select x.id, x.text, x.suggested_area, x.suggested_value, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted
+        from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
+        order by ${registerOrder(f.sort, fieldKeys, columns)}`);
+    return rows.map((r) => ({ id: r.id, text: r.text, area: r.suggested_area, value: r.suggested_value, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted }));
+  },
+};
+
 // The PM's choices on Results, per instrument (user.results_prefs, INTERFACES.md
 // ResultsPrefs): the tiles, the include-unsubmitted switch and the Agreement tab's view (E8-3).
 // Keyed by the signed-in person's

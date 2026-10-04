@@ -27,6 +27,7 @@ import { FilterBar } from "./filter-bar";
 import { ResultsBoundary } from "./results-boundary";
 import { AgreementTab } from "./agreement-tab";
 import type { AgreementView } from "./agreement-controls";
+import { PushedTab, QuestionsTab } from "./registers-tab";
 import { ResponsesTab } from "./responses-tab";
 import { PanelSkeleton } from "./skeletons";
 import { TileChooser } from "./tile-chooser";
@@ -35,8 +36,8 @@ import { UnsubmittedSwitch } from "./unsubmitted-switch";
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
 type Tab = (typeof TABS)[number];
 // The story each tab's content comes with.
-type Later = Exclude<Tab, "responses" | "agreement">;
-const TAB_STORY: Record<Later, string> = { pushed: "E8-4", questions: "E8-4", actions: "E9-1", export: "E10-1" };
+type Later = Exclude<Tab, "responses" | "agreement" | "pushed" | "questions">;
+const TAB_STORY: Record<Later, string> = { actions: "E9-1", export: "E10-1" };
 const parseTab = (v: string | string[] | undefined): Tab => (typeof v === "string" && (TABS as readonly string[]).includes(v) ? (v as Tab) : "agreement");
 
 export default async function ResultsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<SearchParams> }) {
@@ -144,6 +145,8 @@ function TabRow({ n, tab, href }: { n: ResultsNumbers; tab: Tab; href: (t: Tab) 
 // Each tab's content comes with its story; until then the tab says which.
 async function TabPanel({ tab, ws, projectId, instrument, filter, ctx, view, href }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string }) {
   if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={href} />;
+  if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} />;
+  if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} />;
   if (tab === "agreement") return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} />;
   return <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="tab-panel">{RESULTS_COPY.comesWith(RESULTS_COPY.tabs[tab], TAB_STORY[tab as Later])}</p>;
 }
