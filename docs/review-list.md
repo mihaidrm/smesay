@@ -113,3 +113,6 @@ a change.
 | 2026-10-04 | A repeat Start replaces the response's fields and perspectives whether or not it was submitted; E7-6 decides what an edit after Submit may change | src/lib/respondent.ts startResponse | Nothing to see until E7-6. |
 | 2026-10-04 | About you's desktop widths (fields 360 px, Start 280 px) follow the component's width through a container query, so the Build preview stays at phone width | src/components/respondent/about-you.tsx | Nothing to see. |
 | 2026-10-04 | A Start that races a Revoke or a date change re-reads the link under the invite row's lock; the project's archiving is not re-read there (archiving a project with a live link is rare and its answers stay visible as not submitted) | src/db/queries/responses.ts | Nothing to see. |
+| 2026-10-04 | Landing: Questions sits after Pricing; the phone answer is there, the third step no longer names a phone | src/app/landing-page/page.tsx | Before Pricing instead? |
+| 2026-10-04 | Landing: the results fragment's view switch works on the page (the one new client island); the rest of What you get back is static | src/app/landing-page/results-demo.tsx | Nothing to see. |
+| 2026-10-04 | Landing: "a person answers" at hello@smesay.app beside Questions, until the E12-5 bubble is built | src/app/landing-page/page.tsx | Your inbox, at the launch gate. |

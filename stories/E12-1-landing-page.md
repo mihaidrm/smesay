@@ -10,6 +10,11 @@ like 3000/landing-page"): the page is landing page F (docs/design-notes/prototyp
 LandingF.dc.html), served at /landing-page until Mihai moves it to /; the home page keeps its
 placeholder until then. Landing page E and its phone board are superseded.
 
+Amended 2026-10-04 (design note 53, Mihai's review): the Shape step shows one item before and
+after; the third step no longer speaks of phones; What you get back leads with what the PM
+gains over a results fragment whose Table, Columns and Share switch works on the page; a
+Questions section with seven questions sits after Pricing.
+
 ## Acceptance criteria
 1. /landing-page renders landing page F (copy from docs/copy/landing.md): the nav, the dark
    hero with the aurora, the dot grid, the cursor light and the live card with the mascot's
