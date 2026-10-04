@@ -3,7 +3,8 @@
 // submits; on Results, Actions, Write actions (the fake transport, e2e/fake-anthropic.mjs,
 // answers with four actions and a fifth citing a ref never sent) shows four actions, each
 // with its kind and its citation, the answer's linking to the item detail; Write again
-// replaces them. The sample's Actions tab shows its four seeded actions and no Write actions.
+// replaces them. E9-2: Dismiss, Mark done (the date), Reopen, and Write again leaves the
+// dismissed one out. The sample's Actions tab shows its four seeded actions, no controls.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -87,10 +88,30 @@ test("write actions from the answers, each citing the answers behind it", async 
   await expect(page.getByTestId("write-actions")).toHaveText("Write again");
   await expect(actions).toHaveCount(4);
 
+  // E9-2: Dismiss the rewrite, mark the conflict done; the tab counts the open ones; the done
+  // one shows with its date and Reopen; Write again does not bring the dismissed one back.
+  const open = page.getByTestId("actions-list").getByTestId("action");
+  await open.filter({ hasText: "Rewrite the first item" }).getByTestId("action-dismiss").click();
+  await expect(page.getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
+  await open.filter({ hasText: "Settle the priority" }).getByTestId("action-done").click();
+  const done = page.getByTestId("actions-done").getByTestId("action");
+  await expect(done).toHaveCount(1);
+  await expect(done.getByTestId("action-closed")).toHaveText(/^Done \d{1,2} \w{3} \d{4}, \d{2}:\d{2} UTC$/);
+  await expect(page.getByTestId("tab-actions")).toHaveText("Actions (2)");
+  await expect(page.getByTestId("action").filter({ hasText: "Rewrite the first item" }).getByTestId("action-done")).toHaveCount(0);
+  await done.getByTestId("action-reopen").click();
+  await expect(page.getByTestId("actions-done")).toHaveCount(0);
+  await expect(page.getByTestId("tab-actions")).toHaveText("Actions (3)");
+  await page.getByTestId("write-actions").click();
+  await expect(open).toHaveCount(3);
+  await expect(open.filter({ hasText: "Rewrite the first item" })).toHaveCount(0);
+  await expect(page.getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
+
   // The sample: its four seeded actions, read-only.
   await page.goto(`${sample}/results?tab=actions`);
   await expect(page.getByTestId("action")).toHaveCount(4);
   await expect(page.getByTestId("actions-sample")).toBeVisible();
   await expect(page.getByTestId("write-actions")).toHaveCount(0);
+  await expect(page.getByTestId("action-done")).toHaveCount(0);
   await expect(page.getByTestId("action").nth(3).getByTestId("action-citation")).toHaveText("Dana Okafor, missing item");
 });

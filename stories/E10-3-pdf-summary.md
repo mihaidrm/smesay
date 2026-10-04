@@ -9,8 +9,9 @@ responses.
 1. "Summary for the deck" export: page 1 the headline numbers, the agreement by area chart and
    the confidence histogram; page 2 onward the per-item table per area, the pushed back and
    disagree registers, the unclear and missing registers; last page the sign-off record (who
-   confirmed, when, confidence; landing page output "Sign-off record") and the open actions
-   with citations (E9).
+   confirmed, when, confidence; landing page output "Sign-off record") and the actions with
+   citations (E9): the open ones, then the done and the dismissed ones with their state and
+   date (E9-2, acceptance 4).
 2. Renders under 10 seconds for 200 items and 50 responses: measured in a test with generated
    rows, on CI's runner.
 3. Charts are the design system's (stacked bar, histogram) drawn as SVG, in the status

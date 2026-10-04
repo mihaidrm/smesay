@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0021_insight_citations).
+v1, 2026-10-04 (the date of the latest migration, 0022_insight_closed).
 
-Generated from the snapshot of the 22 migrations in drizzle/ (0021_snapshot.json) by
+Generated from the snapshot of the 23 migrations in drizzle/ (0022_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -310,6 +310,8 @@ an AI-written action on a project with the answers it cites and its cost.
 | cited_missing_item_ids | uuid[] | not null, default {} |
 | kind | text |  |
 | state | text | not null, default open |
+| closed_at | timestamp with time zone |  |
+| closed_by | text | fk user.id, on delete set null |
 | model | text |  |
 | tokens_in | integer |  |
 | tokens_out | integer |  |
@@ -318,8 +320,8 @@ an AI-written action on a project with the answers it cites and its cost.
 
 Foreign keys: insight_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
 
-Indexes: insight_workspace_idx on workspace_id; insight_project_idx on project_id.
-Checks: insight_state_check: state in ('open', 'done', 'dismissed'); insight_kind_check: kind is null or kind in ('rewrite', 'conflict', 'followUp', 'coverage').
+Indexes: insight_workspace_idx on workspace_id; insight_project_idx on project_id; insight_closed_by_idx on closed_by.
+Checks: insight_state_check: state in ('open', 'done', 'dismissed'); insight_kind_check: kind is null or kind in ('rewrite', 'conflict', 'followUp', 'coverage'); insight_closed_check: (state = 'open') = (closed_at is null).
 
 ## ai_run
 

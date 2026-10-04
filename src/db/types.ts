@@ -65,5 +65,8 @@ export type ResultsPrefs = { [instrumentId: string]: { tiles?: string[]; include
 
 // E9-1: the four kinds of action the model returns (INTERFACES.md, InsightOutput); the
 // check constraint on insight.kind (src/db/schema.ts) uses the same list.
+// E9-2: an action is open, done or dismissed (insight.state).
+export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
+export type InsightState = (typeof INSIGHT_STATES)[number];
 export const INSIGHT_KINDS = ["rewrite", "conflict", "followUp", "coverage"] as const;
 export type InsightKind = (typeof INSIGHT_KINDS)[number];

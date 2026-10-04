@@ -541,22 +541,62 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{tabActions}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 12px">
 <div style="display: flex; align-items: center; gap: 12px"><button type="button" style="min-height: 36px; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Write again</button></div>
-<sc-for list="{{actions}}" as="ac" hint-placeholder-count="4">
+<sc-for list="{{actionsOpen}}" as="ac" hint-placeholder-count="4">
 <div style="display: flex; align-items: center; gap: 20px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px; background: {{ac.bg}}">
 <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
-<div><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.kind}}</span></div>
+<div style="display: flex; gap: 6px"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.kind}}</span><sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.stateLabel}}</span></sc-if></div>
 <div style="font-size: 15px; font-weight: 500; color: {{ac.fg}}">{{ac.title}}</div>
 <div style="color: #5B6069">{{ac.why}}</div>
 <div style="font-size: 12px; color: #5B6069">From: {{ac.cites}}</div>
 </div>
 <div style="flex-shrink: 0; display: flex; gap: 6px; align-items: center">
 <sc-if value="{{ac.open}}" hint-placeholder-val="{{true}}">
-<button type="button" onClick="{{ac.done}}" style="min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Mark done</button>
+<button type="button" onClick="{{ac.done}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Mark done</button>
 <button type="button" onClick="{{ac.dismiss}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Dismiss</button>
 </sc-if>
 <sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}">
-<div style="color: #5B6069">{{ac.stateLabel}}</div>
-<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 12px; border: 0; background: transparent; color: #0E6B63; font-weight: 500">Undo</button>
+<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reopen</button>
+</sc-if>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{noneOpen}}" hint-placeholder-val="{{false}}"><div style="padding: 14px 16px; border: 1px dashed #C9C7C1; border-radius: 16px; color: #5B6069">No open actions. Write again to look for new ones, or reopen one below.</div></sc-if>
+<sc-if value="{{anyDone}}" hint-placeholder-val="{{false}}"><div style="font-weight: 600; color: #5B6069">{{doneHeading}}</div></sc-if>
+<sc-for list="{{actionsDone}}" as="ac" hint-placeholder-count="0">
+<div style="display: flex; align-items: center; gap: 20px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px; background: {{ac.bg}}">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; gap: 6px"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.kind}}</span><sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.stateLabel}}</span></sc-if></div>
+<div style="font-size: 15px; font-weight: 500; color: {{ac.fg}}">{{ac.title}}</div>
+<div style="color: #5B6069">{{ac.why}}</div>
+<div style="font-size: 12px; color: #5B6069">From: {{ac.cites}}</div>
+</div>
+<div style="flex-shrink: 0; display: flex; gap: 6px; align-items: center">
+<sc-if value="{{ac.open}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{ac.done}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Mark done</button>
+<button type="button" onClick="{{ac.dismiss}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Dismiss</button>
+</sc-if>
+<sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reopen</button>
+</sc-if>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{anyDismissed}}" hint-placeholder-val="{{false}}"><div style="font-weight: 600; color: #5B6069">{{dismissedHeading}}</div></sc-if>
+<sc-for list="{{actionsDismissed}}" as="ac" hint-placeholder-count="0">
+<div style="display: flex; align-items: center; gap: 20px; padding: 14px 16px; border: 1px solid #E3E1DC; border-radius: 6px; background: {{ac.bg}}">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; gap: 6px"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.kind}}</span><sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 8px; border-radius: 999px; background: #F1F0EC; color: #5B6069; font-size: 12px; font-weight: 500">{{ac.stateLabel}}</span></sc-if></div>
+<div style="font-size: 15px; font-weight: 500; color: {{ac.fg}}">{{ac.title}}</div>
+<div style="color: #5B6069">{{ac.why}}</div>
+<div style="font-size: 12px; color: #5B6069">From: {{ac.cites}}</div>
+</div>
+<div style="flex-shrink: 0; display: flex; gap: 6px; align-items: center">
+<sc-if value="{{ac.open}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{ac.done}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Mark done</button>
+<button type="button" onClick="{{ac.dismiss}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Dismiss</button>
+</sc-if>
+<sc-if value="{{ac.closed}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{ac.reopen}}" style="min-height: 32px; padding: 0 14px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Reopen</button>
 </sc-if>
 </div>
 </div>
@@ -909,7 +949,7 @@ gaps.sort((a, b) => (b.gap ?? -1) - (a.gap ?? -1));
 const statusStyle = { 'Submitted': ['#E6F4EC', '#22643F'], 'In progress': ['#FBF1DC', '#7A5210'], 'Invited': ['#F0F0EE', '#454A52'] };
 const tracker = d.people.map((p) => ({ name: p.name, role: p.role, status: p.status, bg: statusStyle[p.status][0], fg: statusStyle[p.status][1], progress: p.done + ' of ' + d.items.length, date: p.date || 'Not yet', source: p.source }));
 
-const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Different priority and Disagree (' + (totalPushed + totalDisagreed) + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (4)'], ['export', 'Export']];
+const tabDefs = [['agreement', 'Agreement'], ['disagree', 'Different priority and Disagree (' + (totalPushed + totalDisagreed) + ')'], ['open', 'Questions and gaps (' + (totalUnclear + 1) + ')'], ['responses', 'Responses'], ['actions', 'Actions (' + (4 - Object.values(s.actionState).filter(Boolean).length) + ')'], ['export', 'Export']];
 const tabs = tabDefs.map((x) => {
 const active = s.tab === x[0];
 return { label: x[1], active: active, bd: active ? '#16181C' : 'transparent', fg: active ? '#16181C' : '#5B6069', pick: () => this.setState({ tab: x[0] }) };
@@ -924,10 +964,10 @@ const actionDefs = [
 const actions = actionDefs.map((a) => {
 const st = s.actionState[a.id];
 return {
-title: a.title, why: a.why, kind: a.kind, cites: a.cites,
+st: st || 'open', title: a.title, why: a.why, kind: a.kind, cites: a.cites,
 open: !st, closed: !!st,
-stateLabel: st === 'done' ? 'Done' : 'Dismissed',
-bg: st ? '#F6F6F4' : '#FFFFFF', fg: st ? '#5B6069' : '#16181C',
+stateLabel: st === 'done' ? 'Done 14 Oct 2026, 09:12 UTC' : 'Dismissed 14 Oct 2026, 09:12 UTC',
+bg: st ? '#F7F6FB' : '#FFFFFF', fg: st ? '#5B6069' : '#16181C',
 done: () => patch('actionState', a.id, 'done'),
 dismiss: () => patch('actionState', a.id, 'dismissed'),
 reopen: () => patch('actionState', a.id, null)
@@ -1098,7 +1138,9 @@ gapsSmall: gaps.some((g) => g.small),
 disagreements: disagreements,
 questions: questions,
 tracker: tracker,
-actions: actions
+actionsOpen: actions.filter((a) => a.st === 'open'), actionsDone: actions.filter((a) => a.st === 'done'), actionsDismissed: actions.filter((a) => a.st === 'dismissed'),
+noneOpen: actions.every((a) => a.st !== 'open'), anyDone: actions.some((a) => a.st === 'done'), anyDismissed: actions.some((a) => a.st === 'dismissed'),
+doneHeading: 'Done (' + actions.filter((a) => a.st === 'done').length + ')', dismissedHeading: 'Dismissed (' + actions.filter((a) => a.st === 'dismissed').length + ')'
 };
 }
 }
