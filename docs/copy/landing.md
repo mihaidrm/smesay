@@ -178,8 +178,9 @@ Each opens in place (a plus that turns to a cross):
 
 ## Footer
 
-SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · hello@smesay.app.
-The legal links go live with E11; until then they are text.
+SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · DPA · Subprocessors ·
+hello@smesay.app. The four legal words link to /legal/privacy, /legal/terms, /legal/dpa and
+/legal/subprocessors (E11-3); the address stays text until the domain is bought.
 
 ## Question bubble (E12-5, proposed; waits for Mihai, decision 0046)
 
@@ -265,9 +266,9 @@ screen:
   "Tend to" marks the two tendencies in the workshop column.
 - The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
   on the link" (the settings, E2-5; the link shows them since E7-1).
-- The footer: "Privacy · Terms" are pages E11 writes (every one carries the lawyer markers),
-  and hello@smesay.app is a domain the plan buys at the launch gate (docs/accounts.md); until
-  then both are text, not links.
+- The footer: the four legal pages exist since E11-3 and carry the lawyer's markers until the
+  lawyer confirms them; hello@smesay.app is a domain the plan buys at the launch gate
+  (docs/accounts.md), so it stays text until then.
 
 True on the day: the upload and shaping lines (E3, E4) and the free lines (decision 0008).
 

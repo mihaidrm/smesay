@@ -1,0 +1,50 @@
+version: 1
+date: 2026-10-04
+---
+# Terms of service
+
+These terms are the agreement between Alerty S.R.L. and the organisation or person who uses SMEsay. [LAWYER: confirm these terms as a whole under Romanian law.]
+
+## The service
+
+SMEsay turns a list of requirements into a short instrument that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L., [REGISTERED ADDRESS]. [LAWYER: confirm the registered address and the registration number.]
+
+## Accounts and workspaces
+
+You sign in with a link sent to your email address or with Google. A workspace belongs to its owners. Owners invite members, manage the workspace and can delete it. You are responsible for who you invite and for keeping access to your email account.
+
+## The free plan
+
+While SMEsay is being built with its first users, the free plan has no limit on projects, responses or AI runs. Paid plans come later; nothing built on the free plan is lost or locked when they do. [LAWYER: confirm the wording on future paid plans and on changes to the free plan.]
+
+## Your content
+
+What you import, build and collect stays yours. You give Alerty the right to store and process it only to run the service for you. You are responsible for having the right to collect the answers you collect, and for telling respondents what you ask of them. [LAWYER: confirm the licence wording and the customer's obligations towards respondents.]
+
+## Acceptable use
+
+Do not use SMEsay to collect data you have no right to collect, to send unwanted email, to break the law, or to attack the service or other users. Alerty can suspend a workspace that does. [LAWYER: confirm the suspension process and notice.]
+
+## The AI
+
+Some features use Anthropic's models to suggest wording, group items and write actions from answers. Their suggestions can be wrong. Every suggestion is shown for you to accept, change or ignore, and each action names the answers behind it.
+
+## Availability
+
+Alerty aims to keep SMEsay available but does not promise any level of availability on the free plan. Respondents' answers save as they are given and survive a closed tab.
+
+## Liability
+
+[LAWYER: write the limitation of liability, the exclusions and any cap.]
+
+## Ending
+
+You can delete a workspace at any time in Settings. Everything in it is removed within 24 hours. Export everything first if you want a copy. Alerty can end the service with [N] days' notice. [LAWYER: confirm the notice period.]
+
+## Law and disputes
+
+These terms are governed by Romanian law. [LAWYER: confirm the governing law, the competent courts and any consumer exceptions.]
+
+## Changes
+
+Each version of these terms has a number and a date at the top. A change makes a new version, and users are told about a change that affects them. [LAWYER: confirm how users are told and when a change takes effect.]

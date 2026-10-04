@@ -272,7 +272,13 @@ export default function LandingPage() {
       <footer className="border-t border-[#343252] px-5 py-8 text-[13px] text-[#A8A4BE] md:px-8" style={{ background: NAVY }}>
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-2 md:flex-row md:justify-between">
           <span>SMEsay. What the SMEs say. SME: subject matter expert.</span>
-          <span>Privacy · Terms · hello@smesay.app</span>
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-2">
+            <Link href="/legal/privacy" className="underline-offset-4 hover:underline">Privacy</Link><span aria-hidden="true">·</span>
+            <Link href="/legal/terms" className="underline-offset-4 hover:underline">Terms</Link><span aria-hidden="true">·</span>
+            <Link href="/legal/dpa" className="underline-offset-4 hover:underline">DPA</Link><span aria-hidden="true">·</span>
+            <Link href="/legal/subprocessors" className="underline-offset-4 hover:underline">Subprocessors</Link><span aria-hidden="true">·</span>
+            <span>hello@smesay.app</span>
+          </nav>
         </div>
       </footer>
     </main>

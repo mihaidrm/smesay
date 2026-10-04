@@ -323,7 +323,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |
 | Dropdown first option | Choose one |
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
-| Powered by | Powered by SMEsay (while the workspace is on the Free plan, E7-7; on About you, the chapters, the Wrap up, Done, the nothing-to-rate screen, the link pages with a workspace and the Build preview) |
+| Powered by | Powered by SMEsay (while the workspace is on the Free plan, E7-7; on About you, the chapters, the Wrap up, Done, the nothing-to-rate screen, the link pages with a workspace and the Build preview); on About you and Done, on every plan, beside it: How your answers are used (a link to /legal/privacy, new tab; screen readers hear "(opens in a new tab)"; E11-3) |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
 | Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] [Button: Continue to [NEXT AREA] / Continue to Wrap up] |
 | Chapter row (E7-4; not on the single long page) | About you, [AREA] [DONE]/[COUNT] for each chapter (read as "[AREA], [DONE]/[COUNT] answered"), Wrap up; named "Chapters" for screen readers; under it a bar named "Items answered" ([N] of [M]) |

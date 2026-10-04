@@ -73,6 +73,9 @@ export const ABOUT_YOU_COPY = {
   optional: "optional",
   footer: (workspace: string) => `Your answers go to the project team at ${workspace}. They are saved as you go on this device, so you can close this page and come back.`,
   poweredBy: "Powered by",
+  // The privacy notice beside Powered by (E11-3, acceptance 3).
+  privacy: "How your answers are used",
+  newTab: "(opens in a new tab)",
   previewNote: "Preview: nothing you enter here is saved",
   // A personal link (stories/E6-2, acceptance 3): the fields the PM filled are not asked.
   answeringAs: (who: string) => `Answering as ${who}.`,
