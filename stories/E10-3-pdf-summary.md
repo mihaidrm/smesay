@@ -52,8 +52,8 @@ Built 2026-10-04 (design note 71, decision 0044):
   order and the filter.
 - Acceptance 2: e2e/export-summary.spec.ts imports a generated project of 200 items and 50
   submitted responses (through E10-2's import) and times the summary: 6,526 ms in this
-  container for 245 pages. CI's runner prints its own time in the job log; the CI figure is
-  recorded here when the pull request's run finishes.
+  container for 245 pages, and 4,287 ms for 246 pages on CI's runner (GitHub Actions run
+  37241431504, 2026-10-04).
 - Acceptance 3: the bars and the histogram are SVG in the status colours (Rated in the
   missing-item blue, Not answered a dashed outline; the histogram one violet with empty bins a
   4 px hairline and the average as text), each with its counts in words under it and as its
