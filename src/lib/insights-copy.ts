@@ -41,7 +41,7 @@ export const ACTIONS_COPY = {
   sample: "The sample's actions are invented, to show what this tab looks like.",
   // E9-3: the cost line under the actions and the estimate before a refused run.
   lastRun: (when: string, tokens: number, cost: string) => `Last run ${when}: ${tokens.toLocaleString("en-GB")} tokens, ${cost}.`,
-  thisMonth: (cost: string) => `This month: ${cost}.`,
+  thisMonth: (cost: string) => `This workspace this month: ${cost}.`,
   estimate: (cost: string) => `This run would cost about ${cost}.`,
   sampleEmpty: "The sample has no actions to show.",
   sampleRefused: "The sample's actions are invented and cannot be written again. Write actions on your own project.",

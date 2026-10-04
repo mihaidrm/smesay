@@ -7,7 +7,7 @@
 // another workspace cannot write or read them. Pure parts: keptActions, share, citationLines.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { aiRuns, answers, invites, items, missingItems, projects, responses } from "@/db/queries";
+import { aiRuns, answers, invites, items, missingItems, projects, responses, workspaces } from "@/db/queries";
 import { results } from "@/db/queries/results";
 import { insights } from "@/db/queries/insights";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -306,19 +306,21 @@ describe("the cost of a run", () => {
   it("puts the estimate in front of a budget or a cap refusal and calls nothing", async () => {
     const p = await answeredProject();
     const { fetch, calls } = transport(fourAndABadOne);
+    const budgetBefore = (await workspaces.getById(a.ws))!.aiBudgetEur;
+    const capBefore = process.env.ANTHROPIC_MONTHLY_BUDGET_EUR;
     await internal.setAiBudgetEur(a.ws, 0);
     try {
       const budget = await writeActions(a, p.project.id, { fetch });
       expect("error" in budget && budget.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. This workspace has used its AI budget for the month\./);
     } finally {
-      await internal.setAiBudgetEur(a.ws, 10);
+      await internal.setAiBudgetEur(a.ws, budgetBefore);
     }
     process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "0";
     try {
       const paused = await writeActions(a, p.project.id, { fetch });
       expect("error" in paused && paused.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. AI is paused until next month\./);
     } finally {
-      process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "100000";
+      process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = capBefore;
     }
     expect(calls).toHaveLength(0);
   });

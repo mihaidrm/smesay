@@ -27,7 +27,8 @@ export function costEurCents(model: string, tokensIn: number, tokensOut: number)
 
 // The estimate before a call (acceptance 3): about four characters per token, the pricing
 // page's own rule of thumb ("1 token is approximately 4 characters or 0.75 words in
-// English"), and the whole output allowance, so the estimate errs high.
+// English"), plus the output the caller expects, or the whole output allowance when it names none
+// (the estimate then errs high; E9-3).
 export function estimateTokensIn(text: string): number {
   return Math.ceil(text.length / 4);
 }

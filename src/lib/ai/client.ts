@@ -77,6 +77,9 @@ export type RunResult<T> =
 const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
 const refused = <T>(reason: Refusal, detail: string, estimateCents?: number): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail, ...(estimateCents === undefined ? {} : { estimateCents }) });
 
+// The text an estimate counts (E9-3): the prompt and the output schema the API sends with it.
+export const estimateText = (instructions: string, data: string, schema: z.ZodType<unknown>): string => instructions + data + JSON.stringify(zodOutputFormat(schema));
+
 // The product's cap for the month in whole euro, from the environment (decision 0036); null
 // when the variable is missing or not a whole number, and the call is then refused, as for a
 // missing key. Read at each call, so a test can set it.
@@ -110,7 +113,10 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
     console.error("ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
     return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
   }
-  const estimate = estimateCents(model, input.instructions + input.data, Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
+  // The estimate counts the output schema too, which the API sends with the prompt (design
+  // note 26 named it as the gap the whole allowance covered; E9-3 lets a caller expect less).
+  const outputFormat = zodOutputFormat(input.schema);
+  const estimate = estimateCents(model, estimateText(input.instructions, input.data, input.schema), Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
   const productSpent = await internal.productAiCostCentsThisMonth(now);
   if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
   const used = await usage(input.ws, now);
@@ -146,7 +152,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
       max_tokens: maxOutputTokens,
       system: [{ type: "text", text: input.instructions }],
       messages: [{ role: "user", content: [{ type: "text", text: input.data }] }],
-      output_config: { format: zodOutputFormat(input.schema) },
+      output_config: { format: outputFormat },
     }, { signal: controller.signal });
     // Cache tokens are counted as input in case a later story turns caching on; they are
     // priced at the base rate until the price table learns the cache rates.
