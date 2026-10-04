@@ -63,3 +63,18 @@ export async function publishWhileLocked(workspaceId: string, instrumentId: stri
     });
   } finally { await sql.end(); }
 }
+
+// For the kill-switch test (stories/E6-4): holds a personal invite row's lock on its own
+// connection, runs `during` while a send's resend claim waits on that lock, then revokes
+// the row and commits, so the claim re-evaluates against the revoked row and fails. Raw
+// SQL on a second client, as publishWhileLocked.
+export async function revokeWhileLocked(workspaceId: string, inviteId: string, during: () => Promise<void>): Promise<void> {
+  const sql = postgres(testDatabaseUrl(), { max: 1 });
+  try {
+    await sql.begin(async (tx) => {
+      await tx`select id from invite where workspace_id = ${workspaceId} and id = ${inviteId} for update`;
+      await during();
+      await tx`update invite set revoked_at = now() where workspace_id = ${workspaceId} and id = ${inviteId}`;
+    });
+  } finally { await sql.end(); }
+}

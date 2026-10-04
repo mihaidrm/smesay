@@ -128,7 +128,8 @@ projectId) (the project's link in force: the newest instrument's that has one),
 invites.publish(ws, instrumentId, { token, opensAt, closesAt, passcodeHash }, now) (one
 public link per instrument, created under the instrument row's lock; an existing one comes
 back with created: false; sets instrument.published_at and closes the project's older
-public links at `now`), invites.updatePublic(ws, instrumentId, patch); instruments.updateLocked(ws, instrumentId,
+public links at `now`), invites.updatePublic(ws, instrumentId, inviteId, patch) (the row the
+page showed; E6-4); instruments.updateLocked(ws, instrumentId,
 (published) => patch | null), the same lock, so saveScoring and saveClosing decide under it,
 and setPerspectives and tagItem refuse under it once an invite exists (E6-1, acceptance 5).
 Personal invites (E6-2): invites.personalWithStatus(ws, instrumentId) (each row with

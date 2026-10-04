@@ -43,6 +43,10 @@ test("revoke the public link, see the inactive page within a minute, publish aga
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByTestId("invites-form").getByRole("status")).toHaveText("1 invite sent.");
   const firstInvite = await latestInvite(request, ana);
+  // The PM page never carries the personal token (SECURITY.md).
+  const anaToken = firstInvite.link.split("/r/")[1];
+  expect(anaToken).toMatch(/^[0-9a-f]{32}$/);
+  expect(await page.content()).not.toContain(anaToken);
 
   // The respondent tab on the public link, then the revoke in the PM app.
   const respondent = await browser.newContext({ viewport: { width: 390, height: 844 } });

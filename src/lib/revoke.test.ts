@@ -9,7 +9,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { invites, links, projects } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { prepareTestDatabase } from "@/db/test-db";
+import { prepareTestDatabase, revokeWhileLocked } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { BUILD_COPY } from "@/lib/build-copy";
@@ -118,8 +118,11 @@ describe("the kill switch (stories/E6-4)", () => {
     expect((await invites.livePublic(a.ws, project.id))?.id).toBe(again.invite.id);
     expect((await invites.publicForInstrument(a.ws, instrument.id))?.id).toBe(again.invite.id);
     expect(await publishLink(a.ws, project.id, instrument.id, "", "2026-10-30T15:00:00Z", "", t2)).toEqual({ error: LINK_ERRORS.alreadyPublished });
-    // A tab that still shows the old row cannot put its dates on the new link.
+    // A tab that still shows the old row cannot put its dates on the new link: refused
+    // before the lock, and under it when the pre-check was passed (the race).
     expect(await saveLink(a.ws, project.id, instrument.id, first.id, "", "2026-10-28T15:00:00Z", "", false, t2)).toEqual({ error: LINK_ERRORS.changed });
+    expect(await invites.updatePublic(a.ws, instrument.id, first.id, { closesAt: new Date("2026-10-29T15:00:00Z") })).toEqual({ refused: "changed" });
+    expect((await invites.get(a.ws, again.invite.id))?.closesAt).toEqual(new Date("2026-10-30T15:00:00Z"));
     const moved = await saveLink(a.ws, project.id, instrument.id, again.invite.id, "", "2026-10-28T15:00:00Z", "", false, t2);
     if (!("invite" in moved)) throw new Error(moved.error);
     expect(moved.invite.id).toBe(again.invite.id);
@@ -127,7 +130,7 @@ describe("the kill switch (stories/E6-4)", () => {
     expect((await invites.get(a.ws, first.id))?.closesAt).toEqual(new Date("2026-10-20T15:00:00Z"));
 
     // Revoke a personal link (acceptance 2): the inactive page, 410, the row Revoked, no
-    // reminder, a second revoke refused, a stale tab's token refused; the other row
+    // reminder, a second revoke refused, a stale tab's mark refused; the other row
     // untouched; pasting the address again points to New link.
     const t3 = new Date("2026-10-04T11:00:00Z");
     expect(await revokeInvitee(a.ws, project.id, instrument.id, ana.id, linkMark("f".repeat(32)), t3)).toEqual({ error: INVITEES_ERRORS.rowChanged("ana@x.example") });
@@ -151,6 +154,22 @@ describe("the kill switch (stories/E6-4)", () => {
     await revokeInvitee(a.ws, project.id, instrument.id, deeRow.id, linkMark(deeRow.token), t3);
     expect(await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, t3, keep)).toEqual({ error: INVITEES_ERRORS.revokedAddress("dee@x.example") });
     expect(await invites.claimResend(a.ws, deeRow.id, { name: null, roleHint: null }, new Date(t3.getTime() + 60 * 60 * 1000))).toBeNull();
+    // A row revoked between the box's read and the resend claim: the row's lock is held
+    // while the send reads it as Not sent, the revoke lands under that lock, and the claim
+    // then fails against the revoked row; the outcome names the revocation, not a send in
+    // flight, and no email goes.
+    const fay = await sendInvites(a.ws, project.id, instrument.id, "fay@x.example", sender, BASE, t3, async () => { throw new Error("550 no"); });
+    if (!("outcomes" in fay)) throw new Error(fay.error);
+    const fayRow = (await listInvitees(a.ws, instrument.id)).find((r) => r.email === "fay@x.example")!;
+    const sentBefore = sent.length;
+    let racing: Promise<Awaited<ReturnType<typeof sendInvites>>> | null = null;
+    await revokeWhileLocked(a.ws, fayRow.id, async () => {
+      racing = sendInvites(a.ws, project.id, instrument.id, "fay@x.example", sender, BASE, t3, keep);
+      await new Promise((r) => setTimeout(r, 400));
+    });
+    const raced = await racing!;
+    expect("outcomes" in raced ? raced.outcomes[0]?.error : raced.error).toBe(INVITEES_ERRORS.revokedAddress("fay@x.example"));
+    expect(sent.length).toBe(sentBefore);
 
     // New link (acceptance 2): a fresh token on the row, the public link's dates, email 2
     // sent; the old token reads as unknown; a failed send leaves the row Not sent.
