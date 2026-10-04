@@ -266,8 +266,8 @@ of the content; page means it replaces the screen.
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on an action another tab or member changed, or a new run replaced | This action changed since the page loaded: someone marked it in another tab, or a new run replaced it. Reload the page to see the current actions. |
 | Inline, Actions tab (E9-2) | A change no action can take (a crafted request) | That change is not one an action can take. Reload the page and use its buttons. |
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on the sample (a guard; the sample shows no buttons) | The sample's actions are invented and cannot be marked. Mark the actions of your own project. |
-| Inline, export | Export failed (E10-1, E10-2) | The [FORMAT] export did not finish. Try again; if it fails again, reload the page and export again. ([FORMAT]: CSV, JSON) |
-| Inline, PDF | PDF over the page limit | The summary runs to [N] pages. It still downloads; the deck version is the first [N]. |
+| Inline, export | Export failed (E10-1 to E10-3) | The [FORMAT] export did not finish. Try again; if it fails again, reload the page and export again. ([FORMAT]: CSV, JSON, PDF) |
+| Inline, PDF | PDF over the page limit (E10-3; the limit is 30) | The summary runs to [N] pages, over the 30 a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again. |
 | Inline, sample project | Delete sample | The sample project and its invented answers are deleted. Your own projects are not affected. [Button: Delete sample] |
 
 ## Everything else

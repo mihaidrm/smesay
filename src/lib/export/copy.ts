@@ -1,6 +1,8 @@
 // The exports' words (stories/E10-1; docs/copy/app.md, Results, Export). No database import.
 import type { CsvFile, ExportFile } from "@/db/types";
 
+export const SUMMARY_PAGE_LIMIT = 30;
+
 export const EXPORT_COPY = {
   watermark: "Sample data, invented",
   filtered: (filters: string) => `Filtered: ${filters}`,
@@ -17,7 +19,7 @@ export const EXPORT_COPY = {
   },
   // The Export tab (E10-1, acceptance 1).
   tab: {
-    line: "Each CSV file holds what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
+    line: "Each CSV file and the summary hold what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
     files: {
       answers: { title: "Answers", line: "One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment." },
       items: { title: "Items with totals", line: "One row per item: the counts of each answer, not answered, and the agreement." },
@@ -26,6 +28,15 @@ export const EXPORT_COPY = {
     } satisfies Record<CsvFile, { title: string; line: string }>,
     // E10-2: the whole project as one JSON file.
     project: { title: "Whole project", line: "One JSON file with every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, reload the page and export again." },
+    // E10-3: the PDF summary (design note 71). Over SUMMARY_PAGE_LIMIT pages the file still downloads and the
+    // note says so and how to shorten it (docs/copy/errors.md, PDF over the page limit).
+    summary: {
+      title: "Summary for the deck",
+      line: "A PDF of what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.",
+      download: "Download PDF",
+      failed: "The PDF export did not finish. Try again; if it fails again, reload the page and export again.",
+      overLimit: (pages: number | string) => `The summary runs to ${pages} pages, over the ${SUMMARY_PAGE_LIMIT} a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again.`,
+    },
     download: "Download CSV",
     downloading: "Preparing the file",
     // docs/copy/errors.md, Dashboard and exports: Export failed.
@@ -51,5 +62,5 @@ export const EXPORT_COPY = {
     sample: "This file is the sample project's. Every workspace has the sample already, so it is not imported.",
     responsesFull: (n: number, room: number) => `This file has ${n} responses submitted this month, and the workspace's plan takes ${room} more this month. Import it once the month turns.`,
   },
-  fileName: (project: string, file: ExportFile, date: string) => `${project.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60) || "project"}-${file}-${date}.${file === "project" ? "json" : "csv"}`,
+  fileName: (project: string, file: ExportFile, date: string) => `${project.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60) || "project"}-${file}-${date}.${file === "project" ? "json" : file === "summary" ? "pdf" : "csv"}`,
 };

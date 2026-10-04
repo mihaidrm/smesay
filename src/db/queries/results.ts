@@ -82,7 +82,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
     ),
     people as (
       select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at,
-          r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' then iv.reminders_sent end as reminders,
+          r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' then iv.reminders_sent end as reminders, r.confidence,
           -- The name shown: the name field, else a personal invite's name or email (the PM
           -- typed them, E6-2); a public-link response with no name has its number instead.
           coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) as who,
@@ -93,7 +93,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
         where r.workspace_id = ${ws}
       union all
       select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
-          false, i.created_at, i.kind, i.reminders_sent, coalesce(nullif(i.name, ''), i.email), null::bigint
+          false, i.created_at, i.kind, i.reminders_sent, null::int, coalesce(nullif(i.name, ''), i.email), null::bigint
         from invite i join inst on i.instrument_id = inst.id
         where i.workspace_id = ${ws} and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
@@ -198,7 +198,17 @@ export const results = {
       select m.id, m.response_id, m.text from missing_item m join counted c on c.id = m.response_id where m.workspace_id = ${ws} order by m.created_at, m.id`);
     return rows.map((r) => ({ id: r.id, responseId: r.response_id, text: r.text }));
   },
+  // The sign-off record (E10-3): every submitted response the filter keeps, named as the
+  // Responses tab names it, when it was submitted and how confident, oldest first.
+  signOffs: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<SignOff[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.execute<{ id: string; who: string | null; anon: string | number | null; submitted_at: string | Date; confidence: number | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+      select c.id, c.who, c.anon, c.submitted_at, c.confidence, c.signed_off from counted c where c.submitted_at is not null order by c.submitted_at, c.id`);
+    return rows.map((r) => ({ id: r.id, who: r.who, anon: r.anon === null ? null : Number(r.anon), submittedAt: new Date(r.submitted_at), confidence: r.confidence, signedOff: r.signed_off }));
+  },
 };
+
+export type SignOff = { id: string; who: string | null; anon: number | null; submittedAt: Date; confidence: number | null; signedOff: boolean };
 
 // One person of the Responses tab (E8-2): every person the filter keeps, started or invited.
 export type PersonRow = {
