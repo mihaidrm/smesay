@@ -107,4 +107,9 @@ accessibility 100, best practices 100, SEO 100; LCP 2.6 s, CLS 0, TBT 50 ms. axe
 (WCAG 2.0 A and AA, 2.1 AA, best practice) through Playwright after scrolling the whole page:
 0 violations, 38 rules passed, at 390 and at 1440, every section shown. After the audit the
 same day: one column under 1024 px, the nav gap at 768, the switch's focus ring whole, every
-SMEsay line with its condition, the survey form lines true of the common tools.
+SMEsay line with its condition, the survey form lines true of the common tools. Those
+numbers were taken after that audit's fixes; CI run 37196295842 on cb32662: unit 54 files,
+402 tests passed; e2e 22 passed. After the re-audit: the point labels shortened to two or
+three words, the plain wording, the device and the group size conditions, the reminder
+limit, the survey form lines conceding what a form has too, the pressed option no longer
+covering the focus ring of the one before it, the board's frame at its measured height.

@@ -84,7 +84,8 @@ test("a click on the Shape switch before the turn holds it", async ({ page }) =>
 
 // The comparison with the usual ways (design note 58): the nav link scrolls to it, six
 // points, the switch changes the Today column and leaves the whole SMEsay column as it was,
-// and a phone shows the short label and does not scroll sideways.
+// three columns from 1024 px and one below, and a phone shows the short label and does not
+// scroll sideways.
 test("the comparison with a spreadsheet, a form and a workshop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/landing-page");
@@ -96,13 +97,28 @@ test("the comparison with a spreadsheet, a form and a workshop", async ({ page }
   await expect(page.getByTestId("compare-today").first()).toHaveText("The sheet goes out in the words your team wrote it in, unless you rewrite it first.");
   const smesay = await page.getByTestId("compare-smesay").allInnerTexts();
   expect(smesay).toHaveLength(6);
+  expect(smesay[0]).toMatch(/^Import the sheet you already have\./);
+  expect(smesay[5]).toMatch(/^A to-do list drafted by AI/);
+  expect(smesay.every((line) => line.trim().length > 40)).toBe(true);
   await compare.getByRole("button", { name: "Workshop" }).click();
   await expect(compare.getByRole("button", { name: "Workshop" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("compare-today").nth(4)).toHaveText("The loudest voices tend to set the direction. Quiet and remote experts tend to say less.");
   expect(await page.getByTestId("compare-smesay").allInnerTexts()).toEqual(smesay);
   await compare.getByRole("button", { name: "Survey form" }).click();
-  await expect(page.getByTestId("compare-today").first()).toHaveText("You turn the list into form questions, in the words your team wrote it in.");
+  await expect(page.getByTestId("compare-today").first()).toHaveText("You turn each item into a form question and rewrite the wording yourself where it needs it.");
   expect(await page.getByTestId("compare-smesay").allInnerTexts()).toEqual(smesay);
+
+  // The first row's Today and SMEsay cells side by side at 1024 px, stacked at 1023 px.
+  const tops = async () => {
+    const row = page.getByTestId("compare-row").first();
+    const today = await row.getByTestId("compare-today").boundingBox();
+    const ours = await row.getByTestId("compare-smesay").boundingBox();
+    return Math.round((ours?.y ?? 0) - (today?.y ?? 0));
+  };
+  await page.setViewportSize({ width: 1024, height: 900 });
+  expect(await tops()).toBe(0);
+  await page.setViewportSize({ width: 1023, height: 900 });
+  expect(await tops()).toBeGreaterThan(20);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await compare.scrollIntoViewIfNeeded();

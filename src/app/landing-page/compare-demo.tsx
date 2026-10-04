@@ -13,7 +13,7 @@
 import { useState } from "react";
 import { cn } from "cn";
 
-const POINTS = ["Setting it up", "For your experts", "The why behind a no", "Who has answered", "Making sense of it", "What you walk out with"] as const;
+const POINTS = ["Setting it up", "For your experts", "The reasons", "Who has answered", "Reading the answers", "The result"] as const;
 
 const WAYS = [
   {
@@ -27,7 +27,7 @@ const WAYS = [
       "A comment only when someone thinks to write one.",
       "You track replies in your inbox and chase the missing ones yourself.",
       "You copy every reply into one sheet before you can count anything. Splitting by role is done by hand.",
-      "A merged sheet to write the decisions up from. Checking it against the replies is slow and leaves no trail.",
+      "A merged sheet to write the decisions up from. Checking it against the replies means going back through the emails.",
     ],
   },
   {
@@ -35,10 +35,10 @@ const WAYS = [
     label: "Survey form",
     short: "Survey form",
     today: [
-      "You turn the list into form questions, in the words your team wrote it in.",
-      "They answer each item as a question, worded as your team wrote it.",
+      "You turn each item into a form question and rewrite the wording yourself where it needs it.",
+      "A link, usually with no account to make. Each item is one more question in a long form.",
       "A rating, and a reason only where you set up a follow-up question.",
-      "Most form tools show who answered when you send the invitations from the tool.",
+      "Unless the form asks for a name or the tool sends the invitations, you cannot tell who has answered.",
       "A chart per question. Whether the experts back your proposal, and why not, is yours to work out.",
       "A file of answers to turn into decisions yourself.",
     ],
@@ -62,10 +62,10 @@ const WAYS = [
 // landing.md, Claims to check before launch).
 const SMESAY = [
   "Import the sheet you already have. AI sorts it into areas and writes each item in plain words. You choose which wording goes out.",
-  "Plain words, a link, no account, made for a phone. Answers save as they go, so they can stop and come back.",
+  "A link, no account, made for a phone, in the wording you chose. Answers save as they go, so they can stop and carry on later on the same device, or anywhere with a personal link.",
   "When you show your proposal and an expert does not agree, the answer asks for a reason before it counts. Unclear asks for their question.",
-  "Send personal links by email and see who has submitted. Remind those who have not with one button.",
-  "Everyone answers on their own. The answers arrive in one place, counted per item and area. Ask role or department as a list to pick from, and see which group disagrees, and why.",
+  "Send personal links by email and see who has submitted. Remind the others with one button, at most once every three days.",
+  "Everyone answers on their own. The answers arrive in one place, counted per item and area. Ask role or department as a list to pick from, and see which group disagrees and why, once three or more in a group have answered.",
   "A to-do list drafted by AI, each line naming the answers behind it. Numbers that match the CSV to the row.",
 ];
 
@@ -80,7 +80,7 @@ export function CompareDemo() {
         <span id="compare-label" className="text-[14px] font-semibold text-[#5E5A72]">What you use today</span>
         <div className="flex max-w-full flex-wrap self-start rounded-[20px] bg-[#EEEAFF] p-[3px] text-[13px] font-semibold" role="group" aria-labelledby="compare-label">
           {WAYS.map((w) => (
-            <button key={w.key} type="button" aria-pressed={way === w.key} onClick={() => setWay(w.key)} className={cn("h-8 shrink-0 rounded-full px-3.5 whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", way === w.key ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}><span className="sm:hidden">{w.short}</span><span className="hidden sm:inline">{w.label}</span></button>
+            <button key={w.key} type="button" aria-pressed={way === w.key} onClick={() => setWay(w.key)} className={cn("relative h-8 shrink-0 rounded-full px-3.5 whitespace-nowrap outline-hidden focus-visible:z-10 transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", way === w.key ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}><span className="sm:hidden">{w.short}</span><span className="hidden sm:inline">{w.label}</span></button>
           ))}
         </div>
       </div>
