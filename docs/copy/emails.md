@@ -98,11 +98,13 @@ If you cannot take part, reply to this email and say so, and [PM NAME] will stop
 
 ## 4. Submission receipt
 
-Sent by E7 when a respondent submits, only when their email is known: a personal invite, or an
-email field the PM asked for in Build. On a public link with no email field, nothing is sent;
-the submitted screen is the receipt.
+Sent by E7-5 on a personal invite's first Submit, to the invite's address (the one the PM
+chose). Never to an address typed on a public link, an email field included: anyone could
+type any address and send mail through SMEsay (docs/review-list.md). A later Submit sends
+none; there, and on a public link, the Done screen is the receipt. It goes after the Submit's
+reply; one that fails to send does not undo the Submit.
 
-From: SMEsay <no-reply@[DOMAIN]>
+From: SMEsay <[EMAIL_FROM address]> (the app's one sender address, as email 2)
 Subject: Your answers on [PROJECT NAME] were submitted
 Preheader: [ITEM COUNT] items, submitted [DATE AND TIME].
 
@@ -116,7 +118,10 @@ Your answers on [PROJECT NAME] for [WORKSPACE NAME] were submitted on
 [UNCLEAR] marked unclear, [MISSING] missing items suggested. Confidence [CONFIDENCE] of 5.
 
 You can change your answers until the link closes on [CLOSE DATE AND TIME]. Open the same link
-and press Change.
+and press Change my answers. (A link with no close date: You can change your answers while the
+link is open. Open the same link and press Change my answers.) (Built in E7-5:
+src/lib/mail/receipt-email.ts; the subject, the preheader and the counts as here; the date and
+time in UTC.)
 
 Button: See your answers
 

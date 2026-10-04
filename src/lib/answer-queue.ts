@@ -231,3 +231,15 @@ export function doneFrom(applied: number | undefined, version: number | null, co
   if (typeof complete !== "boolean" || version === null || version < (applied ?? 0)) return null;
   return { complete, version };
 }
+
+// Submit (E7-5) waits for the cards: what the wait says on each check. ok: nothing waits.
+// failed: a change cannot be saved now (it failed, the page is offline or closing, or the
+// time ran out). check: a card's answer was refused or changed elsewhere during the wait, or
+// the page answers for another response now: the respondent looks before submitting.
+export type Settle = "wait" | "ok" | "failed" | "check";
+export function settleState(s: { waiting: number; failed: number; down: boolean; alive: boolean; late: boolean; upset: boolean; moved: boolean }): Settle {
+  if (s.moved || s.upset) return "check";
+  if (s.waiting === 0) return "ok";
+  if (s.failed > 0 || s.down || !s.alive || s.late) return "failed";
+  return "wait";
+}

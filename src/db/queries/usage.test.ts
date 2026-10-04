@@ -30,7 +30,7 @@ async function workspaceWithRows(label: string) {
   const instrument = await instruments.create(ws, { projectId: p1.id, itemSetId: set.id, title: "I" });
   const invite = await invites.create(ws, { instrumentId: instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
   for (const submittedAt of ["2026-10-01T00:00:00Z", "2026-10-14T09:00:00Z", "2026-09-30T23:59:59Z", null]) {
-    await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: submittedAt !== null, submittedAt: submittedAt ? new Date(submittedAt) : null });
+    await responses.create(ws, { instrumentId: instrument.id, itemSetId: set.id, inviteId: invite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: submittedAt !== null, submittedAt: submittedAt ? new Date(submittedAt) : null, firstSubmittedAt: submittedAt ? new Date(submittedAt) : null });
   }
   for (const [createdAt, cents] of [["2026-10-02T10:00:00Z", 4], ["2026-10-10T10:00:00Z", 5], ["2026-09-28T10:00:00Z", 9]] as const) {
     const run = await aiRuns.create(ws, { projectId: p1.id, purpose: "shape", model: "test", tokensIn: 1, tokensOut: 1, costEurCents: cents, durationMs: 1 });
@@ -41,7 +41,7 @@ async function workspaceWithRows(label: string) {
   const sampleSet = await itemSets.create(ws, { projectId: sample.id, version: 1, source: "csv" });
   const sampleInstrument = await instruments.create(ws, { projectId: sample.id, itemSetId: sampleSet.id, title: "S" });
   const sampleInvite = await invites.create(ws, { instrumentId: sampleInstrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
-  await responses.create(ws, { instrumentId: sampleInstrument.id, itemSetId: sampleSet.id, inviteId: sampleInvite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-05T10:00:00Z") });
+  await responses.create(ws, { instrumentId: sampleInstrument.id, itemSetId: sampleSet.id, inviteId: sampleInvite.id, deviceToken: randomUUID().replace(/-/g, ""), fields: {}, signedOff: true, submittedAt: new Date("2026-10-05T10:00:00Z"), firstSubmittedAt: new Date("2026-10-05T10:00:00Z") });
   await aiRuns.create(ws, { projectId: sample.id, purpose: "insights", model: "sample", tokensIn: 1, tokensOut: 1, costEurCents: 50, durationMs: 1 });
   return ws;
 }

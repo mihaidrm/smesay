@@ -9,14 +9,19 @@
 // set on Start in a cookie scoped to the link's path (E7-3). Rules shared with the client:
 // src/lib/respondent-rules.ts.
 import { randomBytes } from "node:crypto";
-import { answers, items, itemSets, links, responses } from "@/db/queries";
+import { answers, items, itemSets, links, missingItems, responses } from "@/db/queries";
 import type { Answer } from "@/db/queries/answers";
 import type { Link } from "@/db/queries/links";
 import type { InviteDates, Response } from "@/db/queries/responses";
 import { textFor } from "@/lib/item-text";
 import { isVisible } from "@/lib/perspectives";
 import { viewOf, type LinkView } from "@/lib/link-access";
-import { answerFor, answeredCount, carriedFields, isComplete, parseAnswerInput, parseFieldValues, parsePicks, RESPONDENT_ERRORS, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
+import { signOffFor } from "@/lib/closing";
+import { sendMail, type Mail } from "@/lib/mail";
+import { receiptEmail } from "@/lib/mail/receipt-email";
+import { withinPlan } from "@/lib/plans";
+import { missingMandatory } from "@/lib/respondent-fields";
+import { answerFor, answeredCount, areasOf, carriedFields, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
 import { linkState } from "@/lib/sharing";
 
@@ -32,7 +37,7 @@ export type RespondentView =
   | LinkView
   | { kind: "sample"; link: Link }
   | { kind: "closedOwn"; link: Link; closedAt: Date; response: Response; answered: number; total: number }
-  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number> };
+  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number>; wrap: WrapValue };
 
 // The response this device has on this link: the personal invite's, or the one its device
 // cookie names on the public link.
@@ -82,7 +87,10 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   const response = await responseOf(link, cookies.device);
   const { items: list, areas } = await itemsOf(link);
   const rows = response ? await answers.forResponse(link.ws, response.id) : [];
-  return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])) };
+  // The Wrap up as last saved (E7-5: saved as the respondent writes, and by Submit).
+  const missing = response ? (await missingItems.forResponse(link.ws, response.id))[0] : undefined;
+  const wrap: WrapValue = response ? { confidence: response.confidence, signed: false, closingAnswer: response.closingAnswer ?? "", missing: { text: missing?.text ?? "", area: missing?.suggestedArea ?? "", value: missing?.suggestedValue ?? "" } } : EMPTY_WRAP;
+  return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])), wrap };
 }
 
 export type WriteRefusal = { status: 403 | 404 | 409 | 410 | 422; error: string };
@@ -181,4 +189,92 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
     return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq } };
   }
   return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq };
+}
+
+// The Wrap up's answers as the respondent writes them (E7-5; PUT /r/[token]/wrap): the link
+// open for this device, the response started and the one the page answers for, the answers
+// read as Submit reads them (parseWrapInput), then stored under the invite row's lock and the
+// response's (responses.saveWrap).
+export async function saveWrap(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | { saved: true }> {
+  const open = await openLinkFor(token, cookies, now);
+  if ("status" in open) return open;
+  const { link } = open;
+  const response = await responseOf(link, cookies.device);
+  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  const { items: all, areas } = await itemsOf(link);
+  const chapters = chaptersFor(areas, all, response.perspectives);
+  const closing = link.instrument.closing;
+  const parsed = parseWrapInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm });
+  if ("error" in parsed) return { status: 422, error: parsed.error };
+  if (parsed.input.response !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
+  const { confidence, closingAnswer, missing } = parsed.input;
+  const saved = await responses.saveWrap(link.ws, link.invite.id, response.id, { confidence, closingAnswer, missing }, stillOpen, now);
+  if (!saved) return { status: 404, error: "unknown" };
+  if ("refused" in saved) return refusalOf(saved.refused, token, now);
+  return { saved: true };
+}
+
+// The first word of the respondent's name, for "Thank you, [NAME]." and "Welcome back":
+// the name field Start saved, else a personal invite's name.
+export function firstNameOf(link: Link, response: Pick<Response, "fields">): string | null {
+  const name = response.fields.name ?? (link.invite.kind === "personal" ? link.invite.name : null) ?? "";
+  return name.trim().split(/\s+/)[0] || null;
+}
+
+// Submit (E7-5, acceptance 2 to 5): the link open for this device, the response started,
+// the PM's mandatory fields filled, confidence 1 to 5 and the sign-off ticked
+// (parseSubmitInput); the plan's monthly responses checked on the first Submit (withinPlan,
+// E2-6; no plan has a cap today); then, under the invite row's lock and the response's,
+// every visible item complete (read under the lock, so no save lands between the check and
+// the mark), the response marked submitted with the sign-off sentence the respondent saw and
+// its one missing item replaced. A second Submit updates the same response. A personal
+// invite's address gets the receipt (email 4) on the first Submit: an address the PM chose,
+// never one typed on a public link, which would let anyone send mail through SMEsay. The
+// receipt goes after the reply (`receipt`, run by the route with after():
+// node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md); one that fails
+// to send does not undo the Submit.
+export type Submitted = { submittedAt: Date; name: string | null; receipt: (() => Promise<void>) | null };
+export async function submitResponse(token: string, cookies: RespondentCookies, body: unknown, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<WriteRefusal | Submitted> {
+  const open = await openLinkFor(token, cookies, now);
+  if ("status" in open) return open;
+  const { link } = open;
+  const response = await responseOf(link, cookies.device);
+  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  const { items: all, areas } = await itemsOf(link);
+  const chapters = chaptersFor(areas, all, response.perspectives);
+  const visible = chapters.flatMap((c) => c.items);
+  const spec = link.instrument.respondentFields;
+  if (missingMandatory(spec, { ...response.fields, ...carriedFields(link.invite, spec) }).length > 0) return { status: 422, error: RESPONDENT_ERRORS.fieldsOpen };
+  const closing = link.instrument.closing;
+  const parsed = parseSubmitInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm, signOff: signOffFor(closing) });
+  if ("error" in parsed) return { status: 422, error: parsed.error };
+  // The response the page answers for: an open window whose cookie was replaced since never
+  // submits the response another window started (as saveAnswer).
+  if (parsed.input.response !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  if (!response.submittedAt && !(await withinPlan(link.ws, "responses", now))) return { status: 403, error: RESPONDENT_ERRORS.planFull };
+  const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
+  let rows: Record<string, AnswerState> = {};
+  const check = (stored: Answer[]) => {
+    rows = answerMap(stored);
+    const openItems = visible.filter((it) => !isComplete(rows[it.id])).length;
+    return openItems > 0 ? RESPONDENT_ERRORS.itemsOpen(openItems) : null;
+  };
+  const { confidence, closingAnswer, missing } = parsed.input;
+  const saved = await responses.submit(link.ws, link.invite.id, response.id, { confidence, closingAnswer, missing, signOffText: signOffFor(closing) }, stillOpen, check, now);
+  if (!saved) return { status: 404, error: "unknown" };
+  if ("refused" in saved) return refusalOf(saved.refused, token, now);
+  if ("invalid" in saved) return { status: 422, error: saved.invalid };
+  // The first Submit, decided from the row written under the lock: two Submits at once on
+  // one personal link send one receipt.
+  const first = saved.firstSubmittedAt?.getTime() === now.getTime();
+  const to = link.invite.kind === "personal" && first ? link.invite.email : null;
+  const receipt = to
+    ? async () => {
+        const tally = tallyOf(link.instrument.method, visible, rows);
+        const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
+        try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
+      }
+    : null;
+  return { submittedAt: now, name: firstNameOf(link, saved), receipt };
 }

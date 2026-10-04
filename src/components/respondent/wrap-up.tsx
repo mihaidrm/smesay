@@ -10,21 +10,23 @@
 // group with a roving tabindex and arrow keys, as the rating row (rating-row.tsx), with
 // Guessing and Certain described on 1 and 5. E7-4 renders it on the live link with the
 // header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
-// finish." with Go to the first one's chapter, and the list "Still to finish" naming each
-// item and what is missing (Not rated yet, Say why., Write your question.), each a button
-// to its own item, and Back. On the live link the tally, the closing form and Submit wait
-// for E7-5, which makes them work; until then they are not shown, so nothing on the page
-// takes an answer it does not keep. Phone first. Tap targets on the live link are 48 px
-// (docs/design-system.md, Respondent tap targets): the Go to button keeps its pill and takes
-// a 48 px hit area.
+// finish." with Go to the first one's item, and the list "Still to finish" naming each item
+// and what is missing (Not rated yet, Say why., Write your question.), each a button to its
+// own item, and Back. E7-5: the tally from the respondent's answers, the sections of what
+// they suggested (higher, lower, not needed, their questions; agreed items are not listed)
+// with Change per row, the missing item, the closing answer, confidence and the sign-off held
+// by the page (`value`, `onValue`), and Submit, on once nothing is still needed, "Submitting"
+// while it posts and the server's sentence when it fails. Phone first. Tap targets on the
+// live link are 48 px (docs/design-system.md, Respondent tap targets): the Go to and Change
+// buttons keep their pill and take a 48 px hit area.
 import { useId, useRef, useState } from "react";
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
-import { RESPONDENT_COPY, type Gap } from "@/lib/respondent-rules";
-import { scaleFor } from "@/lib/scoring";
+import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS, type Bucket, type Gap, type WrapValue } from "@/lib/respondent-rules";
+import { labelFor, scaleFor } from "@/lib/scoring";
 
 export type WrapUpProps = {
   workspaceName: string;
@@ -33,8 +35,10 @@ export type WrapUpProps = {
   method: ScoringMethod;
   labels: ScaleLabels | null;
   showProposed: boolean;
-  // The chapters for the missing-item form's area dropdown and the first unfinished one.
+  // The chapters' names, for Go to; the preview also offers them as the missing item's areas.
   chapters: string[];
+  // The live link: the areas a missing item can name (areasOf); none means no area asked.
+  areas?: string[];
   // How many items this respondent can see; all still to finish in the preview.
   total: number;
   preview?: boolean;
@@ -48,20 +52,37 @@ export type WrapUpProps = {
   gaps?: Gap[];
   onGo?: (chapter: number, itemId?: string) => void;
   onBack?: () => void;
+  // E7-5: the tally and sections, the form's values, Submit.
+  tally?: Record<Bucket, number>;
+  sections?: WrapSection[];
+  value?: WrapValue;
+  onValue?: (value: WrapValue) => void;
+  fieldsMissing?: boolean;
+  submitting?: boolean;
+  submitError?: string | null;
+  onSubmit?: () => void;
 };
+
+export type WrapSection = { bucket: "higher" | "lower" | "notNeeded" | "unclear"; itemId: string; reference: string | null; title: string; value: string | null; text: string | null; chapter: number };
+export { EMPTY_WRAP, type WrapValue };
+
+const SECTION_TITLE: Record<WrapSection["bucket"], string> = { higher: WRAP_UP_COPY.tally.higher, lower: WRAP_UP_COPY.tally.lower, notNeeded: WRAP_UP_COPY.tally.notNeeded, unclear: RESPONDENT_COPY.yourQuestions };
 
 const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRated, sayWhy: RESPONDENT_COPY.sayWhy, writeQuestion: RESPONDENT_COPY.writeQuestion, notSaved: RESPONDENT_COPY.notSavedYet };
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink outline-none transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, onSubmit }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
-  // The live link before E7-5: the gaps and Back only.
-  const live = Boolean(gaps) && !preview;
   const Body = preview ? "div" : "main";
   const firstGap = gaps?.[0];
-  const [confidence, setConfidence] = useState<number | null>(null);
-  const [signed, setSigned] = useState(false);
+  const [own, setOwn] = useState<WrapValue>(EMPTY_WRAP);
+  const form = value ?? own;
+  const setForm = (next: WrapValue) => (onValue ? onValue(next) : setOwn(next));
+  const { confidence, signed } = form;
+  const setConfidence = (n: number) => setForm({ ...form, confidence: n });
+  const setSigned = (on: boolean) => setForm({ ...form, signed: on });
+  const setMissing = (patch: Partial<WrapValue["missing"]>) => setForm({ ...form, missing: { ...form.missing, ...patch } });
   const prefix = useId();
   const pills = useRef<(HTMLButtonElement | null)[]>([]);
   const moveConfidence = (from: number, delta: number) => {
@@ -69,11 +90,13 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
     pills.current[to]?.focus();
     setConfidence(to);
   };
-  const tiles = showProposed
-    ? [WRAP_UP_COPY.tally.agreed, WRAP_UP_COPY.tally.higher, WRAP_UP_COPY.tally.lower, WRAP_UP_COPY.tally.notNeeded, WRAP_UP_COPY.tally.unclear]
-    : [WRAP_UP_COPY.tally.rated, WRAP_UP_COPY.tally.notNeeded, WRAP_UP_COPY.tally.unclear];
-  const needed = [...(open > 0 ? [WRAP_UP_COPY.needItems(open)] : []), ...(confidence === null ? [WRAP_UP_COPY.needConfidence] : []), ...(signed ? [] : [WRAP_UP_COPY.needSignOff])];
+  const tileKeys: Bucket[] = showProposed ? ["agreed", "higher", "lower", "notNeeded", "unclear", ...((tally?.rated ?? 0) > 0 ? (["rated"] as Bucket[]) : [])] : ["rated", "notNeeded", "unclear"];
+  const tileLabel: Record<Bucket, string> = { agreed: WRAP_UP_COPY.tally.agreed, higher: WRAP_UP_COPY.tally.higher, lower: WRAP_UP_COPY.tally.lower, notNeeded: WRAP_UP_COPY.tally.notNeeded, unclear: WRAP_UP_COPY.tally.unclear, rated: WRAP_UP_COPY.tally.rated };
+  const needed = [...(open > 0 ? [WRAP_UP_COPY.needItems(open)] : []), ...(fieldsMissing ? [RESPONDENT_COPY.needFields] : []), ...(confidence === null ? [WRAP_UP_COPY.needConfidence] : []), ...(signed ? [] : [WRAP_UP_COPY.needSignOff])];
   const disabled = needed.length > 0;
+  // Only the confidence left: the sentence that says how (stories/E7-5, acceptance 2).
+  const onlyConfidence = needed.length === 1 && confidence === null;
+  const live = Boolean(onSubmit);
   return (
     <div className={cn("flex min-h-full flex-col bg-ground text-ink", className)} data-testid="wrap-up" data-preview={preview || undefined}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
@@ -85,16 +108,14 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
       )}
       <Body className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
         <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={Heading === "h1" && !preview ? -1 : undefined} data-screen-heading={(Heading === "h1" && !preview) || undefined}>{WRAP_UP_COPY.title}</Heading>
-        {!live && (
-          <div className={cn("grid gap-1.5", showProposed ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
-            {tiles.map((label) => (
-              <div key={label} className="card flex flex-col items-center gap-0.5 px-1 py-2">
-                <span className="font-mono text-lg font-extrabold">0</span>
-                <span className="text-center text-[10px] leading-3 text-ink-muted">{label}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
+          {tileKeys.map((key) => (
+            <div key={key} className="card flex flex-col items-center gap-0.5 px-1 py-2" data-tile={key}>
+              <span className="font-mono text-lg font-extrabold">{tally?.[key] ?? 0}</span>
+              <span className="text-center text-[10px] leading-3 text-ink-muted">{tileLabel[key]}</span>
+            </div>
+          ))}
+        </div>
         {open > 0 ? (
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
             <span className="font-semibold">{WRAP_UP_COPY.toFinish(open)}</span>
@@ -125,20 +146,44 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
             </ul>
           </section>
         )}
-        {!live && (
+        {sections && (["higher", "lower", "notNeeded", "unclear"] as const).map((bucket) => {
+          const rows = sections.filter((r) => r.bucket === bucket);
+          if (rows.length === 0) return null;
+          return (
+            <section key={bucket} className="flex flex-col gap-2" aria-labelledby={`${prefix}-${bucket}`} data-testid={`wrap-up-section-${bucket}`}>
+              <h2 id={`${prefix}-${bucket}`} className="text-sm font-semibold">{SECTION_TITLE[bucket]} <span className="font-mono text-ink-muted">{rows.length}</span></h2>
+              <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline bg-surface">
+                {rows.map((r) => (
+                  <li key={r.itemId} className="flex items-start gap-3 px-4 py-3 text-sm">
+                    <div className="flex min-w-0 grow flex-col gap-0.5">
+                      <span>{r.reference && <span className="mr-2 font-mono text-[11px] text-ink-muted">{r.reference}</span>}{r.title}</span>
+                      {(r.value || r.text) && <span className="text-[13px] text-ink-muted">{[r.value ? labelFor(method, labels, r.value) : null, r.text].filter(Boolean).join(": ")}</span>}
+                    </div>
+                    <button type="button" onClick={() => onGo?.(r.chapter, r.itemId)} aria-label={`${RESPONDENT_COPY.change}: ${r.title}`} className="relative shrink-0 rounded-full border border-hairline-strong px-3 py-1 text-[13px] font-semibold outline-none after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="section-change">{RESPONDENT_COPY.change}</button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+        {live && open === 0 && sections && sections.length === 0 && showProposed && <p className="text-sm text-ink-muted" data-testid="wrap-up-nothing">{WRAP_UP_COPY.nothingToReview}</p>}
         <div className={cn("flex flex-col gap-4", ring && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="wrap-up-closing">
         {closing.missingForm && (
           <fieldset className="flex flex-col gap-2.5" data-testid="wrap-up-missing">
             <legend className="float-left mb-1 w-full text-sm font-semibold">{WRAP_UP_COPY.missingTitle}</legend>
             <label htmlFor={`${prefix}-missing`} className="clear-both text-[13px] text-ink-muted">{WRAP_UP_COPY.missingText}</label>
-            <input id={`${prefix}-missing`} type="text" className={FIELD} />
-            <label htmlFor={`${prefix}-area`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingArea}</label>
-            <select id={`${prefix}-area`} defaultValue="" className={FIELD}>
-              <option value="">{WRAP_UP_COPY.choose}</option>
-              {chapters.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <input id={`${prefix}-missing`} type="text" maxLength={MISSING_MAX} value={form.missing.text} onChange={(e) => setMissing({ text: e.target.value })} className={FIELD} />
+            {(areas ?? chapters).length > 0 && (
+              <>
+                <label htmlFor={`${prefix}-area`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingArea}</label>
+                <select id={`${prefix}-area`} value={form.missing.area} onChange={(e) => setMissing({ area: e.target.value })} className={FIELD} data-testid="wrap-up-area">
+                  <option value="">{WRAP_UP_COPY.choose}</option>
+                  {(areas ?? chapters).map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </>
+            )}
             <label htmlFor={`${prefix}-value`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingValue}</label>
-            <select id={`${prefix}-value`} defaultValue="" className={FIELD}>
+            <select id={`${prefix}-value`} value={form.missing.value} onChange={(e) => setMissing({ value: e.target.value })} className={FIELD}>
               <option value="">{WRAP_UP_COPY.choose}</option>
               {scaleFor(method, labels).map((v) => <option key={v.code} value={v.code}>{v.label}</option>)}
             </select>
@@ -147,7 +192,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
         {closing.closingQuestion && (
           <div className="flex flex-col gap-1.5" data-testid="wrap-up-question">
             <label htmlFor={`${prefix}-closing`} className="text-sm font-semibold">{closing.closingQuestion}</label>
-            <textarea id={`${prefix}-closing`} rows={3} className={cn(FIELD, "h-auto py-3")} />
+            <textarea id={`${prefix}-closing`} rows={3} maxLength={REASON_MAX} value={form.closingAnswer} onChange={(e) => setForm({ ...form, closingAnswer: e.target.value })} className={cn(FIELD, "h-auto py-3")} />
           </div>
         )}
         <div className="flex flex-col gap-2" data-testid="wrap-up-confidence">
@@ -175,15 +220,14 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span>{signOffFor(closing)}</span>
         </label>
         </div>
-        )}
         <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
       </Body>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
         {onBack && <button type="button" onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
-        {!live && <button type="button" disabled={disabled || preview} aria-describedby={`${prefix}-note`} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{WRAP_UP_COPY.submit}</button>}
+        <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40" data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
         </div>
-        {!live && <div id={`${prefix}-note`} aria-live="polite" className="min-h-5 text-sm text-ink-muted" data-testid="wrap-up-note">{disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : WRAP_UP_COPY.allIn}</div>}
+        <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>
       </div>
     </div>
   );

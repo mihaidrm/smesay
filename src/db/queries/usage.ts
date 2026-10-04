@@ -22,7 +22,7 @@ export async function usage(workspaceId: WorkspaceId, now = new Date()): Promise
   const ownInstruments = db.select({ id: instrument.id }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), inArray(instrument.projectId, ownProjects)));
   const [[projects], [responses], [runs]] = await Promise.all([
     db.select({ n: count() }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.isSample, false))),
-    db.select({ n: count() }).from(response).where(and(eq(response.workspaceId, workspaceId), gte(response.submittedAt, start), inArray(response.instrumentId, ownInstruments))),
+    db.select({ n: count() }).from(response).where(and(eq(response.workspaceId, workspaceId), gte(response.firstSubmittedAt, start), inArray(response.instrumentId, ownInstruments))),
     db.select({ n: count(), cents: sum(aiRun.costEurCents) }).from(aiRun).where(and(eq(aiRun.workspaceId, workspaceId), gte(aiRun.createdAt, start), inArray(aiRun.projectId, ownProjects))),
   ]);
   return { projects: projects.n, responsesThisMonth: responses.n, aiRunsThisMonth: runs.n, aiCostCentsThisMonth: Number(runs.cents ?? 0) };

@@ -282,6 +282,11 @@ export const response = pgTable("response", {
   confidence: integer("confidence"),
   signedOff: boolean("signed_off").notNull().default(false),
   submittedAt: ts("submitted_at"),
+  // E7-5: the first Submit (submitted_at is the latest), the closing question's answer and
+  // the sign-off sentence the respondent ticked (INTERFACES.md, Response schema v2).
+  firstSubmittedAt: ts("first_submitted_at"),
+  closingAnswer: text("closing_answer"),
+  signOffText: text("sign_off_text"),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 }, (t) => [
@@ -334,6 +339,8 @@ export const missingItem = pgTable("missing_item", {
   responseId: uuid("response_id").notNull(),
   text: text("text").notNull(),
   suggestedArea: text("suggested_area"),
+  // E7-5: a code of the instrument's scale, or null.
+  suggestedValue: text("suggested_value"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "missing_item_response_fk", columns: [t.responseId, t.workspaceId], foreignColumns: [response.id, response.workspaceId] }).onDelete("cascade"),

@@ -52,9 +52,9 @@ Built 2026-10-04 (design note 54, decision 0044):
   "All [M] rated in this chapter."
 - Acceptance 3: the Wrap up lists every item without a complete answer on the server under
   "Still to finish", with Not rated yet, Say why. or Write your question. (gapsOf); each row
-  opens its own item (its chapter, on that item in the one-item layout). Until E7-5 the live
-  Wrap up shows only this, "All [M] items are answered." when nothing is left, and Back:
-  the tally, the form and Submit come with E7-5, so the page takes nothing it does not keep.
+  opens its own item (its chapter, on that item in the one-item layout). E7-4 built the live
+  Wrap up with only this, "All [M] items are answered." when nothing is left, and Back, so
+  the page took nothing it did not keep; E7-5 adds the tally, the form and Submit.
 - Acceptance 4: a returning visit lands on the first unfinished chapter (E7-3, resumeAt), or
   on the Wrap up when everything is complete, with "Welcome back, [FIRST NAME]. You answered
   [N] of [M] last time." on that landing until the respondent moves, whenever the response

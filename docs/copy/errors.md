@@ -218,9 +218,16 @@ of the content; page means it replaces the screen.
 | Note under the Start button (E7-3) | Start worked but the first save found no response: the browser did not keep the device cookie | This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser. |
 | Page | Saved answers on this device belong to a newer version of the list (not built in R1: publishing a newer version closes the older link, so the respondent sees the closed page and the device's unsent answers are removed; docs/review-list.md) | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
 | Wrap up, box and list (E7-4) | Still to finish | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST]]; then "Still to finish", each item with its reference and what is missing: Not rated yet, Say why., Write your question., or Not saved yet (complete on the card, not yet on the server); each row opens its own item |
-| Wrap up | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
-| Wrap up | Sign-off not ticked | Tick the confirmation to submit. |
-| Wrap up | Submit failed | Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again. |
+| Wrap up, from the server (E7-5) | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
+| Wrap up, from the server (E7-5) | Sign-off not ticked | Tick the confirmation to submit. |
+| Wrap up (E7-5) | While Submit waited for the cards, one was refused or changed in another window | One of your answers was not saved as you left it. Check the cards with a red note, then submit again. |
+| Wrap up, from the server (E7-5) | The PM changed the sign-off sentence after the page opened | The confirmation changed since this page opened. Reload the page, read it and tick it again. |
+| Wrap up (E7-5) | Submit failed: no connection, or the server failed | Your answers were not submitted; they are still saved on this device. Check your connection and press Submit again. |
+| Wrap up, from the server (E7-5) | An item is still to finish (another tab, a stale page) | [N] items are still to finish. Finish them in the chapters, then submit. (1 item is ... Finish it ...) |
+| Wrap up, from the server (E7-5) | A mandatory field is empty (the PM changed About you) | Fill in your details on About you, then submit. |
+| Wrap up, from the server (E7-5) | The missing item names an area or a value not on the page, or is not text | The missing item did not reach the server as written. Check it and submit again. |
+| Wrap up, from the server (E7-5) | The missing item over 500 characters, the closing answer over 2,000 | Keep the missing item to 500 characters. / Keep your answer to 2000 characters. |
+| Wrap up, from the server (E7-5) | The workspace's plan has used its responses for the month (no plan has a cap today, E2-6) | This survey is not taking answers right now. Tell the person who sent you the link; your answers are kept. |
 | Banner over the first screen after About you, once (E7-3) | Device storage unavailable: the browser refuses localStorage (blocked site data; MDN, Window.localStorage: a private window's storage is cleared when its last private tab closes) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
 
 ## Dashboard and exports (E8, E10)

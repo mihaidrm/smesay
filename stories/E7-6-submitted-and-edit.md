@@ -18,6 +18,12 @@ pages say what state things are in.
 4. The PM tracker (E8-2) shows the latest submitted_at and a "changed after submitting" mark
    when updated_at is later than the first submit; a unit test checks the mark.
 5. Playwright: submit, reopen the link, press Change, submit again, see the new timestamp.
+6. (Added 2026-10-04 from E7-5's audit, decision 0044.) An answer, the Wrap up or the About
+   you picks changed after a Submit and not submitted again: the response keeps its submitted
+   time but is no longer signed off (signed_off false; the sign-off was for the answers as
+   submitted); the Done screen and the Wrap up say "You changed answers after submitting.
+   Submit again to send them."; Submit again signs it off. E8-2 tells the PM a response with
+   changes not submitted again from one submitted again.
 
 ## Out of scope
 - Withdrawing a response: not in R1.
@@ -26,5 +32,5 @@ pages say what state things are in.
 - None.
 
 ## Technical notes
-response.first_submitted_at added in migration 0002 so the mark in acceptance 4 does not need
+response.first_submitted_at added in migration 0018 (E7-5) so the mark in acceptance 4 does not need
 history; submitted_at is the latest.

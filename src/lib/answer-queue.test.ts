@@ -1,6 +1,6 @@
 // The device queue's rules (src/lib/answer-queue.ts, stories/E7-3).
 import { describe, expect, it } from "vitest";
-import { delayFor, doneFrom, nextEntry, outcomeOf, ownWrite, rebased, replyStep, restorable, SAVE_DELAY_MS, sameAnswer, withEntries, withEntry, withoutEntry, withoutResponse } from "@/lib/answer-queue";
+import { delayFor, doneFrom, nextEntry, settleState, outcomeOf, ownWrite, rebased, replyStep, restorable, SAVE_DELAY_MS, sameAnswer, withEntries, withEntry, withoutEntry, withoutResponse } from "@/lib/answer-queue";
 import type { AnswerState } from "@/lib/respondent-rules";
 
 const draft = (picked: string, reason = "", comment = "") => ({ picked, reason, comment });
@@ -158,6 +158,16 @@ describe("the device queue", () => {
     expect([doneFrom(undefined, 1, false), doneFrom(1, 2, true), doneFrom(2, 2, true), doneFrom(2, 5, false)]).toEqual([{ complete: false, version: 1 }, { complete: true, version: 2 }, { complete: true, version: 2 }, { complete: false, version: 5 }]);
     // A late copy of an older save, no version, or no flag: nothing changes.
     expect([doneFrom(3, 2, true), doneFrom(3, null, true), doneFrom(3, 4, undefined)]).toEqual([null, null, null]);
+  });
+
+  it("tells Submit when the cards are all saved (E7-5)", () => {
+    const base = { waiting: 0, failed: 0, down: false, alive: true, late: false, upset: false, moved: false };
+    expect(settleState(base)).toBe("ok");
+    expect(settleState({ ...base, waiting: 2 })).toBe("wait");
+    // A change that cannot be saved now: Submit stops with the connection sentence.
+    expect([settleState({ ...base, waiting: 1, failed: 1 }), settleState({ ...base, waiting: 1, down: true }), settleState({ ...base, waiting: 1, late: true }), settleState({ ...base, waiting: 1, alive: false })]).toEqual(["failed", "failed", "failed", "failed"]);
+    // A card refused or changed elsewhere meanwhile, or another response: the respondent looks first.
+    expect([settleState({ ...base, upset: true }), settleState({ ...base, moved: true })]).toEqual(["check", "check"]);
   });
 
   it("retries everything that is not a final answer", () => {

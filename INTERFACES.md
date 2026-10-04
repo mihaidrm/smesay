@@ -28,8 +28,9 @@ the check constraints use them). Change this file first.
 - AiPurpose: shape, insights.
 - RespondentFieldSpec (jsonb, instrument.respondent_fields, array):
   { key: string, label: string, type: "text" | "dropdown" | "email", mandatory: boolean,
-  options?: string[] } (E5-1, 2026-10-03: `email` added for the submission receipt,
-  docs/copy/emails.md email 4; the key is the label's slug, unique per instrument, suffixed
+  options?: string[] } (E5-1, 2026-10-03: `email` added for the submission receipt; from E7-5
+  the receipt goes only to a personal invite's address, so an email field is a field like
+  the others, docs/copy/emails.md email 4; the key is the label's slug, unique per instrument, suffixed
   -2, -3 when two labels slug the same; label 1 to 60 characters, up to 8 fields, a dropdown
   has 2 to 20 options, each up to 60 characters and different from the others ignoring
   case; src/lib/respondent-fields.ts is the code twin of the rule).
@@ -304,7 +305,38 @@ version, writer and save number and the response id added the same day after the
 - The response (table response): fields (the PM's keys only), perspectives, confidence,
   signed_off and submitted_at (E7-5), updated_at moving on every answer. A response is
   pinned to its instrument and item set; the dashboard reads answers per response and
-  item.
+  item. Version 2, 2026-10-04 (E7-5, migration 0018): closing_answer (text, the answer to
+  the PM's closing question, at most 2000 characters, null when none or no question),
+  sign_off_text (the sentence the respondent ticked, as shown), first_submitted_at (the
+  first Submit; submitted_at is the latest, so E8-2's "changed after submitting" needs no
+  history). missing_item gains suggested_value (a code of the instrument's scale, or null);
+  suggested_area is one of the list's areas the respondent sees (areasOf: not "Other items")
+  or null; a response has at most one missing item, replaced on every Submit. The plan's
+  monthly responses count first_submitted_at (src/db/queries/usage.ts).
+- The Wrap up's save: PUT /r/[token]/wrap, JSON { response, confidence: 1 to 5 or null,
+  closingAnswer?: string, missing?: { text, area?, value? } | null }, as the respondent writes
+  (saveWrap, parseWrapInput). 200 { saved: true }; refusals as an answer's (409 when this
+  device has no response or not the one named, 422 with the sentence). It stores the
+  response's confidence and closing answer and replaces its missing item; the response is
+  not submitted.
+- The submit payload: POST /r/[token]/submit, JSON { response (the response the page answers
+  for; 409 not started when it is not this device's), confidence: 1 to 5, signedOff: true,
+  signOffText?: string (the sentence the page showed; refused when the PM's differs),
+  closingAnswer?: string, missing?: { text, area?, value? } | null }. 200 { submittedAt
+  (ISO, UTC), name (the first name, or null) }; refusals { error } with the link's statuses,
+  409 not started, 422 with the sentence (items to finish, a field missing, confidence, the
+  sign-off or its changed sentence, a bad missing item), 403 when the plan's monthly
+  responses are used (withinPlan). Submitting again updates the same response.
+  submitResponse(token, cookies, body, baseUrl, now, send) in src/lib/respondent.ts returns
+  { submittedAt, name, receipt } (receipt: the email 4 send for a personal invite's first
+  Submit, run by the route with after(), or null); responses.submit(ws, inviteId,
+  responseId, data, stillOpen, check, now) reads the answers under the response's update
+  lock and returns { invalid: sentence } when check refuses; responses.saveWrap(ws, inviteId,
+  responseId, data, stillOpen, now) under the same locks. loadRespondent's ready view
+  carries wrap: { confidence, signed: false, closingAnswer, missing: { text, area, value } }
+  as the server holds it (empty before any); the page keeps its own changes under
+  smesay-wrap:[token] until the server holds them (wrapDraft, wrapDraftOf in
+  src/lib/respondent-rules.ts).
 
 ## AI shaping output (ai -> builder)
 Owner: ai route. Consumer: builder review view.
