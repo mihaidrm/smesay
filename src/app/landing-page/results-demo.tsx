@@ -11,9 +11,9 @@
 // #B7791F, Disagree #718096, Unclear #7C3AED), written out because the landing keeps its
 // own light section whatever the app's mode (decision 0041, point 2). Every bar's kind and
 // count is also text for screen readers, and every chart prints its numbers. The switch is
-// the design system's segmented control (a tint track, the active option a surface pill
-// with the card shadow) with toggle buttons (aria-pressed: developer.mozilla.org/docs/Web/
-// Accessibility/ARIA/Reference/Attributes/aria-pressed).
+// the landing's variant of the segmented control (design note 53) with toggle buttons
+// (aria-pressed: developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Attributes/
+// aria-pressed).
 import { useState } from "react";
 import { cn } from "cn";
 
@@ -29,10 +29,10 @@ const c = (agree: number, change = 0, disagree = 0, unclear = 0): Counts => ({ a
 
 // The seed's five submitted responses per item (src/db/seed/sample.ts answers).
 const ITEMS: { ref: string; text: string; area: string; counts: Counts }[] = [
-  { ref: "CL-01", text: "Photograph a receipt and the amount, date and merchant fill in.", area: "Submitting", counts: c(4, 1) },
+  { ref: "CL-01", text: "Photograph a receipt and the amount, date and merchant are filled in automatically.", area: "Submitting", counts: c(4, 1) },
   { ref: "CL-02", text: "Split one receipt across two projects or cost centres.", area: "Submitting", counts: c(2, 2, 0, 1) },
-  { ref: "CL-03", text: "Managers approve or reject from the email.", area: "Approving", counts: c(4, 1) },
-  { ref: "CL-04", text: "Expenses over the policy limit are flagged.", area: "Approving", counts: c(2, 2, 1) },
+  { ref: "CL-03", text: "Managers approve or reject from the email, without logging in.", area: "Approving", counts: c(4, 1) },
+  { ref: "CL-04", text: "Expenses over the policy limit are flagged before they reach the approver.", area: "Approving", counts: c(2, 2, 1) },
   { ref: "CL-05", text: "Approved expenses are paid with the next salary run.", area: "Paying", counts: c(5) },
   { ref: "CL-06", text: "Employees can request a cash advance before a trip.", area: "Paying", counts: c(2, 1, 1, 1) },
 ];
@@ -77,7 +77,7 @@ function ColumnsView() {
     <div className="grid grid-cols-3 gap-3" data-testid="results-columns">
       {AREAS.map((a) => (
         <div key={a.area} className="flex flex-col gap-2">
-          <ul className="flex h-[132px] items-end gap-1.5 border-b border-[#CFCBE0] px-1">
+          <ul aria-label={a.area} className="flex h-[132px] items-end gap-1.5 border-b border-[#CFCBE0] px-1">
             {KINDS.map((k) => (
               <li key={k.key} className="flex flex-1 flex-col items-center justify-end gap-1">
                 <span className="font-mono text-[12px] text-[#5E5A72]"><span className="sr-only">{k.label} </span>{a.counts[k.key]}</span>
@@ -125,8 +125,8 @@ export function ResultsDemo() {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="results-tiles">
         {[["Submitted", "5 of 7"], ["Agreement", "63%"], ["Different priority", "7"], ["Unclear", "2"]].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5 rounded-[14px] border border-[#E6E3F0] bg-white px-3 py-2.5">
-            <span className="text-[12px] text-[#5E5A72]">{label}</span>
-            <span className="font-mono text-[26px] leading-8 font-semibold tracking-[-0.02em]">{value}</span>
+            <span className="text-[13px] text-[#5E5A72]">{label}</span>
+            <span className="font-mono text-[30px] leading-9 font-extrabold tracking-[-0.03em] whitespace-nowrap">{value}</span>
           </div>
         ))}
       </div>
@@ -136,7 +136,7 @@ export function ResultsDemo() {
         <span className="rounded-full border border-dashed border-[#CFCBE0] px-2.5 py-1 font-semibold text-[#5E5A72]">+ Choose tiles</span>
         <div className="ml-auto flex rounded-full bg-[#EEEAFF] p-[3px]" role="group" aria-label="Chart view">
           {VIEWS.map((v) => (
-            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cn("h-8 rounded-full px-3.5 font-semibold outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", view === v ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{v}</button>
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cn("h-8 rounded-full px-3.5 font-semibold whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", view === v ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{v}</button>
           ))}
         </div>
       </div>

@@ -35,12 +35,16 @@ test("the steps, the Shape switch, the results views and the questions", async (
   const steps = page.locator("#how");
   await expect(steps.getByText("Send one link", { exact: true })).toBeVisible();
   expect((await steps.innerText()).toLowerCase()).not.toContain("phone");
+  // Below the fold the card waits on the sheet, then turns once when seen; a click holds it.
   const shape = page.getByTestId("shape-demo");
+  await expect(shape).toHaveAttribute("data-side", "Your sheet");
   await shape.scrollIntoViewIfNeeded();
   await expect(shape).toHaveAttribute("data-side", "Shaped");
   await shape.getByRole("button", { name: "Your sheet" }).click();
   await expect(shape.getByRole("button", { name: "Your sheet" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("shape-sheet")).toContainText("OCR receipt capture via mobile");
+  await page.waitForTimeout(1200);
+  await expect(shape).toHaveAttribute("data-side", "Your sheet");
   await shape.getByRole("button", { name: "Shaped" }).click();
   await expect(page.getByTestId("shape-shaped")).toContainText("Managers approve or reject from the email, without logging in.");
   const demo = page.getByTestId("results-demo");

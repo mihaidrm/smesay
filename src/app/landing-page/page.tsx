@@ -12,8 +12,8 @@
 // width, the type one step smaller. The landing keeps its own light and dark sections
 // whatever the app's mode (decision 0041, point 2), so its colours are written out, not read
 // from the mode tokens. The product fragments are the Marlow example as static markup until
-// the respondent and dashboard components exist (E5, E6); they are swapped for the real
-// components then (acceptance 4, amended). The page describes the R1 product as planned, not
+// the dashboard components exist (E8 to E10); they are swapped for the real components
+// then (acceptance 4, amended). The page describes the R1 product as planned, not
 // only what is built today (decision 0042: the copy rule is for the live product; the planned
 // lines are checked at the launch gate, docs/copy/landing.md).
 // Small text on the dark hero is #C9C4E0 or lighter so it keeps 4.5 over the aurora and the
@@ -48,10 +48,10 @@ function Pill({ children, tint, text }: { children: React.ReactNode; tint: strin
 // The live card: the Marlow example (decision 0005), one item with four answers arriving.
 function LiveCard() {
   const rows: [string, string, string, string, string, string, string][] = [
-    ["AP", "Ana, finance", "#FFE9E5", "#9E3321", "Must have", "#FFF3D6", "#8A5A00"],
-    ["DM", "Dan, sales", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
-    ["RS", "Radu, operations", "#EEEAFF", "#5A3BE0", "Must have", "#FFF3D6", "#8A5A00"],
-    ["IC", "Ioana, HR", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
+    ["IM", "Ioana, sales", "#FFE9E5", "#9E3321", "Must have", "#FFF3D6", "#8A5A00"],
+    ["TR", "Tom, sales", "#EEEAFF", "#5A3BE0", "Must have", "#FFF3D6", "#8A5A00"],
+    ["DO", "Dana, finance", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
+    ["LB", "Lukas, engineering", "#FFF3D6", "#8A5A00", "Agree", "#E1F5EE", "#166A52"],
   ];
   return (
     <div className="relative w-full max-w-[540px] rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] text-[#15131F] shadow-[0_12px_32px_rgba(45,32,110,0.10)] lg:rotate-[-1.5deg]" data-testid="live-card">
@@ -84,10 +84,10 @@ function LiveCard() {
 const QUESTIONS: [string, string][] = [
   ["Do my experts need an account?", "No. They open the link and answer. There is nothing to install and nothing to sign up for."],
   ["Does it work on a phone?", "Yes. The link is made for a phone first and works the same on a laptop. Answers save as they go, so an expert can stop and pick up where they left off."],
-  ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and writes the to-do list from the answers, naming the answers behind each line. It never answers for your experts, and you can change anything it does."],
-  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the name and email you sent it to."],
+  ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and drafts the to-do list from the answers, naming the answers behind each line. It never answers for your experts. You choose which wording goes out, move items between areas, and dismiss what you do not need."],
+  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the email you sent it to, and the name when you gave one."],
   ["Can the link carry our logo and colour?", "Yes. Your experts see your logo and your colour on the link."],
-  ["What happens to my list and the answers?", "They stay in your workspace, where only its members see them. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and everything in it is gone within 24 hours."],
+  ["What happens to my list and the answers?", "They stay in your workspace. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and the app removes its data within 24 hours."],
   ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
 ];
 
@@ -130,8 +130,8 @@ export default function LandingPage() {
             <LiveCard />
             <Mascot pose="hi" size={104} className="landing-float absolute right-0 bottom-8 lg:-right-12 lg:-bottom-2" />
             <div className="absolute bottom-2 -left-2 flex items-center gap-3 rounded-[14px] border border-[#343252] bg-[#1E1D33] px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.45)] lg:bottom-1 lg:-left-5" data-testid="agreement-chip">
-              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">72%</span>
-              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">14 of 40 items rated</div></div>
+              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">63%</span>
+              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">30 answers from 5 experts</div></div>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function LandingPage() {
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Three steps. The AI does the dull one.</h2>
             <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Start from the spreadsheet you already have. Let the AI make it readable. Send one link.</p>
           </Reveal>
-          <div className="mt-10 grid gap-6 md:mt-12 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:mt-12 lg:grid-cols-3">
             <Reveal className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">1</span><span className="text-[18px] font-bold">Import the list</span></div>
               <p className="text-[15px] leading-[23px] text-[#5E5A72]">xlsx, csv or a pasted list. Columns are matched once and remembered.</p>
@@ -151,7 +151,7 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={120} className="flex flex-col gap-3.5 rounded-[20px] border border-[#6D4CF5] bg-white p-[26px] shadow-[0_16px_40px_rgba(109,76,245,0.22)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">2</span><span className="text-[18px] font-bold">Shape it</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the list into areas and writes each item in plain words. You can change any of it.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the list into areas and writes each item in plain words. You choose which wording your experts see.</p>
               <div className="mt-auto"><ShapeDemo /></div>
             </Reveal>
             <Reveal delay={240} className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">

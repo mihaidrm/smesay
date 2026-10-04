@@ -84,3 +84,6 @@ acceptance 6 as amended). Lighthouse CLI 13.5.0 on the production build, mobile 
 Chromium 1194: performance 97, accessibility 100, best practices 100, SEO 100; LCP 2.6 s,
 CLS 0, TBT 40 ms. axe-core 4.13.0 (WCAG 2.0 A and AA, 2.1 AA) through Playwright after
 scrolling the whole page: 0 violations, 24 rules passed, at 1440 and at 390.
+After the second audit the same day: the hero's live card and chip follow the seed; the
+steps grid is one column under 1024 px (acceptance 1); e2e/landing.spec.ts checks the
+Shape card's turn (2 tests, both passed).

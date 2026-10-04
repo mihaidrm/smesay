@@ -50,11 +50,12 @@ docs/copy/landing.md changed together.
   dashboard will (decision 0014), drawn in the status colours (Agree #2F855A, the pushed-back
   #B7791F for Different priority, Disagree #718096, Unclear #7C3AED), each bar's kind and
   count also given as text for screen readers.
-- Both switches (Shape and the chart view) are the design system's segmented control, a tint
-  track with the active option a surface pill and the card shadow, drawn in the landing's
-  written-out colours because the landing does not follow the app's mode. Not a new
-  component; src/components/ui/segmented-control.tsx reads the mode tokens and so is not
-  used here.
+- Both switches (Shape and the chart view) are a landing variant of the segmented control:
+  a violet-soft track (#EEEAFF), because the design system's tint track does not show on the
+  tint card behind the results; options 32 px high; the active option white with a small
+  shadow (0 2px 8px). Colours are written out because the landing does not follow the app's
+  mode, so src/components/ui/segmented-control.tsx, which reads the mode tokens, is not used.
+  This is the line CLAUDE.md asks for a component outside the design system.
 - Questions: seven, after Pricing and before the footer, each a native details element that
   opens without JavaScript. The phone answer lives there. The line beside the title points to
   hello@smesay.app (E12-5 adds the bubble once Mihai answers its questions). After the audit
@@ -63,8 +64,13 @@ docs/copy/landing.md changed together.
   projects are archived and a workspace is deleted within 24 hours (decision 0028, E11-2).
 - The numbers in the Shape and results fragments are the seed's (src/db/seed/sample.ts): 5
   of 7 submitted, six items, 30 answers (19 agree, 7 different priority, 2 disagree, 2
-  unclear), 63 percent agreement, so they match the sample project a visitor opens. The
-  hero's live card keeps its earlier moment (14 of 40).
+  unclear), 63 percent agreement, so they match the sample project a visitor opens. After
+  the second audit the hero follows too: the live card shows the seed's answers on CL-04
+  (Ioana and Tom from Sales push it to Must have, Dana and Lukas agree) and the chip says
+  63 percent from 30 answers, so the hero and the group card tell the same story.
+- Step 2's second sentence and the AI answer say what R1 lets the PM do: choose which
+  wording goes out (E4-3), move items between areas (E4-2), dismiss flags and to-dos (E4-4,
+  E9-2). "Only its members see them" was cut: the admin view (E14-4) can open a workspace.
 
 ## Checks
 

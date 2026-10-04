@@ -8,18 +8,23 @@
 // reduced motion, without IntersectionObserver or without JavaScript it rests on "Shaped".
 // Both sides are drawn in one grid cell and the hidden one is invisible, so the card does not
 // change height when it turns.
-// The switch is the design system's segmented control (a tint track, the active option a
-// surface pill with the card shadow; docs/design-system.md, Components) drawn in the
-// landing's written-out colours, two toggle buttons with aria-pressed
-// (developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed).
+// The switch is the landing's variant of the segmented control (design note 53: a violet-soft
+// track, since the tint track does not show on the tint card, 32 px options, the active one
+// white with a small shadow), two toggle buttons with aria-pressed
+// (developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed). The
+// card is watched with IntersectionObserver and its threshold option (developer.mozilla.org/
+// docs/Web/API/IntersectionObserver/IntersectionObserver), the first switch to the sheet is
+// queued with queueMicrotask (developer.mozilla.org/docs/Web/API/Window/queueMicrotask), and
+// the hidden side keeps its box with visibility: hidden (developer.mozilla.org/docs/Web/CSS/
+// visibility).
 import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 
 const ROWS: { original: string; reader: string; area: string }[] = [
-  { original: "OCR receipt capture via mobile (auto-fill amt/date/vendor).", reader: "Photograph a receipt and the amount, date and merchant fill in.", area: "Submitting" },
+  { original: "OCR receipt capture via mobile (auto-fill amt/date/vendor).", reader: "Photograph a receipt and the amount, date and merchant are filled in automatically.", area: "Submitting" },
   { original: "Multi-allocation of single expense line to 2+ cost centres/projects.", reader: "Split one receipt across two projects or cost centres.", area: "Submitting" },
   { original: "Approval actionable from notification email (no login).", reader: "Managers approve or reject from the email, without logging in.", area: "Approving" },
-  { original: "Policy engine: auto-flag out-of-policy claims pre-approval.", reader: "Expenses over the policy limit are flagged before approval.", area: "Approving" },
+  { original: "Policy engine: auto-flag out-of-policy claims pre-approval.", reader: "Expenses over the policy limit are flagged before they reach the approver.", area: "Approving" },
 ];
 const SIDES = ["Your sheet", "Shaped"] as const;
 type Side = (typeof SIDES)[number];
@@ -49,7 +54,7 @@ export function ShapeDemo() {
     <div ref={box} className="flex flex-col gap-2.5" data-testid="shape-demo" data-side={side}>
       <div className="flex self-start rounded-full bg-[#EEEAFF] p-[3px] text-[13px] font-semibold" role="group" aria-label="Show the list">
         {SIDES.map((s) => (
-          <button key={s} type="button" aria-pressed={side === s} onClick={() => pick(s)} className={cn("h-8 rounded-full px-3.5 outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", side === s ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{s}</button>
+          <button key={s} type="button" aria-pressed={side === s} onClick={() => pick(s)} className={cn("h-8 rounded-full px-3.5 whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", side === s ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{s}</button>
         ))}
       </div>
       {/* Both sides share one grid cell, so the card keeps the taller side's height and nothing jumps. */}
