@@ -153,7 +153,13 @@ for a public-link response with no name), anon (for a public-link response with 
 name, its number among the instrument's public-link responses by start; null otherwise), status, changedSince, submittedAgain, answered (complete answers to
 the items seen), visible, submittedAt, reminders, withComment (answers that count under the
 switch) }, sorted by the filter's sort from the tab's list of columns (a field
-column only for a key in fieldKeys); resultsPrefs.get(userId, instrumentId) and
+column only for a key in fieldKeys); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
+item of the instrument as DetailItem { id, reference, area, originalText, readerText,
+readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
+notYet } counted in SQL and a DetailRow { personId, invited, submitted, fields, who,
+anon, kind, value, reason, comment } per person the filter keeps who sees the item or
+answered it before a change of perspective (kind null: no answer that counts under the
+switch), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by

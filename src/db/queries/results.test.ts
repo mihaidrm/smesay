@@ -14,7 +14,7 @@ import { figureOf, percentOf } from "@/lib/results-agreement";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { agreement, registers, results, resultsPrefs, tracker, type ItemCounts, type ResultRow } from "@/db/queries/results";
+import { agreement, detail, registers, results, resultsPrefs, tracker, type ItemCounts, type ResultRow } from "@/db/queries/results";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { answers as fixture, expected, people, missingItem } from "@/db/seed/sample";
 import type { WorkspaceId } from "@/db/types";
@@ -364,6 +364,13 @@ describe("the Agreement tab's numbers", () => {
         expect(performance.now() - started).toBeLessThan(500);
         await reconcile(wsC, instrumentC, f, split);
       }
+      // The item detail (E8-5) on the same rows.
+      const cl04 = (await sql`select it.id from item it where it.workspace_id = ${wsC} and it.item_set_id = ${item_set_id} and it.source_ref = 'CL-04'`)[0].id as string;
+      const started = performance.now();
+      const one = await detail.item(wsC, instrumentC, cl04, f);
+      expect(performance.now() - started).toBeLessThan(500);
+      const c = (await agreement.byItem(wsC, instrumentC, f, null)).find((x) => x.itemId === cl04)!;
+      expect([one!.counts.agree, one!.counts.change, one!.counts.disagree, one!.counts.unclear]).toEqual([c.agree, c.change, c.disagree, c.unclear]);
     }
   }, 120_000);
 
@@ -526,5 +533,96 @@ describe("the registers", () => {
   it("read nothing of another workspace's instrument", async () => {
     expect(await registers.answers(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, ["change", "disagree", "unclear"], keys, "moscow")).toEqual([]);
     expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys, "moscow")).toEqual([]);
+  });
+});
+
+describe("the item detail", () => {
+  const itemId = async (ws: WorkspaceId, instrumentId: string, ref: string) =>
+    (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws} and it.source_ref = ${ref}`)[0].id as string;
+
+  it("shows CL-04 with a row per person kept, and the counts of the Agreement tab", async () => {
+    const cl04 = await itemId(wsA, instrumentA, "CL-04");
+    const d = (await detail.item(wsA, instrumentA, cl04, NONE))!;
+    expect([d.item.reference, d.item.area, d.item.proposedValue]).toEqual(["CL-04", "Approving", "S"]);
+    // Every one of the seven people sees the item (no perspectives); answers first.
+    expect(d.rows.map((r) => [r.fields.name, r.kind])).toEqual([
+      ["Dana Okafor", "agree"], ["Ioana Marin", "change"], ["Lukas Berg", "agree"], ["Priya Nair", "disagree"], ["Tom Reyes", "change"],
+      ["Elena Costa", null], ["Sam Hill", null],
+    ]);
+    const ioana = d.rows.find((r) => r.fields.name === "Ioana Marin")!;
+    expect([ioana.value, ioana.reason, ioana.submitted]).toEqual(["M", "I find out I was over the limit three weeks later, after I have paid.", true]);
+    // Sam started (his answer does not count while the switch is off); Elena has not opened the link.
+    expect(d.rows.filter((r) => r.kind === null).map((r) => [r.fields.name, r.invited, r.submitted])).toEqual([["Elena Costa", true, false], ["Sam Hill", false, false]]);
+    // With the switch on, Sam's answer counts and is marked as not submitted.
+    const on = (await detail.item(wsA, instrumentA, cl04, { ...NONE, includeUnsubmitted: true }))!;
+    expect(on.rows.find((r) => r.fields.name === "Sam Hill")).toMatchObject({ kind: "agree", submitted: false });
+    // The role filter keeps Sales: Ioana and Tom, and Elena invited.
+    const sales = (await detail.item(wsA, instrumentA, cl04, { ...NONE, fields: { role: ["Sales"] } }))!;
+    expect(sales.rows.map((r) => r.fields.name)).toEqual(["Ioana Marin", "Tom Reyes", "Elena Costa"]);
+    expect(d.counts).toEqual({ agree: 2, change: 2, disagree: 1, unclear: 0, pick: 0, notYet: 2 });
+    // The counts (in SQL) are the Agreement tab's for the item, and the rows', under each filter.
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, kinds: ["change" as const] }]) {
+      const one = (await detail.item(wsA, instrumentA, cl04, f))!;
+      const c = (await agreement.byItem(wsA, instrumentA, f, null)).find((x) => x.itemId === cl04)!;
+      const k = (kind: string | null) => one.rows.filter((r) => r.kind === kind).length;
+      expect([one.counts.agree, one.counts.change, one.counts.disagree, one.counts.unclear, one.counts.pick]).toEqual([c.agree, c.change, c.disagree, c.unclear, c.pick]);
+      expect([k("agree"), k("change"), k("disagree"), k("unclear"), k("pick"), k(null)]).toEqual([one.counts.agree, one.counts.change, one.counts.disagree, one.counts.unclear, one.counts.pick, one.counts.notYet]);
+    }
+  });
+
+  it("counts rated answers on an item with no proposal, and keeps answers after a change of perspective", async () => {
+    const stamp = Date.now();
+    const e = await createWorkspaceWithSample({ name: "Results E", slug: `results-e-${stamp}` }, userId);
+    made.push(e.id);
+    const wsE = unsafeWorkspaceId(e.id);
+    const instrumentE = await sampleInstrument(wsE);
+    const cl04 = await itemId(wsE, instrumentE, "CL-04");
+    // An item with no proposed value is rated (kind pick) while the instrument shows proposals.
+    await sql`update item set proposed_value = null where id = ${cl04}`;
+    await sql`update answer set kind = 'pick' where item_id = ${cl04} and kind <> 'unclear'`;
+    const rated = (await detail.item(wsE, instrumentE, cl04, NONE))!;
+    const c = (await agreement.byItem(wsE, instrumentE, NONE, null)).find((x) => x.itemId === cl04)!;
+    expect([rated.counts.pick, rated.counts.agree]).toEqual([c.pick, 0]);
+    expect(rated.counts.pick).toBe(5);
+    // Only Finance sees the item now; the five who answered it keep their row (a Start again
+    // keeps the answers), as the Agreement tab counts them; Elena and Sam do not see it.
+    await sql`update item set perspectives = '{Finance}' where id = ${cl04}`;
+    await sql`update response set perspectives = '{Sales}' where workspace_id = ${wsE}`;
+    const moved = (await detail.item(wsE, instrumentE, cl04, NONE))!;
+    expect(moved.rows.map((r) => r.fields.name)).toEqual(["Dana Okafor", "Ioana Marin", "Lukas Berg", "Priya Nair", "Tom Reyes"]);
+    const c2 = (await agreement.byItem(wsE, instrumentE, NONE, null)).find((x) => x.itemId === cl04)!;
+    expect([moved.counts.pick, moved.counts.notYet]).toEqual([c2.pick, 0]);
+  }, 60_000);
+
+  it("loads under 500 ms with 100 generated responses", async () => {
+    const stamp = Date.now();
+    const d = await createWorkspaceWithSample({ name: "Results D", slug: `results-d-${stamp}` }, userId);
+    made.push(d.id);
+    const wsD = unsafeWorkspaceId(d.id);
+    const instrumentD = await sampleInstrument(wsD);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentD} and i.kind = 'public'`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, submitted_at, first_submitted_at, signed_off)
+      select ${wsD}, ${instrumentD}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(g::text),
+          jsonb_build_object('name', 'Person ' || g, 'role', (array['Sales', 'Finance', 'HR'])[1 + g % 3]), now(), now(), true
+      from generate_series(1, 100) g`;
+    await sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind, value, reason)
+      select ${wsD}, r.id, r.item_set_id, it.id, 'change', 'M', 'Because.'
+      from response r join item it on it.item_set_id = r.item_set_id
+      where r.workspace_id = ${wsD} and r.instrument_id = ${instrumentD} and r.fields ->> 'name' like 'Person %'`;
+    const cl04 = await itemId(wsD, instrumentD, "CL-04");
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }]) {
+      const started = performance.now();
+      const one = await detail.item(wsD, instrumentD, cl04, f);
+      expect(performance.now() - started).toBeLessThan(500);
+      // The sample's 7 people and the 100 (Sales: Ioana, Tom, Elena and every third person).
+      expect(one!.rows.length).toBe(f.fields.role ? 36 : 107);
+    }
+  }, 60_000);
+
+  it("reads nothing of another workspace's item", async () => {
+    const cl04 = await itemId(wsA, instrumentA, "CL-04");
+    expect(await detail.item(wsB, instrumentA, cl04, { ...NONE, includeUnsubmitted: true })).toBeNull();
+    expect(await detail.item(wsB, await sampleInstrument(wsB), cl04, { ...NONE, includeUnsubmitted: true })).toBeNull();
+    expect(await detail.item(wsA, instrumentA, "not-a-uuid", NONE)).toBeNull();
   });
 });

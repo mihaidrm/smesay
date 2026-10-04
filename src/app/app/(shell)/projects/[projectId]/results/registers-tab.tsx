@@ -18,7 +18,7 @@ import { REGISTERS_COPY, RESPONSES_COPY } from "@/lib/results-copy";
 import { filterActive, nextSort, registerShownSort, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
 
-type Props = { ws: WorkspaceId; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; href: (f: ResultsFilter) => string };
+type Props = { ws: WorkspaceId; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; href: (f: ResultsFilter) => string; itemHref: (id: string) => string };
 type Column = { key: string; label: string };
 
 const nameOf = (who: string | null, anon: number | null) => who ?? RESPONSES_COPY.anonymous(anon ?? 0);
@@ -70,18 +70,19 @@ function Respondent({ who, anon, submitted, changedSince }: { who: string | null
   );
 }
 
-function Item({ row }: { row: RegisterRow }) {
+// The item, linked to its detail (E8-5).
+function Item({ row, itemHref }: { row: RegisterRow; itemHref: Props["itemHref"] }) {
   return (
-    <>
+    <Link href={itemHref(row.itemId)} scroll={false} data-item-link={row.itemId} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="register-item">
       {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
       {textFor({ readerStatus: row.readerStatus as ReaderFields["readerStatus"], readerText: row.readerText, originalText: row.itemText })}
-    </>
+    </Link>
   );
 }
 
 const CELL = "px-4 py-2.5 align-top";
 
-export async function PushedTab({ ws, instrument, filter, ctx, href }: Props) {
+export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
   const keys = ctx.fields.map((f) => f.key);
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
   const role = ctx.fields.find((f) => f.key === "role") ?? null;
@@ -97,7 +98,7 @@ export async function PushedTab({ ws, instrument, filter, ctx, href }: Props) {
         columns={[...base, { key: "proposed", label: REGISTERS_COPY.proposed }, { key: "value", label: REGISTERS_COPY.theirValue }, { key: "reason", label: REGISTERS_COPY.reason }]}>
         {change.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
-            <td className={CELL}><Item row={r} /></td>
+            <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
             <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={`${CELL} whitespace-nowrap text-ink-muted`}>{proposed(r)}</td>
@@ -110,7 +111,7 @@ export async function PushedTab({ ws, instrument, filter, ctx, href }: Props) {
         columns={[...base, { key: "reason", label: REGISTERS_COPY.reason }]}>
         {disagree.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
-            <td className={CELL}><Item row={r} /></td>
+            <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
             <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={CELL}>{r.reason}</td>
@@ -121,7 +122,7 @@ export async function PushedTab({ ws, instrument, filter, ctx, href }: Props) {
   );
 }
 
-export async function QuestionsTab({ ws, instrument, filter, ctx, href }: Props) {
+export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
   const keys = ctx.fields.map((f) => f.key);
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
   const missingKeys = [...MISSING_KEYS, ...keys.map((k) => `field.${k}`)];
@@ -135,7 +136,7 @@ export async function QuestionsTab({ ws, instrument, filter, ctx, href }: Props)
         columns={[{ key: "item", label: REGISTERS_COPY.item }, ...who, { key: "reason", label: REGISTERS_COPY.question }]}>
         {unclear.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
-            <td className={CELL}><Item row={r} /></td>
+            <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
             <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={CELL}>{r.reason}</td>

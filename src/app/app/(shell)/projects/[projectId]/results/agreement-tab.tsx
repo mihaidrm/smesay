@@ -6,8 +6,9 @@
 // page's filter (SQL), the model from src/lib/results-agreement.ts. Where no proposal was
 // shown (rate-blind) every view shows the values picked, and a figure reads "[N] rated", never
 // a percentage. A group with fewer than 3 answers on an item, or summed over items with fewer
-// than 3 people, is drawn but not compared (decision 0031), with the banner once. Copy:
-// docs/copy/app.md, Results.
+// than 3 people, is drawn but not compared (decision 0031), with the banner once. An item's
+// title opens its detail (E8-5). Copy: docs/copy/app.md, Results.
+import Link from "next/link";
 import { AlignedBars, Donut, Legend, StackedBar, type Series } from "@/components/app/charts";
 import { Banner } from "@/components/ui/banner";
 import { items as itemsQuery, itemSets } from "@/db/queries";
@@ -21,10 +22,10 @@ import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/resu
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { AgreementControls, type AgreementView } from "./agreement-controls";
 
-type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView };
+type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; itemHref: (id: string) => string };
 type SeriesOf = (c: Counts) => Series[];
 
-export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view }: Props) {
+export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view, itemHref }: Props) {
   const [set, rows, counts] = await Promise.all([itemSets.get(ws, instrument.itemSetId), itemsQuery.forSet(ws, instrument.itemSetId), agreement.byItem(ws, instrument.id, filter, filter.split)]);
   const method = instrument.method;
   const listItems = rows.map((it) => ({ id: it.id, reference: it.sourceRef, title: textFor(it), area: it.area, proposed: instrument.showProposed ? proposedCode(method, it.proposedValue) : null, position: it.position }));
@@ -46,7 +47,7 @@ export async function AgreementTab({ ws, projectId, instrument, filter, ctx, vie
       {small && <Banner data-testid="small-groups">{AGREEMENT_COPY.smallGroups}</Banner>}
       <Legend series={series(list)} />
       {blind && <p className="text-xs text-ink-muted">{AGREEMENT_COPY.valuesLegend}</p>}
-      {view === "table" && areas.map((a) => <TableArea key={a.name ?? ""} area={a} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
+      {view === "table" && areas.map((a) => <TableArea key={a.name ?? ""} area={a} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} itemHref={itemHref} />)}
       {view === "columns" && <ColumnsView areas={areas} series={series} split={split} />}
       {view === "share" && <ShareView areas={areas} list={list} series={series} rated={blind || allRated(areas)} split={split} none={filterActive(filter) || !filter.includeUnsubmitted ? AGREEMENT_COPY.noAnswersLine : AGREEMENT_COPY.noAnswersYet} />}
     </div>
@@ -75,7 +76,7 @@ function countsText(series: Series[]): string {
 
 // One table per area, its totals as the first row so the area's bar lines up with the items'.
 // A rate-blind list has no Proposed column, and its figure column reads Rated.
-function TableArea({ area, series, coverage, blind, proposedLabel }: { area: AreaBlock; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string }) {
+function TableArea({ area, series, coverage, blind, proposedLabel, itemHref }: { area: AreaBlock; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string; itemHref: (id: string) => string }) {
   return (
     <section className="card flex flex-col p-0" aria-label={areaName(area)} data-testid="agreement-area" data-area={areaName(area)}>
       <h3 className="px-4 pt-3 text-[15px] font-bold">{areaName(area)}</h3>
@@ -99,22 +100,24 @@ function TableArea({ area, series, coverage, blind, proposedLabel }: { area: Are
             <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(area.totals, area.rated)}</td>
             {coverage && <td />}
           </tr>
-          {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
+          {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} itemHref={itemHref} />)}
         </tbody>
       </table>
     </section>
   );
 }
 
-function ItemRows({ row, series, coverage, blind, proposedLabel }: { row: Row; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string }) {
+function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { row: Row; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string; itemHref: (id: string) => string }) {
   const what = [row.reference, row.title].filter(Boolean).join(" ");
   const rated = row.proposed === null;
   return (
     <>
       <tr className="border-t border-hairline" data-testid="agreement-row" data-ref={row.reference ?? ""}>
         <th scope="row" className="w-[42%] px-4 py-2.5 font-normal">
-          {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
-          {row.title}
+          <Link href={itemHref(row.id)} scroll={false} data-item-link={row.id} className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="agreement-item">
+            {row.reference && <span className="mr-2 font-mono text-xs text-ink-muted">{row.reference}</span>}
+            {row.title}
+          </Link>
         </th>
         {!blind && <td className="px-2 text-xs whitespace-nowrap text-ink-muted">{proposedLabel(row.proposed)}</td>}
         <td className="w-[260px] px-2 py-2">

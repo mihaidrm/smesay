@@ -398,7 +398,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 12px">
-<div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px"><div style="font-weight: 500">On this item</div><div style="display: flex; justify-content: space-between"><span>Agree</span><span style="font-family: 'Geist Mono', monospace">{{dt.agree}}</span></div><div style="display: flex; justify-content: space-between"><span>Changed the priority</span><span style="font-family: 'Geist Mono', monospace">{{dt.pushed}}</span></div><div style="display: flex; justify-content: space-between"><span>Disagree</span><span style="font-family: 'Geist Mono', monospace">{{dt.disagreed}}</span></div><div style="display: flex; justify-content: space-between"><span>Unclear</span><span style="font-family: 'Geist Mono', monospace">{{dt.unclear}}</span></div><div style="display: flex; justify-content: space-between; color: #5B6069"><span>Not yet answered</span><span style="font-family: 'Geist Mono', monospace">{{dt.pending}}</span></div></div>
+<div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px"><div style="font-weight: 500">On this item</div><div style="display: flex; justify-content: space-between"><span>Agree</span><span style="font-family: 'Geist Mono', monospace">{{dt.agree}}</span></div><div style="display: flex; justify-content: space-between"><span>Different priority</span><span style="font-family: 'Geist Mono', monospace">{{dt.pushed}}</span></div><div style="display: flex; justify-content: space-between"><span>Disagree</span><span style="font-family: 'Geist Mono', monospace">{{dt.disagreed}}</span></div><div style="display: flex; justify-content: space-between"><span>Unclear</span><span style="font-family: 'Geist Mono', monospace">{{dt.unclear}}</span></div><div style="display: flex; justify-content: space-between; color: #5B6069"><span>Not yet answered</span><span style="font-family: 'Geist Mono', monospace">{{dt.pending}}</span></div></div>
 <div style="background: #ECEAE5; border-radius: 6px; padding: 14px 16px; font-size: 13px; color: #454A52">Loads under 500 ms with 100 responses. Every count here matches the CSV of answers filtered to {{dt.ref}}.</div>
 </div>
 </div>
@@ -420,7 +420,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="width: 90px">Proposed</div>
 <div style="width: 200px">Answers</div>
 <div style="width: 60px; text-align: right">Agree</div>
-<div style="width: 60px; text-align: right">Changed</div>
+<div style="width: 60px; text-align: right">Different priority</div>
 <div style="width: 60px; text-align: right">Disagree</div>
 <div style="width: 60px; text-align: right">Unclear</div>
 </div>
@@ -443,7 +443,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-for>
 <div style="display: flex; gap: 16px; padding: 10px 16px; font-size: 12px; color: #5B6069">
 <div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2F855A; display: block"></span><span>Agree</span></div>
-<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Changed the priority</span></div>
+<div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #B7791F; display: block"></span><span>Different priority</span></div>
 <div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #718096; display: block"></span><span>Disagree</span></div>
 <div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #7C3AED; display: block"></span><span>Unclear</span></div>
 <div style="margin-left: auto">Click an item for every answer on it.</div>
@@ -929,7 +929,7 @@ reopen: () => patch('actionState', a.id, null)
 };
 });
 
-const PILL = { A: ['Agree', '#E6F4EC', '#22643F'], D: ['Changed', '#FBF1DC', '#7A5210'], G: ['Disagree', '#F0F0EE', '#454A52'], U: ['Unclear', '#EEE8FA', '#4C2F94'] };
+const PILL = { A: ['Agree', '#E6F4EC', '#22643F'], D: ['Different priority', '#FBF1DC', '#7A5210'], G: ['Disagree', '#F0F0EE', '#454A52'], U: ['Unclear', '#EEE8FA', '#4C2F94'] };
 const dItem = d.items.find((x) => x.id === s.detailId);
 let dt = null;
 if (dItem) {
@@ -957,7 +957,7 @@ const members = [
 const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
 const exportDefs = [
 { id: 'x1', title: 'Answers', format: 'CSV, UTF-8', what: 'One row per answer: respondent, role, item, area, proposed value, answer, their value, reason or question, submitted at.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
-{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: text, original, area, proposed value, counts of agree, changed, disagree, unclear, and the agreement percentage.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: text, original, area, proposed value, counts of agree, different priority, disagree, unclear, and the agreement percentage.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
 { id: 'x3', title: 'Whole project', format: 'JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
 { id: 'x4', title: 'Summary for the deck', format: 'PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
 ];

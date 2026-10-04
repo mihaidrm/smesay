@@ -49,6 +49,7 @@ export const RESULTS_COPY = {
   failed: (what: string) => `${what} could not load. It has been logged. Try again in a minute.`,
   tryAgain: "Try again",
   strip: "The headline numbers",
+  detail: "The item's detail",
 };
 
 // The Responses tab (stories/E8-2; docs/copy/app.md, Results).
@@ -127,4 +128,21 @@ export const REGISTERS_COPY = {
   notSubmitted: "Not submitted",
   none: "None under this filter.",
   noneYet: "None yet.",
+};
+
+// The item detail (stories/E8-5; docs/copy/app.md, Results).
+export const DETAIL_COPY = {
+  back: (tab: string) => `Back to ${tab.toLowerCase()}`,
+  original: "Original",
+  proposed: "Proposed",
+  onItem: "On this item",
+  countLabels: { agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notYet: "Not yet answered" },
+  caption: "Every answer on this item",
+  columns: { who: "Respondent", answer: "Answer", text: "Reason, question or comment" },
+  inProgress: "In progress",
+  notStarted: "Not started",
+  notSubmitted: "Not submitted",
+  noAnswer: "No answer yet.",
+  noRows: "No one the filter keeps sees this item. Change the filter to see their answers.",
+  notFound: "This item is not in the list's current version. Go back and open an item from the list.",
 };
