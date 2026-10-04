@@ -59,7 +59,7 @@ describe("the kill switch (stories/E6-4)", () => {
     const sent: Mail[] = [];
     const keep = async (mail: Mail) => { sent.push(mail); };
     // Nothing to revoke before publishing.
-    expect(await revokeLink(a.ws, project.id, instrument.id, t0)).toEqual({ error: LINK_ERRORS.notPublished });
+    expect(await revokeLink(a.ws, project.id, instrument.id, "00000000-0000-4000-8000-000000000000", t0)).toEqual({ error: LINK_ERRORS.notPublished });
     const published = await publishLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", t0);
     if (!("invite" in published)) throw new Error(published.error);
     const first = published.invite;
@@ -73,10 +73,12 @@ describe("the kill switch (stories/E6-4)", () => {
     expect(await linkStatus(first.token, undefined, new Date("2026-10-21T00:00:00Z"))).toEqual({ status: 410, state: "closed" });
 
     // Revoke the public link (acceptance 1): revoked_at set, the inactive page, 410; the
-    // personal links stay open; the project reads Closed; a second revoke and a date save
-    // are refused; sending invites is refused.
+    // personal links stay open, so the project still reads Open with them and Closed on
+    // the public row alone; a second revoke and a date save are refused; sending invites
+    // is refused.
     const t1 = new Date("2026-10-04T09:00:00Z");
-    const revoked = await revokeLink(a.ws, project.id, instrument.id, t1);
+    expect(await revokeLink(a.ws, project.id, instrument.id, ana.id, t1)).toEqual({ error: LINK_ERRORS.changed });
+    const revoked = await revokeLink(a.ws, project.id, instrument.id, first.id, t1);
     if (!("invite" in revoked)) throw new Error(revoked.error);
     expect([revoked.invite.id, revoked.invite.revokedAt]).toEqual([first.id, t1]);
     expect(linkState(revoked.invite, t1)).toBe("revoked");
@@ -84,7 +86,8 @@ describe("the kill switch (stories/E6-4)", () => {
     expect(await linkStatus(first.token, undefined, t1)).toEqual({ status: 410, state: "revoked" });
     expect((await viewLink(ana.token, undefined, t1)).kind).toBe("open");
     expect(projectStatus(project, [revoked.invite], t1)).toBe("Closed");
-    expect(await revokeLink(a.ws, project.id, instrument.id, t1)).toEqual({ error: LINK_ERRORS.alreadyRevoked });
+    expect(projectStatus(project, [revoked.invite, ana, bo], t1)).toBe("Open");
+    expect(await revokeLink(a.ws, project.id, instrument.id, first.id, t1)).toEqual({ error: LINK_ERRORS.alreadyRevoked });
     expect(await saveLink(a.ws, project.id, instrument.id, "", "2026-10-25T15:00:00Z", "", false, t1)).toEqual({ error: LINK_ERRORS.revokedSave });
     expect(await sendInvites(a.ws, project.id, instrument.id, "cy@x.example", sender, BASE, t1, keep)).toEqual({ error: INVITEES_COPY.linkRevoked });
     expect((await invites.livePublic(a.ws, project.id))?.id).toBe(first.id);
@@ -96,10 +99,16 @@ describe("the kill switch (stories/E6-4)", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
 
     // Publish again (acceptance 1): a new row with a new token; the old one stays dead;
-    // the card's link is the new one; the personal links take the new dates.
+    // the card's link is the new one; the open personal links take the new dates at once;
+    // a stale tab's revoke of the old row is refused; sending works again.
     const t2 = new Date("2026-10-04T10:00:00Z");
     const again = await publishLink(a.ws, project.id, instrument.id, "", "2026-10-30T15:00:00Z", "", t2);
     if (!("invite" in again)) throw new Error(again.error);
+    expect((await listInvitees(a.ws, instrument.id)).map((r) => r.closesAt)).toEqual([new Date("2026-10-30T15:00:00Z"), new Date("2026-10-30T15:00:00Z")]);
+    expect(await revokeLink(a.ws, project.id, instrument.id, first.id, t2)).toEqual({ error: LINK_ERRORS.changed });
+    const cy = await sendInvites(a.ws, project.id, instrument.id, "cy@x.example", sender, BASE, t2, keep);
+    expect(cy).toEqual({ outcomes: [{ email: "cy@x.example", line: "cy@x.example", sent: true, error: null }] });
+    expect((await listInvitees(a.ws, instrument.id))[2].closesAt).toEqual(new Date("2026-10-30T15:00:00Z"));
     expect(again.invite.id).not.toBe(first.id);
     expect(again.invite.token).not.toBe(first.token);
     expect(again.invite.token).toMatch(/^[0-9a-f]{32}$/);
@@ -116,9 +125,11 @@ describe("the kill switch (stories/E6-4)", () => {
     expect((await invites.get(a.ws, first.id))?.closesAt).toEqual(new Date("2026-10-20T15:00:00Z"));
 
     // Revoke a personal link (acceptance 2): the inactive page, 410, the row Revoked, no
-    // reminder, a second revoke refused; the other row untouched.
+    // reminder, a second revoke refused, a stale tab's token refused; the other row
+    // untouched; pasting the address again points to New link.
     const t3 = new Date("2026-10-04T11:00:00Z");
-    const anaRevoked = await revokeInvitee(a.ws, project.id, instrument.id, ana.id, t3);
+    expect(await revokeInvitee(a.ws, project.id, instrument.id, ana.id, "f".repeat(32), t3)).toEqual({ error: INVITEES_ERRORS.rowChanged("ana@x.example") });
+    const anaRevoked = await revokeInvitee(a.ws, project.id, instrument.id, ana.id, ana.token, t3);
     if (!("invite" in anaRevoked)) throw new Error(anaRevoked.error);
     expect(anaRevoked.invite.revokedAt).toEqual(t3);
     expect((await viewLink(ana.token, undefined, t3)).kind).toBe("revoked");
@@ -126,10 +137,16 @@ describe("the kill switch (stories/E6-4)", () => {
     expect(inviteStatus((await listInvitees(a.ws, instrument.id))[0])).toBe("revoked");
     expect((await viewLink(bo.token, undefined, t3)).kind).toBe("open");
     expect(await remindInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, t3, keep)).toEqual({ error: REMINDERS_COPY.notDue("ana@x.example") });
-    expect(await revokeInvitee(a.ws, project.id, instrument.id, ana.id, t3)).toEqual({ error: INVITEES_ERRORS.alreadyRevoked("ana@x.example") });
+    expect(await revokeInvitee(a.ws, project.id, instrument.id, ana.id, ana.token, t3)).toEqual({ error: INVITEES_ERRORS.alreadyRevoked("ana@x.example") });
     expect(await renewInvitee(a.ws, project.id, instrument.id, bo.id, sender, BASE, t3, keep)).toEqual({ error: INVITEES_ERRORS.notRevoked("bo@x.example") });
-    // Pasting the revoked address again is "already has a personal link" (the row is sent).
-    expect(await sendInvites(a.ws, project.id, instrument.id, "ana@x.example", sender, BASE, t3, keep)).toEqual({ error: INVITEES_ERRORS.already("ana@x.example") });
+    expect(await sendInvites(a.ws, project.id, instrument.id, "ana@x.example", sender, BASE, t3, keep)).toEqual({ error: INVITEES_ERRORS.revokedAddress("ana@x.example") });
+    // A Not sent row revoked: pasting it again is refused the same way, and the claim too.
+    const dee = await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, t3, async () => { throw new Error("550 no"); });
+    if (!("outcomes" in dee)) throw new Error(dee.error);
+    const deeRow = (await listInvitees(a.ws, instrument.id)).find((r) => r.email === "dee@x.example")!;
+    await revokeInvitee(a.ws, project.id, instrument.id, deeRow.id, deeRow.token, t3);
+    expect(await sendInvites(a.ws, project.id, instrument.id, "dee@x.example", sender, BASE, t3, keep)).toEqual({ error: INVITEES_ERRORS.revokedAddress("dee@x.example") });
+    expect(await invites.claimResend(a.ws, deeRow.id, { name: null, roleHint: null }, new Date(t3.getTime() + 60 * 60 * 1000))).toBeNull();
 
     // New link (acceptance 2): a fresh token on the row, the public link's dates, email 2
     // sent; the old token reads as unknown; a failed send leaves the row Not sent.
@@ -137,6 +154,9 @@ describe("the kill switch (stories/E6-4)", () => {
     sent.length = 0;
     const renewed = await renewInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, t4, keep);
     expect(renewed).toEqual({ outcome: { email: "ana@x.example", line: "ana@x.example, Ana Pop", sent: true, error: null } });
+    // New link under a closed link is refused there (the row stays revoked).
+    expect(await invites.renewPersonal(a.ws, instrument.id, deeRow.id, "e".repeat(32), new Date("2026-11-01T00:00:00Z"))).toEqual({ refused: "closed" });
+    expect((await listInvitees(a.ws, instrument.id)).find((r) => r.email === "dee@x.example")!.revokedAt).not.toBeNull();
     const anaNew = (await listInvitees(a.ws, instrument.id))[0];
     expect([anaNew.id, anaNew.revokedAt, anaNew.sentAt, inviteStatus(anaNew)]).toEqual([ana.id, null, t4, "invited"]);
     expect(anaNew.token).not.toBe(ana.token);
@@ -147,25 +167,25 @@ describe("the kill switch (stories/E6-4)", () => {
     expect(sent[0].to).toBe("ana@x.example");
     expect(sent[0].text).toContain(`${BASE}/r/${anaNew.token}`);
     expect(sent[0].text).toContain("It closes on 28 Oct 2026, 15:00 UTC.");
-    await revokeInvitee(a.ws, project.id, instrument.id, bo.id, t4);
+    await revokeInvitee(a.ws, project.id, instrument.id, bo.id, bo.token, t4);
     const boRenew = await renewInvitee(a.ws, project.id, instrument.id, bo.id, sender, BASE, t4, async () => { throw new Error("550 no"); });
     expect(boRenew).toEqual({ outcome: { email: "bo@x.example", line: "bo@x.example", sent: false, error: INVITEES_ERRORS.newLinkNotSent("bo@x.example", "550 no") } });
     const boRow = (await listInvitees(a.ws, instrument.id))[1];
     expect([boRow.revokedAt, boRow.sentAt, boRow.sendError, inviteStatus(boRow)]).toEqual([null, null, "550 no", "notSent"]);
 
     // The other workspace: 404 on every action, nothing changed.
-    await expect(revokeLink(b.ws, project.id, instrument.id, t4)).rejects.toThrow(NotFoundError);
-    await expect(revokeInvitee(b.ws, project.id, instrument.id, ana.id, t4)).rejects.toThrow(NotFoundError);
+    await expect(revokeLink(b.ws, project.id, instrument.id, again.invite.id, t4)).rejects.toThrow(NotFoundError);
+    await expect(revokeInvitee(b.ws, project.id, instrument.id, ana.id, anaNew.token, t4)).rejects.toThrow(NotFoundError);
     await expect(renewInvitee(b.ws, project.id, instrument.id, ana.id, sender, BASE, t4, keep)).rejects.toThrow(NotFoundError);
-    expect(await invites.revokePublic(b.ws, instrument.id, t4)).toBeNull();
-    expect(await invites.revokePersonal(b.ws, ana.id, t4)).toBeNull();
-    expect(await invites.renewPersonal(b.ws, bo.id, "f".repeat(32), { opensAt: null, closesAt: null }, t4)).toBeNull();
+    expect(await invites.revokePublic(b.ws, instrument.id, again.invite.id, t4)).toBeNull();
+    expect(await invites.revokePersonal(b.ws, ana.id, anaNew.token, t4)).toBeNull();
+    expect(await invites.renewPersonal(b.ws, instrument.id, bo.id, "f".repeat(32), t4)).toBeNull();
     expect((await invites.livePublic(a.ws, project.id))?.revokedAt).toBeNull();
     expect((await listInvitees(a.ws, instrument.id))[0].revokedAt).toBeNull();
     // The sample refuses.
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
     const sampleLive = (await invites.livePublic(a.ws, sample.id))!;
-    expect(await revokeLink(a.ws, sample.id, sampleLive.instrumentId, t4)).toEqual({ error: BUILD_COPY.sample });
+    expect(await revokeLink(a.ws, sample.id, sampleLive.instrumentId, sampleLive.id, t4)).toEqual({ error: BUILD_COPY.sample });
     expect(await links.byToken(sampleLive.token)).not.toBeNull();
   }, 60_000);
 });

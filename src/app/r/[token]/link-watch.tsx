@@ -2,8 +2,9 @@
 // The open page's watch on its link (stories/E6-4, acceptance 4): every LINK_POLL_SECONDS
 // it asks /r/[token]/state and, on anything but 200 "open", refreshes the page, which the
 // server then renders as the inactive, closed or passcode page; so an open tab turns
-// inactive within a minute of a revoke without a reload. A failed fetch (offline) is
-// ignored until the next tick (E7-3 handles offline). router.refresh: node_modules/next/
+// inactive within a minute of a revoke without a reload, and at once when a background tab
+// comes to the front. A failed fetch (offline) is ignored until the next tick (E7-3
+// handles offline). router.refresh: node_modules/next/
 // dist/docs/01-app/03-api-reference/04-functions/use-router.md.
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,11 @@ export function LinkWatch({ token }: { token: string }) {
       }
     };
     const id = setInterval(tick, LINK_POLL_SECONDS * 1000);
-    return () => { stopped = true; clearInterval(id); };
+    // A tab coming back to the front asks at once (a background tab's timer may have been
+    // held back by the browser).
+    const onVisible = () => { if (document.visibilityState === "visible") void tick(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { stopped = true; clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
   }, [token, router]);
   return null;
 }

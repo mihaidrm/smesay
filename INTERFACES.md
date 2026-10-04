@@ -162,14 +162,18 @@ remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send)
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
 and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
 src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
-The kill switch (E6-4): invites.revokePublic(ws, instrumentId, now) (the project's link in
-force, under the project row's lock; refused: none, replaced, revoked),
-invites.revokePersonal(ws, id, now), invites.renewPersonal(ws, id, token, { opensAt, closesAt },
-now) (a revoked personal row gets a fresh token, no revocation, not sent yet);
-invites.publish creates a new row when the newest public row is revoked; invites.updatePublic
-refuses "revoked". revokeLink(ws, projectId, instrumentId, now) in src/lib/sharing.ts;
-revokeInvitee(...) and renewInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl,
-now, send) in src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
+The kill switch (E6-4): invites.revokePublic(ws, instrumentId, inviteId, now) (the project's
+link in force, under the project row's lock, when it is the row named; refused: none,
+replaced, revoked, changed), invites.revokePersonal(ws, id, token, now) (the row's token as
+shown), invites.renewPersonal(ws, instrumentId, id, token, now) (under the instrument and
+project locks with the link in force checked as createPersonal does: a revoked personal
+row gets a fresh token, the link's dates, no revocation, not sent yet; refused: none,
+replaced, revoked, closed, notRevoked); invites.publish creates a new row when the newest
+public row is revoked and puts its dates on the open personal rows; invites.updatePublic
+refuses "revoked"; invites.claimResend skips revoked rows. revokeLink(ws, projectId,
+instrumentId, inviteId, now) in src/lib/sharing.ts; revokeInvitee(ws, projectId,
+instrumentId, inviteId, token, now) and renewInvitee(ws, projectId, instrumentId, inviteId,
+sender, baseUrl, now, send) in src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
 ({ status: 200 | 404 | 410, state }) and GET /r/[token]/state (the same, as JSON { state },
 no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the

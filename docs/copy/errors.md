@@ -162,6 +162,9 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-3) | Remind while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
 | Inline, Share (E6-4) | Revoke link on a link already revoked (a stale tab) | This link is already revoked. Press Publish again for a new one. |
 | Inline, Share (E6-4) | Revoke link before publishing (a stale tab) | This instrument is not published yet. Press Publish first. |
+| Inline, Share (E6-4) | Revoke link in a tab that showed a link published again since | This link changed since the page opened. Reload the page to see where it stands. |
+| Inline, invites (E6-4) | Revoke in a tab that showed a row given a new link since | [EMAIL] got a new link since the page opened. Reload the page to see the row as it is. |
+| Inline, invites (E6-4) | A revoked address pasted in the box again | [EMAIL] is revoked. Press New link on its row to send a fresh one. |
 | Inline, Share (E6-4) | Save the dates of a revoked link (a stale tab) | This link is revoked. Press Publish again for a new one; its dates are set then. |
 | Inline, invites (E6-4) | Revoke on a row already revoked (a stale tab) | [EMAIL] is already revoked. Press New link to send a fresh one. |
 | Inline, invites (E6-4) | New link on a row that is not revoked (a stale tab) | [EMAIL] is not revoked, so it has its link. Reload the page to see the row as it is. |

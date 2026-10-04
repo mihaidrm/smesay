@@ -56,6 +56,9 @@ export const invites = {
       const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).orderBy(desc(invite.createdAt)).limit(1);
       if (existing && !existing.revokedAt) return { invite: existing, created: false };
       const [created] = await tx.insert(invite).values({ ...data, workspaceId, instrumentId, kind: "public" }).returning();
+      // The instrument's open personal links take the new dates (E6-2: they follow the
+      // public link; after a revoke and Publish again they held the old link's).
+      await tx.update(invite).set({ opensAt: data.opensAt, closesAt: data.closesAt }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal"), isNull(invite.revokedAt)));
       await tx.update(instrument).set({ publishedAt: now }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId), isNull(instrument.publishedAt)));
       const siblings = tx.select({ id: instrument.id }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.projectId, locked.projectId), ne(instrument.id, instrumentId)));
       // The older links close at `now`, the public one and its personal ones (E6-2: they
@@ -110,7 +113,7 @@ export const invites = {
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
       const [live] = await tx.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
         .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))
-        .orderBy(desc(instrument.createdAt)).limit(1);
+        .orderBy(desc(instrument.createdAt), desc(invite.createdAt)).limit(1);
       if (!live) return { refused: "none" as const };
       const link = live.invite;
       if (link.instrumentId !== instrumentId) return { refused: "replaced" as const };
@@ -133,7 +136,7 @@ export const invites = {
     if (!isUuid(id)) return null;
     const stale = new Date(now.getTime() - RESEND_AFTER_MINUTES * 60 * 1000);
     const rows = await db.update(invite).set({ ...patch, sendError: null, sendStartedAt: now })
-      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.sentAt), or(sql`${invite.sendError} is not null`, isNull(invite.sendStartedAt), sql`${invite.sendStartedAt} < ${sql.param(stale, invite.sendStartedAt)}`)))
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.sentAt), isNull(invite.revokedAt), or(sql`${invite.sendError} is not null`, isNull(invite.sendStartedAt), sql`${invite.sendStartedAt} < ${sql.param(stale, invite.sendStartedAt)}`)))
       .returning();
     return rows[0] ?? null;
   },
@@ -179,8 +182,10 @@ export const invites = {
   // Revokes the public link in force (stories/E6-4, acceptance 1) under the project row's
   // lock: the newest instrument's newest public row, when it is this instrument's and not
   // revoked yet, gets revoked_at = now. The personal links are not touched (design note 49).
-  revokePublic: async (workspaceId: WorkspaceId, instrumentId: string, now = new Date()): Promise<{ invite: Invite } | { refused: "none" | "replaced" | "revoked" } | null> => {
-    if (!isUuid(instrumentId)) return null;
+  // `inviteId` is the row the page showed: a stale tab whose link was published again
+  // since is refused ("changed") rather than revoking the new link.
+  revokePublic: async (workspaceId: WorkspaceId, instrumentId: string, inviteId: string, now = new Date()): Promise<{ invite: Invite } | { refused: "none" | "replaced" | "revoked" | "changed" } | null> => {
+    if (!isUuid(instrumentId) || !isUuid(inviteId)) return null;
     return db.transaction(async (tx) => {
       const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
       if (!own) return null;
@@ -191,27 +196,45 @@ export const invites = {
       if (!live) return { refused: "none" as const };
       if (live.invite.instrumentId !== instrumentId) return { refused: "replaced" as const };
       if (live.invite.revokedAt) return { refused: "revoked" as const };
+      if (live.invite.id !== inviteId) return { refused: "changed" as const };
       const rows = await tx.update(invite).set({ revokedAt: now }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, live.invite.id), isNull(invite.revokedAt))).returning();
       return rows[0] ? { invite: rows[0] } : { refused: "revoked" as const };
     });
   },
   // Revokes one personal invite (E6-4, acceptance 2): revoked_at = now on a row not yet
   // revoked; null when the row is not in the workspace or already revoked.
-  revokePersonal: async (workspaceId: WorkspaceId, id: string, now = new Date()): Promise<Invite | null> => {
+  // `token` is the link the page showed: a stale tab whose row got a new link since is
+  // refused rather than revoking the fresh token.
+  revokePersonal: async (workspaceId: WorkspaceId, id: string, token: string, now = new Date()): Promise<Invite | null> => {
     if (!isUuid(id)) return null;
-    const rows = await db.update(invite).set({ revokedAt: now }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.revokedAt))).returning();
+    const rows = await db.update(invite).set({ revokedAt: now }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), eq(invite.token, token), isNull(invite.revokedAt))).returning();
     return rows[0] ?? null;
   },
-  // A new link for a revoked personal invite (E6-4, "New link"): the row keeps its address,
-  // name, role, responses and reminder history, and gets a fresh token, no revocation and
-  // the public link's dates, not sent yet (the caller sends email 2). The old token is
-  // gone, so the old URL reads as unknown. Null when the row is not in the workspace or
-  // not revoked.
-  renewPersonal: async (workspaceId: WorkspaceId, id: string, token: string, dates: { opensAt: Date | null; closesAt: Date | null }, now = new Date()): Promise<Invite | null> => {
-    if (!isUuid(id)) return null;
-    const rows = await db.update(invite).set({ token, revokedAt: null, sentAt: null, sendError: null, sendStartedAt: now, opensAt: dates.opensAt, closesAt: dates.closesAt })
-      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), sql`${invite.revokedAt} is not null`)).returning();
-    return rows[0] ?? null;
+  // A new link for a revoked personal invite (E6-4, "New link"): under the locks and the
+  // link check createPersonal takes (the instrument row then the project row, the public
+  // link in force not replaced, revoked or closed), the row keeps its address, name, role,
+  // responses and reminder history, and gets a fresh token, no revocation and the public
+  // link's dates, not sent yet (the caller sends email 2). The old token is gone, so the
+  // old URL reads as unknown. Null when the row is not in the workspace; refused
+  // "notRevoked" when it is not revoked (a stale tab).
+  renewPersonal: async (workspaceId: WorkspaceId, instrumentId: string, id: string, token: string, now = new Date()): Promise<{ invite: Invite } | { refused: "none" | "replaced" | "revoked" | "closed" | "notRevoked" } | null> => {
+    if (!isUuid(instrumentId) || !isUuid(id)) return null;
+    return db.transaction(async (tx) => {
+      const [locked] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).for("no key update");
+      if (!locked) return null;
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
+      const [live] = await tx.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
+        .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))
+        .orderBy(desc(instrument.createdAt), desc(invite.createdAt)).limit(1);
+      if (!live) return { refused: "none" as const };
+      const link = live.invite;
+      if (link.instrumentId !== instrumentId) return { refused: "replaced" as const };
+      if (link.revokedAt) return { refused: "revoked" as const };
+      if (link.closesAt && link.closesAt <= now) return { refused: "closed" as const };
+      const rows = await tx.update(invite).set({ token, revokedAt: null, sentAt: null, sendError: null, sendStartedAt: now, opensAt: link.opensAt, closesAt: link.closesAt })
+        .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal"), sql`${invite.revokedAt} is not null`)).returning();
+      return rows[0] ? { invite: rows[0] } : { refused: "notRevoked" as const };
+    });
   },
   // The dates and the passcode of an instrument's public link, under the project row's lock
   // (the one publish takes) and only while that link is the project's link in force: a save

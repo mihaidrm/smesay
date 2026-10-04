@@ -34,7 +34,6 @@ export const SHARE_COPY = {
   publishAgain: "Publish again",
   revoke: "Revoke link",
   revokeHint: "Nobody can open the link after this. Answers already given are kept. Publish again makes a new link.",
-  revoked: "Revoked.",
   save: "Save",
   saved: "Saved.",
   closedNow: "The link is closed. Respondents see the closed page.",
@@ -52,6 +51,7 @@ export const LINK_ERRORS = {
   alreadyPublished: "This instrument is already published. Reload the page to see its link.",
   alreadyRevoked: "This link is already revoked. Press Publish again for a new one.",
   revokedSave: "This link is revoked. Press Publish again for a new one; its dates are set then.",
+  changed: "This link changed since the page opened. Reload the page to see where it stands.",
 } as const;
 
 export const LINK_PAGE_COPY = {

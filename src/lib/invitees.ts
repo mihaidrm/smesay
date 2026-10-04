@@ -96,22 +96,24 @@ async function inviteMailFor(ws: WorkspaceId, projectId: string, instrument: { i
 }
 
 // Revoke one personal link (stories/E6-4, acceptance 2): the row gets revoked_at and its
-// token shows the inactive page; answers already given are kept.
-export async function revokeInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+// token shows the inactive page; answers already given are kept. `token` is the link the
+// page showed: a stale tab whose row got a new link since is refused.
+export async function revokeInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, token: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
   if (!row) throw new NotFoundError();
   if (row.revokedAt) return { error: INVITEES_ERRORS.alreadyRevoked(row.email ?? "") };
-  const revoked = await invites.revokePersonal(ws, inviteId, now);
-  if (!revoked) return { error: INVITEES_ERRORS.alreadyRevoked(row.email ?? "") };
+  if (row.token !== token) return { error: INVITEES_ERRORS.rowChanged(row.email ?? "") };
+  const revoked = await invites.revokePersonal(ws, inviteId, token, now);
+  if (!revoked) return { error: INVITEES_ERRORS.rowChanged(row.email ?? "") };
   return { invite: revoked };
 }
 
 // A new link for a revoked personal invite (E6-4, acceptance 2): a fresh token on the same
-// row, with the public link's dates, then email 2 to the address; the link in force must
-// allow a send, as for sendInvites. A failed email leaves the row Not sent, to be pasted
-// again.
+// row, with the public link's dates read under the locks (invites.renewPersonal; the link
+// in force must allow a send, as for sendInvites), then email 2 to the address. A failed
+// email leaves the row Not sent, to be pasted again.
 export async function renewInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcome: SendOutcome }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
@@ -121,8 +123,10 @@ export async function renewInvitee(ws: WorkspaceId, projectId: string, instrumen
   if (!row) throw new NotFoundError();
   const email = row.email ?? "";
   if (!row.revokedAt) return { error: INVITEES_ERRORS.notRevoked(email) };
-  const renewed = await invites.renewPersonal(ws, inviteId, newToken(), { opensAt: live.link.opensAt, closesAt: live.link.closesAt }, now);
-  if (!renewed) return { error: INVITEES_ERRORS.notRevoked(email) };
+  const result = await invites.renewPersonal(ws, instrumentId, inviteId, newToken(), now);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: result.refused === "notRevoked" ? INVITEES_ERRORS.notRevoked(email) : refusalCopy(result.refused) };
+  const renewed = result.invite;
   const { mail } = await inviteMailFor(ws, projectId, owned.instrument, renewed, sender, baseUrl, now);
   const line = inviteeLine({ email, name: renewed.name, role: renewed.roleHint });
   try {
@@ -153,6 +157,7 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   const existing = new Map<string, Invite>();
   for (const person of parsed.invitees) {
     const row = await invites.personalByEmail(ws, instrumentId, person.email);
+    if (row?.revokedAt) return { error: INVITEES_ERRORS.revokedAddress(person.email) };
     if (row?.sentAt) return { error: INVITEES_ERRORS.already(person.email) };
     if (row) existing.set(person.email, row);
   }

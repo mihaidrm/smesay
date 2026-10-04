@@ -76,7 +76,7 @@ export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkS
                           const check = canRemind(row, now);
                           return <RemindForm projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} show={check.ok ? "button" : check.why === "tooSoon" ? { tooSoon: tooSoonLine(check) } : "none"} />;
                         })()}
-                        {row.revokedAt ? <RenewInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} /> : <RevokeInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} />}
+                        {row.revokedAt ? <RenewInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} canSend={canSend} /> : <RevokeInvite projectId={projectId} instrumentId={instrumentId} inviteId={row.id} token={row.token} />}
                       </div>
                     )}
                   </TableCell>

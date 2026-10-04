@@ -8,13 +8,15 @@ import { Button } from "@/components/ui/button";
 import { SHARE_COPY } from "@/lib/sharing-copy";
 import { revokeLinkAction, type ProjectFormState } from "../../actions";
 
-export function RevokeLink({ projectId, instrumentId }: { projectId: string; instrumentId: string }) {
+// inviteId: the link the page showed, so a stale tab cannot revoke a newer link.
+export function RevokeLink({ projectId, instrumentId, inviteId }: { projectId: string; instrumentId: string; inviteId: string }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(revokeLinkAction, { error: null, saved: false });
   const id = useId();
   return (
     <form action={action} className="flex flex-col gap-2 border-t border-hairline pt-4" data-testid="revoke-link-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
+      <input type="hidden" name="inviteId" value={inviteId} />
       <div className="flex items-start justify-between gap-4">
         <p id={`${id}-hint`} className="text-[13px] text-ink-muted">{SHARE_COPY.revokeHint}</p>
         <Button type="submit" variant="destructive" loading={pending} aria-describedby={`${id}-hint`}>{SHARE_COPY.revoke}</Button>

@@ -25,7 +25,6 @@ export const INVITEES_COPY = {
   revoke: "Revoke",
   newLink: "New link",
   revokedLine: (when: string) => `Revoked ${when}. The link shows the inactive page.`,
-  newLinkSent: (email: string) => `New link sent to ${email}.`,
   notSentHint: "Paste the address again to send it. A send in progress holds the address for 15 minutes.",
   noneSent: "None sent",
   remindersLine: (n: number, date: string) => `${n} sent, last ${date}`,
@@ -44,7 +43,9 @@ export const INVITEES_ERRORS = {
   notSent: (email: string, reason: string) => `The invite to ${email} was not sent: ${reason}. Check the address and try again.`,
   badShape: "The list did not reach the server as text. Reload the page and try again.",
   alreadyRevoked: (email: string) => `${email} is already revoked. Press New link to send a fresh one.`,
+  revokedAddress: (email: string) => `${email} is revoked. Press New link on its row to send a fresh one.`,
   notRevoked: (email: string) => `${email} is not revoked, so it has its link. Reload the page to see the row as it is.`,
+  rowChanged: (email: string) => `${email} got a new link since the page opened. Reload the page to see the row as it is.`,
   newLinkNotSent: (email: string, reason: string) => `The new link for ${email} was made but not sent: ${reason}. Paste the address again to send it.`,
 } as const;
 

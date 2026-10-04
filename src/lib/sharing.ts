@@ -114,11 +114,14 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
 // Revoke (stories/E6-4, acceptance 1): the link in force gets revoked_at and shows the
 // inactive page from then on; the personal links stay as they are (design note 49).
 // "Publish again" is publishLink: a new row with a new token, the revoked one stays dead.
-export async function revokeLink(ws: WorkspaceId, projectId: string, instrumentId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+// `inviteId` is the row the page showed, so a stale tab cannot revoke a link published
+// again since.
+export async function revokeLink(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
-  const result = await invites.revokePublic(ws, instrumentId, now);
+  if (!/^[0-9a-f-]{36}$/.test(inviteId)) return { error: LINK_ERRORS.changed };
+  const result = await invites.revokePublic(ws, instrumentId, inviteId, now);
   if (!result) throw new NotFoundError();
-  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.alreadyRevoked : BUILD_COPY.replaced };
+  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.alreadyRevoked : result.refused === "changed" ? LINK_ERRORS.changed : BUILD_COPY.replaced };
   return { invite: result.invite };
 }

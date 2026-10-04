@@ -453,8 +453,9 @@ export async function revokeLinkAction(_previous: ProjectFormState, formData: Fo
   const { current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
+  const inviteId = String(formData.get("inviteId") ?? "");
   try {
-    const result = await revokeLink(current.ws, projectId, instrumentId);
+    const result = await revokeLink(current.ws, projectId, instrumentId, inviteId);
     revalidatePath(`/app/projects/${projectId}/share`);
     revalidatePath("/app");
     if ("error" in result) return { ...NONE, error: result.error };
@@ -469,8 +470,9 @@ export async function revokeInviteAction(_previous: ProjectFormState, formData: 
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");
+  const token = String(formData.get("token") ?? "");
   try {
-    const result = await revokeInvitee(current.ws, projectId, instrumentId, inviteId);
+    const result = await revokeInvitee(current.ws, projectId, instrumentId, inviteId, token);
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error };
     return { ...NONE, saved: true };
