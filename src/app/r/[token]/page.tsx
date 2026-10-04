@@ -26,13 +26,18 @@ import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
 import { ForgetQueue } from "./forget-queue";
 import { LinkWatch } from "./link-watch";
 import { PasscodeForm } from "./passcode-form";
+import { PreviewRoute } from "./preview-route";
+import { isPreviewToken } from "@/lib/preview-token";
 import { RespondentApp } from "./respondent-app";
 
 export const dynamic = "force-dynamic";
 
-export default async function LinkRoute({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ at?: string }> }) {
+export default async function LinkRoute({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ at?: string; ring?: string; step?: string; device?: string }> }) {
   const { token } = await params;
-  const { at } = await searchParams;
+  const query = await searchParams;
+  // The builder's preview (stories/E5-6) has its own route on a preview token.
+  if (isPreviewToken(token)) return <PreviewRoute token={token} query={query} />;
+  const { at } = query;
   const store = await cookies();
   const view = await loadRespondent(token, { passcode: store.get(PASSCODE_COOKIE)?.value, device: store.get(DEVICE_COOKIE)?.value });
   if (view.kind === "unknown") {

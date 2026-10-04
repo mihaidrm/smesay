@@ -35,6 +35,9 @@
 // Done screen's summary line, and for a submitted response opened again "Welcome back,
 // [NAME]. You submitted on [DATE]. You can change your answers until [CLOSE DATE]." with
 // Change.
+// E5-6: the builder's preview renders this same app (preview set), started and on the first
+// chapter, with the steps' rings; nothing goes to the server (Start, the cards and the Wrap
+// up stay in memory, Submit is off) and every screen says so.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { cn } from "cn";
 import { AboutYou } from "@/components/respondent/about-you";
@@ -53,6 +56,8 @@ import { formatUtc } from "@/lib/sharing-format";
 import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
 import { areasOf, chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
+import type { PreviewRing } from "@/lib/preview";
+import { ABOUT_YOU_COPY } from "@/lib/build-copy";
 
 export type RespondentAppProps = {
   token: string;
@@ -85,6 +90,8 @@ export type RespondentAppProps = {
   wrap: WrapValue;
   wrapSync: WrapSync;
   poweredBy: boolean;
+  // The builder's preview (stories/E5-6): what its step rings; nothing is saved.
+  preview?: { rings: PreviewRing[] } | null;
 };
 
 // The page has hydrated (false in the server render and while hydrating, then true:
@@ -96,6 +103,8 @@ const firstName = (fields: ResponseFields): string | null => (fields.name ?? "")
 export function RespondentApp(props: RespondentAppProps) {
   const { token, workspaceName, accent, logoUrl, headerNote, instrument, prefilled, items, areas } = props;
   const ready = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const preview = props.preview ?? null;
+  const rings = new Set(preview?.rings ?? []);
   const [started, setStarted] = useState(props.started);
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
   const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
@@ -151,7 +160,7 @@ export function RespondentApp(props: RespondentAppProps) {
   });
   const wrapNow = useRef(wrap);
   useEffect(() => { wrapNow.current = wrap; }, [wrap]);
-  const setWrap = (next: WrapValue) => { setWrapState(next); setSubmitError(null); wrapSaver.queue(next); };
+  const setWrap = (next: WrapValue) => { setWrapState(next); setSubmitError(null); if (!preview) wrapSaver.queue(next); };
   // Whether a Start in this visit has been followed by a save the server took: a "not
   // started" before that means the browser did not keep the device cookie.
   const startedHere = useRef(false);
@@ -160,7 +169,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // once however many saves were refused; Start then sends the cards' drafts again, so the
   // answers on the page are kept with the new details. Straight after a Start it is the
   // browser refusing the cookie, and the sentence says so instead.
-  const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
+  const saver = useAnswerSaver(token, responseId, started && !preview, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
     onSaved: (reply) => { savedSinceStart.current = true; heard(reply); },
@@ -181,7 +190,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
   const change = (itemId: string, draft: CardDraft) => {
     setDrafts((d) => ({ ...d, [itemId]: draft }));
-    saver.queue(itemId, draft);
+    if (!preview) saver.queue(itemId, draft);
   };
 
   // Focus after a screen change (not on the first paint): the asked-for card, or the heading.
@@ -216,7 +225,12 @@ export function RespondentApp(props: RespondentAppProps) {
     setScreen(next);
     setItem(itemIndex);
     // The screen already showing (its own pill tapped) adds no history entry.
-    if (screenParam(next) !== screenParam(screen)) window.history.pushState(null, "", `?at=${screenParam(next)}`);
+    // In the builder's preview a screen replaces the entry and keeps the preview's query, so
+    // Back leaves the step page and a reload keeps the step and its rings.
+    if (screenParam(next) !== screenParam(screen)) {
+      if (preview) { const url = new URL(window.location.href); url.searchParams.set("at", screenParam(next)); window.history.replaceState(null, "", url); }
+      else window.history.pushState(null, "", `?at=${screenParam(next)}`);
+    }
     window.scrollTo(0, 0);
   };
   // The first entry carries its screen too, so Back from a pushed screen lands on it.
@@ -238,6 +252,15 @@ export function RespondentApp(props: RespondentAppProps) {
   }, [started, chapters.length, instrument.layout]);
 
   const start = async (values: ResponseFields, chosen: string[]) => {
+    // The preview keeps the details in memory and moves on (stories/E5-6, acceptance 4).
+    if (preview) {
+      setPicks(chosen);
+      setSavedPicks(chosen);
+      setFields(values);
+      setStarted(true);
+      go({ kind: "chapter", index: 0 });
+      return;
+    }
     setStarting(true);
     setStartError(null);
     try {
@@ -283,12 +306,16 @@ export function RespondentApp(props: RespondentAppProps) {
   };
 
   const firstChapter = chaptersFor(areas, items, picks)[0]?.name ?? null;
-  const note = saver.unsaved || wrapSaver.failed ? RESPONDENT_COPY.notSaved : headerNote;
+  // In the preview the closing date is ringed on Share (the step that sets it).
+  const note: React.ReactNode = saver.unsaved || wrapSaver.failed ? RESPONDENT_COPY.notSaved : headerNote && rings.has("note") ? <span className="rounded-md px-1 ring-2 ring-violet ring-offset-2 ring-offset-surface" data-ring>{headerNote}</span> : headerNote;
   const page = instrument.layout === "page";
   const names = chapters.map((c) => c.name ?? instrument.title);
-  const progress = progressOf(chapters, saver.done);
+  // What counts as answered: what the server holds complete, or in the preview the cards as
+  // they stand (nothing is saved there).
+  const done = preview ? Object.fromEntries(items.map((it) => [it.id, isComplete(answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed))])) : saver.done;
+  const progress = progressOf(chapters, done);
   const byId = new Map(items.map((it) => [it.id, it]));
-  const gaps = gapsOf(chapters, saver.done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null));
+  const gaps = gapsOf(chapters, done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null));
   // The Wrap up's tally and sections, from the cards as the respondent left them.
   const answersNow = Object.fromEntries(chapters.flatMap((c) => c.items).map((it) => [it.id, answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed)]));
   const buckets = tallyOf(instrument.method, chapters.flatMap((c) => c.items), answersNow);
@@ -341,7 +368,8 @@ export function RespondentApp(props: RespondentAppProps) {
       setSubmitting(false);
     }
   };
-  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} />;
+  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} ring={rings.has("nav")} />;
+  const previewStrip = preview ? <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text" data-testid="preview-note">{ABOUT_YOU_COPY.previewNote}</div> : null;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
     <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
@@ -363,21 +391,24 @@ export function RespondentApp(props: RespondentAppProps) {
   ) : null;
   const chapterScreen = (index: number) => {
     const here = page ? chapters.flatMap((c) => c.items) : chapters[index].items;
-    const left = here.filter((it) => !saver.done[it.id]).length;
+    const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={saver.saved} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={preview ? {} : saver.saved} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
-        onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy} />
+        onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy}
+        rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} />
     );
   };
-  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && chapters.length > 0 ? "max-w-[760px]" : "max-w-[560px]";
+  // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
+  // ("No items to review.", E5-5).
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[560px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview)} ring={rings.has("fields") ? "fields" : undefined} />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (
         chapterScreen(screen.index)
       ) : screen.kind === "done" && submitted ? (
@@ -392,16 +423,17 @@ export function RespondentApp(props: RespondentAppProps) {
             <PoweredBy show={props.poweredBy} className="mt-auto" />
           </main>
         </div>
-      ) : (screen.kind === "wrap" || screen.kind === "done") && chapters.length > 0 ? (
+      ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
         <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
-          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={submit} poweredBy={props.poweredBy} />
+          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={preview ? undefined : submit} poweredBy={props.poweredBy} preview={Boolean(preview)} ring={rings.has("closing")} />
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
+          {previewStrip}
           <main className="flex flex-col gap-4 px-5 pt-6">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
             <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{RESPONDENT_COPY.aboutYou}</button>

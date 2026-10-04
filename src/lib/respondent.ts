@@ -12,6 +12,7 @@ import { randomBytes } from "node:crypto";
 import { answers, items, itemSets, links, missingItems, responses } from "@/db/queries";
 import type { Answer } from "@/db/queries/answers";
 import type { Link } from "@/db/queries/links";
+import type { WorkspaceId } from "@/db/types";
 import type { InviteDates, Response, StoredWrap } from "@/db/queries/responses";
 import { textFor } from "@/lib/item-text";
 import { isVisible } from "@/lib/perspectives";
@@ -47,17 +48,21 @@ async function responseOf(link: Link, device: string | undefined): Promise<Respo
   return device ? responses.forDevice(link.ws, link.invite.id, device) : null;
 }
 
-export async function itemsOf(link: Link): Promise<{ items: RespondentItem[]; areas: AreaMeta[] }> {
-  const set = await itemSets.get(link.ws, link.instrument.itemSetId);
-  const rows = set ? await items.forSet(link.ws, set.id) : [];
-  const method = link.instrument.method;
+export const itemsOf = (link: Link): Promise<{ items: RespondentItem[]; areas: AreaMeta[] }> => itemsFor(link.ws, link.instrument);
+
+// The items and areas of an instrument's set as the respondent sees them; the builder's preview
+// (stories/E5-6, src/lib/preview.ts) reads them for a draft or the latest set the same way.
+export async function itemsFor(ws: WorkspaceId, instrument: Pick<Link["instrument"], "itemSetId" | "method" | "showProposed">): Promise<{ items: RespondentItem[]; areas: AreaMeta[] }> {
+  const set = await itemSets.get(ws, instrument.itemSetId);
+  const rows = set ? await items.forSet(ws, set.id) : [];
+  const method = instrument.method;
   return {
     areas: (set?.areas ?? []).map((a) => ({ name: a.name, intro: a.rationale ?? null })),
     items: rows.map((it) => {
       const title = textFor(it);
       const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, unknown>).find((v): v is string => typeof v === "string" && v.trim() !== "") : undefined;
       // Rate-blind (E5-2, acceptance 2): the proposal never reaches the page when it is hidden.
-      const proposed = link.instrument.showProposed ? proposedCode(method, it.proposedValue) : null;
+      const proposed = instrument.showProposed ? proposedCode(method, it.proposedValue) : null;
       return { id: it.id, reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), area: it.area, proposed, perspectives: it.perspectives };
     }),
   };

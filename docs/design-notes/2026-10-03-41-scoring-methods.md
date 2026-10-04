@@ -1,5 +1,8 @@
 # Design note 41: the scoring card and the respondent card in the preview, 2026-10-03
 
+Superseded in part by note 65 (2026-10-04): the preview panel described here
+(build/preview-panel.tsx, preview-screen.tsx) is now the respondent app in an iframe.
+
 Made in the Claude Code cloud session of 2026-10-03 for stories/E5-2, under decision 0044.
 Files: src/lib/scoring.ts (the scales, the codes, the mapping), src/app/app/(shell)/projects/
 [projectId]/build/scoring-form.tsx and preview-panel.tsx, src/components/respondent/

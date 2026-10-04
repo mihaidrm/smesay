@@ -4,9 +4,9 @@
 // tally, the still-to-finish box, the missing-item form when the PM switched it on, the
 // closing question when the PM set one, confidence 1 to 5 (always), the sign-off as one
 // 48 px label with a checkbox, and Submit, disabled with the line naming what is still
-// needed. One component for the Build preview and the real page, so the two cannot drift.
-// In preview mode nothing is answered: the tally is zero, every item is still to finish,
-// the picks stay in memory and Submit stays disabled. The confidence pills are one radio
+// needed. One component, used by the respondent app on a link and in the builder's preview
+// (stories/E5-6), so the two cannot drift. In preview mode the band says nothing is saved
+// and Submit stays disabled. The confidence pills are one radio
 // group with a roving tabindex and arrow keys, as the rating row (rating-row.tsx), with
 // Guessing and Certain described on 1 and 5. E7-4 renders it on the live link with the
 // header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
@@ -79,7 +79,7 @@ const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface p
 
 export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
-  const Body = preview ? "div" : "main";
+  const Body = "main";
   const firstGap = gaps?.[0];
   const [own, setOwn] = useState<WrapValue>(EMPTY_WRAP);
   const form = value ?? own;
@@ -112,7 +112,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
         </header>
       )}
       <Body className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
-        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" && !preview ? -1 : undefined} data-screen-heading={(Heading === "h1" && !preview) || undefined}>{WRAP_UP_COPY.title}</Heading>
+        <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{WRAP_UP_COPY.title}</Heading>
         <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
           {tileKeys.map((key) => (
             <div key={key} className="card flex flex-col items-center gap-0.5 px-1 py-2" data-tile={key}>

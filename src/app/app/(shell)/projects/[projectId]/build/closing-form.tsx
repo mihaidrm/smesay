@@ -5,11 +5,8 @@
 // prefilled). The server applies the rule again (saveClosing in src/lib/instruments.ts).
 // Once published the question is locked with its line; the switch and the sign-off still
 // change. Focusing or clicking any control opens the Wrap up in the preview (acceptance
-// 3): React's onFocus bubbles, unlike the browser's focus event
-// (react.dev/reference/react-dom/components/common#focusevent-handler), and the click
-// covers Safari, which does not focus a button on click (MDN, <button>, "Clicking and
-// focus": "Most browsers do give focus to a button being clicked, but Safari does not, by
-// design"). "Saved."
+// 3; data-preview-screen on the card in build/page.tsx, src/components/app/preview-frame.tsx
+// PreviewColumn). "Saved."
 // until the next change; Save is secondary like the other Build cards (design note 38).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
@@ -21,7 +18,6 @@ import type { ClosingSpec } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { CLOSING_COPY, CLOSING_QUESTION_MAX, SIGN_OFF_MAX, signOffFor } from "@/lib/closing";
 import { saveClosingAction, type ProjectFormState } from "../../actions";
-import { usePreviewScreen } from "./preview-screen";
 
 export function ClosingForm({ projectId, instrumentId, closing, locked }: { projectId: string; instrumentId: string; closing: ClosingSpec; locked: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveClosingAction, { error: null, saved: false });
@@ -29,11 +25,10 @@ export function ClosingForm({ projectId, instrumentId, closing, locked }: { proj
   const [missingForm, setMissingForm] = useState(closing.missingForm);
   const [signOff, setSignOff] = useState(signOffFor(closing));
   const [dirty, setDirty] = useState(false);
-  const { setScreen } = usePreviewScreen();
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} onFocus={() => setScreen("wrapup")} onClick={() => setScreen("wrapup")} noValidate className="flex flex-col gap-4" data-testid="closing-form">
+    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="closing-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="missingForm" value={missingForm ? "1" : "0"} />

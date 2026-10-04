@@ -50,11 +50,11 @@ Built 2026-10-03 (design note 38):
   Dropdown with its options one per line, Email), the Required switch and Remove; Add a field
   up to eight; Remove refused on the last one with the line. Name and Role, both text and
   required, are the defaults (Role as text: nothing can guess a PM's roles).
-- Acceptance 3: the preview panel on the right (the 460 px shell of design note 13, the
-  Desktop toggle and "Open full size" wait for E5-6) renders the About you page from
-  src/components/respondent/about-you.tsx, the component E7-1 will mount at /r/[token]:
-  Start disabled at 40 percent with the hint of decision 0043 until every required field is
-  filled.
+- Acceptance 3: the preview panel on the right renders the About you page from
+  src/components/respondent/about-you.tsx, the component E7-1 mounts at /r/[token]: Start
+  disabled at 40 percent with the hint of decision 0043 until every required field is
+  filled. Since E5-6 the panel is the respondent app itself in an iframe, with the Desktop
+  toggle and "Open full size" (note 65).
 - Acceptance 4: parseFields in src/lib/respondent-fields.ts (label 1 to 60, 1 to 8 fields,
   dropdown 2 to 20 different options; keys are label slugs, -2, -3 on a clash), with
   src/lib/respondent-fields.test.ts (6 tests) and src/lib/instruments.test.ts (4 tests: one

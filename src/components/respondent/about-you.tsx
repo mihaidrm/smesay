@@ -5,14 +5,14 @@
 // 48 px, E7-1 acceptance 2), Start disabled at 40 percent until every required field is
 // filled, with the hint under it (aria-describedby on Start, aria-required on the fields;
 // the wording by decision 0043), the perspectives question as checkboxes when the
-// instrument has perspectives (stories/E5-4), and the footer. One component for the Build preview and
-// the real page, so the two cannot drift (stories/E5-6, acceptance 3). In preview mode the
-// header says nothing is saved and Start does nothing (E5-6, acceptance 4). Phone first:
+// instrument has perspectives (stories/E5-4), and the footer. The respondent app renders it on
+// a link and in the builder's preview (stories/E5-6, acceptance 3), so the two cannot drift.
+// In preview mode the band says nothing is saved, and Start keeps everything in memory (the
+// app's start, E5-6 acceptance 4). Phone first:
 // the column is the screen width; on desktop E7-1 puts it in the 560 px column, where the
 // fields are 360 px and Start is 280 px, left-aligned (docs/design-system.md, Respondent
 // columns). The widths follow the component's own width, not the window's (a container
-// query: tailwindcss.com/docs/responsive-design, container queries; @lg is 32rem), so the
-// Build preview's 390 px frame keeps the phone layout on a desktop screen.
+// query: tailwindcss.com/docs/responsive-design, container queries; @lg is 32rem).
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy } from "./powered-by";
@@ -26,7 +26,7 @@ export type AboutYouProps = {
   // The workspace's logo (E7-1, acceptance 1); the initials when there is none.
   logoUrl?: string | null;
   // The header's note, "Closes [DATE]" on a live link (stories/E6-1, acceptance 5; E7-1).
-  headerNote?: string | null;
+  headerNote?: React.ReactNode;
   // effectiveAccent() of the workspace (src/lib/brand-rules.ts): at least 4.5 to 1 on white,
   // so white initials read on it too.
   accent: string;
@@ -137,7 +137,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
         <PoweredBy show={poweredBy} />
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !preview && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @lg:w-[280px] @lg:self-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @lg:w-[280px] @lg:self-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
         <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>

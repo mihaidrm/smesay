@@ -42,7 +42,8 @@ Done so far:
 - Scoring and layout (stories/E5-2 and E5-3, built 2026-10-03): the method, the proposal
   switch, the labels and the layout on Build, the first three locked once published; src/lib/scoring.ts is the one mapping to the answer kinds,
   shared with E7-2 and E8; the respondent card and rating row components in
-  src/components/respondent/ draw the preview's Items screen.
+  src/components/respondent/ are the respondent app, which the builder's preview shows
+  in an iframe (stories/E5-6).
 - Build (stories/E5-1, built 2026-10-03): the instrument draft on the latest set
   (src/lib/instruments.ts), the intro and the respondent fields with the server rule
   (src/lib/respondent-fields.ts), "Build on version N" after a new import, and the About you
@@ -128,12 +129,12 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 7 of 15 steps. Left: 8 steps
+Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about mid April 2027): Done 8 of 15 steps. Left: 7 steps
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
 - E4 AI shaping: done.
-- E5 Instrument builder: open.
+- E5 Instrument builder: done.
 - E6 Sharing: done.
 - E7 Respondent: done.
 - E8 Dashboard: done.

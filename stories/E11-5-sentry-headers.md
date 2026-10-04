@@ -24,3 +24,6 @@ switched on only at the launch gate. Visitor analytics moved to E13-3 (decision 
 ## Technical notes
 @sentry/nextjs after the research check; CSP nonces per request through Next.js 16's proxy
 (nextjs.org/docs/app/guides/content-security-policy, read when the story starts).
+The builder's preview frames the app's own /r/ pages (E5-6, design note 65): the CSP keeps
+frame-ancestors 'self' (and X-Frame-Options SAMEORIGIN if it is set), or the preview goes
+blank; e2e/preview.spec.ts would catch it.

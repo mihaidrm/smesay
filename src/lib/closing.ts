@@ -34,7 +34,6 @@ export const CLOSING_COPY = {
   signOffLabel: "Sign-off text",
   signOffHint: `What respondents tick before they submit, up to ${SIGN_OFF_MAX} characters.`,
   questionLocked: "Published instruments keep their closing question. Build a new instrument to change it.",
-  previewScreen: "Wrap up",
 } as const;
 
 export const WRAP_UP_COPY = {

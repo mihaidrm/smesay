@@ -3,11 +3,13 @@
 // page with Start disabled and its hint, add a dropdown field with its options, save, see the
 // select with the options in the preview and the hint naming the required fields (decision
 // 0043); fill the required fields in the preview and see Start enabled; the scoring card
-// (E5-2): the method switch, a label and the proposal switch seen on the Items screen; the
-// three layouts (E5-3) with the side-scroll and pill-height checks in the frame; two
-// perspectives defined, two items tagged on Shape, the picked one narrowing the preview (E5-4);
-// the Closing card opening the Wrap up in the preview, a closing question seen there and
-// the missing-item form switched off (E5-5); Remove refused on the last field.
+// (E5-2): the method switch, a label and the proposal switch seen in the preview's chapter
+// (E5-6, acceptance 6: switch the method, see the pills change); the three layouts (E5-3)
+// with the side-scroll and pill-height checks in the phone preview; two perspectives defined,
+// two items tagged on Shape, the picked one narrowing the preview after Start (E5-4); a
+// closing question seen on the preview's Wrap up and the missing-item form switched off
+// (E5-5); Remove refused on the last field. The preview is the respondent app in an iframe
+// (E5-6): it opens on the first chapter and reloads after every save.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -56,8 +58,33 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByLabel("Label, field 1")).toHaveValue("Name");
   await expect(page.getByLabel("Label, field 2")).toHaveValue("Role");
 
+  // The preview (E5-6): the panel, its caption, the phone at true size; the app opens on the
+  // first chapter, and its row goes to About you. Every save reloads it.
+  const panel = page.getByTestId("preview-panel");
+  await expect(panel.getByTestId("preview-caption")).toHaveText("Build changes the rating row, the chapter row, About you and the Wrap up.");
+  await panel.getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
+  const app = page.frameLocator("[data-testid=preview-iframe]");
+  const ready = async () => { await app.locator("[data-ready]").waitFor(); };
+  // A save reloads the preview a moment later, so a move inside it is tried again until it
+  // holds (expect.toPass: node_modules/playwright/types/test.d.ts).
+  const toAbout = () => expect(async () => { await ready(); await app.getByTestId("row-about").click({ timeout: 2_000 }); await expect(app.getByTestId("about-you")).toBeVisible({ timeout: 1_000 }); }).toPass({ timeout: 15_000 });
+  // Start in the preview as Ana from Finance, in Sales, with the perspective Finance picked.
+  const startAs = () => expect(async () => {
+    await ready();
+    await app.getByRole("button", { name: "About you" }).first().click({ timeout: 2_000 });
+    await preview.getByLabel("Name").fill("Ana", { timeout: 2_000 });
+    await preview.getByLabel("Role").fill("Finance");
+    await preview.getByLabel("Team").selectOption("Sales");
+    await preview.getByLabel("Finance").check();
+    await preview.getByTestId("about-you-start").click();
+    await expect(app.getByTestId("chapter-screen")).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 20_000 });
+  await ready();
+  await expect(app.getByTestId("chapter-screen")).toBeVisible();
+  await expect(app.getByTestId("preview-note")).toHaveText("Preview: nothing you enter here is saved");
+  await toAbout();
   // The preview's About you page (acceptance 3): the two fields, Start disabled, the hint.
-  const preview = page.getByTestId("about-you");
+  const preview = app.getByTestId("about-you");
   await expect(preview.getByRole("heading", { name: "New expense tool" })).toBeVisible();
   await expect(preview.getByLabel("Name")).toBeVisible();
   await expect(preview.getByLabel("Role")).toBeVisible();
@@ -72,6 +99,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("intro-hint")).toHaveText("");
   await page.getByTestId("intro-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("intro-form").getByRole("status")).toHaveText("Saved.");
+  await toAbout();
   await expect(preview.getByTestId("about-you-intro")).toHaveText("Six things the new tool should do. Five minutes.");
 
   // A dropdown field (acceptance 2 and 5): add, type, options, save, see the select.
@@ -85,6 +113,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByRole("switch", { name: "Required, Team" }).click();
   await page.getByTestId("fields-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("fields-form").getByRole("status")).toHaveText("Saved.");
+  await toAbout();
   const team = preview.getByLabel("Team");
   await expect(team).toBeVisible();
   await expect(team.locator("option")).toHaveText(["Choose one", "Sales", "Finance", "HR"]);
@@ -101,13 +130,16 @@ test("build the intro and the respondent fields, see them in the preview", async
 
   await page.reload();
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
+  await page.getByTestId("preview-panel").getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
 
-  // Scoring (stories/E5-2): the Items screen shows the rating row with MoSCoW and the
-  // proposed value dashed; switching to 1 to 5 fit changes the pills; a label renames a
-  // pill; the proposal switch off removes the dashed marker.
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
-  const chapter = page.getByTestId("chapter-preview");
+  // Scoring (stories/E5-2): the chapter shows the rating row with MoSCoW and the proposed
+  // value dashed; switching to 1 to 5 fit changes the pills (E5-6, acceptance 6); a label
+  // renames a pill; the proposal switch off removes the dashed marker. The Build step rings
+  // the rating row and the chapter row.
+  await ready();
+  const chapter = app.getByTestId("chapter-screen");
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  await expect(app.locator("nav[data-ring]")).toBeVisible();
   const row = chapter.getByTestId("rating-row").first();
   await expect(row.getByRole("radio")).toHaveText(["Must", "Should", "Could", "Not needed", "Unclear"]);
   await expect(row.locator("[data-proposed]")).toHaveText("Must");
@@ -126,6 +158,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("scale-labels").getByRole("textbox")).toHaveCount(5);
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await ready();
   await expect(row.getByRole("radio")).toHaveText(["1", "2", "3", "4", "5", "Unclear"]);
   await expect(row).toContainText("no fit");
   await expect(row.locator("[data-proposed]")).toHaveCount(0);
@@ -135,24 +168,26 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByRole("switch", { name: "Show the proposed value to respondents" }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await ready();
   await expect(row.getByRole("radio").first()).toHaveText("Essential");
   await expect(row.locator("[data-proposed]")).toHaveCount(0);
   await page.getByRole("switch", { name: "Show the proposed value to respondents" }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await ready();
   await expect(row.locator("[data-proposed]")).toHaveText("Essential");
 
   // Layouts (stories/E5-3): one item per screen, the single page, back to chapters; none
-  // scrolls sideways in the 390 px frame and every pill keeps its 38 px height.
-  const frame = page.getByTestId("preview-frame");
-  const noSideScroll = async () => expect(await frame.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  // scrolls sideways in the 390 px phone preview and every pill keeps its 38 px height.
+  const noSideScroll = async () => expect(await app.locator("html").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   const pillsTall = async () => { const hs = await chapter.getByRole("radio").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height)); expect(hs.length).toBeGreaterThan(0); for (const h of hs) expect(h).toBeGreaterThanOrEqual(38); };
-  await expect(chapter.getByTestId("chapter-row")).toBeVisible();
-  await expect(chapter.getByTestId("chapter-row")).toHaveText("About youSubmittingApprovingWrap up");
+  await expect(app.getByTestId("chapter-row")).toBeVisible();
+  await expect(app.getByTestId("chapter-row")).toHaveText(/About you\s*Submitting.*Approving.*Wrap up/);
   await noSideScroll(); await pillsTall();
   await page.getByText("One item per screen", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await ready();
   await expect(chapter).toHaveAttribute("data-layout", "item");
   await expect(chapter.getByTestId("layout-note")).toHaveText("Item 1 of 1 in Submitting");
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
@@ -160,16 +195,17 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByText("Single long page", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await ready();
   await expect(chapter).toHaveAttribute("data-layout", "page");
-  await expect(chapter.getByTestId("chapter-row")).toHaveCount(0);
+  await expect(app.getByTestId("chapter-row")).toHaveCount(0);
   await expect(chapter.getByTestId("layout-note")).toHaveText("All 2 on one page");
   await expect(chapter.getByTestId("item-card")).toHaveCount(2);
   await noSideScroll(); await pillsTall();
   await page.getByText("Chapters", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
-  await expect(chapter.getByTestId("chapter-row")).toBeVisible();
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
+  await ready();
+  await expect(app.getByTestId("chapter-row")).toBeVisible();
 
   // Perspectives (stories/E5-4): two names on Build, one item tagged Finance and one Sales
   // on Shape, the respondent who picks Finance sees one item; the one who picks nothing
@@ -190,31 +226,36 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).not.toHaveAttribute("aria-disabled", "true");
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
   await expect(page.getByTestId("perspectives-tagged")).toContainText("2 of 2 items carry a perspective.");
-  await expect(preview.getByTestId("about-you-perspectives")).toContainText("Which of these describe you?");
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
-  await expect(chapter.getByTestId("nothing-visible")).toBeVisible();
-  await expect(chapter.getByTestId("item-card")).toHaveCount(0);
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
-  await preview.getByLabel("Finance").check();
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "Items" }).click();
+  await page.getByTestId("preview-panel").getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
+  // The preview opens with no perspective picked: no item to rate.
+  await ready();
+  await expect(app.getByTestId("nothing-to-rate")).toBeVisible();
+  await startAs();
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
-  await expect(chapter).toContainText("0 of 1");
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
+  await expect(app.getByTestId("chapter-row")).toContainText("0/1");
 
-  // Closing (stories/E5-5): focusing the card opens the Wrap up in the preview; the question
-  // saved shows there, the missing-item form goes when switched off, confidence is always
-  // on and Submit is disabled with the line naming what is still needed.
-  const wrapUp = page.getByTestId("wrap-up");
-  await page.getByLabel("Closing question, optional").focus();
+  // Closing (stories/E5-5): the preview's Wrap up; the question saved shows there, the
+  // missing-item form goes when switched off, confidence is always on and Submit is
+  // disabled (nothing is submitted from a preview, E5-6 acceptance 4).
+  const wrapUp = app.getByTestId("wrap-up");
+  await app.getByTestId("row-wrap").click();
   await expect(wrapUp).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-missing")).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-question")).toHaveCount(0);
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers and they can be shared with the project team.");
   await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
+  // The Closing card focused opens the Wrap up in the preview (E5-5, acceptance 3); a control
+  // of another card opens the first screen again.
+  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap$/);
+  await expect(async () => { await ready(); await expect(wrapUp).toBeVisible({ timeout: 1_000 }); }).toPass({ timeout: 15_000 });
   await page.getByRole("switch", { name: "Ask for missing items" }).click();
   await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
   await page.getByTestId("closing-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("closing-form").getByRole("status")).toHaveText("Saved.");
+  await page.getByRole("radio", { name: /One item per screen/ }).focus();
+  await expect(page.getByTestId("preview-iframe")).not.toHaveAttribute("src", /screen=wrap/);
+  await startAs();
+  await app.getByTestId("row-wrap").click();
   await expect(wrapUp.getByTestId("wrap-up-question")).toContainText("What would make this list complete?");
   await expect(wrapUp.getByTestId("wrap-up-missing")).toHaveCount(0);
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers.");
@@ -223,7 +264,6 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
   await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
-  await page.getByRole("group", { name: "Preview screen" }).getByRole("button", { name: "About you" }).click();
 
   // The sidebar and the project header stay in view while the page scrolls (design note 43).
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

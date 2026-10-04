@@ -54,6 +54,15 @@ export const LINK_ERRORS = {
   changed: "This link changed since the page opened. Reload the page to see where it stands.",
 } as const;
 
+// The builder's preview page (stories/E5-6; docs/copy/app.md, Preview).
+export const PREVIEW_PAGE_COPY = {
+  expiredTitle: "This preview has expired.",
+  expiredLine: "Open the project again in SMEsay to see its preview.",
+  otherWorkspaceTitle: "This preview is for another workspace.",
+  otherWorkspaceLine: "Switch to the workspace the project is in, then open the project again.",
+  noList: "Import a list to see what respondents get.",
+};
+
 export const LINK_PAGE_COPY = {
   unknownTitle: "This link does not match any project.",
   unknownLine: "Check that you copied the whole link, or ask the person who sent it for a new one.",

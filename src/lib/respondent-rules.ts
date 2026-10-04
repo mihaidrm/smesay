@@ -80,6 +80,7 @@ export const RESPONDENT_COPY = {
 } as const;
 
 export const RESPONDENT_ERRORS = {
+  preview: "This is a preview. Nothing entered here is saved.",
   badShape: "Your details did not reach the server as a form. Reload the page and try again.",
   badOption: (label: string) => `Pick one of the options for ${label}.`,
   badEmail: (text: string) => `${text} is not an email address. Check it and try again.`,

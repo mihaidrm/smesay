@@ -52,6 +52,7 @@
 // (the answers route's `complete`, also on a stale reply), taken only from a reply whose
 // version is at least the one already applied (doneFrom); the chapter row and the Wrap up
 // count from it (E7-4, technical notes).
+import { isPreviewToken } from "@/lib/preview-prefix";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
 import { delayFor, doneFrom, nextEntry, settleState, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
@@ -340,7 +341,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       if (!down.current) flushAll();
     };
     const onFocusOut = () => flush();
-    const onOnline = () => void check();
+    // The builder's preview (src/lib/preview-prefix.ts) has no state to check.
+    const onOnline = () => { if (!isPreviewToken(token)) void check(); };
     window.addEventListener("pagehide", onHide);
     document.addEventListener("visibilitychange", onVisibility);
     document.addEventListener("focusout", onFocusOut);
@@ -351,7 +353,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       document.removeEventListener("focusout", onFocusOut);
       window.removeEventListener("online", onOnline);
     };
-  }, [flush, flushAll, check]);
+  }, [flush, flushAll, check, token]);
 
   // Mount, and again after the extra setup and cleanup React runs in development
   // (react.dev/reference/react/StrictMode): a change made before this ran (an edit the page

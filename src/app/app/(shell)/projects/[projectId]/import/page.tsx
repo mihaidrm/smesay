@@ -18,6 +18,7 @@ import { MappingCard } from "./mapping";
 import { PasteForm } from "./paste-form";
 import { UploadPreview } from "./preview";
 import { UploadForm } from "./upload-form";
+import { WithPreview } from "../with-preview";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -35,7 +36,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   // The banner owed from E3-6 (stories/E6-1): the project has a public link in force.
   const published = set !== null && (await invites.livePublic(current.ws, project.id)) !== null;
   return (
-    <div className="flex flex-col gap-5">
+    <WithPreview projectId={project.id} step="import">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-bold tracking-[-0.02em]">Import the list</h2>
         {set && (
@@ -71,6 +72,6 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {upload && upload.mapping && upload.preview.columns.length > 0 && (
         <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} />
       )}
-    </div>
+    </WithPreview>
   );
 }

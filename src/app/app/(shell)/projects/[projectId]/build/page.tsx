@@ -1,36 +1,27 @@
 // Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
 // "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
 // card (method, show proposed, labels, locked once published; the layout, E5-3), the
-// Perspectives card (E5-4; items are tagged on Shape), the Closing card (E5-5) and the Respondent fields card, and on the right the preview panel showing the About you page,
-// the items in the chosen layout or the Wrap up as the draft stands (the panel's shell from design note
-// 13; E5-6 fills it in). Without a set the page
+// Perspectives card (E5-4; items are tagged on Shape), the Closing card (E5-5) and the
+// Respondent fields card, and on the right the preview (with-preview.tsx, E5-6): the real
+// respondent app for the draft, ringing the rating row, the chapter row, About you's fields
+// and the Wrap up's closing part. Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
 // not edited. Copy: docs/copy/app.md (Build).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { items, projects } from "@/db/queries";
-import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { PREVIEW_CARDS } from "@/lib/build-copy";
 import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
-import { textFor } from "@/lib/item-text";
 import { fieldSummary } from "@/lib/respondent-fields";
-import { labelFor, LAYOUTS_META, METHODS, proposedCode, scaleFor } from "@/lib/scoring";
-import { areaNames, groupByArea } from "@/lib/shaping";
-import { RESPONDENT_COPY } from "@/lib/respondent-rules";
+import { labelFor, LAYOUTS_META, METHODS, scaleFor } from "@/lib/scoring";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
-import { PreviewScreenProvider } from "./preview-screen";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
 import { PerspectivesForm } from "./perspectives-form";
-import { PreviewPanel } from "./preview-panel";
 import { ScoringForm } from "./scoring-form";
-
-// The page sends the cards that can be among the first PREVIEW_CARDS a respondent sees
-// whatever they pick: the first ten untagged items and the first ten carrying each name (at
-// most 110 cards for ten names); the panel draws the first ten visible from them (stories/E5-4).
+import { WithPreview } from "../with-preview";
 
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -53,34 +44,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   const rows = await items.forSet(current.ws, builtOn.id);
   const readOnly = project.isSample;
   const locked = readOnly || (await isPublished(current.ws, instrument.id));
-  const accent = effectiveAccent(current.workspace.accentHex);
-  // The first chapter's cards for the preview (stories/E5-2): the reader text when accepted,
-  // the details from the first custom column or the original text, the proposed value as
-  // a code of the method (null when the import's word is not one of the scale's).
-  const toCard = (it: (typeof rows)[number]) => {
-    const custom = it.custom && typeof it.custom === "object" ? Object.values(it.custom as Record<string, string>).find((v) => typeof v === "string" && v.trim()) : undefined;
-    const title = textFor(it);
-    return { reference: it.sourceRef, title, details: custom ?? (title !== it.originalText ? it.originalText : null), method: instrument.method, labels: instrument.scaleLabels, proposed: proposedCode(instrument.method, it.proposedValue), showProposed: instrument.showProposed, accent, perspectives: it.perspectives };
-  };
   const tagged = rows.filter((it) => it.perspectives.length > 0).length;
-  // Every area in the list's order, then the items with no area under the respondent's
-  // name for them, "Other items" (groupByArea, renamed as src/lib/respondent-rules.ts
-  // chaptersFor names them; one unnamed chapter when the set has no areas), so the page
-  // layout's count matches what is drawn. Each chapter carries every row's tags and the
-  // cards of its candidate rows, by position in the chapter.
-  const grouped: { name: string | null; rows: typeof rows }[] = areaNames(builtOn, rows).length ? groupByArea(builtOn, rows).map((g) => ({ name: g.items.length > 0 && g.items.every((it) => !it.area) ? RESPONDENT_COPY.otherItems : g.name, rows: g.items })) : [{ name: null, rows }];
-  const left = new Map<string, number>([["", PREVIEW_CARDS], ...instrument.perspectives.map((n): [string, number] => [n, PREVIEW_CARDS])]);
-  const candidate = (it: (typeof rows)[number]) => {
-    const classes = it.perspectives.length === 0 ? [""] : it.perspectives;
-    let keep = false;
-    for (const c of classes) { const n = left.get(c) ?? 0; if (n > 0) { left.set(c, n - 1); keep = true; } }
-    return keep;
-  };
-  const chapters = grouped.map((c) => ({
-    name: c.name,
-    tags: c.rows.map((it) => it.perspectives),
-    cards: c.rows.flatMap((it, index) => (candidate(it) ? [{ index, card: toCard(it) }] : [])),
-  }));
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
   return (
     <div className="flex flex-col gap-5">
@@ -88,9 +52,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         <h2 className="text-xl font-bold tracking-[-0.02em]">{BUILD_COPY.title}</h2>
         <p className="text-ink-muted" data-testid="build-line">{BUILD_COPY.line(builtOn.version)}</p>
       </div>
-      <PreviewScreenProvider key={instrument.id}>
-      <div className="flex items-start gap-6">
-        <div className="flex min-w-0 grow flex-col gap-5">
+      <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
           <section className="card flex flex-col gap-3" aria-labelledby="build-intro-title">
             <h3 id="build-intro-title" className="text-[15px] font-bold">{BUILD_COPY.introCard}</h3>
@@ -131,7 +93,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title">
+          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title" data-preview-screen="wrap">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3>
               <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
@@ -163,17 +125,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <FieldsForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} fields={instrument.respondentFields} />
             )}
           </section>
-        </div>
-        <PreviewPanel
-          key={instrument.id}
-          about={{ workspaceName: current.workspace.name, accent, title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, poweredBy: showsPoweredBy(current.workspace.plan) }}
-          chapters={chapters}
-          layout={instrument.layout}
-          perspectives={instrument.perspectives}
-          wrap={{ closing: instrument.closing, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed }}
-        />
-      </div>
-      </PreviewScreenProvider>
+      </WithPreview>
     </div>
   );
 }
