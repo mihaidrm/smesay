@@ -607,7 +607,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <sc-if value="{{tabExport}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 16px">
-<div style="color: #5B6069">Each file holds what this page shows: the same filter and the same switch. Every number on the page adds up from its rows.</div>
+<div style="color: #5B6069">Each file holds what this page shows: the same filter and the same switch. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.</div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
 <sc-for list="{{exports}}" as="ex" hint-placeholder-count="4">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
@@ -1003,9 +1003,9 @@ const members = [
 const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
 const exportDefs = [
 { id: 'x1', title: 'Answers', format: 'CSV, UTF-8', what: 'One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
 { id: 'x5', title: 'People', format: 'CSV, UTF-8', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
 { id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
-{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
 { id: 'x3', title: 'Whole project', format: 'JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
 { id: 'x4', title: 'Summary for the deck', format: 'PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
 ];

@@ -6,7 +6,10 @@
 // lines from a ReadableStream (node_modules/next/dist/docs/01-app/03-api-reference/
 // 03-file-conventions/route.md, Streaming) as an attachment (Content-Disposition:
 // developer.mozilla.org/docs/Web/HTTP/Headers/Content-Disposition). Every download writes an
-// export_log row: who, when, the file, the filter in words and the rows (acceptance 5).
+// export_log row: who, when, the file, the filter in words (without what a text filter holds)
+// and the rows (acceptance 5). A request another site starts (Sec-Fetch-Site: cross-site,
+// developer.mozilla.org/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site) gets 403 and writes no
+// row, so a link elsewhere cannot fill the log.
 import { exportLogs, instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
 import { EXPORT_FILES, type ExportFile } from "@/db/types";
@@ -20,6 +23,7 @@ const CHUNK = 500;
 
 export async function GET(request: Request, { params }: { params: Promise<{ projectId: string; file: string }> }) {
   const { projectId, file } = await params;
+  if (request.headers.get("sec-fetch-site") === "cross-site") return new Response(null, { status: 403 });
   const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results?tab=export`);
   if (!(EXPORT_FILES as readonly string[]).includes(file)) return new Response(null, { status: 404 });
   const project = await projects.get(current.ws, projectId);
@@ -34,7 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
   const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
   const filter = parseResultsFilter(query, ctx, typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null);
   const table = await exportTable(current.ws, instrument, file as ExportFile, filter, ctx, project.isSample);
-  await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: file as ExportFile, filter: filterActive(filter) ? describeFilter(filter, ctx) : null, rows: table.rows.length });
+  await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: file as ExportFile, filter: filterActive(filter) ? describeFilter(filter, ctx, true) : null, rows: table.rows.length });
   const lines = [...table.preamble, table.header, ...table.rows];
   const encoder = new TextEncoder();
   let at = 0;

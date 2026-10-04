@@ -1,10 +1,10 @@
 // The Export tab (stories/E10-1, acceptance 1; the PM app board, Export): one card per CSV file
-// (Answers, Items with totals, People, Missing items), each a link to the export route with the
-// page's own query, so a file holds what the page shows. The sample's files start with the
+// (Answers, Items with totals, People, Missing items), each a download from the export route with
+// the page's own query (export-download.tsx), so a file holds what the page shows. The sample's files start with the
 // watermark line (acceptance 4). Copy: docs/copy/app.md, Results, Export.
 import { EXPORT_FILES } from "@/db/types";
 import { EXPORT_COPY } from "@/lib/export/copy";
-import { buttonVariants } from "@/components/ui/button";
+import { ExportDownload } from "./export-download";
 
 export function ExportTab({ projectId, query, sample }: { projectId: string; query: string; sample: boolean }) {
   const T = EXPORT_COPY.tab;
@@ -17,9 +17,7 @@ export function ExportTab({ projectId, query, sample }: { projectId: string; que
           <li key={file} className="card flex flex-col gap-2 p-4" data-testid={`export-${file}`}>
             <h3 className="text-[15px] font-bold">{T.files[file].title}</h3>
             <p className="text-sm text-ink-muted">{T.files[file].line}</p>
-            <a href={`/api/projects/${projectId}/export/${file}${query ? `?${query}` : ""}`} download className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })} data-testid={`export-${file}-download`}>
-              {T.download}<span className="sr-only"> {T.files[file].title}</span>
-            </a>
+            <ExportDownload href={`/api/projects/${projectId}/export/${file}${query ? `?${query}` : ""}`} label={T.download} srLabel={T.files[file].title} busyLabel={T.downloading} failed={T.failed} testId={`export-${file}-download`} fallbackName={`${file}.csv`} />
           </li>
         ))}
       </ul>

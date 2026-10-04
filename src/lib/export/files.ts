@@ -4,7 +4,9 @@
 // filter, never from a second computation, so every number on Results is a sum of a file's
 // rows (acceptance 3). A respondent is named as the Responses tab names them; a value is the
 // scale's code with the instrument's label beside it (E5-2, acceptance 3). The sample's files
-// start with the watermark line, a filtered file with the filter in words (design note 40).
+// start with the watermark line, a filtered file with the filter in words (design note 40), a
+// file with the answers not submitted yet with a line saying so; with none of these the header
+// is the first line (RFC 4180, section 2.3).
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results, tracker } from "@/db/queries/results";
@@ -19,12 +21,14 @@ import { EXPORT_COPY } from "./copy";
 export type ExportTable = { preamble: Cell[][]; header: Cell[]; rows: Cell[][] };
 
 const name = (p: { who: string | null; anon: number | null }) => p.who ?? RESPONSES_COPY.anonymous(p.anon ?? 0);
+// The Responses tab's mark beside Submitted (decision 0030), in its own column so Status counts.
+const since = (p: { changedSince: boolean; submittedAgain?: boolean }) => (p.changedSince ? RESPONSES_COPY.changedSince : p.submittedAgain ? RESPONSES_COPY.submittedAgain : "");
 
 export async function exportTable(ws: WorkspaceId, instrument: Instrument, file: ExportFile, f: ResultsFilter, ctx: FilterContext, sample: boolean): Promise<ExportTable> {
   const preamble: Cell[][] = [];
   if (sample) preamble.push([EXPORT_COPY.watermark]);
   if (filterActive(f)) preamble.push([EXPORT_COPY.filtered(describeFilter(f, ctx))]);
-  preamble.push([f.includeUnsubmitted ? EXPORT_COPY.withUnsubmitted : EXPORT_COPY.submittedOnly]);
+  if (f.includeUnsubmitted) preamble.push([EXPORT_COPY.withUnsubmitted]);
   const fields = instrument.respondentFields;
   const method = instrument.method;
   const label = (code: string | null) => (code === null ? "" : labelFor(method, instrument.scaleLabels, code) ?? "");
@@ -38,12 +42,12 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const rows = await results.rows(ws, instrument.id, f);
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, C.submittedAt, C.source, C.perspectives],
+      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, C.submittedAt, C.sinceSubmit, C.source, C.perspectives],
       rows: rows.map((r) => {
         const it = byId.get(r.itemId);
         const p = it ? proposed(it) : null;
         return [name(r), ...fields.map((s) => r.fields[s.key] ?? ""), it?.sourceRef ?? "", it?.area ?? "", it ? text(it) : "", p ?? "", label(p),
-          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", isoUtc(r.submittedAt), EXPORT_COPY.sources[r.source], r.perspectives.join(", ")];
+          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", isoUtc(r.submittedAt), since(r), EXPORT_COPY.sources[r.source], r.perspectives.join(", ")];
       }),
     };
   }
@@ -68,10 +72,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const minutes = new Map((await results.people(ws, instrument.id, f)).map((p) => [p.id, p.minutesToSubmit]));
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.status, C.answered, C.visible, C.submittedAt, C.minutes, C.source, C.reminders, C.withComment],
+      header: [C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit, C.answered, C.visible, C.submittedAt, C.minutes, C.source, C.reminders, C.withComment],
       rows: people.map((p) => {
         const m = minutes.get(p.id);
-        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), EXPORT_COPY.statuses[p.status], p.answered, p.visible, isoUtc(p.submittedAt), m === null || m === undefined ? "" : Math.round(m), EXPORT_COPY.sources[p.source], p.reminders ?? "", p.withComment];
+        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible, isoUtc(p.submittedAt), m ?? "", EXPORT_COPY.sources[p.source], p.reminders ?? "", p.withComment];
       }),
     };
   }
@@ -80,7 +84,7 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
   const missing = await registers.missing(ws, instrument.id, { ...f, sort: null }, keys, method);
   return {
     preamble,
-    header: [C.suggested, C.suggestedArea, C.suggestedValue, C.suggestedLabel, C.respondent, ...fields.map((s) => s.label), C.status],
-    rows: missing.map((m) => [m.text, m.area ?? "", m.value ?? "", label(m.value), name(m), ...keys.map((k) => m.fields[k] ?? ""), m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress]),
+    header: [C.suggested, C.suggestedArea, C.suggestedValue, C.suggestedLabel, C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit],
+    rows: missing.map((m) => [m.text, m.area ?? "", m.value ?? "", label(m.value), name(m), ...keys.map((k) => m.fields[k] ?? ""), m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress, since(m)]),
   };
 }
