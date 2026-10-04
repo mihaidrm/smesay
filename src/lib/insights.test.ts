@@ -81,11 +81,11 @@ async function answeredProject() {
 
 type Out = { actions: { kind: string; title: string; why: string; answers: string[]; missing: string[] }[] };
 function transport(build: (data: string) => Out) {
-  const calls: { system: string; data: string }[] = [];
+  const calls: { system: string; data: string; format: unknown }[] = [];
   const fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body));
     const data = body.messages[0].content[0].text as string;
-    calls.push({ system: body.system[0].text, data });
+    calls.push({ system: body.system[0].text, data, format: body.output_config?.format });
     const message = { id: "msg_test", type: "message", role: "assistant", model: DEFAULT_MODEL, content: [{ type: "text", text: JSON.stringify(build(data)) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1001, output_tokens: 301, cache_creation_input_tokens: null, cache_read_input_tokens: null } };
     return new Response(JSON.stringify(message), { status: 200, headers: { "content-type": "application/json" } });
   }) as unknown as typeof globalThis.fetch;
@@ -305,20 +305,26 @@ describe("the cost of a run", () => {
 
   it("puts the estimate in front of a budget or a cap refusal and calls nothing", async () => {
     const p = await answeredProject();
+    // A run first, to read the prompt and schema the refused runs would send: the estimate
+    // shown is theirs at four characters a token plus the 1,500 output tokens expected.
+    const first = transport(fourAndABadOne);
+    await writeActions(a, p.project.id, { fetch: first.fetch });
+    const sent = first.calls[0];
+    const shown = formatEur(estimateCents(DEFAULT_MODEL, sent.system + sent.data + JSON.stringify(sent.format), ACTIONS_EXPECTED_OUTPUT));
     const { fetch, calls } = transport(fourAndABadOne);
     const budgetBefore = (await workspaces.getById(a.ws))!.aiBudgetEur;
     const capBefore = process.env.ANTHROPIC_MONTHLY_BUDGET_EUR;
     await internal.setAiBudgetEur(a.ws, 0);
     try {
       const budget = await writeActions(a, p.project.id, { fetch });
-      expect("error" in budget && budget.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. This workspace has used its AI budget for the month\./);
+      expect("error" in budget && budget.error).toMatch(new RegExp(`^This run would cost about ${shown.replace(".", "\\.")}\\. This workspace has used its AI budget for the month\\.`));
     } finally {
       await internal.setAiBudgetEur(a.ws, budgetBefore);
     }
     process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = "0";
     try {
       const paused = await writeActions(a, p.project.id, { fetch });
-      expect("error" in paused && paused.error).toMatch(/^This run would cost about EUR \d+\.\d{2}\. AI is paused until next month\./);
+      expect("error" in paused && paused.error).toMatch(new RegExp(`^This run would cost about ${shown.replace(".", "\\.")}\\. AI is paused until next month\\.`));
     } finally {
       process.env.ANTHROPIC_MONTHLY_BUDGET_EUR = capBefore;
     }
@@ -333,5 +339,8 @@ describe("the cost of a run", () => {
     expect(last && [last.tokensIn, last.tokensOut, last.costEurCents]).toEqual([1001, 301, costEurCents(DEFAULT_MODEL, 1001, 301)]);
     expect(await aiRuns.lastFor(b.ws, p.project.id, "insights")).toBeNull();
     expect(await aiRuns.lastFor(a.ws, p.project.id, "shape")).toBeNull();
+    // A later call the provider did not answer (a row with no tokens) is not the run shown.
+    await aiRuns.create(a.ws, { projectId: p.project.id, purpose: "insights", model: DEFAULT_MODEL, tokensIn: 0, tokensOut: 0, costEurCents: 0 });
+    expect((await aiRuns.lastFor(a.ws, p.project.id, "insights"))?.id).toBe(last!.id);
   });
 });

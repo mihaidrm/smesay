@@ -1,5 +1,8 @@
 # Design note 26: the server route to the model, 2026-10-02
 
+Since note 68 (2026-10-04, E9-3) the estimate counts the output schema too, and a caller may
+name the output it expects instead of the whole allowance.
+
 Story E4-1. No screen of its own: the messages it returns appear on the Shape board in E4-2
 (docs/copy/errors.md, Shaping). This note records what was decided while building it.
 

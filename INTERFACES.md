@@ -501,11 +501,13 @@ Ceilings: 500,000 input characters and 16,000 output tokens; a caller over them 
 Error. Every call is an ai_run row, answered or not (zero tokens when not; usage() counts
 them). The price table, the default model and the euro rate, with the dates they were read,
 are in src/lib/ai/prices.ts; costEurCents(model, tokensIn, tokensOut) rounds up to the cent.
-The budget checks use the estimate estimateCents(model, text, outputTokens): the input at four
-characters a token and expectedOutputTokens, or the whole allowance when the caller gives none
-(E9-3; Write actions expects 1,500, ACTIONS_EXPECTED_OUTPUT); each answered run logs the
-estimate next to the actual. formatEur(cents) gives "EUR 0.05". aiRuns.lastFor(ws, projectId,
-purpose) is a project's latest run of one purpose.
+The budget checks use the estimate estimateCents(model, text, outputTokens) over
+estimateText(instructions, data, outputFormat) in src/lib/ai/client.ts: the prompt and the
+output schema the API sends, at four characters a token, and expectedOutputTokens, or the
+whole allowance when the caller gives none (E9-3; Write actions expects 1,500,
+ACTIONS_EXPECTED_OUTPUT); each answered run logs the estimate next to the actual.
+formatEur(cents) gives "EUR 0.05". aiRuns.lastFor(ws, projectId, purpose) is a project's latest
+answered run of one purpose (a row with no tokens, a call not answered, is skipped).
 Shaping (E4-2): `shapeSet(actor, projectId)`, `moveItemTo(actor, projectId, itemId, area)`,
 `groupByArea(set, rows)`, `areaNames(set, rows)` in src/lib/shaping.ts; `applyShaping` and
 `moveItem` in src/db/queries/shaping.ts; `items.forSet(ws, setId)`. Reader versions (E4-3):

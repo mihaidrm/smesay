@@ -15,7 +15,7 @@ import { ForbiddenError } from "@/lib/errors";
 import { memoryOutbox } from "@/lib/mail";
 import { requireWorkspace } from "@/lib/workspace";
 import { AI_COPY } from "./copy";
-import { estimateText, INPUT_CHARS_MAX, OUTPUT_TOKENS_MAX, runModel } from "./client";
+import { estimateText, INPUT_CHARS_MAX, outputFormatOf, OUTPUT_TOKENS_MAX, runModel } from "./client";
 import { costEurCents, DEFAULT_MODEL, estimateCents } from "./prices";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -148,7 +148,7 @@ describe("runModel", () => {
     expect(await runModel(input({ maxOutputTokens: 1 }), { fetch, now })).toMatchObject({ ok: false, reason: "budget" });
     // E9-3: the refusal carries the estimate: the prompt and the output schema at four
     // characters a token, and the output the caller expects, or the whole allowance.
-    const text = estimateText(input().instructions, input().data, Shape);
+    const text = estimateText(input().instructions, input().data, outputFormatOf(Shape));
     expect(await runModel(input({ maxOutputTokens: 4_000, expectedOutputTokens: 1_500 }), { fetch, now })).toMatchObject({ reason: "budget", estimateCents: estimateCents(DEFAULT_MODEL, text, 1_500) });
     expect(await runModel(input({ maxOutputTokens: 4_000 }), { fetch, now })).toMatchObject({ reason: "budget", estimateCents: estimateCents(DEFAULT_MODEL, text, 4_000) });
   });
