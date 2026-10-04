@@ -1,6 +1,7 @@
 // The project frame (stories/E3-1, acceptance 2 and 4): breadcrumb, title, Archive or
 // Unarchive, the stepper (project-stepper.tsx), pinned to the top of the viewport while the
-// step page scrolls, then the step page. A project id outside the workspace is 404
+// step page scrolls, then the step page. The sample (stories/E8-8) has Delete sample in
+// Archive's place and the watermark band under the header on every step, never dismissed. A project id outside the workspace is 404
 // through projects.get(ws, id). Steps without a page yet are not links. Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import type { StepKey } from "@/components/app/stepper";
@@ -9,6 +10,8 @@ import { NeutralPill } from "@/components/ui/status-pill";
 import { instruments, invites, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
+import { PROJECTS_COPY } from "@/lib/projects-copy";
+import { DeleteSample } from "../../delete-sample";
 import { archiveAction } from "../actions";
 import { ProjectStepper } from "./project-stepper";
 
@@ -40,7 +43,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
           <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
         </div>
         <ProjectStepper projectId={project.id} furthest={furthest} done={done} pages={BUILT} imported={imported} />
-        {!project.isSample && (
+        {project.isSample ? <DeleteSample projectId={project.id} /> : (
           <form action={archiveAction}>
             <input type="hidden" name="projectId" value={project.id} />
             <input type="hidden" name="archived" value={archived ? "0" : "1"} />
@@ -48,6 +51,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
           </form>
         )}
       </div>
+      {project.isSample && <p className="rounded-xl border border-dashed border-hairline-strong bg-tint px-4 py-2 text-sm font-semibold text-ink-soft" data-testid="sample-band">{PROJECTS_COPY.sampleBand}</p>}
       {children}
     </main>
   );

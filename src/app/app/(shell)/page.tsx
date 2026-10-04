@@ -2,7 +2,8 @@
 // design v2): the title, three stat tiles (the projects of your own on the list, then the
 // responses and AI runs this month from the usage counts, stories/E2-6), then the
 // table card of name with its tile, items, responses ("5 of 7"), status, updated; New
-// project; the sample's pill and Delete sample (stories/E8-8, acceptance 3); archived
+// project; the sample's pill and Delete sample (stories/E8-8, acceptance 3), the sample
+// opening on Results (E8-8, acceptance 1), every other project on Import; archived
 // projects behind "Show archived". Copy: docs/copy/app.md, errors.md. Status:
 // src/lib/project-status.ts.
 import Link from "next/link";
@@ -70,7 +71,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               <div key={p.id} data-testid="project-row" className="flex min-h-[52px] items-center gap-4 border-t border-hairline px-[18px] py-2 transition-colors duration-150 hover:bg-tint">
                 <div className="flex flex-grow items-center gap-2.5">
                   <ProjectTile name={p.name} sample={p.isSample} />
-                  <Link href={`/app/projects/${p.id}/import`} className="font-semibold">{p.name}</Link>
+                  <Link href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className="font-semibold">{p.name}</Link>
                   {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
                 </div>
                 <div className="w-[80px] font-mono text-sm">{p.items}</div>
@@ -81,7 +82,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   {p.isSample ? (
                     <DeleteSample projectId={p.id} />
                   ) : (
-                    <Link href={`/app/projects/${p.id}/import`} className={buttonVariants({ variant: "secondary", size: "small" })}>Open</Link>
+                    <Link href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className={buttonVariants({ variant: "secondary", size: "small" })}>Open</Link>
                   )}
                 </div>
               </div>

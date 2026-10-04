@@ -6,7 +6,8 @@
 // for the listed projects' instruments. deleteSample() removes the sample project
 // (stories/E8-8, acceptance 3, built with E3-1): responses first, because the database refuses
 // to drop an instrument with responses (decision 0028), then the project, whose cascades take
-// the rest, in one transaction that rolls back when the project row is not the sample. count()
+// the rest, in one transaction that rolls back when the project row is not the sample. update
+// refuses is_sample (E8-8, acceptance 4). count()
 // and groupBy: orm.drizzle.team/docs/select#aggregations; inArray() with a subquery:
 // node_modules/drizzle-orm/sql/expressions/conditions.d.ts (values: SQLWrapper).
 import { and, count, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
@@ -21,8 +22,19 @@ export type ProjectSummary = Project & { items: number; submitted: number; invit
 const base = scoped(project);
 class NotSampleError extends Error {}
 
+// The watermark goes only with the sample (stories/E8-8, acceptance 4): is_sample is set when
+// the sample is seeded (src/db/seed/sample-seed.ts, through create) and no update may carry
+// it, whatever the caller passes, so the only way to lose it is to delete the sample.
+export class SampleFlagError extends Error {
+  constructor() { super("project.is_sample is set when the sample is seeded and never changed (stories/E8-8)."); }
+}
+
 export const projects = {
   ...base,
+  update: async (workspaceId: WorkspaceId, id: string, patch: Parameters<typeof base.update>[2]): Promise<Project | null> => {
+    if (Object.hasOwn(patch, "isSample")) throw new SampleFlagError();
+    return base.update(workspaceId, id, patch);
+  },
   list: async (workspaceId: WorkspaceId): Promise<Project[]> =>
     db.select().from(project).where(eq(project.workspaceId, workspaceId)).orderBy(desc(project.isSample), desc(project.createdAt)),
   summaries: async (workspaceId: WorkspaceId, options: { archived?: boolean } = {}): Promise<ProjectSummary[]> => {

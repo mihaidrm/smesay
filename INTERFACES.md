@@ -177,6 +177,8 @@ answered it before a change of perspective (kind null: no answer that counts und
 switch), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
+Projects (E8-8): projects.update refuses a patch that carries isSample (SampleFlagError); the
+flag is set only when the sample is seeded (projects.create from src/db/seed/sample-seed.ts).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
 (ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email

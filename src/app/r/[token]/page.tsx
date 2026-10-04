@@ -18,6 +18,7 @@ import { LinkPage } from "@/components/respondent/link-page";
 import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
+import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { DEVICE_COOKIE, loadRespondent } from "@/lib/respondent";
 import { carriedFields, changedSinceSubmit, chaptersFor, landingOf, RESPONDENT_COPY, type Screen } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
@@ -43,7 +44,8 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const logoUrl = logoUrlFor(link.ws, link.brand.logoObjectKey);
   // "Powered by SMEsay" while the workspace is on the Free plan (E7-7, acceptance 5).
   const page = { workspaceName: link.brand.name, accent, logoUrl, poweredBy: showsPoweredBy(link.brand.plan) };
-  if (view.kind === "sample") return <LinkPage {...page} title={RESPONDENT_COPY.sampleTitle} line={RESPONDENT_COPY.sampleLine(link.brand.name)} />;
+  // The sample's link carries the watermark band too (stories/E8-8, acceptance 1).
+  if (view.kind === "sample") return <LinkPage {...page} title={RESPONDENT_COPY.sampleTitle} line={RESPONDENT_COPY.sampleLine(link.brand.name)}><p className="rounded-xl border border-dashed border-hairline-strong bg-tint px-4 py-2 text-sm font-semibold text-ink-soft" data-testid="sample-band">{PROJECTS_COPY.sampleBand}</p></LinkPage>;
   if (view.kind === "revoked") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(link.brand.name)} /></>;
   if (view.kind === "notOpen") return <LinkPage {...page} title={LINK_PAGE_COPY.notOpenTitle(formatUtc(link.invite.opensAt!))} line={LINK_PAGE_COPY.notOpenLine} />;
   if (view.kind === "closed") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={LINK_PAGE_COPY.closedLine(link.brand.name, link.project.name, formatUtc(view.closedAt))} /></>;

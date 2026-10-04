@@ -43,7 +43,8 @@ existing parts.
 - A personal invite counts among the invited once its email went out (sent), not while the
   mail failed.
 - The sample's Results carries the watermark band "Sample data: invented answers, for looking
-  around" (CLAUDE.md, dashboard rules); E8-8 puts it on every screen of the sample.
+  around" (CLAUDE.md, dashboard rules); E8-8 (built 2026-10-04) moved it to the project
+  frame, so every step of the sample has it.
 
 ## Components added
 

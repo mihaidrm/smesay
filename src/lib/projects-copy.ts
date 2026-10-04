@@ -5,5 +5,8 @@ export const PROJECTS_COPY = {
   planFull: "Your plan has no room for another project. Change the plan.",
   saved: "Saved.",
   sample: "The sample project cannot be edited.",
+  // The band on every screen of the sample (stories/E8-8, acceptance 1; CLAUDE.md, dashboard
+  // rules): never dismissed.
+  sampleBand: "Sample data: invented answers, for looking around",
   deleteSampleConfirm: "The sample project and its invented answers are deleted. Your own projects are not affected.",
 };

@@ -252,7 +252,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Band on the sample's Results (E8-1; every screen of the sample with E8-8) | Sample data: invented answers, for looking around |
+| Band on every step of the sample and on its link page (E8-1, E8-8; never dismissed) | Sample data: invented answers, for looking around |
+| The sample's header (E8-8) | [WORKSPACE] · sample project; [Button: Delete sample] in Archive's place, then the confirm line from docs/copy/errors.md with [Button: Cancel] [Button: Delete sample] |
+| Shape on the sample (E8-8) | The sample project cannot be edited. |
 | Switch at the top | Include unsubmitted answers (on by default, decision 0030; kept per PM per instrument; the URL always carries it, so a shared view counts the same answers) |
 | Button and dialog | [Button: Choose tiles]; title: Choose the tiles; line: Up to six, shown in this order. Only you see your choice.; count: [N] of 6 chosen; [Button: Cancel] [Button: Save] |
 | Dialog errors | Pick at least one tile. / Pick up to six tiles. |

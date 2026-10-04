@@ -32,7 +32,6 @@ export const RESULTS_COPY = {
   noAnswersTitle: "No answers yet.",
   noAnswers: (link: string) => `The link is ${link}. Share it, or open the sample project to see what results look like.`,
   noAnswersNoSample: (link: string) => `The link is ${link}. Share it to collect answers.`,
-  sampleBand: "Sample data: invented answers, for looking around",
   noInstrument: "This project has nothing published to show yet. Build and share it first.",
   saveFailed: "Your choice was not saved. Try again.",
   link: {
