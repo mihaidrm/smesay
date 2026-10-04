@@ -57,13 +57,13 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
 function ActionCard({ r, projectId, sample, itemHref }: { r: InsightWithCitations; projectId: string; sample: boolean; itemHref: (id: string) => string }) {
   const closed = r.state !== "open";
   return (
-    <li className={cn("card flex flex-col gap-2 p-4", closed && "bg-ground shadow-none")} data-testid="action" data-state={r.state}>
+    <li className={cn("card flex flex-col gap-2 p-4", closed && "shadow-none")} data-testid="action" data-state={r.state}>
       <div className="flex flex-wrap items-center gap-2">
         {r.kind && <NeutralPill data-testid="action-kind">{ACTIONS_COPY.kinds[r.kind]}</NeutralPill>}
         {r.state !== "open" && <NeutralPill data-testid="action-closed">{r.closedAt ? ACTIONS_COPY.closedOn(r.state, formatUtc(r.closedAt)) : ACTIONS_COPY.states[r.state]}</NeutralPill>}
       </div>
       <h4 className={cn("text-[15px] font-bold", closed && "text-ink-muted")} data-testid="action-title">{r.title}</h4>
-      {r.why && <p className="text-sm" data-testid="action-why">{r.why}</p>}
+      {r.why && <p className={cn("text-sm", closed && "text-ink-muted")} data-testid="action-why">{r.why}</p>}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-ink-muted">
         <span aria-hidden="true">{ACTIONS_COPY.citedBy}:</span>
         <ul className="flex flex-wrap gap-x-4 gap-y-1" aria-label={ACTIONS_COPY.citedBy} data-testid="action-citations">

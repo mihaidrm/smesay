@@ -234,6 +234,18 @@ describe("setActionState", () => {
     expect(after.map((r) => `${r.state}:${r.kind}`)).toEqual(["open:rewrite", "open:coverage", "done:followUp", "dismissed:conflict"]);
   });
 
+  it("leaves the open actions when every new action matches a closed one", async () => {
+    const p = await answeredProject();
+    await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
+    const listed = await insights.listWithCitations(a.ws, p.project.id);
+    await setActionState(a, p.project.id, listed[0].id, "open", "done");
+    await setActionState(a, p.project.id, listed[1].id, "open", "dismissed");
+    const onlyClosed = () => ({ actions: fourAndABadOne().actions.slice(0, 2) });
+    expect(await writeActions(a, p.project.id, { fetch: transport(onlyClosed).fetch })).toEqual({ written: [] });
+    const after = await insights.listWithCitations(a.ws, p.project.id);
+    expect(after.map((r) => r.id)).toEqual([listed[2].id, listed[3].id, listed[0].id, listed[1].id]);
+  });
+
   it("matches by kind and the sets of citations, in any order", () => {
     const base = { kind: "conflict" as const, citedAnswerIds: ["a", "b"], citedMissingItemIds: [] };
     expect(sameAction(base, { ...base, citedAnswerIds: ["b", "a", "a"] })).toBe(true);

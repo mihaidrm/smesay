@@ -101,12 +101,13 @@ export const insights = {
     db.transaction(async (tx) => {
       // Two runs at once (two tabs) write one after the other: the project row's lock.
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, ws), eq(project.id, projectId))).for("update");
-      await tx.delete(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "open")));
       // Done and dismissed actions stay where the PM put them across runs (E9-2): a new action
-      // that matches one is not written again.
+      // that matches one is not written again. When nothing new is left, the open actions stay
+      // too (a run that keeps none changes nothing, E9-1).
       const closed = await tx.select().from(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), ne(insight.state, "open")));
       const rows = written.filter((r) => !closed.some((d) => sameAction(d, r)));
       if (rows.length === 0) return [];
+      await tx.delete(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "open")));
       const at = Date.now();
       return tx.insert(insight).values(rows.map((r, i) => ({ ...r, workspaceId: ws, projectId, state: "open" as const, createdAt: new Date(at + i) }))).returning();
     }),

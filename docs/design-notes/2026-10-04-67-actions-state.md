@@ -7,7 +7,8 @@ The PM app board's Actions tab (Mark done, Dismiss, the closed state) is the sta
 
 - Open actions first ("No open actions. Write again to look for new ones, or reopen one
   below." when none), then a Done section and a Dismissed section, each with its count. Closed
-  actions sit on the ground colour with the title muted (not faded, so the text keeps 4.5:1)
+  actions lose the card's shadow and show the title and why muted (not faded, so the text keeps
+  4.5:1 and the pills keep their tint)
   and carry "Done [DATE AND TIME] UTC" or "Dismissed [DATE AND TIME] UTC" in a pill and
   Reopen. The board's "Undo" is "Reopen" (the story's word; it can be pressed days later).
 - Every control is secondary: Write actions is the screen's one primary
@@ -27,5 +28,6 @@ The PM app board's Actions tab (Mark done, Dismiss, the closed state) is the sta
 
 ## Checks
 
-- src/lib/insights.test.ts (setActionState, the match, the dismissed one kept out).
+- src/lib/insights.test.ts (setActionState, the stale tab, the match, the done and dismissed
+  ones kept out, a run whose every action matches a closed one leaving the open ones).
 - e2e/actions.spec.ts.
