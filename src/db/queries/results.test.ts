@@ -687,7 +687,7 @@ describe("where groups disagree", () => {
     // The groups add up to the Agreement tab's split.
     const split = await agreement.byItem(wsA, instrumentA, NONE, "role");
     for (const g of out) for (const x of g.groups) {
-      const c = split.find((s) => s.itemId === g.itemId && s.group === x.group)!;
+      const c = split.find((s) => s.itemId === g.itemId && s.group === (x.group === "" ? null : x.group))!;
       expect([x.agree, x.answered]).toEqual([c.agree, c.agree + c.change + c.disagree + c.unclear]);
     }
   });

@@ -1,6 +1,6 @@
 // Where groups disagree (stories/E8-6): the items shown, their order and the groups' order.
 import { describe, expect, it } from "vitest";
-import { listOrder, orderGaps, topGaps } from "./results-gaps";
+import { allAgree, orderGaps, topGaps } from "./results-gaps";
 
 const g = (group: string, agree: number, answered: number) => ({ group, agree, answered, compared: answered >= 3 });
 
@@ -27,14 +27,10 @@ describe("topGaps", () => {
   });
 });
 
-describe("listOrder", () => {
-  it("follows the set's areas, loose items last, then position", () => {
-    const items = [
-      { id: "loose", area: null, position: 0 },
-      { id: "b2", area: "B", position: 1 },
-      { id: "a3", area: "A", position: 3 },
-      { id: "b0", area: "B", position: 0 },
-    ];
-    expect(listOrder(items, ["B", "A"])).toEqual(["b0", "b2", "a3", "loose"]);
+describe("allAgree", () => {
+  it("is true when groups are compared on some item and agree on every one", () => {
+    expect(allAgree([{ itemId: "a", gap: 0, groups: [] }, { itemId: "b", gap: null, groups: [] }])).toBe(true);
+    expect(allAgree([{ itemId: "a", gap: 0, groups: [] }, { itemId: "b", gap: 5, groups: [] }])).toBe(false);
+    expect(allAgree([{ itemId: "a", gap: null, groups: [] }])).toBe(false);
   });
 });

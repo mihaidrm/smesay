@@ -158,8 +158,9 @@ switch) }, sorted by the filter's sort from the tab's list of columns (a field
 column only for a key in fieldKeys); gaps.byField(ws, instrumentId, filter, fieldKey) (E8-6)
 every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
 share between two groups with 3 answers or more, in percentage points; null when fewer than
-two are compared), groups: GapGroup { group, agree, answered, compared }[] }, largest gap
-first, then the list's order; detail.item(ws, instrumentId, itemId, filter) (E8-5) one
+two are compared), groups: GapGroup { group ('' for the people with no value, Not given on
+screen), agree, answered, compared }[] }, largest gap first, then the item's position (the
+view orders ties as the Agreement table lists the items, src/lib/results-gaps.ts); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
 item of the instrument as DetailItem { id, reference, area, originalText, readerText,
 readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
 notYet } counted in SQL and a DetailRow { personId, invited, submitted, fields, who,

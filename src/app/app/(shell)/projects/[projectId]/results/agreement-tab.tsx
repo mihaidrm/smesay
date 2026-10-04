@@ -18,7 +18,6 @@ import { agreement } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
 import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
-import { listOrder } from "@/lib/results-gaps";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -55,7 +54,7 @@ export async function AgreementTab({ ws, projectId, instrument, filter, ctx, vie
       {view === "share" && <ShareView areas={areas} list={list} series={series} rated={blind || allRated(areas)} split={split} none={filterActive(filter) || !filter.includeUnsubmitted ? AGREEMENT_COPY.noAnswersLine : AGREEMENT_COPY.noAnswersYet} />}
       {/* Where groups disagree (E8-6): agreement shares, so only items with a proposal shown,
           and not on a rate-blind list or one where no item has a proposal. */}
-      {!blind && !allRated(areas) && <ConflictView ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} items={new Map(listItems.filter((it) => it.proposed !== null).map((it) => [it.id, { reference: it.reference, title: it.title }]))} order={listOrder(listItems, (set?.areas ?? []).map((a) => a.name))} itemHref={itemHref} bannerAbove={small} />}
+      {!blind && !allRated(areas) && <ConflictView ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} items={new Map(listItems.filter((it) => it.proposed !== null).map((it) => [it.id, { reference: it.reference, title: it.title }]))} order={areas.flatMap((a) => a.rows.map((r) => r.id))} itemHref={itemHref} bannerAbove={small} />}
     </div>
   );
 }

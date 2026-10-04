@@ -22,13 +22,14 @@ starting point; this note records what was decided while building it.
   with 3 answers or more. Groups are in name order.
 - The gap is in percentage points ("[N] points apart", "1 point apart"), the largest
   difference in share between two compared groups. The top four are items with a gap above
-  0; ties and items without a gap follow in the list's order (areas in the set's order,
-  then position: src/lib/results-gaps.ts).
+  0; ties and items without a gap follow as the Agreement table above lists the items
+  (src/lib/results-gaps.ts).
 - The bar per group is the share that agrees, in the agree solid on the tint track, the
   label in muted ink at 112 px and "[A] of [N]" in mono, as on Brand 06. The bars are hidden
   from screen readers, which read the line under them with the same numbers.
 - With no item compared, the line says so ("yet" with no filter on; under a filter it says
-  to clear it or compare by another field). An item nobody answered reads "No answers to
+  to clear it or compare by another field); when groups are compared and agree on every
+  item, the line says that instead. An item nobody answered reads "No answers to
   compare."
 - A small group's numbers can still be worked out by subtraction from the item's counts in
   the Agreement table when it is the only small group; decision 0031 as worded is met

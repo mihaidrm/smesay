@@ -13,7 +13,7 @@ import { gaps as gapsQuery, type GapItem } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { AGREEMENT_COPY, CONFLICT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
-import { orderGaps, topGaps } from "@/lib/results-gaps";
+import { allAgree, orderGaps, topGaps } from "@/lib/results-gaps";
 import { GapField } from "./gap-field";
 
 type Props = { ws: WorkspaceId; instrumentId: string; filter: ResultsFilter; ctx: FilterContext; items: Map<string, { reference: string | null; title: string }>; order: string[]; itemHref: (id: string) => string; bannerAbove: boolean };
@@ -23,8 +23,9 @@ export async function ConflictView({ ws, instrumentId, filter, ctx, items, order
   if (!field) return null;
   const rows = orderGaps(await gapsQuery.byField(ws, instrumentId, filter, field.key), order.filter((id) => items.has(id)));
   const top = topGaps(rows);
-  // Under a filter waiting will not change the line, so it says what to do instead.
-  const none = filterActive(filter) ? CONFLICT_COPY.noGapFiltered : CONFLICT_COPY.noGap;
+  // Groups compared that agree everywhere say so; otherwise, under a filter waiting will not
+  // change the line, so it says what to do instead.
+  const none = allAgree(rows) ? CONFLICT_COPY.allAgree : filterActive(filter) ? CONFLICT_COPY.noGapFiltered : CONFLICT_COPY.noGap;
   // The banner once per page: not again when the split above already shows it.
   const small = !bannerAbove && rows.some((r) => r.groups.some((g) => !g.compared));
   return (

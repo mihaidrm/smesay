@@ -62,6 +62,7 @@ export const CONFLICT_COPY = {
   noGap: "No item has two groups with 3 answers or more yet.",
   noGapFiltered: "No item has two groups with 3 answers or more under this filter. Clear the filter or compare by another field.",
   noGroups: "No answers to compare.",
+  allAgree: "Where groups have 3 answers or more, they agree on every item.",
   showAll: (n: number) => `Show all ${n} items`,
 };
 
