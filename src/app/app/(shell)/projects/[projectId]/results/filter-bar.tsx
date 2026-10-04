@@ -23,13 +23,14 @@ function Chip({ on, onClick, children, testId }: { on: boolean; onClick: () => v
 const toggle = <T,>(xs: T[], x: T): T[] => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
 const noSubscribe = () => () => {};
 
-export function FilterBar({ filter, ctx, tab, kinds }: { filter: ResultsFilter; ctx: FilterContext; tab: string | null; kinds: ResultsKind[] }) {
+export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFilter; ctx: FilterContext; tab: string | null; item: string | null; kinds: ResultsKind[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
   const ready = useSyncExternalStore(noSubscribe, () => true, () => false);
   const go = (next: ResultsFilter) => {
-    const q = filterQuery(next, ctx, tab ? { tab } : {});
+    // The tab and an open item's detail (E8-5) stay; the detail's counts follow the filter.
+    const q = filterQuery(next, ctx, { ...(tab ? { tab } : {}), ...(item ? { item } : {}) });
     startTransition(() => router.push(q ? `${pathname}?${q}` : pathname, { scroll: false }));
   };
   const setField = (key: string, value: string[] | string | null) => {

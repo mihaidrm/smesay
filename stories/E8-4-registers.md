@@ -55,8 +55,8 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):
   not by the stored code; the header marks the column the rows are sorted by; the filter bar
   narrows every register. An empty register reads "None under this filter." or, with no
   filter, "None yet."
-- Acceptance 4: with E8-5, the next story (docs/review-list.md); a missing-item row has no
-  action.
+- Acceptance 4: a row's item opens its detail (E8-5), the item in the URL; a missing-item row
+  has no action.
 - Acceptance 5: the headings' counts are the strip's and the tab's (the same selection);
   src/db/queries/results.test.ts checks them under five filters, every sort both ways, the
   marks, another workspace, and 600 generated responses under 500 ms.

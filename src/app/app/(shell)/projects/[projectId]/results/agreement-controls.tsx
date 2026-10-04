@@ -4,7 +4,7 @@
 // saveView), "Split by [field]" over the dropdown respondent fields, and the sort of the items
 // within an area with its direction. The split and the sort are in the URL (filterQuery), so
 // a view can be shared. Copy: docs/copy/app.md, Results.
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
@@ -19,10 +19,12 @@ const SELECT = "h-8 rounded-lg border border-hairline-strong bg-surface px-2 tex
 export function AgreementControls({ projectId, view, filter, ctx, sort }: { projectId: string; view: AgreementView; filter: ResultsFilter; ctx: FilterContext; sort: { key: AgreementSort; dir: "asc" | "desc" } }) {
   const router = useRouter();
   const pathname = usePathname();
+  // An open item's detail (E8-5) stays open across a split or a sort.
+  const item = useSearchParams().get("item");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const go = (next: ResultsFilter) => {
-    const q = filterQuery(next, ctx);
+    const q = filterQuery(next, ctx, item ? { item } : {});
     startTransition(() => router.push(q ? `${pathname}?${q}` : pathname, { scroll: false }));
   };
   const pick = (v: AgreementView) => startTransition(async () => {

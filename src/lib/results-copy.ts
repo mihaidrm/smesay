@@ -49,6 +49,7 @@ export const RESULTS_COPY = {
   failed: (what: string) => `${what} could not load. It has been logged. Try again in a minute.`,
   tryAgain: "Try again",
   strip: "The headline numbers",
+  detail: "The item's detail",
 };
 
 // The Responses tab (stories/E8-2; docs/copy/app.md, Results).
@@ -127,4 +128,18 @@ export const REGISTERS_COPY = {
   notSubmitted: "Not submitted",
   none: "None under this filter.",
   noneYet: "None yet.",
+};
+
+// The item detail (stories/E8-5; docs/copy/app.md, Results).
+export const DETAIL_COPY = {
+  original: "Original",
+  proposed: "Proposed",
+  close: "Close",
+  counts: (agree: number, change: number, disagree: number, unclear: number, notYet: number) => `${agree} agree · ${change} different priority · ${disagree} disagree · ${unclear} unclear · ${notYet} not yet answered`,
+  ratedCounts: (rated: number, unclear: number, notYet: number) => `${rated} rated · ${unclear} unclear · ${notYet} not yet answered`,
+  inProgress: "In progress",
+  notStarted: "Not started",
+  notSubmitted: "Not submitted",
+  noAnswer: "No answer yet.",
+  open: (ref: string) => `Open the detail of ${ref}`,
 };

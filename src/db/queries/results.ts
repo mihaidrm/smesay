@@ -418,6 +418,34 @@ export const registers = {
   },
 };
 
+// One item's detail (E8-5): the item, and a row for every person the page's filter keeps who
+// sees the item (E5-4), with their answer when it counts (the include-unsubmitted switch), so
+// the counts are the Agreement tab's for that item. A person started without a counted answer
+// on it, or invited and not started, has a row with no answer.
+export type DetailItem = { id: string; reference: string | null; area: string | null; originalText: string; readerText: string | null; readerStatus: string | null; proposedValue: string | null };
+export type DetailRow = { personId: string; invited: boolean; submitted: boolean; fields: Record<string, string>; who: string | null; anon: number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null };
+
+export const detail = {
+  item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<{ item: DetailItem; rows: DetailRow[] } | null> => {
+    if (!isUuid(instrumentId) || !isUuid(itemId)) return null;
+    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null }>(sql`${head(ws, instrumentId, f)},
+      one as (select its.id, its.perspectives from its where its.id = ${itemId})
+      select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value,
+          p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.fields, p.who, p.anon,
+          x.kind, x.value, x.reason, x.comment
+        from one join item it on it.id = one.id and it.workspace_id = ${ws}
+          left join sel p on cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
+          left join ans x on x.item_id = one.id and x.response_id = p.id
+        order by (x.kind is null), lower(p.who) nulls last, p.anon nulls last, p.id`);
+    if (rows.length === 0) return null;
+    const r0 = rows[0];
+    return {
+      item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
+      rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
+    };
+  },
+};
+
 // The PM's choices on Results, per instrument (user.results_prefs, INTERFACES.md
 // ResultsPrefs): the tiles, the include-unsubmitted switch and the Agreement tab's view (E8-3).
 // Keyed by the signed-in person's

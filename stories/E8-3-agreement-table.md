@@ -103,5 +103,6 @@ Built 2026-10-04 (design note 61, decision 0044; docs/review-list.md):
   empty split field, and on 600 generated responses, with no filter and with a role filter,
   the switch on and off, split and not, each query under 500 ms. The items CSV is E10-1's
   (acceptance 3), from these rows.
-- Acceptance 9: with E8-5 (the item detail), the next story (docs/review-list.md).
+- Acceptance 9: an item's title in the Table view opens its detail (E8-5), the item in the
+  URL.
 - Acceptance 10: e2e/results-agreement.spec.ts.
