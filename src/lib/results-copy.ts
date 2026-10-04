@@ -49,6 +49,7 @@ export const RESULTS_COPY = {
   failed: (what: string) => `${what} could not load. It has been logged. Try again in a minute.`,
   tryAgain: "Try again",
   strip: "The headline numbers",
+  liveStopped: "Live updates stopped. The page keeps the last numbers; reload to catch up.",
   detail: "The item's detail",
 };
 

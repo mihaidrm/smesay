@@ -1,12 +1,13 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0019_results_prefs).
+v1, 2026-10-04 (the date of the latest migration, 0020_results_notify).
 
-Generated from the snapshot of the 20 migrations in drizzle/ (0019_snapshot.json) by
+Generated from the snapshot of the 21 migrations in drizzle/ (0020_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
-fk = foreign key, pk = primary key. Triggers live in the custom migration
-(drizzle/0001_item_text_and_version_immutable.sql), not in the snapshot.
+fk = foreign key, pk = primary key. Triggers live in the custom migrations
+(drizzle/0001_item_text_and_version_immutable.sql; drizzle/0020_results_notify.sql, the NOTIFY of
+live updates), not in the snapshot.
 
 ## Rules
 

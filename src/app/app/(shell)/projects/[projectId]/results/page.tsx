@@ -12,6 +12,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { cn } from "cn";
+import { FadeOnChange } from "@/components/app/fade-on-change";
 import { StatTile } from "@/components/app/tiles";
 import { EmptyState } from "@/components/ui/banner";
 import { buttonVariants } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { describeFilter, filterActive, filterQuery, parseResultsFilter, RESULTS_
 import { DEFAULT_TILES, storedTiles, tabCounts, tileView, type ResultsNumbers, type TileId } from "@/lib/results-tiles";
 import { formatUtc, linkState } from "@/lib/sharing";
 import { FilterBar } from "./filter-bar";
+import { LiveUpdates } from "./live-updates";
 import { ResultsBoundary } from "./results-boundary";
 import { AgreementTab } from "./agreement-tab";
 import type { AgreementView } from "./agreement-controls";
@@ -62,10 +64,17 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   // (redirect: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md).
   const item = itemParam(query.item);
   if (query.unsubmitted === undefined) redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
+  // Live updates (E8-7) whenever the project has an instrument, whatever the state of its
+  // links: a link that opens later, personal links after the public one is revoked. Not on the
+  // sample, whose link collects nothing. Outside the boundary, so a failed read keeps the
+  // stream and its banner.
   return (
+    <>
+    {!project.isSample && <LiveUpdates projectId={project.id} />}
     <ResultsBoundary what={RESULTS_COPY.strip}>
       <ResultsBody projectId={project.id} sample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
     </ResultsBoundary>
+    </>
   );
 }
 
@@ -134,7 +143,7 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
 function Strip({ n, tiles }: { n: ResultsNumbers; tiles: TileId[] }) {
   return (
     <div className="grid grid-cols-2 gap-3.5 md:grid-cols-3 xl:grid-cols-6" data-testid="results-strip">
-      {tiles.map((id) => { const t = tileView(id, n); return <div key={id} data-tile={id} className="flex"><StatTile value={t.value} label={t.label} tone={t.tone} /></div>; })}
+      {tiles.map((id) => { const t = tileView(id, n); return <FadeOnChange key={id} value={`${t.value} ${t.label}`} className="flex rounded-2xl"><span data-tile={id} className="flex flex-1"><StatTile value={t.value} label={t.label} tone={t.tone} /></span></FadeOnChange>; })}
     </div>
   );
 }

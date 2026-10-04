@@ -9,6 +9,7 @@
 // single table or grid header at a time": developer.mozilla.org/docs/Web/Accessibility/ARIA/
 // Reference/Attributes/aria-sort). Copy: docs/copy/app.md, Results.
 import Link from "next/link";
+import { FadeOnChange } from "@/components/app/fade-on-change";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import type { WorkspaceId } from "@/db/types";
 import { tracker, type PersonRow } from "@/db/queries/results";
@@ -57,8 +58,8 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
             <tr key={p.id} className="h-10 border-t border-hairline hover:bg-tint" data-testid="response-row">
               <th scope="row" className="px-4 font-semibold whitespace-nowrap">{nameOf(p)}</th>
               {fields.map((f) => <td key={f.key} className="px-4 whitespace-nowrap">{p.fields[f.key] ?? ""}</td>)}
-              <td className="px-4 whitespace-nowrap"><Status p={p} /></td>
-              <td className="px-4 font-mono whitespace-nowrap">{RESPONSES_COPY.progressOf(p.answered, p.visible)}</td>
+              <td className="px-4 whitespace-nowrap"><FadeOnChange value={`${p.status} ${p.changedSince} ${p.submittedAgain}`} className="inline-flex rounded-md"><Status p={p} /></FadeOnChange></td>
+              <td className="px-4 font-mono whitespace-nowrap"><FadeOnChange value={`${p.answered} ${p.visible}`} className="inline-block rounded-md">{RESPONSES_COPY.progressOf(p.answered, p.visible)}</FadeOnChange></td>
               <td className="px-4 whitespace-nowrap" data-testid="submitted-cell">{p.submittedAt ? formatUtc(p.submittedAt) : RESPONSES_COPY.notYet}</td>
               <td className="px-4 whitespace-nowrap">{p.source === "public" ? RESPONSES_COPY.publicLink : RESPONSES_COPY.personalInvite}</td>
               <td className="px-4 font-mono">{p.reminders ?? RESPONSES_COPY.none}</td>
