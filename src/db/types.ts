@@ -70,3 +70,7 @@ export const INSIGHT_STATES = ["open", "done", "dismissed"] as const;
 export type InsightState = (typeof INSIGHT_STATES)[number];
 export const INSIGHT_KINDS = ["rewrite", "conflict", "followUp", "coverage"] as const;
 export type InsightKind = (typeof INSIGHT_KINDS)[number];
+
+// E10-1: the files a download can be (export_log.file). E10-2 and E10-3 add theirs.
+export const EXPORT_FILES = ["answers", "items", "people", "missing"] as const;
+export type ExportFile = (typeof EXPORT_FILES)[number];

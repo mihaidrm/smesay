@@ -120,8 +120,13 @@ type NumbersRow = {
 export type PersonOfRows = { id: string; invited: boolean; submitted: boolean; counted: boolean; minutesToSubmit: number | null };
 export type MissingRow = { id: string; responseId: string; text: string };
 
-// One answer as the filter keeps it (E10-1 writes these; the test adds them up).
-export type ResultRow = { id: string; responseId: string; itemId: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean };
+// One answer as the filter keeps it (E10-1 writes these; the test adds them up), with its
+// respondent as the Responses tab names them (who, else Anonymous [anon]), their fields, the
+// perspectives they picked, the link they came by and when they submitted.
+export type ResultRow = {
+  id: string; responseId: string; itemId: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean;
+  who: string | null; anon: number | null; fields: Record<string, string>; perspectives: string[]; source: "public" | "personal"; submittedAt: Date | null;
+};
 
 export const results = {
   numbers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultsNumbers | null> => {
@@ -161,10 +166,15 @@ export const results = {
   },
   rows: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean }>(sql`${head(ws, instrumentId, f)}
-      select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted
+    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean; who: string | null; anon: string | number | null; fields: Record<string, string> | null; perspectives: string[] | null; source: string; submitted_at: string | Date | null }>(sql`${head(ws, instrumentId, f)}
+      select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted,
+          c.who, c.anon, c.fields, c.perspectives, c.source, c.submitted_at
         from ans join counted c on c.id = ans.response_id order by ans.response_id, ans.item_id`);
-    return rows.map((r) => ({ id: r.id, responseId: r.response_id, itemId: r.item_id, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, submitted: r.submitted }));
+    return rows.map((r) => ({
+      id: r.id, responseId: r.response_id, itemId: r.item_id, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, submitted: r.submitted,
+      who: r.who, anon: r.anon === null ? null : Number(r.anon), fields: r.fields ?? {}, perspectives: r.perspectives ?? [], source: r.source === "personal" ? "personal" : "public",
+      submittedAt: r.submitted_at === null ? null : new Date(r.submitted_at),
+    }));
   },
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<PersonOfRows[]> => {
     if (!isUuid(instrumentId)) return [];

@@ -12,7 +12,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import { INSIGHT_KINDS, INSIGHT_STATES } from "./types";
+import { EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
 import type { ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
@@ -403,4 +403,24 @@ export const aiRun = pgTable("ai_run", {
   index("ai_run_workspace_idx").on(t.workspaceId),
   index("ai_run_project_idx").on(t.projectId),
   check("ai_run_purpose_check", oneOf("purpose", AI_PURPOSES)),
+]);
+
+// E10-1, acceptance 5: every download, who made it, when and what (the file, the filter in
+// words, the rows), for E11-2's account of a workspace's data leaving it. Kept with the
+// workspace; a deleted user keeps the row with no name.
+export const exportLog = pgTable("export_log", {
+  id: id(),
+  workspaceId: wsRef(),
+  projectId: uuid("project_id").notNull(),
+  madeBy: text("made_by").references(() => user.id, { onDelete: "set null" }),
+  file: text("file", { enum: EXPORT_FILES }).notNull(),
+  filter: text("filter"),
+  rows: integer("rows").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [
+  foreignKey({ name: "export_log_project_fk", columns: [t.projectId, t.workspaceId], foreignColumns: [project.id, project.workspaceId] }).onDelete("cascade"),
+  index("export_log_workspace_idx").on(t.workspaceId),
+  index("export_log_project_idx").on(t.projectId),
+  index("export_log_made_by_idx").on(t.madeBy),
+  check("export_log_file_check", oneOf("file", EXPORT_FILES)),
 ]);

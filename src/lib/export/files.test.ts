@@ -1,0 +1,130 @@
+// The Export tab's files against Results (stories/E10-1, acceptance 3 and 4), on the seeded
+// sample: every headline number of the strip, every item's counts and every register's count
+// is a sum of a file's rows, under no filter, with the switch off, and under a filter; the
+// sample's files start with the watermark line and a filtered file names its filter; another
+// workspace's instrument gives empty files.
+import { randomUUID } from "node:crypto";
+import { beforeAll, describe, expect, it } from "vitest";
+import { instruments, projects } from "@/db/queries";
+import type { Instrument } from "@/db/queries/instruments";
+import { createWorkspaceWithSample } from "@/db/queries/onboarding";
+import { agreement, registers, results } from "@/db/queries/results";
+import { prepareTestDatabase } from "@/db/test-db";
+import type { WorkspaceId } from "@/db/types";
+import { auth } from "@/lib/auth";
+import { memoryOutbox } from "@/lib/mail";
+import { requireWorkspace } from "@/lib/workspace";
+import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
+import { csv } from "./csv";
+import { EXPORT_COPY } from "./copy";
+import { exportTable } from "./files";
+
+const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+let wsA: WorkspaceId;
+let wsB: WorkspaceId;
+let instrument: Instrument;
+let ctx: FilterContext;
+
+const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
+
+// A minimal reader of the files the writer makes: quoted fields, doubled quotes, CRLF lines.
+function parse(text: string): string[][] {
+  const out: string[][] = [];
+  let row: string[] = []; let cell = ""; let quoted = false;
+  const body = text.replace(/^﻿/, "");
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (quoted) {
+      if (ch === '"' && body[i + 1] === '"') { cell += '"'; i++; } else if (ch === '"') quoted = false; else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ",") { row.push(cell); cell = ""; }
+    else if (ch === "\r" && body[i + 1] === "\n") { row.push(cell); out.push(row); row = []; cell = ""; i++; }
+    else cell += ch;
+  }
+  return out;
+}
+
+// The file as text and back: the preamble, the header and the rows by column name.
+async function file(ws: WorkspaceId, which: "answers" | "items" | "people" | "missing", f: ResultsFilter, sample = true) {
+  const t = await exportTable(ws, instrument, which, f, ctx, sample);
+  const lines = parse(csv(t.preamble, t.header, t.rows));
+  const header = lines[t.preamble.length];
+  const rows = lines.slice(t.preamble.length + 1).map((cells) => Object.fromEntries(header.map((h, i) => [h, cells[i]])));
+  return { preamble: lines.slice(0, t.preamble.length).map((l) => l[0]), rows };
+}
+
+async function reconcile(f: ResultsFilter) {
+  const n = (await results.numbers(wsA, instrument.id, f))!;
+  const answers = (await file(wsA, "answers", f)).rows;
+  const kind = (k: string) => answers.filter((r) => r.Answer === k).length;
+  expect([kind("Agree"), kind("Different priority"), kind("Disagree"), kind("Unclear"), kind("Rated")]).toEqual([n.agree, n.change, n.disagree, n.unclear, n.pick]);
+  expect(answers.filter((r) => r["Reason or question"] !== "" || r.Comment !== "").length).toBe(n.withComment);
+  const items = (await file(wsA, "items", f)).rows;
+  const sum = (col: string) => items.reduce((s, r) => s + Number(r[col]), 0);
+  expect([sum("Agree"), sum("Different priority"), sum("Disagree"), sum("Unclear"), sum("Rated")]).toEqual([n.agree, n.change, n.disagree, n.unclear, n.pick]);
+  const byItem = await agreement.byItem(wsA, instrument.id, f);
+  for (const c of byItem) {
+    const row = items.find((r) => r.Agree === String(c.agree) && r["Different priority"] === String(c.change) && r.Disagree === String(c.disagree) && r.Unclear === String(c.unclear));
+    expect(row, `the item ${c.itemId} has its row`).toBeDefined();
+  }
+  expect(items.filter((r) => ["Agree", "Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.unansweredItems);
+  const people = (await file(wsA, "people", f)).rows;
+  expect([people.length, people.filter((r) => r.Status === "Submitted").length, people.filter((r) => r.Status === "In progress").length]).toEqual([n.invited, n.submitted, n.inProgress]);
+  const missing = (await file(wsA, "missing", f)).rows;
+  expect(missing.length).toBe(n.missing);
+  const registered = await registers.missing(wsA, instrument.id, f, instrument.respondentFields.map((s) => s.key), instrument.method);
+  expect(missing.map((r) => r["Suggested item"]).sort()).toEqual(registered.map((m) => m.text).sort());
+  return { answers, people };
+}
+
+async function signIn(label: string) {
+  const email = `${label}-${Date.now()}-${randomUUID().slice(0, 6)}@example.com`;
+  const before = memoryOutbox.length;
+  await auth.handler(new Request(`${BASE}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "content-type": "application/json", origin: BASE }, body: JSON.stringify({ email, callbackURL: "/app" }) }));
+  const link = memoryOutbox[before].text.split("\n").find((l) => l.startsWith(BASE + "/api/auth/magic-link/verify"))!;
+  const verified = await auth.handler(new Request(link, { redirect: "manual" }));
+  const headers = new Headers({ cookie: verified.headers.getSetCookie().find((c) => c.includes("session_token="))!.split(";")[0] });
+  return { id: (await auth.api.getSession({ headers }))!.user.id, headers };
+}
+
+beforeAll(async () => {
+  await prepareTestDatabase();
+  const user = await signIn("export");
+  wsA = await requireWorkspace(user.headers, (await createWorkspaceWithSample({ name: "Export A", slug: `export-a-${randomUUID()}` }, user.id)).id);
+  wsB = await requireWorkspace(user.headers, (await createWorkspaceWithSample({ name: "Export B", slug: `export-b-${randomUUID()}` }, user.id)).id);
+  const [sample] = (await projects.list(wsA)).filter((p) => p.isSample);
+  instrument = (await instruments.latestForProject(wsA, sample.id))!;
+  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
+}, 60_000);
+
+describe("the files reconcile with Results", () => {
+  it("with no filter, submitted answers only", async () => {
+    const { answers } = await reconcile(NONE);
+    expect(answers.length).toBe((await results.rows(wsA, instrument.id, NONE)).length);
+  });
+  it("with the answers not submitted yet", async () => {
+    await reconcile({ ...NONE, includeUnsubmitted: true });
+  });
+  it("under a filter, which the file names", async () => {
+    const f = { ...NONE, kinds: ["change" as const, "disagree" as const] };
+    await reconcile(f);
+    expect((await file(wsA, "answers", f)).preamble).toEqual([EXPORT_COPY.watermark, `${EXPORT_COPY.filtered("Different priority, Disagree")}`, EXPORT_COPY.submittedOnly]);
+  });
+});
+
+describe("the files", () => {
+  it("name a respondent as the Responses tab does and give a value with its label", async () => {
+    const { rows } = await file(wsA, "answers", NONE);
+    const ioana = rows.find((r) => r.Respondent === "Ioana Marin" && r.Reference === "CL-04")!;
+    expect([ioana.Answer, ioana["Proposed value"], ioana["Proposed label"], ioana["Their value"], ioana["Their label"]]).toEqual(["Different priority", "S", "Should", "M", "Must"]);
+    expect(ioana["Submitted at"]).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/);
+  });
+  it("start with the watermark on the sample only", async () => {
+    expect((await file(wsA, "items", NONE)).preamble[0]).toBe(EXPORT_COPY.watermark);
+    expect((await file(wsA, "items", NONE, false)).preamble).toEqual([EXPORT_COPY.submittedOnly]);
+  });
+  it("are empty for another workspace's instrument", async () => {
+    for (const which of ["answers", "people", "missing"] as const) expect((await file(wsB, which, NONE)).rows).toEqual([]);
+    expect((await file(wsB, "items", NONE)).rows).toEqual([]);
+  });
+});
