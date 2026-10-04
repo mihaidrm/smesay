@@ -4,7 +4,7 @@
 // answers with four actions and a fifth citing a ref never sent) shows four actions, each
 // with its kind and its citation, the answer's linking to the item detail; Write again
 // replaces them. E9-2: Dismiss, Mark done (the date), Reopen, and Write again leaves the
-// dismissed one out. The sample's Actions tab shows its four seeded actions, no controls.
+// dismissed one out. E9-3: the cost line. The sample's Actions tab shows its four seeded actions, no controls.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -79,6 +79,8 @@ test("write actions from the answers, each citing the answers behind it", async 
   await expect(actions.first().getByTestId("action-citation")).toHaveText('Ana Pop on "Receipts captured by phone"');
   await expect(actions.nth(3).getByTestId("action-citation")).toHaveText("Ana Pop, missing item");
   await expect(page.getByText("An action citing an answer that was never sent.")).toHaveCount(0);
+  // E9-3: the cost of the run (the fake transport reports 1,000 tokens in and 500 out).
+  await expect(page.getByTestId("actions-cost")).toHaveText(/^Last run \d{1,2} \w{3} \d{4}, \d{2}:\d{2} UTC: 1,500 tokens, EUR 0\.01\. This month: EUR 0\.01\.$/);
   // The citation opens the item's detail (E8-5).
   await actions.first().getByRole("link", { name: 'Ana Pop on "Receipts captured by phone"' }).click();
   await expect(page.getByTestId("detail-title")).toHaveText("Receipts captured by phone");

@@ -31,3 +31,10 @@ export function costEurCents(model: string, tokensIn: number, tokensOut: number)
 export function estimateTokensIn(text: string): number {
   return Math.ceil(text.length / 4);
 }
+
+// A call's estimate in euro cents (E9-3): the input at four characters per token and the
+// output the caller expects, priced as a run is.
+export const estimateCents = (model: string, text: string, outputTokens: number): number => costEurCents(model, estimateTokensIn(text), outputTokens);
+
+// Euro cents as the screens show them: "EUR 0.05" (E9-3).
+export const formatEur = (cents: number): string => `EUR ${(cents / 100).toFixed(2)}`;

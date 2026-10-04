@@ -4,11 +4,16 @@
 // [REF]", a link to the item's detail, E8-5) and the missing items ("[Name], missing item"),
 // with Mark done and Dismiss; then the Done and Dismissed sections, greyed, each action with
 // its state and date and Reopen. The tab's count is the open ones (E8-1 numbers). The sample
-// shows its seeded actions with no controls (E9-1 acceptance 7, E9-2 acceptance 1). Copy:
+// shows its seeded actions with no controls (E9-1 acceptance 7, E9-2 acceptance 1). Under the
+// actions, the cost line (E9-3): the project's last run of Write actions and the workspace's
+// AI spend this month, the same sum as Settings' usage line (usage(), E2-6). Copy:
 // docs/copy/app.md, Results, Actions.
 import Link from "next/link";
 import { NeutralPill } from "@/components/ui/status-pill";
+import { aiRuns } from "@/db/queries/aiRuns";
 import { insights, type InsightWithCitations } from "@/db/queries/insights";
+import { usage } from "@/db/queries/usage";
+import { formatEur } from "@/lib/ai/prices";
 import type { WorkspaceId } from "@/db/types";
 import { citationLines } from "@/lib/insights";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
@@ -23,7 +28,7 @@ import { WriteActions } from "./write-actions";
 type Props = { ws: WorkspaceId; projectId: string; sample: boolean; itemHref: (id: string) => string };
 
 export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
-  const rows = await insights.listWithCitations(ws, projectId);
+  const [rows, last, used] = await Promise.all([insights.listWithCitations(ws, projectId), aiRuns.lastFor(ws, projectId, "insights"), usage(ws)]);
   const open = rows.filter((r) => r.state === "open");
   const closed = (["done", "dismissed"] as const).map((state) => ({ state, rows: rows.filter((r) => r.state === state) })).filter((s) => s.rows.length > 0);
   const card = (r: InsightWithCitations) => <ActionCard key={r.id} r={r} projectId={projectId} sample={sample} itemHref={itemHref} />;
@@ -49,6 +54,11 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
             </section>
           ))}
         </>
+      )}
+      {last && (
+        <p className="text-xs text-ink-muted" data-testid="actions-cost">
+          {ACTIONS_COPY.lastRun(formatUtc(last.createdAt), last.tokensIn + last.tokensOut, formatEur(last.costEurCents))} {ACTIONS_COPY.thisMonth(formatEur(used.aiCostCentsThisMonth))}
+        </p>
       )}
     </div>
   );
