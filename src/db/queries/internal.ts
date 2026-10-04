@@ -31,9 +31,7 @@ export const internal = {
   // responses (their answers and missing items go with them), then its projects (sets, items,
   // instruments, invites, actions, runs, uploads, export rows), then the workspace (members,
   // invitations, mappings). Counts per step. A workspace not marked deleted is left alone.
-  // beforeCommit runs inside the transaction after the deletes (the job's email): if it throws,
-  // the rows come back and the next run tries again.
-  purgeWorkspace: async (workspaceId: string, beforeCommit?: () => Promise<void>): Promise<{ responses: number; projects: number; workspaces: number }> => {
+  purgeWorkspace: async (workspaceId: string): Promise<{ responses: number; projects: number; workspaces: number }> => {
     if (!isUuid(workspaceId)) return { responses: 0, projects: 0, workspaces: 0 };
     return db.transaction(async (tx) => {
       const marked = await tx.select({ id: workspace.id }).from(workspace).where(and(eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt))).for("update");
@@ -41,7 +39,6 @@ export const internal = {
       const responses = (await tx.delete(response).where(eq(response.workspaceId, workspaceId)).returning({ id: response.id })).length;
       const projects = (await tx.delete(project).where(eq(project.workspaceId, workspaceId)).returning({ id: project.id })).length;
       const workspaces = (await tx.delete(workspace).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id })).length;
-      if (beforeCommit) await beforeCommit();
       return { responses, projects, workspaces };
     });
   },

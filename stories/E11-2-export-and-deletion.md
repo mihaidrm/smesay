@@ -52,9 +52,9 @@ Built 2026-10-04 (design note 73, decision 0044):
   keeps their other workspaces. A deleted workspace takes no new member from an open invitation.
 - Acceptance 3: `npm run jobs:purge` (scripts/jobs-purge.ts, src/lib/workspace-removal.ts)
   deletes the objects under logos/[ID]/ and uploads/[ID]/, then the rows in decision 0028's
-  order in one transaction, and emails the owner who deleted it inside that transaction, so a
-  failed email puts the rows back for the next run (docs/copy/emails.md, email 6). A workspace
-  that fails is logged with its id and the step and the job goes on to the next.
+  order in one transaction, then emails the owner who deleted it (docs/copy/emails.md, email
+  6); a failed email is logged with the workspace's id. A workspace that fails is logged with
+  its id and the step and the job goes on to the next.
   src/db/queries/removal.test.ts builds a full workspace, deletes it, runs the job and finds zero
   rows in every table and zero objects, one email, and nothing on a second run.
 - Acceptance 4: links.byToken reads a deleted workspace's links as revoked from the moment of

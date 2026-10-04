@@ -20,7 +20,6 @@ export default async function DeletedWorkspacePage() {
         <p className="text-ink-muted" data-testid="deleted-line">{WORKSPACE_DATA_COPY.deleted(deleted.deletedAt, deleted.deletedByEmail)}</p>
       </div>
       <form action={leaveDeletedWorkspace}>
-        <input type="hidden" name="workspaceId" value={deleted.id} />
         <Button type="submit" variant="primary">{WORKSPACE_DATA_COPY.deletedButton}</Button>
       </form>
       <SignedInFooter email={session.user.email} />

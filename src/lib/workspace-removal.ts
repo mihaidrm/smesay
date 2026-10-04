@@ -17,7 +17,9 @@ export type PurgeReport = { workspaces: number; responses: number; projects: num
 
 // One workspace at a time; a failure is logged with the workspace's id and the step, counted,
 // and the job goes on to the next, so one workspace cannot hold the others past their 24 hours.
-// The email is sent inside the rows' transaction: if it fails, the rows stay for the next run.
+// The email goes after the rows are gone: the deletion never waits on mail. If it fails, the
+// failure is logged with the workspace's id and counted, and no second email follows, since the
+// workspace is gone (docs/review-list.md).
 export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): Promise<PurgeReport> {
   const report: PurgeReport = { workspaces: 0, responses: 0, projects: 0, objects: 0, emails: 0, failed: 0 };
   for (const ws of await internal.deletedWorkspaces()) {
@@ -27,18 +29,16 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
       for (const key of keys) await deleteObject(key);
       report.objects += keys.length;
       step = "rows";
-      let emailed = false;
-      const rows = await internal.purgeWorkspace(ws.id, async () => {
-        if (!ws.deletedByEmail) return;
-        step = "email";
-        await send({ to: ws.deletedByEmail, ...deletionEmail(ws.name, ws.deletedAt) });
-        emailed = true;
-      });
+      const rows = await internal.purgeWorkspace(ws.id);
       report.responses += rows.responses;
       report.projects += rows.projects;
       report.workspaces += rows.workspaces;
-      if (emailed) report.emails += 1;
       console.log(`jobs:purge workspace ${ws.id}: ${keys.length} objects, ${rows.responses} responses, ${rows.projects} projects`);
+      if (rows.workspaces === 1 && ws.deletedByEmail) {
+        step = "email";
+        await send({ to: ws.deletedByEmail, ...deletionEmail(ws.name, ws.deletedAt) });
+        report.emails += 1;
+      }
     } catch (error) {
       report.failed += 1;
       console.error(`jobs:purge workspace ${ws.id} failed at ${step}: ${error instanceof Error ? error.name : "error"}`);

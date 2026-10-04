@@ -639,7 +639,7 @@ src/lib/workspace-data.ts; zip(entries, now) in src/lib/export/zip.ts; listKeys(
 src/lib/storage.ts. workspace.deleted_by (user id, set null). workspaces.markDeleted(ws, userId,
 now) and deletedForUser(userId, id or null) give DeletedWorkspace { id, name, deletedAt,
 deletedByEmail }; leaveDeleted(userId, id) ends a membership of a deleted workspace;
-AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id, beforeCommit) for
+AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id) for
 purgeDeletedWorkspaces(send) in src/lib/workspace-removal.ts (`npm run jobs:purge`). A deleted
 workspace's link from links.byToken carries revokedAt = deleted_at.
 

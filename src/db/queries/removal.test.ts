@@ -52,11 +52,6 @@ describe("purgeDeletedWorkspaces", () => {
     const deletedAt = new Date("2026-10-04T13:00:00Z");
     await workspaces.markDeleted(gone, ownerId, deletedAt);
 
-    // A failed email puts the rows back for the next run, and is logged as that step.
-    const failed = await purgeDeletedWorkspaces(async (m) => { if (m.to === `${ownerId}@example.com`) throw new Error("smtp down"); });
-    expect(failed.failed).toBeGreaterThanOrEqual(1);
-    expect(await rowsOf(gone)).toBeGreaterThan(0);
-
     const sent: Mail[] = [];
     const report = await purgeDeletedWorkspaces(async (m) => { sent.push(m); });
     expect(report.workspaces).toBeGreaterThanOrEqual(1);
@@ -70,5 +65,15 @@ describe("purgeDeletedWorkspaces", () => {
     const again = await purgeDeletedWorkspaces(async (m) => { sent.push(m); });
     expect(again.workspaces).toBe(0);
     expect(sent.filter((m) => m.to === `${ownerId}@example.com`)).toHaveLength(1);
+  });
+
+  it("deletes the rows even when the email fails, and counts the failure", async () => {
+    const ownerId = `removal-${randomUUID()}`;
+    await db.insert(user).values({ id: ownerId, name: "Owner", email: `${ownerId}@example.com`, emailVerified: true });
+    const ws = unsafeWorkspaceId((await createWorkspaceWithSample({ name: "Mailless Ltd", slug: `mailless-${randomUUID()}` }, ownerId)).id);
+    await workspaces.markDeleted(ws, ownerId);
+    const report = await purgeDeletedWorkspaces(async (m) => { if (m.to === `${ownerId}@example.com`) throw new Error("smtp down"); });
+    expect(report.failed).toBeGreaterThanOrEqual(1);
+    expect(await rowsOf(ws)).toBe(0);
   });
 });

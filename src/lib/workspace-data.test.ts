@@ -6,9 +6,9 @@ import { randomUUID } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
 import { beforeAll, describe, expect, it } from "vitest";
 import { members, projects, workspaces } from "@/db/queries";
-import { createWorkspaceWithSample } from "@/db/queries/onboarding";
+import { acceptPendingInvites, createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { links } from "@/db/queries/links";
-import { invites, responses } from "@/db/queries";
+import { invites, responses, workspaceInvites } from "@/db/queries";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
@@ -102,6 +102,16 @@ describe("deleteWorkspace", () => {
     const link = (await links.byToken(token))!;
     const refused = await responses.createPublic(ws, { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, deviceToken: randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "") }, (d) => d.revokedAt === null);
     expect(refused && "refused" in refused ? refused.refused.revokedAt : null).toEqual(now);
+    // Leaving refuses a live workspace and another person's membership.
+    const live = await requireWorkspace(owner.headers, (await createWorkspaceWithSample({ name: "Live Ltd", slug: `live-${randomUUID()}` }, owner.id)).id);
+    expect(await workspaces.leaveDeleted(owner.id, live)).toBe(false);
+    expect(await members.get(live, owner.id)).not.toBeNull();
+    expect(await workspaces.leaveDeleted(`someone-${randomUUID()}`, ws)).toBe(false);
+    // An open invitation to the deleted workspace is not accepted.
+    const invitee = `late-${randomUUID()}@example.com`;
+    await workspaceInvites.create(ws, { email: invitee, invitedBy: owner.id });
+    const lateUser = await signIn("late");
+    expect(await acceptPendingInvites(lateUser.id, invitee, 60)).toBe(0);
     // Leaving ends the membership of the deleted workspace only; the page does not come back.
     expect(await workspaces.leaveDeleted(member.id, ws)).toBe(true);
     expect(await workspaces.deletedForUser(member.id, null)).toBeNull();
