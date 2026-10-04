@@ -39,8 +39,9 @@ Public links and respondents
   write names the response the page answers for, so an open window's changes never land in a
   response started since in another window. From E7-5 the page also keeps the Wrap up's
   answers under smesay-wrap:[link token]: the response id, confidence, the closing answer
-  and the missing item (text, area, value), the version it was made on and the page and
-  number that wrote it, never the sign-off, until the server holds them (they save as they
+  and the missing item (text, area, value), the version it was made on, the page and number
+  that wrote it and the saves of other pages it was made on top of (their random page ids
+  and numbers), never the sign-off, until the server holds them (they save as they
   are written, PUT /r/[link token]/wrap, named for the response like every save, and Submit
   names it too); removed then and by a closed, revoked or unknown link's page. A kept change
   goes to the server only when the server holds nothing newer (the version rule), so an old

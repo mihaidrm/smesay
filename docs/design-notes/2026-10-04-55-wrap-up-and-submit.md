@@ -16,7 +16,7 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E7-5, under deci
   The page first waits for every change on the cards to reach the server. Under the invite
   row's lock and the response's (the one every save takes), the answers are read and
   checked, then the response is marked: the latest time, the first time kept, the sign-off
-  sentence, the closing answer, one missing item replaced. Before, a Submit could pass with
+  sentence, the closing answer, one missing item (written in place, so it keeps its id). Before, a Submit could pass with
   a change still on its way, checked outside the lock (the audit's second blocking finding).
 - The Wrap up's answers save to the server within a second as they are written (PUT
   /r/[token]/wrap; wrap-saver.ts, the cards' timing), like every answer (CLAUDE.md,

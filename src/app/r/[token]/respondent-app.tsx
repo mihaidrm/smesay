@@ -32,7 +32,7 @@
 // time in UTC, with Change my answers, which reopens the Wrap up with the sign-off
 // cleared). The form is saved as the respondent writes (wrap-saver.ts) and cannot be changed
 // while Submit posts. A Submit that fails keeps everything and says so.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { cn } from "cn";
 import { AboutYou } from "@/components/respondent/about-you";
 import { ChapterRow } from "@/components/respondent/chapter-row";
@@ -79,10 +79,15 @@ export type RespondentAppProps = {
   wrapSync: WrapSync;
 };
 
+// The page has hydrated (false in the server render and while hydrating, then true:
+// react.dev/reference/react/useSyncExternalStore, getServerSnapshot), as data-ready on the
+// root, so a browser test types only into a page that takes the typing.
+const noSubscribe = () => () => {};
 const firstName = (fields: ResponseFields): string | null => (fields.name ?? "").trim().split(/\s+/)[0] || null;
 
 export function RespondentApp(props: RespondentAppProps) {
   const { token, workspaceName, accent, logoUrl, headerNote, instrument, prefilled, items, areas } = props;
+  const ready = useSyncExternalStore(noSubscribe, () => true, () => false);
   const [started, setStarted] = useState(props.started);
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
   const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
@@ -269,7 +274,7 @@ export function RespondentApp(props: RespondentAppProps) {
       const cards = await saver.settle();
       if (cards !== "ok") { setSubmitError(cards === "check" ? RESPONDENT_ERRORS.checkCards : RESPONDENT_COPY.submitFailed); return; }
       const held = await wrapSaver.settle();
-      if (held !== "ok") { setSubmitError(held === "check" ? null : RESPONDENT_COPY.submitFailed); return; }
+      if (held !== "ok") { setSubmitError(held === "check" ? wrapSaver.lastProblem() : RESPONDENT_COPY.submitFailed); return; }
       const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
@@ -326,7 +331,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
   const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && chapters.length > 0 ? "max-w-[760px]" : "max-w-[560px]";
   return (
-    <div className={cn("mx-auto min-h-screen w-full bg-ground", width)}>
+    <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
         <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (

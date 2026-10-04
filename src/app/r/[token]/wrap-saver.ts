@@ -26,8 +26,8 @@
 // version the page holds (`claim`).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { delayFor, nextEntry, RETRY_MS, SAVE_TIMEOUT_MS, settleState } from "@/lib/answer-queue";
-import { EMPTY_WRAP, RESPONDENT_ERRORS, sameWrap, wrapKey, type SaveRef, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
-import { rebasedWrap, restorableWrap, withoutWrapEntry, withWrapEntry, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
+import { EMPTY_WRAP, RESPONDENT_ERRORS, wrapKey, type SaveRef, type WrapSync, type WrapValue } from "@/lib/respondent-rules";
+import { rebasedWrap, restorableWrap, sameEntry, withoutWrapEntry, withWrapEntry, wrapChange, wrapEntryOf, wrapReplyStep, type WrapEntry, type WrapReplyBody } from "@/lib/wrap-queue";
 import { newPageId } from "./answer-saver";
 
 export type WrapSaverEvents = {
@@ -66,8 +66,11 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
   const firstAt = useRef<number | null>(null);
   const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failing = useRef(false);
-  // How many replies refused the Wrap up or showed another window's (for settle).
+  // How many replies refused the Wrap up or showed another window's (for settle), the last
+  // sentence they gave, and the value last refused.
   const upsets = useRef(0);
+  const problem = useRef<string | null>(null);
+  const refused = useRef<WrapValue | null>(null);
   const alive = useRef(true);
   const eventsRef = useRef(events);
   useEffect(() => { eventsRef.current = events; }, [events]);
@@ -109,12 +112,14 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       // A reply for a response the page no longer answers for changes nothing.
       if (!alive.current || responseRef.current !== response) return;
       const body = (await reply.json().catch(() => ({}))) as WrapReplyBody;
-      const step = wrapReplyStep(reply.status, body, entry, current.current, pageId());
+      const step = wrapReplyStep(reply.status, body, entry, current.current, pageId(), known.current);
       if (step.outcome === "gone") { eventsRef.current.onGone(); return; }
       if (step.outcome === "notStarted") { eventsRef.current.onNotStarted(); return; }
       if (step.version !== null) known.current = Math.max(known.current, step.version);
-      if (step.held) held.current = step.held;
+      if (step.held) { held.current = step.held; refused.current = null; }
       if (step.failed !== null) markFailed(step.failed);
+      // Answered: a retry still set for an earlier failure is not needed.
+      if (step.failed === false && retry.current) { clearTimeout(retry.current); retry.current = null; }
       if (step.rebase !== null && current.current) {
         // A newer change waits: it goes on top of the page's own confirmed save.
         const base = step.rebase;
@@ -131,10 +136,15 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       }
       if (step.changedElsewhere || step.error) upsets.current += 1;
       if (step.changedElsewhere && step.held) {
+        problem.current = RESPONDENT_ERRORS.wrapChanged;
         setNotice(RESPONDENT_ERRORS.wrapChanged);
         eventsRef.current.onStale(step.held);
       }
-      if (step.error) setError(step.error);
+      if (step.error) {
+        problem.current = step.error;
+        refused.current = entry.draft;
+        setError(step.error);
+      }
       if (step.failed) scheduleRetry();
     } catch {
       // No connection, the time limit, or a keepalive the browser would not send: only a
@@ -144,9 +154,10 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       markFailed(true);
       scheduleRetry();
     } finally {
-      // A change made while this one was in flight goes now, unless its timer still runs.
+      // A change made while this one was in flight goes now, unless its timer still runs or it
+      // waits for its retry.
       const next = current.current;
-      if (alive.current && !keepalive && next && next !== entry && !inflight.current && !timer.current) void sendRef.current();
+      if (alive.current && !keepalive && next && !sameEntry(next, entry) && !inflight.current && !timer.current && !retry.current) void sendRef.current();
     }
   }, [token, update, pageId, markFailed, scheduleRetry, clearTimer]);
   useEffect(() => { sendRef.current = send; }, [send]);
@@ -157,17 +168,9 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
     if (!response) return;
     const value = eventsRef.current.clean(raw);
     const prev = current.current;
-    if (prev ? sameWrap(prev.draft, value) : sameWrap(held.current, value)) return;
+    if (wrapChange(prev, value, held.current, refused.current) === "skip") return;
     setError(null);
     setNotice(null);
-    // Back to what the server holds before the waiting change went: nothing to send.
-    if (prev && !inflight.current && sameWrap(held.current, value)) {
-      clearTimer();
-      firstAt.current = null;
-      current.current = null;
-      update((stored) => withoutWrapEntry(stored, response, prev.page, prev.seq));
-      return;
-    }
     seq.current += 1;
     const entry = nextEntry(prev ?? undefined, value, known.current, pageId(), seq.current);
     current.current = entry;
@@ -205,7 +208,12 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
   const submitted = useCallback((version: unknown, value: WrapValue) => {
     if (typeof version === "number") known.current = Math.max(known.current, version);
     held.current = value;
+    refused.current = null;
+    setNotice(null);
+    setError(null);
   }, []);
+  // The sentence of the last refusal or change elsewhere (what stopped a Submit's wait).
+  const lastProblem = useCallback(() => problem.current, []);
   const adopt = useCallback((body: WrapReplyBody) => {
     if (typeof body.version === "number") known.current = Math.max(known.current, body.version);
     if (body.wrap) {
@@ -279,5 +287,5 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
     };
   }, []);
 
-  return { failed, error, notice, queue, settle, claim, submitted, adopt, reset, bind };
+  return { failed, error, notice, queue, settle, claim, submitted, adopt, reset, bind, lastProblem };
 }

@@ -181,8 +181,14 @@ export const areasOf = (chapters: Chapter[]): string[] => chapters.flatMap((c) =
 export type WrapValue = { confidence: number | null; signed: boolean; closingAnswer: string; missing: { text: string; area: string; value: string } };
 export const EMPTY_WRAP: WrapValue = { confidence: null, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } };
 export const wrapKey = (token: string) => `smesay-wrap:${token}`;
-// Whether two Wrap ups say the same (the sign-off aside).
-export const sameWrap = (a: WrapValue, b: WrapValue): boolean => a.confidence === b.confidence && a.closingAnswer === b.closingAnswer && a.missing.text === b.missing.text && a.missing.area === b.missing.area && a.missing.value === b.missing.value;
+// Whether two Wrap ups say the same as the server stores them (the sign-off aside): the texts
+// trimmed, and a missing item with no text is none, whatever its area and value say
+// (parseWrapInput).
+export const sameWrap = (a: WrapValue, b: WrapValue): boolean => {
+  const ma = a.missing.text.trim();
+  const mb = b.missing.text.trim();
+  return a.confidence === b.confidence && a.closingAnswer.trim() === b.closingAnswer.trim() && ma === mb && (ma === "" || (a.missing.area === b.missing.area && a.missing.value === b.missing.value));
+};
 
 // An answer as stored (INTERFACES.md, AnswerKind) and when it is complete.
 export type AnswerState = { kind: AnswerKind; value: string | null; reason: string | null; comment: string | null };

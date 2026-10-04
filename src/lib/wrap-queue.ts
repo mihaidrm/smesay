@@ -89,12 +89,25 @@ export type WrapStep = {
   // Mark the Wrap up failed (true, it retries), clear it (false), or leave it (null).
   failed: boolean | null;
 };
-const same = (a: WrapEntry | null, b: WrapEntry) => a !== null && a.page === b.page && a.seq === b.seq;
-export function wrapReplyStep(status: number, body: WrapReplyBody, sent: WrapEntry, current: WrapEntry | null, self: string): WrapStep {
+export const sameEntry = (a: WrapEntry | null, b: WrapEntry) => a !== null && a.page === b.page && a.seq === b.seq;
+const same = sameEntry;
+
+// Whether a change of the form goes in the queue: not when it says what the change waiting
+// already says, nor, with none waiting, what the server holds or what it last refused (a
+// sign-off tick on a refused value sends it no second time). A change back to what the server
+// holds while another waits is queued too: that one may have landed unanswered.
+export function wrapChange(prev: WrapEntry | null, value: WrapValue, held: WrapValue, refused: WrapValue | null): "skip" | "queue" {
+  if (prev) return sameWrap(prev.draft, value) ? "skip" : "queue";
+  return sameWrap(held, value) || (refused !== null && sameWrap(refused, value)) ? "skip" : "queue";
+}
+// `known` is the highest version the page has seen: a reply about an older one (a keepalive
+// copy answered after later saves) changes nothing.
+export function wrapReplyStep(status: number, body: WrapReplyBody, sent: WrapEntry, current: WrapEntry | null, self: string, known: number): WrapStep {
   const outcome = outcomeOf(status, body.error);
   const step: WrapStep = { outcome, version: null, rebase: null, done: false, held: null, changedElsewhere: false, error: null, failed: null };
   if (outcome === "saved" || outcome === "stale") {
     step.version = validCount(body.version) ? body.version : null;
+    if (step.version === null || step.version < known) return step;
     const stored = outcome === "saved" ? sent.draft : (body.wrap ?? null);
     const writer = typeof body.writer === "string" ? body.writer : null;
     // The page's own: the server took it, or holds a write of this page, or exactly that

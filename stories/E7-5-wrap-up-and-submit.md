@@ -127,3 +127,14 @@ Built 2026-10-04 (design note 55, decision 0044):
   stale sentence under Submit clears on a change or a move; the receipt's rate-blind line is
   in docs/copy/emails.md; the wrap route's JSON-only test; a test runs the migration's
   backfill.
+- Fourth audit 2026-10-04: 0 blocking, 3 should-fix (a change put back to what the server
+  held while the first was in doubt was dropped; a kept change that landed trimmed read as
+  "changed elsewhere"; a late keepalive reply moved what the page thought the server held
+  back), 7 nits. Fixed: a change goes in the queue unless it says what waits, or with none
+  waiting what the server holds or last refused (wrapChange); Wrap ups are compared as the
+  server stores them (sameWrap trims and ignores an area and a value without text); a reply
+  about an older version than the page has seen changes nothing; the refusal that stops a
+  Submit shows under Submit; a Submit clears the Wrap up's sentence; one send per change
+  after a rebase; SECURITY.md lists the kept saves; the queue's decisions have unit tests
+  (src/lib/wrap-queue.test.ts). The area check against perspectives as of the save is
+  recorded in docs/review-list.md.

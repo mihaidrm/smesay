@@ -243,7 +243,7 @@ export function firstNameOf(link: Link, response: Pick<Response, "fields">): str
 // E2-6; no plan has a cap today); then, under the invite row's lock and the response's,
 // every visible item complete (read under the lock, so no save lands between the check and
 // the mark), the response marked submitted with the sign-off sentence the respondent saw and
-// its one missing item replaced. A second Submit updates the same response. A personal
+// its one missing item written in place. A second Submit updates the same response. A personal
 // invite's address gets the receipt (email 4) on the first Submit: an address the PM chose,
 // never one typed on a public link, which would let anyone send mail through SMEsay. The
 // receipt goes after the reply (`receipt`, run by the route with after():
