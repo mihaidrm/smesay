@@ -136,7 +136,7 @@ export function ResultsDemo() {
         <span className="rounded-full border border-dashed border-[#CFCBE0] px-2.5 py-1 font-semibold text-[#5E5A72]">+ Choose tiles</span>
         <div className="ml-auto flex rounded-full bg-[#EEEAFF] p-[3px]" role="group" aria-label="Chart view">
           {VIEWS.map((v) => (
-            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cn("h-8 rounded-full px-3.5 font-semibold whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", view === v ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{v}</button>
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cn("relative h-8 rounded-full px-3.5 font-semibold focus-visible:z-10 whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", view === v ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{v}</button>
           ))}
         </div>
       </div>

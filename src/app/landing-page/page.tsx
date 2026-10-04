@@ -6,7 +6,10 @@
 // Amended 2026-10-04 (design note 53, Mihai's review): the Shape card switches between the
 // spreadsheet as imported and the shaped list (concept 3 of the brainstorm); the third step
 // no longer speaks of phones, the questions do; "What you get back" leads with what the PM
-// gains, over the results fragment with its three views. The fragments use the Marlow
+// gains, over the results fragment with its three views. Amended the same day (design note
+// 58, Mihai: "a section ... where we absolutely show all the advantages ... compared to other
+// traditional ways"): "Why not a spreadsheet, a form or a workshop?" between What you get
+// back and Pricing, with Compare in the nav. The fragments use the Marlow
 // sample's own rows and numbers (src/db/seed/sample.ts). Desktop 1440 and
 // phone 390 in one pass (decision 0015): one column under 1024 px, the card upright and full
 // width, the type one step smaller. The landing keeps its own light and dark sections
@@ -23,6 +26,7 @@ import Link from "next/link";
 import { Mascot } from "@/components/app/mascot";
 import { Lockup } from "@/components/brand/mark";
 import { buttonVariants } from "@/components/ui/button";
+import { CompareDemo } from "./compare-demo";
 import { CursorLight } from "./cursor-light";
 import { ResultsDemo } from "./results-demo";
 import { Reveal } from "./reveal";
@@ -102,9 +106,10 @@ export default function LandingPage() {
         <CursorLight />
         <div className="relative mx-auto flex h-[76px] w-full max-w-[1200px] items-center justify-between px-5 md:px-8">
           <Link href="/landing-page" className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#9B86FF]"><Lockup text={18} onInk /></Link>
-          <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] md:gap-[30px]">
+          <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] lg:gap-[30px]">
             <a href="#how" className={navLink}>How it works</a>
             <a href="#outputs" className={navLink}>What you get</a>
+            <a href="#compare" className={navLink}>Compare</a>
             <a href="#pricing" className={navLink}>Pricing</a>
             <a href="#questions" className={navLink}>Questions</a>
             <Link href="/sign-in" className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</Link>
@@ -206,6 +211,21 @@ export default function LandingPage() {
               </Reveal>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="compare" className="border-t border-[#E6E3F0] bg-[#F7F6FB] py-16 md:py-24">
+        <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
+          <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Why not a spreadsheet, a form or a workshop?</h2>
+            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Each of them can collect what your experts think. Pick the one you use today and see what changes.</p>
+          </Reveal>
+          <Reveal delay={120} className="mt-8 md:mt-10">
+            <CompareDemo />
+          </Reveal>
+          <Reveal delay={240} className="mt-6 max-w-[720px] text-[16px] leading-6 text-[#5E5A72]">
+            <p>It does not replace the meeting where you decide. It gives that meeting the answers and the open points to start from.</p>
+          </Reveal>
         </div>
       </section>
 

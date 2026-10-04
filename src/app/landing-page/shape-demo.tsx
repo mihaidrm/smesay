@@ -54,7 +54,7 @@ export function ShapeDemo() {
     <div ref={box} className="flex flex-col gap-2.5" data-testid="shape-demo" data-side={side}>
       <div className="flex self-start rounded-full bg-[#EEEAFF] p-[3px] text-[13px] font-semibold" role="group" aria-label="Show the list">
         {SIDES.map((s) => (
-          <button key={s} type="button" aria-pressed={side === s} onClick={() => pick(s)} className={cn("h-8 rounded-full px-3.5 whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", side === s ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{s}</button>
+          <button key={s} type="button" aria-pressed={side === s} onClick={() => pick(s)} className={cn("relative h-8 rounded-full px-3.5 whitespace-nowrap outline-hidden focus-visible:z-10 transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", side === s ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{s}</button>
         ))}
       </div>
       {/* Both sides share one grid cell, so the card keeps the taller side's height and nothing jumps. */}

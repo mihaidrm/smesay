@@ -10,7 +10,7 @@ board and the page change in the same commit (decision 0017).
 
 ## Navigation
 
-SMEsay. How it works. What you get. Pricing. Questions. Start free.
+SMEsay. How it works. What you get. Compare. Pricing. Questions. Start free.
 
 ## Hero
 
@@ -92,6 +92,51 @@ closes. To do, written by AI · cites 2 answers.
 
 Label: Numbers that hold up. Every number on the dashboard matches the export to the row, so
 the result stands up in the steering meeting. Chips: CSV. PDF summary.
+
+## Compare (design note 58)
+
+Title: Why not a spreadsheet, a form or a workshop?
+
+Beside it: Each of them can collect what your experts think. Pick the one you use today and see
+what changes.
+
+Switch (works on the page), labelled What you use today: Spreadsheet by email (Spreadsheet
+under 640 px, so the three fit a phone), Survey form, Workshop. Column heads from 1024 px:
+Today, with a [WAY IN LOWER CASE]. With SMEsay. Under 1024 px each point stacks with the
+labels Today, with a [WAY IN LOWER CASE] and With SMEsay.
+
+- Setting it up.
+  - Today, spreadsheet by email: The sheet goes out in the words your team wrote it in, unless you rewrite it first.
+  - Today, survey form: You turn each item into a form question and rewrite the wording yourself where it needs it.
+  - Today, workshop: Finding a time that suits everyone, then a room or a call.
+  - With SMEsay: Import the sheet you already have. AI sorts it into areas and writes each item in plain words. You choose which wording goes out.
+- For your experts.
+  - Today, spreadsheet by email: They open an attachment, fill in a column and email it back. On a phone that is slow work.
+  - Today, survey form: A link, usually with no account to make. Each item is one more question in a long form.
+  - Today, workshop: An hour or more of everyone's time at once, for every item on the list.
+  - With SMEsay: A link, no account, made for a phone, in the wording you chose. Answers save as they go, so they can stop and carry on later on the same device, or anywhere with a personal link.
+- The reasons.
+  - Today, spreadsheet by email: A comment only when someone thinks to write one.
+  - Today, survey form: A rating, and a reason only where you set up a follow-up question.
+  - Today, workshop: Reasons are said out loud, and the notes keep some of them.
+  - With SMEsay: When you show your proposal and an expert does not agree, the answer asks for a reason before it counts. Unclear asks for their question.
+- Who has answered.
+  - Today, spreadsheet by email: You track replies in your inbox and chase the missing ones yourself.
+  - Today, survey form: Unless the form asks for a name or the tool sends the invitations, you cannot tell who has answered.
+  - Today, workshop: Whoever came took part. Whoever could not, missed it.
+  - With SMEsay: Send personal links by email and see who has submitted. Remind the others with one button, at most once every three days.
+- Reading the answers.
+  - Today, spreadsheet by email: You copy every reply into one sheet before you can count anything. Splitting by role is done by hand.
+  - Today, survey form: A chart per question. Whether the experts back your proposal, and why not, is yours to work out.
+  - Today, workshop: The loudest voices tend to set the direction. Quiet and remote experts tend to say less.
+  - With SMEsay: Everyone answers on their own. The answers arrive in one place, counted per item and area. Ask role or department as a list to pick from, and see which group disagrees and why, once three or more in a group have answered.
+- The result.
+  - Today, spreadsheet by email: A merged sheet to write the decisions up from. Checking it against the replies means going back through the emails.
+  - Today, survey form: A file of answers to turn into decisions yourself.
+  - Today, workshop: Notes or a board from the session, written up afterwards.
+  - With SMEsay: A to-do list drafted by AI, each line naming the answers behind it. Numbers that match the CSV to the row.
+
+Under it: It does not replace the meeting where you decide. It gives that meeting the answers and the open points to start from.
 
 ## Pricing
 
@@ -188,6 +233,30 @@ screen:
   files removed within 24 hours (E11-2; backups, E11-4, have no retention period in any story
   yet, a point for the privacy policy, E11-3, and the lawyer), free (decision 0008), hello@smesay.app (the domain,
   docs/accounts.md).
+- Compare (design note 58), the With SMEsay column, each with its condition: import the
+  sheet you already have, the AI's areas and plain words, the PM choosing the wording (E3,
+  E4-1 to E4-3); a link, no account, made for a phone, in the wording the PM chose (E6-1,
+  E7-1; E4-3 acceptance 2: a rewrite reaches the respondent only where the PM accepted it),
+  answers saved as they go, carrying on later on the same device or anywhere with a
+  personal link (E7-3 acceptance 2); a reason asked before the answer counts when the PM
+  shows the proposal and the expert does not agree, and a question for Unclear under every
+  method (E5-2 show proposed, E7-2; a rate-blind instrument asks no reason for a rating);
+  personal links by email, who has submitted, a reminder button for the others (E6-2, E6-3,
+  E8-2; personal links only, at most one reminder per person every three days); everyone
+  answering on their own, the answers in one place counted per item and area, the group
+  split when role or department is asked as a list to pick from (E8-1, E8-3 to E8-6;
+  decision 0043 makes Role a text field by default, so the PM changes it to a list; a text
+  field filters by "contains" and does not split groups; a group with fewer than 3
+  answers on an item is drawn but not compared, E8-6 acceptance 3); a to-do list drafted by AI naming the answers behind each line (E9-1);
+  numbers that match the CSV to the row (E10-1).
+- Compare, the Today column: the usual ways as most people use them, not products (design
+  note 58). These are comparisons with other ways of working and are checked at the launch
+  gate with the rest of this list. Who checks them is open: E11-3's lawyer reads the four
+  legal pages only, and adding this section is Mihai's decision (docs/review-list.md). Each
+  line must stay true for the common tools: a survey form line that a widely used tool
+  contradicts is rewritten or cut (the first audit of this section, 2026-10-04, rewrote
+  three for that reason and its re-audit two more), and no line says what "most" tools do.
+  "Tend to" marks the two tendencies in the workshop column.
 - The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
   on the link" (the settings, E2-5; the link shows them since E7-1).
 - The footer: "Privacy · Terms" are pages E11 writes (every one carries the lawyer markers),
