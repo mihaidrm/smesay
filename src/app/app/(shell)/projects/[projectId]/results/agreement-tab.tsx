@@ -11,6 +11,7 @@
 // conflict-view.tsx). Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { AlignedBars, Donut, Legend, StackedBar, type Series } from "@/components/app/charts";
+import { FadeOnChange } from "@/components/app/fade-on-change";
 import { Banner } from "@/components/ui/banner";
 import { items as itemsQuery, itemSets } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
@@ -129,7 +130,7 @@ function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { r
           <StackedBar title={AGREEMENT_COPY.chartTitle(what)} series={series(row.counts)} />
           <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="row-counts">{countsText(series(row.counts))}</p>
         </td>
-        <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(row.counts, rated)}</td>
+        <td className="w-[88px] px-4 text-right font-mono font-bold"><FadeOnChange value={figureText(row.counts, rated)} className="inline-block rounded-md">{figureText(row.counts, rated)}</FadeOnChange></td>
         {coverage && <td className="px-4 text-right font-mono text-xs whitespace-nowrap text-ink-muted" data-testid="row-coverage">{`${answeredOf(row.counts) + row.counts.pick} of ${row.counts.couldSee}`}</td>}
       </tr>
       {row.groups.map((g) => (

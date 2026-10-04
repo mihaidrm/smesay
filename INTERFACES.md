@@ -155,7 +155,13 @@ for a public-link response with no name), anon (for a public-link response with 
 name, its number among the instrument's public-link responses by start; null otherwise), status, changedSince, submittedAgain, answered (complete answers to
 the items seen), visible, submittedAt, reminders, withComment (answers that count under the
 switch) }, sorted by the filter's sort from the tab's list of columns (a field
-column only for a key in fieldKeys); gaps.byField(ws, instrumentId, filter, fieldKey) (E8-6)
+column only for a key in fieldKeys); onResultsChange(instrumentId, fn) (E8-7,
+src/db/queries/results-events.ts) calls fn after every committed write to the instrument's
+answers, responses or missing items, from one LISTEN per process on the Postgres channel
+"results" (drizzle/0020_results_notify.sql: a trigger sends the instrument's id and nothing
+else), and returns the function that stops it; GET /api/projects/[projectId]/events streams
+them to Results as server-sent events (ready, change { instrument, version }, ping every 5
+seconds) for a project of the session's workspace; gaps.byField(ws, instrumentId, filter, fieldKey) (E8-6)
 every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
 share between two groups with 3 answers or more, in percentage points; null when fewer than
 two are compared), groups: GapGroup { group ('' for the people with no value, Not given on

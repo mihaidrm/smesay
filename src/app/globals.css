@@ -314,6 +314,25 @@ html.mode-sweep::view-transition-new(mode-thumb) {
   }
 }
 
+/* A changed dashboard cell (stories/E8-7; design system, Motion): a violet-soft layer over the
+   cell that clears over 400 ms. Nothing moves under prefers-reduced-motion. */
+@keyframes cell-fade {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
+}
+.cell-fade {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--violet-soft);
+  opacity: 0;
+  animation: cell-fade 400ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell-fade { animation: none; }
+}
+
 /* The column of the pages outside the shell (sign-in, name the workspace, errors). */
 @utility auth-frame {
   margin-inline: auto;

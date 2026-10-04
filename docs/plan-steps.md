@@ -72,7 +72,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E5 Instrument builder | Intro, fields, scoring methods, layouts, perspectives, closing questions, live preview panel on every step (decision 0021). E5-1 to E5-5 built 2026-10-03; E5-6 after E7-5 (decision 0045), placed first after the pause that follows E8, before E9-1 (docs/review-list.md) | none | 4 | open |
 | E6 Sharing | Public link, dates, passcode, personal invites, reminders, kill switch. E6-1 to E6-3 built 2026-10-03, E6-4 built 2026-10-04 (PRs 78, 81, 82 and the E6-4 PR); Mihai's acceptance notes per story still owed | none | 3 | done |
 | E7 Respondent | Landing, fields, items, reasons, autosave, resume, missing items, summary, sign-off, accessibility. E7-1 to E7-7 built 2026-10-04 (PRs 84, 88, 90 to 94), the screens as built on the canvas (note 59); Mihai's acceptance notes per story still owed | none | 5 | done |
-| E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project. E8-1 to E8-6 built 2026-10-04 | none | 5 | open |
+| E8 Dashboard | Tracker, agreement, registers, item detail, conflict view, live updates, sample project. E8-1 to E8-7 built 2026-10-04 | none | 5 | open |
 | E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |
 | E10 Exports | CSV, JSON, PDF summary | none | 2 | open |
 | E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry and the lawyer at the launch gate | none until launch | 2 | open |
