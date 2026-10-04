@@ -5,7 +5,9 @@
 // page (the component the Build preview draws, src/components/respondent/about-you.tsx).
 // A personal link (stories/E6-2, acceptance 3) carries the name and role the PM typed:
 // those fields are not asked (the resume with "Welcome back" is E7-3's, once answers exist).
-// Every page is a page, never data (SECURITY.md). Dates are shown in UTC
+// The open page watches its link (E6-4, link-watch.tsx) and turns into the inactive or
+// closed page within a minute of a revoke or a close. Every page is a page, never data
+// (SECURITY.md). Dates are shown in UTC
 // (src/lib/sharing.ts formatUtc). Copy: docs/copy/errors.md (Respondent link states),
 // docs/copy/app.md (About you).
 import { cookies } from "next/headers";
@@ -17,6 +19,7 @@ import { PASSCODE_COOKIE, viewLink } from "@/lib/link-access";
 import { areaNames } from "@/lib/shaping";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
+import { LinkWatch } from "./link-watch";
 import { PasscodeForm } from "./passcode-form";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +56,7 @@ export default async function LinkRoute({ params }: { params: Promise<{ token: s
   })) : undefined;
   return (
     <div className="mx-auto min-h-screen w-full max-w-[560px] bg-ground">
+      <LinkWatch token={token} />
       <AboutYou workspaceName={link.brand.name} accent={accent} headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null} title={link.instrument.title} intro={link.instrument.intro} fields={link.instrument.respondentFields} prefilled={prefilled} firstChapter={firstChapter} perspectives={link.instrument.perspectives} className="min-h-screen" />
     </div>
   );

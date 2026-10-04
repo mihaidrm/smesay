@@ -17,9 +17,13 @@ Multi-tenancy
 
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
-- Revoked and closed instruments return a page, not data. Passcode attempts rate-limited.
+- Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
+  status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
+  Passcode attempts rate-limited.
 - A personal link (E6-2) is its own 128-bit token, sent to one address; the address is the
-  proof, so the public link's passcode does not apply to it. One personal invite per address
+  proof, so the public link's passcode does not apply to it. The token never reaches the
+  PM's browser: the Share page carries a 16-character hash of it for the stale-tab check on
+  Revoke (E6-4, src/lib/invitees.ts linkMark). One personal invite per address
   on an instrument (partial unique index). The provider's failure reason is stored on the
   row and shown to the PM only, cut to 200 characters with every word that could carry a
   host or a credential (an @, a scheme, an IPv4 or IPv6 address, a dotted host name, a

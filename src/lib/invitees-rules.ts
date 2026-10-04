@@ -20,8 +20,12 @@ export const INVITEES_COPY = {
   linkClosed: "The public link is closed. Move its close date to send invites.",
   linkRevoked: "The public link is revoked. Publish again to send invites.",
   linkReplaced: "A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link.",
+  newLinkReplaced: "A newer version of the list was published since the page opened. Nothing was sent. Reload the page to see where things stand.",
   headers: { person: "Person", status: "Status", reminders: "Reminders", actions: "Actions" },
-  status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent" },
+  status: { invited: "Invited", inProgress: "In progress", submitted: "Submitted", notSent: "Not sent", revoked: "Revoked" },
+  revoke: "Revoke",
+  newLink: "New link",
+  revokedLine: (when: string) => `Revoked ${when}. The link shows the inactive page.`,
   notSentHint: "Paste the address again to send it. A send in progress holds the address for 15 minutes.",
   noneSent: "None sent",
   remindersLine: (n: number, date: string) => `${n} sent, last ${date}`,
@@ -39,6 +43,11 @@ export const INVITEES_ERRORS = {
   inFlight: (email: string) => `A send to ${email} started in the last 15 minutes and may still be going. If the row still says Not sent after that, paste the address again.`,
   notSent: (email: string, reason: string) => `The invite to ${email} was not sent: ${reason}. Check the address and try again.`,
   badShape: "The list did not reach the server as text. Reload the page and try again.",
+  alreadyRevoked: (email: string) => `${email} is already revoked. Press New link to send a fresh one.`,
+  revokedAddress: (email: string) => `${email} is revoked. Press New link on its row to send a fresh one.`,
+  notRevoked: (email: string) => `${email} is not revoked, so it has its link. Reload the page to see the row as it is.`,
+  rowChanged: (email: string) => `${email} got a new link since the page opened. Reload the page to see the row as it is.`,
+  newLinkNotSent: (email: string, reason: string) => `The new link for ${email} was made but not sent: ${reason}. Paste the address again to send it.`,
 } as const;
 
 export type Invitee = { email: string; name: string | null; role: string | null };

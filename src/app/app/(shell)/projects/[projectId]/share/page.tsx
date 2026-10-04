@@ -1,6 +1,8 @@
 // Share (stories/E6-1; the PM app board, Share): the public link card with its state pill
-// (Draft, Published; Revoked is E6-4), the note for the state, the link with Copy link once
-// published, the open and close date-times, the passcode and Publish or Save. The card
+// (Draft, Published, Revoked), the note for the state, the link with Copy link once
+// published, the open and close date-times, the passcode and Publish or Save; "Revoke
+// link" under them while a link is in force, and "Publish again" (a new token) once it is
+// revoked (stories/E6-4, revoke-link.tsx). The card
 // shows the link in force (invites.livePublic: the newest instrument that has one); when a
 // newer draft exists above it ("Build on version N" after publishing), a second card offers
 // to publish the draft, which makes a new link; the link in force closes then (docs/review-list.md).
@@ -20,6 +22,7 @@ import { readAuthEnv } from "@/lib/auth";
 import { formatUtc, linkState, SHARE_COPY } from "@/lib/sharing";
 import { CopyLink } from "./copy-link";
 import { InvitesCard } from "./invites-card";
+import { RevokeLink } from "./revoke-link";
 import { ShareForm } from "./share-form";
 
 export default async function SharePage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -79,7 +82,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
         {state === "draft" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.draft}</NeutralPill> : state === "revoked" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.revoked}</NeutralPill> : <StatusPill status="agree" data-testid="link-state">{SHARE_COPY.states.published}</StatusPill>}
       </div>
       <p className="text-sm text-ink-muted" data-testid="link-note">{note}</p>
-      {url && <CopyLink url={url} />}
+      {url && state !== "revoked" && <CopyLink url={url} />}
       {isSample ? (
         <ul className="flex flex-col text-sm" data-testid="link-list">
           <li className="flex justify-between gap-4 py-2.5"><span>{SHARE_COPY.opensLabel}</span><span className="text-ink-muted">{invite?.opensAt ? formatUtc(invite.opensAt) : BUILD_COPY.off}</span></li>
@@ -87,7 +90,10 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
           <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
         </ul>
       ) : (
-        <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}`} projectId={projectId} instrumentId={instrument.id} published={invite !== null} opensAt={invite?.opensAt?.toISOString() ?? null} closesAt={invite?.closesAt?.toISOString() ?? null} hasPasscode={invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
+        <>
+          <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${state === "revoked" ? "revoked" : "live"}`} projectId={projectId} instrumentId={instrument.id} inviteId={invite && state !== "revoked" ? invite.id : null} published={invite !== null && state !== "revoked"} again={state === "revoked"} opensAt={state === "revoked" ? null : (invite?.opensAt?.toISOString() ?? null)} closesAt={state === "revoked" ? null : (invite?.closesAt?.toISOString() ?? null)} hasPasscode={state !== "revoked" && invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
+          {invite && state !== "revoked" && <RevokeLink projectId={projectId} instrumentId={instrument.id} inviteId={invite.id} />}
+        </>
       )}
     </section>
   );

@@ -13,9 +13,9 @@ import { createProject, deleteSample, saveContext, setArchived } from "@/lib/pro
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
-import { sendInvites } from "@/lib/invitees";
+import { renewInvitee, revokeInvitee, sendInvites } from "@/lib/invitees";
 import { remindAll, remindInvitee } from "@/lib/reminders";
-import { publishLink, saveLink } from "@/lib/sharing";
+import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { readAuthEnv } from "@/lib/auth";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
@@ -381,7 +381,7 @@ export async function saveLinkAction(_previous: ProjectFormState, formData: Form
   const { current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
-    const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
+    const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), String(formData.get("inviteId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
     if ("error" in result) return { ...NONE, error: result.error };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
@@ -441,6 +441,57 @@ export async function remindAllAction(_previous: RemindFormState, formData: Form
     if ("error" in result) return { ...REMIND_NONE, error: result.error };
     const failed = result.outcomes.filter((o) => !o.sent);
     return { ...REMIND_NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? "") };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
+// The kill switch (stories/E6-4): revoke the public link, revoke one personal link, or
+// make a new personal link and send it.
+export async function revokeLinkAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  const inviteId = String(formData.get("inviteId") ?? "");
+  try {
+    const result = await revokeLink(current.ws, projectId, instrumentId, inviteId);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    revalidatePath("/app");
+    if ("error" in result) return { ...NONE, error: result.error };
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+export async function revokeInviteAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  const inviteId = String(formData.get("inviteId") ?? "");
+  const mark = String(formData.get("mark") ?? "");
+  try {
+    const result = await revokeInvitee(current.ws, projectId, instrumentId, inviteId, mark);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    if ("error" in result) return { ...NONE, error: result.error };
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+export async function renewInviteAction(_previous: InvitesFormState, formData: FormData): Promise<InvitesFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  const instrumentId = String(formData.get("instrumentId") ?? "");
+  const inviteId = String(formData.get("inviteId") ?? "");
+  try {
+    const result = await renewInvitee(current.ws, projectId, instrumentId, inviteId, { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
+    revalidatePath(`/app/projects/${projectId}/share`);
+    if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
+    const o = result.outcome;
+    return { ...NONE, saved: true, sent: o.sent ? 1 : 0, failed: o.error ? [o.error] : [], again: o.sent ? [] : [o.line] };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;

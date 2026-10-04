@@ -128,7 +128,8 @@ projectId) (the project's link in force: the newest instrument's that has one),
 invites.publish(ws, instrumentId, { token, opensAt, closesAt, passcodeHash }, now) (one
 public link per instrument, created under the instrument row's lock; an existing one comes
 back with created: false; sets instrument.published_at and closes the project's older
-public links at `now`), invites.updatePublic(ws, instrumentId, patch); instruments.updateLocked(ws, instrumentId,
+public links at `now`), invites.updatePublic(ws, instrumentId, inviteId, patch) (the row the
+page showed; E6-4); instruments.updateLocked(ws, instrumentId,
 (published) => patch | null), the same lock, so saveScoring and saveClosing decide under it,
 and setPerspectives and tagItem refuse under it once an invite exists (E6-1, acceptance 5).
 Personal invites (E6-2): invites.personalWithStatus(ws, instrumentId) (each row with
@@ -162,6 +163,22 @@ remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send)
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
 and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
 src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
+The kill switch (E6-4): invites.revokePublic(ws, instrumentId, inviteId, now) (the project's
+link in force, under the project row's lock, when it is the row named; refused: none,
+replaced, revoked, changed), invites.revokePersonal(ws, id, token, now) (the row's token, read
+on the server; the page carries linkMark(token), a 16-character hash), invites.renewPersonal(ws, instrumentId, id, token, now) (under the instrument and
+project locks with the link in force checked as createPersonal does: a revoked personal
+row gets a fresh token, the link's dates, no revocation, not sent yet; refused: none,
+replaced, revoked, closed, notRevoked); invites.publish creates a new row when the newest
+public row is revoked and puts its dates on the open personal rows; invites.updatePublic
+refuses "revoked" and, with its new inviteId argument, "changed" for a row no longer in
+force; invites.claimResend skips revoked rows. revokeLink(ws, projectId, instrumentId,
+inviteId, now) and saveLink(ws, projectId, instrumentId, inviteId, ...) in src/lib/sharing.ts;
+revokeInvitee(ws, projectId, instrumentId, inviteId, mark, now), linkMark(token) and
+renewInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) in
+src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
+({ status: 200 | 404 | 410, state }) and GET /r/[token]/state (the same, as JSON { state },
+no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

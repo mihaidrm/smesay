@@ -15,6 +15,7 @@
 // with no outcome yet is another request's for RESEND_AFTER_MINUTES). Up to INVITEES_PER_DAY rows
 // per workspace in 24 hours. Words: INVITEES_COPY and INVITEES_ERRORS
 // (src/lib/invitees-rules.ts; docs/copy/app.md, Share; docs/copy/errors.md).
+import { createHash } from "node:crypto";
 import { invites, items, projects, workspaces } from "@/db/queries";
 import type { Invite, InviteeRow } from "@/db/queries/invites";
 import type { WorkspaceId } from "@/db/types";
@@ -61,7 +62,8 @@ export function reasonOf(error: unknown): string {
 export const refusalCopy = (refused: "none" | "replaced" | "revoked" | "closed"): string =>
   refused === "none" ? INVITEES_COPY.needLink : refused === "replaced" ? INVITEES_COPY.linkReplaced : refused === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.linkClosed;
 
-export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">): keyof typeof INVITEES_COPY.status {
+export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt" | "revokedAt">): keyof typeof INVITEES_COPY.status {
+  if (row.revokedAt) return "revoked";
   if (row.responseStatus === "submitted") return "submitted";
   if (row.responseStatus === "inProgress") return "inProgress";
   return row.sentAt === null ? "notSent" : "invited";
@@ -72,26 +74,99 @@ export async function listInvitees(ws: WorkspaceId, instrumentId: string): Promi
   return invites.personalWithStatus(ws, instrumentId);
 }
 
-// Send (acceptance 1, 2 and 5). The project live, the instrument the one Share shows (own),
-// its public link published and open or opening later; the list parsed whole before
-// anything is created, so one bad address stops the send with nothing sent; an address
-// already sent is refused the same way (acceptance 1), while one whose row was never sent
-// (Not sent) goes again on its row; then the rows, then the emails. `send` is the
-// transport, replaced in the tests to make one address fail.
-export async function sendInvites(ws: WorkspaceId, projectId: string, instrumentId: string, rawList: unknown, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcomes: SendOutcome[] }> {
-  const owned = await own(ws, projectId, instrumentId);
-  if ("error" in owned) return owned;
-  const { instrument } = owned;
+// The link in force must be published and open or opening later for a send; the words
+// for the other states.
+async function liveLinkFor(ws: WorkspaceId, instrumentId: string, now: Date): Promise<{ error: string } | { link: Invite }> {
   const link = await invites.publicForInstrument(ws, instrumentId);
   if (!link) return { error: INVITEES_COPY.needLink };
   const state = linkState(link, now);
   if (state === "closed") return { error: INVITEES_COPY.linkClosed };
   if (state === "revoked") return { error: INVITEES_COPY.linkRevoked };
+  return { link };
+}
+
+// Email 2 for a personal invite row, with the sender's name on it.
+async function inviteMailFor(ws: WorkspaceId, projectId: string, instrument: { itemSetId: string; intro: string | null }, invite: Invite, sender: Sender, baseUrl: string, now: Date): Promise<{ mail: Mail; pmName: string }> {
+  const project = await projects.get(ws, projectId);
+  const workspace = await workspaces.getById(ws);
+  if (!project || !workspace) throw new NotFoundError();
+  const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
+  const pmName = sender.name?.trim() || sender.email;
+  const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
+  return { mail: { ...mail, to: invite.email ?? "", fromName: `${pmName} via SMEsay`, replyTo: sender.email }, pmName };
+}
+
+// What the Share page carries for a personal row's link, so a stale tab's Revoke can be
+// told apart from the fresh link: a short hash of the token, never the token itself (the
+// token is the respondent's proof and stays on the server; SECURITY.md). SHA-256 from
+// node's crypto (nodejs.org/api/crypto.html, crypto.createHash); 16 hex characters are
+// enough to tell two links of one row apart.
+export const linkMark = (token: string): string => createHash("sha256").update(token).digest("hex").slice(0, 16);
+
+// Revoke one personal link (stories/E6-4, acceptance 2): the row gets revoked_at and its
+// token shows the inactive page; answers already given are kept. `mark` is linkMark of
+// the link the page showed: a stale tab whose row got a new link since is refused.
+export async function revokeInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, mark: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
+  if (!row) throw new NotFoundError();
+  if (row.revokedAt) return { error: INVITEES_ERRORS.alreadyRevoked(row.email ?? "") };
+  if (linkMark(row.token) !== mark) return { error: INVITEES_ERRORS.rowChanged(row.email ?? "") };
+  const revoked = await invites.revokePersonal(ws, inviteId, row.token, now);
+  if (!revoked) return { error: INVITEES_ERRORS.rowChanged(row.email ?? "") };
+  return { invite: revoked };
+}
+
+// A new link for a revoked personal invite (E6-4, acceptance 2): a fresh token on the same
+// row, with the public link's dates read under the locks (invites.renewPersonal; the link
+// in force must allow a send, as for sendInvites), then email 2 to the address. A failed
+// email leaves the row Not sent, to be pasted again.
+export async function renewInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcome: SendOutcome }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const live = await liveLinkFor(ws, instrumentId, now);
+  if ("error" in live) return live;
+  const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
+  if (!row) throw new NotFoundError();
+  const email = row.email ?? "";
+  if (!row.revokedAt) return { error: INVITEES_ERRORS.notRevoked(email) };
+  const result = await invites.renewPersonal(ws, instrumentId, inviteId, newToken(), now);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: result.refused === "notRevoked" ? INVITEES_ERRORS.notRevoked(email) : result.refused === "replaced" ? INVITEES_COPY.newLinkReplaced : refusalCopy(result.refused) };
+  const renewed = result.invite;
+  const { mail } = await inviteMailFor(ws, projectId, owned.instrument, renewed, sender, baseUrl, now);
+  const line = inviteeLine({ email, name: renewed.name, role: renewed.roleHint });
+  try {
+    await send(mail);
+  } catch (error) {
+    const reason = reasonOf(error);
+    await invites.update(ws, inviteId, { sendError: reason });
+    return { outcome: { email, line, sent: false, error: INVITEES_ERRORS.newLinkNotSent(email, reason) } };
+  }
+  await invites.update(ws, inviteId, { sentAt: now, sendError: null });
+  return { outcome: { email, line, sent: true, error: null } };
+}
+
+// Send (acceptance 1, 2 and 5). The project live, the instrument the one Share shows (own),
+// its public link published and open or opening later; the list parsed whole before
+// anything is created, so one bad address stops the send with nothing sent; an address
+// already sent, or revoked (E6-4: New link on its row instead), is refused the same way
+// (acceptance 1), while one whose row was never sent (Not sent) goes again on its row;
+// then the rows, then the emails. `send` is the
+// transport, replaced in the tests to make one address fail.
+export async function sendInvites(ws: WorkspaceId, projectId: string, instrumentId: string, rawList: unknown, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcomes: SendOutcome[] }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const { instrument } = owned;
+  const live = await liveLinkFor(ws, instrumentId, now);
+  if ("error" in live) return live;
   const parsed = parseInvitees(rawList);
   if ("error" in parsed) return { error: parsed.error };
   const existing = new Map<string, Invite>();
   for (const person of parsed.invitees) {
     const row = await invites.personalByEmail(ws, instrumentId, person.email);
+    if (row?.revokedAt) return { error: INVITEES_ERRORS.revokedAddress(person.email) };
     if (row?.sentAt) return { error: INVITEES_ERRORS.already(person.email) };
     if (row) existing.set(person.email, row);
   }
@@ -100,11 +175,6 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     const left = Math.max(0, INVITEES_PER_DAY - (await invites.countPersonalSince(ws, 24 * 60, now)));
     if (fresh.length > left) return { error: INVITEES_ERRORS.tooManyToday(left) };
   }
-  const project = await projects.get(ws, projectId);
-  const workspace = await workspaces.getById(ws);
-  if (!project || !workspace) throw new NotFoundError();
-  const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
-  const pmName = sender.name?.trim() || sender.email;
   // The new rows first, under the locks with the link checked and its dates read there (a
   // refusal there leaves nothing claimed); an address another send got in first is absent
   // from the rows and says so.
@@ -125,14 +195,16 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     const row = existing.get(person.email);
     if (!row) continue;
     const claimed = await invites.claimResend(ws, row.id, { name: person.name ?? row.name, roleHint: person.role ?? row.roleHint }, now);
-    if (claimed) created.push({ person, invite: claimed });
-    else results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.inFlight(person.email) });
+    if (claimed) { created.push({ person, invite: claimed }); continue; }
+    // Not claimed: in flight on another request, or revoked since the row was read.
+    const fresh = await invites.get(ws, row.id);
+    results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: fresh?.revokedAt ? INVITEES_ERRORS.revokedAddress(person.email) : INVITEES_ERRORS.inFlight(person.email) });
   }
   for (const { person, invite } of created) {
-    const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
+    const { mail } = await inviteMailFor(ws, projectId, instrument, invite, sender, baseUrl, now);
     let reason: string | null = null;
     try {
-      await send({ ...mail, to: person.email, fromName: `${pmName} via SMEsay`, replyTo: sender.email });
+      await send(mail);
     } catch (error) {
       reason = reasonOf(error);
     }

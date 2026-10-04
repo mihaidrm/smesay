@@ -55,7 +55,7 @@ Built 2026-10-03 (design note 47, decision 0044):
   (docs/review-list.md).
 - Acceptance 4: the list with Person, Status (Invited, In progress, Submitted from the
   response row; Not sent when the email failed) with the last save or submit, and Reminders
-  (None sent, or "[N] sent, last [DATE]"); Remind and Revoke per row come with E6-3 and E6-4.
+  (None sent, or "[N] sent, last [DATE]"); Remind and Revoke per row came with E6-3 and E6-4.
 - Acceptance 5: a send that fails stores the provider's first line in invite.send_error
   (migration 0016), the row shows Not sent with the reason, the message lists the address
   under "[N] invites sent.", the box keeps that address so Send tries it again on the same

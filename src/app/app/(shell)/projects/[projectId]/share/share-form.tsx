@@ -29,7 +29,10 @@ const toIso = (local: string): string => (local ? new Date(local).toISOString() 
 const noop = () => () => {};
 const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 
-export function ShareForm({ projectId, instrumentId, published, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; published: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
+// again: after a revoke (E6-4), the button reads "Publish again" and makes a new link.
+// inviteId: the published row the page showed, so a Save from a tab left open across a
+// revoke and a Publish again is refused (E6-4).
+export function ShareForm({ projectId, instrumentId, inviteId = null, published, again = false, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; inviteId?: string | null; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(published ? saveLinkAction : publishAction, { error: null, saved: false });
   const mounted = useMounted();
   const [opensTyped, setOpens] = useState<string | null>(null);
@@ -51,6 +54,7 @@ export function ShareForm({ projectId, instrumentId, published, opensAt, closesA
     <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="share-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
+      {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
       <input type="hidden" name="opensAt" value={toIso(opens)} />
       <input type="hidden" name="closesAt" value={toIso(closes)} />
       <input type="hidden" name="removePasscode" value={remove ? "1" : "0"} />
@@ -79,7 +83,7 @@ export function ShareForm({ projectId, instrumentId, published, opensAt, closesA
       </div>
       {state.error && !dirty && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       {!state.error && !dirty && state.saved && <p role="status" className="text-[13px] text-agree-text">{SHARE_COPY.saved}</p>}
-      <div className="flex justify-end"><Button type="submit" variant={published ? "secondary" : "primary"} loading={pending}>{published ? SHARE_COPY.save : SHARE_COPY.publish}</Button></div>
+      <div className="flex justify-end"><Button type="submit" variant={published ? "secondary" : "primary"} loading={pending}>{published ? SHARE_COPY.save : again ? SHARE_COPY.publishAgain : SHARE_COPY.publish}</Button></div>
     </form>
   );
 }

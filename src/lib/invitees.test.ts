@@ -212,7 +212,7 @@ describe("sendInvites", () => {
     expect(await invites.countPersonalSince(b.ws, 24 * 60, new Date())).toBe(6);
     // The personal links follow the public link's dates and carry the open date in the
     // email when it is later than the send; a closed link refuses sends.
-    const moved = await saveLink(a.ws, project.id, instrument.id, "2026-10-05T00:00:00Z", "2026-10-25T15:00:00Z", "", false, now);
+    const moved = await saveLink(a.ws, project.id, instrument.id, published.invite.id, "2026-10-05T00:00:00Z", "2026-10-25T15:00:00Z", "", false, now);
     if (!("invite" in moved)) throw new Error(moved.error);
     const followed = (await listInvitees(a.ws, instrument.id))[0];
     expect([followed.opensAt, followed.closesAt, followed.passcodeHash]).toEqual([new Date("2026-10-05T00:00:00Z"), new Date("2026-10-25T15:00:00Z"), null]);

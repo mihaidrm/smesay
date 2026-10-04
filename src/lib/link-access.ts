@@ -70,6 +70,19 @@ export async function viewLink(token: string, cookie: string | undefined, now = 
   return viewOf(link, cookie, now);
 }
 
+// The link's state for the respondent app's checks (stories/E6-4, acceptance 4: the
+// 60-second poll and, from E7-3, every autosave): a status and a word, nothing else. 404
+// for an unknown token, 410 (gone) for a revoked or closed link, 200 otherwise; "passcode"
+// means the device has no proof yet (the page itself asks for it). An autosave route
+// refuses to write on anything but 200 "open".
+export type LinkStatus = { status: 200; state: "open" | "notOpen" | "passcode" } | { status: 404; state: "unknown" } | { status: 410; state: "revoked" | "closed" };
+export async function linkStatus(token: string, cookie: string | undefined, now = new Date()): Promise<LinkStatus> {
+  const view = await viewLink(token, cookie, now);
+  if (view.kind === "unknown") return { status: 404, state: "unknown" };
+  if (view.kind === "revoked" || view.kind === "closed") return { status: 410, state: view.kind };
+  return { status: 200, state: view.kind };
+}
+
 // Attempts in this process, two Maps: per link and per link and address, each an entry per
 // key with the count in the current window. A count is taken only for a link that exists
 // and is at its passcode step, after the database read, so unknown tokens never enter a

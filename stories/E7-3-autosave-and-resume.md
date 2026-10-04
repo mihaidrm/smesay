@@ -28,6 +28,10 @@ loses nothing.
    unchanged items by reference.
 6. The Response schema section of INTERFACES.md is written in this story: the autosave
    payload and the stored answer shape the dashboard and exports read.
+7. Owed from E6-4 (recorded 2026-10-04): the autosave route checks the link through
+   linkStatus (src/lib/link-access.ts) before every write and answers 410 with nothing
+   written on a revoked or closed link; a test proves an autosave after revocation is
+   refused with 410 and nothing written.
 
 ## Out of scope
 - Offline for hours: the queue is per tab, not a service worker.

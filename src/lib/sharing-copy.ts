@@ -31,6 +31,9 @@ export const SHARE_COPY = {
   passcodeSet: "A passcode is set. Type a new one to change it.",
   removePasscode: "Remove the passcode",
   publish: "Publish",
+  publishAgain: "Publish again",
+  revoke: "Revoke link",
+  revokeHint: "Nobody can open the link after this. Answers already given are kept. Publish again makes a new link.",
   save: "Save",
   saved: "Saved.",
   closedNow: "The link is closed. Respondents see the closed page.",
@@ -46,6 +49,9 @@ export const LINK_ERRORS = {
   longPasscode: `Use at most ${PASSCODE_MAX} characters for the passcode.`,
   notPublished: "This instrument is not published yet. Press Publish first.",
   alreadyPublished: "This instrument is already published. Reload the page to see its link.",
+  alreadyRevoked: "This link is already revoked. Press Publish again for a new one.",
+  revokedSave: "This link is revoked. Press Publish again for a new one; its dates are set then.",
+  changed: "This link changed since the page opened. Reload the page to see where it stands.",
 } as const;
 
 export const LINK_PAGE_COPY = {
