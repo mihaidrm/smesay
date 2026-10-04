@@ -18,8 +18,6 @@ export const RESULTS_COPY = {
     export: "Export",
   },
   tabsLabel: "Results views",
-  // The tabs whose content comes with a later story (E8-2 to E8-6, E9, E10).
-  comesWith: (tab: string, story: string) => `${tab} comes with story ${story}.`,
   filterLabel: "Filter the results",
   answer: "Answer",
   withComment: "With a reason or comment",

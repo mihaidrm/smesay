@@ -137,7 +137,8 @@ instrument outside the workspace; results.rows(ws, instrumentId, filter) the ans
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
 submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
 it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
-count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
+count under the switch), minutesToSubmit (whole minutes, rounded in SQL; medianMinutes is
+their median, rounded) } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
 E10-1's "People" and "Missing items" files; registers.answers(ws, instrumentId, filter, kinds, fieldKeys, method) and registers.missing(ws,
 instrumentId, filter, fieldKeys, method) (E8-4) the answers of the kinds asked (change, disagree,
@@ -556,3 +557,20 @@ insights.setState(ws, projectId, insightId, from, state, userId, now) under the 
 lock; replaceOpen skips an action matching a done or dismissed one (sameAction: kind and the sets of cited answers and missing
 items). citationLines(answers, missing, anonymous) gives "[Name] and [Name] on [REF]" (an item with no
 reference by its text in quotes, cut at 40 characters) and "[Name], missing item".
+
+## CSV exports (results -> files)
+Owner: E10-1. Consumer: the Export tab; E11-2 reads export_log.
+Version 1, 2026-10-04. GET /api/projects/[projectId]/export/[file] with the Results page's
+query (file: answers, items, people, missing; EXPORT_FILES in src/db/types.ts): the project
+through the session's workspace, else 404; the filter by parseResultsFilter with the PM's
+stored switch. exportTable(ws, instrument, file, filter, ctx, sample) in
+src/lib/export/files.ts returns { preamble, header, rows } from results.rows (each ResultRow
+now carries who, anon, fields, perspectives, source, submittedAt, changedSince),
+agreement.byItem,
+tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
+header, rows), line, field (a text cell starting like a formula gets a single quote, safeText),
+isoUtc and BOM in src/lib/export/csv.ts. A request with Sec-Fetch-Site: cross-site gets 403.
+Every download writes an export_log row (workspace_id, project_id, made_by, file, filter in
+words with a text filter's value left out (describeFilter(f, ctx, true)) or null, rows,
+created_at; exportLogs in src/db/queries).
+

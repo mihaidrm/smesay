@@ -19,6 +19,8 @@ import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { answers as fixture, expected, people, missingItem } from "@/db/seed/sample";
 import type { WorkspaceId } from "@/db/types";
 import type { ResultsFilter } from "@/lib/results-filter";
+import { exportTable } from "@/lib/export/files";
+import { perItem } from "@/lib/export/per-item";
 
 let sql: ReturnType<typeof postgres>;
 const userId = `results-${Date.now()}`;
@@ -364,6 +366,11 @@ describe("the Agreement tab's numbers", () => {
         expect(performance.now() - started).toBeLessThan(500);
         await reconcile(wsC, instrumentC, f, split);
       }
+      // E10-1: the Answers file added up per item equals the Items with totals file, cell by cell.
+      const inst = (await instruments.get(wsC, instrumentC))!;
+      const ctxC = { fields: inst.respondentFields, perspectives: inst.perspectives };
+      const files = await Promise.all([exportTable(wsC, inst, "answers", f, ctxC, false), exportTable(wsC, inst, "items", f, ctxC, false)]);
+      for (const [k, [fromAnswers, fromItems]] of perItem(files[0], files[1])) expect(fromAnswers, k).toEqual(fromItems);
       // The item detail (E8-5) on the same rows.
       const cl04 = (await sql`select it.id from item it where it.workspace_id = ${wsC} and it.item_set_id = ${item_set_id} and it.source_ref = 'CL-04'`)[0].id as string;
       const started = performance.now();

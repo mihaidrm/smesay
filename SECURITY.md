@@ -78,6 +78,8 @@ Data
 - Uploads validated by type and size (5 MB, 2,000 rows); parsed server-side in the request,
   within those caps (decision 0040).
 - Exports and deletion per workspace; deletion removes rows and objects within 24 hours.
+- A CSV export writes a text cell that starts with =, +, -, @, a tab or a line break with a
+  single quote in front, so a spreadsheet does not run it as a formula (OWASP, CSV Injection).
 - No personal data in logs, Sentry events or analytics.
 
 AI

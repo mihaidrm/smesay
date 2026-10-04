@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0022_insight_closed).
+v1, 2026-10-04 (the date of the latest migration, 0023_export_log).
 
-Generated from the snapshot of the 23 migrations in drizzle/ (0022_snapshot.json) by
+Generated from the snapshot of the 24 migrations in drizzle/ (0023_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -344,6 +344,26 @@ Foreign keys: ai_run_project_fk (project_id, workspace_id) references project (i
 
 Indexes: ai_run_workspace_idx on workspace_id; ai_run_project_idx on project_id.
 Checks: ai_run_purpose_check: purpose in ('shape', 'insights').
+
+## export_log
+
+every download of an export: who, when, the file, the filter in words, the rows (E10-1, for E11-2).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade, not null |
+| project_id | uuid | fk project.id with workspace_id, on delete cascade, not null |
+| made_by | text | fk user.id, on delete set null |
+| file | text | not null |
+| filter | text |  |
+| rows | integer | not null |
+| created_at | timestamp with time zone | not null, default now() |
+
+Foreign keys: export_log_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
+
+Indexes: export_log_workspace_idx on workspace_id; export_log_project_idx on project_id; export_log_made_by_idx on made_by.
+Checks: export_log_file_check: file in ('answers', 'items', 'people', 'missing').
 
 ## upload
 

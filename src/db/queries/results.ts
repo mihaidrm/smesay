@@ -117,11 +117,24 @@ type NumbersRow = {
 
 // One person and one missing item as the filter keeps them, for the tiles that count people
 // and missing items (the reconciliation test adds them up; docs/review-list.md: E10-1's files).
+// A person's minutes from Start to their first Submit, rounded to a whole minute in SQL (round on
+// numeric rounds a half away from zero: postgresql.org/docs/current/functions-math.html). The
+// tile is the median of these whole minutes, rounded the same way, so the People file's column
+// gives it back: ROUND(MEDIAN(column), 0) in a spreadsheet (E10-1, acceptance 3).
+const WHOLE_MINUTES = sql.raw("round(greatest(0, extract(epoch from (first_submitted_at - created_at)) / 60)::numeric)::int");
+
 export type PersonOfRows = { id: string; invited: boolean; submitted: boolean; counted: boolean; minutesToSubmit: number | null };
 export type MissingRow = { id: string; responseId: string; text: string };
 
-// One answer as the filter keeps it (E10-1 writes these; the test adds them up).
-export type ResultRow = { id: string; responseId: string; itemId: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean };
+// One answer as the filter keeps it (E10-1 writes these; the test adds them up), with its
+// respondent as the Responses tab names them (who, else Anonymous [anon]), their fields, the
+// perspectives they picked, the link they came by and when they submitted.
+export type ResultRow = {
+  id: string; responseId: string; itemId: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean;
+  who: string | null; anon: number | null; fields: Record<string, string>; perspectives: string[]; source: "public" | "personal"; submittedAt: Date | null;
+  // Submitted, then changed without a second Submit (the Responses tab's mark, decision 0030).
+  changedSince: boolean;
+};
 
 export const results = {
   numbers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultsNumbers | null> => {
@@ -144,7 +157,7 @@ export const results = {
         (select count(*) from per_item where n = 0)::int as unanswered_items,
         (select count(*) from per_item where n > 0 and other = 0)::int as fully_agreed,
         (select count(*) from per_item where pushed > 0)::int as pushed_back_items,
-        (select round((percentile_cont(0.5) within group (order by greatest(0, extract(epoch from (first_submitted_at - created_at)) / 60)))::numeric)::int
+        (select round((percentile_cont(0.5) within group (order by ${WHOLE_MINUTES}))::numeric)::int
           from sel where src = 'r' and first_submitted_at is not null) as median_minutes,
         exists (select 1 from answer a join response r on r.id = a.response_id join inst on r.instrument_id = inst.id where a.workspace_id = ${ws} and r.workspace_id = ${ws}) as any_answer,
         (select count(*) from insight s join inst on s.project_id = inst.project_id where s.workspace_id = ${ws} and s.state = 'open'
@@ -161,16 +174,21 @@ export const results = {
   },
   rows: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean }>(sql`${head(ws, instrumentId, f)}
-      select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted
+    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean; who: string | null; anon: string | number | null; fields: Record<string, string> | null; perspectives: string[] | null; source: string; submitted_at: string | Date | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+      select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted,
+          c.who, c.anon, c.fields, c.perspectives, c.source, c.submitted_at, c.signed_off
         from ans join counted c on c.id = ans.response_id order by ans.response_id, ans.item_id`);
-    return rows.map((r) => ({ id: r.id, responseId: r.response_id, itemId: r.item_id, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, submitted: r.submitted }));
+    return rows.map((r) => ({
+      id: r.id, responseId: r.response_id, itemId: r.item_id, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, submitted: r.submitted,
+      who: r.who, anon: r.anon === null ? null : Number(r.anon), fields: r.fields ?? {}, perspectives: r.perspectives ?? [], source: r.source === "personal" ? "personal" : "public",
+      submittedAt: r.submitted_at === null ? null : new Date(r.submitted_at), changedSince: r.submitted && !r.signed_off,
+    }));
   },
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<PersonOfRows[]> => {
     if (!isUuid(instrumentId)) return [];
     const rows = await db.execute<{ id: string; src: string; submitted: boolean; counted: boolean; minutes: number | null }>(sql`${head(ws, instrumentId, f)}
       select sel.id, sel.src, (sel.submitted_at is not null) as submitted, exists (select 1 from counted c where c.id = sel.id) as counted,
-          case when sel.first_submitted_at is not null then greatest(0, extract(epoch from (sel.first_submitted_at - sel.created_at)) / 60)::float end as minutes
+          case when sel.first_submitted_at is not null then ${WHOLE_MINUTES} end as minutes
         from sel order by sel.id`);
     return rows.map((r) => ({ id: r.id, invited: r.src === "i", submitted: r.submitted, counted: r.counted, minutesToSubmit: r.minutes }));
   },

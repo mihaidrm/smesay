@@ -23,7 +23,8 @@ existing parts.
 - Tiles: the catalogue's twelve, six on by default (the board's six with the new names), up
   to six, per PM per instrument. "Items with a different priority or disagree" names what the
   story called "items most pushed back". Median minutes to submit runs from the response's
-  start to its first Submit.
+  start to its first Submit; since E10-1 it is the median of each person's whole minutes, so
+  the People file gives it back.
 - Tab counts: Different priority and Disagree counts both kinds; Questions and gaps the
   unclear answers and the missing items suggested; Actions the project's open actions (E9,
   not filtered). Each tab's content comes with its story and says so until then.
