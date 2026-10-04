@@ -10,9 +10,10 @@
 // the header (`nav`), and the footer with Back, "Continue to [NEXT AREA]" or "Continue to
 // Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
 // later." or "All [M] rated in this chapter."
-import { Mark } from "@/components/brand/mark";
+import { cn } from "cn";
+import { PoweredBy } from "./powered-by";
 import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
-import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
+import { BUILD_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
 import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
 import { RespondentHeader } from "./respondent-header";
@@ -43,12 +44,15 @@ export type ChapterScreenProps = {
   continueLabel: string;
   footerNote: string;
   onContinue: () => void;
+  poweredBy?: boolean;
 };
 
-const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
+const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
+// Previous and Next item sit on the ground, not the footer: their ring offset is the ground.
+const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue } = props;
+  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true } = props;
   const chapter = chapters[index];
   const card = (it: RespondentItem) => (
     <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} />
@@ -78,7 +82,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
         ) : (
           <>
             <div className="flex flex-col gap-1">
-              <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] outline-hidden" tabIndex={-1} data-screen-heading data-testid="chapter-title">{chapter.name ?? title}</h1>
+              <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={-1} data-screen-heading data-testid="chapter-title">{chapter.name ?? title}</h1>
               {chapter.intro && <p className="text-sm leading-5 text-ink-muted">{chapter.intro}</p>}
             </div>
             {layout === "item" ? (
@@ -86,8 +90,8 @@ export function ChapterScreen(props: ChapterScreenProps) {
                 <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(at + 1, chapter.items.length, chapter.name ?? title)}</p>
                 <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{card(chapter.items[at])}</div>
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => onItem(at - 1)} disabled={at === 0} className={BUTTON} data-testid="previous-item">{RESPONDENT_COPY.previousItem}</button>
-                  <button type="button" onClick={() => onItem(at + 1)} disabled={at >= chapter.items.length - 1} className={BUTTON} data-testid="next-item">{RESPONDENT_COPY.nextItem}</button>
+                  <button type="button" onClick={() => onItem(at - 1)} disabled={at === 0} className={cn(BUTTON, ON_GROUND)} data-testid="previous-item">{RESPONDENT_COPY.previousItem}</button>
+                  <button type="button" onClick={() => onItem(at + 1)} disabled={at >= chapter.items.length - 1} className={cn(BUTTON, ON_GROUND)} data-testid="next-item">{RESPONDENT_COPY.nextItem}</button>
                 </div>
               </>
             ) : (
@@ -95,13 +99,13 @@ export function ChapterScreen(props: ChapterScreenProps) {
             )}
           </>
         )}
-        <div className="flex items-center justify-center gap-1.5 py-2 text-[13px] text-ink-muted">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></div>
+        <PoweredBy show={poweredBy} />
       </main>
       <footer className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
         <p className="text-sm text-ink-muted" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
         <div className="flex items-center gap-3">
           <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
-          <button type="button" onClick={onContinue} className="h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface md:grow-0" data-testid="chapter-continue">{continueLabel}</button>
+          <button type="button" onClick={onContinue} className="h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface md:grow-0" data-testid="chapter-continue">{continueLabel}</button>
         </div>
       </footer>
     </div>

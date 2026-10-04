@@ -64,7 +64,7 @@ export function PreviewPanel({ about, chapters: allChapters, layout, perspective
       <SegmentedControl value={screen} onChange={setScreen} label={BUILD_COPY.previewScreenSwitch} options={[{ value: "about", label: BUILD_COPY.previewScreens.about }, { value: "items", label: BUILD_COPY.previewScreens.items }, { value: "wrapup", label: CLOSING_COPY.previewScreen }]} className="self-start" />
       <div className="mx-auto h-[720px] w-[390px] overflow-x-hidden overflow-y-auto rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-frame">
         {screen === "wrapup" ? (
-          <WrapUp key={JSON.stringify(wrap.closing)} workspaceName={about.workspaceName} accent={about.accent} {...wrap} chapters={chapters.flatMap((c) => (c.name ? [c.name] : []))} total={total} preview heading="h4" ring />
+          <WrapUp key={JSON.stringify(wrap.closing)} workspaceName={about.workspaceName} accent={about.accent} poweredBy={about.poweredBy} {...wrap} chapters={chapters.flatMap((c) => (c.name ? [c.name] : []))} total={total} preview heading="h4" ring />
         ) : screen === "about" ? (
           <AboutYou key={`${JSON.stringify(about.fields)}-${about.intro}-${about.title}-${perspectives.join("|")}`} {...about} firstChapter={firstChapter} perspectives={perspectives} picked={picked} onPickPerspectives={setPicked} preview heading="h4" ring="fields" />
         ) : (

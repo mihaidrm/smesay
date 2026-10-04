@@ -102,3 +102,38 @@ describe("saveBrand", () => {
     expect(await workspaces.publicBrand(randomUUID())).toBeNull();
   });
 });
+
+// stories/E7-7, acceptance 4: on dark the accent is lifted two steps (OKLCH lightness 0.72,
+// the hue kept) and drawn with the dark ink; violet 600 and ink take violet 400. A lift that
+// still fails would take violet 400 too; a sweep of every sRGB colour that passes 4.5:1 on
+// white found none (the second E7-7 audit), so that branch is a guard no input reaches.
+describe("the accent on dark", () => {
+  it("lifts a readable accent; SMEsay's own colours take violet 400", async () => {
+    const { darkAccent, liftAccent, DARK_FALLBACK_ACCENT, DARK_SURFACE, ON_DARK_ACCENT, accentVars } = await import("@/lib/brand-rules");
+    const { contrastRatio } = await import("@/lib/contrast");
+    // Grey stays grey; design note 33's example comes out near its #6FA8E6.
+    expect(liftAccent("#808080")).toBe("#A4A4A4");
+    expect(liftAccent("#1F4F7A")).toBe("#78A9DA");
+    // Violet 600 and ink are SMEsay's: violet 400, as the design system names it.
+    expect([darkAccent("#6D4CF5"), darkAccent("#15131F")]).toEqual([DARK_FALLBACK_ACCENT, DARK_FALLBACK_ACCENT]);
+    expect(contrastRatio(DARK_FALLBACK_ACCENT, DARK_SURFACE)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(DARK_FALLBACK_ACCENT, ON_DARK_ACCENT)).toBeGreaterThanOrEqual(4.5);
+    // A PM's colour keeps its hue, and reads on the dark surface and under the dark ink.
+    for (const hex of ["#1F4F7A", "#B00020", "#0B6E4F", "#7A4E00", "#0000FF"]) {
+      expect(darkAccent(hex)).toBe(liftAccent(hex));
+      expect(contrastRatio(darkAccent(hex), DARK_SURFACE)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(darkAccent(hex), ON_DARK_ACCENT)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrastRatio(darkAccent("#1F4F7A"), DARK_SURFACE)).toBeGreaterThanOrEqual(4.5);
+    expect(accentVars("#1F4F7A")).toEqual({ "--brand-accent": "#1F4F7A", "--brand-accent-dark": darkAccent("#1F4F7A") });
+  });
+});
+
+// stories/E7-7, acceptance 5: "Powered by SMEsay" on the Free plan only.
+describe("Powered by SMEsay by plan", () => {
+  it("shows on the Free plan and not on a paid one", async () => {
+    const { showsPoweredBy } = await import("@/lib/brand-rules");
+    expect(showsPoweredBy("free")).toBe(true);
+    expect([showsPoweredBy("pro"), showsPoweredBy("team"), showsPoweredBy("enterprise")]).toEqual([false, false, false]);
+  });
+});

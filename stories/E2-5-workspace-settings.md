@@ -16,8 +16,9 @@ saved.
    uses ink (docs/design-system.md, respondent theming; Brand 06). The check uses
    src/lib/contrast.ts.
 3. The respondent side uses the accent on the selected answer, the active chapter and the
-   progress bar only; buttons stay ink (decision 0016). "Powered by SMEsay" stays on the Free
-   plan (design system, Identity).
+   progress bar, and from E7-7 on the confidence picked on the Wrap up and the header's
+   initials when there is no logo (decision 0016, amended 2026-10-04); buttons stay ink.
+   "Powered by SMEsay" stays on the Free plan (design system, Identity).
 4. Every field validates on the server (CLAUDE.md, PM side): name 1 to 80 characters, hex
    colour as #RRGGBB, logo type and size by content, not extension. Saving is owner-only through
    `can()` (E2-4, src/lib/permissions.ts: workspace.rename, workspace.accent, workspace.logo);

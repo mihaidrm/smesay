@@ -42,3 +42,8 @@ Approved by Mihai on 2026-10-03 ("Yeah looks good") and built the same day on th
 sign-in: design note 34 lists the files, the components added and the departures from the
 boards. The landing page (E12) and the respondent side (E5) are built on v2 when their
 stories come up.
+
+Amended 2026-10-04 (E7-7, decision 0016's amendment, recorded in docs/review-list.md): on the
+respondent side the PM's accent also marks the confidence picked on the Wrap up and the
+header's initials when the workspace has no logo, lifted on dark the same way (OKLCH
+lightness 0.72, design note 57).

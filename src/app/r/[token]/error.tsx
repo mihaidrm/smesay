@@ -15,7 +15,7 @@ export default function LinkError({ retry }: { error: Error & { digest?: string 
       <main className="mx-auto flex w-full max-w-[560px] grow flex-col gap-4 px-5 pt-6 pb-8">
         <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{LINK_PAGE_COPY.errorTitle}</h1>
         <p className="text-[17px] leading-[26px] text-ink-muted">{LINK_PAGE_COPY.errorLine}</p>
-        <button type="button" onClick={retry} className="h-12 self-start rounded-full bg-ink px-6 text-base font-bold text-ground">{LINK_PAGE_COPY.tryAgain}</button>
+        <button type="button" onClick={retry} className="h-12 self-start rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{LINK_PAGE_COPY.tryAgain}</button>
       </main>
     </div>
   );

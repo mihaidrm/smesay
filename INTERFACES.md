@@ -121,7 +121,12 @@ Members: list, listWithUsers (with name and email), countOwners, get, add, setRo
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
 into memberships. Brand (E2-5): workspaces.publicBrand(workspaceId) gives name, accent and logo key to public
 pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effectiveAccent()`
-in src/lib/brand-rules.ts is what the respondent side uses; the logo is at
+in src/lib/brand-rules.ts is what the respondent side uses, and from E7-7 `liftAccent(hex)`
+(OKLCH lightness DARK_LIGHTNESS, 0.72, the hue kept), `darkAccent(hex)` (the accent on dark:
+the lift, or DARK_FALLBACK_ACCENT for SMEsay's own colours and a lift under 4.5:1 against
+DARK_SURFACE or ON_DARK_ACCENT), `accentVars(accent)` ({ "--brand-accent",
+"--brand-accent-dark" }), the classes ACCENT_FILL and ACCENT_BAR that paint with them, and
+`showsPoweredBy(plan)` (the Free plan); the logo is at
 /brand/[workspaceId]/logo. Object storage: putObject, getObject, deleteObject in
 src/lib/storage.ts, keyed by path; nothing else touches the bucket.
 Links (E6-1): invites.publicForInstrument(ws, instrumentId), invites.livePublic(ws,
@@ -230,7 +235,8 @@ in the address as ?at=about, ?at=[chapter number] and ?at=wrap. The device queue
 in src/lib/answer-queue.ts, with doneFrom from E7-4 (whether a reply's `complete` replaces
 the page's, by version).
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
-invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
+invite, its instrument, project and workspace brand (name, accent, logo key and, from E7-7,
+plan, for "Powered by SMEsay" on the Free plan), with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.
 `publishLink()`, `saveLink()`, `linkState()`, `formatUtc()` in src/lib/sharing.ts;
 `viewLink(token, cookie)`, the passcode proof and the attempt limit in src/lib/link-access.ts;

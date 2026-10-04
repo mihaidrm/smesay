@@ -48,6 +48,7 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const link = await phone.newPage();
   await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
   await link.getByLabel("Name").fill("Ana Pop");
   await link.getByLabel("Role").fill("Finance lead");
   await link.getByTestId("about-you-start").click();
@@ -88,6 +89,7 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   await phone.setOffline(false);
   const again = await phone.newPage();
   await again.goto(url);
+  await again.locator("[data-ready]").waitFor();
   // Every Submitting item is complete, so the visit lands on Approving.
   await expect(again.getByTestId("chapter-title")).toHaveText("Approving");
   await again.getByTestId("chapter-back").click();
@@ -96,6 +98,7 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   await expect(splitAgain.getByTestId("card-reason")).toHaveValue("Which projects?");
   await expect(splitAgain.getByTestId("item-card-note")).toHaveText("Saved");
   await again.reload();
+  await again.locator("[data-ready]").waitFor();
   await expect(splitAgain.getByTestId("card-reason")).toHaveValue("Which projects?");
 
   // A change kept unsent on one device never replaces an answer another device saved since
@@ -125,11 +128,13 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   await phone.unroute("**/answers");
   const third = await phone.newPage();
   await third.goto(`${url}?at=1`);
+  await third.locator("[data-ready]").waitFor();
   const receiptsThird = third.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
   await expect(receiptsThird.getByTestId("card-reason")).toHaveValue("Newer, from the laptop.");
   await expect(receiptsThird.getByTestId("item-card-note")).toHaveText("This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand.");
   // The phone's change is dropped: the visit after shows the laptop's answer as saved.
   await third.reload();
+  await third.locator("[data-ready]").waitFor();
   await expect(receiptsThird.getByTestId("card-reason")).toHaveValue("Newer, from the laptop.");
   await expect(receiptsThird.getByTestId("item-card-note")).toHaveText("Saved");
   await phone.close();
@@ -141,6 +146,7 @@ test("autosave within a second, offline queue, resume, no storage", async ({ pag
   });
   const tab = await locked.newPage();
   await tab.goto(url);
+  await tab.locator("[data-ready]").waitFor();
   await tab.getByLabel("Name").fill("Bo");
   await tab.getByLabel("Role").fill("Sales");
   await tab.getByTestId("about-you-start").click();

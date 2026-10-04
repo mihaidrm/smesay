@@ -74,6 +74,7 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   await wrapSaved;
   // They survive a reload before Submit.
   await link.reload();
+  await link.locator("[data-ready]").waitFor();
   await expect(link.getByLabel("What is missing")).toHaveValue("Mileage from a start and end address");
   await expect(link.getByLabel("Where it belongs")).toHaveValue("Submitting");
   await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();

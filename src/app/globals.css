@@ -343,6 +343,9 @@ html.mode-sweep::view-transition-new(mode-thumb) {
   .font-mono {
     font-variant-numeric: tabular-nums;
   }
+  /* Reduced motion stops every transition and animation, the respondent side's 150 and 250 ms
+     ones included (stories/E7-7, acceptance 6; developer.mozilla.org/docs/Web/CSS/@media/
+     prefers-reduced-motion). */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

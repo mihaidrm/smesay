@@ -5,14 +5,17 @@
 // value with a dashed muted border and the caption "proposed" (shown only when the
 // instrument shows proposals); the 1 to 5 scale carries "no fit" and "fits fully" under
 // its ends, flush with the row's edges since a 390 px row of six pills is narrower than the
-// words. The selected pill fills with the PM's accent and white text (E7-2 acceptance 7;
-// the accent passes 4.5 to 1 on white by src/lib/brand-rules.ts; the dark lift of the
-// accent is E7-7's, docs/review-list.md). A radio group per the ARIA pattern
-// (w3.org/WAI/ARIA/apg/patterns/radio): one tab stop, the arrow keys move and select, each
-// caption is its pill's description, the group is named "Your rating" and the item.
+// words. The selected pill fills with the PM's accent and white text, and on dark with the
+// accent lifted and the dark ink (E7-2 acceptance 7, E7-7 acceptance 4; ACCENT_FILL in
+// src/lib/brand-rules.ts). A radio group per the ARIA pattern
+// (w3.org/WAI/ARIA/apg/patterns/radio): one tab stop, the arrow keys move and select, the
+// proposed pill is named "[VALUE], proposed" (its caption is hidden from screen readers, so
+// it is read once), "no fit" and "fits fully" are their pills' descriptions, the group is
+// named "Your rating" and the item.
 import { useRef } from "react";
 import { cn } from "cn";
 import type { ScaleLabels, ScoringMethod } from "@/db/types";
+import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 import { scaleFor, SCORING_COPY, UNCLEAR } from "@/lib/scoring";
 
 // idKey: a stable key for the ids (the item's id on the respondent page; two items may
@@ -47,7 +50,8 @@ export function RatingRow({ method, labels, proposed, showProposed, value, accen
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                aria-describedby={captionId}
+                aria-label={isProposed ? `${p.label}, ${SCORING_COPY.proposed}` : undefined}
+                aria-describedby={isProposed ? undefined : captionId}
                 tabIndex={tabbable ? 0 : -1}
                 onClick={() => onChange?.(p.code)}
                 onKeyDown={(e) => {
@@ -58,14 +62,14 @@ export function RatingRow({ method, labels, proposed, showProposed, value, accen
                 data-code={p.code}
                 data-proposed={isProposed || undefined}
                 className={cn(
-                  "flex h-[38px] w-full items-center justify-center overflow-hidden rounded-full border px-0.5 text-center text-[10px] leading-3 font-semibold tracking-[-0.01em] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-                  selected ? "border-transparent text-white" : isProposed ? "border-[1.5px] border-dashed border-ink-muted text-ink" : "border-hairline-strong text-ink-muted",
+                  "flex h-[38px] w-full items-center justify-center overflow-hidden rounded-full border px-0.5 text-center text-[10px] leading-3 font-semibold tracking-[-0.01em] focus:outline-hidden transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                  selected ? cn("border-transparent", ACCENT_FILL) : isProposed ? "border-[1.5px] border-dashed border-ink-muted text-ink" : "border-hairline-strong text-ink-muted",
                 )}
-                style={selected ? { background: accent } : undefined}
+                style={selected ? (accentVars(accent) as React.CSSProperties) : undefined}
               >
                 <span className="line-clamp-2">{p.label}</span>
               </button>
-              <span id={captionId} className={cn("h-3.5 w-max whitespace-nowrap font-mono text-[10px] leading-[14px] text-ink-muted", i === 0 && "self-start", i === pills.length - 2 && caption && !isProposed && "self-end")}>{caption ?? ""}</span>
+              <span id={captionId} aria-hidden={isProposed || undefined} className={cn("h-3.5 w-max whitespace-nowrap font-mono text-[10px] leading-[14px] text-ink-muted", i === 0 && "self-start", i === pills.length - 2 && caption && !isProposed && "self-end")}>{caption ?? ""}</span>
             </div>
           );
         })}

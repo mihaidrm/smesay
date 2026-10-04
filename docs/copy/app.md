@@ -44,7 +44,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Logo, none yet (a member's view) | No logo yet |
 | Logo remove checkbox | Remove logo |
 | Accent label | Accent colour |
-| Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter and the progress bar. Buttons stay ink. |
+| Accent line, readable | Contrast on white [RATIO]:1. Used on the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink. |
 | Accent line, none set | No accent set. The respondent page uses violet. |
 | Save button | Save |
 | Line after saving | Saved. Your instruments carry the new name, logo and accent. |
@@ -264,13 +264,14 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Pills, MoSCoW | Must, Should, Could, Not needed, Unclear (or the PM's labels) |
 | Pills, 1 to 5 fit | 1, 2, 3, 4, 5, Unclear, with "no fit" under 1 and "fits fully" under 5 |
 | Pills, keep change drop | Keep, Change, Drop, Unclear |
-| Caption under the proposed pill | proposed |
+| Caption under the proposed pill | proposed (the pill is named "[VALUE], proposed" for screen readers, E7-7) |
 | Footer note | Not rated yet; Say why.; Write your question.; Saved (the respondent page, E7-2); Not saved yet while the page cannot reach the server (E7-3). The Build preview shows the picked label once complete (it saves nothing) |
 | Reason box over a value other than the proposal (E7-2) | Why [VALUE] and not [PROPOSED]? The team reads every reason. |
 | Reason box over Not needed (E7-2) | Why is it not needed, or what should it say instead? |
 | Question box over Unclear (E7-2) | What would you need to know to rate it? |
 | Comment (E7-2; an answer that needs no reason) | [Toggle: + comment / Hide comment], box label: Comment, optional |
 | Details (E7-2; when the import carried more text and a box is open) | [Toggle: Details / Hide details] |
+| Details that scroll (E7-7; the name a screen reader reads for the details when they are longer than their slot) | Details: [ITEM] |
 | One item per screen (E7-2) | Item [N] of [M] in [AREA] over one card; [Button: Previous item] [Button: Next item] |
 | Single long page (E7-2) | All [N] on one page, every area as a heading over its cards |
 
@@ -285,7 +286,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Field label | [LABEL] (an optional field: [LABEL] (optional)) |
 | Dropdown first option | Choose one |
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
-| Powered by | Powered by SMEsay |
+| Powered by | Powered by SMEsay (while the workspace is on the Free plan, E7-7; on About you, the chapters, the Wrap up, Done, the nothing-to-rate screen, the link pages with a workspace and the Build preview) |
 | Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
 | Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] [Button: Continue to [NEXT AREA] / Continue to Wrap up] |
 | Chapter row (E7-4; not on the single long page) | About you, [AREA] [DONE]/[COUNT] for each chapter (read as "[AREA], [DONE]/[COUNT] answered"), Wrap up; named "Chapters" for screen readers; under it a bar named "Items answered" ([N] of [M]) |
