@@ -6,8 +6,9 @@
 // another window or on another device since the page's values (409 { error: "stale", wrap,
 // version, writer, writerSeq, changedSince, submittedAt }), every item complete and the rest
 // of the Wrap up (422 with the sentence), the plan's monthly responses (403). JSON only, up to 16 KB
-// (src/lib/request-json.ts). The answer is { submittedAt (ISO, UTC), name (the first name for
-// the thanks, or null), version (the Wrap up's) } or { error }. The
+// (src/lib/request-json.ts). The answer is { submittedAt (ISO, UTC; the stored time, at least
+// a millisecond after the response's Submit before, E7-6), name (the first name for the
+// thanks, or null), version (the Wrap up's) } or { error }. The
 // receipt (a personal invite's first Submit) is sent after the reply, with after()
 // (node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md). Its link
 // starts from the app's own address, BETTER_AUTH_URL without a trailing slash, read here

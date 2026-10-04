@@ -397,11 +397,14 @@ describe("after Submit", () => {
     const later = new Date("2026-10-06T01:00:00Z");
     await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, later, async () => {});
     expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.signedOff]).toEqual([true, false, true]);
-    // A Submit stored after another whose clock was ahead (two at once): its time still moves
-    // forward, a millisecond on, and its answer says the stored time.
+    // A Submit stored after another whose clock was ahead (two at once), here with the first
+    // Submit's own clock: its time still moves forward, a millisecond on, its answer says the
+    // stored time, the first Submit stays, and no second receipt goes.
     const ahead = new Date(later.getTime() + 1);
-    const behind = await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, day, async () => {});
-    expect(["submittedAt" in behind ? behind.submittedAt.toISOString() : behind, (await responses.forInvite(a.ws, cy.id))!.submittedAt?.toISOString()]).toEqual([ahead.toISOString(), ahead.toISOString()]);
+    const behind = await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, now, async () => {});
+    if (!("submittedAt" in behind)) throw new Error(JSON.stringify(behind));
+    const stored = (await responses.forInvite(a.ws, cy.id))!;
+    expect([behind.submittedAt.toISOString(), stored.submittedAt?.toISOString(), stored.firstSubmittedAt?.toISOString(), behind.receipt]).toEqual([ahead.toISOString(), ahead.toISOString(), now.toISOString(), null]);
     // The Wrap up changed after Submit takes it back too.
     expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: ahead.toISOString() });
     expect((await mark())[1]).toBe(true);

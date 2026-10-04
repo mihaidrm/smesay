@@ -300,9 +300,10 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
   if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
   if ("invalid" in saved) return { status: 422, error: saved.invalid };
-  // The first Submit, decided from the row written under the lock: two Submits at once on
-  // one personal link send one receipt.
-  const first = saved.firstSubmittedAt?.getTime() === now.getTime();
+  // The first Submit, decided from the row written under the lock: its stored time is the
+  // first Submit's, and every later one is stored at least a millisecond after it, so two
+  // Submits at once on one personal link send one receipt, even with the same clock.
+  const first = saved.submittedAt !== null && saved.submittedAt.getTime() === saved.firstSubmittedAt?.getTime();
   const to = link.invite.kind === "personal" && first ? link.invite.email : null;
   const receipt = to
     ? async () => {
