@@ -12,6 +12,7 @@
 // and the write are saveWrap (src/lib/respondent.ts). No rate limit yet: E11-1
 // (docs/review-list.md).
 import { NextResponse } from "next/server";
+import { isPreviewToken } from "@/lib/preview-token";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { cookieValue } from "@/lib/request-cookies";
 import { readJson } from "@/lib/request-json";
@@ -22,6 +23,8 @@ export const dynamic = "force-dynamic";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  // A preview (stories/E5-6, acceptance 4) never writes.
+  if (isPreviewToken(token)) return NextResponse.json({ error: RESPONDENT_ERRORS.preview }, { status: 403, headers: { "cache-control": "no-store" } });
   const headers = { "cache-control": "no-store" };
   const read = await readJson(request);
   if ("status" in read) return NextResponse.json({ error: RESPONDENT_ERRORS.badShape }, { status: read.status, headers });

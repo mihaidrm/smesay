@@ -31,11 +31,13 @@ export type ChapterRowProps = {
   onGo: (screen: Screen) => void;
   // While a Submit posts (E7-6) the pills do not move the page.
   locked?: boolean;
+  // The builder's preview rings the row when its step changes it (stories/E5-6).
+  ring?: boolean;
 };
 
 const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap focus:outline-hidden transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false }: ChapterRowProps) {
+export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false, ring = false }: ChapterRowProps) {
   const active = useRef<HTMLAnchorElement | null>(null);
   const key = screenParam(screen);
   useEffect(() => {
@@ -64,7 +66,7 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
   return (
     <div className="flex flex-col gap-0 border-b border-hairline bg-surface" data-testid="chapter-nav">
       {showRow && (
-        <nav aria-label={RESPONDENT_COPY.chapters} className="relative">
+        <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && "m-1 rounded-full ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ring || undefined}>
           <ol className="flex gap-1.5 overflow-x-auto px-5 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="chapter-row">
             {pill({ kind: "about" }, RESPONDENT_COPY.aboutYou, "row-about")}
             {chapters.map((c, i) => pill({ kind: "chapter", index: i }, <>{c.name}<span className="font-mono text-[11px] font-medium" aria-hidden="true">{progress[i]?.done ?? 0}/{progress[i]?.count ?? 0}</span></>, `row-chapter-${i + 1}`, `${c.name}, ${RESPONDENT_COPY.pillAnswered(progress[i]?.done ?? 0, progress[i]?.count ?? 0)}`))}

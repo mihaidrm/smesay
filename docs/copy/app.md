@@ -221,8 +221,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Dropdown options | Options, one per line |
 | Buttons | Add a field (disabled at 8), Save (secondary, both cards); Saved. (until the next change) |
 | Fields card on the sample | [LABEL] with Text, required / Dropdown, [N] options, required / Email, optional; The sample project cannot be edited. |
-| Preview panel (E5-6 fills it in) | Preview; Phone; Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row. (on the Wrap up screen, E5-5: Highlighted: what the Closing card changes. The missing-item form, the closing question and the sign-off; confidence is always asked.) |
-| Preview screen switch (E5-2 and E5-5; the control is named "Preview screen"; focusing or clicking the Closing card opens Wrap up) | About you, Items, Wrap up (the Items screen: the workspace name, "0 of [N]" over the whole list, the chapter pills, "[AREA] [N] items", up to ten cards, then "The first 10 of [N] items. The rest follow in the same way."; an empty chapter: "No items in this chapter yet.") |
+| Preview panel (E5-6; on Import, Shape, Build and Share, not on Results, Projects or Settings) | Preview; [Toggle: Desktop / Phone] (named Device); [Link: Open full size] (a new tab); the caption: Import sets the chapters and the cards. / Shape changes the wording on the cards. / Build changes the rating row, the chapter row, About you and the Wrap up. / Share sets the closing date in the header.; the frame's name for screen readers: What respondents see. Inside, the respondent app with "Preview: nothing you enter here is saved" on every screen |
+| The preview's own pages (E5-6) | An expired or another person's preview: This preview has expired. / Open the project again in SMEsay to see its preview.; before a list: [PROJECT NAME] / Import a list to see what respondents get.; a revoked link on Share: the withdrawn page (Link inactive.) |
 
 ## Share (E6-1)
 

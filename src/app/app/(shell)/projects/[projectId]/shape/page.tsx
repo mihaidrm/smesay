@@ -21,6 +21,7 @@ import { Board } from "./board";
 import { FlagBanners } from "./flags";
 import { ReaderAll } from "./reader-all";
 import { ShapeButton } from "./shape-button";
+import { WithPreview } from "../with-preview";
 
 export default async function ShapePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -50,7 +51,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const flags = flagsFor(rows);
   const notesFor = (id: string) => flags.filter((f) => f.itemId === id).map((f) => (f.kind === "ambiguity" ? SHAPE_COPY.ambiguityNote(SHAPE_COPY.sentence(f.what)) : SHAPE_COPY.duplicateItemNote(f.otherRef)));
   return (
-    <div className="flex flex-col gap-5">
+    <WithPreview projectId={project.id} step="shape">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl font-bold tracking-[-0.02em]">{SHAPE_COPY.title}</h2>
@@ -87,7 +88,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
       ) : (
         <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} perspectives={perspectives} />
       )}
-    </div>
+    </WithPreview>
   );
 }
 

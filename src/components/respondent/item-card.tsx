@@ -34,7 +34,11 @@ export type ItemCardProps = {
   proposed: string | null;
   showProposed: boolean;
   accent: string;
+  // The builder's preview rings what its step changes (stories/E5-6, acceptance 2): the
+  // rating row (Build), the whole card (Import) or its wording (Shape).
   ring?: boolean;
+  ringCard?: boolean;
+  ringWording?: boolean;
   // The respondent app: the draft, whether the server has its complete answer, and the change.
   idKey?: string;
   draft?: CardDraft;
@@ -61,7 +65,7 @@ const BOX = "min-h-[52px] w-full grow resize-none rounded-xl border border-hairl
 // tap on its edge stays the box's.
 const TOGGLE = "relative rounded-sm text-xs font-semibold after:absolute after:-inset-x-1.5 after:-top-3 after:-bottom-5 after:content-[''] text-ink-muted underline-offset-2 focus:outline-hidden hover:text-ink hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, accent, ring, idKey, draft: controlled, saved = false, unsaved = false, error = null, onChange }: ItemCardProps) {
+export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, accent, ring, ringCard = false, ringWording = false, idKey, draft: controlled, saved = false, unsaved = false, error = null, onChange }: ItemCardProps) {
   const [own, setOwn] = useState<CardDraft>(EMPTY_DRAFT);
   const draft = controlled ?? own;
   const set = (next: CardDraft) => (onChange ? onChange(next) : setOwn(next));
@@ -97,8 +101,8 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note === "sayWhy" ? RESPONDENT_COPY.sayWhy : note === "writeQuestion" ? RESPONDENT_COPY.writeQuestion : onChange ? (saved ? RESPONDENT_COPY.saved : unsaved ? RESPONDENT_COPY.notSavedYet : "") : (labelFor(method, labels, draft.picked) ?? "");
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(labelFor(method, labels, answer.value) ?? "", labelFor(method, labels, proposed) ?? "");
   return (
-    <fieldset className={cn("card flex min-w-0 flex-col gap-2 p-3", slot === "details" ? "h-[260px]" : "min-h-[260px]")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>
-      <legend className="float-left flex w-full items-baseline gap-2">
+    <fieldset className={cn("card flex min-w-0 flex-col gap-2 p-3", slot === "details" ? "h-[260px]" : "min-h-[260px]", ringCard && "ring-2 ring-violet ring-offset-4 ring-offset-ground")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>
+      <legend className={cn("float-left flex w-full items-baseline gap-2", ringWording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
         {reference && <span className="shrink-0 font-mono text-[11px] text-ink-muted">{reference}</span>}
         <span className="line-clamp-2 text-base leading-[23px] font-semibold">{title}</span>
       </legend>

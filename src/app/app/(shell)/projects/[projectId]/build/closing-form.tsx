@@ -21,7 +21,6 @@ import type { ClosingSpec } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { CLOSING_COPY, CLOSING_QUESTION_MAX, SIGN_OFF_MAX, signOffFor } from "@/lib/closing";
 import { saveClosingAction, type ProjectFormState } from "../../actions";
-import { usePreviewScreen } from "./preview-screen";
 
 export function ClosingForm({ projectId, instrumentId, closing, locked }: { projectId: string; instrumentId: string; closing: ClosingSpec; locked: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveClosingAction, { error: null, saved: false });
@@ -29,11 +28,10 @@ export function ClosingForm({ projectId, instrumentId, closing, locked }: { proj
   const [missingForm, setMissingForm] = useState(closing.missingForm);
   const [signOff, setSignOff] = useState(signOffFor(closing));
   const [dirty, setDirty] = useState(false);
-  const { setScreen } = usePreviewScreen();
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} onFocus={() => setScreen("wrapup")} onClick={() => setScreen("wrapup")} noValidate className="flex flex-col gap-4" data-testid="closing-form">
+    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="closing-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="missingForm" value={missingForm ? "1" : "0"} />

@@ -2,7 +2,8 @@
 // personal invite; open the public link in a respondent tab (About you); revoke it in the
 // PM app and see the card read Revoked; the respondent tab turns into the inactive page
 // within 60 seconds without a reload (the poll); Publish again makes a new link that
-// opens; revoke the personal row, see Revoked, press New link and read the new email.
+// opens; revoke the personal row, see Revoked, press New link and read the new email. The
+// preview on Share shows the withdrawn page once the link is revoked (E5-6).
 import { expect, test } from "@playwright/test";
 import { latestInvite, latestLink } from "./mailpit";
 
@@ -59,6 +60,8 @@ test("revoke the public link, see the inactive page within a minute, publish aga
   await expect(page.getByTestId("link-note")).toHaveText("The link now shows a page saying it was withdrawn. Answers already given are kept.");
   await expect(page.getByTestId("share-link")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Publish again" })).toBeVisible();
+  // The preview on Share shows the withdrawn page too (stories/E5-6, acceptance 2).
+  await expect(page.frameLocator("[data-testid=preview-iframe]").getByRole("heading", { name: "Link inactive." })).toBeVisible();
   // The state check answers 410 at once; the open tab follows within the poll's minute.
   const state = await request.get(`${url}/state`);
   expect(state.status()).toBe(410);

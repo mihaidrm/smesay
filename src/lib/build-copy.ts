@@ -5,8 +5,6 @@ import { FIELDS_COPY } from "@/lib/respondent-fields";
 
 export const INTRO_MAX = 1000;
 export const TITLE_MAX = 80;
-// The preview draws at most this many cards (stories/E5-2; a set can hold 2,000 rows).
-export const PREVIEW_CARDS = 10;
 
 export const BUILD_COPY = {
   title: "Build the instrument",
@@ -35,11 +33,6 @@ export const BUILD_COPY = {
   buildOn: (version: number) => `Build on version ${version}`,
   alreadyLatest: "This instrument is already built on the latest version of the list.",
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
-  preview: "Preview",
-  previewCaption: "Highlighted: what this step changes. The fields respondents fill in, the chapter row and the rating row.",
-  previewCaptionWrapUp: "Highlighted: what the Closing card changes. The missing-item form, the closing question and the sign-off; confidence is always asked.",
-  previewDevice: "Phone",
-  previewScreens: { about: "About you", items: "Items" },
   // The scoring card (stories/E5-2; the PM app board, Build).
   scoringCard: "Scoring",
   scoringLine: "How respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method.",
@@ -62,12 +55,7 @@ export const BUILD_COPY = {
   layoutLine: "How the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
   previewItemOf: (n: number, total: number, area: string) => `Item ${n} of ${total} in ${area}`,
   previewAllOnOne: (n: number) => `All ${n} on one page`,
-  previewScreenSwitch: "Preview screen",
   previewProgress: (answered: number, total: number) => `${answered} of ${total}`,
-  previewItems: (n: number) => `${n} ${n === 1 ? "item" : "items"}`,
-  previewMore: (shown: number, total: number) => `The first ${shown} of ${total} items. The rest follow in the same way.`,
-  previewEmptyChapter: "No items in this chapter yet.",
-  previewWrapUp: "Wrap up",
   on: "On",
   off: "Off",
   locked: "Published instruments keep their method. Build a new instrument to change it.",
@@ -93,3 +81,19 @@ export const ABOUT_YOU_COPY = {
   perspectivesQuestion: "Which of these describe you?",
   perspectivesHint: "Pick every one that fits. You see the items for your perspectives and the ones for everyone.",
 } as const;
+
+// The builder's preview panel (stories/E5-6; docs/copy/app.md, Preview).
+export const PREVIEW_COPY = {
+  title: "Preview",
+  device: "Device",
+  desktop: "Desktop",
+  phone: "Phone",
+  fullSize: "Open full size",
+  frameTitle: "What respondents see",
+  caption: {
+    import: "Import sets the chapters and the cards.",
+    shape: "Shape changes the wording on the cards.",
+    build: "Build changes the rating row, the chapter row, About you and the Wrap up.",
+    share: "Share sets the closing date in the header.",
+  },
+};

@@ -200,6 +200,7 @@ of the content; page means it replaces the screen.
 | Note under the Start button (already on the board) | A required field empty, the required fields being exactly Name and Role | Fill in your name and role to start. |
 | Note under the Start button (decision 0043) | A required field empty, any other set of required fields | Fill in the required fields to start. |
 | Note under the Start button (E7-1) | Start did not reach the server, or the server failed | Your details were not saved. Check your connection and press Start again. |
+| A write route, from the server (E5-6) | A preview token sent to Start, an answer, the Wrap up or Submit (403; the preview itself sends nothing) | This is a preview. Nothing entered here is saved. |
 | Note under the Start button (E7-1), from the server | A dropdown value that is not one of its options (a stale page) | Pick one of the options for [LABEL]. |
 | Note under the Start button (E7-1), from the server | An email field that is not an address | [TEXT] is not an email address. Check it and try again. |
 | Note under the Start button (E7-1), from the server | A field over 200 characters | Keep [LABEL] to 200 characters. |

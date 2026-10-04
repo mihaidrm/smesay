@@ -12,6 +12,7 @@
 // has changes not submitted again, E7-6) or { error }.
 // No rate limit yet: E11-1 adds the respondent routes' limit (docs/review-list.md).
 import { NextResponse } from "next/server";
+import { isPreviewToken } from "@/lib/preview-token";
 import { cookiePath, PASSCODE_COOKIE } from "@/lib/link-access";
 import { cookieValue } from "@/lib/request-cookies";
 import { readJson } from "@/lib/request-json";
@@ -22,6 +23,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  // A preview (stories/E5-6, acceptance 4) never writes.
+  if (isPreviewToken(token)) return NextResponse.json({ error: RESPONDENT_ERRORS.preview }, { status: 403, headers: { "cache-control": "no-store" } });
   const read = await readJson(request);
   if ("status" in read) return NextResponse.json({ error: RESPONDENT_ERRORS.badShape }, { status: read.status, headers: { "cache-control": "no-store" } });
   const result = await startResponse(token, { passcode: cookieValue(request, PASSCODE_COOKIE), device: cookieValue(request, DEVICE_COOKIE) }, read.body);

@@ -250,6 +250,17 @@ renewInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) 
 src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
 ({ status: 200 | 404 | 410, state }) and GET /r/[token]/state (the same, as JSON { state },
 no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
+The builder's preview (E5-6): previewToken({ project, ws, user }, secret, now) and
+readPreviewToken(token, secret, now) -> { project, ws, user, exp } | null in
+src/lib/preview-token.ts ("p." + base64url claim + "." + base64url HMAC-SHA256, an hour long;
+isPreviewToken(token)); previewKey(), loadPreview(ws, projectId, step, now) -> PreviewView
+{ kind: none | noList | revoked | ready { spec, items, areas, closesAt } }, previewSrc(claim,
+step, now) and STEP_RINGS in src/lib/preview.ts (steps import, shape, build, share; rings nav,
+cards, wording, rating, fields, closing, note). /r/[preview token]?step=&ring=&v=&device=
+renders the respondent app with preview { rings }; PUT /r/[token]/answers, POST start,
+PUT wrap and POST submit answer 403 { error } to a preview token. itemsFor(ws, instrument) in
+src/lib/respondent.ts reads an instrument's items as the respondent sees them (itemsOf(link)
+calls it).
 The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
 closedSubmitted (E7-6: a closed personal link with a submitted response, its submitted and

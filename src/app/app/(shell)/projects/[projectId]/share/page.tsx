@@ -24,6 +24,7 @@ import { CopyLink } from "./copy-link";
 import { InvitesCard } from "./invites-card";
 import { RevokeLink } from "./revoke-link";
 import { ShareForm } from "./share-form";
+import { WithPreview } from "../with-preview";
 
 export default async function SharePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -33,13 +34,13 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
   const newest = await instruments.latestForProject(current.ws, project.id);
   if (!newest) {
     return (
-      <div className="flex flex-col gap-5">
+      <WithPreview projectId={project.id} step="share">
         <h2 className="text-xl font-bold tracking-[-0.02em]">{SHARE_COPY.title}</h2>
         <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-hairline-strong bg-surface p-6" data-testid="share-empty">
           <div className="font-semibold">{SHARE_COPY.noInstrument}</div>
           <Link href={`/app/projects/${project.id}/build`} className="text-sm underline underline-offset-4">{SHARE_COPY.noInstrumentLink}</Link>
         </div>
-      </div>
+      </WithPreview>
     );
   }
   const live = await invites.livePublic(current.ws, project.id);
@@ -50,7 +51,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
   const newerDraft = live && live.instrumentId !== newest.id ? newest : null;
   const newerSet = newerDraft ? await itemSets.get(current.ws, newerDraft.itemSetId) : null;
   return (
-    <div className="flex flex-col gap-5">
+    <WithPreview projectId={project.id} step="share">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-bold tracking-[-0.02em]">{SHARE_COPY.title}</h2>
         <p className="text-ink-muted">{SHARE_COPY.line} {builtOn && <span data-testid="share-version">{SHARE_COPY.version(builtOn.version)}</span>}</p>
@@ -67,7 +68,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
           <ShareForm key={newerDraft.id} projectId={project.id} instrumentId={newerDraft.id} published={false} opensAt={null} closesAt={null} hasPasscode={false} />
         </section>
       )}
-    </div>
+    </WithPreview>
   );
 }
 

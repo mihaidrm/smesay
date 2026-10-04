@@ -1,7 +1,7 @@
 # E5-6 Live preview panel on Import, Shape, Build and Share, desktop and phone
 
 User: a PM who wants to see what respondents get while changing it
-Status: ready
+Status: built
 Outcome: a preview of the respondent instrument stays visible on every builder step, rings
 what the current step changes, shows desktop by default and phone on a toggle, and never
 stores a response (decision 0021).
@@ -47,3 +47,33 @@ The iframe loads /r/preview?instrument=[draft id]&device=desktop|phone with a sh
 preview token tied to the PM's session; the respondent app treats the token as "render only".
 Highlight rings are passed as a query parameter (`ring=nav,cards`) and drawn by the
 respondent app, so the preview and the real app share the markup.
+
+Built 2026-10-04 (design note 65, decision 0044; docs/review-list.md):
+- Acceptance 1: src/components/app/preview-frame.tsx, 460 px, on Import, Shape, Build and Share
+  through src/app/app/(shell)/projects/[projectId]/with-preview.tsx; not on Results,
+  Projects or Settings. "Preview", Desktop and Phone (desktop first), "Open full size" (the
+  same preview in a new tab for the device chosen).
+- Acceptance 2: the caption names what the step changes and the respondent app draws the
+  violet ring (src/lib/preview.ts STEP_RINGS): Import the chapter row and the cards, Shape the
+  cards' wording, Build the rating row, the chapter row, About you's fields and the Wrap up's
+  closing part, Share the closing date in the header; a revoked link shows the withdrawn page
+  on Share.
+- Acceptance 3: the iframe loads /r/[preview token] (src/lib/preview-token.ts: "p.", a signed
+  claim of the project, the workspace and the PM, an hour long; the story's
+  /r/preview?instrument= became the token itself, so the route stays /r/[token]); the page
+  checks the session is that PM's in that workspace and renders src/app/r/[token]/
+  respondent-app.tsx for the draft (src/lib/preview.ts loadPreview: the latest list on
+  Import and Shape, the draft's list on Build and Share, the defaults before Build opens a
+  draft). The chapter pills move between screens; the source changes only when what it
+  shows changes, so a save reloads the preview and a render that changes nothing does not.
+- Acceptance 4: in preview mode Start, the cards and the Wrap up stay in memory, Submit is
+  off and every screen says "Preview: nothing you enter here is saved"; the write routes
+  answer 403 to a preview token (src/app/r/[token]/preview-writes.test.ts; e2e/preview.spec.ts
+  calls the answers and start routes with the preview's token).
+- Acceptance 5: desktop is the 1000 px column scaled to 42 percent in a 420 by 560 frame;
+  phone is 390 px at true size in a 720 px frame that scrolls.
+- Acceptance 6: e2e/build.spec.ts switches the method on Build and sees the pills change in
+  the preview, with the layouts, the perspectives after Start and the Wrap up.
+- Acceptance 7: the preview is in the workspace's current brand (its logo and
+  effectiveAccent()).
+
