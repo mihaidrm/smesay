@@ -1,11 +1,11 @@
 // The Export tab's files against Results (stories/E10-1, acceptance 3 and 4), on the seeded
-// sample: every headline number of the strip, every item's counts and every register's count
-// is a sum of a file's rows, under no filter, with the switch off, and under a filter; the
+// sample: every headline number of the strip but the Actions count (in no file), every item's
+// row with the Agreement tab's figures, and every register's count is a sum of a file's rows, under no filter, with the switch off, and under a filter; the
 // sample's files start with the watermark line and a filtered file names its filter; another
 // workspace's instrument gives empty files.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { instruments, projects } from "@/db/queries";
+import { instruments, items as itemsQ, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { agreement, registers, results } from "@/db/queries/results";
@@ -15,7 +15,8 @@ import { auth } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import { requireWorkspace } from "@/lib/workspace";
 import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
-import { csv } from "./csv";
+import { EMPTY_COUNTS, notAnsweredOf, percentOf } from "@/lib/results-agreement";
+import { csv, safeText } from "./csv";
 import { EXPORT_COPY } from "./copy";
 import { exportTable } from "./files";
 
@@ -24,6 +25,7 @@ let wsA: WorkspaceId;
 let wsB: WorkspaceId;
 let instrument: Instrument;
 let ctx: FilterContext;
+const itemsOf = (ws: WorkspaceId, setId: string) => itemsQ.forSet(ws, setId);
 
 const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
 
@@ -62,18 +64,33 @@ async function reconcile(f: ResultsFilter) {
   const items = (await file(wsA, "items", f)).rows;
   const sum = (col: string) => items.reduce((s, r) => s + Number(r[col]), 0);
   expect([sum("Agree"), sum("Different priority"), sum("Disagree"), sum("Unclear"), sum("Rated")]).toEqual([n.agree, n.change, n.disagree, n.unclear, n.pick]);
-  const byItem = await agreement.byItem(wsA, instrument.id, f);
-  for (const c of byItem) {
-    const row = items.find((r) => r.Agree === String(c.agree) && r["Different priority"] === String(c.change) && r.Disagree === String(c.disagree) && r.Unclear === String(c.unclear));
-    expect(row, `the item ${c.itemId} has its row`).toBeDefined();
+  // Each item's row, found by its reference, carries the Agreement tab's figures for that item.
+  const setItems = await itemsOf(wsA, instrument.itemSetId);
+  const counts = new Map((await agreement.byItem(wsA, instrument.id, f)).map((c) => [c.itemId, c]));
+  expect(items.length).toBe(setItems.length);
+  for (const it of setItems) {
+    const row = items.filter((r) => r.Reference === (it.sourceRef ?? ""));
+    expect(row, `one row for ${it.sourceRef}`).toHaveLength(1);
+    const c = counts.get(it.id) ?? { ...EMPTY_COUNTS, itemId: it.id, group: null, percent: null };
+    const p = percentOf(c);
+    expect([row[0].Agree, row[0]["Different priority"], row[0].Disagree, row[0].Unclear, row[0].Rated, row[0]["Not answered"], row[0]["Agreement %"]])
+      .toEqual([c.agree, c.change, c.disagree, c.unclear, c.pick, notAnsweredOf(c), p ?? ""].map(String));
   }
+  const num = (r: Record<string, string>, k: string) => Number(r[k]);
   expect(items.filter((r) => ["Agree", "Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.unansweredItems);
+  expect(items.filter((r) => num(r, "Agree") > 0 && ["Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.fullyAgreed);
+  expect(items.filter((r) => num(r, "Different priority") + num(r, "Disagree") > 0).length).toBe(n.pushedBackItems);
   const people = (await file(wsA, "people", f)).rows;
   expect([people.length, people.filter((r) => r.Status === "Submitted").length, people.filter((r) => r.Status === "In progress").length]).toEqual([n.invited, n.submitted, n.inProgress]);
+  // The tile is ROUND(MEDIAN(Minutes to submit), 0) over the People file.
+  const minutes = people.filter((r) => r["Minutes to submit"] !== "").map((r) => Number(r["Minutes to submit"])).sort((a, b) => a - b);
+  const mid = minutes.length / 2;
+  const median = minutes.length === 0 ? null : Math.round(minutes.length % 2 ? minutes[Math.floor(mid)] : (minutes[mid - 1] + minutes[mid]) / 2);
+  expect(median).toBe(n.medianMinutes);
   const missing = (await file(wsA, "missing", f)).rows;
   expect(missing.length).toBe(n.missing);
   const registered = await registers.missing(wsA, instrument.id, f, instrument.respondentFields.map((s) => s.key), instrument.method);
-  expect(missing.map((r) => r["Suggested item"]).sort()).toEqual(registered.map((m) => m.text).sort());
+  expect(missing.map((r) => r["Suggested item"]).sort()).toEqual(registered.map((m) => safeText(m.text)).sort());
   return { answers, people };
 }
 
@@ -108,7 +125,14 @@ describe("the files reconcile with Results", () => {
   it("under a filter, which the file names", async () => {
     const f = { ...NONE, kinds: ["change" as const, "disagree" as const] };
     await reconcile(f);
-    expect((await file(wsA, "answers", f)).preamble).toEqual([EXPORT_COPY.watermark, `${EXPORT_COPY.filtered("Different priority, Disagree")}`, EXPORT_COPY.submittedOnly]);
+    expect((await file(wsA, "answers", f)).preamble).toEqual([EXPORT_COPY.watermark, `${EXPORT_COPY.filtered("Different priority, Disagree")}`]);
+  });
+  it("under a respondent field filter and a name filter", async () => {
+    const { people } = await reconcile({ ...NONE, fields: { role: ["Finance"] } });
+    expect(people.length).toBeGreaterThan(0);
+    expect(people.every((r) => r.Role === "Finance")).toBe(true);
+    const named = await reconcile({ ...NONE, includeUnsubmitted: true, fields: { name: "Ioana" } });
+    expect(named.people.map((r) => r.Respondent)).toEqual(["Ioana Marin"]);
   });
 });
 
@@ -121,7 +145,8 @@ describe("the files", () => {
   });
   it("start with the watermark on the sample only", async () => {
     expect((await file(wsA, "items", NONE)).preamble[0]).toBe(EXPORT_COPY.watermark);
-    expect((await file(wsA, "items", NONE, false)).preamble).toEqual([EXPORT_COPY.submittedOnly]);
+    expect((await file(wsA, "items", NONE, false)).preamble).toEqual([]);
+    expect((await file(wsA, "items", { ...NONE, includeUnsubmitted: true }, false)).preamble).toEqual([EXPORT_COPY.withUnsubmitted]);
   });
   it("are empty for another workspace's instrument", async () => {
     for (const which of ["answers", "people", "missing"] as const) expect((await file(wsB, which, NONE)).rows).toEqual([]);

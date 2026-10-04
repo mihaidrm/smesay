@@ -1,12 +1,13 @@
 // The main path of E10-1 on the sample: the Export tab lists the four files; Answers downloads
-// as a CSV with the byte order mark, the watermark line, the switch line and the header, and a
-// row per answer; a filtered page's link carries the filter and the file names it.
+// as a CSV with the byte order mark, the watermark line and the header, and a row per answer; a
+// filtered page's link carries the filter and the file names it; a failed download says so; a
+// member of another workspace gets 404 and a request from another site 403.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.51" } });
 
-test("export the answers as CSV, with the page's filter", async ({ page, request }) => {
+test("export the answers as CSV, with the page's filter", async ({ page, request, browser, baseURL }) => {
   test.setTimeout(90_000);
   const email = `e2e-export-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
@@ -29,10 +30,9 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   expect(text.charCodeAt(0)).toBe(0xfeff);
   const lines = text.slice(1).split("\r\n");
   expect(lines[0]).toBe('"Sample data, invented"');
-  expect(lines[1]).toBe('"Submitted answers only"');
-  expect(lines[2]).toMatch(/^"Respondent","Name","Role",.*"Reference","Area","Item","Proposed value","Proposed label","Answer"/);
+  expect(lines[1]).toMatch(/^"Respondent","Name","Role",.*"Reference","Area","Item","Proposed value","Proposed label","Answer"/);
   // 30 answers from the submitted responses (src/db/seed/sample.ts expected.submittedAnswers).
-  expect(lines.filter((l) => l.length > 0).length - 3).toBe(30);
+  expect(lines.filter((l) => l.length > 0).length - 2).toBe(30);
 
   // A filtered page exports what it shows.
   await page.goto(`/app/projects/${id}/results?unsubmitted=0&kind=disagree&tab=export`);
@@ -44,4 +44,28 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   // The answer filter keeps the people who gave such an answer, with all their answers, as
   // Results does; the file's Disagree rows are the page's 2.
   expect(flines.filter((l) => l.includes(',"Disagree",')).length).toBe(2);
+
+  // A request another site starts writes nothing and gets 403.
+  expect((await page.request.get(filtered!, { headers: { "sec-fetch-site": "cross-site" } })).status()).toBe(403);
+
+  // A download the route refuses shows the error under its card.
+  await page.route("**/export/people*", (route) => route.fulfill({ status: 500, body: "" }));
+  await page.getByTestId("export-people-download").click();
+  await expect(page.getByTestId("export-people-download-error")).toHaveText("The CSV export did not finish. Try again; if it fails again, reload the page and export again.");
+  await page.unroute("**/export/people*");
+
+  // A member of another workspace cannot read this project's files.
+  const other = await browser.newContext({ baseURL, extraHTTPHeaders: { "x-forwarded-for": "10.0.0.52" } });
+  const page2 = await other.newPage();
+  const email2 = `e2e-export-b-${Date.now()}@marlow.example`;
+  await page2.goto("/sign-in");
+  await page2.getByLabel("Email").fill(email2);
+  await page2.getByRole("button", { name: "Send me a link" }).click();
+  await expect(page2.getByRole("status")).toBeVisible();
+  await page2.goto(await latestLink(request, email2));
+  await page2.getByLabel("Workspace name").fill("Other Group");
+  await page2.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page2).toHaveURL(/\/app$/);
+  for (const f of ["answers", "items", "people", "missing"]) expect((await page2.request.get(`/api/projects/${id}/export/${f}`)).status()).toBe(404);
+  await other.close();
 });

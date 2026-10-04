@@ -137,7 +137,8 @@ instrument outside the workspace; results.rows(ws, instrumentId, filter) the ans
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
 submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
 it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
-count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
+count under the switch), minutesToSubmit (whole minutes, rounded in SQL; medianMinutes is
+their median, rounded) } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
 E10-1's "People" and "Missing items" files; registers.answers(ws, instrumentId, filter, kinds, fieldKeys, method) and registers.missing(ws,
 instrumentId, filter, fieldKeys, method) (E8-4) the answers of the kinds asked (change, disagree,
@@ -564,9 +565,12 @@ query (file: answers, items, people, missing; EXPORT_FILES in src/db/types.ts): 
 through the session's workspace, else 404; the filter by parseResultsFilter with the PM's
 stored switch. exportTable(ws, instrument, file, filter, ctx, sample) in
 src/lib/export/files.ts returns { preamble, header, rows } from results.rows (each ResultRow
-now carries who, anon, fields, perspectives, source, submittedAt), agreement.byItem,
+now carries who, anon, fields, perspectives, source, submittedAt, changedSince),
+agreement.byItem,
 tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
-header, rows), line, field, isoUtc and BOM in src/lib/export/csv.ts. Every download writes an
-export_log row (workspace_id, project_id, made_by, file, filter in words or null, rows,
+header, rows), line, field (a text cell starting like a formula gets a single quote, safeText),
+isoUtc and BOM in src/lib/export/csv.ts. A request with Sec-Fetch-Site: cross-site gets 403.
+Every download writes an export_log row (workspace_id, project_id, made_by, file, filter in
+words with a text filter's value left out (describeFilter(f, ctx, true)) or null, rows,
 created_at; exportLogs in src/db/queries).
 

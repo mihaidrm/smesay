@@ -18,9 +18,9 @@ const TOKEN = "0123456789abcdef0123456789abcdef";
 // Tables without workspace_id: the identity tables better-auth owns (a user exists before any
 // workspace; decision 0028, accepted 2026-10-02).
 const AUTH_TABLES = ["user", "session", "account", "verification"];
-const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping"];
-// Columns that reference a user, not a workspace parent.
-const USER_COLUMNS = ["user_id", "created_by"];
+const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log"];
+// Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
+const USER_COLUMNS = ["user_id", "created_by", "made_by"];
 
 type Fk = { table_name: string; constraint_name: string; columns: string[]; ref_table: string; ref_columns: string[] };
 async function foreignKeys(): Promise<Fk[]> {
@@ -128,6 +128,7 @@ describe("rules in the database", () => {
     const [{ id: itemB }] = await sql`insert into item (workspace_id, item_set_id, position, original_text) values (${wsB}, ${setB}, 1, 'B item') returning id`;
     await expect(sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind) values (${wsA}, ${responseA}, ${setA}, ${itemB}, 'agree')`).rejects.toThrow(/answer_item_fk/);
     await expect(sql`insert into missing_item (workspace_id, response_id, text) values (${wsB}, ${responseA}, 'x')`).rejects.toThrow(/missing_item_response_fk/);
+    await expect(sql`insert into export_log (workspace_id, project_id, file, rows) values (${wsB}, ${projectA}, 'answers', 1)`).rejects.toThrow(/export_log_project_fk/);
   });
 
   it("keeps instrument, invite, response and answer on one project and one set version", async () => {

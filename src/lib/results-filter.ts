@@ -161,12 +161,14 @@ export const nextSort = (current: ResultsSort | null, key: string): ResultsSort 
 
 // "[FILTERS]" of "Showing [N] of [M] responses: [FILTERS]." (docs/copy/errors.md): each part
 // named as the filter bar names it, parts joined by "; ".
-export function describeFilter(f: ResultsFilter, ctx: FilterContext): string {
+// `withoutText` leaves out what a PM typed in a text filter, which can be a person's name or
+// email: the export log keeps the filter without it (SECURITY.md, no personal data in logs).
+export function describeFilter(f: ResultsFilter, ctx: FilterContext, withoutText = false): string {
   const parts: string[] = [];
   for (const spec of ctx.fields) {
     const v = f.fields[spec.key];
     if (v === undefined) continue;
-    parts.push(Array.isArray(v) ? `${spec.label}: ${v.join(", ")}` : `${spec.label} contains "${v}"`);
+    parts.push(Array.isArray(v) ? `${spec.label}: ${v.join(", ")}` : withoutText ? `${spec.label} contains a text` : `${spec.label} contains "${v}"`);
   }
   if (f.kinds.length > 0) parts.push(f.kinds.map((k) => KIND_LABELS[k]).join(", "));
   if (f.withComment) parts.push("With a reason or comment");
