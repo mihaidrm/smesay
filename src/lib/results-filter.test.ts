@@ -18,7 +18,7 @@ const read = (q: string, stored: boolean | null = null) => parseResultsFilter(Ob
 describe("the Results filter", () => {
   it("reads only what the instrument has", () => {
     const f = read("f.role=Sales&f.role=Nope&f.role=Sales&f.name=%20okafor%20&f.secret=x&kind=disagree&kind=agree&kind=bogus&comment=1&perspective=Finance&status=inProgress&status=x");
-    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true, sort: null });
+    expect(f).toEqual({ fields: { role: ["Sales"], name: "okafor" }, kinds: ["agree", "disagree"], withComment: true, perspective: "Finance", status: ["inProgress"], includeUnsubmitted: true, sort: null, split: null });
     expect(read("perspective=HR&comment=yes").perspective).toBeNull();
     expect(read("comment=yes").withComment).toBe(false);
     expect(read("f.name=" + "x".repeat(150)).fields.name).toHaveLength(100);
@@ -52,7 +52,7 @@ describe("the Results filter", () => {
     const f = read("f.role=Sales&f.role=Finance&f.name=ok&kind=change&comment=1&perspective=Sales&status=submitted", false);
     expect(describeFilter(f, ctx)).toBe('Name contains "ok"; Role: Sales, Finance; Different priority; With a reason or comment; Perspective: Sales; Submitted');
     expect(filterActive(f)).toBe(true);
-    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null });
+    expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null });
     expect(filterActive(read("unsubmitted=0"))).toBe(false);
   });
 });

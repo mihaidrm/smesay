@@ -37,3 +37,13 @@ export async function saveIncludeUnsubmitted(projectId: string, on: boolean): Pr
   revalidatePath(`/app/projects/${projectId}/results`);
   return { error: null };
 }
+
+// The Agreement tab's view (E8-3, acceptance 2), kept per PM per instrument.
+export async function saveView(projectId: string, view: string): Promise<ResultsActionState> {
+  if (view !== "table" && view !== "columns" && view !== "share") return { error: RESULTS_COPY.saveFailed };
+  const found = await instrumentFor(projectId);
+  if (!found) return { error: RESULTS_COPY.noInstrument };
+  await resultsPrefs.set(found.userId, found.instrumentId, { view });
+  revalidatePath(`/app/projects/${projectId}/results`);
+  return { error: null };
+}

@@ -256,6 +256,10 @@ question 1).
   same filter. The kinds are named Agree, Different priority, Disagree, Unclear (decision
   0014; the landing page's results fragment uses these names and the status colours since
   2026-10-04, design note 53).
+- Values picked where no proposal was shown (rate-blind, E8-3): one violet ramp, a step per
+  value of the scale (the violet at 100, 80, 62, 46 and 32 percent over the surface), the same
+  colour per value in every view; Unclear keeps its status colour, Not answered its dashed
+  outline. Built in src/components/app/charts.tsx (design note 61).
 - Confidence at sign-off: one hue (violet), five bins, empty bins a 4 px hairline, average
   printed as text.
 - Where groups disagree: two bars on one scale, coral for the share that disagreed, any

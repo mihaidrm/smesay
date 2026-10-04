@@ -93,12 +93,13 @@ the check constraints use them). Change this file first.
   "none")[] ("none": not answered), withComment: boolean, perspective: string | null,
   status: ("submitted" | "inProgress")[], includeUnsubmitted: boolean, sort: { key, dir:
   "asc" | "desc" } | null } (E8-2: a column key in a safe shape, which each table maps to
-  SQL from its own list; never a filter). It selects people (started responses, and personal invites not opened yet
+  SQL from its own list; never a filter), split: string | null (E8-3: a dropdown field's key
+  for "Split by"; never a filter). It selects people (started responses, and personal invites not opened yet
   with the name and role their About you starts with): a person with at least one answer of
   a chosen kind (or an item they see unanswered), with a reason or comment, whose fields,
   perspective and status match; the numbers count those people's answers. It travels in the
   URL (f.[key], kind, comment=1, perspective, status, unsubmitted=1 or 0, absent for the
-  PM's stored choice, sort and dir) and is read and written by parseResultsFilter and filterQuery in
+  PM's stored choice, sort and dir, split) and is read and written by parseResultsFilter and filterQuery in
   src/lib/results-filter.ts, against the instrument's fields and perspectives.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
@@ -134,7 +135,10 @@ submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter)
 it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
 count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
-E10-1's "People" and "Missing items" files; tracker.people(ws, instrumentId, filter,
+E10-1's "People" and "Missing items" files; agreement.byItem(ws, instrumentId, filter, split)
+(E8-3) the counts per item (and per group of the split field) as ItemCounts { itemId, group,
+agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
+answered, rounded half up in SQL) }; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
 fields, who (the name shown: the name field, else a personal invite's name or email; null
 for a public-link response with no name), anon (for a public-link response with no

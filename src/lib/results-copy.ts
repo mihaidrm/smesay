@@ -73,3 +73,33 @@ export const RESPONSES_COPY = {
   changedSince: "Changes not submitted again",
   submittedAgain: "Submitted again",
 };
+
+// The Agreement tab (stories/E8-3; docs/copy/app.md, Results).
+export const AGREEMENT_COPY = {
+  viewLabel: "View",
+  views: { table: "Table", columns: "Columns", share: "Share" },
+  splitBy: "Split by",
+  noSplit: "No split",
+  sortBy: "Sort items by",
+  sorts: { ref: "Reference", agreement: "Agreement", change: "Different priority", disagree: "Disagree", unclear: "Unclear" },
+  order: "Order",
+  asc: "Ascending",
+  desc: "Descending",
+  saveFailed: "Your choice was not saved. Try again.",
+  item: "Item",
+  proposed: "Proposed",
+  answers: "Answers",
+  agreement: "Agreement",
+  coverage: "Answered of could see",
+  areaTotal: (name: string) => `${name}, all items`,
+  otherItems: "Other items",
+  wholeList: "The whole list",
+  agreeLine: (agree: number, answered: number) => `${agree} of ${answered} agree`,
+  ratedLine: (n: number) => `${n} rated`,
+  noPercent: "No answers",
+  notCompared: "Fewer than 3 answers: not compared",
+  groupNone: "Not given",
+  valuesLegend: "Values picked, where no proposal was shown",
+  smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",
+  chartTitle: (what: string) => `Answers on ${what}`,
+};

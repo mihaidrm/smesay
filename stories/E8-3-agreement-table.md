@@ -1,7 +1,7 @@
 # E8-3 Agreement per item and per area: three views, split by group, sorted and filtered
 
 User: a PM reading where the list stands
-Status: ready
+Status: built
 Outcome: the agreement per item and per area in the view the PM reads best, split by any
 respondent field on request, matching the CSV export to the row.
 
@@ -59,3 +59,28 @@ CSV and the screen cannot differ. The three views draw from the same rows; the d
 SVG arc per slice with the dataviz rules (2 px surface gaps, text in ink tokens) in
 src/components/app/charts.tsx, a new design-system component (a line in the design note
 when built).
+
+Built 2026-10-04 (design note 61, decision 0044; docs/review-list.md):
+- Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/agreement-tab.tsx: the areas
+  in the list's order (src/lib/results-agreement.ts buildAgreement), each with its total bar
+  and percentage, then its items: reference, text, proposed value, the bar, the percentage.
+- Acceptance 2: Table, Columns and Share (src/components/app/charts.tsx, note 61), the
+  choice kept per PM per instrument (results_prefs.view, saveView); the legend names the
+  series.
+- Acceptance 3: a rate-blind instrument draws the values picked in one violet ramp, the same
+  colour per value in every view; an item with no proposal in an instrument that shows them
+  counts as Rated beside the kinds (review list).
+- Acceptance 4: "Split by" over the dropdown fields, in the URL (split); a group with fewer
+  than 3 answers is drawn faded with no percentage, and the banner says why. Share draws a
+  donut per group for the whole list.
+- Acceptance 5: the filter bar narrows every count; the sort within an area by reference,
+  agreement, different priority, disagree or unclear, both ways, in the URL; ties keep the
+  list's order in the same direction.
+- Acceptance 6: "Answered of could see" per item when the instrument has perspectives.
+- Acceptance 7 and 8: src/db/queries/results.ts agreement.byItem, one SQL query grouped by
+  item, kind, value and group; src/db/queries/results.test.ts checks every cell against the
+  answer rows the same filter keeps, on the sample and on 600 generated responses, with no
+  filter and with a role filter, the switch on and off, split and not, each query under
+  500 ms. The items CSV (E10-1) writes these rows.
+- Acceptance 9: with E8-5 (the item detail).
+- Acceptance 10: e2e/results-agreement.spec.ts.

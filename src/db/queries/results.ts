@@ -94,7 +94,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter): SQL {
     ),
     sel as (select * from people p ${where}),
     counted as (select * from sel where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)),
-    ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws}),
+    ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment, c.fields as rfields from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws}),
     -- Per item, in one pass over the answers (not a scan of them per item).
     per_item as (
       select its.id, count(ans.id) as n, count(ans.id) filter (where ans.kind <> 'agree') as other, count(ans.id) filter (where ans.kind in ('change', 'disagree')) as pushed
@@ -264,6 +264,69 @@ export const tracker = {
   },
 };
 
+// The Agreement tab's numbers (E8-3): for each item of the instrument, in the list's order,
+// the counted answers by kind, the values picked (for the distribution of a value rated with
+// no proposal shown), the people who could see the item (the counted responses whose
+// perspectives show it, E5-4) and the agreement percentage, agree over answered rounded half
+// up, computed here so the screen and the CSV cannot differ. With `split` (a dropdown field's
+// key, checked by the caller against the instrument), one row per item and group value
+// (null: the field left empty). Aggregates in SQL (group by item, kind, value, group).
+export type ItemCounts = {
+  itemId: string;
+  group: string | null;
+  agree: number;
+  change: number;
+  disagree: number;
+  unclear: number;
+  pick: number;
+  // The values picked, by code, over every kind that carries a value.
+  values: Record<string, number>;
+  couldSee: number;
+  percent: number | null;
+};
+
+export const agreement = {
+  byItem: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, split: string | null = null): Promise<ItemCounts[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const group = split === null ? sql`null::text` : sql`(c.fields ->> ${split})`;
+    const answerGroup = split === null ? sql`null::text` : sql`(ans.rfields ->> ${split})`;
+    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number> | null; could_see: number; percent: number | null }>(sql`${head(ws, instrumentId, f)},
+      seen as (
+        select its.id as item_id, ${group} as grp, c.id as response_id
+          from its join counted c on cardinality(its.perspectives) = 0 or its.perspectives && c.perspectives
+      ),
+      byval as (
+        select ans.item_id, ${answerGroup} as grp, ans.value, count(*)::int as n
+          from ans where ans.value is not null group by 1, 2, 3
+      ),
+      vals as (select item_id, grp, jsonb_object_agg(value, n) as vals from byval group by 1, 2),
+      bykind as (
+        select ans.item_id, ${answerGroup} as grp,
+            count(*) filter (where ans.kind = 'agree')::int as agree,
+            count(*) filter (where ans.kind = 'change')::int as change,
+            count(*) filter (where ans.kind = 'disagree')::int as disagree,
+            count(*) filter (where ans.kind = 'unclear')::int as unclear,
+            count(*) filter (where ans.kind = 'pick')::int as pick
+          from ans group by 1, 2
+      ),
+      cells as (
+        select item_id, grp, count(*)::int as could_see from seen group by 1, 2
+        union
+        select item_id, grp, 0 from bykind
+      ),
+      keys as (select item_id, grp, max(could_see)::int as could_see from cells group by 1, 2)
+      select k.item_id, k.grp, coalesce(b.agree, 0) as agree, coalesce(b.change, 0) as change, coalesce(b.disagree, 0) as disagree,
+          coalesce(b.unclear, 0) as unclear, coalesce(b.pick, 0) as pick,
+          v.vals as values,
+          k.could_see,
+          round(100.0 * coalesce(b.agree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as percent
+        from keys k left join bykind b on b.item_id = k.item_id and b.grp is not distinct from k.grp
+          left join vals v on v.item_id = k.item_id and v.grp is not distinct from k.grp
+        order by k.item_id, k.grp nulls last`);
+    return rows.map((r) => ({ itemId: r.item_id, group: r.grp, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent }));
+  },
+};
+
 // The PM's choices on Results, per instrument (user.results_prefs, INTERFACES.md
 // ResultsPrefs): the tiles and the include-unsubmitted switch. Keyed by the signed-in person's
 // id; the caller checks first that the instrument is in the current workspace.
@@ -276,7 +339,7 @@ export const resultsPrefs = {
   },
   // Merges `patch` into the instrument's entry in one statement (jsonb ||, jsonb_set:
   // postgresql.org/docs/current/functions-json.html).
-  set: async (userId: string, instrumentId: string, patch: { tiles?: string[]; includeUnsubmitted?: boolean }): Promise<void> => {
+  set: async (userId: string, instrumentId: string, patch: { tiles?: string[]; includeUnsubmitted?: boolean; view?: "table" | "columns" | "share" }): Promise<void> => {
     if (!isUuid(instrumentId)) return;
     await db.update(user).set({
       resultsPrefs: sql`jsonb_set(${user.resultsPrefs}, array[${instrumentId}]::text[], coalesce(${user.resultsPrefs} -> ${instrumentId}, '{}'::jsonb) || ${JSON.stringify(patch)}::jsonb)`,
