@@ -103,6 +103,8 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
               of its own (node_modules/next/dist/client/components/catch-error.js); the page's
               own boundary is not keyed, so a filter change keeps the focus and the status
               line, and a failed page clears with Try again. */}
+          {/* The tab panel's heading, for the outline under the project's h1. */}
+          <h2 className="sr-only">{tabName(tab, n)}</h2>
           <ResultsBoundary key={tab} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
               <TabPanel tab={tab} n={n} ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} href={(f) => href(f, tab)} />

@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -88,5 +88,17 @@ describe("the tiles", () => {
     expect(read("unsubmitted=1&split=name").split).toBeNull();
     expect(read("unsubmitted=1&split=bogus").split).toBeNull();
     expect(filterQuery(read("unsubmitted=1&split=role"), ctx)).toBe("unsubmitted=1&split=role");
+  });
+
+  it("marks the register header the rows are sorted by", () => {
+    const answers = ["item", "respondent", "proposed", "value", "reason", "status", "field.role"];
+    // No sort: the first column; a column the register shows; an unknown key falls back.
+    expect(registerShownSort(null, ["item", "respondent", "reason"], answers)).toEqual({ key: "item", dir: "asc" });
+    expect(registerShownSort({ key: "reason", dir: "desc" }, ["item", "respondent", "reason"], answers)).toEqual({ key: "reason", dir: "desc" });
+    expect(registerShownSort({ key: "bogus", dir: "desc" }, ["item", "respondent", "reason"], answers)).toEqual({ key: "item", dir: "desc" });
+    // A key the query sorts by that this register does not show: no header.
+    expect(registerShownSort({ key: "proposed", dir: "asc" }, ["item", "respondent", "reason"], answers)).toBeNull();
+    // The missing register's item is its text.
+    expect(registerShownSort({ key: "item", dir: "desc" }, ["text", "area", "value", "respondent"], ["item", "text", "area", "value", "respondent", "status"], { item: "text" })).toEqual({ key: "text", dir: "desc" });
   });
 });

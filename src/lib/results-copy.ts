@@ -126,4 +126,5 @@ export const REGISTERS_COPY = {
   suggestedValue: "Suggested value",
   notSubmitted: "Not submitted",
   none: "None under this filter.",
+  noneYet: "None yet.",
 };

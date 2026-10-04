@@ -135,13 +135,13 @@ submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter)
 it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
 count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
-E10-1's "People" and "Missing items" files; registers.answers(ws, instrumentId, filter, kinds, fieldKeys) and registers.missing(ws,
-instrumentId, filter, fieldKeys) (E8-4) the answers of the kinds asked (change, disagree,
+E10-1's "People" and "Missing items" files; registers.answers(ws, instrumentId, filter, kinds, fieldKeys, method) and registers.missing(ws,
+instrumentId, filter, fieldKeys, method) (E8-4) the answers of the kinds asked (change, disagree,
 unclear) and the missing items the filter keeps, as RegisterRow { id, itemId, reference,
 itemText, readerStatus, readerText, proposedValue, kind, value, reason, comment, fields, who,
-anon, submitted } and MissingRegisterRow { id, text, area, value, fields, who, anon,
-submitted } (who and anon as PersonRow's), sorted
-from the register's list of columns; agreement.byItem(ws, instrumentId, filter, split)
+anon, submitted, changedSince } and MissingRegisterRow { id, text, area, value, fields, who,
+anon, submitted, changedSince } (who and anon as PersonRow's), sorted from the register's
+list of columns, the value columns in the method's scale order; agreement.byItem(ws, instrumentId, filter, split)
 (E8-3) the counts per item (and per group of the split field) as ItemCounts { itemId, group,
 agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
 answered, rounded half up in SQL; the tab sums with the same rule, src/lib/results-agreement.ts

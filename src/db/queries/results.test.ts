@@ -9,6 +9,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
+import { proposedCode } from "@/lib/scoring";
 import { figureOf, percentOf } from "@/lib/results-agreement";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
@@ -406,33 +407,97 @@ describe("the registers", () => {
   it("count what the strip counts, under any filter", async () => {
     for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, withComment: true }, { ...NONE, kinds: ["unclear" as const] }]) {
       const n = (await results.numbers(wsA, instrumentA, f))!;
-      const pushed = await registers.answers(wsA, instrumentA, f, ["change", "disagree"], keys);
-      const unclear = await registers.answers(wsA, instrumentA, f, ["unclear"], keys);
-      const missing = await registers.missing(wsA, instrumentA, f, keys);
+      const pushed = await registers.answers(wsA, instrumentA, f, ["change", "disagree"], keys, "moscow");
+      const unclear = await registers.answers(wsA, instrumentA, f, ["unclear"], keys, "moscow");
+      const missing = await registers.missing(wsA, instrumentA, f, keys, "moscow");
       expect([pushed.filter((r) => r.kind === "change").length, pushed.filter((r) => r.kind === "disagree").length, unclear.length, missing.length]).toEqual([n.change, n.disagree, n.unclear, n.missing]);
     }
     // The fixture's missing item, with Dana's role.
-    const [m] = await registers.missing(wsA, instrumentA, NONE, keys);
+    const [m] = await registers.missing(wsA, instrumentA, NONE, keys, "moscow");
     expect([m.text, m.area, m.fields.name, m.fields.role, m.submitted]).toEqual([missingItem.text, missingItem.suggestedArea, "Dana Okafor", "Finance", true]);
   });
 
   it("sort by any column, both ways, ties in the list's order", async () => {
-    const names = async (key: string, dir: "asc" | "desc") => (await registers.answers(wsA, instrumentA, { ...NONE, sort: { key, dir } }, ["change"], keys)).map((r) => r.fields.name);
+    const names = async (key: string, dir: "asc" | "desc") => (await registers.answers(wsA, instrumentA, { ...NONE, sort: { key, dir } }, ["change"], keys, "moscow")).map((r) => r.fields.name);
     const asc = await names("respondent", "asc");
     expect(asc).toEqual([...asc].sort((a, b) => a.localeCompare(b)));
     // Descending is the exact reverse: the ties (one person's answers) fall back to the list's
     // order in the same direction.
     expect(await names("respondent", "desc")).toEqual([...asc].reverse());
-    const byItem = (await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).map((r) => r.reference);
+    const byItem = (await registers.answers(wsA, instrumentA, NONE, ["change"], keys, "moscow")).map((r) => r.reference);
     expect(byItem).toEqual([...byItem].sort());
-    expect(await names("drop table", "asc")).toEqual((await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).map((r) => r.fields.name));
+    expect(await names("drop table", "asc")).toEqual((await registers.answers(wsA, instrumentA, NONE, ["change"], keys, "moscow")).map((r) => r.fields.name));
     expect(await names("constructor", "asc")).toEqual(await names("item", "asc"));
     // The name shown is the tracker's.
-    expect((await registers.answers(wsA, instrumentA, NONE, ["change"], keys)).every((r) => r.who === r.fields.name)).toBe(true);
+    expect((await registers.answers(wsA, instrumentA, NONE, ["change"], keys, "moscow")).every((r) => r.who === r.fields.name)).toBe(true);
   });
 
+  it("sort the value columns in the scale's order, every other column both ways", async () => {
+    const rows = async (key: string, dir: "asc" | "desc", kinds: ("change" | "disagree" | "unclear")[] = ["change"]) => registers.answers(wsA, instrumentA, { ...NONE, sort: { key, dir } }, kinds, keys, "moscow");
+    const place = (code: string | null) => ["M", "S", "C", "W"].indexOf(code ?? "");
+    // Their value: Must before Should before Could, not by the stored letter.
+    const byValue = (await rows("value", "asc")).map((r) => place(r.value));
+    expect(byValue).toEqual([...byValue].sort((a, b) => a - b));
+    expect((await rows("value", "desc")).map((r) => place(r.value))).toEqual([...byValue].sort((a, b) => b - a));
+    // Proposed: the item's proposal read through the scale.
+    const byProposed = (await rows("proposed", "asc")).map((r) => place(proposedCode("moscow", r.proposedValue)));
+    expect(byProposed).toEqual([...byProposed].sort((a, b) => a - b));
+    for (const key of ["reason", "field.role", "item"]) {
+      const asc = (await rows(key, "asc", ["change", "disagree", "unclear"])).map((r) => r.id);
+      const desc = (await rows(key, "desc", ["change", "disagree", "unclear"])).map((r) => r.id);
+      expect(desc).toEqual([...asc].reverse());
+    }
+    expect((await rows("reason", "asc")).map((r) => r.reason!.toLowerCase())).toEqual((await rows("reason", "asc")).map((r) => r.reason!.toLowerCase()).sort());
+  });
+
+  it("mark answers not submitted and answers changed after Submit, and sort the missing items", async () => {
+    const h = await createWorkspaceWithSample({ name: "Results H", slug: `results-h-${Date.now()}` }, userId);
+    made.push(h.id);
+    const wsH = unsafeWorkspaceId(h.id);
+    const instrumentH = await sampleInstrument(wsH);
+    const responseOf = async (name: string) => (await sql`select id from response where workspace_id = ${wsH} and fields ->> 'name' = ${name}`)[0].id as string;
+    // Sam (in progress) disagrees on CL-02; Tom changed an answer after Submit (E7-6).
+    const sam = await responseOf("Sam Hill");
+    await sql`update answer set kind = 'disagree', value = null, reason = 'Not for us.' where response_id = ${sam} and item_id = (select id from item where workspace_id = ${wsH} and source_ref = 'CL-02')`;
+    await sql`update response set signed_off = false where id = ${await responseOf("Tom Reyes")}`;
+    const on = { ...NONE, includeUnsubmitted: true };
+    const rows = await registers.answers(wsH, instrumentH, on, ["change", "disagree"], keys, "moscow");
+    expect(rows.filter((r) => r.who === "Sam Hill").map((r) => [r.kind, r.submitted, r.changedSince])).toEqual([["disagree", false, false]]);
+    expect(rows.filter((r) => r.who === "Tom Reyes").every((r) => r.submitted && r.changedSince)).toBe(true);
+    expect(rows.filter((r) => r.who === "Ioana Marin").every((r) => r.submitted && !r.changedSince)).toBe(true);
+    // Two more missing items, from Sam and Priya, then every missing column both ways.
+    await sql`insert into missing_item (workspace_id, response_id, text, suggested_area, suggested_value) values (${wsH}, ${sam}, 'Approve from a phone.', 'Approving', 'S'), (${wsH}, ${await responseOf("Priya Nair")}, 'Card statements imported.', 'Submitting', 'M')`;
+    const missing = async (key: string, dir: "asc" | "desc") => (await registers.missing(wsH, instrumentH, { ...on, sort: { key, dir } }, keys, "moscow")).map((m) => m.text);
+    expect(await missing("text", "asc")).toEqual([...(await missing("text", "asc"))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
+    for (const key of ["text", "area", "respondent"]) expect(await missing(key, "desc")).toEqual([...(await missing(key, "asc"))].reverse());
+    const byValue = (await registers.missing(wsH, instrumentH, { ...on, sort: { key: "value", dir: "asc" } }, keys, "moscow")).map((m) => m.value);
+    expect(byValue.indexOf("M")).toBeLessThan(byValue.indexOf("S"));
+    expect((await registers.missing(wsH, instrumentH, on, keys, "moscow")).find((m) => m.who === "Sam Hill")?.submitted).toBe(false);
+  });
+
+  it("answer 600 generated responses from SQL under 500 ms", async () => {
+    const g = await createWorkspaceWithSample({ name: "Results I", slug: `results-i-${Date.now()}` }, userId);
+    made.push(g.id);
+    const wsI = unsafeWorkspaceId(g.id);
+    const instrumentI = await sampleInstrument(wsI);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentI} and i.kind = 'public'`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields, submitted_at, first_submitted_at, signed_off)
+      select ${wsI}, ${instrumentI}, ${item_set_id}, ${public_invite}, md5(random()::text) || md5(g::text), jsonb_build_object('name', 'Person ' || g, 'role', 'Sales'), now(), now(), true
+      from generate_series(1, 600) g`;
+    await sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind, value, reason)
+      select ${wsI}, r.id, r.item_set_id, it.id, (array['change', 'disagree', 'unclear', 'agree', 'agree'])[1 + abs(hashtext(r.id::text || it.id::text)) % 5],
+          case when abs(hashtext(r.id::text || it.id::text)) % 5 = 0 then 'M' end, 'Because.'
+      from response r join item it on it.item_set_id = r.item_set_id where r.workspace_id = ${wsI} and r.fields ->> 'name' like 'Person %'`;
+    for (const sort of [null, { key: "respondent", dir: "desc" as const }, { key: "value", dir: "asc" as const }]) {
+      const started = performance.now();
+      const rows = await registers.answers(wsI, instrumentI, { ...NONE, sort }, ["change", "disagree"], keys, "moscow");
+      expect(performance.now() - started).toBeLessThan(500);
+      expect(rows.length).toBeGreaterThan(1000);
+    }
+  }, 60_000);
+
   it("read nothing of another workspace's instrument", async () => {
-    expect(await registers.answers(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, ["change", "disagree", "unclear"], keys)).toEqual([]);
-    expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys)).toEqual([]);
+    expect(await registers.answers(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, ["change", "disagree", "unclear"], keys, "moscow")).toEqual([]);
+    expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys, "moscow")).toEqual([]);
   });
 });
