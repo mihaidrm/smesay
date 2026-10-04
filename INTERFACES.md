@@ -603,3 +603,15 @@ roomInPlan(ws, kind, now) in src/lib/plans.ts gives how many more of a kind the 
 this month, or null.
 EXPORT_FILES gains "project" (migration 0024); CSV_FILES are the four CSV files.
 
+## PDF summary (E10-3)
+Owner: E10-3. Consumer: the Export tab.
+Version 1, 2026-10-04. GET /api/projects/[projectId]/export/summary?[the Results page's query]
+returns application/pdf with x-summary-pages: [N]. summaryView({ ws, workspace, project,
+instrument, filter, ctx, tiles, now }) in src/lib/export/summary.ts returns SummaryView or null
+(another workspace's instrument); summaryHtml(view), summaryHeader(view) and summaryFooter() in
+summary-html.ts; renderPdf(html, { header, footer }) and pageCount(bytes) in pdf.ts.
+results.signOffs(ws, instrumentId, filter) returns SignOff { id, who, anon, submittedAt,
+confidence, signedOff } for every submitted response the filter keeps, oldest first; the
+people CTE carries r.confidence. SUMMARY_PAGE_LIMIT = 30 in src/lib/export/copy.ts.
+EXPORT_FILES gains "summary" (migration 0025); the export log keeps the page count as rows.
+

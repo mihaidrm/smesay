@@ -176,6 +176,13 @@
       "when": 1791150696534,
       "tag": "0024_export_log_project",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791152245008,
+      "tag": "0025_export_log_summary",
+      "breakpoints": true
     }
   ]
 }

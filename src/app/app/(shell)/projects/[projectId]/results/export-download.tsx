@@ -16,14 +16,18 @@ const nameOf = (disposition: string | null, fallback: string) => {
   return disposition?.match(/filename="([^"]+)"/i)?.[1] ?? fallback;
 };
 
-export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId, fallbackName }: { href: string; label: string; srLabel: string; busyLabel: string; failed: string; testId: string; fallbackName: string }) {
+// pages (E10-3): the page limit and the note with "{pages}" where the count goes; the note shows
+// when the route's x-summary-pages header is over the limit.
+export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId, fallbackName, pages }: { href: string; label: string; srLabel: string; busyLabel: string; failed: string; testId: string; fallbackName: string; pages?: { limit: number; note: string } }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   async function download(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     if (busy) return;
     setBusy(true);
     setError(false);
+    setNote(null);
     try {
       const res = await fetch(href, { cache: "no-store", redirect: "manual" });
       if (!res.ok) throw new Error(String(res.status));
@@ -36,6 +40,8 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const count = Number(res.headers.get("x-summary-pages"));
+      if (pages && count > pages.limit) setNote(pages.note.replace("{pages}", String(count)));
     } catch {
       setError(true);
     } finally {
@@ -47,6 +53,7 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
       <a href={href} download onClick={download} aria-busy={busy || undefined} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })} data-testid={testId}>
         {busy ? busyLabel : label}<span className="sr-only"> {srLabel}</span>
       </a>
+      {note && <p role="status" className="rounded-lg bg-sun-soft px-3 py-2 text-sm text-sun-text" data-testid={`${testId}-pages`}>{note}</p>}
       {error && <p role="alert" className="rounded-lg bg-unclear-tint px-3 py-2 text-sm text-unclear-text" data-testid={`${testId}-error`}>{failed}</p>}
     </div>
   );

@@ -75,5 +75,5 @@ export type InsightKind = (typeof INSIGHT_KINDS)[number];
 // kind of download in export_log.file; E10-3 adds the PDF.
 export const CSV_FILES = ["answers", "items", "people", "missing"] as const;
 export type CsvFile = (typeof CSV_FILES)[number];
-export const EXPORT_FILES = [...CSV_FILES, "project"] as const;
+export const EXPORT_FILES = [...CSV_FILES, "project", "summary"] as const;
 export type ExportFile = (typeof EXPORT_FILES)[number];

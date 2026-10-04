@@ -12,6 +12,11 @@
 // row, so a link elsewhere cannot fill the log.
 // /export/project (E10-2) is the whole project as one JSON file (ProjectExport), whatever the
 // filter, logged the same way with the number of responses as its rows.
+// /export/summary (E10-3) is the PDF summary under the page's filter, rendered by Chromium
+// (src/lib/export/pdf.ts), with its page count in the x-summary-pages header so the Export tab
+// can say when it runs over 30 pages; logged with the page count as its rows. Next leaves
+// playwright-core out of the server bundle (node_modules/next/dist/lib/
+// server-external-packages.jsonc lists it).
 import { exportLogs, instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
 import { EXPORT_FILES, type CsvFile, type ExportFile } from "@/db/types";
@@ -19,8 +24,12 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { BOM, line } from "@/lib/export/csv";
 import { exportTable } from "@/lib/export/files";
+import { renderPdf } from "@/lib/export/pdf";
 import { exportProject } from "@/lib/export/project";
+import { summaryView } from "@/lib/export/summary";
+import { summaryFooter, summaryHeader, summaryHtml } from "@/lib/export/summary-html";
 import { describeFilter, filterActive, parseResultsFilter, type FilterContext, type SearchParams } from "@/lib/results-filter";
+import { DEFAULT_TILES, storedTiles } from "@/lib/results-tiles";
 
 const CHUNK = 500;
 
@@ -48,8 +57,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
   const prefs = await resultsPrefs.get(session.user.id, instrument.id);
   const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
   const filter = parseResultsFilter(query, ctx, typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null);
+  const logFilter = filterActive(filter) ? describeFilter(filter, ctx, true) : null;
+  if (file === "summary") {
+    const view = await summaryView({ ws: current.ws, workspace: current.workspace.name, project, instrument, filter, ctx, tiles: storedTiles(prefs.tiles) ?? DEFAULT_TILES, now: new Date() });
+    if (!view) return new Response(null, { status: 404 });
+    const pdf = await renderPdf(summaryHtml(view), { header: summaryHeader(view), footer: summaryFooter() });
+    await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: "summary", filter: logFilter, rows: pdf.pages });
+    return new Response(new Uint8Array(pdf.bytes), { headers: { "content-type": "application/pdf", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "summary", date)), "x-summary-pages": String(pdf.pages), "cache-control": "no-store" } });
+  }
   const table = await exportTable(current.ws, instrument, file as CsvFile, filter, ctx, project.isSample);
-  await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: file as ExportFile, filter: filterActive(filter) ? describeFilter(filter, ctx, true) : null, rows: table.rows.length });
+  await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: file as ExportFile, filter: logFilter, rows: table.rows.length });
   const lines = [...table.preamble, table.header, ...table.rows];
   const encoder = new TextEncoder();
   let at = 0;
