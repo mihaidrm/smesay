@@ -124,9 +124,23 @@ Button: See your answers
 
 The receipt lists the counts with the link, not the answers (decision 0031).
 
+## 5. Question from the landing page (E12-5, proposed; to SMEsay, not to a user)
+
+Sent to SUPPORT_EMAIL when a visitor sends a question from the landing page's bubble.
+Plain text, no design, nothing stored in the app (decision 0046).
+
+From: SMEsay <no-reply@[DOMAIN]>
+Reply-To: [VISITOR EMAIL]
+Subject: Question from the landing page: [VISITOR EMAIL]
+
+Body:
+[THE QUESTION, as written]
+
+Sent from [PAGE ADDRESS] on [DATE AND TIME UTC]. Reply to this email to answer.
+
 ## Not sent
 
 - No welcome email, no tips, no digest, no "your link was opened" notices. Decision 0003 and the
-  design system limit email to the four above.
+  design system limit email to users to the four above; email 5 goes to SMEsay's own inbox.
 - No email to the PM when a response arrives; the dashboard is live (E8).
 - No email when the link closes. The PM set the date; the dashboard shows it.

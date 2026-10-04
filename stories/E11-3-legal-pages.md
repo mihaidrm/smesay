@@ -11,7 +11,8 @@ confirm, each showing its version and date, and every instrument links to the pr
    confirm (decision 0004 item 3), the controller Alerty S.R.L. with the registered address
    placeholder, the hosting region, retention (24 hour deletion, E11-2), the respondent data
    stored (only the fields the PM configured, CLAUDE.md), the AI processing (Anthropic as a
-   subprocessor, what is sent), exports, and contact.
+   subprocessor, what is sent), exports, contact, and the landing page's questions (E12-5,
+   decision 0046: emailed to SMEsay with the visitor's address, nothing kept in the app).
 2. Each page shows "Version [N], [DATE]" at the top; versions are files in docs/legal/ and
    the pages render them, so a change is a commit.
 3. The respondent About you page and the Done page link to the privacy notice ("How your
