@@ -25,6 +25,7 @@ import { DEFAULT_TILES, storedTiles, tabCounts, tileView, type ResultsNumbers, t
 import { formatUtc, linkState } from "@/lib/sharing";
 import { FilterBar } from "./filter-bar";
 import { ResultsBoundary } from "./results-boundary";
+import { ResponsesTab } from "./responses-tab";
 import { PanelSkeleton } from "./skeletons";
 import { TileChooser } from "./tile-chooser";
 import { UnsubmittedSwitch } from "./unsubmitted-switch";
@@ -32,7 +33,7 @@ import { UnsubmittedSwitch } from "./unsubmitted-switch";
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
 type Tab = (typeof TABS)[number];
 // The story each tab's content comes with.
-const TAB_STORY: Record<Tab, string> = { agreement: "E8-3", pushed: "E8-4", questions: "E8-4", responses: "E8-2", actions: "E9-1", export: "E10-1" };
+const TAB_STORY: Record<Exclude<Tab, "responses">, string> = { agreement: "E8-3", pushed: "E8-4", questions: "E8-4", actions: "E9-1", export: "E10-1" };
 const parseTab = (v: string | string[] | undefined): Tab => (typeof v === "string" && (TABS as readonly string[]).includes(v) ? (v as Tab) : "agreement");
 
 export default async function ResultsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<SearchParams> }) {
@@ -100,7 +101,7 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
               line, and a failed page clears with Try again. */}
           <ResultsBoundary key={tab} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
-              <TabPanel tab={tab} n={n} />
+              <TabPanel tab={tab} n={n} ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={(f) => href(f, tab)} />
             </Suspense>
           </ResultsBoundary>
         </>
@@ -138,8 +139,9 @@ function TabRow({ n, tab, href }: { n: ResultsNumbers; tab: Tab; href: (t: Tab) 
 }
 
 // Each tab's content comes with its story; until then the tab says which.
-async function TabPanel({ tab }: { tab: Tab; n: ResultsNumbers }) {
-  return <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="tab-panel">{RESULTS_COPY.comesWith(RESULTS_COPY.tabs[tab], TAB_STORY[tab])}</p>;
+async function TabPanel({ tab, ws, instrumentId, filter, ctx, href }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; instrumentId: string; filter: ResultsFilter; ctx: FilterContext; href: (f: ResultsFilter) => string }) {
+  if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrumentId} filter={filter} ctx={ctx} href={href} />;
+  return <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="tab-panel">{RESULTS_COPY.comesWith(RESULTS_COPY.tabs[tab], TAB_STORY[tab as Exclude<Tab, "responses">])}</p>;
 }
 
 async function linkPhrase(ws: BodyProps["ws"], projectId: string): Promise<string> {

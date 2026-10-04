@@ -50,3 +50,26 @@ export const RESULTS_COPY = {
   tryAgain: "Try again",
   strip: "The headline numbers",
 };
+
+// The Responses tab (stories/E8-2; docs/copy/app.md, Results).
+export const RESPONSES_COPY = {
+  caption: (n: number) => `${n} people`,
+  name: "Name",
+  status: "Status",
+  progress: "Progress",
+  submitted: "Submitted",
+  source: "Source",
+  reminders: "Reminders",
+  withComment: "With a reason or comment",
+  progressOf: (n: number, m: number) => `${n} of ${m}`,
+  notYet: "Not yet",
+  publicLink: "Public link",
+  personalInvite: "Personal invite",
+  none: "None",
+  anonymous: (n: number) => `Anonymous ${n}`,
+  invited: "Invited",
+  inProgress: "In progress",
+  submittedStatus: "Submitted",
+  changedSince: "Changes not submitted again",
+  submittedAgain: "Submitted again",
+};

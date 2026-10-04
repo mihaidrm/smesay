@@ -62,10 +62,17 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter): SQL {
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
     ),
     people as (
-      select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at
-        from response r join inst on r.instrument_id = inst.id where r.workspace_id = ${ws}
+      select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at,
+          r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' then iv.reminders_sent end as reminders,
+          -- E8-2: "Anonymous [N]" for a response with no name, numbered over the instrument's
+          -- nameless responses by when they started, before any filter, so N never moves.
+          case when coalesce(r.fields ->> 'name', '') = '' then row_number() over (partition by coalesce(r.fields ->> 'name', '') = '' order by r.created_at, r.id) end as anon
+        from response r join inst on r.instrument_id = inst.id
+          join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
+        where r.workspace_id = ${ws}
       union all
-      select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at
+      select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
+          false, i.created_at, i.kind, i.reminders_sent, null::bigint
         from invite i join inst on i.instrument_id = inst.id
         where i.workspace_id = ${ws} and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
@@ -149,6 +156,88 @@ export const results = {
     const rows = await db.execute<{ id: string; response_id: string; text: string }>(sql`${head(ws, instrumentId, f)}
       select m.id, m.response_id, m.text from missing_item m join counted c on c.id = m.response_id where m.workspace_id = ${ws} order by m.created_at, m.id`);
     return rows.map((r) => ({ id: r.id, responseId: r.response_id, text: r.text }));
+  },
+};
+
+// One person of the Responses tab (E8-2): every person the filter keeps, started or invited.
+export type PersonRow = {
+  id: string;
+  source: "public" | "personal";
+  fields: Record<string, string>;
+  // "Anonymous [N]" when the response has no name.
+  anon: number | null;
+  status: "invited" | "inProgress" | "submitted";
+  // E7-6: submitted with changes not submitted again; or changed and submitted again.
+  changedSince: boolean;
+  submittedAgain: boolean;
+  answered: number;
+  visible: number;
+  submittedAt: Date | null;
+  reminders: number | null;
+  withComment: number;
+};
+
+// The tracker's columns and their SQL (E8-2, acceptance 5): a sort key from the URL is looked
+// up here, never written into the query; a field column only for a key of the instrument.
+function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
+  const dir = sort?.dir === "desc" ? sql`desc` : sql`asc`;
+  const key = sort?.key ?? "name";
+  const name = sql`lower(nullif(p.fields ->> 'name', '')) ${dir} nulls last, p.anon ${dir} nulls last`;
+  const by: Record<string, SQL> = {
+    name,
+    status: sql`(case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) ${dir}`,
+    progress: sql`coalesce(given.answered, 0) ${dir}`,
+    submitted: sql`p.submitted_at ${dir} nulls last`,
+    source: sql`p.source ${dir}`,
+    reminders: sql`p.reminders ${dir} nulls last`,
+    comments: sql`coalesce(given.with_comment, 0) ${dir}`,
+  };
+  const field = key.startsWith("field.") ? key.slice(6) : null;
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(p.fields ->> ${field}) ${dir} nulls last` : (by[key] ?? name);
+  return sql`${first}, ${name}, p.id`;
+}
+
+export const tracker = {
+  people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<PersonRow[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; anon: string | number | null; src: string; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
+      -- One pass each over the items and the answers, grouped by person (a subquery per person
+      -- was too slow at 500 people).
+      shown as (
+        select p.id, count(its.id)::int as visible
+          from sel p left join its on cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives
+          group by p.id
+      ),
+      given as (
+        select a.response_id,
+            count(*) filter (where cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives)::int as answered,
+            count(*) filter (where a.reason is not null or a.comment is not null)::int as with_comment
+          from answer a join sel p on p.id = a.response_id join its on its.id = a.item_id
+          where a.workspace_id = ${ws}
+          group by a.response_id
+      )
+      select p.id, p.src, p.source, p.fields, p.anon, p.submitted_at, p.signed_off, p.reminders,
+          (p.first_submitted_at is not null and p.updated_at > p.first_submitted_at) as changed_after,
+          shown.visible, coalesce(given.answered, 0) as answered, coalesce(given.with_comment, 0) as with_comment
+        from sel p join shown on shown.id = p.id left join given on given.response_id = p.id
+        order by ${personOrder(f.sort, fieldKeys)}`);
+    return rows.map((r) => {
+      const submitted = r.submitted_at !== null;
+      return {
+        id: r.id,
+        source: r.source === "public" ? "public" : "personal",
+        fields: r.fields ?? {},
+        anon: r.anon === null ? null : Number(r.anon),
+        status: r.src === "i" ? "invited" : submitted ? "submitted" : "inProgress",
+        changedSince: submitted && !r.signed_off,
+        submittedAgain: submitted && r.signed_off && r.changed_after,
+        answered: r.answered,
+        visible: r.visible,
+        submittedAt: r.submitted_at === null ? null : new Date(r.submitted_at),
+        reminders: r.reminders,
+        withComment: r.with_comment,
+      };
+    });
   },
 };
 

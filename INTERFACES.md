@@ -91,13 +91,14 @@ the check constraints use them). Change this file first.
   { fields: { [key]: string[] | string } (a dropdown field's chosen options, or the words a
   text field contains), kinds: ("agree" | "change" | "disagree" | "unclear" | "pick" |
   "none")[] ("none": not answered), withComment: boolean, perspective: string | null,
-  status: ("submitted" | "inProgress")[], includeUnsubmitted: boolean }, the sort to come
-  with E8-2. It selects people (started responses, and personal invites not opened yet
+  status: ("submitted" | "inProgress")[], includeUnsubmitted: boolean, sort: { key, dir:
+  "asc" | "desc" } | null } (E8-2: a column key in a safe shape, which each table maps to
+  SQL from its own list; never a filter). It selects people (started responses, and personal invites not opened yet
   with the name and role their About you starts with): a person with at least one answer of
   a chosen kind (or an item they see unanswered), with a reason or comment, whose fields,
   perspective and status match; the numbers count those people's answers. It travels in the
   URL (f.[key], kind, comment=1, perspective, status, unsubmitted=1 or 0, absent for the
-  PM's stored choice) and is read and written by parseResultsFilter and filterQuery in
+  PM's stored choice, sort and dir) and is read and written by parseResultsFilter and filterQuery in
   src/lib/results-filter.ts, against the instrument's fields and perspectives.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
@@ -133,7 +134,11 @@ submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter)
 it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
 count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
-E10-1's "People" and "Missing items" files; resultsPrefs.get(userId, instrumentId) and
+E10-1's "People" and "Missing items" files; tracker.people(ws, instrumentId, filter,
+fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
+fields, anon, status, changedSince, submittedAgain, answered, visible, submittedAt,
+reminders, withComment }, sorted by the filter's sort from the tab's list of columns (a field
+column only for a key in fieldKeys); resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by

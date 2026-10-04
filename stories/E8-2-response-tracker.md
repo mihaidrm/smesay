@@ -1,7 +1,7 @@
 # E8-2 Response tracker: who, status, progress, submitted date, source
 
 User: a PM chasing the people who have not answered
-Status: ready
+Status: built
 Outcome: one table of every respondent, sorted by any column, narrowed by the page's filter
 bar.
 
@@ -39,3 +39,21 @@ One query with the respondent fields unpacked from response.fields (jsonb) by ke
 visible-set count per respondent comes from src/lib/perspectives.ts in SQL form (a lateral
 count over items filtered by perspectives). The sort is a whitelist of column keys, never a
 string from the URL in the query.
+
+Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):
+- Acceptance 1: src/app/app/(shell)/projects/[projectId]/results/responses-tab.tsx and
+  tracker.people in src/db/queries/results.ts: name, every other respondent field, status
+  (Invited, In progress, Submitted, with "Changes not submitted again" or "Submitted again"),
+  progress against the items the person sees, submitted date, source, reminders (None on the
+  public link), the answers with a reason or comment.
+- Acceptance 2: the people are E8-1's selection (the same SQL head), so the tab and the strip
+  always agree; the tab adds no filter of its own.
+- Acceptance 3: "Anonymous [N]" numbers the nameless responses by when they started (the
+  response row is made at Start, before the first answer), over the whole instrument before
+  any filter, so a number never moves.
+- Acceptance 4: in-progress rows show their count; their answers count in the numbers while
+  the switch is on (E8-1); the rows are listed whatever the switch.
+- Acceptance 5: every column header sorts both ways (sort and dir in the URL, aria-sort on
+  the header), mapped to SQL from the tab's own list; src/db/queries/results.test.ts times
+  500 generated people from the query under 500 ms.
+- Acceptance 6: e2e/results-responses.spec.ts.

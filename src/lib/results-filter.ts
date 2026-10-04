@@ -14,7 +14,9 @@
 // kind). Every number is then counted over the answers of the people kept.
 //
 // URL: f.[key] per field (repeated for a dropdown's options), kind (repeated), comment=1,
-// perspective, status (repeated), unsubmitted=1 or 0 (absent: the PM's stored choice).
+// perspective, status (repeated), unsubmitted=1 or 0 (absent: the PM's stored choice), and
+// the table's sort, sort=[column]&dir=asc or desc (E8-2; each table checks the column against
+// its own list, so the sort never narrows anything and is no filter).
 import type { RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
@@ -42,7 +44,12 @@ export type ResultsFilter = {
   perspective: string | null;
   status: ResultsStatus[];
   includeUnsubmitted: boolean;
+  // The table's sort (E8-2): a column key in a safe shape; each table maps it to SQL from its
+  // own list, never from the URL.
+  sort: ResultsSort | null;
 };
+export type ResultsSort = { key: string; dir: "asc" | "desc" };
+const SORT_KEY = /^[a-z][a-zA-Z0-9._-]{0,60}$/;
 
 export type FilterContext = { fields: RespondentFieldSpec[]; perspectives: string[] };
 export type SearchParams = Record<string, string | string[] | undefined>;
@@ -80,7 +87,13 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
     status: RESULTS_STATUSES.filter((s) => status.includes(s)),
     includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
+    sort: sortOf(first(params.sort), first(params.dir)),
   };
+}
+
+function sortOf(key: string | undefined, dir: string | undefined): ResultsSort | null {
+  if (!key || !SORT_KEY.test(key)) return null;
+  return { key, dir: dir === "desc" ? "desc" : "asc" };
 }
 
 // Whether anything narrows the people (the include-unsubmitted switch is not a filter).
@@ -105,11 +118,16 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   if (f.perspective) q.append("perspective", f.perspective);
   for (const s of f.status) q.append("status", s);
   q.append("unsubmitted", f.includeUnsubmitted ? "1" : "0");
+  if (f.sort) { q.append("sort", f.sort.key); q.append("dir", f.sort.dir); }
   return q.toString();
 }
 
-// The filter with nothing narrowing (Clear filters keeps the switch).
-export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted });
+// The filter with nothing narrowing (Clear filters keeps the switch and the sort).
+export const clearedFilter = (f: ResultsFilter): ResultsFilter => ({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: f.includeUnsubmitted, sort: f.sort });
+
+// The sort a column header links to: the column ascending, or descending when it is the
+// current ascending sort.
+export const nextSort = (current: ResultsSort | null, key: string): ResultsSort => (current?.key === key && current.dir === "asc" ? { key, dir: "desc" } : { key, dir: "asc" });
 
 // "[FILTERS]" of "Showing [N] of [M] responses: [FILTERS]." (docs/copy/errors.md): each part
 // named as the filter bar names it, parts joined by "; ".
