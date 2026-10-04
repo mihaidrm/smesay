@@ -436,6 +436,20 @@ export function changedAfterSubmit(r: { firstSubmittedAt: Date | null; updatedAt
 // Submit had posted (an earlier one was settled before that Submit, or is a copy of one).
 // Times are the page's monotonic clock; -1 before any Submit.
 export const showsChanged = (since: boolean | null, sentAt: number, lastSubmit: number, submitted: boolean): boolean => since === true && submitted && sentAt >= lastSubmit;
+// What a Start's answer does to the page's Submit and notice (E7-6): the response's Submit as
+// the server holds it after the Start. Another response, or a Submit the page did not know
+// (made in another window or on another device), replaces the page's, and its "changed" is
+// taken as given. The Submit the page knows can only turn the notice on: between two Submits
+// the server's state only goes one way, and an older answer must not clear a newer "changed".
+// The page never hides a change: in a race with another window's Submit it may show the notice
+// when nothing changed since, and a Submit again is harmless (docs/review-list.md).
+export type StartSubmit = { submitted: "keep" | { at: string } | null; changedSince: "keep" | boolean };
+export function startSubmit(known: string | null, reply: { submittedAt?: unknown; changedSince?: unknown }, other: boolean): StartSubmit {
+  const at = typeof reply.submittedAt === "string" ? reply.submittedAt : null;
+  const changed = at !== null && reply.changedSince === true;
+  if (other || at !== known) return { submitted: at ? { at } : null, changedSince: changed };
+  return { submitted: "keep", changedSince: changed ? true : "keep" };
+}
 // A submitted response with changes not submitted again (E7-6, acceptance 6): every change
 // takes the sign-off back until the next Submit.
 export const changedSinceSubmit = (r: { submittedAt: Date | null; signedOff: boolean }): boolean => r.submittedAt !== null && !r.signedOff;

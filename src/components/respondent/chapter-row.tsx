@@ -51,8 +51,8 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
           aria-current={on ? "step" : undefined}
           aria-label={name}
           aria-disabled={locked || undefined}
-          onClick={(e) => { if (locked) { e.preventDefault(); return; } if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); onGo(target); }}
-          className={cn(PILL, on ? "border-transparent text-white" : "border-hairline-strong bg-surface text-ink-muted hover:text-ink")}
+          onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); if (!locked) onGo(target); }}
+          className={cn(PILL, on ? "border-transparent text-white" : "border-hairline-strong bg-surface text-ink-muted hover:text-ink", locked && "opacity-40")}
           style={on ? { background: accent } : undefined}
           data-testid={testId}
         >{label}</a>

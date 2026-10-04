@@ -50,7 +50,7 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
 import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
-import { areasOf, chaptersFor, gapsOf, showsChanged, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { areasOf, chaptersFor, gapsOf, showsChanged, startSubmit, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 
 export type RespondentAppProps = {
@@ -261,17 +261,11 @@ export function RespondentApp(props: RespondentAppProps) {
         saver.bind(body.response);
         wrapSaver.bind(body.response);
         // The response's Submit and its changes since, as the server holds them after this
-        // Start (E7-6): it may be another response (started in another window on this
-        // device), or have been submitted in another window or on another device since the
-        // page opened; a Start that changes the details or the picks of a submitted response
-        // takes its sign-off back. Answers to requests sent before a Submit the page learns of
-        // here say nothing about it.
-        const at = typeof body.submittedAt === "string" ? body.submittedAt : null;
-        if (other || at !== (submitted?.at ?? null)) {
-          setSubmitted(at ? { at, name: firstName(values) ?? (other ? null : submitted?.name ?? null), returning: true } : null);
-          lastSubmit.current = performance.now();
-        }
-        setChangedSince(at !== null && body.changedSince === true);
+        // Start (startSubmit): another response, or a Submit made elsewhere since the page
+        // opened, replaces the page's; the Submit the page knows can only turn the notice on.
+        const next = startSubmit(submitted?.at ?? null, body, other);
+        if (next.submitted !== "keep") setSubmitted(next.submitted ? { at: next.submitted.at, name: firstName(values) ?? (other ? null : submitted?.name ?? null), returning: true } : null);
+        if (next.changedSince !== "keep") setChangedSince(next.changedSince);
       }
       startedHere.current = true;
       savedSinceStart.current = false;

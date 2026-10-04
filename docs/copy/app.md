@@ -307,7 +307,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Gaps box | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: the first chapter) |
 | Live link, nothing left to finish (E7-4) | All [M] items are answered. (one item: The item is answered.) |
 | Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Say why., Write your question., Not saved yet), each opening its own item |
-| Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts; Back, the chapter row and the Wrap up's Go to and Change are disabled until it answers, E7-6) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |
+| Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts; Back, the chapter row and the Wrap up's Go to, Change and Still to finish rows are disabled until it answers, E7-6) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |
 | When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
 | When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |
 | Missing-item form (when the PM switched it on) | Is anything missing from the list? Optional. What is missing; Where it belongs (Choose one, then the chapters); How important it is (Choose one, then the method's values) |

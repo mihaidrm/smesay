@@ -125,3 +125,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   response is its own; tests for the Start answer's fields and, in the browser, for Back
   disabled and the browser's Back held while a Submit posts. A Submit made in another
   window shows on this page at its next Start or load.
+- Check of that fix 2026-10-04: 0 blocking, 1 should-fix (a Start's answer for the Submit the
+  page knew could clear a "changed" a later save had reported), 5 nits. Fixed: a Start's
+  answer for the Submit the page knows can only turn the notice on, and another response or
+  a Submit made elsewhere replaces the page's (startSubmit, tested); the page no longer
+  drops answers sent before a Submit it learns of at Start, so in a race with another
+  window's Submit it may show the notice with nothing changed, never hide one (recorded in
+  docs/review-list.md); locked chapter pills are dimmed and a modifier click still opens a
+  tab; the copy names the Still to finish rows.

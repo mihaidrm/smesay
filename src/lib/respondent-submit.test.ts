@@ -24,7 +24,7 @@ import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
-import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, showsChanged, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
+import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, showsChanged, startSubmit, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -334,6 +334,15 @@ describe("after Submit", () => {
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: first })).toBe(false);
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: new Date("2026-10-08T09:00:00Z") })).toBe(true);
     expect([changedSinceSubmit({ submittedAt: null, signedOff: false }), changedSinceSubmit({ submittedAt: first, signedOff: true }), changedSinceSubmit({ submittedAt: first, signedOff: false })]).toEqual([false, false, true]);
+    // A Start's answer: another response or a Submit made elsewhere replaces the page's; the
+    // Submit the page knows only turns the notice on (an older answer never clears it).
+    const S0 = "2026-10-07T14:05:00.000Z"; const S1 = "2026-10-08T09:00:00.000Z";
+    expect(startSubmit(null, { submittedAt: null, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
+    expect(startSubmit(null, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: false });
+    expect(startSubmit(S0, { submittedAt: S1, changedSince: true }, false)).toEqual({ submitted: { at: S1 }, changedSince: true });
+    expect(startSubmit(S0, { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
+    expect(startSubmit(S0, { submittedAt: S0, changedSince: true }, false)).toEqual({ submitted: "keep", changedSince: true });
+    expect(startSubmit(S0, { submittedAt: null, changedSince: false }, true)).toEqual({ submitted: null, changedSince: false });
     // The page's notice: a "changed" for a submitted response, from a request sent once its
     // last Submit had posted; not before a Submit, and not "not changed".
     expect(showsChanged(true, 120, 100, true)).toBe(true);
