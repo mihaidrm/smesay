@@ -78,7 +78,9 @@ const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_CO
 const refused = <T>(reason: Refusal, detail: string, estimateCents?: number): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail, ...(estimateCents === undefined ? {} : { estimateCents }) });
 
 // The text an estimate counts (E9-3): the prompt and the output schema the API sends with it.
-export const estimateText = (instructions: string, data: string, schema: z.ZodType<unknown>): string => instructions + data + JSON.stringify(zodOutputFormat(schema));
+export const estimateText = (instructions: string, data: string, outputFormat: unknown): string => instructions + data + JSON.stringify(outputFormat);
+// The output format the request sends for a schema (the SDK's helper, which only this file imports).
+export const outputFormatOf = (schema: z.ZodType<unknown>) => zodOutputFormat(schema);
 
 // The product's cap for the month in whole euro, from the environment (decision 0036); null
 // when the variable is missing or not a whole number, and the call is then refused, as for a
@@ -115,8 +117,8 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   }
   // The estimate counts the output schema too, which the API sends with the prompt (design
   // note 26 named it as the gap the whole allowance covered; E9-3 lets a caller expect less).
-  const outputFormat = zodOutputFormat(input.schema);
-  const estimate = estimateCents(model, estimateText(input.instructions, input.data, input.schema), Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
+  const outputFormat = outputFormatOf(input.schema);
+  const estimate = estimateCents(model, estimateText(input.instructions, input.data, outputFormat), Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
   const productSpent = await internal.productAiCostCentsThisMonth(now);
   if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
   const used = await usage(input.ws, now);
