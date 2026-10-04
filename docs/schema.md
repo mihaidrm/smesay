@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0023_export_log).
+v1, 2026-10-04 (the date of the latest migration, 0024_export_log_project).
 
-Generated from the snapshot of the 24 migrations in drizzle/ (0023_snapshot.json) by
+Generated from the snapshot of the 25 migrations in drizzle/ (0024_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -363,7 +363,7 @@ every download of an export: who, when, the file, the filter in words, the rows 
 Foreign keys: export_log_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade.
 
 Indexes: export_log_workspace_idx on workspace_id; export_log_project_idx on project_id; export_log_made_by_idx on made_by.
-Checks: export_log_file_check: file in ('answers', 'items', 'people', 'missing').
+Checks: export_log_file_check: file in ('answers', 'items', 'people', 'missing', 'project').
 
 ## upload
 

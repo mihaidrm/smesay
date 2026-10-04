@@ -10,7 +10,7 @@
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results, tracker } from "@/db/queries/results";
-import type { ExportFile, WorkspaceId } from "@/db/types";
+import type { CsvFile, WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
 import { describeFilter, filterActive, KIND_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
 import { RESPONSES_COPY } from "@/lib/results-copy";
@@ -24,7 +24,7 @@ const name = (p: { who: string | null; anon: number | null }) => p.who ?? RESPON
 // The Responses tab's mark beside Submitted (decision 0030), in its own column so Status counts.
 const since = (p: { changedSince: boolean; submittedAgain?: boolean }) => (p.changedSince ? RESPONSES_COPY.changedSince : p.submittedAgain ? RESPONSES_COPY.submittedAgain : "");
 
-export async function exportTable(ws: WorkspaceId, instrument: Instrument, file: ExportFile, f: ResultsFilter, ctx: FilterContext, sample: boolean): Promise<ExportTable> {
+export async function exportTable(ws: WorkspaceId, instrument: Instrument, file: CsvFile, f: ResultsFilter, ctx: FilterContext, sample: boolean): Promise<ExportTable> {
   const preamble: Cell[][] = [];
   if (sample) preamble.push([EXPORT_COPY.watermark]);
   if (filterActive(f)) preamble.push([EXPORT_COPY.filtered(describeFilter(f, ctx))]);

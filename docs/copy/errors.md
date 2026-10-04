@@ -245,6 +245,15 @@ of the content; page means it replaces the screen.
 | Banner, results (E8-1) | The headline numbers, a tab or an item's detail fail to load | [PART] could not load. It has been logged. Try again in a minute. [Button: Try again] ([PART]: The headline numbers, the tab's name, or The item's detail (E8-5)) |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
+| Inline, Import a project (E10-2) | No file chosen | Choose the .json file made with Whole project on a project's Export tab. |
+| Inline, Import a project (E10-2) | A file over 5 MB | This file is over 5 MB, the most an import reads, so this project cannot move by file. Its answers export as CSV on the project's Export tab. |
+| Inline, Import a project (E10-2) | More responses submitted this month than the plan takes | This file has [N] responses submitted this month, and the workspace's plan takes [M] more this month. Import it once the month turns. |
+| Inline, Import a project (E10-2) | Not JSON | This file is not a project export: it is not JSON. Choose the .json file SMEsay made with Whole project. |
+| Inline, Import a project (E10-2) | JSON that is not a project file | This file is not a project export from SMEsay. Choose the .json file made with Whole project on a project's Export tab. |
+| Inline, Import a project (E10-2) | A newer format version | This file was made by a newer SMEsay (format version [N]; this one reads up to [M]). Export it again from the same SMEsay. |
+| Inline, Import a project (E10-2) | A field or a reference that does not read as written | This file is damaged or was edited: [WHERE] does not read as SMEsay wrote it. Export the project again and import the new file. |
+| Inline, Import a project (E10-2) | The sample's file | This file is the sample project's. Every workspace has the sample already, so it is not imported. |
+| Inline, Import a project (E10-2) | The plan's projects are used | (the New project sentence, PROJECTS_COPY.planFull) |
 | Inline, Actions tab (E9-1) | Write actions on the sample | The sample's actions are invented and cannot be written again. Write actions on your own project. |
 | Inline, Actions tab (E9-1, E9-3) | The AI budget for the month is used | This run would cost about EUR [ESTIMATE]. This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
 | Inline, Actions tab (E9-1, E9-3) | AI paused by the product cap | This run would cost about EUR [ESTIMATE]. AI is paused until next month. The answers are all on the other tabs. |
@@ -257,8 +266,7 @@ of the content; page means it replaces the screen.
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on an action another tab or member changed, or a new run replaced | This action changed since the page loaded: someone marked it in another tab, or a new run replaced it. Reload the page to see the current actions. |
 | Inline, Actions tab (E9-2) | A change no action can take (a crafted request) | That change is not one an action can take. Reload the page and use its buttons. |
 | Inline, Actions tab (E9-2) | Mark done, Dismiss or Reopen on the sample (a guard; the sample shows no buttons) | The sample's actions are invented and cannot be marked. Mark the actions of your own project. |
-| Inline, export | Export failed (CSV, E10-1) | The CSV export did not finish. Try again; if it fails again, reload the page and export again. |
-| Inline, export | Export failed | The [FORMAT] export did not finish. Try again; if it fails again, export the answers as CSV, which always works. |
+| Inline, export | Export failed (E10-1, E10-2) | The [FORMAT] export did not finish. Try again; if it fails again, reload the page and export again. ([FORMAT]: CSV, JSON) |
 | Inline, PDF | PDF over the page limit | The summary runs to [N] pages. It still downloads; the deck version is the first [N]. |
 | Inline, sample project | Delete sample | The sample project and its invented answers are deleted. Your own projects are not affected. [Button: Delete sample] |
 

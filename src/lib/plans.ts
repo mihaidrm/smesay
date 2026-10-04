@@ -44,3 +44,14 @@ export async function withinPlan(workspaceId: WorkspaceId, kind: LimitKind, now 
   const used = await usage(workspaceId, now);
   return isWithin(limit, kind === "projects" ? used.projects : kind === "responses" ? used.responsesThisMonth : used.aiRunsThisMonth);
 }
+
+// How many more of a kind the workspace's plan takes this month, or null for no limit (E10-2:
+// an imported project's responses submitted this month count toward the month).
+export async function roomInPlan(workspaceId: WorkspaceId, kind: LimitKind, now = new Date()): Promise<number | null> {
+  const workspace = await workspaces.getById(workspaceId);
+  if (!workspace) throw new NotFoundError();
+  const limit = limitFor(workspace.plan, kind);
+  if (limit === null) return null;
+  const used = await usage(workspaceId, now);
+  return Math.max(0, limit - (kind === "projects" ? used.projects : kind === "responses" ? used.responsesThisMonth : used.aiRunsThisMonth));
+}

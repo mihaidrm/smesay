@@ -1,0 +1,2 @@
+ALTER TABLE "export_log" DROP CONSTRAINT "export_log_file_check";--> statement-breakpoint
+ALTER TABLE "export_log" ADD CONSTRAINT "export_log_file_check" CHECK ("file" in ('answers', 'items', 'people', 'missing', 'project'));

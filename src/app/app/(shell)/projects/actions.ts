@@ -10,6 +10,8 @@ import { notFound, redirect } from "next/navigation";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
+import { EXPORT_COPY } from "@/lib/export/copy";
+import { importProject, PROJECT_FILE_MAX } from "@/lib/export/project";
 import { commitUpload } from "@/lib/imports";
 import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
@@ -29,6 +31,19 @@ export async function createProjectAction(_previous: ProjectFormState, formData:
   if ("error" in result) return { ...NONE, error: result.error };
   revalidatePath("/app", "layout");
   redirect(`/app/projects/${result.project.id}/import`);
+}
+
+// Import a project (stories/E10-2): the file's text to importProject, then the new project's
+// Results. A file over the limit is refused before it is read.
+export async function importProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { session, current } = await requireCurrentWorkspace("/app/projects/import");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ...NONE, error: EXPORT_COPY.importErrors.noFile };
+  if (file.size > PROJECT_FILE_MAX) return { ...NONE, error: EXPORT_COPY.importErrors.tooLarge };
+  const result = await importProject({ ws: current.ws, userId: session.user.id }, await file.text());
+  if ("error" in result) return { ...NONE, error: result.error };
+  revalidatePath("/app", "layout");
+  redirect(`/app/projects/${result.projectId}/results`);
 }
 
 export async function saveContextAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {

@@ -574,3 +574,32 @@ Every download writes an export_log row (workspace_id, project_id, made_by, file
 words with a text filter's value left out (describeFilter(f, ctx, true)) or null, rows,
 created_at; exportLogs in src/db/queries).
 
+## Whole project export (ProjectExport)
+Owner: E10-2. Consumers: Import a project; E11-2's workspace export.
+Version 1, 2026-10-04. GET /api/projects/[projectId]/export/project returns the file;
+exportProject(actor, projectId) and importProject(actor, text) in src/lib/export/project.ts,
+readProject(ws, projectId) and writeProject(ws, input, userId, now) in
+src/db/queries/projectTransfer.ts. The zod schema ProjectFile in project.ts is the contract:
+{ format: "smesay.project", version: 1, exportedAt, sample, note (the watermark line on the
+sample, else null), project { name, contextGoal, contextTerms, createdAt }, itemSets [{ id,
+version, source, sourceFilename, importReport, importedAt, areas, shapeRuns, shapedAt,
+contextUsed, items [{ id, position, sourceRef, originalText, readerText, readerStatus, area,
+areaRationale, proposedValue, custom, flags, perspectives }] }], instruments [{ id, itemSetId,
+title, intro, method, showProposed, layout, respondentFields, scaleLabels, perspectives,
+closing, publishedAt, createdAt }], invites [{ id, instrumentId, kind, email, name, roleHint,
+opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt, createdAt }],
+responses [{ id, instrumentId, itemSetId, inviteId, fields, perspectives, confidence,
+signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
+answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
+responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
+citedAnswerIds, citedMissingItemIds, state, closedAt, closedBy (an email), model, tokensIn,
+tokensOut, costEurCents, createdAt }] }. Dates are ISO 8601 with an offset. Ids are keys inside
+the file; the import makes new ones. No token, passcode hash or device token is in the file.
+The JSON columns (importReport, areas, contextUsed, custom, flags, respondentFields,
+scaleLabels, closing) have the shapes listed at the top of this file. The file is one line of
+JSON, at most 5 MB on import (PROJECT_FILE_MAX). importProject returns { projectId } or
+{ error } (the sentences of docs/copy/errors.md, Import a project), never throws on a file.
+roomInPlan(ws, kind, now) in src/lib/plans.ts gives how many more of a kind the plan takes
+this month, or null.
+EXPORT_FILES gains "project" (migration 0024); CSV_FILES are the four CSV files.
+

@@ -6,6 +6,7 @@
 // opening on Results (E8-8, acceptance 1), every other project on Import; archived
 // projects behind "Show archived". Copy: docs/copy/app.md, errors.md. Status:
 // src/lib/project-status.ts.
+import { EXPORT_COPY } from "@/lib/export/copy";
 import Link from "next/link";
 import { ProjectTile, StatTile } from "@/components/app/tiles";
 import { EmptyState } from "@/components/ui/banner";
@@ -45,6 +46,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         </div>
         <div className="flex shrink-0 gap-2.5">
           <Link href={showArchived ? "/app" : "/app?archived=1"} className={buttonVariants({ variant: "secondary" })}>{showArchived ? "Back to projects" : "Show archived"}</Link>
+          {!showArchived && <Link href="/app/projects/import" className={buttonVariants({ variant: "secondary" })} data-testid="import-project-link">{EXPORT_COPY.importPage.link}</Link>}
           {!showArchived && <Link href="/app/projects/new" className={buttonVariants()}>New project</Link>}
         </div>
       </div>

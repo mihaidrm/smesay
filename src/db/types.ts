@@ -71,6 +71,9 @@ export type InsightState = (typeof INSIGHT_STATES)[number];
 export const INSIGHT_KINDS = ["rewrite", "conflict", "followUp", "coverage"] as const;
 export type InsightKind = (typeof INSIGHT_KINDS)[number];
 
-// E10-1: the files a download can be (export_log.file). E10-2 and E10-3 add theirs.
-export const EXPORT_FILES = ["answers", "items", "people", "missing"] as const;
+// E10-1: the CSV files of the Export tab; E10-2 adds the whole project (JSON). Every one is a
+// kind of download in export_log.file; E10-3 adds the PDF.
+export const CSV_FILES = ["answers", "items", "people", "missing"] as const;
+export type CsvFile = (typeof CSV_FILES)[number];
+export const EXPORT_FILES = [...CSV_FILES, "project"] as const;
 export type ExportFile = (typeof EXPORT_FILES)[number];
