@@ -116,7 +116,8 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.keyboard.press("ArrowRight");
   await expect(row.getByRole("radio", { name: "Should" })).toBeFocused();
   await expect(row.getByRole("radio", { name: "Should" })).toHaveAttribute("aria-checked", "true");
-  await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Should");
+  // The preview mirrors the respondent card: a value other than the proposal asks why.
+  await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Say why.");
   await expect(row.getByRole("radio", { name: "Must" })).toHaveAccessibleDescription("proposed");
   // The radio is visually hidden under its card; the card label takes the click.
   await page.getByText("1 to 5 fit", { exact: true }).click();

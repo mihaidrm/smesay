@@ -14,8 +14,9 @@ import type { Answer } from "@/db/queries/answers";
 import type { Link } from "@/db/queries/links";
 import type { InviteDates, Response } from "@/db/queries/responses";
 import { textFor } from "@/lib/item-text";
+import { isVisible } from "@/lib/perspectives";
 import { viewOf, type LinkView } from "@/lib/link-access";
-import { answeredCount, carriedFields, parseFieldValues, parsePicks, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
+import { answerFor, answeredCount, carriedFields, isComplete, parseAnswerInput, parseFieldValues, parsePicks, RESPONDENT_ERRORS, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
 import { linkState } from "@/lib/sharing";
 
@@ -72,7 +73,7 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
     if (response && !response.submittedAt) {
       const { items: all } = await itemsOf(link);
       const rows = answerMap(await answers.forResponse(link.ws, response.id));
-      const visible = all.filter((it) => it.perspectives.length === 0 || it.perspectives.some((p) => response.perspectives.includes(p)));
+      const visible = all.filter((it) => isVisible(it, response.perspectives));
       const answered = answeredCount(visible, rows);
       if (answered > 0) return { kind: "closedOwn", link, closedAt: view.closedAt, response, answered, total: visible.length };
     }
@@ -141,4 +142,30 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   if (!created) return { status: 404, error: "unknown" };
   if ("refused" in created) return refusalOf(created.refused, token, now);
   return { response: created, device };
+}
+
+// One answer (E7-2, acceptance 2 and 3; E7-3 sends it within a second): the link open for
+// this device, the device's response started (409 otherwise), the item one of the
+// response's set and visible to its perspectives (422 otherwise), the kind and value from
+// the instrument's method and the item's proposal (src/lib/scoring.ts classify), never the
+// client's word; the answer replaces the item's previous one and the response's last save
+// moves, both after the link is re-read under the invite row's lock.
+export async function saveAnswer(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | { answer: AnswerState; complete: boolean }> {
+  const open = await openLinkFor(token, cookies, now);
+  if ("status" in open) return open;
+  const { link } = open;
+  const parsed = parseAnswerInput(body);
+  if ("error" in parsed) return { status: 422, error: parsed.error };
+  const response = await responseOf(link, cookies.device);
+  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  const row = await items.get(link.ws, parsed.input.itemId);
+  const visible = row && row.itemSetId === response.itemSetId && isVisible(row, response.perspectives);
+  if (!row || !visible) return { status: 422, error: RESPONDENT_ERRORS.hiddenItem };
+  const mapped = answerFor(link.instrument.method, link.instrument.showProposed, proposedCode(link.instrument.method, row.proposedValue), parsed.input);
+  if ("error" in mapped) return { status: 422, error: mapped.error };
+  const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
+  const written = await answers.upsert(link.ws, link.invite.id, { responseId: response.id, itemSetId: response.itemSetId, itemId: row.id, ...mapped.answer }, stillOpen, now);
+  if (!written) return { status: 404, error: "unknown" };
+  if ("refused" in written) return refusalOf(written.refused, token, now);
+  return { answer: mapped.answer, complete: isComplete(mapped.answer) };
 }

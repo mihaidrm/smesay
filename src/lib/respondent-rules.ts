@@ -7,8 +7,10 @@
 // respondent board's complete() rule, design note 12: a value that differs from the
 // proposal, Not needed or Unclear needs its reason or question written). Words:
 // RESPONDENT_COPY (docs/copy/app.md and errors.md, the respondent sections).
-import type { AnswerKind, RespondentFieldSpec, ResponseFields } from "@/db/types";
+import type { AnswerKind, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
+import { isVisible } from "@/lib/perspectives";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
+import { classify, SCALES, UNCLEAR } from "@/lib/scoring";
 
 export const FIELD_VALUE_MAX = 200;
 export const REASON_MAX = 2000;
@@ -21,6 +23,21 @@ export const RESPONDENT_COPY = {
   startFailed: "Your details were not saved. Check your connection and press Start again.",
   back: "Back",
   aboutYou: "About you",
+  // The card (E7-2; docs/copy/app.md, Respondent card; errors.md, Respondent answering).
+  notRated: "Not rated yet",
+  sayWhy: "Say why.",
+  writeQuestion: "Write your question.",
+  saved: "Saved",
+  details: "Details",
+  hideDetails: "Hide details",
+  addComment: "+ comment",
+  hideComment: "Hide comment",
+  commentLabel: "Comment, optional",
+  changePrompt: (value: string, proposed: string) => `Why ${value} and not ${proposed}? The team reads every reason.`,
+  disagreePrompt: "Why is it not needed, or what should it say instead?",
+  unclearPrompt: "What would you need to know to rate it?",
+  previousItem: "Previous item",
+  nextItem: "Next item",
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -29,6 +46,10 @@ export const RESPONDENT_ERRORS = {
   badEmail: (text: string) => `${text} is not an email address. Check it and try again.`,
   tooLong: (label: string) => `Keep ${label} to ${FIELD_VALUE_MAX} characters.`,
   badPerspective: "Pick the perspectives from the list on the page. Reload the page and try again.",
+  badAnswer: "The answer did not reach the server as one of the card's values. Reload the page and try again.",
+  longText: `Keep the reason and the comment to ${REASON_MAX} characters each.`,
+  notStarted: "Your details were not found on this device. Press Start again and the answers on this page are saved with them.",
+  hiddenItem: "This item is not in your list. Reload the page to see your items.",
 } as const;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,13 +106,11 @@ export type RespondentItem = { id: string; reference: string | null; title: stri
 export type AreaMeta = { name: string; intro: string | null };
 export type Chapter = { name: string | null; intro: string | null; items: RespondentItem[] };
 
-const visibleTo = (item: { perspectives: string[] }, picks: string[]) => item.perspectives.length === 0 || item.perspectives.some((p) => picks.includes(p));
-
 // The chapters a respondent sees: the areas in the list's order (then any area only items
 // name), then the items with no area under "Other items"; a list with no areas is one
 // chapter with no name. A chapter left empty by the picks is dropped (E5-4).
 export function chaptersFor(areas: AreaMeta[], items: RespondentItem[], picks: string[]): Chapter[] {
-  const visible = items.filter((it) => visibleTo(it, picks));
+  const visible = items.filter((it) => isVisible(it, picks));
   const names = areas.map((a) => a.name);
   for (const it of items) if (it.area && !names.includes(it.area)) names.push(it.area);
   if (names.length === 0) return visible.length > 0 ? [{ name: null, intro: null, items: visible }] : [];
@@ -121,9 +140,46 @@ export type Screen = { kind: "about" } | { kind: "chapter"; index: number };
 
 export const screenParam = (screen: Screen): string => (screen.kind === "about" ? "about" : String(screen.index + 1));
 
+// How many chapter screens a layout has: the single page is one screen (E5-3).
+export const screenCount = (layout: string, chapters: number): number => (layout === "page" ? Math.min(chapters, 1) : chapters);
+
 export function parseScreen(raw: string | null | undefined, started: boolean, chapterCount: number): Screen {
   if (!started || raw === "about") return { kind: "about" };
   const n = Number(raw);
   if (Number.isInteger(n) && n >= 1 && n <= chapterCount) return { kind: "chapter", index: n - 1 };
   return chapterCount > 0 ? { kind: "chapter", index: 0 } : { kind: "about" };
 }
+
+// What the card's note says (E7-2, acceptance 3): the missing part, or null when complete.
+export type CardNote = "notRated" | "sayWhy" | "writeQuestion" | null;
+export function noteFor(answer: AnswerState | null | undefined): CardNote {
+  if (!answer) return "notRated";
+  if (isComplete(answer)) return null;
+  return answer.kind === "unclear" ? "writeQuestion" : "sayWhy";
+}
+
+// One answer as a card posts it: the item, the code picked (a scale code or "unclear"),
+// the reason (kept only when the answer needs one) and the comment (kept only when it does
+// not: the slot holds one box, docs/design-system.md, Rating row). The stored kind and
+// value come from src/lib/scoring.ts classify, never from the client.
+export type AnswerInput = { itemId: string; picked: string; reason: string | null; comment: string | null };
+export function parseAnswerInput(raw: unknown): { error: string } | { input: AnswerInput } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badAnswer };
+  const r = raw as Record<string, unknown>;
+  if (typeof r.itemId !== "string" || typeof r.picked !== "string") return { error: RESPONDENT_ERRORS.badAnswer };
+  const text = (v: unknown): string | null | undefined => (v === undefined || v === null ? null : typeof v === "string" ? (v.trim() ? v.trim() : null) : undefined);
+  const reason = text(r.reason);
+  const comment = text(r.comment);
+  if (reason === undefined || comment === undefined) return { error: RESPONDENT_ERRORS.badAnswer };
+  if ((reason?.length ?? 0) > REASON_MAX || (comment?.length ?? 0) > REASON_MAX) return { error: RESPONDENT_ERRORS.longText };
+  return { input: { itemId: r.itemId, picked: r.picked, reason, comment } };
+}
+
+export function answerFor(method: ScoringMethod, showProposed: boolean, proposed: string | null, input: Pick<AnswerInput, "picked" | "reason" | "comment">): { error: string } | { answer: AnswerState } {
+  if (input.picked !== UNCLEAR && !SCALES[method].some((v) => v.code === input.picked)) return { error: RESPONDENT_ERRORS.badAnswer };
+  const { kind, value } = classify({ method, showProposed, proposed, picked: input.picked });
+  return { answer: needsReason(kind) ? { kind, value, reason: input.reason, comment: null } : { kind, value, reason: null, comment: input.comment } };
+}
+
+// The picked code an answer shows on the card's rating row.
+export const pickedOf = (answer: AnswerState | null | undefined): string | null => (!answer ? null : answer.kind === "unclear" ? UNCLEAR : answer.value);

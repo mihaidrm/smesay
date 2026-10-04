@@ -192,9 +192,16 @@ responses.forDevice(ws, inviteId, deviceToken), responses.startPersonal(ws, data
 stillOpen) (one response per personal invite, under the invite row's lock) and
 responses.createPublic(ws, data, stillOpen) (under a shared lock), both returning
 { refused: dates } when the link stopped being open, answers.forResponse(ws,
-responseId). Client-safe rules in src/lib/respondent-rules.ts: parseFieldValues,
-parsePicks, carriedFields, chaptersFor (RespondentItem, AreaMeta, Chapter), isComplete,
-answeredCount, parseScreen.
+responseId). Answers (E7-2): saveAnswer(token, cookies, body, now) in src/lib/respondent.ts
+(PUT /r/[token]/answers, JSON { itemId, picked, reason, comment }; 200 { saved, kind,
+complete }; refusals as Start's, 409 with a sentence when this device has no response, 422
+for a malformed body, a reason or comment over 2,000 characters, an item not in the
+respondent's list or a value off the scale); answers.upsert(ws, inviteId, data, stillOpen,
+now) (the last write wins per response and item, under a shared lock on the invite and an
+update lock on the response, so writes for one response run in order). Client-safe rules in
+src/lib/respondent-rules.ts: parseFieldValues, parsePicks, carriedFields, chaptersFor
+(RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, and from E7-2
+answerFor, noteFor, parseAnswerInput, pickedOf, screenCount.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.
