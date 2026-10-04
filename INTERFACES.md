@@ -138,8 +138,9 @@ missing items of the counted people as MissingRow { id, responseId, text }, the 
 E10-1's "People" and "Missing items" files; agreement.byItem(ws, instrumentId, filter, split)
 (E8-3) the counts per item (and per group of the split field) as ItemCounts { itemId, group,
 agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
-answered, rounded half up in SQL, for the CSV; the tab sums with the same rule,
-src/lib/results-agreement.ts percentOf, figureOf for "[N] rated") }; tracker.people(ws, instrumentId, filter,
+answered, rounded half up in SQL; the tab sums with the same rule, src/lib/results-agreement.ts
+percentOf, and shows no percentage where no proposal was shown, figureOf's "[N] rated", as
+E10-1's items CSV will) }; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
 fields, who (the name shown: the name field, else a personal invite's name or email; null
 for a public-link response with no name), anon (for a public-link response with no

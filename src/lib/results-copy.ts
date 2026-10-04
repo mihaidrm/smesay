@@ -102,7 +102,7 @@ export const AGREEMENT_COPY = {
   noAnswersLine: "No answers under this filter",
   noAnswersYet: "No answers yet",
   notCompared: "Fewer than 3 answers: not compared",
-  notComparedPeople: "Fewer than 3 people: not compared",
+  notComparedPeople: "Not compared, so one person cannot be singled out",
   groupNone: "Not given",
   valuesLegend: "Values picked, where no proposal was shown",
   smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",

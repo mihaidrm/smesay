@@ -15,7 +15,7 @@ import type { Instrument } from "@/db/queries/instruments";
 import { agreement } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
-import { addCounts, agreementSortOf, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
+import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -48,7 +48,7 @@ export async function AgreementTab({ ws, projectId, instrument, filter, ctx, vie
       {blind && <p className="text-xs text-ink-muted">{AGREEMENT_COPY.valuesLegend}</p>}
       {view === "table" && areas.map((a) => <TableArea key={a.name ?? ""} area={a} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
       {view === "columns" && <ColumnsView areas={areas} series={series} split={split} />}
-      {view === "share" && <ShareView areas={areas} list={list} series={series} blind={blind} split={split} none={filterActive(filter) ? AGREEMENT_COPY.noAnswersLine : AGREEMENT_COPY.noAnswersYet} />}
+      {view === "share" && <ShareView areas={areas} list={list} series={series} rated={blind || allRated(areas)} split={split} none={filterActive(filter) || !filter.includeUnsubmitted ? AGREEMENT_COPY.noAnswersLine : AGREEMENT_COPY.noAnswersYet} />}
     </div>
   );
 }
@@ -76,10 +76,9 @@ function countsText(series: Series[]): string {
 // One table per area, its totals as the first row so the area's bar lines up with the items'.
 // A rate-blind list has no Proposed column, and its figure column reads Rated.
 function TableArea({ area, series, coverage, blind, proposedLabel }: { area: AreaBlock; series: SeriesOf; coverage: boolean; blind: boolean; proposedLabel: (code: string | null) => string }) {
-  const cols = 3 + (blind ? 0 : 1) + (coverage ? 1 : 0);
   return (
-    <section className="card flex flex-col p-0" aria-labelledby={`area-${area.name ?? ""}`} data-testid="agreement-area" data-area={areaName(area)}>
-      <h3 id={`area-${area.name ?? ""}`} className="px-4 pt-3 text-[15px] font-bold">{areaName(area)}</h3>
+    <section className="card flex flex-col p-0" aria-label={areaName(area)} data-testid="agreement-area" data-area={areaName(area)}>
+      <h3 className="px-4 pt-3 text-[15px] font-bold">{areaName(area)}</h3>
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="text-xs text-ink-muted">
@@ -101,7 +100,6 @@ function TableArea({ area, series, coverage, blind, proposedLabel }: { area: Are
             {coverage && <td />}
           </tr>
           {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} />)}
-          {area.rows.length === 0 && <tr><td colSpan={cols} /></tr>}
         </tbody>
       </table>
     </section>
@@ -164,11 +162,13 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
   );
 }
 
-function ShareView({ areas, list, series, blind, split, none }: { areas: AreaBlock[]; list: Counts; series: SeriesOf; blind: boolean; split: boolean; none: string }) {
-  // The line beside a donut follows the figure's rule: nothing answered, values rated (a
-  // rate-blind list, or answers that are all values rated), or agree of answered.
-  const line = (c: Counts) => {
-    const f = figureOf(c, blind);
+// `rated`: no proposal was shown on any item of the list (rate-blind, or none proposed), so
+// the list and its groups read values rated; an area reads its own (AreaBlock.rated).
+function ShareView({ areas, list, series, rated, split, none }: { areas: AreaBlock[]; list: Counts; series: SeriesOf; rated: boolean; split: boolean; none: string }) {
+  // The line beside a donut follows the figure's rule: nothing answered, values rated (no
+  // proposal shown, or answers that are all values rated), or agree of answered.
+  const line = (c: Counts, noProposal = rated) => {
+    const f = figureOf(c, noProposal);
     return f === null ? none : "rated" in f ? AGREEMENT_COPY.ratedLine(f.rated) : AGREEMENT_COPY.agreeLine(c.agree, answeredOf(c));
   };
   const groups: GroupTotal[] = split ? groupTotals(areas.flatMap((a) => a.rows)) : [];
@@ -186,7 +186,7 @@ function ShareView({ areas, list, series, blind, split, none }: { areas: AreaBlo
       )) : areas.map((a) => (
         <section key={a.name ?? ""} className="card p-4" aria-label={areaName(a)} data-testid="share-area">
           <h3 className="mb-3 text-[15px] font-bold">{areaName(a)}</h3>
-          <Donut title={AGREEMENT_COPY.chartTitle(areaName(a))} series={series(a.totals)} line={line(a.totals)} />
+          <Donut title={AGREEMENT_COPY.chartTitle(areaName(a))} series={series(a.totals)} line={line(a.totals, a.rated)} />
         </section>
       ))}
     </div>

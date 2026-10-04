@@ -101,11 +101,15 @@ export function buildAgreement(items: AgreementItem[], areaNames: string[], coun
   });
 }
 
+// Whether no item of the list showed a proposal (every area reads values rated).
+export const allRated = (areas: AreaBlock[]): boolean => areas.length > 0 && areas.every((a) => a.rated);
+
 // A group summed over an area or the whole list (the split in Columns and Share). It is
 // compared only with 3 answers and 3 people or more: a sum over items can reach 3 answers
 // from one person, who must not be singled out (decision 0031). The people are the most who
-// answered one item of the sum (one answer per person per item), so people who started and
-// answered nothing do not count. `short` says why a group is not compared.
+// answered one item of the sum (one answer per person per item), a lower bound, so people who
+// started and answered nothing do not count. `short` says why a group is not compared; for
+// people the copy says only that one person could be singled out, since the count is a bound.
 export type GroupTotal = { group: string; empty: boolean; counts: Counts; compared: boolean; short: "answers" | "people" | null };
 export function groupTotals(rows: Row[]): GroupTotal[] {
   const by = new Map<string, { group: string; empty: boolean; counts: Counts; people: number }>();

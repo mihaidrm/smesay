@@ -3,7 +3,7 @@
 // ways with ties in the list's order, groups of fewer than 3 answers drawn but not compared,
 // and the series every view draws (the kinds, or the values picked where no proposal was shown).
 import { describe, expect, it } from "vitest";
-import { buildAgreement, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
+import { allRated, buildAgreement, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
 
 const c = (agree: number, change = 0, disagree = 0, unclear = 0, couldSee = agree + change + disagree + unclear, pick = 0, values: Record<string, number> = {}): Counts => ({ agree, change, disagree, unclear, pick, values, couldSee });
 const items = [
@@ -69,6 +69,11 @@ describe("the Agreement tab's model", () => {
     const blind = buildAgreement(items, [], [{ itemId: "i4", group: null, ...c(0, 0, 0, 1, 5, 4) }], false, { key: "ref", dir: "asc" }, "Not given");
     expect(blind.at(-1)!.rows[0].percent).toBeNull();
     expect(blind.at(-1)!.rated).toBe(true);
+    // The whole list reads values rated only when no item showed a proposal.
+    expect(allRated(blind)).toBe(false);
+    const none = items.map((it) => ({ ...it, proposed: null }));
+    expect(allRated(buildAgreement(none, [], counts, false, { key: "ref", dir: "asc" }, "Not given"))).toBe(true);
+    expect(allRated(buildAgreement(items, ["Submitting"], counts, false, { key: "ref", dir: "asc" }, "Not given"))).toBe(false);
     expect(figureOf(c(3, 1))).toEqual({ percent: 75 });
     expect(figureOf(c(0))).toBeNull();
   });
