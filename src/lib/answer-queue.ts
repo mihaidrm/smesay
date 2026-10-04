@@ -173,7 +173,7 @@ export function ownWrite(stored: { writer: string | null; writerSeq: number; ans
 // request carried (this page's, or a kept one of another page);
 // `current` is the item's entry waiting now: the same one, a newer change, or none (another
 // copy of the save was answered first). Entries are told apart by page and number.
-export type ReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; answer?: AnswerState; complete?: unknown; changedSince?: unknown };
+export type ReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; answer?: AnswerState; complete?: unknown; changedSince?: unknown; submittedAt?: unknown };
 export type ReplyStep = {
   outcome: Outcome;
   // The server's version to remember for the item (the page keeps the highest).

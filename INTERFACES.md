@@ -190,11 +190,12 @@ src/lib/respondent-rules.ts for the tracker (E8-2): the last save after the firs
 and submitted but not signed off (every change after a Submit takes the sign-off back; a
 write that changes nothing, a Submit that carries no change and a Start that changes nothing
 move neither; responses.restart moves the last save forward only). The saves of an answer and
-of the Wrap up (taken or stale), Start and a stale Submit answer changedSince:
-changedSinceSubmit of the response after the write. Between two Submits it only goes from
-false to true, so the page shows "You changed answers after submitting. Submit again to send
-them." from the first true it hears until its next Submit, whatever order the answers arrive
-in;
+of the Wrap up (taken or stale), Start and a stale Submit answer changedSince
+(changedSinceSubmit of the response after the write) and submittedAt (its latest Submit,
+ISO, or null). Between two Submits changedSince only goes from false to true, so the page
+counts a true for the Submit it names and shows "You changed answers after submitting.
+Submit again to send them." while that is the latest Submit it has heard of (heardSubmit),
+whatever order the answers arrive in;
 startResponse(token, cookies, body, now) (POST /r/[token]/start, JSON { fields,
 perspectives }; refusals 404, 403, 409, 410, 422 with the sentence, and from the route 415
 not JSON, 413 over 16 KB, 400 not parsable, by readJson in src/lib/request-json.ts; a
@@ -207,8 +208,9 @@ responses.createPublic(ws, data, stillOpen) (under a shared lock), both returnin
 { refused: dates } when the link stopped being open, answers.forResponse(ws,
 responseId). Answers (E7-2): saveAnswer(token, cookies, body, now) in src/lib/respondent.ts
 (PUT /r/[token]/answers, JSON { itemId, picked, reason, comment, base, page, seq, after,
-response } from E7-3; 200 { saved, kind, complete, version, writer, writerSeq, changedSince
-(E7-6) }; 409 stale with the stored answer and changedSince, see Response schema; refusals as Start's, 409 with a sentence when this device has no response or not
+response } from E7-3; 200 { saved, kind, complete, version, writer, writerSeq, changedSince,
+submittedAt (E7-6) }; 409 stale with the stored answer, changedSince and submittedAt, see
+Response schema; refusals as Start's, 409 with a sentence when this device has no response or not
 the one named, 422
 for a malformed body, a reason or comment over 2,000 characters, an item not in the
 respondent's list or a value off the scale); answers.upsert(ws, inviteId, data, stillOpen,
@@ -294,9 +296,10 @@ version, writer and save number and the response id added the same day after the
   characters. The device cookie (smesay-device, public links) or the personal link's
   invite names the response; the passcode cookie when the link has one.
 - The answer: 200 { saved: true, kind: AnswerKind, complete: boolean, version: number,
-  writer: string, writerSeq: number, changedSince: boolean (E7-6) }; 409 { error: "stale",
-  answer: { kind, value, reason, comment }, complete, version, writer: string | null,
-  writerSeq, changedSince } when the stored answer has
+  writer: string, writerSeq: number, changedSince: boolean, submittedAt: string | null
+  (E7-6) }; 409 { error: "stale", answer: { kind, value, reason, comment }, complete,
+  version, writer: string | null, writerSeq, changedSince, submittedAt } when the stored
+  answer has
   moved past the write (the page shows it when it is not its own: src/lib/answer-queue.ts
   ownWrite);
   refusals
@@ -342,9 +345,10 @@ version, writer and save number and the response id added the same day after the
   closingAnswer?: string, missing?: { text, area?, value? } | null, base, page, seq, after? }
   (the Wrap up's version the write was made on, the page's id, its number for the write, the
   saves of other pages it was made on top of, as an answer's), as the respondent writes
-  (saveWrap, parseWrapInput). 200 { saved: true, version, writer, writerSeq, changedSince };
-  409 { error: "stale", wrap: { confidence, signed: false, closingAnswer, missing: { text,
-  area, value } }, version, writer, writerSeq, changedSince } when the stored Wrap up is not
+  (saveWrap, parseWrapInput). 200 { saved: true, version, writer, writerSeq, changedSince,
+  submittedAt }; 409 { error: "stale", wrap: { confidence, signed: false, closingAnswer,
+  missing: { text, area, value } }, version, writer, writerSeq, changedSince, submittedAt }
+  when the stored Wrap up is not
   one the write was made on;
   refusals as an answer's (409 when this device has no response or not the one named,
   checked before the rest of the body, 422 with the sentence). It stores the response's
@@ -356,7 +360,8 @@ version, writer and save number and the response id added the same day after the
   differs), closingAnswer?: string, missing?: { text, area?, value? } | null, base, page,
   seq, after? (as the Wrap up's save) }. 200 { submittedAt (ISO, UTC), name (the first name,
   or null), version (the Wrap up's) }; 409 { error: "stale", wrap, version, writer,
-  writerSeq, changedSince } as the Wrap up's save; refusals { error } with the link's statuses, 409 not
+  writerSeq, changedSince, submittedAt } as the Wrap up's save; refusals { error } with the
+  link's statuses, 409 not
   started, 422 with the sentence (items to finish, a field missing, confidence, the sign-off
   or its changed sentence, a bad missing item), 403 when the plan's monthly responses are
   used (withinPlan). Submitting again updates the same response.

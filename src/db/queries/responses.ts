@@ -24,8 +24,9 @@ type Missing = { text: string; area: string | null; value: string | null };
 // A Wrap up write (E7-5): the values and the version rule's fields (src/lib/respondent-rules.ts).
 export type WrapWrite = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; base: number; page: string; seq: number; after: SaveRef[] };
 // The Wrap up as stored, with its version: what a stale write gets back.
-// changedSince (E7-6): the response is submitted and has changes not submitted again.
-export type StoredWrap = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; changedSince: boolean } & WrapSync;
+// changedSince (E7-6): the response is submitted and has changes not submitted again, after
+// its latest Submit (submittedAt).
+export type StoredWrap = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; changedSince: boolean; submittedAt: Date | null } & WrapSync;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 // The response row locked for update, its Wrap up and its missing item (the first, the
@@ -36,7 +37,7 @@ async function lockedWrap(tx: Tx, workspaceId: WorkspaceId, inviteId: string, re
   const kept = await tx.select().from(missingItem).where(and(eq(missingItem.workspaceId, workspaceId), eq(missingItem.responseId, responseId))).orderBy(asc(missingItem.createdAt), asc(missingItem.id));
   const missing = kept[0] ? { text: kept[0].text, area: kept[0].suggestedArea, value: kept[0].suggestedValue } : null;
   const sync: WrapSync = { version: row.wrapVersion, writer: row.wrapWriter, writerSeq: row.wrapWriterSeq };
-  return { perspectives: row.perspectives, missing: kept, sync, stored: { confidence: row.confidence, closingAnswer: row.closingAnswer, missing, changedSince: row.submittedAt !== null && !row.signedOff, ...sync } satisfies StoredWrap };
+  return { perspectives: row.perspectives, missing: kept, sync, stored: { confidence: row.confidence, closingAnswer: row.closingAnswer, missing, changedSince: row.submittedAt !== null && !row.signedOff, submittedAt: row.submittedAt, ...sync } satisfies StoredWrap };
 }
 const sameStored = (stored: StoredWrap, data: Pick<WrapWrite, "confidence" | "closingAnswer" | "missing">): boolean =>
   stored.confidence === data.confidence && stored.closingAnswer === data.closingAnswer && (stored.missing === null ? data.missing === null : data.missing !== null && stored.missing.text === data.missing.text && stored.missing.area === data.missing.area && stored.missing.value === data.missing.value);

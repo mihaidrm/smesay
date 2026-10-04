@@ -50,7 +50,7 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
 import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
-import { areasOf, chaptersFor, gapsOf, showsChanged, startSubmit, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { areasOf, chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 
 export type RespondentAppProps = {
@@ -110,23 +110,21 @@ export function RespondentApp(props: RespondentAppProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(props.submitted);
   // E7-6: any change after a Submit takes the sign-off back on the server; the page says so
-  // on Done and on the Wrap up until the next Submit, as the server holds it: every answer to
-  // a save, a Start or a stale Submit carries changedSince. Between two Submits the server's
-  // state only goes from signed off to changed, so the page takes the first "changed" it hears
-  // and keeps it until a Submit, whatever order the answers arrive in (a Start's answer for the
-// same response included: startSubmit); an answer to a request
-  // sent before the page's last Submit posted is left out (the Submit came after it). A change
-  // undone before it was saved, or kept from an earlier visit and sent on opening, reads as
-  // the server has it.
-  const [changedSince, setChangedSince] = useState(props.changedSince);
-  // Times are the page's own monotonic clock (developer.mozilla.org/docs/Web/API/Performance/
-  // now), so a phone's clock set back never hides a change. Nothing on the page can change
-  // while a Submit posts (`posting`: a move between screens is refused then, and the controls
-  // that move are disabled), so a request sent before it posted was settled before it or is a
-  // copy of one that was.
-  const lastSubmit = useRef(-1);
+  // on Done and on the Wrap up until the next Submit, as the server holds it. Every answer to
+  // a save, a Start or a stale Submit carries changedSince and the response's latest Submit,
+  // and the page counts a "changed" only for the latest Submit it has heard of (heardSubmit,
+  // src/lib/respondent-rules.ts), whatever order the answers arrive in. A change undone before
+  // it was saved, or kept from an earlier visit and sent on opening, reads as the server has
+  // it. The ref holds the latest at once, for answers that arrive before a render.
+  const opened: SubmitSeen = { at: props.submitted?.at ?? null, changedFor: props.changedSince && props.submitted ? props.submitted.at : null };
+  const seenRef = useRef(opened);
+  const [seen, setSeenState] = useState(opened);
+  const setSeen = (next: SubmitSeen) => { seenRef.current = next; setSeenState(next); };
+  const changedSince = submitted !== null && showsChanged(seen);
+  const heard = (reply: SinceReply) => setSeen(heardSubmit(seenRef.current, reply));
+  // Nothing on the page can change while a Submit posts: a move between screens is refused
+  // then, and the controls that move are disabled.
   const posting = useRef(false);
-  const heldSince = (since: boolean | null, sentAt = performance.now()) => { if (showsChanged(since, sentAt, lastSubmit.current, submitted !== null)) setChangedSince(true); };
   const itemIds = useMemo(() => items.map((it) => it.id), [items]);
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -147,7 +145,7 @@ export function RespondentApp(props: RespondentAppProps) {
     // again for it.
     onStale: (value) => setWrapState({ ...value, signed: false }),
     clean: cleanWrap,
-    onSaved: heldSince,
+    onSaved: heard,
   });
   const wrapNow = useRef(wrap);
   useEffect(() => { wrapNow.current = wrap; }, [wrap]);
@@ -163,7 +161,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const saver = useAnswerSaver(token, responseId, started, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
-    onSaved: (since, sentAt) => { savedSinceStart.current = true; heldSince(since, sentAt); },
+    onSaved: (reply) => { savedSinceStart.current = true; heard(reply); },
     onGone: () => window.location.reload(),
     onNotStarted: () => lostResponse(),
   });
@@ -262,11 +260,11 @@ export function RespondentApp(props: RespondentAppProps) {
         saver.bind(body.response);
         wrapSaver.bind(body.response);
         // The response's Submit and its changes since, as the server holds them after this
-        // Start (startSubmit): another response, or a Submit made elsewhere since the page
-        // opened, replaces the page's; the Submit the page knows can only turn the notice on.
-        const next = startSubmit(submitted?.at ?? null, body, other);
+        // Start (startSubmit): another response replaces what the page knows; for the same
+        // one the page shows the latest Submit it knows.
+        const next = startSubmit(submitted?.at ?? null, seenRef.current, body, other);
         if (next.submitted !== "keep") setSubmitted(next.submitted ? { at: next.submitted.at, name: firstName(values) ?? (other ? null : submitted?.name ?? null), returning: true } : null);
-        if (next.changedSince !== "keep") setChangedSince(next.changedSince);
+        setSeen(next.seen);
       }
       startedHere.current = true;
       savedSinceStart.current = false;
@@ -315,7 +313,6 @@ export function RespondentApp(props: RespondentAppProps) {
       if (held !== "ok") { setSubmitError(held === "check" ? wrapSaver.lastProblem() : RESPONDENT_COPY.submitFailed); return; }
       const posted = cleanWrap(wrapNow.current);
       const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
-      const postedAt = performance.now();
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
       const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue; changedSince?: unknown };
       // Answered: the page can move again.
@@ -323,16 +320,15 @@ export function RespondentApp(props: RespondentAppProps) {
       if (response.ok && body.submittedAt) {
         // The server holds the Wrap up now; the sign-off is ticked again for the next Submit
         // (Back from Done shows it unticked).
-        lastSubmit.current = postedAt;
         wrapSaver.submitted(body.version, posted);
         setWrapState((w) => ({ ...w, signed: false }));
-        setChangedSince(false);
+        setSeen({ at: body.submittedAt, changedFor: null });
         setSubmitted({ at: body.submittedAt, name: body.name ?? props.welcome?.name ?? submitted?.name ?? firstName(fields), returning: false });
         go({ kind: "done" });
         return;
       }
       // Another window or device changed the Wrap up since: it shows the stored one.
-      if (response.status === 409 && body.error === "stale") { wrapSaver.adopt(body); heldSince(body.changedSince === true); return; }
+      if (response.status === 409 && body.error === "stale") { wrapSaver.adopt(body); heard(body); return; }
       if (response.status === 410 || response.status === 404 || (response.status === 403 && body.error !== RESPONDENT_ERRORS.planFull) || (response.status === 409 && body.error === "notOpen")) { window.location.reload(); return; }
       if (response.status === 409) { lostResponse(); return; }
       setSubmitError(body.error ?? RESPONDENT_COPY.submitFailed);

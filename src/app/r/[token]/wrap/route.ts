@@ -3,13 +3,13 @@
 // confidence (1 to 5 or null), closingAnswer, missing: { text, area, value } | null, base,
 // page, seq, after } (the version it was made on, the page, its number, the saves of other
 // pages it was made on top of: src/lib/respondent-rules.ts wrapTakes). 200 { saved: true,
-// version, writer, writerSeq, changedSince (E7-6) }; 409 { error: "stale", wrap, version,
-// writer, writerSeq, changedSince } when
-// the stored Wrap up is not the one the write was made on; refusals { error } with the link's
-// statuses (404, 403, 409 not open yet, 410), 409 when this device has no response or not the
-// one named, 422 with the sentence (a confidence off the scale, text too long, a missing item
-// outside the list's areas or the scale). JSON only, up to 16 KB (src/lib/request-json.ts).
-// The checks and the write are saveWrap (src/lib/respondent.ts). No rate limit yet: E11-1
+// version, writer, writerSeq, changedSince, submittedAt (E7-6) }; 409 { error: "stale",
+// wrap, version, writer, writerSeq, changedSince, submittedAt } when the stored Wrap up is
+// not the one the write was made on; refusals { error } with the link's statuses (404, 403,
+// 409 not open yet, 410), 409 when this device has no response or not the one named, 422
+// with the sentence (a confidence off the scale, text too long, a missing item outside the
+// list's areas or the scale). JSON only, up to 16 KB (src/lib/request-json.ts). The checks
+// and the write are saveWrap (src/lib/respondent.ts). No rate limit yet: E11-1
 // (docs/review-list.md).
 import { NextResponse } from "next/server";
 import { PASSCODE_COOKIE } from "@/lib/link-access";

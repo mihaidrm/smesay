@@ -55,7 +55,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
 import { delayFor, doneFrom, nextEntry, settleState, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
-import { RESPONDENT_ERRORS, type AnswerState } from "@/lib/respondent-rules";
+import { RESPONDENT_ERRORS, type AnswerState, type SinceReply } from "@/lib/respondent-rules";
 
 export type SaverEvents = {
   onGone: () => void;
@@ -65,10 +65,9 @@ export type SaverEvents = {
   // Another window or device changed the answer; the card shows the stored one.
   onStale: (itemId: string, answer: AnswerState) => void;
   // The server took an answer for this device's response (the cookie works).
-  // A save the server took or answered stale for, and whether the response is submitted with
-  // changes not submitted again (E7-6), or null when the answer does not say, and when the
-  // request was sent.
-  onSaved: (changedSince: boolean | null, sentAt: number) => void;
+  // A save the server took or answered stale for, with what it says of the response's latest
+  // Submit and the changes since (E7-6).
+  onSaved: (reply: SinceReply) => void;
 };
 
 let probed: { storage: Storage | null } | null = null;
@@ -190,7 +189,6 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       inflight.current.set(itemId, entry);
       firstAt.current.delete(itemId);
     }
-    const sentAt = performance.now();
     const settle = () => { if (!keepalive && inflight.current.get(itemId) === entry) inflight.current.delete(itemId); };
     try {
       const reply = await fetch(`/r/${encodeURIComponent(token)}/answers`, { method: "PUT", keepalive, signal: keepalive ? undefined : AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId, picked: entry.draft.picked, reason: entry.draft.reason, comment: entry.draft.comment, base: entry.base, page: entry.page, seq: entry.seq, after: entry.after, response }) });
@@ -210,7 +208,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
         setDone((d) => ({ ...d, [itemId]: taken.complete }));
       }
       if (step.failed !== null) markFailed(itemId, step.failed);
-      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved(typeof body.changedSince === "boolean" ? body.changedSince : null, sentAt);
+      if (step.outcome === "saved" || step.outcome === "stale") eventsRef.current.onSaved(body);
       if (step.rebase !== null && current) {
         // A newer change waits: it goes on top of the page's own confirmed save.
         const base = step.rebase;

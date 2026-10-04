@@ -138,3 +138,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   same response every answer, a Start's included, can only turn the notice on, so the page
   never hides a change to its response; the review list names the lost Submit answer as a
   second way to a needless notice; a locked chapter pill no longer reacts to the pointer.
+- Check of that fix 2026-10-04: 0 blocking, 1 should-fix (a "changed" heard for an older
+  Submit stayed on after a Start named a newer Submit made elsewhere), 2 nits (comments).
+  Fixed: every answer that carries changedSince also carries the response's latest Submit
+  (submittedAt), and the page counts a "changed" for the Submit it names and shows the
+  notice while that is the latest Submit it knows (heardSubmit, tested), so neither a
+  needless notice nor a hidden change follows from the order answers arrive in; the
+  page's own clock for requests sent before a Submit is no longer needed; INTERFACES.md
+  and the review list.

@@ -24,7 +24,7 @@ import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/receipt-email";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
-import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, landingOf, showsChanged, startSubmit, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
+import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, heardSubmit, landingOf, NO_SUBMIT, showsChanged, startSubmit, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -198,7 +198,7 @@ describe("Submit", () => {
     expect((await responses.get(a.ws, rid))?.submittedAt).toBeNull();
     // The Wrap up saves as it is written (not a Submit): stored, read back with its version on
     // the next visit, the response not submitted.
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" }, ...v() }, now)).toEqual({ saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" }, ...v() }, now)).toEqual({ saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null });
     const drafted = await loadRespondent(link.token, device, now);
     expect(drafted.kind === "ready" ? [drafted.wrap, drafted.wrapSync.version, drafted.response?.submittedAt] : null).toEqual([{ confidence: 3, signed: false, closingAnswer: "Draft", missing: { text: "Mileage", area: "Submitting", value: "" } }, 1, null]);
     // The missing item keeps its id from one save to the next (E9-1 cites it by id).
@@ -226,7 +226,7 @@ describe("Submit", () => {
     // An old change kept on another device (made on version 1, by a page whose write the
     // server never took) is stale: it gets the stored Wrap up back and changes nothing.
     const old = { response: rid, confidence: null, closingAnswer: "A", missing: null, base: 1, page: "page-laptop-0001", seq: 1, after: [] };
-    expect(await saveWrap(link.token, device, old, now)).toEqual({ stale: { wrap: { confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, version: 4, writer: WPAGE, writerSeq: wseq, changedSince: false } });
+    expect(await saveWrap(link.token, device, old, now)).toEqual({ stale: { wrap: { confidence: 4, signed: false, closingAnswer: "All good", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } }, version: 4, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: now.toISOString() } });
     expect(await submitResponse(link.token, device, { ...old, confidence: 2, signedOff: true }, BASE, now, send)).toMatchObject({ stale: { version: 4 } });
     const untouched = (await responses.get(a.ws, rid))!;
     expect([untouched.confidence, untouched.closingAnswer, untouched.signedOff, untouched.submittedAt?.toISOString(), untouched.wrapVersion]).toEqual([4, "All good", true, now.toISOString(), 4]);
@@ -307,10 +307,10 @@ describe("Submit", () => {
     expect((await post("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
     expect((await put("confidence=3", "application/x-www-form-urlencoded")).status).toBe(415);
     const saved = await put(JSON.stringify({ response: started.response.id, confidence: 2, ...v() }));
-    expect([saved.status, await saved.json()]).toEqual([200, { saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false }]);
+    expect([saved.status, await saved.json()]).toEqual([200, { saved: true, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null }]);
     // A stale write: 409 with the stored Wrap up.
     const stale = await put(JSON.stringify({ response: started.response.id, confidence: 5, base: 0, page: "page-other-0002", seq: 1 }));
-    expect([stale.status, await stale.json()]).toEqual([409, { error: "stale", wrap: { confidence: 2, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } }, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false }]);
+    expect([stale.status, await stale.json()]).toEqual([409, { error: "stale", wrap: { confidence: 2, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } }, version: 1, writer: WPAGE, writerSeq: wseq, changedSince: false, submittedAt: null }]);
     const ok = await post(JSON.stringify({ response: started.response.id, confidence: 3, signedOff: true, ...v(1) }));
     expect(ok.status).toBe(200);
     const reply = await ok.json();
@@ -334,23 +334,37 @@ describe("after Submit", () => {
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: first })).toBe(false);
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: new Date("2026-10-08T09:00:00Z") })).toBe(true);
     expect([changedSinceSubmit({ submittedAt: null, signedOff: false }), changedSinceSubmit({ submittedAt: first, signedOff: true }), changedSinceSubmit({ submittedAt: first, signedOff: false })]).toEqual([false, false, true]);
-    // A Start's answer: another response replaces the page's Submit and notice; for the same
-    // response a Submit made elsewhere replaces the page's Submit, and the answer only turns the
-    // notice on (a save's "changed" that came first is never cleared).
+    // The page's notice: a "changed" counts for the Submit it was heard about, and shows while
+    // that is the latest Submit the page knows, whatever order the answers arrive in.
     const S0 = "2026-10-07T14:05:00.000Z"; const S1 = "2026-10-08T09:00:00.000Z";
-    expect(startSubmit(null, { submittedAt: null, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
-    expect(startSubmit(null, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: "keep" });
-    expect(startSubmit(S0, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: "keep" });
-    expect(startSubmit(S0, { submittedAt: S1, changedSince: true }, false)).toEqual({ submitted: { at: S1 }, changedSince: true });
-    expect(startSubmit(S0, { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
-    expect(startSubmit(S0, { submittedAt: S0, changedSince: true }, false)).toEqual({ submitted: "keep", changedSince: true });
-    expect(startSubmit(S0, { submittedAt: null, changedSince: false }, true)).toEqual({ submitted: null, changedSince: false });
-    // The page's notice: a "changed" for a submitted response, from a request sent once its
-    // last Submit had posted; not before a Submit, and not "not changed".
-    expect(showsChanged(true, 120, 100, true)).toBe(true);
-    expect(showsChanged(true, 100, 100, true)).toBe(true);
-    expect(showsChanged(true, 99, 100, true)).toBe(false);
-    expect([showsChanged(true, 120, -1, false), showsChanged(false, 120, 100, true), showsChanged(null, 120, 100, true)]).toEqual([false, false, false]);
+    const knows = (at: string | null, changedFor: string | null = null) => ({ at, changedFor });
+    expect(heardSubmit(NO_SUBMIT, { submittedAt: null, changedSince: false })).toEqual(NO_SUBMIT);
+    expect(heardSubmit(knows(S0), { submittedAt: S0, changedSince: true })).toEqual(knows(S0, S0));
+    expect(heardSubmit(knows(S0, S0), { submittedAt: S0, changedSince: false })).toEqual(knows(S0, S0));
+    // A newer Submit made elsewhere ends a change heard for an older one.
+    expect(heardSubmit(knows(S0, S0), { submittedAt: S1, changedSince: false })).toEqual(knows(S1, S0));
+    expect(showsChanged(knows(S1, S0))).toBe(false);
+    // An answer about the older Submit that arrives late changes neither.
+    expect(heardSubmit(knows(S1), { submittedAt: S0, changedSince: true })).toEqual(knows(S1, S0));
+    expect(heardSubmit(knows(S1, S1), { submittedAt: S0, changedSince: false })).toEqual(knows(S1, S1));
+    // A change after a Submit the page did not know: the notice shows for it.
+    expect(showsChanged(heardSubmit(knows(S0), { submittedAt: S1, changedSince: true }))).toBe(true);
+    // A time that does not read is left out.
+    expect(heardSubmit(knows(S0), { submittedAt: "yesterday", changedSince: true })).toEqual(knows(S0));
+    expect([showsChanged(NO_SUBMIT), showsChanged(knows(S0)), showsChanged(knows(S0, S0)), showsChanged(knows(S0, "2026-10-07T14:05:00Z"))]).toEqual([false, false, true, true]);
+    // A Start's answer: another response replaces what the page knows; for the same response
+    // the page shows the latest Submit it knows, and the answer is heard as any other.
+    expect(startSubmit(null, NO_SUBMIT, { submittedAt: null, changedSince: false }, false)).toEqual({ submitted: "keep", seen: NO_SUBMIT });
+    expect(startSubmit(null, NO_SUBMIT, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1) });
+    // The laptop's notice for S0, the phone's Submit S1, then Start on the laptop: no notice.
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S0) });
+    expect(startSubmit(S0, knows(S0), { submittedAt: S1, changedSince: true }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
+    // A save's "changed" heard first is kept: the Start read before it.
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: "keep", seen: knows(S0, S0) });
+    // A save named a Submit the page did not show yet: Start shows it.
+    expect(startSubmit(S0, knows(S1, S1), { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
+    expect(startSubmit(S0, knows(S0, S0), { submittedAt: null, changedSince: false }, true)).toEqual({ submitted: null, seen: NO_SUBMIT });
+    expect(startSubmit(S0, knows(S0), { submittedAt: S1, changedSince: true }, true)).toEqual({ submitted: { at: S1 }, seen: knows(S1, S1) });
   });
 
   it("opens a submitted personal link on Done, takes the sign-off back only on a change, and after the close shows the submitted page", async () => {
@@ -373,18 +387,18 @@ describe("after Submit", () => {
     expect(await mark()).toEqual([false, false]);
     await startResponse(cy.token, {}, { fields: {} }, day);
     expect(await mark()).toEqual([false, false]);
-    expect(await save(cy.token, {}, rid, { itemId: one.id, picked: "M" }, day)).toMatchObject({ changedSince: false });
-    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 4, missing: { text: "Mileage" }, ...v() }, day)).toMatchObject({ saved: true, changedSince: false });
+    expect(await save(cy.token, {}, rid, { itemId: one.id, picked: "M" }, day)).toMatchObject({ changedSince: false, submittedAt: now.toISOString() });
+    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 4, missing: { text: "Mileage" }, ...v() }, day)).toMatchObject({ saved: true, changedSince: false, submittedAt: now.toISOString() });
     expect(await mark()).toEqual([false, false]);
     // An answer changed later: the mark, and the sign-off taken back until the next Submit;
     // the save's answer says so.
-    expect(await save(cy.token, {}, rid, { itemId: two.id, picked: "C", reason: "Later" }, day)).toMatchObject({ changedSince: true });
+    expect(await save(cy.token, {}, rid, { itemId: two.id, picked: "C", reason: "Later" }, day)).toMatchObject({ changedSince: true, submittedAt: now.toISOString() });
     expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.submittedAt?.toISOString()]).toEqual([true, true, now.toISOString()]);
     const later = new Date("2026-10-06T01:00:00Z");
     await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, later, async () => {});
     expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.signedOff]).toEqual([true, false, true]);
     // The Wrap up changed after Submit takes it back too.
-    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true });
+    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: later.toISOString() });
     expect((await mark())[1]).toBe(true);
     const closed = await loadRespondent(cy.token, {}, new Date("2027-02-01T00:00:00Z"));
     if (closed.kind !== "closedSubmitted") throw new Error(closed.kind);
@@ -430,16 +444,17 @@ describe("after Submit", () => {
     if ("status" in picked) throw new Error(picked.error);
     expect([changedSinceSubmit(picked.response), picked.response.updatedAt.toISOString()]).toEqual([true, later.toISOString()]);
     // A write that changes nothing on a response already changed still says so.
-    expect(await save(link.token, device, rid, { itemId: one.id, picked: "M" }, later)).toMatchObject({ changedSince: true });
+    expect(await save(link.token, device, rid, { itemId: one.id, picked: "M" }, later)).toMatchObject({ changedSince: true, submittedAt: later.toISOString() });
     const held = (await loadRespondent(link.token, device, later));
     if (held.kind !== "ready") throw new Error(held.kind);
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, ...v() }, later)).toMatchObject({ saved: true, changedSince: true });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 3, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: later.toISOString() });
     // A stale write says it too: the Wrap up's, an answer's on the route, a Submit's.
-    expect(await saveWrap(link.token, device, { response: rid, confidence: 1, base: 0, page: "page-other-0003", seq: 1 }, later)).toMatchObject({ stale: { changedSince: true } });
+    expect(await saveWrap(link.token, device, { response: rid, confidence: 1, base: 0, page: "page-other-0003", seq: 1 }, later)).toMatchObject({ stale: { changedSince: true, submittedAt: later.toISOString() } });
     const answerPut = (body: unknown) => answersRoute(new Request(`${BASE}/r/${link.token}/answers`, { method: "PUT", body: JSON.stringify(body), headers: { "content-type": "application/json", cookie: `${DEVICE_COOKIE}=${started.device}` } }), { params: Promise.resolve({ token: link.token }) });
     const staleAnswer = await answerPut({ itemId: one.id, picked: "C", base: 0, page: "page-other-0004", seq: 1, response: rid });
-    expect([staleAnswer.status, (await staleAnswer.json()).changedSince]).toEqual([409, true]);
-    expect(await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, base: 0, page: "page-other-0005", seq: 1 }, BASE, later, async () => {})).toMatchObject({ stale: { changedSince: true } });
+    const staleBody = (await staleAnswer.json()) as { changedSince: unknown; submittedAt: unknown };
+    expect([staleAnswer.status, staleBody.changedSince, staleBody.submittedAt]).toEqual([409, true, later.toISOString()]);
+    expect(await submitResponse(link.token, device, { response: rid, confidence: 3, signedOff: true, base: 0, page: "page-other-0005", seq: 1 }, BASE, later, async () => {})).toMatchObject({ stale: { changedSince: true, submittedAt: later.toISOString() } });
   }, 60_000);
 
   it("shows a revoked personal link that was started and not submitted as closed, not as the respondent's own", async () => {

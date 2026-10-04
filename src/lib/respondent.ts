@@ -179,8 +179,8 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
 // (src/lib/answer-queue.ts).
 export type Written = { version: number; writer: string | null; writerSeq: number };
 // changedSince (E7-6, on a save the server took): the response is submitted and has changes
-// not submitted again.
-export type SavedAnswer = { answer: AnswerState; complete: boolean; changedSince?: boolean } & Written;
+// not submitted again, after its latest Submit (submittedAt, ISO 8601).
+export type SavedAnswer = { answer: AnswerState; complete: boolean; changedSince?: boolean; submittedAt?: string | null } & Written;
 export async function saveAnswer(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | SavedAnswer | { stale: SavedAnswer }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
@@ -201,9 +201,9 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
   if ("refused" in written) return refusalOf(written.refused, token, now);
   if ("stale" in written) {
     const stored = answerMap([written.stale])[row.id];
-    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq, changedSince: written.changedSince } };
+    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null } };
   }
-  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq, changedSince: written.changedSince };
+  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null };
 }
 
 // The Wrap up's answers as the respondent writes them (E7-5; PUT /r/[token]/wrap): the link
@@ -211,9 +211,10 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
 // before anything else is read from the body), the answers read as Submit reads them
 // (parseWrapInput), then stored under the invite row's lock and the response's when the write
 // was made on the stored Wrap up (responses.saveWrap); a stale write gets the stored one back.
-export type WrapReply = { wrap: WrapValue; changedSince: boolean } & WrapSync;
-// changedSince (E7-6): the response is submitted and has changes not submitted again.
-export type WrapSaved = { saved: true; version: number; writer: string | null; writerSeq: number; changedSince: boolean };
+export type WrapReply = { wrap: WrapValue; changedSince: boolean; submittedAt: string | null } & WrapSync;
+// changedSince (E7-6): the response is submitted and has changes not submitted again, after
+// its latest Submit (submittedAt, ISO 8601).
+export type WrapSaved = { saved: true; version: number; writer: string | null; writerSeq: number; changedSince: boolean; submittedAt: string | null };
 export async function saveWrap(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | WrapSaved | { stale: WrapReply }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
@@ -232,7 +233,7 @@ export async function saveWrap(token: string, cookies: RespondentCookies, body: 
   if (!saved) return { status: 404, error: "unknown" };
   if ("refused" in saved) return refusalOf(saved.refused, token, now);
   if ("stale" in saved) return { stale: wrapReplyOf(saved.stale) };
-  return { saved: true, version: saved.saved.wrapVersion, writer: saved.saved.wrapWriter, writerSeq: saved.saved.wrapWriterSeq, changedSince: changedSinceSubmit(saved.saved) };
+  return { saved: true, version: saved.saved.wrapVersion, writer: saved.saved.wrapWriter, writerSeq: saved.saved.wrapWriterSeq, changedSince: changedSinceSubmit(saved.saved), submittedAt: saved.saved.submittedAt?.toISOString() ?? null };
 }
 
 // The response a write names (E7-3 onwards): an open window whose cookie was replaced since
@@ -242,7 +243,7 @@ const namedResponse = (body: unknown): unknown => (body && typeof body === "obje
 // The stored Wrap up as the page holds it (the sign-off is never stored for the page: it is
 // ticked for each Submit).
 export const wrapOf = (stored: { confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null }): WrapValue => ({ confidence: stored.confidence, signed: false, closingAnswer: stored.closingAnswer ?? "", missing: { text: stored.missing?.text ?? "", area: stored.missing?.area ?? "", value: stored.missing?.value ?? "" } });
-const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq, changedSince: stored.changedSince });
+const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq, changedSince: stored.changedSince, submittedAt: stored.submittedAt?.toISOString() ?? null });
 
 // The first word of the respondent's name, for "Thank you, [NAME]." and "Welcome back":
 // the name field Start saved, else a personal invite's name.

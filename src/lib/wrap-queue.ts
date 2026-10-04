@@ -71,7 +71,7 @@ export function restorableWrap(raw: string | null, responseId: string, server: {
 // What the page does with the server's answer to a write (the cards' replyStep for the one
 // Wrap up). `sent` is the change the request carried; `current` the change waiting now (the
 // same, a newer one, or none).
-export type WrapReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; wrap?: WrapValue; changedSince?: unknown };
+export type WrapReplyBody = { error?: string; version?: unknown; writer?: unknown; writerSeq?: unknown; wrap?: WrapValue; changedSince?: unknown; submittedAt?: unknown };
 export type WrapStep = {
   outcome: Outcome;
   // The server's version to remember (the page keeps the highest).

@@ -411,13 +411,13 @@ describe("saving an answer", () => {
     const rid = started.response.id;
     // Change without a reason is stored and not complete; with the reason it is. Each write
     // counts the version up and names its page and number.
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "", comment: "dropped", ...w(0, 1), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 1, changedSince: false });
-    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this quarter", ...w(1, 2), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: "Not this quarter", comment: null }, complete: true, version: 2, writer: P, writerSeq: 2, changedSince: false });
-    expect(await saveAnswer(link.token, device, { itemId: two.id, picked: "unclear", ...w(0, 3), response: rid }, now)).toEqual({ answer: { kind: "unclear", value: null, reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 3, changedSince: false });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "", comment: "dropped", ...w(0, 1), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 1, changedSince: false, submittedAt: null });
+    expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this quarter", ...w(1, 2), response: rid }, now)).toEqual({ answer: { kind: "change", value: "S", reason: "Not this quarter", comment: null }, complete: true, version: 2, writer: P, writerSeq: 2, changedSince: false, submittedAt: null });
+    expect(await saveAnswer(link.token, device, { itemId: two.id, picked: "unclear", ...w(0, 3), response: rid }, now)).toEqual({ answer: { kind: "unclear", value: null, reason: null, comment: null }, complete: false, version: 1, writer: P, writerSeq: 3, changedSince: false, submittedAt: null });
     // A later save of the same page lands even on an older version (its earlier save's reply
     // was lost, a timeout); an earlier one of the same page does not (a late request).
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "S", reason: "Not this year", ...w(1, 4), response: rid }, now)).toMatchObject({ complete: true, version: 3, writer: P, writerSeq: 4 });
-    const storedOne = { answer: { kind: "change", value: "S", reason: "Not this year", comment: null }, complete: true, version: 3, writer: P, writerSeq: 4, changedSince: false };
+    const storedOne = { answer: { kind: "change", value: "S", reason: "Not this year", comment: null }, complete: true, version: 3, writer: P, writerSeq: 4, changedSince: false, submittedAt: null };
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(2, 4), response: rid }, now)).toEqual({ stale: storedOne });
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "M", ...w(1, 3), response: rid }, now)).toEqual({ stale: storedOne });
     // Another page lands only on the version it was made on: a save made on an older one
@@ -455,16 +455,16 @@ describe("saving an answer", () => {
     expect(await saveAnswer(link.token, device, { itemId: one.id, picked: "5", ...w(4, 7), response: rid }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badAnswer });
     // After Start with Finance, the tagged item is in the list.
     await startResponse(link.token, device, { fields: { name: "Ana", role: "Sales" }, perspectives: ["Finance"] }, now);
-    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", comment: "fine", ...w(0, 8), response: rid }, now)).toEqual({ answer: { kind: "agree", value: "C", reason: null, comment: "fine" }, complete: true, version: 1, writer: P, writerSeq: 8, changedSince: false });
+    expect(await saveAnswer(link.token, device, { itemId: three.id, picked: "C", comment: "fine", ...w(0, 8), response: rid }, now)).toEqual({ answer: { kind: "agree", value: "C", reason: null, comment: "fine" }, complete: true, version: 1, writer: P, writerSeq: 8, changedSince: false, submittedAt: null });
     // The route: JSON only, the device cookie read from the request.
     const put = (body: string, type = "application/json", cookie = `${DEVICE_COOKIE}=${started.device}`) => answersRoute(new Request(`${BASE}/r/${link.token}/answers`, { method: "PUT", body, headers: { "content-type": type, cookie } }), { params: Promise.resolve({ token: link.token }) });
     expect((await put("itemId=1", "application/x-www-form-urlencoded")).status).toBe(415);
     expect((await put("{")).status).toBe(400);
     const ok = await put(JSON.stringify({ itemId: two.id, picked: "unclear", reason: "Which team pays?", ...w(1, 9), response: rid }));
-    expect([ok.status, await ok.json()]).toEqual([200, { saved: true, kind: "unclear", complete: true, version: 2, writer: P, writerSeq: 9, changedSince: false }]);
+    expect([ok.status, await ok.json()]).toEqual([200, { saved: true, kind: "unclear", complete: true, version: 2, writer: P, writerSeq: 9, changedSince: false, submittedAt: null }]);
     // The same save again (a duplicate after a timeout): 409 stale with the stored answer and who wrote it.
     const late = await put(JSON.stringify({ itemId: two.id, picked: "M", ...w(1, 9), response: rid }));
-    expect([late.status, await late.json()]).toEqual([409, { error: "stale", answer: { kind: "unclear", value: null, reason: "Which team pays?", comment: null }, complete: true, version: 2, writer: P, writerSeq: 9, changedSince: false }]);
+    expect([late.status, await late.json()]).toEqual([409, { error: "stale", answer: { kind: "unclear", value: null, reason: "Which team pays?", comment: null }, complete: true, version: 2, writer: P, writerSeq: 9, changedSince: false, submittedAt: null }]);
     const noCookie = await put(JSON.stringify({ itemId: two.id, picked: "M", ...w(2, 10), response: rid }), "application/json", "");
     expect(noCookie.status).toBe(409);
     expect((await answers.forResponse(a.ws, started.response.id)).length).toBe(3);
