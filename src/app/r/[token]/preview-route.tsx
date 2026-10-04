@@ -3,7 +3,9 @@
 // the PM the token was made for, in their current workspace (the iframe sends their session;
 // src/lib/preview-token.ts). It opens on the first chapter with the step's rings
 // (?ring=...), the workspace's current brand, and on a phone (?device=phone) in a 390 px
-// column. A token that is expired or not this PM's shows the unknown-link page; a revoked
+// column; ?screen=wrap opens the Wrap up (the Closing card focused on Build). A token that is
+// expired or not this PM's shows the expired page, this PM's for another workspace a page
+// saying which to switch to (previewAccess); a revoked
 // link on Share shows the withdrawn page (decision 0021, item 3). Nothing is stored: the app
 // keeps everything in memory and the write routes refuse a preview token.
 import { LinkPage } from "@/components/respondent/link-page";
@@ -11,20 +13,20 @@ import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
 import { getAppContext } from "@/lib/current-workspace";
 import { loadPreview, parseRings, PREVIEW_STEPS, previewKey, type PreviewStep } from "@/lib/preview";
-import { readPreviewToken } from "@/lib/preview-token";
+import { previewAccess, readPreviewToken } from "@/lib/preview-token";
 import { EMPTY_WRAP } from "@/lib/respondent-rules";
 import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY, PREVIEW_PAGE_COPY } from "@/lib/sharing-copy";
 import { RespondentApp } from "./respondent-app";
 
-type Query = { ring?: string | string[]; step?: string | string[]; device?: string | string[] };
+type Query = { ring?: string | string[]; step?: string | string[]; device?: string | string[]; screen?: string | string[] };
 
 export async function PreviewRoute({ token, query }: { token: string; query: Query }) {
   const claim = readPreviewToken(token, previewKey());
   const ctx = claim ? await getAppContext(`/app/projects/${claim.project}`) : null;
-  if (!claim || !ctx?.current || ctx.session.user.id !== claim.user || ctx.current.ws !== claim.ws) {
-    return <LinkPage workspaceName={null} accent="" title={PREVIEW_PAGE_COPY.expiredTitle} line={PREVIEW_PAGE_COPY.expiredLine} poweredBy={false} />;
-  }
+  const access = previewAccess(claim, ctx ? { user: ctx.session.user.id, ws: ctx.current?.ws ?? null } : null);
+  if (access === "otherWorkspace") return <LinkPage workspaceName={null} accent="" title={PREVIEW_PAGE_COPY.otherWorkspaceTitle} line={PREVIEW_PAGE_COPY.otherWorkspaceLine} poweredBy={false} />;
+  if (access === "expired" || !claim || !ctx?.current) return <LinkPage workspaceName={null} accent="" title={PREVIEW_PAGE_COPY.expiredTitle} line={PREVIEW_PAGE_COPY.expiredLine} poweredBy={false} />;
   const { workspace, ws } = ctx.current;
   const step: PreviewStep = typeof query.step === "string" && (PREVIEW_STEPS as readonly string[]).includes(query.step) ? (query.step as PreviewStep) : "build";
   const view = await loadPreview(ws, claim.project, step);
@@ -50,7 +52,7 @@ export async function PreviewRoute({ token, query }: { token: string; query: Que
         started
         initialFields={{}}
         initialPicks={[]}
-        initialScreen={view.items.length > 0 ? { kind: "chapter", index: 0 } : { kind: "about" }}
+        initialScreen={view.items.length === 0 ? { kind: "about" } : query.screen === "wrap" ? { kind: "wrap" } : { kind: "chapter", index: 0 }}
         initialItem={0}
         answers={{}}
         versions={{}}

@@ -1,5 +1,8 @@
 # Design note 44: perspectives on Build, Shape and the About you page, 2026-10-03
 
+Superseded in part by note 65 (2026-10-04): the preview panel described here
+(build/preview-panel.tsx, preview-screen.tsx) is now the respondent app in an iframe.
+
 Made in the Claude Code cloud session of 2026-10-03 for stories/E5-4, under decision 0044.
 Files: src/lib/perspectives.ts (the rule), src/lib/instruments.ts (savePerspectives,
 tagItem), the Build page's perspectives-form.tsx, the Shape page's perspective-tags.tsx,

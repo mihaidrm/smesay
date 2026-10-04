@@ -340,7 +340,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       if (!down.current) flushAll();
     };
     const onFocusOut = () => flush();
-    const onOnline = () => void check();
+    // The builder's preview (a "p." token, src/lib/preview-token.ts) has no state to check.
+    const onOnline = () => { if (!token.startsWith("p.")) void check(); };
     window.addEventListener("pagehide", onHide);
     document.addEventListener("visibilitychange", onVisibility);
     document.addEventListener("focusout", onFocusOut);
@@ -351,7 +352,7 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
       document.removeEventListener("focusout", onFocusOut);
       window.removeEventListener("online", onOnline);
     };
-  }, [flush, flushAll, check]);
+  }, [flush, flushAll, check, token]);
 
   // Mount, and again after the extra setup and cleanup React runs in development
   // (react.dev/reference/react/StrictMode): a change made before this ran (an edit the page

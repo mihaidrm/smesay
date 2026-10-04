@@ -1,15 +1,16 @@
-// The builder's preview (stories/E5-6) on the sample: the panel on Import, Shape, Build and
-// Share and not on Results; each step's caption and ring (Import the chapter row and the
-// cards, Shape the wording, Share the closing date); the preview says nothing is saved, the
-// sample's brand is the workspace's; Phone shows the 390 px column; Open full size opens the
-// same preview in a new tab. The write routes refuse a preview token (403).
+// The builder's preview (stories/E5-6) on a PM's project: the panel on Import, Shape, Build
+// and Share and not on Results; each step's caption and ring (Import the chapter row and the
+// cards, Shape the wording, Share the closing date once published); the preview says nothing
+// is saved, in the workspace's brand; Phone shows the 390 px column; Open full size opens the
+// same preview in a new tab. The write routes refuse a preview token (403). The sample
+// project has no preview (decision 0021, item 1).
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.49" } });
 
 test("preview: on every builder step, ringing what the step changes, saving nothing", async ({ page, request, context }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   const email = `e2e-preview-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
@@ -19,11 +20,21 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page).toHaveURL(/\/app$/);
-  const href = await page.getByRole("link", { name: /Sample project/ }).first().getAttribute("href");
-  const project = `/app/projects/${href!.match(/projects\/([0-9a-f-]{36})/)![1]}`;
+  const sampleHref = await page.getByRole("link", { name: /Sample project/ }).first().getAttribute("href");
+  const sample = `/app/projects/${sampleHref!.match(/projects\/([0-9a-f-]{36})/)![1]}`;
+  await page.getByRole("link", { name: "New project" }).first().click();
+  await page.getByLabel("Project name").fill("Expense tool");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/import$/);
+  const project = page.url().replace(/\/import$/, "");
   const panel = page.getByTestId("preview-panel");
   const app = page.frameLocator("[data-testid=preview-iframe]");
 
+  await page.getByRole("button", { name: "Paste a list instead" }).click();
+  await page.getByLabel("Paste a list").fill(["Receipts captured by phone | Submitting | Must", "Approval from the notification email | Approving | Must"].join("\n"));
+  await page.getByRole("button", { name: "Use this list" }).click();
+  await page.getByRole("button", { name: "Import 2 items" }).click();
+  await expect(page.getByTestId("imported-line")).toBeVisible();
   await page.goto(`${project}/import`);
   await expect(panel.getByTestId("preview-caption")).toHaveText("Import sets the chapters and the cards.");
   await app.locator("[data-ready]").waitFor();
@@ -38,10 +49,17 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(app.locator("legend[data-ring]").first()).toBeVisible();
   await expect(app.locator("nav[data-ring]")).toHaveCount(0);
 
+  await page.goto(`${project}/build`);
+  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   await page.goto(`${project}/share`);
   await expect(panel.getByTestId("preview-caption")).toHaveText("Share sets the closing date in the header.");
-  await app.locator("[data-ready]").waitFor();
-  await expect(app.locator("[data-ring]").first()).toContainText("20 Oct 2026");
+  await page.getByLabel("Closes").fill("2027-01-20T18:00");
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByTestId("link-state")).toHaveText("Published");
+  await expect(async () => {
+    await app.locator("[data-ready]").waitFor({ timeout: 2_000 });
+    await expect(app.locator("[data-ring]").first()).toContainText("20 Jan 2027", { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
 
   // Phone: the 390 px column at true size; Open full size: the same preview in a new tab.
   await panel.getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
@@ -60,8 +78,12 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   expect((await request.post(`/r/${token}/start`, { data: {} })).status()).toBe(403);
   await tab.close();
 
-  // Not on Results.
+  // Not on Results, nor anywhere on the sample.
   await page.goto(`${project}/results`);
-  await expect(page.getByTestId("results")).toBeVisible();
+  await expect(page.getByTestId("project-header")).toBeVisible();
+  await expect(page).toHaveURL(/\/results/);
+  await expect(panel).toHaveCount(0);
+  await page.goto(`${sample}/build`);
+  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   await expect(panel).toHaveCount(0);
 });

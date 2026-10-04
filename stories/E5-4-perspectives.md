@@ -43,8 +43,8 @@ Built 2026-10-03 (design note 44, decision 0044):
   instrument's lock; the names and the tags lock once published; "Build on version N"
   copies the names, not the tags (docs/review-list.md).
 - Acceptance 2: About you (src/components/respondent/about-you.tsx) asks "Which of these
-  describe you?" as checkboxes when the instrument has perspectives; the preview's Items
-  screen narrows to what that respondent would see: the untagged items plus those sharing
+  describe you?" as checkboxes when the instrument has perspectives; the preview's chapters
+  narrow to what that respondent would see: the untagged items plus those sharing
   a pick (visibleItems in src/lib/perspectives.ts), a chapter emptied by the picks dropped
   from the row and the Start label, and a "nothing to rate" screen when nothing is left.
   The real page and the stored picks are E7-1 and E7-3.

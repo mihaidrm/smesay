@@ -58,6 +58,8 @@ export const LINK_ERRORS = {
 export const PREVIEW_PAGE_COPY = {
   expiredTitle: "This preview has expired.",
   expiredLine: "Open the project again in SMEsay to see its preview.",
+  otherWorkspaceTitle: "This preview is for another workspace.",
+  otherWorkspaceLine: "Switch to the workspace the project is in, then open the project again.",
   noList: "Import a list to see what respondents get.",
 };
 

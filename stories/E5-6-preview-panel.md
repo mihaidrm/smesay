@@ -59,12 +59,14 @@ Built 2026-10-04 (design note 65, decision 0044; docs/review-list.md):
   closing part, Share the closing date in the header; a revoked link shows the withdrawn page
   on Share.
 - Acceptance 3: the iframe loads /r/[preview token] (src/lib/preview-token.ts: "p.", a signed
-  claim of the project, the workspace and the PM, an hour long; the story's
+  claim of the project, the workspace and the PM, one to two hours long; the story's
   /r/preview?instrument= became the token itself, so the route stays /r/[token]); the page
-  checks the session is that PM's in that workspace and renders src/app/r/[token]/
+  checks the session is that PM's in that workspace (previewAccess; the same PM in another
+  workspace is told to switch) and renders src/app/r/[token]/
   respondent-app.tsx for the draft (src/lib/preview.ts loadPreview: the latest list on
-  Import and Shape, the draft's list on Build and Share, the defaults before Build opens a
-  draft). The chapter pills move between screens; the source changes only when what it
+  Import and Shape, the draft's list on Build, the live link's instrument on Share, the
+  defaults before Build opens a draft; never the sample, decision 0021 item 1). On Build the
+  Closing card focused opens the Wrap up (E5-5 acceptance 3). The chapter pills move between screens; the source changes only when what it
   shows changes, so a save reloads the preview and a render that changes nothing does not.
 - Acceptance 4: in preview mode Start, the cards and the Wrap up stay in memory, Submit is
   off and every screen says "Preview: nothing you enter here is saved"; the write routes

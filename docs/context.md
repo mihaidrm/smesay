@@ -42,7 +42,8 @@ Done so far:
 - Scoring and layout (stories/E5-2 and E5-3, built 2026-10-03): the method, the proposal
   switch, the labels and the layout on Build, the first three locked once published; src/lib/scoring.ts is the one mapping to the answer kinds,
   shared with E7-2 and E8; the respondent card and rating row components in
-  src/components/respondent/ draw the preview's Items screen.
+  src/components/respondent/ are the respondent app, which the builder's preview shows
+  in an iframe (stories/E5-6).
 - Build (stories/E5-1, built 2026-10-03): the instrument draft on the latest set
   (src/lib/instruments.ts), the intro and the respondent fields with the server rule
   (src/lib/respondent-fields.ts), "Build on version N" after a new import, and the About you

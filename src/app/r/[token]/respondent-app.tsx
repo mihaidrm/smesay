@@ -225,7 +225,12 @@ export function RespondentApp(props: RespondentAppProps) {
     setScreen(next);
     setItem(itemIndex);
     // The screen already showing (its own pill tapped) adds no history entry.
-    if (screenParam(next) !== screenParam(screen)) window.history.pushState(null, "", `?at=${screenParam(next)}`);
+    // In the builder's preview a screen replaces the entry and keeps the preview's query, so
+    // Back leaves the step page and a reload keeps the step and its rings.
+    if (screenParam(next) !== screenParam(screen)) {
+      if (preview) { const url = new URL(window.location.href); url.searchParams.set("at", screenParam(next)); window.history.replaceState(null, "", url); }
+      else window.history.pushState(null, "", `?at=${screenParam(next)}`);
+    }
     window.scrollTo(0, 0);
   };
   // The first entry carries its screen too, so Back from a pushed screen lands on it.
@@ -397,7 +402,9 @@ export function RespondentApp(props: RespondentAppProps) {
         rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} />
     );
   };
-  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && chapters.length > 0 ? "max-w-[760px]" : "max-w-[560px]";
+  // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
+  // ("No items to review.", E5-5).
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[560px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
@@ -416,7 +423,7 @@ export function RespondentApp(props: RespondentAppProps) {
             <PoweredBy show={props.poweredBy} className="mt-auto" />
           </main>
         </div>
-      ) : (screen.kind === "wrap" || screen.kind === "done") && chapters.length > 0 ? (
+      ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
         <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />{nav}{banner}</>}
           gaps={gaps}
@@ -426,6 +433,7 @@ export function RespondentApp(props: RespondentAppProps) {
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
+          {previewStrip}
           <main className="flex flex-col gap-4 px-5 pt-6">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
             <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{RESPONDENT_COPY.aboutYou}</button>

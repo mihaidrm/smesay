@@ -34,7 +34,8 @@ src/lib/scoring.ts is shared with E7 and E8.
 
 Built 2026-10-03 (design note 41, decision 0044):
 - Acceptance 1: the Scoring card on Build (scoring-form.tsx) with the three methods as radio
-  cards; the preview panel's Items screen shows the first chapter's cards with the rating
+  cards; the preview panel (since E5-6 the respondent app in an iframe, note 65) shows the
+  first chapter's cards with the rating
   row (src/components/respondent/rating-row.tsx, item-card.tsx, shared with E7-2): values
   as pills, Unclear last, the proposed pill dashed and captioned "proposed", the 1 to 5
   scale captioned "no fit" and "fits fully".

@@ -252,11 +252,11 @@ src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
 no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
 The builder's preview (E5-6): previewToken({ project, ws, user }, secret, now) and
 readPreviewToken(token, secret, now) -> { project, ws, user, exp } | null in
-src/lib/preview-token.ts ("p." + base64url claim + "." + base64url HMAC-SHA256, an hour long;
-isPreviewToken(token)); previewKey(), loadPreview(ws, projectId, step, now) -> PreviewView
+src/lib/preview-token.ts ("p." + base64url claim + "." + base64url HMAC-SHA256, valid one to two hours;
+isPreviewToken(token), previewAccess(claim, { user, ws }) -> ok | expired | otherWorkspace); previewKey(), loadPreview(ws, projectId, step, now) -> PreviewView
 { kind: none | noList | revoked | ready { spec, items, areas, closesAt } }, previewSrc(claim,
 step, now) and STEP_RINGS in src/lib/preview.ts (steps import, shape, build, share; rings nav,
-cards, wording, rating, fields, closing, note). /r/[preview token]?step=&ring=&v=&device=
+cards, wording, rating, fields, closing, note). /r/[preview token]?step=&ring=&v=&device=&screen=wrap
 renders the respondent app with preview { rings }; PUT /r/[token]/answers, POST start,
 PUT wrap and POST submit answer 403 { error } to a preview token. itemsFor(ws, instrument) in
 src/lib/respondent.ts reads an instrument's items as the respondent sees them (itemsOf(link)

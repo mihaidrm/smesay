@@ -85,6 +85,7 @@ export const ABOUT_YOU_COPY = {
 // The builder's preview panel (stories/E5-6; docs/copy/app.md, Preview).
 export const PREVIEW_COPY = {
   title: "Preview",
+  newTab: "(opens in a new tab)",
   device: "Device",
   desktop: "Desktop",
   phone: "Phone",

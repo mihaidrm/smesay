@@ -244,10 +244,16 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByTestId("wrap-up-question")).toHaveCount(0);
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers and they can be shared with the project team.");
   await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
+  // The Closing card focused opens the Wrap up in the preview (E5-5, acceptance 3); a control
+  // of another card opens the first screen again.
+  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap$/);
+  await expect(async () => { await ready(); await expect(wrapUp).toBeVisible({ timeout: 1_000 }); }).toPass({ timeout: 15_000 });
   await page.getByRole("switch", { name: "Ask for missing items" }).click();
   await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
   await page.getByTestId("closing-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("closing-form").getByRole("status")).toHaveText("Saved.");
+  await page.getByRole("radio", { name: /One item per screen/ }).focus();
+  await expect(page.getByTestId("preview-iframe")).not.toHaveAttribute("src", /screen=wrap/);
   await startAs();
   await app.getByTestId("row-wrap").click();
   await expect(wrapUp.getByTestId("wrap-up-question")).toContainText("What would make this list complete?");

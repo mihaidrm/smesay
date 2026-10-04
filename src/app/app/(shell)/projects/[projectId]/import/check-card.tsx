@@ -4,6 +4,9 @@
 // "Import [N] items" button (E3-3, acceptance 1: disabled at 40 percent without a text
 // column). Server component; the button is a form on commitAction with its pending state in
 // import-button.tsx. An upload already imported shows its version instead of the button.
+// The three counts sit side by side only when the card is 48rem wide or more (a container
+// query: tailwindcss.com/docs/responsive-design#container-queries), so beside the preview
+// panel they stack (decision 0021, item 5).
 import { IMPORT_COPY } from "@/lib/imports";
 import type { CheckResult } from "@/lib/import/report";
 import { ImportButton } from "./import-button";
@@ -22,10 +25,10 @@ export function CheckCard({ uploadId, check, importedVersion }: { uploadId: stri
   const counts = check ? IMPORT_COPY.counts(check.report) : null;
   const n = check?.items.length ?? 0;
   return (
-    <section className="flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
+    <section className="@container flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
       <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-semibold">Check before import</h3></div>
       {check && counts ? (
-        <div className="grid grid-cols-1 divide-y divide-hairline md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
           <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
           <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => `Row ${d.row}, same as row ${d.keptRow}`)} />
           <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />

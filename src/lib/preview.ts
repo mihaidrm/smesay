@@ -5,6 +5,8 @@
 // proposal shown, chapters, the default fields, the default Closing card), so Import and
 // Shape have a preview from the first import. The project's link, when it has one, gives the
 // closing date the header shows, and a revoked link shows the withdrawn page (decision 0021).
+// Share previews the instrument holding the link in force, as its card shows it. The sample
+// project has no preview (decision 0021, item 1): its data shows only under the watermark.
 import { createHash, createHmac } from "node:crypto";
 import { instruments, invites, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
@@ -46,12 +48,13 @@ export type PreviewView =
 
 export async function loadPreview(ws: WorkspaceId, projectId: string, step: PreviewStep, now = new Date()): Promise<PreviewView> {
   const project = await projects.get(ws, projectId);
-  if (!project) return { kind: "none" };
+  if (!project || project.isSample) return { kind: "none" };
   const latest = await latestSet(ws, project.id);
   if (!latest) return { kind: "noList", projectName: project.name };
-  const instrument = await instruments.latestForProject(ws, project.id);
-  const link = instrument ? await invites.livePublic(ws, project.id) : null;
+  const newest = await instruments.latestForProject(ws, project.id);
+  const link = newest ? await invites.livePublic(ws, project.id) : null;
   if (step === "share" && linkState(link, now) === "revoked") return { kind: "revoked" };
+  const instrument = step === "share" && link && newest && link.instrumentId !== newest.id ? ((await instruments.get(ws, link.instrumentId)) ?? newest) : newest;
   const base: PreviewSpec = instrument ?? { title: project.name, intro: null, respondentFields: DEFAULT_FIELDS, perspectives: [], method: "moscow", scaleLabels: null, showProposed: true, layout: "chapters", closing: DEFAULT_CLOSING, itemSetId: latest.id };
   const spec = step === "import" || step === "shape" ? { ...base, itemSetId: latest.id } : base;
   const { items, areas } = await itemsFor(ws, spec);
@@ -64,7 +67,7 @@ export const previewKey = (): string => createHmac("sha256", readAuthEnv().secre
 
 // The source of a step's preview, for this PM, with the step and its rings. It stays the same
 // while what the preview shows stays the same (the token is made for the current hour and
-// lasts into the next, and `v` is a digest of the view), so a render of the step page that
+// lasts through the next, so one to two hours, and `v` is a digest of the view), so a render of the step page that
 // changes nothing does not reload the preview, and a save that changes it does.
 export async function previewSrc(claim: { project: string; ws: WorkspaceId; user: string }, step: PreviewStep, now = Date.now()): Promise<string> {
   const view = await loadPreview(claim.ws, claim.project, step, new Date(now));

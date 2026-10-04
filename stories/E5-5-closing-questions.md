@@ -36,8 +36,10 @@ Built 2026-10-03 (design note 45, decision 0044):
 - Acceptance 2: parseClosing refuses confidence off (src/lib/closing.test.ts, 3 tests;
   the server path in src/lib/instruments.test.ts).
 - Acceptance 3: the Wrap up component (src/components/respondent/wrap-up.tsx) reads all
-  four from the spec; the preview's screen switch gains Wrap up and focusing or clicking
-  the Closing card opens it (preview-screen.tsx). E7-5 renders the same component with the answers.
+  four from the spec; focusing or clicking the Closing card opens the Wrap up in the preview
+  (since E5-6 the respondent app in an iframe, ?screen=wrap: data-preview-screen on the form,
+  PreviewColumn in src/components/app/preview-frame.tsx), and any other control of Build the
+  first chapter again. E7-5 renders the same component with the answers.
 - Acceptance 4: the server trims and checks every field; the only copy rule applied to the
   PM's words is no em dash. Once published the question locks (docs/review-list.md).
 - Playwright: e2e/build.spec.ts focuses the card, sees the Wrap up, saves a question with

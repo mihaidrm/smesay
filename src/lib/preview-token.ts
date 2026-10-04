@@ -2,8 +2,9 @@
 // respondent app opens on /r/[token] for a project's draft when the token is a preview token,
 // "p." then the payload and its HMAC-SHA256 under the session secret, both base64url
 // (nodejs.org/api/crypto.html, createHmac and timingSafeEqual). It names the project, the
-// workspace and the PM it was made for, and lasts an hour; the page also checks that the
-// session is that PM's in that workspace. A real link's token is 32 hex characters
+// workspace and the PM it was made for, and lasts one to two hours (made for the current hour,
+// valid through the next: src/lib/preview.ts previewSrc); the page also checks that the
+// session is that PM's in that workspace (previewAccess). A real link's token is 32 hex characters
 // (src/lib/sharing.ts newToken), never "p.", so the two cannot be confused, and every write
 // route answers 403 to a preview token: nothing a preview does is stored.
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -21,6 +22,15 @@ export const isPreviewToken = (token: string): boolean => token.startsWith(PREVI
 export function previewToken(claim: Omit<PreviewClaim, "exp">, secret: string, now = Date.now()): string {
   const payload = b64(JSON.stringify({ ...claim, exp: now + PREVIEW_TTL_MS }));
   return `${PREVIEW_PREFIX}${payload}.${b64(sign(payload, secret))}`;
+}
+
+// Whether the signed-in PM may see the preview a claim names: the claim's PM, in the claim's
+// workspace as their current one. Another PM's token is the expired page; the same PM in
+// another workspace is told which workspace to switch to (CLAUDE.md, errors say what to do).
+export type PreviewAccess = "ok" | "expired" | "otherWorkspace";
+export function previewAccess(claim: PreviewClaim | null, session: { user: string; ws: string | null } | null): PreviewAccess {
+  if (!claim || !session || session.user !== claim.user) return "expired";
+  return session.ws === claim.ws ? "ok" : "otherWorkspace";
 }
 
 // The claim when the token is whole, signed with this secret and not expired; null otherwise.
