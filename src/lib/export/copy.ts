@@ -1,5 +1,5 @@
 // The exports' words (stories/E10-1; docs/copy/app.md, Results, Export). No database import.
-import type { ExportFile } from "@/db/types";
+import type { CsvFile, ExportFile } from "@/db/types";
 
 export const EXPORT_COPY = {
   watermark: "Sample data, invented",
@@ -23,12 +23,32 @@ export const EXPORT_COPY = {
       items: { title: "Items with totals", line: "One row per item: the counts of each answer, not answered, and the agreement." },
       people: { title: "People", line: "One row per person: the Responses tab's columns and the minutes to submit." },
       missing: { title: "Missing items", line: "One row per missing item suggested, with who suggested it." },
-    } satisfies Record<ExportFile, { title: string; line: string }>,
+    } satisfies Record<CsvFile, { title: string; line: string }>,
+    // E10-2: the whole project as one JSON file.
+    project: { title: "Whole project", line: "One JSON file with every version of the list, the instrument, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, export the answers as CSV, which always works." },
     download: "Download CSV",
     downloading: "Preparing the file",
     // docs/copy/errors.md, Dashboard and exports: Export failed.
     failed: "The CSV export did not finish. Try again; if it fails again, reload the page and export again.",
     sample: "The sample's files start with the line \"Sample data, invented\".",
   },
-  fileName: (project: string, file: ExportFile, date: string) => `${project.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60) || "project"}-${file}-${date}.csv`,
+  // E10-2: the import page.
+  importPage: {
+    title: "Import a project",
+    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instrument, responses and actions. Its public link comes in withdrawn: publish it again when you are ready, then send each personal invite a new link.",
+    field: "Project file (.json)",
+    submit: "Import project",
+    link: "Import a project",
+  },
+  // E10-2: the import's refusals (docs/copy/errors.md, Projects).
+  importErrors: {
+    noFile: "Choose the .json file made with Whole project on a project's Export tab.",
+    tooLarge: "This file is over 6 MB. A project export is smaller; check that it is the file SMEsay made.",
+    notJson: "This file is not a project export: it is not JSON. Choose the .json file SMEsay made with Whole project.",
+    notProject: "This file is not a project export from SMEsay. Choose the .json file made with Whole project on a project's Export tab.",
+    newer: (version: number, ours: number) => `This file was made by a newer SMEsay (format version ${version}; this one reads up to ${ours}). Export it again from the same SMEsay, or ask us.`,
+    damaged: (where: string) => `This file is damaged or was edited: ${where} does not read as SMEsay wrote it. Export the project again and import the new file.`,
+    sample: "This file is the sample project's. Every workspace has the sample already, so it is not imported.",
+  },
+  fileName: (project: string, file: ExportFile, date: string) => `${project.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60) || "project"}-${file}-${date}.${file === "project" ? "json" : "csv"}`,
 };

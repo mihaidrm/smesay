@@ -245,6 +245,14 @@ of the content; page means it replaces the screen.
 | Banner, results (E8-1) | The headline numbers, a tab or an item's detail fail to load | [PART] could not load. It has been logged. Try again in a minute. [Button: Try again] ([PART]: The headline numbers, the tab's name, or The item's detail (E8-5)) |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
+| Inline, Import a project (E10-2) | No file chosen | Choose the .json file made with Whole project on a project's Export tab. |
+| Inline, Import a project (E10-2) | A file over 6 MB | This file is over 6 MB. A project export is smaller; check that it is the file SMEsay made. |
+| Inline, Import a project (E10-2) | Not JSON | This file is not a project export: it is not JSON. Choose the .json file SMEsay made with Whole project. |
+| Inline, Import a project (E10-2) | JSON that is not a project file | This file is not a project export from SMEsay. Choose the .json file made with Whole project on a project's Export tab. |
+| Inline, Import a project (E10-2) | A newer format version | This file was made by a newer SMEsay (format version [N]; this one reads up to [M]). Export it again from the same SMEsay, or ask us. |
+| Inline, Import a project (E10-2) | A field or a reference that does not read as written | This file is damaged or was edited: [WHERE] does not read as SMEsay wrote it. Export the project again and import the new file. |
+| Inline, Import a project (E10-2) | The sample's file | This file is the sample project's. Every workspace has the sample already, so it is not imported. |
+| Inline, Import a project (E10-2) | The plan's projects are used | (the New project sentence, PROJECTS_COPY.planFull) |
 | Inline, Actions tab (E9-1) | Write actions on the sample | The sample's actions are invented and cannot be written again. Write actions on your own project. |
 | Inline, Actions tab (E9-1, E9-3) | The AI budget for the month is used | This run would cost about EUR [ESTIMATE]. This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
 | Inline, Actions tab (E9-1, E9-3) | AI paused by the product cap | This run would cost about EUR [ESTIMATE]. AI is paused until next month. The answers are all on the other tabs. |
