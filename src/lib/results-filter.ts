@@ -89,9 +89,10 @@ export function filterActive(f: ResultsFilter): boolean {
 }
 
 // The URL query of a filter (without the leading "?"), in a fixed order so equal filters
-// write equal URLs; `unsubmitted` is written only when it is not the stored choice. `extra`
-// keeps other parameters of the page (the tab).
-export function filterQuery(f: ResultsFilter, ctx: FilterContext, stored: boolean | null = null, extra: Record<string, string> = {}): string {
+// write equal URLs. `unsubmitted` is always written, so a shared view counts the same answers
+// for whoever opens it, whatever their own stored choice. `extra` keeps other parameters of
+// the page (the tab).
+export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<string, string> = {}): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(extra)) q.append(k, v);
   for (const spec of ctx.fields) {
@@ -103,7 +104,7 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, stored: boolea
   if (f.withComment) q.append("comment", "1");
   if (f.perspective) q.append("perspective", f.perspective);
   for (const s of f.status) q.append("status", s);
-  if (f.includeUnsubmitted !== (stored ?? true)) q.append("unsubmitted", f.includeUnsubmitted ? "1" : "0");
+  q.append("unsubmitted", f.includeUnsubmitted ? "1" : "0");
   return q.toString();
 }
 

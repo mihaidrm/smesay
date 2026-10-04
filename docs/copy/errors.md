@@ -236,9 +236,11 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
-| Empty state, results | No responses yet | No answers yet. The link is [open until DATE / open / not open until DATE / closed / revoked / not published]. Share it, or open the sample project to see what results look like. [Button: Share it] [Button: Open the sample project] (E8-1: the link phrase by the link's state; no sample button on the sample itself) |
+| Empty state, results | No responses yet | No answers yet. The link is [open until DATE / open / not open until DATE / closed / revoked / not published]. Share it, or open the sample project to see what results look like. [Button: Share it] [Button: Open the sample project] (E8-1: the link phrase by the link's state; no sample button on the sample itself; with the sample deleted: The link is [STATE]. Share it to collect answers.) |
 | Empty state, results (E8-1, 2026-10-03) | A filter matches no answer | No answers match these filters. [Button: Clear filters] |
 | Line under the strip (E8-1) | Any filter on | Showing [N] of [M] responses: [FILTERS]. ([FILTERS]: each filter as the bar names it, joined by "; ", for example Role: Sales, Finance; Different priority; With a reason or comment) |
+| Inline, results (E8-1) | Choose tiles or the switch saved on a project with nothing published | This project has nothing published to show yet. Build and share it first. |
+| Inline, results (E8-1) | Choose tiles or the switch could not reach the server | Your choice was not saved. Try again. |
 | Banner, results (E8-1) | The headline numbers or a tab fail to load | [PART] could not load. It has been logged. Try again in a minute. [Button: Try again] ([PART]: The headline numbers, or the tab's name) |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |

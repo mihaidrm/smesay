@@ -2,7 +2,8 @@
 // sample's Results; the switch on by default counts the in-progress respondent's 4 answers
 // (23 of 34), off it reads 5 of 7 and 63% (19 of 30); the role filter Sales narrows the strip,
 // the tab counts and says what is showing; Clear filters; a tile swapped in Choose tiles is
-// kept after a reload; a project with nothing built shows the empty state.
+// kept after a reload; a project with nothing built shows the empty state; the sample carries
+// its watermark band.
 import { expect, test, type Page } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -28,6 +29,7 @@ test("results: switch, filter, tiles, empty state", async ({ page, request }) =>
   await ready(page);
   const tile = (id: string) => page.locator(`[data-tile="${id}"]`);
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Results/);
+  await expect(page.getByTestId("sample-band")).toHaveText("Sample data: invented answers, for looking around");
 
   // On by default: the in-progress respondent's 4 answers count.
   const sw = page.getByRole("switch", { name: "Include unsubmitted answers" });

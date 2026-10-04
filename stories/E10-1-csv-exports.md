@@ -11,7 +11,7 @@ are the dashboard's numbers.
    question, comment, submitted at, source, perspectives) and "Items with totals" (one row per
    item: reference, text, original, area, proposed value, counts of agree, changed, disagree,
    unclear, not answered, agreement percentage). The answer kind column reads Agree,
-   Different priority, Disagree, Unclear or Picked (the rate-blind `pick`); their value and
+   Different priority, Disagree, Unclear or Rated (the rate-blind `pick`; E8-1's name); their value and
    the proposed value are the scale's code with the instrument's label beside it (E5-2,
    acceptance 3: labels appear in exports).
 2. UTF-8 with a byte order mark, comma separated, quoted fields, dates as ISO 8601 with the
@@ -19,8 +19,11 @@ are the dashboard's numbers.
    test checks the BOM, the quoting of a field with a comma and a newline, and the date
    format).
 3. Every number on Results equals the matching CSV row: the reconciliation test from E8-1 and
-   E8-3 runs both exports and compares every headline number, every item count and every
-   register count to the files.
+   E8-3 runs the exports and compares every headline number, every item count and every
+   register count to the files. Amended 2026-10-04 (E8-1 audit, docs/review-list.md): the
+   tiles that count people and missing items need rows of their own, so the export adds
+   "People" (one row per person the filter keeps: status, submitted at, minutes to submit;
+   src/db/queries/results.ts people) and "Missing items" (one row per suggestion; results.missing).
 4. Sample project exports carry the watermark in the first row ("Sample data, invented").
 5. Downloads are streamed, scoped by workspace, and logged (who, when, what) for E11-2.
 

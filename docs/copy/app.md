@@ -252,7 +252,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Switch at the top | Include unsubmitted answers (on by default, decision 0030; kept per PM per instrument) |
+| Band on the sample's Results (E8-1; every screen of the sample with E8-8) | Sample data: invented answers, for looking around |
+| Switch at the top | Include unsubmitted answers (on by default, decision 0030; kept per PM per instrument; the URL always carries it, so a shared view counts the same answers) |
 | Button and dialog | [Button: Choose tiles]; title: Choose the tiles; line: Up to six, shown in this order. Only you see your choice.; count: [N] of 6 chosen; [Button: Cancel] [Button: Save] |
 | Dialog errors | Pick at least one tile. / Pick up to six tiles. |
 | The twelve tiles (the checklist, in this order) | Submitted of invited; Agreement; Different priority; Disagree; Unclear; Missing items suggested; Answers with a reason or comment; Items with no answer yet; Items fully agreed; Items with a different priority or disagree; Median minutes to submit; Responses in progress. The first six are on by default. |

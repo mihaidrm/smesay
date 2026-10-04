@@ -50,42 +50,49 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   const filter = parseResultsFilter(query, ctx, stored);
   const tab = parseTab(query.tab);
   return (
-    <ResultsBoundary what={RESULTS_COPY.strip}>
-      <ResultsBody projectId={project.id} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} stored={stored} tab={tab} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} />
+    <ResultsBoundary key={JSON.stringify(filter)} what={RESULTS_COPY.strip}>
+      <ResultsBody projectId={project.id} sample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} />
     </ResultsBoundary>
   );
 }
 
-type BodyProps = { projectId: string; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; stored: boolean | null; tab: Tab; tiles: TileId[] };
+type BodyProps = { projectId: string; sample: boolean; sampleId: string | null; instrument: Instrument; ws: Parameters<typeof results.numbers>[0]; filter: ResultsFilter; ctx: FilterContext; tab: Tab; tiles: TileId[] };
 
-async function ResultsBody({ projectId, sampleId, instrument, ws, filter, ctx, stored, tab, tiles }: BodyProps) {
+async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter, ctx, tab, tiles }: BodyProps) {
   const n = await results.numbers(ws, instrument.id, filter);
   if (!n) notFound();
   if (!n.anyAnswer) return <NoAnswers projectId={projectId} sampleId={sampleId} link={await linkPhrase(ws, projectId)} />;
   const path = `/app/projects/${projectId}/results`;
-  const href = (next: ResultsFilter, t: Tab) => { const q = filterQuery(next, ctx, stored, t === "agreement" ? {} : { tab: t }); return q ? `${path}?${q}` : path; };
+  const href = (next: ResultsFilter, t: Tab) => { const q = filterQuery(next, ctx, t === "agreement" ? {} : { tab: t }); return q ? `${path}?${q}` : path; };
   // A value rated with no proposal shown is a kind of its own only where the instrument hides
   // the proposal (E5-2).
   const kinds = RESULTS_KINDS.filter((k) => k !== "pick" || !instrument.showProposed || n.pick > 0);
   const active = filterActive(filter);
   const cleared = { ...filter, fields: {}, kinds: [], withComment: false, perspective: null, status: [] };
+  // Nobody kept (acceptance 4): the people a filter keeps without a counted answer (an invite
+  // not opened, an answer not submitted with the switch off) still show, in the Responses tab.
+  const none = active && n.invited === 0;
   return (
     <div className="flex flex-col gap-5" data-testid="results">
+      {sample && <SampleBand />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />
         <TileChooser projectId={projectId} tiles={tiles} />
       </div>
-      <FilterBar filter={filter} ctx={ctx} stored={stored} tab={tab === "agreement" ? null : tab} kinds={kinds} />
-      {active && n.shown === 0 ? (
+      {!none && <Strip n={n} tiles={tiles} />}
+      {/* The filter bar and the line under the strip (acceptance 3). */}
+      <FilterBar filter={filter} ctx={ctx} tab={tab === "agreement" ? null : tab} kinds={kinds} />
+      <p role="status" className={cn("text-sm text-ink-muted", !active && "sr-only")} data-testid={active ? "showing-line" : undefined}>{active ? RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx)) : ""}</p>
+      {none ? (
         <EmptyState title={RESULTS_COPY.noMatch} className="py-8">
           <Link href={href(cleared, tab)} className={cn(buttonVariants({ variant: "secondary", size: "small" }), "mt-2")} data-testid="no-match-clear">{RESULTS_COPY.clearFilters}</Link>
         </EmptyState>
       ) : (
         <>
-          {active && <p className="text-sm text-ink-muted" data-testid="showing-line">{RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx))}</p>}
-          <Strip n={n} tiles={tiles} />
           <TabRow n={n} tab={tab} href={(t) => href(filter, t)} />
-          <ResultsBoundary what={tabName(tab, n)}>
+          {/* catchError clears its error only on a new pathname, so each tab and each filter
+              gets a boundary of its own (node_modules/next/dist/client/components/catch-error.js). */}
+          <ResultsBoundary key={`${tab}:${href(filter, tab)}`} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
               <TabPanel tab={tab} n={n} />
             </Suspense>
@@ -139,10 +146,16 @@ async function linkPhrase(ws: BodyProps["ws"], projectId: string): Promise<strin
   return link.closesAt ? RESULTS_COPY.link.openUntil(formatUtc(link.closesAt)) : RESULTS_COPY.link.open;
 }
 
+// The sample's watermark (CLAUDE.md, dashboard rules; stories/E8-8, which puts the band on
+// every screen of the sample): it cannot be dismissed.
+function SampleBand() {
+  return <p className="rounded-xl border border-dashed border-hairline-strong bg-tint px-4 py-2 text-sm font-semibold text-ink-soft" data-testid="sample-band">{RESULTS_COPY.sampleBand}</p>;
+}
+
 function NoAnswers({ projectId, sampleId, link }: { projectId: string; sampleId: string | null; link: string }) {
   return (
     <EmptyState title={RESULTS_COPY.noAnswersTitle} mascot="analysis">
-      <span data-testid="no-answers">{RESULTS_COPY.noAnswers(link)}</span>
+      <span data-testid="no-answers">{sampleId ? RESULTS_COPY.noAnswers(link) : RESULTS_COPY.noAnswersNoSample(link)}</span>
       <span className="mt-3 flex justify-center gap-2">
         <Link href={`/app/projects/${projectId}/share`} className={buttonVariants({ size: "small" })}>{RESULTS_COPY.shareIt}</Link>
         {sampleId && <Link href={`/app/projects/${sampleId}/results`} className={buttonVariants({ variant: "secondary", size: "small" })}>{RESULTS_COPY.openSample}</Link>}

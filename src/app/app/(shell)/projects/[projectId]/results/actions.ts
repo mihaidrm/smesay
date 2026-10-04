@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { RESULTS_COPY } from "@/lib/results-copy";
 import { parseTileChoice } from "@/lib/results-tiles";
 
 export type ResultsActionState = { error: string | null };
@@ -21,7 +22,7 @@ async function instrumentFor(projectId: string) {
 
 export async function saveTiles(projectId: string, tiles: string[]): Promise<ResultsActionState> {
   const found = await instrumentFor(projectId);
-  if (!found) return { error: "This project has no results yet." };
+  if (!found) return { error: RESULTS_COPY.noInstrument };
   const choice = parseTileChoice(Array.isArray(tiles) ? tiles : []);
   if ("error" in choice) return { error: choice.error };
   await resultsPrefs.set(found.userId, found.instrumentId, { tiles: choice });
@@ -31,7 +32,7 @@ export async function saveTiles(projectId: string, tiles: string[]): Promise<Res
 
 export async function saveIncludeUnsubmitted(projectId: string, on: boolean): Promise<ResultsActionState> {
   const found = await instrumentFor(projectId);
-  if (!found) return { error: "This project has no results yet." };
+  if (!found) return { error: RESULTS_COPY.noInstrument };
   await resultsPrefs.set(found.userId, found.instrumentId, { includeUnsubmitted: on === true });
   revalidatePath(`/app/projects/${projectId}/results`);
   return { error: null };

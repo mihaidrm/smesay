@@ -42,7 +42,30 @@ const submittedPeople = new Set<number>(people.filter((p) => p.status === "submi
 // What the rows add up to, as the strip counts them.
 function tally(rows: ResultRow[]) {
   const k = (kind: string) => rows.filter((r) => r.kind === kind).length;
-  return { agree: k("agree"), change: k("change"), disagree: k("disagree"), unclear: k("unclear"), pick: k("pick"), answered: rows.filter((r) => r.kind !== "pick").length, withComment: rows.filter((r) => r.reason !== null || r.comment !== null).length, shown: new Set(rows.map((r) => r.responseId)).size };
+  return { agree: k("agree"), change: k("change"), disagree: k("disagree"), unclear: k("unclear"), pick: k("pick"), answered: rows.filter((r) => r.kind !== "pick").length, withComment: rows.filter((r) => r.reason !== null || r.comment !== null).length };
+}
+
+// Every tile of the strip, worked out again from the rows the same filter keeps: the answers,
+// the people, the missing items and the instrument's items (acceptance 6).
+async function reconcileStrip(ws: WorkspaceId, instrumentId: string, f: ResultsFilter) {
+  const n = (await results.numbers(ws, instrumentId, f))!;
+  const rows = await results.rows(ws, instrumentId, f);
+  const who = await results.people(ws, instrumentId, f);
+  const missing = await results.missing(ws, instrumentId, f);
+  const itemIds = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws}`).map((r) => r.id as string);
+  expect(tally(rows)).toEqual({ agree: n.agree, change: n.change, disagree: n.disagree, unclear: n.unclear, pick: n.pick, answered: n.answered, withComment: n.withComment });
+  expect([who.length, who.filter((p) => p.submitted).length, who.filter((p) => !p.invited && !p.submitted).length, who.filter((p) => p.counted).length, missing.length])
+    .toEqual([n.invited, n.submitted, n.inProgress, n.shown, n.missing]);
+  const minutes = who.flatMap((p) => (p.minutesToSubmit === null ? [] : [p.minutesToSubmit])).sort((a, b) => a - b);
+  const mid = minutes.length === 0 ? null : minutes.length % 2 ? minutes[(minutes.length - 1) / 2] : (minutes[minutes.length / 2 - 1] + minutes[minutes.length / 2]) / 2;
+  expect(n.medianMinutes).toBe(mid === null ? null : Math.round(mid));
+  const of = (id: string) => rows.filter((r) => r.itemId === id);
+  expect([n.unansweredItems, n.fullyAgreed, n.pushedBackItems]).toEqual([
+    itemIds.filter((id) => of(id).length === 0).length,
+    itemIds.filter((id) => of(id).length > 0 && of(id).every((r) => r.kind === "agree")).length,
+    itemIds.filter((id) => of(id).some((r) => r.kind === "change" || r.kind === "disagree")).length,
+  ]);
+  expect(rows.every((r) => r.submitted || f.includeUnsubmitted)).toBe(true);
 }
 
 beforeAll(async () => {
@@ -94,11 +117,25 @@ describe("Results numbers", () => {
     const kinds = fixtureKinds((x) => submittedPeople.has(x) && salesPeople.some((p) => p.n === x));
     // Ioana and Tom submitted; Elena was invited and has not opened the link.
     expect(n).toMatchObject({ invited: salesPeople.length, submitted: 2, inProgress: 0, shown: 2, total: 5, agree: count(kinds, "agree"), change: count(kinds, "change"), answered: kinds.length });
-    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, sales, { ...sales, includeUnsubmitted: true }, { ...NONE, kinds: ["disagree" as const] }, { ...NONE, withComment: true }]) {
-      const numbers = (await results.numbers(wsA, instrumentA, f))!;
-      const rows = await results.rows(wsA, instrumentA, f);
-      expect(tally(rows)).toEqual({ agree: numbers.agree, change: numbers.change, disagree: numbers.disagree, unclear: numbers.unclear, pick: numbers.pick, answered: numbers.answered, withComment: numbers.withComment, shown: numbers.shown });
-      expect(rows.every((r) => r.submitted || f.includeUnsubmitted)).toBe(true);
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, sales, { ...sales, includeUnsubmitted: true }, { ...NONE, kinds: ["disagree" as const] }, { ...NONE, withComment: true }, { ...NONE, kinds: ["none" as const] }]) {
+      await reconcileStrip(wsA, instrumentA, f);
+    }
+  });
+
+  it("reconciles with a started response that has no answer, and an invite whose email never went out", async () => {
+    const stamp = Date.now();
+    const d = await createWorkspaceWithSample({ name: "Results D", slug: `results-d-${stamp}` }, userId);
+    made.push(d.id);
+    const wsD = unsafeWorkspaceId(d.id);
+    const instrumentD = await sampleInstrument(wsD);
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentD} and i.kind = 'public'`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields) values (${wsD}, ${instrumentD}, ${item_set_id}, ${public_invite}, ${"e".repeat(40)}, '{"name": "Empty Start"}'::jsonb)`;
+    await sql`insert into invite (workspace_id, instrument_id, kind, token, email, name, send_error) values (${wsD}, ${instrumentD}, 'personal', ${"f".repeat(40)}, 'bounced@marlow.example', 'Bo Unced', 'Mailbox does not exist')`;
+    const on = (await results.numbers(wsD, instrumentD, { ...NONE, includeUnsubmitted: true }))!;
+    // The empty start is in progress and shown; the bounced invite reached nobody.
+    expect([on.invited, on.inProgress, on.shown]).toEqual([8, 2, 7]);
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, kinds: ["none" as const], includeUnsubmitted: true }, { ...NONE, fields: { name: "empty" }, includeUnsubmitted: true }]) {
+      await reconcileStrip(wsD, instrumentD, f);
     }
   });
 

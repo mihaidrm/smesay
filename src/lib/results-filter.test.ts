@@ -31,11 +31,12 @@ describe("the Results filter", () => {
 
   it("writes the same URL for the same filter and keeps the tab", () => {
     const f = read("status=submitted&kind=unclear&f.role=Finance&comment=1");
-    expect(filterQuery(f, ctx, null, { tab: "pushed" })).toBe("tab=pushed&f.role=Finance&kind=unclear&comment=1&status=submitted");
+    expect(filterQuery(f, ctx, { tab: "pushed" })).toBe("tab=pushed&f.role=Finance&kind=unclear&comment=1&status=submitted&unsubmitted=1");
     expect(read(filterQuery(f, ctx))).toEqual(f);
-    // The switch is written only when it differs from the stored choice.
-    expect(filterQuery({ ...f, includeUnsubmitted: false }, ctx, true)).toContain("unsubmitted=0");
-    expect(filterQuery({ ...f, includeUnsubmitted: false }, ctx, false)).not.toContain("unsubmitted");
+    // The switch is always written, so a shared view reads the same for anyone whatever their
+    // stored choice.
+    expect(read(filterQuery({ ...f, includeUnsubmitted: false }, ctx), true).includeUnsubmitted).toBe(false);
+    expect(read(filterQuery(f, ctx), false).includeUnsubmitted).toBe(true);
   });
 
   it("says what narrows, and clearing keeps the switch", () => {

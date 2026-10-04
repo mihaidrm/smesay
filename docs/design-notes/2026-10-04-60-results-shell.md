@@ -31,6 +31,17 @@ existing parts.
   aria-current with the design system's 2 px violet underline, so each tab renders on the
   server with its own data and its own error boundary.
 - Once the link is published the stepper's current step is Results and Share is done.
+- Order on the page (after the audit): the switch and Choose tiles, the strip, then the
+  filter bar and the "Showing" line under it, then the tabs. The line is a status region, so
+  a filter change is read out. A filter that keeps nobody shows the no-match state; one that
+  keeps people with no counted answer (an invite not opened, an answer not submitted with the
+  switch off) shows the page, so the Responses tab lists them.
+- The URL always carries the switch, so a shared view counts the same answers for whoever
+  opens it; the stored choice applies to a URL without it.
+- A personal invite counts among the invited once its email went out (sent), not while the
+  mail failed.
+- The sample's Results carries the watermark band "Sample data: invented answers, for looking
+  around" (CLAUDE.md, dashboard rules); E8-8 puts it on every screen of the sample.
 
 ## Components added
 

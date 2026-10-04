@@ -21,7 +21,7 @@ export function TileChooser({ projectId, tiles }: { projectId: string; tiles: Ti
   const open = () => { setChosen(tiles); setError(null); dialog.current?.showModal(); };
   const close = () => { dialog.current?.close(); opener.current?.focus(); };
   const save = () => startTransition(async () => {
-    const result = await saveTiles(projectId, chosen);
+    const result = await saveTiles(projectId, chosen).catch(() => ({ error: RESULTS_COPY.saveFailed }));
     if (result.error) { setError(result.error); return; }
     close();
     router.refresh();

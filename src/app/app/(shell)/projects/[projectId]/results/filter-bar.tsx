@@ -23,13 +23,13 @@ function Chip({ on, onClick, children, testId }: { on: boolean; onClick: () => v
 const toggle = <T,>(xs: T[], x: T): T[] => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
 const noSubscribe = () => () => {};
 
-export function FilterBar({ filter, ctx, stored, tab, kinds }: { filter: ResultsFilter; ctx: FilterContext; stored: boolean | null; tab: string | null; kinds: ResultsKind[] }) {
+export function FilterBar({ filter, ctx, tab, kinds }: { filter: ResultsFilter; ctx: FilterContext; tab: string | null; kinds: ResultsKind[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
   const ready = useSyncExternalStore(noSubscribe, () => true, () => false);
   const go = (next: ResultsFilter) => {
-    const q = filterQuery(next, ctx, stored, tab ? { tab } : {});
+    const q = filterQuery(next, ctx, tab ? { tab } : {});
     startTransition(() => router.push(q ? `${pathname}?${q}` : pathname, { scroll: false }));
   };
   const setField = (key: string, value: string[] | string | null) => {
@@ -52,7 +52,7 @@ export function FilterBar({ filter, ctx, stored, tab, kinds }: { filter: Results
               </div>
             );
           }
-          return <ContainsBox key={spec.key} label={RESULTS_COPY.contains(spec.label)} value={typeof v === "string" ? v : ""} onApply={(text) => setField(spec.key, text.trim() || null)} />;
+          return <ContainsBox key={`${spec.key}:${typeof v === "string" ? v : ""}`} label={RESULTS_COPY.contains(spec.label)} value={typeof v === "string" ? v : ""} onApply={(text) => setField(spec.key, text.trim() || null)} />;
         })}
         <div role="group" aria-label={RESULTS_COPY.answer} className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-semibold text-ink-muted">{RESULTS_COPY.answer}</span>

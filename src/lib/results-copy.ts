@@ -2,7 +2,6 @@
 // Results). The kinds' names are KIND_LABELS (src/lib/results-filter.ts) and the tiles'
 // TILE_NAMES (src/lib/results-tiles.ts). No database here, so the client parts use it.
 export const RESULTS_COPY = {
-  title: "Results",
   includeUnsubmitted: "Include unsubmitted answers",
   chooseTiles: "Choose tiles",
   chooserTitle: "Choose the tiles",
@@ -32,6 +31,10 @@ export const RESULTS_COPY = {
   showing: (n: number, m: number, filters: string) => `Showing ${n} of ${m} responses: ${filters}.`,
   noAnswersTitle: "No answers yet.",
   noAnswers: (link: string) => `The link is ${link}. Share it, or open the sample project to see what results look like.`,
+  noAnswersNoSample: (link: string) => `The link is ${link}. Share it to collect answers.`,
+  sampleBand: "Sample data: invented answers, for looking around",
+  noInstrument: "This project has nothing published to show yet. Build and share it first.",
+  saveFailed: "Your choice was not saved. Try again.",
   link: {
     notPublished: "not published",
     open: "open",
@@ -46,5 +49,4 @@ export const RESULTS_COPY = {
   failed: (what: string) => `${what} could not load. It has been logged. Try again in a minute.`,
   tryAgain: "Try again",
   strip: "The headline numbers",
-  notSubmitted: "not submitted",
 };

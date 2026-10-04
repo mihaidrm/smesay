@@ -98,5 +98,18 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the poi
   unsubmitted answers from every answer count; the people tiles (submitted of invited, in
   progress) count people whatever the switch. The rows' "not submitted" mark is the rows'
   stories' (E8-2, E8-4).
-- Acceptance 8: with E8-8.
+- Acceptance 8: the sample's Results carries the watermark band; the band on every other
+  screen of the sample is E8-8's.
 - Acceptance 9: e2e/results.spec.ts.
+- Audit 2026-10-04: 0 blocking, 9 should-fix, 6 nits. Fixed: a text field's box resets with
+  the URL; the no-match state only when the filter keeps nobody (people with no counted
+  answer still show, for the Responses tab); every tile reconciles in the test with rows of
+  people and missing items too (results.people, results.missing; an empty start and a bounced
+  invite in the test), and E10-1 adds the two files (review list); the filter bar and the
+  "Showing" line under the strip; the URL always carries the switch, so a shared view reads
+  the same; each tab and each filter gets its own error boundary; the action errors are
+  named in the copy and the switch shows its own; the sample's watermark band; E10-1's
+  "Rated", E6-1's stepper line and the guide's tips on Results; nits: one pass over the
+  answers per item, invites counted once sent, the "Showing" line a status region, the
+  switch fetches once, unused copy gone, the empty state without a sample button says
+  only "Share it".
