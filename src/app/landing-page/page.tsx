@@ -2,13 +2,18 @@
 // docs/design-notes/prototype-01/LandingF.dc.html; copy from docs/copy/landing.md). Served at
 // /landing-page until Mihai moves it to /: a dark hero with the aurora, the dot grid and the
 // cursor light, the live card tilted with the mascot at its corner, light
-// "three steps" and "what you get back" sections, dark pricing and footer. Desktop 1440 and
+// "three steps" and "what you get back" sections, the questions, dark pricing and footer.
+// Amended 2026-10-04 (design note 53, Mihai's review): the Shape card switches between the
+// spreadsheet as imported and the shaped list (concept 3 of the brainstorm); the third step
+// no longer speaks of phones, the questions do; "What you get back" leads with what the PM
+// gains, over the results fragment with its three views. The fragments use the Marlow
+// sample's own rows and numbers (src/db/seed/sample.ts). Desktop 1440 and
 // phone 390 in one pass (decision 0015): one column under 1024 px, the card upright and full
 // width, the type one step smaller. The landing keeps its own light and dark sections
 // whatever the app's mode (decision 0041, point 2), so its colours are written out, not read
 // from the mode tokens. The product fragments are the Marlow example as static markup until
-// the respondent and dashboard components exist (E5, E6); they are swapped for the real
-// components then (acceptance 4, amended). The page describes the R1 product as planned, not
+// the dashboard components exist (E8 to E10); they are swapped for the real components
+// then (acceptance 4, amended). The page describes the R1 product as planned, not
 // only what is built today (decision 0042: the copy rule is for the live product; the planned
 // lines are checked at the launch gate, docs/copy/landing.md).
 // Small text on the dark hero is #C9C4E0 or lighter so it keeps 4.5 over the aurora and the
@@ -19,7 +24,9 @@ import { Mascot } from "@/components/app/mascot";
 import { Lockup } from "@/components/brand/mark";
 import { buttonVariants } from "@/components/ui/button";
 import { CursorLight } from "./cursor-light";
+import { ResultsDemo } from "./results-demo";
 import { Reveal } from "./reveal";
+import { ShapeDemo } from "./shape-demo";
 
 export const metadata: Metadata = {
   title: "SMEsay: send the list as a link",
@@ -41,10 +48,10 @@ function Pill({ children, tint, text }: { children: React.ReactNode; tint: strin
 // The live card: the Marlow example (decision 0005), one item with four answers arriving.
 function LiveCard() {
   const rows: [string, string, string, string, string, string, string][] = [
-    ["AP", "Ana, finance", "#FFE9E5", "#9E3321", "Must have", "#FFF3D6", "#8A5A00"],
-    ["DM", "Dan, sales", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
-    ["RS", "Radu, operations", "#EEEAFF", "#5A3BE0", "Must have", "#FFF3D6", "#8A5A00"],
-    ["IC", "Ioana, HR", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
+    ["IM", "Ioana, sales", "#FFE9E5", "#9E3321", "Must have", "#FFF3D6", "#8A5A00"],
+    ["TR", "Tom, sales", "#EEEAFF", "#5A3BE0", "Must have", "#FFF3D6", "#8A5A00"],
+    ["DO", "Dana, finance", "#E1F5EE", "#166A52", "Agree", "#E1F5EE", "#166A52"],
+    ["LB", "Lukas, engineering manager", "#FFF3D6", "#8A5A00", "Agree", "#E1F5EE", "#166A52"],
   ];
   return (
     <div className="relative w-full max-w-[540px] rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] text-[#15131F] shadow-[0_12px_32px_rgba(45,32,110,0.10)] lg:rotate-[-1.5deg]" data-testid="live-card">
@@ -72,6 +79,18 @@ function LiveCard() {
   );
 }
 
+// The questions (docs/copy/landing.md, Questions): native details and summary, so they open
+// without JavaScript and announce their state (developer.mozilla.org/docs/Web/HTML/Element/details).
+const QUESTIONS: [string, string][] = [
+  ["Do my experts need an account?", "No. They open the link and answer. There is nothing to install and nothing to sign up for."],
+  ["Does it work on a phone?", "Yes. The link is made for a phone first and works the same on a laptop. Answers save as they go, so an expert can stop and pick up where they left off."],
+  ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and drafts the to-do list from the answers, naming the answers behind each line. It never answers for your experts. You choose which wording goes out, move items between areas, and dismiss what you do not need."],
+  ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the email you sent it to, and the name and role when you gave them."],
+  ["Can the link carry our logo and colour?", "Yes. Your experts see your logo and your colour on the link."],
+  ["What happens to my list and the answers?", "They stay in your workspace. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and the app removes its data within 24 hours."],
+  ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
+];
+
 export default function LandingPage() {
   return (
     <main className="flex flex-col font-sans text-[#15131F]">
@@ -87,6 +106,7 @@ export default function LandingPage() {
             <a href="#how" className={navLink}>How it works</a>
             <a href="#outputs" className={navLink}>What you get</a>
             <a href="#pricing" className={navLink}>Pricing</a>
+            <a href="#questions" className={navLink}>Questions</a>
             <Link href="/sign-in" className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</Link>
           </nav>
         </div>
@@ -110,8 +130,8 @@ export default function LandingPage() {
             <LiveCard />
             <Mascot pose="hi" size={104} className="landing-float absolute right-0 bottom-8 lg:-right-12 lg:-bottom-2" />
             <div className="absolute bottom-2 -left-2 flex items-center gap-3 rounded-[14px] border border-[#343252] bg-[#1E1D33] px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.45)] lg:bottom-1 lg:-left-5" data-testid="agreement-chip">
-              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">72%</span>
-              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">14 of 40 items rated</div></div>
+              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">63%</span>
+              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">30 answers from 5 experts</div></div>
             </div>
           </div>
         </div>
@@ -121,9 +141,9 @@ export default function LandingPage() {
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Three steps. The AI does the dull one.</h2>
-            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Upload the spreadsheet you already have. Shaping groups it into areas and writes each item in plain words. Send one link.</p>
+            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Start from the spreadsheet you already have. Let the AI make it readable. Send one link.</p>
           </Reveal>
-          <div className="mt-10 grid gap-6 md:mt-12 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:mt-12 lg:grid-cols-3">
             <Reveal className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">1</span><span className="text-[18px] font-bold">Import the list</span></div>
               <p className="text-[15px] leading-[23px] text-[#5E5A72]">xlsx, csv or a pasted list. Columns are matched once and remembered.</p>
@@ -131,16 +151,12 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={120} className="flex flex-col gap-3.5 rounded-[20px] border border-[#6D4CF5] bg-white p-[26px] shadow-[0_16px_40px_rgba(109,76,245,0.22)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">2</span><span className="text-[18px] font-bold">Shape it</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI groups items into areas, writes a reader version of each, and flags duplicates and vague ones. You keep or change every line.</p>
-              <div className="mt-auto flex flex-col gap-1.5 text-[13px]">
-                <div className="flex items-center gap-2"><span className="font-mono whitespace-nowrap text-[#5E5A72]">CL-01</span><span className="min-w-0 flex-grow">Photograph a receipt and the amount fills in.</span><Pill tint="#EEEAFF" text="#5A3BE0">Submitting</Pill></div>
-                <div className="flex items-center gap-2"><span className="font-mono whitespace-nowrap text-[#5E5A72]">CL-07</span><span className="min-w-0 flex-grow">Per diem rates apply by country.</span><Pill tint="#FFF3D6" text="#8A5A00">Ambiguity</Pill></div>
-                <div className="flex items-center gap-2"><span className="font-mono whitespace-nowrap text-[#5E5A72]">CL-09</span><span className="min-w-0 flex-grow">Mileage is paid at the state rate.</span><Pill tint="#FFE9E5" text="#9E3321">Duplicate of CL-02</Pill></div>
-              </div>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the list into areas and writes each item in plain words. You choose which wording your experts see.</p>
+              <div className="mt-auto"><ShapeDemo /></div>
             </Reveal>
             <Reveal delay={240} className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">3</span><span className="text-[18px] font-bold">Send one link</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Experts open it on a phone, no account. Answers arrive live; the dashboard, the to-do list and the CSV are yours.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Experts answer without an account or an app. Their answers arrive while they work.</p>
               <div className="mt-auto flex items-center gap-2.5 rounded-[14px] bg-[#15131F] px-3.5 py-3 text-[13px] text-[#F3F1FA]"><span className="min-w-0 truncate font-mono text-[#B8A8FF]">smesay.app/r/7k2…</span><span className="ml-auto rounded-full bg-[#6D4CF5] px-2.5 py-1 font-semibold">Copy</span></div>
             </Reveal>
           </div>
@@ -149,32 +165,45 @@ export default function LandingPage() {
 
       <section id="outputs" className="border-t border-[#E6E3F0] bg-white py-16 md:py-24">
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
-          <Reveal><h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">What you get back</h2></Reveal>
-          <div className="mt-8 grid gap-6 md:mt-10 lg:grid-cols-[1.3fr_1fr]">
-            <Reveal className="flex flex-col gap-4 rounded-[20px] border border-[#E6E3F0] bg-[#F7F6FB] p-6">
-              <div className="flex items-center justify-between gap-3"><span className="text-[18px] font-bold">Agreement by area</span><span className="text-[13px] text-[#5E5A72]">Live · 31 of 40 answered</span></div>
-              <div className="flex flex-col gap-3 text-sm">
-                {([["Submitting", "81%", 8.1, 1.2, 0.7], ["Approving", "64%", 6.4, 2.6, 1], ["Paying", "92%", 9.2, 0.8, 0]] as [string, string, number, number, number][]).map(([area, pct, a, p, u]) => (
-                  <div key={area}>
-                    <div className="flex justify-between"><span>{area}</span><span className="font-mono">{pct}</span></div>
-                    <div className="mt-1.5 flex h-2.5 gap-[3px]" aria-hidden="true">
-                      <div className="rounded-full bg-[#1F9D7A]" style={{ flexGrow: a }} />
-                      <div className="rounded-full bg-[#F5B740]" style={{ flexGrow: p }} />
-                      {u > 0 && <div className="rounded-full bg-[#7C3AED]" style={{ flexGrow: u }} />}
-                    </div>
-                  </div>
-                ))}
+          <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">What you get back</h2>
+            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Not a pile of replies. A picture of where your experts agree, where they do not and why, and what to decide next.</p>
+          </Reveal>
+          <div className="mt-8 grid gap-6 md:mt-10 lg:grid-cols-[1.35fr_1fr]">
+            <Reveal className="flex flex-col gap-4 rounded-[20px] border border-[#E6E3F0] bg-[#F7F6FB] p-5 md:p-6">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xs font-bold text-[#5A3BE0]">See where the list is weak</h3>
+                <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item, every area, as answers arrive.</span>
+                <span className="text-[14px] leading-[21px] text-[#5E5A72]">Pick the numbers you watch, filter by role or by who left a reason, and switch the chart to the view your meeting needs.</span>
               </div>
-              <div className="flex gap-3.5 text-xs text-[#5E5A72]">
-                <span><span className="mr-1 inline-block size-2.5 rounded-[3px] bg-[#1F9D7A] align-[-1px]" aria-hidden="true" />Agree</span>
-                <span><span className="mr-1 inline-block size-2.5 rounded-[3px] bg-[#F5B740] align-[-1px]" aria-hidden="true" />Pushed back</span>
-                <span><span className="mr-1 inline-block size-2.5 rounded-[3px] bg-[#7C3AED] align-[-1px]" aria-hidden="true" />Unclear</span>
-              </div>
+              <ResultsDemo />
             </Reveal>
             <div className="flex flex-col gap-4">
-              <Reveal delay={120} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#166A52]">To do, written by AI</div><div className="text-[16px] leading-[22px] font-semibold">Decide whether policy flags move to Must have.</div><div className="text-[13px] text-[#5E5A72]">Cites 2 answers · Ana, Radu</div></Reveal>
-              <Reveal delay={240} className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><div className="text-xs font-bold text-[#9E3321]">Where groups disagree</div><div className="text-[16px] leading-[22px] font-semibold">Finance and sales split on cash advances.</div><div className="mt-1 flex h-2 gap-1.5" aria-hidden="true"><div className="w-[80%] rounded-full bg-[#6D4CF5]" /><div className="w-[35%] rounded-full bg-[#B8A8FF]" /></div></Reveal>
-              <Reveal delay={360} className="flex items-center justify-between gap-3 rounded-[20px] border border-[#E6E3F0] bg-white px-[22px] py-[18px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]"><span className="text-[15px] font-semibold">Every number to the row</span><span className="rounded-full border border-[#CFCBE0] bg-white px-3.5 py-1.5 text-[13px] font-bold text-[#15131F]">Export CSV</span></Reveal>
+              <Reveal delay={120} testId="gain-groups" className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
+                <h3 className="text-xs font-bold text-[#9E3321]">Know who disagrees, and why</h3>
+                <div className="text-[16px] leading-[22px] font-semibold">Sales and everyone else split on the policy flags.</div>
+                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]">
+                  <span>Did not agree with Should have</span>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
+                </div>
+                <figure className="flex flex-col gap-1 border-l-2 border-[#FF6B57] pl-3">
+                  <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;Sales gets most of the rejections, and always after the fact.&rdquo;</blockquote>
+                  <figcaption className="text-[13px] text-[#5E5A72]">Tom, sales</figcaption>
+                </figure>
+              </Reveal>
+              <Reveal delay={240} testId="gain-actions" className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]">
+                <h3 className="text-xs font-bold text-[#5FD3B3]">Walk into the meeting with the decisions listed</h3>
+                <ul className="flex flex-col gap-2 text-[15px] leading-[21px]">
+                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
+                  <li className="flex flex-col"><span>Answer two open questions before the link closes.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
+                </ul>
+              </Reveal>
+              <Reveal delay={360} testId="gain-exports" className="flex flex-col gap-2 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
+                <h3 className="text-xs font-bold text-[#166A52]">Numbers that hold up</h3>
+                <div className="text-[15px] leading-[22px]">Every number on the dashboard matches the export to the row, so the result stands up in the steering meeting.</div>
+                <div className="flex gap-2"><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">CSV</span><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">PDF summary</span></div>
+              </Reveal>
             </div>
           </div>
         </div>
@@ -197,6 +226,25 @@ export default function LandingPage() {
                 <li key={line} className="flex gap-2"><span className="font-bold text-[#5FD3B3]" aria-hidden="true">✓</span>{line}</li>
               ))}
             </ul>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="questions" className="bg-[#F7F6FB] py-16 md:py-24">
+        <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
+          <Reveal className="flex flex-col gap-4">
+            <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Questions</h2>
+            <p className="max-w-[360px] text-[16px] leading-6 text-[#5E5A72]">Something else on your mind? Write to hello@smesay.app.</p>
+          </Reveal>
+          <Reveal delay={120} className="flex flex-col divide-y divide-[#E6E3F0] rounded-[20px] border border-[#E6E3F0] bg-white px-5 md:px-6">
+            {QUESTIONS.map(([q, a]) => (
+              <details key={q} className="group py-4" data-testid="faq-item">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-sm text-[17px] font-semibold outline-hidden focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                  {q}<span aria-hidden="true" className="text-[22px] leading-none font-medium text-[#6D4CF5] transition-transform duration-150 group-open:rotate-45 motion-reduce:transition-none">+</span>
+                </summary>
+                <p className="mt-2.5 max-w-[620px] text-[15px] leading-[23px] text-[#5E5A72]">{a}</p>
+              </details>
+            ))}
           </Reveal>
         </div>
       </section>

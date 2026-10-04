@@ -10,11 +10,18 @@ like 3000/landing-page"): the page is landing page F (docs/design-notes/prototyp
 LandingF.dc.html), served at /landing-page until Mihai moves it to /; the home page keeps its
 placeholder until then. Landing page E and its phone board are superseded.
 
+Amended 2026-10-04 (design note 53, Mihai's review): the Shape step switches between the
+spreadsheet as imported and the shaped list (concept 3 of five drawn for Mihai); the third
+step no longer speaks of phones; What you get back leads with what the PM gains over a
+results fragment whose Table, Columns and Share switch works on the page; a Questions section
+with seven questions sits after Pricing. Acceptance 1, 4, 6 and 7 below carry it.
+
 ## Acceptance criteria
 1. /landing-page renders landing page F (copy from docs/copy/landing.md): the nav, the dark
    hero with the aurora, the dot grid, the cursor light and the live card with the mascot's
    placeholder at its corner and the agreement chip, "Three steps", "What you get back",
-   pricing (the Free card, decision 0008), the one-line footer with SME expanded once.
+   pricing (the Free card, decision 0008), "Questions" (seven, each opening in place), the
+   one-line footer with SME expanded once.
    Desktop 1440 and phone 390 (decision 0015): one column under 1024 px, the card upright
    and full width, the type one step smaller, no horizontal scroll.
 2. Motion as designed (design note 33, Motion): the hero rises once on load, sections rise on
@@ -24,14 +31,21 @@ placeholder until then. Landing page E and its phone board are superseded.
 3. Lighthouse mobile: performance and accessibility over 90 on the built page, measured with
    the Lighthouse CLI and the numbers recorded here on acceptance. The CI job comes with the
    move to / (the home page's Lighthouse is what the launch gate reads).
-4. The product fragments on the page (the live card, the shaped items, the agreement bars,
-   the to-do) show the Marlow example (decision 0005). They are static markup until the
-   respondent and dashboard components exist (E5, E6); then they render the real components
-   with the seed data (decision 0004) and this criterion is re-accepted.
+4. The product fragments on the page (the live card, the Shape switch, the results card with
+   its tiles and three views, the group split, the to-dos) show the Marlow example (decision
+   0005); the Shape and results fragments use the seed's own rows and numbers
+   (src/db/seed/sample.ts). They are static markup until the dashboard components exist (E8
+   to E10); then they render the real components with the seed data (decision 0004) and this
+   criterion is re-accepted.
 5. Buttons: "Start free" to the sign-in page; "See the sample" to the app, where the sample
    project is (E12-4's sample instrument replaces that target when it exists).
 6. Playwright: the page loads with the headline, the two buttons point where they should, and
-   a 390 px viewport has no horizontal scroll.
+   a 390 px viewport has no horizontal scroll; the third step names no phone; the Shape
+   switch and the results switch change what they show; the seed's tiles are on the results
+   card; a question opens; at 390 the Columns and Share views do not scroll sideways.
+7. The two switches are toggle buttons with aria-pressed in a named group, reachable by
+   keyboard with the 2 px focus ring; every chart's kinds and counts are text for screen
+   readers; the questions are native details elements that open without JavaScript.
 
 ## Out of scope
 - Rewriting the copy after first users: Phase 4.
@@ -45,9 +59,9 @@ placeholder until then. Landing page E and its phone board are superseded.
   they stay ink (decision 0031, 0016).
 
 ## Technical notes
-src/app/landing-page/page.tsx with the sections inline, two client components
+src/app/landing-page/page.tsx with the sections inline, four client components
 (cursor-light.tsx for the glow, reveal.tsx for the rise on scroll through
-IntersectionObserver), the motion keyframes in src/app/globals.css (landing-pulse,
+IntersectionObserver, shape-demo.tsx and results-demo.tsx for the two switches), the motion keyframes in src/app/globals.css (landing-pulse,
 landing-float, landing-rise). The landing keeps its own light and dark sections whatever the
 app's mode, so its colours are written out rather than read from the mode tokens.
 
@@ -62,3 +76,14 @@ the reveal-on-scroll, so axe-core 4 was run through Playwright over the whole pa
 scrolling it: the result is in design note 36. Acceptance 4 holds in its amended form
 (static Marlow markup) until E5 and E6. The audit of 2026-10-03 (6 blocking, 11 minor) and
 what it changed: design note 36.
+
+## Build record, 2026-10-04 (the amendment)
+
+Design note 53. e2e/landing.spec.ts: 2 tests, both passed locally (the new one covers
+acceptance 6 as amended). Lighthouse CLI 13.5.0 on the production build, mobile form factor,
+Chromium 1194: performance 97, accessibility 100, best practices 100, SEO 100; LCP 2.6 s,
+CLS 0, TBT 40 ms. axe-core 4.13.0 (WCAG 2.0 A and AA, 2.1 AA) through Playwright after
+scrolling the whole page: 0 violations, 24 rules passed, at 1440 and at 390.
+After the second audit the same day: the hero's live card and chip follow the seed; the
+steps grid is one column under 1024 px (acceptance 1); e2e/landing.spec.ts checks the
+Shape card's turn (2 tests, both passed).

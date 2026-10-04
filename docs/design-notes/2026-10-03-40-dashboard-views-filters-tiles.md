@@ -52,7 +52,8 @@ amended; nothing is built yet.
 - Names: Agree, Different priority, Disagree, Unclear, Not answered; the tab "Pushed back"
   becomes "Different priority and Disagree" with the count of both; the strip's default
   tiles use the new names; the design system's Data section and the landing page legend
-  follow when E8 is built (the landing claims list, decision 0042).
+  follow when E8 is built (the landing claims list, decision 0042). Amended 2026-10-04: the
+  landing page's legend already uses the four names (design note 53).
 - Views on the Agreement tab (E8-3): Table (stacked bar per item, compact, default);
   Columns (aligned bars per answer kind, per area, the readable one); Share (a donut per
   area and one for the list, numbers beside). The choice is kept per PM.

@@ -10,7 +10,7 @@ board and the page change in the same commit (decision 0017).
 
 ## Navigation
 
-SMEsay. How it works. What you get. Pricing. Start free.
+SMEsay. How it works. What you get. Pricing. Questions. Start free.
 
 ## Hero
 
@@ -26,42 +26,72 @@ Buttons: Start free. See the sample.
 
 Under the buttons: No account for the experts. Nothing to install. Free while we build it.
 
-Live card (the Marlow example): Approving · CL-04. Arriving now. "Expenses over the policy
-limit are flagged before they reach the approver." You proposed Should have. Ana, finance:
-Must have. Dan, sales: Agree. Radu, operations: Must have. Ioana, HR: Agree. To do, written by
-AI: Decide whether policy flags move to Must have. From 2 answers.
+Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
+"Expenses over the policy limit are flagged before they reach the approver." You proposed
+Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agree. Lukas,
+engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
+2 answers.
 
-Agreement chip: 72%. Agreement so far. 14 of 40 items rated.
+Agreement chip: 63%. Agreement so far. 30 answers from 5 experts.
 
 ## Three steps
 
 Title: Three steps. The AI does the dull one.
 
-Upload the spreadsheet you already have. Shaping groups it into areas and writes each item in
-plain words. Send one link.
+Start from the spreadsheet you already have. Let the AI make it readable. Send one link.
 
 1. Import the list. xlsx, csv or a pasted list. Columns are matched once and remembered.
    (Fragment: expense-requirements.xlsx)
-2. Shape it. AI groups items into areas, writes a reader version of each, and flags
-   duplicates and vague ones. You keep or change every line. (Fragment: CL-01 Photograph a
-   receipt and the amount fills in, Submitting. CL-07 Per diem rates apply by country,
-   Ambiguity. CL-09 Mileage is paid at the state rate, Duplicate of CL-02.)
-3. Send one link. Experts open it on a phone, no account. Answers arrive live; the dashboard,
-   the to-do list and the CSV are yours. (Fragment: smesay.app/r/7k2… Copy.)
+2. Shape it. AI sorts the list into areas and writes each item in plain words. You choose
+   which wording your experts see. (Fragment, design note 53, concept 3: a switch "Your sheet" and "Shaped". Your
+   sheet: rows 2 to 5 of the Marlow spreadsheet as imported, "OCR receipt capture via mobile
+   (auto-fill amt/date/vendor).", "Multi-allocation of single expense line to 2+ cost
+   centres/projects.", "Approval actionable from notification email (no login).", "Policy
+   engine: auto-flag out-of-policy claims pre-approval." Shaped: Submitting, "Photograph a
+   receipt and the amount, date and merchant are filled in automatically.", "Split one receipt
+   across two projects or cost centres."; Approving, "Managers approve or reject from the
+   email, without logging in.", "Expenses over the policy limit are flagged before they reach
+   the approver." The card opens on Your
+   sheet and turns to Shaped once it has been seen.)
+3. Send one link. Experts answer without an account or an app. Their answers arrive while
+   they work. (Fragment: smesay.app/r/7k2… Copy.) The phone is named in Questions, not here
+   (Mihai, 2026-10-04).
 
 ## What you get back
 
 Title: What you get back.
 
-Agreement by area. Live · 31 of 40 answered. Submitting 81%. Approving 64%. Paying 92%.
-Legend: Agree, Pushed back, Unclear. (Becomes Agree, Different priority, Disagree, Unclear when E8 is built, design note 40; on the claims list below.)
+Beside it: Not a pile of replies. A picture of where your experts agree, where they do not
+and why, and what to decide next.
 
-To do, written by AI. Decide whether policy flags move to Must have. Cites 2 answers · Ana,
-Radu.
+Results card. Label: See where the list is weak. Title: Every item, every area, as answers
+arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
+the chart to the view your meeting needs.
+Tiles: Submitted 5 of 7. Agreement 63%. Different priority 7. Unclear 2.
+Chips: Role: any. With a reason. + Choose tiles.
+View switch (works on the page): Table, Columns, Share. Table: the six items with a stacked bar
+and the agreement each, the seed's reader texts cut to one line (CL-01 Photograph a receipt
+and the amount, date and merchant are filled in automatically, 80%; CL-02 Split one receipt
+across two projects or cost centres, 40%; CL-03 Managers approve or reject from the email,
+without logging in, 80%; CL-04 Expenses over the policy limit are flagged before they reach
+the approver, 40%;
+CL-05 Approved expenses are paid with the next salary run, 100%; CL-06 Employees can request
+a cash advance before a trip, 40%). Columns: per area, one bar per kind with its count.
+Share: a donut per area with the agreement in the middle and the counts beside it.
+Legend: Agree, Different priority, Disagree, Unclear.
+Under it: Filter by any field you asked for, such as role, or by who left a reason. Every
+chart, count and export follows the same filter.
 
-Where groups disagree. Finance and sales split on cash advances.
+Label: Know who disagrees, and why. Sales and everyone else split on the policy flags. Did not
+agree with Should have: Sales 2 of 2, everyone else 1 of 3. "Sales gets most of the
+rejections, and always after the fact." Tom, sales.
 
-Every number to the row. Export CSV.
+Label: Walk into the meeting with the decisions listed. Decide whether policy flags move to
+Must have. To do, written by AI · cites 2 answers. Answer two open questions before the link
+closes. To do, written by AI · cites 2 answers.
+
+Label: Numbers that hold up. Every number on the dashboard matches the export to the row, so
+the result stands up in the steering meeting. Chips: CSV. PDF summary.
 
 ## Pricing
 
@@ -75,6 +105,31 @@ Buttons: Start free. See the sample.
 Card: Free. While we build it. EUR 0 / month. Projects, experts and answers without limits.
 AI shaping and the to-do list. Live dashboard and CSV export. Your logo and colour on the
 link.
+
+## Questions
+
+Title: Questions. Beside it: Something else on your mind? Write to hello@smesay.app.
+
+Each opens in place (a plus that turns to a cross):
+
+- Do my experts need an account? No. They open the link and answer. There is nothing to
+  install and nothing to sign up for.
+- Does it work on a phone? Yes. The link is made for a phone first and works the same on a
+  laptop. Answers save as they go, so an expert can stop and pick up where they left off.
+- What does the AI do? It sorts your list into areas, writes each item in plain words, flags
+  duplicates and vague items, and drafts the to-do list from the answers, naming the answers
+  behind each line. It never answers for your experts. You choose which wording goes out,
+  move items between areas, and dismiss what you do not need.
+- Can I see who said what? You choose the fields the link asks for, such as name, role or
+  department. Answers carry those fields and nothing more about the person; a personal invite
+  also carries the email you sent it to, and the name and role when you gave them.
+- Can the link carry our logo and colour? Yes. Your experts see your logo and your colour on
+  the link.
+- What happens to my list and the answers? They stay in your workspace. Export them as CSV
+  whenever you like. Archive a project when it is done; delete the workspace and the app
+  removes its data within 24 hours.
+- How much does it cost? Nothing while we build it with the first users. Paid plans come
+  later, and nothing you build now is lost or locked.
 
 ## Footer
 
@@ -116,20 +171,34 @@ screen:
 
 - The hero chip "Live: 5 of 7 experts answering right now" (outside the live card), "Send
   the list as a link", "go through it item by item", "a dashboard, a to-do list written by
-  AI, and the CSV", "No account for the experts. Nothing to install.": the public link (E7),
-  the respondent instrument (E5), the dashboard and the CSV (E6, E10).
-- Step 3 "Send one link" and "Experts open it on a phone, no account. Answers arrive live;
-  the dashboard, the to-do list and the CSV are yours": E5 to E7, E10.
-- "Every number to the row" with the Export CSV pill: E10.
+  AI, and the CSV", "No account for the experts. Nothing to install.": the public link (E6),
+  the respondent side (E7), the dashboard (E8), the to-do list (E9) and the CSV (E10).
+- Step 3 "Send one link" and "Experts answer without an account or an app. Their answers
+  arrive while they work": E5 to E7, and E8-7 (live updates) for "arrive while they work".
+- What you get back: "as answers arrive" (E8-7, live updates), the tiles a PM picks ("+ Choose tiles") and the filter chips (E8-1), the
+  three views Table, Columns and Share (E8-3), the group split and the quoted reason (E8-4 to
+  E8-6), the to-do list that cites answers (E9-1), "matches the export to the row" with CSV
+  and PDF summary (E10-1, E10-3).
+- Questions: no account and nothing to install (E7), made for a phone first (E7-1, built
+  2026-10-04) and answers saved as they go (E7-3), what the AI does and what the PM controls
+  (E4-2 moves items between areas, E4-3 accepts or rejects the wording, E4-4 dismisses
+  flags, E9-1 and E9-2 the to-dos, done or dismissed), only the fields asked for and a
+  personal invite's email and optional name and role (E5-1, E6-2), logo and colour on the link (E2-5,
+  E7-1), CSV export (E10-1), projects archived (decision 0028) and a workspace's rows and
+  files removed within 24 hours (E11-2; backups, E11-4, have no retention period in any story
+  yet, a point for the privacy policy, E11-3, and the lawyer), free (decision 0008), hello@smesay.app (the domain,
+  docs/accounts.md).
 - The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
-  on the link" (the logo and colour settings exist, E2-5; the link does not until E7).
+  on the link" (the settings, E2-5; the link shows them since E7-1).
 - The footer: "Privacy · Terms" are pages E11 writes (every one carries the lawyer markers),
   and hello@smesay.app is a domain the plan buys at the launch gate (docs/accounts.md); until
   then both are text, not links.
 
 True on the day: the upload and shaping lines (E3, E4) and the free lines (decision 0008).
 
-Numbers inside product screens, the Marlow example (the seed, stories/E1-4), not claims:
-"72%", "14 of 40" (the agreement chip), "31 of 40", "81%", "64%", "92%" (agreement by area),
-the live card's answers, "Cites 2 answers".
-- The legend "Agree, Pushed back, Unclear" on the agreement-by-area card: the live product names the kinds Agree, Different priority, Disagree, Unclear (design note 40); the legend changes when E8 is built.
+Numbers inside product screens, the Marlow example, not claims: the live card's answers and
+the agreement chip (63%, 30 answers from 5 experts), the Shape fragment's rows and the results
+card's tiles, items, percentages and counts, "2 of 2", "1 of 3", Tom's reason and the two
+to-dos are all the seed's
+(src/db/seed/sample.ts: 5 of 7 submitted, 30 answers, 19 agree, 7 different priority, 2
+disagree, 2 unclear).
