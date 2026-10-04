@@ -9,7 +9,7 @@
 // (E8-2 to E8-6, E9-1, E10-1). The filter and the tab are in the URL. Copy: docs/copy/app.md
 // and docs/copy/errors.md, Results.
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { cn } from "cn";
 import { StatTile } from "@/components/app/tiles";
@@ -49,8 +49,12 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
   const filter = parseResultsFilter(query, ctx, stored);
   const tab = parseTab(query.tab);
+  // The URL always says which answers count (the switch), so a link copied from the address
+  // bar reads the same for whoever opens it: a first open without it goes to the full URL
+  // (redirect: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md).
+  if (query.unsubmitted === undefined) redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, tab === "agreement" ? {} : { tab })}`);
   return (
-    <ResultsBoundary key={JSON.stringify(filter)} what={RESULTS_COPY.strip}>
+    <ResultsBoundary what={RESULTS_COPY.strip}>
       <ResultsBody projectId={project.id} sample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} />
     </ResultsBoundary>
   );
@@ -90,9 +94,11 @@ async function ResultsBody({ projectId, sample, sampleId, instrument, ws, filter
       ) : (
         <>
           <TabRow n={n} tab={tab} href={(t) => href(filter, t)} />
-          {/* catchError clears its error only on a new pathname, so each tab and each filter
-              gets a boundary of its own (node_modules/next/dist/client/components/catch-error.js). */}
-          <ResultsBoundary key={`${tab}:${href(filter, tab)}`} what={tabName(tab, n)}>
+          {/* catchError clears its error only on a new pathname, so each tab gets a boundary
+              of its own (node_modules/next/dist/client/components/catch-error.js); the page's
+              own boundary is not keyed, so a filter change keeps the focus and the status
+              line, and a failed page clears with Try again. */}
+          <ResultsBoundary key={tab} what={tabName(tab, n)}>
             <Suspense fallback={<PanelSkeleton />}>
               <TabPanel tab={tab} n={n} />
             </Suspense>

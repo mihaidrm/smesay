@@ -129,7 +129,11 @@ disagree, unclear, pick, answered, withComment, missing, unansweredItems, fullyA
 pushedBackItems, medianMinutes, anyAnswer, actions) from one SQL query, or null for an
 instrument outside the workspace; results.rows(ws, instrumentId, filter) the answers the
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
-submitted }), which E10-1's CSV writes; resultsPrefs.get(userId, instrumentId) and
+submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
+it keeps as PersonOfRows { id, invited (an invite not opened), submitted, counted (its answers
+count under the switch), minutesToSubmit } and results.missing(ws, instrumentId, filter) the
+missing items of the counted people as MissingRow { id, responseId, text }, the rows of
+E10-1's "People" and "Missing items" files; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by

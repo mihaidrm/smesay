@@ -4,7 +4,6 @@
 // Element/dialog), at most six ticked (the others are disabled once six are), saved per PM
 // per instrument on the server (saveTiles), which checks the choice again. Escape and Cancel
 // close it with nothing saved. Copy: docs/copy/app.md, Results.
-import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { RESULTS_COPY } from "@/lib/results-copy";
@@ -12,7 +11,6 @@ import { MAX_TILES, TILE_IDS, TILE_NAMES, type TileId } from "@/lib/results-tile
 import { saveTiles } from "./actions";
 
 export function TileChooser({ projectId, tiles }: { projectId: string; tiles: TileId[] }) {
-  const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const [chosen, setChosen] = useState<TileId[]>(tiles);
@@ -23,8 +21,9 @@ export function TileChooser({ projectId, tiles }: { projectId: string; tiles: Ti
   const save = () => startTransition(async () => {
     const result = await saveTiles(projectId, chosen).catch(() => ({ error: RESULTS_COPY.saveFailed }));
     if (result.error) { setError(result.error); return; }
+    // saveTiles revalidates the page, which renders the new tiles (node_modules/next/dist/
+    // docs/01-app/03-api-reference/04-functions/revalidatePath.md).
     close();
-    router.refresh();
   });
   return (
     <>

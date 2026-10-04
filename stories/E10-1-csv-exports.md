@@ -2,8 +2,9 @@
 
 User: a PM who works in Excel
 Status: ready
-Outcome: two CSV files that open in Excel with correct characters and dates, and whose rows
-are the dashboard's numbers.
+Outcome: CSV files (answers, items with totals, and from E8-1's audit people and missing
+items) that open in Excel with correct characters and dates, and whose rows are the
+dashboard's numbers.
 
 ## Acceptance criteria
 1. Export tab (PM app board): "Answers" (one row per answer: respondent, every respondent
@@ -37,7 +38,7 @@ are the dashboard's numbers.
 One module src/lib/export/csv.ts shared by both files, fed by the same queries as the
 dashboard (src/db/queries/results.ts), never by a second computation.
 
-Amended 2026-10-03 (design note 40): both exports take the page's ResultsFilter (E8-1), so
+Amended 2026-10-03 (design note 40): every export takes the page's ResultsFilter (E8-1), so
 a filtered Results screen exports what it shows and still reconciles to the row; the first
 row of a filtered file names the filter. The answer kind column uses the names of decision
 0014 as E8 shows them (Agree, Different priority, Disagree, Unclear); the items file's

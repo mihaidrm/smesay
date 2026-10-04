@@ -155,6 +155,8 @@ describe("Results numbers", () => {
   it("reads nothing of another workspace's instrument", async () => {
     expect(await results.numbers(wsB, instrumentA, NONE)).toBeNull();
     expect(await results.rows(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
+    expect(await results.people(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
+    expect(await results.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true })).toEqual([]);
     expect(await results.numbers(wsA, "not-a-uuid", NONE)).toBeNull();
   });
 

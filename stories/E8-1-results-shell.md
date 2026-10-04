@@ -113,3 +113,10 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the poi
   answers per item, invites counted once sent, the "Showing" line a status region, the
   switch fetches once, unused copy gone, the empty state without a sample button says
   only "Share it".
+- Check of those fixes 2026-10-04: 0 blocking, 6 should-fix, 2 nits. Fixed: the page's
+  boundary is no longer keyed, so a filter change keeps the focus and the status line (each
+  tab keeps a boundary of its own); a first open goes to the URL with the switch, and the
+  switch writes its value there; INTERFACES.md lists results.people and results.missing;
+  E10-1 names its four files; the cross-workspace test covers people and missing items; the
+  PM app board's band opens with the watermark line; the tile chooser and the switch render
+  once (revalidatePath); the actions' workspace guard is recorded as checked by reading.

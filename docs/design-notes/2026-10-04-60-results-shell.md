@@ -32,12 +32,14 @@ existing parts.
   server with its own data and its own error boundary.
 - Once the link is published the stepper's current step is Results and Share is done.
 - Order on the page (after the audit): the switch and Choose tiles, the strip, then the
-  filter bar and the "Showing" line under it, then the tabs. The line is a status region, so
-  a filter change is read out. A filter that keeps nobody shows the no-match state; one that
+  filter bar and the "Showing" line under it, then the tabs. The line is a status region that
+  stays in place across a filter change (the page's error boundary is not keyed), so the
+  change is read out and the focus stays on the control. A filter that keeps nobody shows the no-match state; one that
   keeps people with no counted answer (an invite not opened, an answer not submitted with the
   switch off) shows the page, so the Responses tab lists them.
 - The URL always carries the switch, so a shared view counts the same answers for whoever
-  opens it; the stored choice applies to a URL without it.
+  opens it: a first open without it is redirected to the full URL with the PM's stored
+  choice, and the switch writes its new value into the URL.
 - A personal invite counts among the invited once its email went out (sent), not while the
   mail failed.
 - The sample's Results carries the watermark band "Sample data: invented answers, for looking
@@ -55,6 +57,9 @@ existing parts.
   box per text field and a select for the perspective.
 - The error banner of a part is the design system's Banner with Try again in the Dismiss
   pill's place.
+- The sample's band (SampleBand in the Results page): the dashed outline on the tint, the
+  watermark line from E8-8 in soft ink, never dismissed. The PM app board's band now opens
+  with the same line; its Delete sample button comes with E8-8.
 
 ## Checks
 
