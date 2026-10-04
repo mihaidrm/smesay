@@ -51,6 +51,8 @@ describe("the Results filter", () => {
   it("says what narrows, and clearing keeps the switch", () => {
     const f = read("f.role=Sales&f.role=Finance&f.name=ok&kind=change&comment=1&perspective=Sales&status=submitted", false);
     expect(describeFilter(f, ctx)).toBe('Name contains "ok"; Role: Sales, Finance; Different priority; With a reason or comment; Perspective: Sales; Submitted');
+    // The export log's form (E10-1): what a text filter holds is left out.
+    expect(describeFilter(f, ctx, true)).toBe("Name contains a text; Role: Sales, Finance; Different priority; With a reason or comment; Perspective: Sales; Submitted");
     expect(filterActive(f)).toBe(true);
     expect(clearedFilter(f)).toEqual({ fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: "role" });
     expect(filterActive(read("unsubmitted=0"))).toBe(false);

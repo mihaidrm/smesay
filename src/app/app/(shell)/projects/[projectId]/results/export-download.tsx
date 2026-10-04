@@ -3,7 +3,10 @@
 // before the page's script loads; with the script, the click fetches the file, saves it under
 // the name the route gives (Content-Disposition, filename*) through an object URL
 // (developer.mozilla.org/docs/Web/API/URL/createObjectURL_static), shows "Preparing the file"
-// while it waits, and says so when the route fails (docs/copy/errors.md, Export failed).
+// while it waits, and says so when the route fails (docs/copy/errors.md, Export failed). The
+// fetch does not follow a redirect (redirect: "manual", developer.mozilla.org/docs/Web/API/
+// RequestInit#redirect): a signed-out session is sent to the sign-in page, which must not be
+// saved as the file, so a redirect counts as a failure.
 import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -22,7 +25,7 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
     setBusy(true);
     setError(false);
     try {
-      const res = await fetch(href, { cache: "no-store" });
+      const res = await fetch(href, { cache: "no-store", redirect: "manual" });
       if (!res.ok) throw new Error(String(res.status));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

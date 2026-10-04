@@ -45,7 +45,7 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   // Results does; the file's Disagree rows are the page's 2.
   expect(flines.filter((l) => l.includes(',"Disagree",')).length).toBe(2);
 
-  // A request another site starts writes nothing and gets 403.
+  // A request another site starts gets 403.
   expect((await page.request.get(filtered!, { headers: { "sec-fetch-site": "cross-site" } })).status()).toBe(403);
 
   // A download the route refuses shows the error under its card.

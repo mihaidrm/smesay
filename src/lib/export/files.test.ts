@@ -19,6 +19,7 @@ import { EMPTY_COUNTS, notAnsweredOf, percentOf } from "@/lib/results-agreement"
 import { csv, safeText } from "./csv";
 import { EXPORT_COPY } from "./copy";
 import { exportTable } from "./files";
+import { perItem } from "./per-item";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 let wsA: WorkspaceId;
@@ -76,6 +77,8 @@ async function reconcile(f: ResultsFilter) {
     expect([row[0].Agree, row[0]["Different priority"], row[0].Disagree, row[0].Unclear, row[0].Rated, row[0]["Not answered"], row[0]["Agreement %"]])
       .toEqual([c.agree, c.change, c.disagree, c.unclear, c.pick, notAnsweredOf(c), p ?? ""].map(String));
   }
+  // The Answers file added up per item gives each Items row's five counts.
+  for (const [k, [fromAnswers, fromItems]] of perItem(await exportTable(wsA, instrument, "answers", f, ctx, true), await exportTable(wsA, instrument, "items", f, ctx, true))) expect(fromAnswers, k).toEqual(fromItems);
   const num = (r: Record<string, string>, k: string) => Number(r[k]);
   expect(items.filter((r) => ["Agree", "Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.unansweredItems);
   expect(items.filter((r) => num(r, "Agree") > 0 && ["Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.fullyAgreed);

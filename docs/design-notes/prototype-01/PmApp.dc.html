@@ -611,10 +611,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
 <sc-for list="{{exports}}" as="ex" hint-placeholder-count="4">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
-<div style="display: flex; align-items: center; justify-content: space-between"><div style="font-weight: 500">{{ex.title}}</div><div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #5B6069">{{ex.format}}</div></div>
+<div style="font-weight: 500">{{ex.title}}</div>
 <div style="color: #454A52">{{ex.what}}</div>
-<div style="font-size: 12px; color: #5B6069">{{ex.note}}</div>
-<div style="display: flex; align-items: center; gap: 10px; margin-top: 4px"><button type="button" onClick="{{ex.download}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px; padding: 0 14px">Download</button><sc-if value="{{ex.done}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #22643F">Ready, {{ex.size}}</span></sc-if></div>
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 4px"><button type="button" onClick="{{ex.download}}" style="min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px; padding: 0 14px">{{ex.button}}</button></div>
 </div>
 </sc-for>
 </div>
@@ -1002,12 +1001,12 @@ const members = [
 ].filter((m) => !s.removed[m.id]).map((m) => Object.assign({}, m, { remove: () => patch('removed', m.id, true) }));
 const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
 const exportDefs = [
-{ id: 'x1', title: 'Answers', format: 'CSV, UTF-8', what: 'One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
-{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The dashboard numbers are these rows.', size: '2 KB' },
-{ id: 'x5', title: 'People', format: 'CSV, UTF-8', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
-{ id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
-{ id: 'x3', title: 'Whole project', format: 'JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
-{ id: 'x4', title: 'Summary for the deck', format: 'PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
+{ id: 'x1', title: 'Answers', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The Agreement tab\'s counts are these rows.', size: '2 KB' },
+{ id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
+{ id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
+{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'Items, every version of the list, the instrument, invites, responses, sign-offs and actions.', note: 'Re-importable into another workspace.', size: '41 KB' },
+{ id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'Headline numbers, agreement per area, the registers, the sign-off record.', note: 'Renders under 10 seconds for 200 items and 50 responses.', size: '3 pages' }
 ];
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));
 const isProject = s.view === 'project';

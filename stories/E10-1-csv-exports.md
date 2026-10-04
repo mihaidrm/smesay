@@ -54,8 +54,8 @@ Built 2026-10-04 (design note 69, decision 0044):
   People and Missing items, each a download of GET /api/projects/[id]/export/[file] with the
   page's query. Answers: respondent, every field, reference, area, item, proposed value and
   label, answer (Agree, Different priority, Disagree, Unclear, Rated), their value and label,
-  reason or question, comment, submitted at, since submitting (Changes not submitted again or
-  Submitted again, as the Responses tab marks it), source, perspectives. Items: reference, text,
+  reason or question, comment, submitted at, since submitting (Changes not submitted again, as the
+  registers mark it; People also writes Submitted again, as the Responses tab does), source, perspectives. Items: reference, text,
   original, area, proposed value and label, the five counts, not answered, agreement %.
 - Acceptance 2: src/lib/export/csv.ts: the BOM, every field quoted, CRLF, dates as
   2026-10-09T16:30:00+00:00, and a text cell that starts with =, +, -, @, a tab or a line
