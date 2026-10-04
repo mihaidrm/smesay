@@ -110,7 +110,9 @@ Headers and transport
 
 Dependencies and backups
 - `npm audit` clean of high and critical at release; lockfile committed.
-- Nightly backups; one restore into a fresh database performed and documented before launch.
+- Nightly backups; one restore into a fresh database performed and documented before launch
+  (E11-4: `npm run backup`, `npm run restore`, docs/runbooks/backup-restore.md; CI backs up,
+  restores into an empty database and compares every table's row count on every push).
 
 Mode script
 - src/app/layout.tsx puts one inline script in the head to set the dark class before paint.
