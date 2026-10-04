@@ -322,7 +322,7 @@ export function RespondentApp(props: RespondentAppProps) {
         // (Back from Done shows it unticked).
         wrapSaver.submitted(body.version, posted);
         setWrapState((w) => ({ ...w, signed: false }));
-        setSeen({ at: body.submittedAt, changedFor: null });
+        setSeen(heardSubmit(seenRef.current, { submittedAt: body.submittedAt, changedSince: false }));
         setSubmitted({ at: body.submittedAt, name: body.name ?? props.welcome?.name ?? submitted?.name ?? firstName(fields), returning: false });
         go({ kind: "done" });
         return;

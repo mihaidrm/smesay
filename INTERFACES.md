@@ -358,7 +358,8 @@ version, writer and save number and the response id added the same day after the
   for; 409 not started when it is not this device's, checked first), confidence: 1 to 5,
   signedOff: true, signOffText?: string (the sentence the page showed; refused when the PM's
   differs), closingAnswer?: string, missing?: { text, area?, value? } | null, base, page,
-  seq, after? (as the Wrap up's save) }. 200 { submittedAt (ISO, UTC), name (the first name,
+  seq, after? (as the Wrap up's save) }. 200 { submittedAt (ISO, UTC; the stored time, at
+  least a millisecond after the response's Submit before, E7-6), name (the first name,
   or null), version (the Wrap up's) }; 409 { error: "stale", wrap, version, writer,
   writerSeq, changedSince, submittedAt } as the Wrap up's save; refusals { error } with the
   link's statuses, 409 not

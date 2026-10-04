@@ -397,12 +397,17 @@ describe("after Submit", () => {
     const later = new Date("2026-10-06T01:00:00Z");
     await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, later, async () => {});
     expect([...(await mark()), (await responses.forInvite(a.ws, cy.id))!.signedOff]).toEqual([true, false, true]);
+    // A Submit stored after another whose clock was ahead (two at once): its time still moves
+    // forward, a millisecond on, and its answer says the stored time.
+    const ahead = new Date(later.getTime() + 1);
+    const behind = await submitResponse(cy.token, {}, { response: rid, confidence: 4, signedOff: true, missing: { text: "Mileage" }, ...v() }, BASE, day, async () => {});
+    expect(["submittedAt" in behind ? behind.submittedAt.toISOString() : behind, (await responses.forInvite(a.ws, cy.id))!.submittedAt?.toISOString()]).toEqual([ahead.toISOString(), ahead.toISOString()]);
     // The Wrap up changed after Submit takes it back too.
-    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: later.toISOString() });
+    expect(await saveWrap(cy.token, {}, { response: rid, confidence: 2, missing: { text: "Mileage" }, ...v() }, later)).toMatchObject({ saved: true, changedSince: true, submittedAt: ahead.toISOString() });
     expect((await mark())[1]).toBe(true);
     const closed = await loadRespondent(cy.token, {}, new Date("2027-02-01T00:00:00Z"));
     if (closed.kind !== "closedSubmitted") throw new Error(closed.kind);
-    expect([closed.submittedAt.toISOString(), closed.changed]).toEqual([later.toISOString(), true]);
+    expect([closed.submittedAt.toISOString(), closed.changed]).toEqual([ahead.toISOString(), true]);
     // Revoked (the row's revoked time, as a revoke writes it), then the project archived: the
     // link reads "closed" for the archive and shows nothing of the respondent's.
     await invites.update(a.ws, cy.id, { revokedAt: later });

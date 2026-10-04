@@ -113,7 +113,12 @@ export const responses = {
   // answers are read and checked against the items its perspectives show as locked (`check`:
   // a sentence when one is still to finish), so no answer changes between the check and the
   // mark; then the response is marked submitted (the first Submit kept), its confidence,
-  // closing answer, missing item and sign-off sentence stored as saveWrap stores them.
+  // closing answer, missing item and sign-off sentence stored as saveWrap stores them. The
+  // Submit's time only moves forward (E7-6): two Submits at once can reach the lock in the
+  // other order from their clocks, so the later one stored is at least a millisecond after
+  // the one before (greatest ignores a null: postgresql.org/docs/current/
+  // functions-conditional.html), and pages that compare Submits by time see them in the
+  // order they were stored.
   submit: async (workspaceId: WorkspaceId, inviteId: string, responseId: string, data: WrapWrite & { confidence: number; signOffText: string }, stillOpen: (dates: InviteDates) => boolean, check: (rows: Answer[], perspectives: string[]) => string | null, now: Date): Promise<Response | { refused: InviteDates } | { invalid: string } | { stale: StoredWrap } | null> => {
     if (!isUuid(inviteId) || !isUuid(responseId)) return null;
     return db.transaction(async (tx) => {
@@ -127,7 +132,7 @@ export const responses = {
       const problem = check(rows, own.perspectives);
       if (problem) return { invalid: problem };
       const changed = !sameStored(own.stored, data);
-      const [row] = await tx.update(response).set({ submittedAt: now, firstSubmittedAt: sql`coalesce(${response.firstSubmittedAt}, ${now.toISOString()}::timestamptz)`, signedOff: true, confidence: data.confidence, closingAnswer: data.closingAnswer, signOffText: data.signOffText, wrapVersion: sql`${response.wrapVersion} + 1`, wrapWriter: data.page, wrapWriterSeq: data.seq, ...(changed ? { updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {}) }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
+      const [row] = await tx.update(response).set({ submittedAt: sql`greatest(${now.toISOString()}::timestamptz, ${response.submittedAt} + interval '1 millisecond')`, firstSubmittedAt: sql`coalesce(${response.firstSubmittedAt}, ${now.toISOString()}::timestamptz)`, signedOff: true, confidence: data.confidence, closingAnswer: data.closingAnswer, signOffText: data.signOffText, wrapVersion: sql`${response.wrapVersion} + 1`, wrapWriter: data.page, wrapWriterSeq: data.seq, ...(changed ? { updatedAt: sql`greatest(${response.updatedAt}, ${now.toISOString()}::timestamptz)` } : {}) }).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId))).returning();
       if (changed) await writeMissing(tx, workspaceId, responseId, own.missing, data.missing);
       return row;
     });

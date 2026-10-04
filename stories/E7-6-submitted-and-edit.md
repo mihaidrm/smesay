@@ -146,3 +146,11 @@ Built 2026-10-04 (design note 56, decision 0044):
   needless notice nor a hidden change follows from the order answers arrive in; the
   page's own clock for requests sent before a Submit is no longer needed; INTERFACES.md
   and the review list.
+- Check of that fix 2026-10-04: 0 blocking, 1 should-fix (two Submits at once could store
+  their times in the other order from the one they were stored in, as each took its time
+  before the lock, so a page comparing Submits by time could hide a change), 2 nits. Fixed:
+  a Submit's stored time only moves forward, at least a millisecond after the one before,
+  and the Submit's answer and the receipt carry the stored time (tested with a Submit
+  stored after one whose clock was ahead); the page adds its own Submit to what it knows
+  instead of replacing it; the review list says a page opened before any Submit learns of
+  one made elsewhere at its next Start or load.

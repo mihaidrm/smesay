@@ -307,9 +307,9 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   const receipt = to
     ? async () => {
         const tally = tallyOf(link.instrument.method, visible, rows);
-        const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
+        const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: saved.submittedAt ?? now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
         try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
       }
     : null;
-  return { submittedAt: now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };
+  return { submittedAt: saved.submittedAt ?? now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };
 }
