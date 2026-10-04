@@ -45,12 +45,14 @@ export function PreviewColumn({ children }: { children: React.ReactNode }) {
 }
 
 // The frame and its loading state (CLAUDE.md, PM side): keyed by the address, so a new
-// address starts loading again; the note shows until the page in it has loaded.
+// address starts loading again; the note shows until the page in it has loaded. It is for the
+// eye only (aria-hidden): the frame reloads after every save, and a status line each time would
+// talk over the step page's own "Saved." (E8 status lines are role="status").
 function Frame({ url, className }: { url: string; className: string }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
-      {!loaded && <p role="status" className="absolute inset-x-0 top-1/3 text-center text-sm text-ink-muted" data-testid="preview-loading">{PREVIEW_COPY.loading}</p>}
+      {!loaded && <p aria-hidden="true" className="absolute inset-x-0 top-1/3 text-center text-sm text-ink-muted" data-testid="preview-loading">{PREVIEW_COPY.loading}</p>}
       <iframe src={url} title={PREVIEW_COPY.frameTitle} onLoad={() => setLoaded(true)} className={className} data-testid="preview-iframe" />
     </>
   );
