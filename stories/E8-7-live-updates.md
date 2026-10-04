@@ -38,18 +38,23 @@ Built 2026-10-04 (design note 64, decision 0044; docs/review-list.md):
   to an answer, a response or a missing item; src/db/queries/results-events.ts listens once
   per process and calls the instrument's streams; src/app/api/projects/[projectId]/events/
   route.ts streams "ready", "change" and "ping" for a project of the session's workspace; the
-  page (live-updates.tsx) listens while the public link is open, the empty state included,
-  and reads the page again (router.refresh) 250 ms after a change, so the strip, the open
-  tab, the tracker and an open detail show the new numbers with the filter kept.
+  page (live-updates.tsx) listens whenever the project has an instrument (not the sample),
+  the empty state included, and reads the page again (router.refresh) 250 ms after a change,
+  then at most once a second, so the strip, the open tab, the tracker and an open detail
+  show the new numbers with the filter kept.
   e2e/results-live.spec.ts: a respondent rates two items on a phone and the PM's Agreement
   tile reads 1 of 1, then 2 of 2, each within 5 seconds of "Saved".
 - Acceptance 2: src/components/app/fade-on-change.tsx: the tiles, the Responses tab's status
   and progress cells and the Agreement table's percentages fade over 400 ms when their value
   changes; none under prefers-reduced-motion.
-- Acceptance 3: no event or heartbeat for 15 seconds shows the banner, closes the stream and
-  opens it again after 1, 2, 4, 8, 16, then 30 seconds; the next event clears the banner and
-  reads the page again (src/lib/results-live.ts, tested).
+- Acceptance 3: the heartbeat travels through Postgres (NOTIFY results 'ping' every 5
+  seconds), so it also stops when the LISTEN is broken; no event for 15 seconds shows the
+  banner, closes the stream and opens it again after 1, 2, 4, 8, 16, then 30 seconds; the
+  next event clears the banner and reads the page again, and so does every reconnect.
+  src/lib/results-live.test.ts runs the client with fake timers.
 - Acceptance 4: the payload is the instrument's id; the stream adds a version counter;
   nothing else travels. src/db/queries/results-events.test.ts checks that another
-  instrument's listener hears nothing and that many rows in one transaction send once.
+  instrument's listener hears nothing and that many rows in one transaction send once;
+  src/db/queries/results-events-route.test.ts that another workspace's project is
+  404 and that a stream leaves no listener behind.
 - Acceptance 5: Postgres LISTEN and NOTIFY only (plain Postgres in docker compose).

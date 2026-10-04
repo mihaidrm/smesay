@@ -10,7 +10,7 @@ import { ensureTestDatabase } from "../test-db";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { onResultsChange } from "@/db/queries/results-events";
+import { onResultsChange, subscriberCount } from "@/db/queries/results-events";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import type { WorkspaceId } from "@/db/types";
 
@@ -57,8 +57,8 @@ describe("live updates", () => {
     const instrumentB = await sampleInstrument(unsafeWorkspaceId(b.id));
     let mine = 0;
     let theirs = 0;
-    const stopA = await onResultsChange(instrumentA, () => { mine += 1; });
-    const stopB = await onResultsChange(instrumentB, () => { theirs += 1; });
+    const stopA = await onResultsChange(instrumentA, { change: () => { mine += 1; }, ping: () => {} });
+    const stopB = await onResultsChange(instrumentB, { change: () => { theirs += 1; }, ping: () => {} });
     const [{ id: responseId }] = await sql`select id from response where workspace_id = ${a.id} and instrument_id = ${instrumentA} and fields ->> 'name' = 'Sam Hill'`;
     // An autosave (one answer changed), in its own transaction.
     await sql`update answer set reason = 'Changed.', kind = 'disagree' where id = (select id from answer where response_id = ${responseId} limit 1)`;
@@ -78,4 +78,17 @@ describe("live updates", () => {
     expect(await waitFor(() => mine, 5, 500)).toBe(4);
     stopB();
   }, 30_000);
+
+  it("sends the heartbeat through Postgres to every open stream, and stops when the last one closes", async () => {
+    const c = await createWorkspaceWithSample({ name: "Events C", slug: `events-c-${Date.now()}` }, userId);
+    made.push(c.id);
+    const instrumentC = await sampleInstrument(unsafeWorkspaceId(c.id));
+    let pings = 0;
+    const stop = await onResultsChange(instrumentC, { change: () => {}, ping: () => { pings += 1; } });
+    expect(subscriberCount(instrumentC)).toBe(1);
+    expect(await waitFor(() => pings, 1, 8_000)).toBeGreaterThanOrEqual(1);
+    stop();
+    stop();
+    expect(subscriberCount(instrumentC)).toBe(0);
+  }, 15_000);
 });

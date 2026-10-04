@@ -9,17 +9,31 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E8-7, under deci
   path is covered (autosave, Start, Submit, a missing item), and Postgres sends identical
   payloads of one transaction once (postgresql.org/docs/current/sql-notify.html).
 - One LISTEN per server process, on postgres.js's dedicated connection, fans out to the
-  streams of each instrument. The stream is a Route Handler that finds the project through
+  streams of each instrument. After the LISTEN reconnects every stream is told to read
+  again, since notifications sent while it was down are lost (postgres.js calls its onlisten
+  argument on each reconnect: node_modules/postgres/README.md, Listen & notify). The stream is a Route Handler that finds the project through
   the session's workspace, so a stream never carries another workspace's instrument, and the
   numbers are read again through the scoped queries.
 - The page reads itself again on a change (router.refresh), not one part at a time: the
   strip, the tabs, the tracker, the detail and the conflict view stay one consistent read
-  with the filter and the switch, and the client state (the filter bar, an open dialog)
-  stays. Several writes within 250 ms read once.
-- Live only while the public link is open: a closed, revoked or draft link has no stream.
-- The heartbeat is a named "ping" event every 5 seconds; 15 seconds without one shows the
-  banner from docs/copy/errors.md and reopens the stream with backoff, because the browser's
-  own retry does not back off and stops for good after a refused stream.
+  with the filter and the switch, and the client state (the filter bar, an open item
+  detail) stays. The first read comes 250 ms after a change, then at most one a second, and
+  none while the tab is hidden; a hidden tab reads once when it shows again
+  (src/lib/results-live.ts createLiveClient).
+- Live whenever the project has an instrument, not only while the public link is open: a
+  link that opens on a date, and personal links after the public one is revoked, still bring
+  answers. The sample has no stream (its link collects nothing). The stream sits outside the
+  page's error boundary, so a failed read keeps it.
+- The heartbeat is a named "ping" event every 5 seconds that travels through Postgres: the
+  process sends NOTIFY results 'ping' while a stream is open, and the streams pass it on, so
+  pings stop when the LISTEN is broken, not only when the page's own connection drops. 15
+  seconds without one shows the banner from docs/copy/errors.md and reopens the stream with
+  backoff, because the browser's own retry does not back off and stops for good after a
+  refused stream. Every "ready" after the first reads the page again.
+- The route answers HEAD with 405 (Next would otherwise run GET and leave a stream with no
+  reader), and opens nothing for a request that aborted while it looked the project up.
+- The banner sits in a status region that is always on the page, so it is announced when it
+  appears.
 - A changed cell fades (design system, Motion: 400 ms): a violet-soft layer over the cell
   that clears, on the tiles, the tracker's status and progress, and the Agreement table's
   percentages. The first render does not fade. Nothing moves under prefers-reduced-motion,
@@ -33,5 +47,9 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E8-7, under deci
 
 ## Checks
 
-- src/lib/results-live.test.ts, src/db/queries/results-events.test.ts.
+- src/lib/results-live.test.ts (the client with fake timers: the banner at 15 s, the
+  backoff, a read after a reconnect, the throttle, a hidden tab), src/db/queries/
+  results-events.test.ts (the heartbeat through Postgres, another instrument hears nothing),
+  src/db/queries/results-events-route.test.ts (another workspace, HEAD, an early
+  abort, the listener removed when the stream ends).
 - e2e/results-live.spec.ts.

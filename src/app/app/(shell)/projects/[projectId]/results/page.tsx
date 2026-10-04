@@ -64,14 +64,17 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   // (redirect: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md).
   const item = itemParam(query.item);
   if (query.unsubmitted === undefined) redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
-  // Live updates while the link is open (E8-7), on the empty state too, so the first answer
-  // shows without a reload.
-  const live = linkState(await invites.livePublic(current.ws, project.id)) === "open";
+  // Live updates (E8-7) whenever the project has an instrument, whatever the state of its
+  // links: a link that opens later, personal links after the public one is revoked. Not on the
+  // sample, whose link collects nothing. Outside the boundary, so a failed read keeps the
+  // stream and its banner.
   return (
+    <>
+    {!project.isSample && <LiveUpdates projectId={project.id} />}
     <ResultsBoundary what={RESULTS_COPY.strip}>
-      {live && <LiveUpdates projectId={project.id} />}
       <ResultsBody projectId={project.id} sample={project.isSample} sampleId={sample?.id ?? null} instrument={instrument} ws={current.ws} filter={filter} ctx={ctx} tab={tab} item={item} tiles={storedTiles(prefs.tiles) ?? DEFAULT_TILES} view={prefs.view === "columns" || prefs.view === "share" ? prefs.view : "table"} />
     </ResultsBoundary>
+    </>
   );
 }
 
