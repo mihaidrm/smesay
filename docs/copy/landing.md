@@ -81,6 +81,24 @@ link.
 SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · hello@smesay.app.
 The legal links go live with E11; until then they are text.
 
+## Question bubble (E12-5, proposed; waits for Mihai, decision 0046)
+
+Button, bottom right: a speech-bubble icon, named "Ask us a question" for screen readers.
+Panel title: Ask us a question
+Line: We read every message and reply by email within one working day. (the promise is
+Mihai's to confirm)
+Fields: Your email; Your question
+Under the fields: We use your email only to reply. Privacy (a link to /legal/privacy)
+Button: Send; while sending: Sending
+Sent: Sent. We will reply to [EMAIL].
+Email missing or not an address: Enter your email so we can reply.
+Question empty: Write your question.
+Question too long: Keep your question to 2000 characters.
+Send failed: Your question was not sent. Check your connection and press Send again, or
+email [SUPPORT EMAIL].
+Too many: You have sent 5 questions in the last hour. Email [SUPPORT EMAIL] instead.
+Close button: Close
+
 ## Page metadata
 
 Title: SMEsay: send the list as a link. Description: Your experts go through the list item by

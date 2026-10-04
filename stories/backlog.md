@@ -11,7 +11,7 @@ E8  Dashboard: results shell, tracker, agreement per item and area, registers, i
 E9  Insights: actions with citations, done or dismissed, cost per run. Stories E9-1 to E9-3.
 E10 Exports: CSV, JSON export and import, PDF summary. Stories E10-1 to E10-3.
 E11 Trust and compliance: rate limiting, export and deletion, legal pages, backups, Sentry and security headers, error pages. Stories E11-1 to E11-6.
-E12 Landing and onboarding: landing page, quickstart, transactional emails, the sample instrument for visitors. Stories E12-1 to E12-4.
+E12 Landing and onboarding: landing page, quickstart, transactional emails, the sample instrument for visitors, a question bubble on the landing page that emails Mihai (decision 0046). Stories E12-1 to E12-5.
 E13 Analytics for us: product event catalogue and log, an admin page with the funnel and usage per workspace, visitor analytics on the landing page and the PM app (decision 0030). Stories E13-1 to E13-3.
 E14 Admin and support: the admin shell and its audit log, every workspace with its settings and the support actions, every person with their sign-in and sessions, a read-only view of a workspace as its owner sees it (decision 0035). Stories E14-1 to E14-4.
 E15 Onboarding and tutorial with the robot: the guide card with its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips for three stuck states, and the measurement that decides which tips stay (design note 39). Stories E15-1 to E15-5, written 2026-10-03.

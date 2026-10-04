@@ -76,7 +76,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E9 Insights | Actions with citations, done or dismissed, cost per run | none | 2 | open |
 | E10 Exports | CSV, JSON, PDF summary | none | 2 | open |
 | E11 Trust | Rate limits, export and deletion, legal page drafts, backup and restore script; Sentry and the lawyer at the launch gate | none until launch | 2 | open |
-| E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai | none | 3 | open |
+| E12 Landing and onboarding | The story page as real code, quickstart, transactional emails tested in Gmail, Outlook and Apple Mail by Mihai, a question bubble on the landing page that emails Mihai (E12-5, decision 0046) | none | 3 | open |
 | E13 Analytics for us | Event catalogue and log, admin page with funnel and usage per workspace, Plausible on the landing page and the PM app (decision 0030) | Plausible at the launch gate (step 11); ADMIN_EMAILS in .env.local | 2 | open |
 | E14 Admin and support | Admin shell and audit log, workspaces with their settings and the support actions, people and their sign-in, read-only view of a workspace (decision 0035) | ADMIN_EMAILS in .env.local | 3 | open |
 | E15 Onboarding and tutorial | The robot as the guide: the guide card and its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips, the measurement on the admin page (design note 39; after E8 and E13, before the launch gate) | none | 3 | open |
