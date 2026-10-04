@@ -1,0 +1,30 @@
+"use client";
+// The open page's watch on its link (stories/E6-4, acceptance 4): every LINK_POLL_SECONDS
+// it asks /r/[token]/state and, on anything but 200 "open", refreshes the page, which the
+// server then renders as the inactive, closed or passcode page; so an open tab turns
+// inactive within a minute of a revoke without a reload. A failed fetch (offline) is
+// ignored until the next tick (E7-3 handles offline). router.refresh: node_modules/next/
+// dist/docs/01-app/03-api-reference/04-functions/use-router.md.
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export const LINK_POLL_SECONDS = 60;
+
+export function LinkWatch({ token }: { token: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    let stopped = false;
+    const tick = async () => {
+      try {
+        const response = await fetch(`/r/${encodeURIComponent(token)}/state`, { cache: "no-store" });
+        const body = (await response.json()) as { state?: string };
+        if (!stopped && (!response.ok || body.state !== "open")) router.refresh();
+      } catch {
+        // Offline or a transient failure: the next tick asks again.
+      }
+    };
+    const id = setInterval(tick, LINK_POLL_SECONDS * 1000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [token, router]);
+  return null;
+}

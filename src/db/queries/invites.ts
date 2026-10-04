@@ -30,13 +30,17 @@ export const invites = {
     const rows = await db.select({ id: invite.id }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId))).limit(1);
     return rows.length > 0;
   },
+  // The instrument's public link: the newest public row (a revoked one until "Publish
+  // again" makes a new one, E6-4).
   publicForInstrument: async (workspaceId: WorkspaceId, instrumentId: string): Promise<Invite | null> => {
     if (!isUuid(instrumentId)) return null;
-    const rows = await db.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
+    const rows = await db.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).orderBy(desc(invite.createdAt)).limit(1);
     return rows[0] ?? null;
   },
-  // The public link, created once: an existing one is returned as it is (created: false).
-  // Null when the instrument is not in the workspace.
+  // The public link, created once: an existing one that is not revoked is returned as it
+  // is (created: false); after a revoke (E6-4, "Publish again") a new row with a new token
+  // is created and the revoked one stays, dead. Null when the instrument is not in the
+  // workspace.
   publish: async (workspaceId: WorkspaceId, instrumentId: string, data: PublicLinkData, now = new Date()): Promise<{ invite: Invite; created: boolean } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
@@ -49,8 +53,8 @@ export const invites = {
       // UPDATE themselves and do wait, briefly (postgresql.org/docs/current/explicit-locking.html,
       // row-level locks).
       await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, locked.projectId))).for("no key update");
-      const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).limit(1);
-      if (existing) return { invite: existing, created: false };
+      const [existing] = await tx.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).orderBy(desc(invite.createdAt)).limit(1);
+      if (existing && !existing.revokedAt) return { invite: existing, created: false };
       const [created] = await tx.insert(invite).values({ ...data, workspaceId, instrumentId, kind: "public" }).returning();
       await tx.update(instrument).set({ publishedAt: now }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId), isNull(instrument.publishedAt)));
       const siblings = tx.select({ id: instrument.id }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.projectId, locked.projectId), ne(instrument.id, instrumentId)));
@@ -164,36 +168,74 @@ export const invites = {
     const rows = await db.select().from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal"), eq(invite.email, email))).limit(1);
     return rows[0] ?? null;
   },
-  // The project's public link in force: the newest instrument's that has one, or null.
+  // The project's public link in force: the newest instrument's newest public row, or null.
   livePublic: async (workspaceId: WorkspaceId, projectId: string): Promise<Invite | null> => {
     if (!isUuid(projectId)) return null;
     const rows = await db.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
       .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, projectId)))
-      .orderBy(desc(instrument.createdAt)).limit(1);
+      .orderBy(desc(instrument.createdAt), desc(invite.createdAt)).limit(1);
     return rows[0]?.invite ?? null;
+  },
+  // Revokes the public link in force (stories/E6-4, acceptance 1) under the project row's
+  // lock: the newest instrument's newest public row, when it is this instrument's and not
+  // revoked yet, gets revoked_at = now. The personal links are not touched (design note 49).
+  revokePublic: async (workspaceId: WorkspaceId, instrumentId: string, now = new Date()): Promise<{ invite: Invite } | { refused: "none" | "replaced" | "revoked" } | null> => {
+    if (!isUuid(instrumentId)) return null;
+    return db.transaction(async (tx) => {
+      const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
+      if (!own) return null;
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("no key update");
+      const [live] = await tx.select({ invite }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
+        .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, own.projectId)))
+        .orderBy(desc(instrument.createdAt), desc(invite.createdAt)).limit(1);
+      if (!live) return { refused: "none" as const };
+      if (live.invite.instrumentId !== instrumentId) return { refused: "replaced" as const };
+      if (live.invite.revokedAt) return { refused: "revoked" as const };
+      const rows = await tx.update(invite).set({ revokedAt: now }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, live.invite.id), isNull(invite.revokedAt))).returning();
+      return rows[0] ? { invite: rows[0] } : { refused: "revoked" as const };
+    });
+  },
+  // Revokes one personal invite (E6-4, acceptance 2): revoked_at = now on a row not yet
+  // revoked; null when the row is not in the workspace or already revoked.
+  revokePersonal: async (workspaceId: WorkspaceId, id: string, now = new Date()): Promise<Invite | null> => {
+    if (!isUuid(id)) return null;
+    const rows = await db.update(invite).set({ revokedAt: now }).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), isNull(invite.revokedAt))).returning();
+    return rows[0] ?? null;
+  },
+  // A new link for a revoked personal invite (E6-4, "New link"): the row keeps its address,
+  // name, role, responses and reminder history, and gets a fresh token, no revocation and
+  // the public link's dates, not sent yet (the caller sends email 2). The old token is
+  // gone, so the old URL reads as unknown. Null when the row is not in the workspace or
+  // not revoked.
+  renewPersonal: async (workspaceId: WorkspaceId, id: string, token: string, dates: { opensAt: Date | null; closesAt: Date | null }, now = new Date()): Promise<Invite | null> => {
+    if (!isUuid(id)) return null;
+    const rows = await db.update(invite).set({ token, revokedAt: null, sentAt: null, sendError: null, sendStartedAt: now, opensAt: dates.opensAt, closesAt: dates.closesAt })
+      .where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, id), eq(invite.kind, "personal"), sql`${invite.revokedAt} is not null`)).returning();
+    return rows[0] ?? null;
   },
   // The dates and the passcode of an instrument's public link, under the project row's lock
   // (the one publish takes) and only while that link is the project's link in force: a save
   // that waited on the publish of a newer draft finds its link replaced and is refused. The
   // dates go to the instrument's personal links too (E6-2: they follow the public link);
   // the passcode does not.
-  updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" } | null> => {
+  updatePublic: async (workspaceId: WorkspaceId, instrumentId: string, patch: Partial<Omit<PublicLinkData, "token">>): Promise<{ invite: Invite } | { refused: "replaced" | "none" | "revoked" } | null> => {
     if (!isUuid(instrumentId)) return null;
     return db.transaction(async (tx) => {
       const [own] = await tx.select({ id: instrument.id, projectId: instrument.projectId }).from(instrument).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId))).limit(1);
       if (!own) return null;
       const [locked] = await tx.select({ id: project.id, projectId: project.id }).from(project).where(and(eq(project.workspaceId, workspaceId), eq(project.id, own.projectId))).for("no key update");
       if (!locked) return null;
-      const [live] = await tx.select({ instrumentId: invite.instrumentId }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
+      const [live] = await tx.select({ id: invite.id, instrumentId: invite.instrumentId, revokedAt: invite.revokedAt }).from(invite).innerJoin(instrument, eq(instrument.id, invite.instrumentId))
         .where(and(eq(invite.workspaceId, workspaceId), eq(invite.kind, "public"), eq(instrument.projectId, locked.projectId)))
-        .orderBy(desc(instrument.createdAt)).limit(1);
+        .orderBy(desc(instrument.createdAt), desc(invite.createdAt)).limit(1);
       if (!live) return { refused: "none" as const };
       if (live.instrumentId !== instrumentId) return { refused: "replaced" as const };
-      const rows = await tx.update(invite).set(patch).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "public"))).returning();
+      if (live.revokedAt) return { refused: "revoked" as const };
+      const rows = await tx.update(invite).set(patch).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, live.id))).returning();
       const dates: Partial<Pick<PublicLinkData, "opensAt" | "closesAt">> = {};
       if ("opensAt" in patch) dates.opensAt = patch.opensAt;
       if ("closesAt" in patch) dates.closesAt = patch.closesAt;
-      if (Object.keys(dates).length > 0) await tx.update(invite).set(dates).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal")));
+      if (Object.keys(dates).length > 0) await tx.update(invite).set(dates).where(and(eq(invite.workspaceId, workspaceId), eq(invite.instrumentId, instrumentId), eq(invite.kind, "personal"), isNull(invite.revokedAt)));
       return rows[0] ? { invite: rows[0] } : { refused: "none" as const };
     });
   },

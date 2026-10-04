@@ -98,6 +98,7 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
   if ("error" in owned) return owned;
   const existing = await invites.publicForInstrument(ws, instrumentId);
   if (!existing) return { error: LINK_ERRORS.notPublished };
+  if (existing.revokedAt) return { error: LINK_ERRORS.revokedSave };
   const parsed = parseLinkInput(rawOpens, rawCloses, rawPasscode, now, true);
   if ("error" in parsed) return { error: parsed.error };
   const { opensAt, closesAt, passcode } = parsed.input;
@@ -106,6 +107,18 @@ export async function saveLink(ws: WorkspaceId, projectId: string, instrumentId:
   else if (passcode) patch.passcodeHash = await hashPasscode(passcode);
   const result = await invites.updatePublic(ws, instrumentId, patch);
   if (!result) throw new NotFoundError();
-  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : BUILD_COPY.replaced };
+  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.revokedSave : BUILD_COPY.replaced };
+  return { invite: result.invite };
+}
+
+// Revoke (stories/E6-4, acceptance 1): the link in force gets revoked_at and shows the
+// inactive page from then on; the personal links stay as they are (design note 49).
+// "Publish again" is publishLink: a new row with a new token, the revoked one stays dead.
+export async function revokeLink(ws: WorkspaceId, projectId: string, instrumentId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const result = await invites.revokePublic(ws, instrumentId, now);
+  if (!result) throw new NotFoundError();
+  if ("refused" in result) return { error: result.refused === "none" ? LINK_ERRORS.notPublished : result.refused === "revoked" ? LINK_ERRORS.alreadyRevoked : BUILD_COPY.replaced };
   return { invite: result.invite };
 }

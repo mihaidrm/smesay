@@ -162,6 +162,16 @@ remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send)
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
 and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
 src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
+The kill switch (E6-4): invites.revokePublic(ws, instrumentId, now) (the project's link in
+force, under the project row's lock; refused: none, replaced, revoked),
+invites.revokePersonal(ws, id, now), invites.renewPersonal(ws, id, token, { opensAt, closesAt },
+now) (a revoked personal row gets a fresh token, no revocation, not sent yet);
+invites.publish creates a new row when the newest public row is revoked; invites.updatePublic
+refuses "revoked". revokeLink(ws, projectId, instrumentId, now) in src/lib/sharing.ts;
+revokeInvitee(...) and renewInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl,
+now, send) in src/lib/invitees.ts. linkStatus(token, cookie, now) in src/lib/link-access.ts
+({ status: 200 | 404 | 410, state }) and GET /r/[token]/state (the same, as JSON { state },
+no-store); LINK_POLL_SECONDS = 60 in src/app/r/[token]/link-watch.tsx.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand, with the workspace id as a WorkspaceId
 (the token is the credential, SECURITY.md); null for anything else, nothing listed.

@@ -17,7 +17,9 @@ Multi-tenancy
 
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
-- Revoked and closed instruments return a page, not data. Passcode attempts rate-limited.
+- Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
+  status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
+  Passcode attempts rate-limited.
 - A personal link (E6-2) is its own 128-bit token, sent to one address; the address is the
   proof, so the public link's passcode does not apply to it. One personal invite per address
   on an instrument (partial unique index). The provider's failure reason is stored on the

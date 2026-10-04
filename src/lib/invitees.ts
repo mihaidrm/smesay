@@ -61,7 +61,8 @@ export function reasonOf(error: unknown): string {
 export const refusalCopy = (refused: "none" | "replaced" | "revoked" | "closed"): string =>
   refused === "none" ? INVITEES_COPY.needLink : refused === "replaced" ? INVITEES_COPY.linkReplaced : refused === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.linkClosed;
 
-export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">): keyof typeof INVITEES_COPY.status {
+export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt" | "revokedAt">): keyof typeof INVITEES_COPY.status {
+  if (row.revokedAt) return "revoked";
   if (row.responseStatus === "submitted") return "submitted";
   if (row.responseStatus === "inProgress") return "inProgress";
   return row.sentAt === null ? "notSent" : "invited";
@@ -70,6 +71,69 @@ export function inviteStatus(row: Pick<InviteeRow, "responseStatus" | "sentAt">)
 // The personal invites of the Share page's instrument (acceptance 4).
 export async function listInvitees(ws: WorkspaceId, instrumentId: string): Promise<InviteeRow[]> {
   return invites.personalWithStatus(ws, instrumentId);
+}
+
+// The link in force must be published and open or opening later for a send; the words
+// for the other states.
+async function liveLinkFor(ws: WorkspaceId, instrumentId: string, now: Date): Promise<{ error: string } | { link: Invite }> {
+  const link = await invites.publicForInstrument(ws, instrumentId);
+  if (!link) return { error: INVITEES_COPY.needLink };
+  const state = linkState(link, now);
+  if (state === "closed") return { error: INVITEES_COPY.linkClosed };
+  if (state === "revoked") return { error: INVITEES_COPY.linkRevoked };
+  return { link };
+}
+
+// Email 2 for a personal invite row, with the sender's name on it.
+async function inviteMailFor(ws: WorkspaceId, projectId: string, instrument: { itemSetId: string; intro: string | null }, invite: Invite, sender: Sender, baseUrl: string, now: Date): Promise<{ mail: Mail; pmName: string }> {
+  const project = await projects.get(ws, projectId);
+  const workspace = await workspaces.getById(ws);
+  if (!project || !workspace) throw new NotFoundError();
+  const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
+  const pmName = sender.name?.trim() || sender.email;
+  const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
+  return { mail: { ...mail, to: invite.email ?? "", fromName: `${pmName} via SMEsay`, replyTo: sender.email }, pmName };
+}
+
+// Revoke one personal link (stories/E6-4, acceptance 2): the row gets revoked_at and its
+// token shows the inactive page; answers already given are kept.
+export async function revokeInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
+  if (!row) throw new NotFoundError();
+  if (row.revokedAt) return { error: INVITEES_ERRORS.alreadyRevoked(row.email ?? "") };
+  const revoked = await invites.revokePersonal(ws, inviteId, now);
+  if (!revoked) return { error: INVITEES_ERRORS.alreadyRevoked(row.email ?? "") };
+  return { invite: revoked };
+}
+
+// A new link for a revoked personal invite (E6-4, acceptance 2): a fresh token on the same
+// row, with the public link's dates, then email 2 to the address; the link in force must
+// allow a send, as for sendInvites. A failed email leaves the row Not sent, to be pasted
+// again.
+export async function renewInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcome: SendOutcome }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  const live = await liveLinkFor(ws, instrumentId, now);
+  if ("error" in live) return live;
+  const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
+  if (!row) throw new NotFoundError();
+  const email = row.email ?? "";
+  if (!row.revokedAt) return { error: INVITEES_ERRORS.notRevoked(email) };
+  const renewed = await invites.renewPersonal(ws, inviteId, newToken(), { opensAt: live.link.opensAt, closesAt: live.link.closesAt }, now);
+  if (!renewed) return { error: INVITEES_ERRORS.notRevoked(email) };
+  const { mail } = await inviteMailFor(ws, projectId, owned.instrument, renewed, sender, baseUrl, now);
+  const line = inviteeLine({ email, name: renewed.name, role: renewed.roleHint });
+  try {
+    await send(mail);
+  } catch (error) {
+    const reason = reasonOf(error);
+    await invites.update(ws, inviteId, { sendError: reason });
+    return { outcome: { email, line, sent: false, error: INVITEES_ERRORS.newLinkNotSent(email, reason) } };
+  }
+  await invites.update(ws, inviteId, { sentAt: now, sendError: null });
+  return { outcome: { email, line, sent: true, error: null } };
 }
 
 // Send (acceptance 1, 2 and 5). The project live, the instrument the one Share shows (own),
@@ -82,11 +146,8 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   const { instrument } = owned;
-  const link = await invites.publicForInstrument(ws, instrumentId);
-  if (!link) return { error: INVITEES_COPY.needLink };
-  const state = linkState(link, now);
-  if (state === "closed") return { error: INVITEES_COPY.linkClosed };
-  if (state === "revoked") return { error: INVITEES_COPY.linkRevoked };
+  const live = await liveLinkFor(ws, instrumentId, now);
+  if ("error" in live) return live;
   const parsed = parseInvitees(rawList);
   if ("error" in parsed) return { error: parsed.error };
   const existing = new Map<string, Invite>();
@@ -100,11 +161,6 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     const left = Math.max(0, INVITEES_PER_DAY - (await invites.countPersonalSince(ws, 24 * 60, now)));
     if (fresh.length > left) return { error: INVITEES_ERRORS.tooManyToday(left) };
   }
-  const project = await projects.get(ws, projectId);
-  const workspace = await workspaces.getById(ws);
-  if (!project || !workspace) throw new NotFoundError();
-  const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
-  const pmName = sender.name?.trim() || sender.email;
   // The new rows first, under the locks with the link checked and its dates read there (a
   // refusal there leaves nothing claimed); an address another send got in first is absent
   // from the rows and says so.
@@ -129,10 +185,10 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
     else results.set(person.email, { email: person.email, line: inviteeLine(person), sent: false, error: INVITEES_ERRORS.inFlight(person.email) });
   }
   for (const { person, invite } of created) {
-    const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
+    const { mail } = await inviteMailFor(ws, projectId, instrument, invite, sender, baseUrl, now);
     let reason: string | null = null;
     try {
-      await send({ ...mail, to: person.email, fromName: `${pmName} via SMEsay`, replyTo: sender.email });
+      await send(mail);
     } catch (error) {
       reason = reasonOf(error);
     }

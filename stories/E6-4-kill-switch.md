@@ -1,7 +1,7 @@
 # E6-4 Kill switch: revoke the public link or one personal link
 
 User: a PM whose link reached the wrong people, or one person who should not answer anymore
-Status: ready
+Status: built
 Outcome: a revoked link shows the inactive page within one minute; answers already given are
 kept.
 
@@ -37,3 +37,27 @@ revoked. Publish again to send invites."). This story decides what revoking the 
 does to the personal links (as built, nothing: they are revoked one by one) and makes
 "Publish again" replace the revoked public row, since invites.publish returns the existing
 row of an instrument (created: false); docs/review-list.md.
+
+Built 2026-10-04 (design note 49, decision 0044):
+- Acceptance 1: "Revoke link" under the public link card's form (share/revoke-link.tsx)
+  sets revoked_at under the project row's lock (invites.revokePublic); the card reads
+  Revoked with the note, the link row goes, and "Publish again" (the same form, Publish
+  mode) makes a new public row with a new token (invites.publish, src/lib/sharing.ts); the
+  revoked row stays and its token keeps showing the inactive page.
+- Acceptance 2: Revoke on a personal row sets its revoked_at (invites.revokePersonal); the
+  row reads Revoked with the date and the link shows the inactive page; "New link" gives
+  the same row a fresh token with the public link's dates and sends email 2 to the address
+  (invites.renewPersonal, renewInvitee); the old token then reads as unknown.
+- Acceptance 3: the inactive page from E6-1 (src/components/respondent/link-page.tsx), a
+  page, not data; the state route answers a status and one word.
+- Acceptance 4: GET /r/[token]/state (src/app/r/[token]/state/route.ts, linkStatus in
+  src/lib/link-access.ts) answers 200 open, 404 unknown, 410 revoked or closed; the open
+  page polls it every 60 seconds (src/app/r/[token]/link-watch.tsx) and refreshes itself
+  on anything but 200 open, so an open tab turns inactive without a reload. The autosave
+  route is E7-3's and refuses to write on anything but 200 open through the same check;
+  src/lib/revoke.test.ts proves the check answers 410 after a revocation and that the
+  route handler returns 410 with the state word only (docs/review-list.md).
+- Acceptance 5: e2e/revoke.spec.ts opens the public link in a respondent tab, revokes it
+  in the PM app, sees the inactive page in that tab within 70 seconds (the 60-second poll),
+  publishes again, opens the new link, revokes the personal row and reads the new link's
+  email.

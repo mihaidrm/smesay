@@ -160,6 +160,13 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-3) | Remind on a person who submitted, a Not sent row or a revoked invite (a stale tab) | [EMAIL] cannot be reminded: the invite was not sent, was revoked, or the person has submitted. Reload the page to see the row as it is. |
 | Inline, invites (E6-3), under the button | Remind everyone when nobody is due (a stale tab) | Nobody is due a reminder. |
 | Inline, invites (E6-3) | Remind while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
+| Inline, Share (E6-4) | Revoke link on a link already revoked (a stale tab) | This link is already revoked. Press Publish again for a new one. |
+| Inline, Share (E6-4) | Revoke link before publishing (a stale tab) | This instrument is not published yet. Press Publish first. |
+| Inline, Share (E6-4) | Save the dates of a revoked link (a stale tab) | This link is revoked. Press Publish again for a new one; its dates are set then. |
+| Inline, invites (E6-4) | Revoke on a row already revoked (a stale tab) | [EMAIL] is already revoked. Press New link to send a fresh one. |
+| Inline, invites (E6-4) | New link on a row that is not revoked (a stale tab) | [EMAIL] is not revoked, so it has its link. Reload the page to see the row as it is. |
+| Inline, invites (E6-4), under New link | The new link's email failed (the row reads Not sent with the reason) | The new link for [EMAIL] was made but not sent: [PROVIDER REASON]. Paste the address again to send it. |
+| Inline, invites (E6-4) | New link while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
 | Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. ([PROVIDER REASON] is the server's first line, cut to 200 characters, its final period dropped, with every word holding a host, an address or a login cut to "[server]" (SECURITY.md); when nothing but servers was in it: the mail server refused it, and its reason named only servers; when it was empty: the mail server refused it) |
 
 ## Respondent link states (E7)

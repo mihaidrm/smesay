@@ -29,7 +29,8 @@ const toIso = (local: string): string => (local ? new Date(local).toISOString() 
 const noop = () => () => {};
 const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 
-export function ShareForm({ projectId, instrumentId, published, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; published: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
+// again: after a revoke (E6-4), the button reads "Publish again" and makes a new link.
+export function ShareForm({ projectId, instrumentId, published, again = false, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(published ? saveLinkAction : publishAction, { error: null, saved: false });
   const mounted = useMounted();
   const [opensTyped, setOpens] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export function ShareForm({ projectId, instrumentId, published, opensAt, closesA
       </div>
       {state.error && !dirty && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       {!state.error && !dirty && state.saved && <p role="status" className="text-[13px] text-agree-text">{SHARE_COPY.saved}</p>}
-      <div className="flex justify-end"><Button type="submit" variant={published ? "secondary" : "primary"} loading={pending}>{published ? SHARE_COPY.save : SHARE_COPY.publish}</Button></div>
+      <div className="flex justify-end"><Button type="submit" variant={published ? "secondary" : "primary"} loading={pending}>{published ? SHARE_COPY.save : again ? SHARE_COPY.publishAgain : SHARE_COPY.publish}</Button></div>
     </form>
   );
 }
