@@ -30,6 +30,8 @@ export type ChapterScreenProps = {
   drafts: Record<string, CardDraft>;
   saved: Record<string, boolean>;
   errors?: Record<string, string>;
+  // Answers cannot reach the server (E7-3): complete cards not yet saved say so.
+  unsaved?: boolean;
   onChange: (itemId: string, draft: CardDraft) => void;
   onItem: (item: number) => void;
   onBack: () => void;
@@ -39,10 +41,10 @@ export type ChapterScreenProps = {
 const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, onChange, onItem, onBack, banner } = props;
+  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner } = props;
   const chapter = chapters[index];
   const card = (it: RespondentItem) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} />
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));

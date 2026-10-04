@@ -18,7 +18,8 @@ Wrap up tells unrated from skipped.
    exist in R1: the Wrap up lists both as still to finish, with different notes, which is the
    distinction the business plan asks for.
 4. A returning respondent lands on the first chapter with an unfinished item (note 12,
-   finding 9); "Welcome back" shows the count answered.
+   finding 9; the landing is built in E7-3, resumeAt); "Welcome back" shows the count
+   answered.
 5. Playwright: rate one of two items in a chapter, go to Wrap up through the row, see "1 still
    to finish" naming the item.
 

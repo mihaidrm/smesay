@@ -32,7 +32,7 @@ export type RespondentView =
   | LinkView
   | { kind: "sample"; link: Link }
   | { kind: "closedOwn"; link: Link; closedAt: Date; response: Response; answered: number; total: number }
-  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState> };
+  | { kind: "ready"; link: Link; response: Response | null; items: RespondentItem[]; areas: AreaMeta[]; answers: Record<string, AnswerState>; versions: Record<string, number> };
 
 // The response this device has on this link: the personal invite's, or the one its device
 // cookie names on the public link.
@@ -81,7 +81,8 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   if (view.kind !== "open") return view;
   const response = await responseOf(link, cookies.device);
   const { items: list, areas } = await itemsOf(link);
-  return { kind: "ready", link, response, items: list, areas, answers: response ? answerMap(await answers.forResponse(link.ws, response.id)) : {} };
+  const rows = response ? await answers.forResponse(link.ws, response.id) : [];
+  return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])) };
 }
 
 export type WriteRefusal = { status: 403 | 404 | 409 | 410 | 422; error: string };
@@ -149,23 +150,35 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
 // response's set and visible to its perspectives (422 otherwise), the kind and value from
 // the instrument's method and the item's proposal (src/lib/scoring.ts classify), never the
 // client's word; the answer replaces the item's previous one and the response's last save
-// moves, both after the link is re-read under the invite row's lock.
-export async function saveAnswer(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | { answer: AnswerState; complete: boolean }> {
+// moves, both after the link is re-read under the invite row's lock. From E7-3 the write
+// carries the version it was made on, the page and its save number, and the response the
+// page answers for: a response that is not this device's is "not started" (an open window
+// whose cookie was replaced), and a write the stored answer has moved past changes nothing
+// and returns { stale } with the stored answer, its version and who wrote it
+// (src/lib/answer-queue.ts).
+export type Written = { version: number; writer: string | null; writerSeq: number };
+export type SavedAnswer = { answer: AnswerState; complete: boolean } & Written;
+export async function saveAnswer(token: string, cookies: RespondentCookies, body: unknown, now = new Date()): Promise<WriteRefusal | SavedAnswer | { stale: SavedAnswer }> {
   const open = await openLinkFor(token, cookies, now);
   if ("status" in open) return open;
   const { link } = open;
   const parsed = parseAnswerInput(body);
   if ("error" in parsed) return { status: 422, error: parsed.error };
   const response = await responseOf(link, cookies.device);
-  if (!response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
+  if (!response || response.id !== parsed.input.response) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   const row = await items.get(link.ws, parsed.input.itemId);
   const visible = row && row.itemSetId === response.itemSetId && isVisible(row, response.perspectives);
   if (!row || !visible) return { status: 422, error: RESPONDENT_ERRORS.hiddenItem };
   const mapped = answerFor(link.instrument.method, link.instrument.showProposed, proposedCode(link.instrument.method, row.proposedValue), parsed.input);
   if ("error" in mapped) return { status: 422, error: mapped.error };
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
-  const written = await answers.upsert(link.ws, link.invite.id, { responseId: response.id, itemSetId: response.itemSetId, itemId: row.id, ...mapped.answer }, stillOpen, now);
+  const { base, page, seq, after } = parsed.input;
+  const written = await answers.upsert(link.ws, link.invite.id, { responseId: response.id, itemSetId: response.itemSetId, itemId: row.id, ...mapped.answer, base, page, seq, after }, stillOpen, now);
   if (!written) return { status: 404, error: "unknown" };
   if ("refused" in written) return refusalOf(written.refused, token, now);
-  return { answer: mapped.answer, complete: isComplete(mapped.answer) };
+  if ("stale" in written) {
+    const stored = answerMap([written.stale])[row.id];
+    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq } };
+  }
+  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq };
 }
