@@ -6,9 +6,9 @@ Outcome: the first sign-in lands in a named workspace that already holds the sam
 a second workspace appears in the switcher.
 
 ## Acceptance criteria
-1. On the first sign-in with no membership, the app asks for a workspace name (default: the
-   part of the email after the @, capitalised) and creates the workspace with the person as
-   owner. The quickstart (E12-2) follows.
+1. On the first sign-in with no membership, the app asks for a workspace name (the field
+   starts empty, decision 0047) and creates the workspace with the person as owner. The
+   quickstart (E12-2) follows.
 2. The new workspace holds the sample project "Sample project" with the Marlow Group rows
    from the seed (E1-4, decision 0027), marked is_sample, watermarked (E8-8). The project list
    shows it with the status "Sample" and "Created with the workspace" as its updated line (PM
@@ -43,8 +43,8 @@ Built 2026-10-02.
   request reads it back and checks it against the memberships again (`getAppContext()`), so a
   switch changes every list on the next request and a removed membership drops out at once.
   No foreign key: a stale id is simply not current.
-- First sign-in: src/app/app/new (the name defaults to the part of the email after the @,
-  capitalised, src/lib/workspace-name.ts; validated on the server, 1 to 80 characters), the
+- First sign-in: src/app/app/new (the name field starts empty, decision 0047; validated on
+  the server, 1 to 80 characters, src/lib/workspace-name.ts), the
   server action `createWorkspace` in src/app/app/actions.ts, which calls
   `createWorkspaceWithSample()` in src/db/queries/onboarding.ts: the workspace and its owner in
   one transaction, then the workspace's own copy of the sample through `seedSampleInto()`
@@ -66,14 +66,14 @@ Built 2026-10-02.
   membership at all goes to the create page, and the create action refuses a person who already
   has one. Error and loading states sit at the /app segment (so the shell's own layout is
   covered) and src/app/not-found.tsx carries the 404 copy until E11-6.
-- Tests: src/lib/workspace-name.test.ts (default name, slug, validation);
+- Tests: src/lib/workspace-name.test.ts (slug, validation);
   src/lib/workspace-choice.test.ts (which workspace a request works in);
   src/lib/current-workspace.test.ts (acceptance 4: the field is set only by the app, refused by
   better-auth's public update-session endpoint, and another workspace's id is 404 with the
   session's own cookie); src/db/queries/onboarding.test.ts (owner, sample copy, the suffixed slug
   on a taken one); src/db/seed/seed.test.ts (a second workspace gets its own copy with fresh
   tokens; the fixture keeps its numbers); src/lib/auth.test.ts and scoping.test.ts on migration 0002;
-  e2e/workspace.spec.ts (sign in, the default name, the server-side error, create, the sample
+  e2e/workspace.spec.ts (sign in, the empty name field, the server-side error, create, the sample
   row, the create page sends a member back). Screenshots in design note 16.
 - Copy: docs/copy/app.md (Workspace step, Signed-in shell) and errors.md (the name error).
 - Not in this story: members and invites (E2-4), settings (E2-5), the quickstart after naming

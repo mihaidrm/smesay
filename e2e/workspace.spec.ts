@@ -1,6 +1,7 @@
 // The main path of the workspace step (stories/E2-3, acceptance 6): sign in for the first
-// time, name the workspace, see the sample project in the list with its pill and its updated
-// line, and the workspace name in the sidebar and the breadcrumb.
+// time, see the name field empty (decision 0047), name the workspace, see the sample project
+// in the list with its pill and its updated line, and the workspace name in the sidebar and
+// the breadcrumb.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -23,9 +24,7 @@ test("name the workspace on the first sign-in and see the sample project", async
   await page.goto(await latestLink(request, email));
   await expect(page).toHaveURL(/\/app\/new$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Name your workspace");
-  await expect(page.getByLabel("Workspace name")).toHaveValue("Marlow.example");
-
-  await page.getByLabel("Workspace name").fill("   ");
+  await expect(page.getByLabel("Workspace name")).toHaveValue("");
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page.getByText("Enter a name for your workspace, up to 80 characters.")).toBeVisible();
 
