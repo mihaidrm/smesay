@@ -52,7 +52,7 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
           aria-label={name}
           aria-disabled={locked || undefined}
           onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); if (!locked) onGo(target); }}
-          className={cn(PILL, on ? "border-transparent text-white" : "border-hairline-strong bg-surface text-ink-muted hover:text-ink", locked && "opacity-40")}
+          className={cn(PILL, on ? "border-transparent text-white" : cn("border-hairline-strong bg-surface text-ink-muted", !locked && "hover:text-ink"), locked && "cursor-default opacity-40")}
           style={on ? { background: accent } : undefined}
           data-testid={testId}
         >{label}</a>

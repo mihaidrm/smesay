@@ -133,3 +133,8 @@ Built 2026-10-04 (design note 56, decision 0044):
   window's Submit it may show the notice with nothing changed, never hide one (recorded in
   docs/review-list.md); locked chapter pills are dimmed and a modifier click still opens a
   tab; the copy names the Still to finish rows.
+- Last check 2026-10-04: 0 blocking, 1 should-fix (a Start reporting a Submit made
+  elsewhere could still clear a "changed" a save had just reported), 2 nits. Fixed: for the
+  same response every answer, a Start's included, can only turn the notice on, so the page
+  never hides a change to its response; the review list names the lost Submit answer as a
+  second way to a needless notice; a locked chapter pill no longer reacts to the pointer.

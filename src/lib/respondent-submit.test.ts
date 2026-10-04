@@ -334,11 +334,13 @@ describe("after Submit", () => {
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: first })).toBe(false);
     expect(changedAfterSubmit({ firstSubmittedAt: first, updatedAt: new Date("2026-10-08T09:00:00Z") })).toBe(true);
     expect([changedSinceSubmit({ submittedAt: null, signedOff: false }), changedSinceSubmit({ submittedAt: first, signedOff: true }), changedSinceSubmit({ submittedAt: first, signedOff: false })]).toEqual([false, false, true]);
-    // A Start's answer: another response or a Submit made elsewhere replaces the page's; the
-    // Submit the page knows only turns the notice on (an older answer never clears it).
+    // A Start's answer: another response replaces the page's Submit and notice; for the same
+    // response a Submit made elsewhere replaces the page's Submit, and the answer only turns the
+    // notice on (a save's "changed" that came first is never cleared).
     const S0 = "2026-10-07T14:05:00.000Z"; const S1 = "2026-10-08T09:00:00.000Z";
     expect(startSubmit(null, { submittedAt: null, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
-    expect(startSubmit(null, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: false });
+    expect(startSubmit(null, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: "keep" });
+    expect(startSubmit(S0, { submittedAt: S1, changedSince: false }, false)).toEqual({ submitted: { at: S1 }, changedSince: "keep" });
     expect(startSubmit(S0, { submittedAt: S1, changedSince: true }, false)).toEqual({ submitted: { at: S1 }, changedSince: true });
     expect(startSubmit(S0, { submittedAt: S0, changedSince: false }, false)).toEqual({ submitted: "keep", changedSince: "keep" });
     expect(startSubmit(S0, { submittedAt: S0, changedSince: true }, false)).toEqual({ submitted: "keep", changedSince: true });

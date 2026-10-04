@@ -113,7 +113,8 @@ export function RespondentApp(props: RespondentAppProps) {
   // on Done and on the Wrap up until the next Submit, as the server holds it: every answer to
   // a save, a Start or a stale Submit carries changedSince. Between two Submits the server's
   // state only goes from signed off to changed, so the page takes the first "changed" it hears
-  // and keeps it until a Submit, whatever order the answers arrive in; an answer to a request
+  // and keeps it until a Submit, whatever order the answers arrive in (a Start's answer for the
+// same response included: startSubmit); an answer to a request
   // sent before the page's last Submit posted is left out (the Submit came after it). A change
   // undone before it was saved, or kept from an earlier visit and sent on opening, reads as
   // the server has it.

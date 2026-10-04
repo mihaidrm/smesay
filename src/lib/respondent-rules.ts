@@ -437,18 +437,19 @@ export function changedAfterSubmit(r: { firstSubmittedAt: Date | null; updatedAt
 // Times are the page's monotonic clock; -1 before any Submit.
 export const showsChanged = (since: boolean | null, sentAt: number, lastSubmit: number, submitted: boolean): boolean => since === true && submitted && sentAt >= lastSubmit;
 // What a Start's answer does to the page's Submit and notice (E7-6): the response's Submit as
-// the server holds it after the Start. Another response, or a Submit the page did not know
-// (made in another window or on another device), replaces the page's, and its "changed" is
-// taken as given. The Submit the page knows can only turn the notice on: between two Submits
-// the server's state only goes one way, and an older answer must not clear a newer "changed".
-// The page never hides a change: in a race with another window's Submit it may show the notice
-// when nothing changed since, and a Submit again is harmless (docs/review-list.md).
+// the server holds it after the Start. Another response replaces the page's Submit and its
+// notice as given. For the same response a Submit the page did not know (made in another
+// window or on another device, or one whose answer was lost) replaces the page's Submit, and
+// the answer can only turn the notice on, as every other answer: a save's "changed" that
+// arrived first may be newer than the Start's read. So the page never hides a change to its
+// response; in a race it may show the notice when nothing changed since, and a Submit again
+// is harmless (docs/review-list.md).
 export type StartSubmit = { submitted: "keep" | { at: string } | null; changedSince: "keep" | boolean };
 export function startSubmit(known: string | null, reply: { submittedAt?: unknown; changedSince?: unknown }, other: boolean): StartSubmit {
   const at = typeof reply.submittedAt === "string" ? reply.submittedAt : null;
   const changed = at !== null && reply.changedSince === true;
-  if (other || at !== known) return { submitted: at ? { at } : null, changedSince: changed };
-  return { submitted: "keep", changedSince: changed ? true : "keep" };
+  if (other) return { submitted: at ? { at } : null, changedSince: changed };
+  return { submitted: at !== known ? (at ? { at } : null) : "keep", changedSince: changed ? true : "keep" };
 }
 // A submitted response with changes not submitted again (E7-6, acceptance 6): every change
 // takes the sign-off back until the next Submit.
