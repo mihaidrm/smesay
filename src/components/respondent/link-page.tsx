@@ -1,6 +1,7 @@
 // A respondent page that is not the instrument (stories/E6-1, acceptance 3; E7-1 acceptance
 // 3): unknown link, not yet open, closed, inactive, and the passcode step. The workspace's
-// name in the header when it is known, a title, one line, and "Powered by SMEsay"; phone
+// name in the header when it is known, a title, one line, and "Powered by SMEsay" while the
+// workspace is on the Free plan (none on the unknown-link page, which has no workspace); phone
 // first, the 560 px column on desktop with the header in it, as About you
 // (docs/design-system.md, Respondent columns). Returns
 // a page, never data (SECURITY.md).

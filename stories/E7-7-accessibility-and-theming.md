@@ -42,9 +42,8 @@ Built 2026-10-04 (design note 57, decision 0044):
 - Research before adding @axe-core/playwright (CLAUDE.md): MPL-2.0 (`npm view
   @axe-core/playwright license`); version 4.13.0, the latest tag, published 2026-08-11
   (`npm view @axe-core/playwright time`; the 2026-09-02 first written here is the registry's
-  last change, a canary on the next tag); the open issue count of dequelabs/axe-core-npm is
-  unverified (this session's GitHub access covers only this repository). Added as a dev
-  dependency.
+  last change, a canary on the next tag); 92 open issues on dequelabs/axe-core-npm
+  (github.com/dequelabs/axe-core-npm/issues, read 2026-10-04). Added as a dev dependency.
 - Acceptance 1: e2e/respondent-a11y.spec.ts runs axe (WCAG 2.0 A and AA, 2.1 AA) over About
   you, a chapter, the Wrap up and Done on the test's own project (the sample link collects
   nothing, docs/review-list.md) and finds no serious or critical violation.

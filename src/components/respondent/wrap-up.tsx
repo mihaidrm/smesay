@@ -222,7 +222,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <div className="flex justify-between font-mono text-[10px] text-ink-muted"><span id={`${prefix}-guessing`}>{WRAP_UP_COPY.guessing}</span><span id={`${prefix}-certain`}>{WRAP_UP_COPY.certain}</span></div>
         </div>
         <label htmlFor={`${prefix}-signoff`} className="flex min-h-12 items-start gap-3 rounded-xl border border-hairline-strong bg-surface px-4 py-3 text-[15px] leading-5 has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground" data-testid="wrap-up-signoff">
-          <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)]" />
+          <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)] focus:outline-hidden" />
           <span>{signOffFor(closing)}</span>
         </label>
         </fieldset>

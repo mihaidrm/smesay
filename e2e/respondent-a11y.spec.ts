@@ -82,12 +82,13 @@ test("accessible journey: axe, keyboard, names, fonts, motion, dark accent", asy
   await link.keyboard.press("Enter");
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await expect(link.getByTestId("chapter-title")).toBeFocused();
-  await noSeriousViolations(link, "Chapter");
   // Details longer than their slot scroll and take a tab stop, named for the item; the long
-  // link wraps, so they never scroll sideways.
+  // link wraps, so they never scroll sideways. Checked before axe runs, so axe reads the
+  // details once their size has been measured.
   const details = link.getByRole("region", { name: "Details: Receipts captured by phone" });
   await expect(details).toHaveAttribute("tabindex", "0");
   expect(await details.evaluate((e) => [e.scrollHeight > e.clientHeight + 1, e.scrollWidth <= e.clientWidth])).toEqual([true, true]);
+  await noSeriousViolations(link, "Chapter");
 
   // The keyboard alone: Tab to the rating row, an arrow picks the next value, Tab to the box.
   await expect(link.getByRole("radio", { name: "Must, proposed" })).toHaveCount(1);

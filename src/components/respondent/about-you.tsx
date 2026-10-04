@@ -126,7 +126,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
               const id = `${prefix}-p-${i}`;
               return (
                 <label key={name} htmlFor={id} className="flex min-h-12 items-center gap-3 rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground">
-                  <input id={id} type="checkbox" checked={picks.includes(name)} onChange={() => togglePick(name)} className="size-5 shrink-0 accent-[var(--violet)]" />
+                  <input id={id} type="checkbox" checked={picks.includes(name)} onChange={() => togglePick(name)} className="size-5 shrink-0 accent-[var(--violet)] focus:outline-hidden" />
                   <span>{name}</span>
                 </label>
               );
