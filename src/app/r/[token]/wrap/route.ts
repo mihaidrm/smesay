@@ -9,8 +9,7 @@
 // 409 not open yet, 410), 409 when this device has no response or not the one named, 422
 // with the sentence (a confidence off the scale, text too long, a missing item outside the
 // list's areas or the scale). JSON only, up to 16 KB (src/lib/request-json.ts). The checks
-// and the write are saveWrap (src/lib/respondent.ts). No rate limit yet: E11-1
-// (docs/review-list.md).
+// and the write are saveWrap (src/lib/respondent.ts). Rate limited per address in src/proxy.ts (E11-1).
 import { NextResponse } from "next/server";
 import { isPreviewToken } from "@/lib/preview-token";
 import { PASSCODE_COOKIE } from "@/lib/link-access";

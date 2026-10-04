@@ -15,7 +15,7 @@ of the content; page means it replaces the screen.
 | Inline, email field | Email empty or not an address | Enter the email address you signed up with. |
 | Banner, sign-in page | Link sent | Check your email. The link works once and stops working in [N] minutes. |
 | Page | Link used twice or expired | This sign-in link has already been used or has expired. Ask for a new one. [Button: Send a new link] |
-| Page | Five failed attempts | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. |
+| Inline, email field; the Google page (E11-1) | Five sign-in attempts per email or address in 15 minutes, then a wait of one minute that doubles each time, up to an hour | Too many sign-in attempts. Wait [MINUTES] minutes, then try again. (1 minute) |
 | Inline, email field | The server refused the request for another reason | The link was not sent. Try again in a minute. |
 | Inline, workspace name field | Name empty or over 80 characters | Enter a name for your workspace, up to 80 characters. |
 | Inline, sidebar footer | Sign out request failed | Sign out did not complete. Try again. |
@@ -185,7 +185,7 @@ of the content; page means it replaces the screen.
 | Page (E7-1) | The sample project's link (it never collects answers, E8-8 acceptance 2) | This is a sample link. It belongs to the sample project in [WORKSPACE] and does not collect answers. Ask the person who sent it for the real link. (Under it, the sample band: Sample data: invented answers, for looking around, E8-8 acceptance 1) |
 | Page, under the closed line (E7-1, acceptance 3) | A closed personal link whose respondent started, answered at least one item and did not submit (none answered: the closed page alone; submitted: E7-6) | You answered [N] of [M] items before it closed. They were not submitted; the project team sees them marked as not submitted. ("item" when [M] is 1) |
 | Inline, passcode | Wrong passcode | That passcode is not right. Ask the person who sent you the link. |
-| Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 60 per link, in 15 minutes; E11-1 widens it) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
+| Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 60 per link, in 15 minutes; unchanged by E11-1) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
 | Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, passcode page (E6-1) | The process's attempt table is full of live entries (docs/review-list.md) | Too many people are entering passcodes right now. Wait a few minutes and try again. |
 | Page (E6-1; E11-6 builds the full error pages) | The link page failed to load (a server error) | This page could not be loaded. Something went wrong on our side. Try again in a moment. [Button: Try again] |
@@ -274,6 +274,7 @@ of the content; page means it replaces the screen.
 
 | Where | When | Message |
 |---|---|---|
+| Page, respondent routes and logo (E11-1) | Over 100 requests a minute from one address (429) | Too many requests from your connection. Wait a minute and try again. (Title: Too many requests) |
 | Page | 404 | This page does not exist. Check the address, or go to your projects. |
 | Page | 500 | The server could not finish this request. It has been logged. Try again in a minute; if it keeps failing, email [SUPPORT EMAIL]. |
 | Page | Maintenance | SMEsay is being updated and is back within [MINUTES] minutes. Respondent links keep their saved answers. |

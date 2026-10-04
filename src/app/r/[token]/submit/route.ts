@@ -13,7 +13,7 @@
 // (node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md). Its link
 // starts from the app's own address, BETTER_AUTH_URL without a trailing slash, read here
 // directly so the respondent side imports nothing of the PM app's sign-in (stories/E7-1,
-// technical notes). No rate limit yet: E11-1 (docs/review-list.md).
+// technical notes). Rate limited per address in src/proxy.ts (E11-1).
 import { after, NextResponse } from "next/server";
 import { PASSCODE_COOKIE } from "@/lib/link-access";
 import { cookieValue } from "@/lib/request-cookies";

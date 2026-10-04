@@ -27,7 +27,7 @@ export function SignInForm({ next }: { next: string }) {
     setError(null); setBusy(true);
     const { error: sendError } = await authClient.signIn.magicLink({ email: address, callbackURL: next, errorCallbackURL: "/sign-in/link-used" });
     setBusy(false);
-    if (sendError) { setError(messageForStatus(sendError.status)); return; }
+    if (sendError) { setError(messageForStatus(sendError.status, (sendError as { waitMinutes?: unknown }).waitMinutes)); return; }
     setSent(true);
   }
 

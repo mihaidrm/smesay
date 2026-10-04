@@ -68,7 +68,7 @@ Built 2026-10-03 (design note 46, decision 0044):
   passcode page of an open link and remembered by a cookie scoped to the link's path
   (src/lib/link-access.ts); wrong attempts are limited in the process, 60 per link and 5
   per link and address in 15 minutes, counted when a post starts and given back on a right
-  passcode, and E11-1 widens that.
+  passcode; E11-1 kept that as it is.
 - Acceptance 5: publish and the four saves share the instrument row's lock; the test in
   src/lib/instruments.test.ts holds the lock, starts three saves, publishes, and sees the
   scoring save narrowed to the layout and the perspectives and closing saves refused.
