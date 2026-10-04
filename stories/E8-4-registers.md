@@ -14,12 +14,12 @@ different-priority register, not beside it, so both keep their columns at 1440.
 
 ## Acceptance criteria
 1. "Different priority and Disagree" tab: the different-priority register (item, respondent,
-   role, proposed, their value, reason) and, beside it, the disagree register (item,
+   role, proposed, their value, reason) and, under it, the disagree register (item,
    respondent, role, reason; decision 0014), each with its own count in its heading.
    Questions and gaps tab: the unclear register (item, respondent, role, question) and the
    missing-item register (text, suggested area, suggested value, respondent, role).
-2. Rows read as the landing page promises: "[Name], [Role] says [Value]: [reason]" or "marked
-   it Unclear: [question]" (docs/copy/landing.md); values use the instrument's labels (E5-2).
+2. Rows read across their columns: the respondent (named as on the Responses tab), their
+   role, the value and the reason or question; values use the instrument's labels (E5-2).
 3. Sortable by every column, ascending and descending, the sort in the URL; the page's
    filter bar (E8-1) narrows every register, so "only the ones that left comments" is the
    comment filter and "only Finance" is the field filter, with no filter of the tab's own.
@@ -37,7 +37,7 @@ different-priority register, not beside it, so both keep their columns at 1440.
   priority" (decision 0044, item 6).
 
 ## Technical notes
-One query per register, scoped by workspace and instrument, taking the ResultsFilter of
+One query for a tab's answer registers and one for the missing items, scoped by workspace and instrument, taking the ResultsFilter of
 E8-1; the sort is a whitelist of column keys.
 
 Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):

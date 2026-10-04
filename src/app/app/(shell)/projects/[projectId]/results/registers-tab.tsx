@@ -43,8 +43,9 @@ function SortHeader({ c, sort, filter, href }: { c: Column; sort: ResultsFilter[
 
 function Register({ title, count, columns, queryKeys, aliases, filter, href, testId, children }: { title: string; count: number; columns: Column[]; queryKeys: string[]; aliases?: Record<string, string>; filter: ResultsFilter; href: Props["href"]; testId: string; children: React.ReactNode }) {
   const sort = registerShownSort(filter.sort, columns.map((c) => c.key), queryKeys, aliases);
-  // An empty register says why: nothing under the filter, or nothing yet.
-  const empty = filterActive(filter) || !filter.includeUnsubmitted ? REGISTERS_COPY.none : REGISTERS_COPY.noneYet;
+  // An empty register says why: nothing under the filter, or nothing yet (the switch is not
+  // a filter, results-filter.ts filterActive).
+  const empty = filterActive(filter) ? REGISTERS_COPY.none : REGISTERS_COPY.noneYet;
   return (
     <section className="card overflow-x-auto p-0" aria-label={title} data-testid={testId}>
       <h3 className="px-4 pt-4 pb-2 text-[15px] font-bold">{title} <span className="font-mono text-sm text-ink-muted" data-testid={`${testId}-count`}>{count}</span></h3>
