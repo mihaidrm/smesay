@@ -32,6 +32,8 @@ export const SUMMARY_COPY = {
   agreementByArea: "Agreement by area",
   confidence: "How confident respondents are",
   confidenceAxis: (n: number, value: number) => `${value}: ${n}`,
+  average: (avg: string, n: number) => `Average ${avg} from ${n} ${n === 1 ? "answer" : "answers"}`,
+  noConfidenceYet: "No confidence given yet",
   items: "Items",
   columns: { ref: "Reference", item: "Item", proposed: "Proposed", agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notAnswered: "Not answered", agreement: "Agreement" },
   signOff: "Sign-off record",
@@ -45,7 +47,12 @@ export const SUMMARY_COPY = {
   countsInWords: (c: SummaryCounts) => [c.agree && `${c.agree} agree`, c.change && `${c.change} different priority`, c.disagree && `${c.disagree} disagree`, c.unclear && `${c.unclear} unclear`, c.pick && `${c.pick} rated`, c.notAnswered && `${c.notAnswered} not answered`].filter(Boolean).join(" · ") || "No answers",
 };
 
-const COLOURS = { agree: "#2f855a", change: "#b7791f", disagree: "#718096", unclear: "#7c3aed", pick: "#6d4cf5", notAnswered: "#e6e3f0" };
+// The status colours, Rated in the missing-item blue that starts the values ramp, apart from
+// Unclear's violet; Not answered is an absence: the surface with a dashed strong hairline
+// (docs/design-system.md, Charts and the status table).
+const COLOURS = { agree: "#2f855a", change: "#b7791f", disagree: "#718096", unclear: "#7c3aed", pick: "#2b6cb0", notAnswered: "#ffffff" };
+const NOT_ANSWERED_STROKE = "#cfcbe0";
+let barId = 0;
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 let fonts: string | null = null;
@@ -63,30 +70,40 @@ function fontFaces(): string {
 
 function stackedBar(c: SummaryCounts, width = 420, height = 14): string {
   const total = c.agree + c.change + c.disagree + c.unclear + c.pick + c.notAnswered;
-  if (total === 0) return `<svg width="${width}" height="${height}" role="img" aria-label="No answers"><rect width="${width}" height="${height}" rx="3" fill="${COLOURS.notAnswered}"/></svg>`;
+  const id = `bar${(barId += 1)}`;
+  const empty = `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="3" fill="${COLOURS.notAnswered}" stroke="${NOT_ANSWERED_STROKE}" stroke-dasharray="3 2"/>`;
+  if (total === 0) return `<svg width="${width}" height="${height}" role="img" aria-label="${esc(SUMMARY_COPY.countsInWords(c))}">${empty}</svg>`;
   let x = 0;
-  const parts = (["agree", "change", "disagree", "unclear", "pick", "notAnswered"] as const).map((k) => {
+  const parts = (["agree", "change", "disagree", "unclear", "pick"] as const).map((k) => {
     const w = (c[k] / total) * width;
     const r = w > 0 ? `<rect x="${x.toFixed(2)}" width="${w.toFixed(2)}" height="${height}" fill="${COLOURS[k]}"/>` : "";
     x += w;
     return r;
   });
-  return `<svg width="${width}" height="${height}" role="img" aria-label="${esc(SUMMARY_COPY.countsInWords(c))}"><clipPath id="r"><rect width="${width}" height="${height}" rx="3"/></clipPath><g clip-path="url(#r)">${parts.join("")}</g></svg>`;
+  return `<svg width="${width}" height="${height}" role="img" aria-label="${esc(SUMMARY_COPY.countsInWords(c))}">${empty}<clipPath id="${id}"><rect width="${width}" height="${height}" rx="3"/></clipPath><g clip-path="url(#${id})">${parts.join("")}</g></svg>`;
 }
 
+// One hue (violet), a bar per value 1 to 5 with its count above, an empty bin a 4 px hairline,
+// and the average printed as text (docs/design-system.md, Confidence at sign-off).
 function histogram(values: number[]): string {
   const max = Math.max(1, ...values);
   const w = 56; const h = 110; const gap = 14;
   const bars = values.map((n, i) => {
-    const bh = (n / max) * (h - 30);
+    const bh = n === 0 ? 4 : (n / max) * (h - 30);
     const x = i * (w + gap);
-    return `<rect x="${x}" y="${h - 20 - bh}" width="${w}" height="${bh}" rx="3" fill="#6d4cf5"/><text x="${x + w / 2}" y="${h - 24 - bh}" text-anchor="middle" font-size="10" fill="#15131f">${n}</text><text x="${x + w / 2}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#5e5a72">${i + 1}</text>`;
+    const fill = n === 0 ? "#e6e3f0" : "#6d4cf5";
+    return `<rect x="${x}" y="${h - 20 - bh}" width="${w}" height="${bh}" rx="2" fill="${fill}"/><text x="${x + w / 2}" y="${h - 24 - bh}" text-anchor="middle" font-size="10" fill="#15131f">${n}</text><text x="${x + w / 2}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#5e5a72">${i + 1}</text>`;
   });
   return `<svg width="${values.length * (w + gap)}" height="${h}" role="img" aria-label="${esc(values.map((n, i) => SUMMARY_COPY.confidenceAxis(n, i + 1)).join(", "))}">${bars.join("")}</svg>`;
 }
 
 const table = (columns: string[], rows: string[][], numeric: number[] = []) =>
   `<table><thead><tr>${columns.map((c, i) => `<th${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+const averageLine = (bins: number[]) => {
+  const n = bins.reduce((a, b) => a + b, 0);
+  return n === 0 ? SUMMARY_COPY.noConfidenceYet : SUMMARY_COPY.average((bins.reduce((a, b, i) => a + b * (i + 1), 0) / n).toFixed(1), n);
+};
 
 export function summaryHtml(v: SummaryView): string {
   const C = SUMMARY_COPY.columns;
@@ -113,18 +130,19 @@ th.n,td.n{text-align:right}
 tr{break-inside:avoid}
 .break{break-before:page}
 .action{border:1px solid #e6e3f0;border-radius:2mm;padding:2.5mm;margin-bottom:2mm;break-inside:avoid}`;
-  const legend = `<p class="legend muted">${(["agree", "change", "disagree", "unclear", "pick", "notAnswered"] as const).map((k) => `<span><i style="background:${COLOURS[k]}"></i>${esc(C[k])}</span>`).join("")}</p>`;
+  const rated = v.areas.some((a) => a.counts.pick > 0);
+  const legend = `<p class="legend muted">${(["agree", "change", "disagree", "unclear", "pick", "notAnswered"] as const).filter((k) => k !== "pick" || rated).map((k) => `<span><i style="background:${COLOURS[k]}${k === "notAnswered" ? `;border:1px dashed ${NOT_ANSWERED_STROKE}` : ""}"></i>${esc(C[k])}</span>`).join("")}</p>`;
   const page1 = `<div class="head"><div><h1>${esc(v.project)}</h1><div class="muted">${esc(v.workspace)} · ${esc(v.title)}</div></div><div class="muted">${esc(SUMMARY_COPY.generated(v.generatedAt))}</div></div>
 ${v.lines.map((l) => `<p class="muted">${esc(l)}</p>`).join("")}
 <div class="tiles">${v.tiles.map((t) => `<div class="tile"><b>${esc(t.value)}</b>${esc(t.label)}</div>`).join("")}</div>
 <h2>${esc(SUMMARY_COPY.agreementByArea)}</h2>${legend}
 ${v.areas.map((a) => `<div class="area"><div><b>${esc(a.name)}</b> <span class="muted mono">${esc(a.percent)}</span></div>${stackedBar(a.counts)}<div class="muted">${esc(SUMMARY_COPY.countsInWords(a.counts))}</div></div>`).join("")}
-<h2>${esc(SUMMARY_COPY.confidence)}</h2>${histogram(v.confidence)}`;
+<h2>${esc(SUMMARY_COPY.confidence)}</h2>${histogram(v.confidence)}<p class="muted">${esc(averageLine(v.confidence))}</p>`;
   const items = `<h2 class="break">${esc(SUMMARY_COPY.items)}</h2>${v.tables.map((t) => `<h3>${esc(t.area)}</h3>${table([C.ref, C.item, C.proposed, C.agree, C.change, C.disagree, C.unclear, C.pick, C.notAnswered, C.agreement], t.rows.map((r) => [r.ref, r.text, r.proposed, String(r.counts.agree), String(r.counts.change), String(r.counts.disagree), String(r.counts.unclear), String(r.counts.pick), String(r.counts.notAnswered), r.percent]), [3, 4, 5, 6, 7, 8, 9])}`).join("")}`;
   const regs = v.registers.map((r) => `<h2>${esc(r.title)} (${r.rows.length})</h2>${r.rows.length === 0 ? `<p class="muted">${esc(r.empty)}</p>` : table(r.columns, r.rows)}`).join("");
   const last = `<h2 class="break">${esc(SUMMARY_COPY.signOff)}</h2>${v.signOffs.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noSignOffs)}</p>` : table(SUMMARY_COPY.signOffColumns, v.signOffs.map((s) => [s.who, s.when, s.confidence]), [2])}
 <h2>${esc(SUMMARY_COPY.actions)}</h2>${v.actions.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noActions)}</p>` : v.actions.map((a) => `<div class="action"><div class="muted">${esc([a.kind, a.state].filter(Boolean).join(" · "))}</div><b>${esc(a.title)}</b><div>${esc(a.why)}</div><div class="muted">${esc(a.cites)}</div></div>`).join("")}`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(v.project)}: ${esc(SUMMARY_COPY.heading)}</title><style>${css}</style></head><body>${page1}${items}${regs}${last}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(SUMMARY_COPY.heading)}</title><style>${css}</style></head><body>${page1}${items}${regs}${last}</body></html>`;
 }
 
 // The header and footer templates (Page.pdf headerTemplate and footerTemplate: "Page styles are
@@ -132,6 +150,6 @@ ${v.areas.map((a) => `<div class="area"><div><b>${esc(a.name)}</b> <span class="
 const T = "font-family:Helvetica,Arial,sans-serif;font-size:8px;color:#5e5a72;width:100%;margin:0 16mm;-webkit-print-color-adjust:exact;print-color-adjust:exact";
 export function summaryHeader(v: Pick<SummaryView, "workspace" | "project" | "sample">): string {
   const band = v.sample ? `<div style="background:#fff3d6;color:#8a5a00;font-weight:700;text-align:center;padding:2px 0;margin-bottom:2px">${esc(SUMMARY_COPY.watermark)}</div>` : "";
-  return `<div style="${T}">${band}<div>${esc(v.workspace)} · ${esc(v.project)}</div></div>`;
+  return `<div style="${T}">${band}<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.workspace)} · ${esc(v.project)}</div></div>`;
 }
 export const summaryFooter = (): string => `<div style="${T};text-align:right">${SUMMARY_COPY.page} <span class="pageNumber"></span> ${SUMMARY_COPY.of} <span class="totalPages"></span></div>`;

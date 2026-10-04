@@ -40,7 +40,9 @@ npm run test:e2e         # Playwright, one test per user-facing flow; export DAT
 ```
 
 On a machine with a preinstalled Chromium and no download access, set
-`PLAYWRIGHT_CHROMIUM_PATH` to its path before `npm run test:e2e`.
+`PLAYWRIGHT_CHROMIUM_PATH` to its path before `npm run test:e2e`. The app reads the same variable
+at run time: the PDF summary (stories/E10-3) prints with that Chromium, else with the one
+`npx playwright install chromium` downloads; with neither, a summary download fails.
 
 ## What is in the scaffold and where each choice comes from
 

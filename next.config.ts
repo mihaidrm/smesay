@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   // checks the sizes itself (src/lib/logo.ts, src/lib/uploads.ts); 6 MB leaves room for the
   // multipart framing around a 5 MB file.
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
+  // The PDF summary reads its fonts from src/lib/export/fonts at run time (stories/E10-3), which
+  // output tracing does not see; outputFileTracingIncludes carries them with the export route
+  // (node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md).
+  outputFileTracingIncludes: { "/api/projects/[projectId]/export/[file]": ["./src/lib/export/fonts/**/*"] },
 };
 
 export default nextConfig;

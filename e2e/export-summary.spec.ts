@@ -68,5 +68,5 @@ test("download the summary PDF, and render 200 items and 50 responses under 10 s
   // Over 30 pages the file still downloads and the note says how long it runs.
   await page.goto(`/app/projects/${generatedId}/results?unsubmitted=0&tab=export`);
   await Promise.all([page.waitForEvent("download", { timeout: 30_000 }), page.getByTestId("export-summary-download").click()]);
-  await expect(page.getByTestId("export-summary-download-pages")).toHaveText(`The summary runs to ${pdf.headers()["x-summary-pages"]} pages. It still downloads; the deck version is the first 30.`);
+  await expect(page.getByTestId("export-summary-download-pages")).toHaveText(`The summary runs to ${pdf.headers()["x-summary-pages"]} pages, over the 30 a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again.`);
 });

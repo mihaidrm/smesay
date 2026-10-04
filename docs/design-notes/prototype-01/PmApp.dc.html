@@ -1006,7 +1006,7 @@ const exportDefs = [
 { id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
 { id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
 { id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'One JSON file with every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
-{ id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'A PDF of what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.', note: '', size: '3 pages' }
+{ id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'A PDF of what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.', note: '', size: '' }
 ];
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));
 const isProject = s.view === 'project';

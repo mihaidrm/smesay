@@ -52,18 +52,25 @@ Built 2026-10-04 (design note 71, decision 0044):
   order and the filter.
 - Acceptance 2: e2e/export-summary.spec.ts imports a generated project of 200 items and 50
   submitted responses (through E10-2's import) and times the summary: 6,526 ms in this
-  container for 245 pages. CI's runner prints its own time in the job log.
-- Acceptance 3: the bars and the histogram are SVG in the status colours, each with its counts
-  in words under it and as its accessible name; Plus Jakarta Sans and Geist Mono, the design
+  container for 245 pages. CI's runner prints its own time in the job log; the CI figure is
+  recorded here when the pull request's run finishes.
+- Acceptance 3: the bars and the histogram are SVG in the status colours (Rated in the
+  missing-item blue, Not answered a dashed outline; the histogram one violet with empty bins a
+  4 px hairline and the average as text), each with its counts in words under it and as its
+  accessible name; Plus Jakarta Sans and Geist Mono, the design
   system's fonts, are embedded (SIL Open Font License 1.1, licences in src/lib/export/fonts);
   A4 portrait with 16 mm margins (@page). The story's "Geist" is read as the design system's
   Geist Mono for the numbers.
-- Acceptance 4: the route returns the page count in x-summary-pages; over 30 pages the file
-  still downloads and the tab shows the errors.md sentence (e2e checks it on the 245 pages).
+- Acceptance 4: the route returns the page count in x-summary-pages (the document title is
+  fixed, so no typed name can read as a page object); over 30 pages the file still downloads and
+  the tab shows the errors.md sentence, which says how to shorten the file (e2e checks it on the 245 pages).
 - Acceptance 5: the sample's band "Sample data, invented" is in Page.pdf's header template,
   which Chromium prints on every page; pdftotext found it on 10 of 10 pages of a sample
   render. A position: fixed band missed the last page, so it was not used.
 - The outcome's "about three pages" holds for a short list only: a 200-item list's item
-  table runs to about 17 pages, and each register row is a line (docs/review-list.md).
+  table runs to about 17 pages, and each register row is a line. Asked of Mihai with a
+  recommendation (docs/review-list.md).
+- Resources: at most two summaries render at once per process, each stops after 60 seconds,
+  and the page runs no script and loads nothing from the network.
 - Out of scope as written: the workspace logo is not in the header yet (the name is).
 - E9-2 acceptance 4: the summary carries the actions' state.

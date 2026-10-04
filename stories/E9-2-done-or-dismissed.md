@@ -41,9 +41,9 @@ Built 2026-10-04 (design note 67, decision 0044):
   dismisses one, runs again with the same output and sees it absent.
 - Acceptance 3: the Done section lists each with "Done [DATE AND TIME] UTC"; the tab's count is the
   open ones (results.numbers), tested in the e2e.
-- Acceptance 4: the exports are E10-2 and E10-3, not built yet; insight.state, closed_at and
-  closed_by are there for them, and E10-2 acceptance 1 and E10-3 acceptance 1 now carry the
-  state and date, so this criterion is met when they are.
+- Acceptance 4: met by E10-2 (the project file carries each action's state, closedAt and the
+  closer's email) and E10-3 (the summary's last page lists the done and dismissed actions with
+  their state and date).
 - Playwright: e2e/actions.spec.ts dismisses one, marks one done, reads the date and the tab
   count, reopens, writes again and sees the dismissed one stay out.
 

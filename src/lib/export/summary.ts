@@ -20,6 +20,10 @@ import { EXPORT_COPY } from "./copy";
 import { SUMMARY_COPY, type SummaryCounts, type SummaryView } from "./summary-html";
 
 const name = (p: { who: string | null; anon: number | null }) => p.who ?? RESPONSES_COPY.anonymous(p.anon ?? 0);
+// A register row's respondent with the page's marks (registers-tab.tsx): not submitted, or
+// changes not submitted again.
+const marked = (p: { who: string | null; anon: number | null; submitted: boolean; changedSince: boolean }) =>
+  `${name(p)}${!p.submitted ? `, ${REGISTERS_COPY.notSubmitted.toLowerCase()}` : p.changedSince ? `, ${RESPONSES_COPY.changedSince.toLowerCase()}` : ""}`;
 const countsOf = (c: Counts): SummaryCounts => ({ agree: c.agree, change: c.change, disagree: c.disagree, unclear: c.unclear, pick: c.pick, notAnswered: notAnsweredOf(c) });
 const figure = (percent: number | null, rated: boolean, c: Counts) => (rated ? AGREEMENT_COPY.ratedLine(c.pick) : percent === null ? AGREEMENT_COPY.noPercent : `${percent}%`);
 
@@ -63,10 +67,10 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
       rows: a.rows.map((r) => ({ ref: r.reference ?? "", text: r.title, proposed: label(r.proposed), counts: countsOf(r.counts), percent: figure(r.percent, r.proposed === null, r.counts) })),
     })),
     registers: [
-      { title: R.changeTitle, columns: ["", R.item, R.respondent, R.proposed, R.theirValue, R.reason], rows: pushed.filter((r) => r.kind === "change").map((r) => [...itemOf(r), name(r), proposedOf(r.proposedValue), label(r.value), r.reason ?? ""]), empty: R.none },
-      { title: R.disagreeTitle, columns: ["", R.item, R.respondent, R.reason], rows: pushed.filter((r) => r.kind === "disagree").map((r) => [...itemOf(r), name(r), r.reason ?? ""]), empty: R.none },
-      { title: R.unclearTitle, columns: ["", R.item, R.respondent, R.question], rows: unclear.map((r) => [...itemOf(r), name(r), r.reason ?? ""]), empty: R.none },
-      { title: R.missingTitle, columns: [R.missingText, R.area, R.suggestedValue, R.respondent], rows: missing.map((m) => [m.text, m.area ?? "", label(m.value), name(m)]), empty: R.none },
+      { title: R.changeTitle, columns: ["", R.item, R.respondent, R.proposed, R.theirValue, R.reason], rows: pushed.filter((r) => r.kind === "change").map((r) => [...itemOf(r), marked(r), proposedOf(r.proposedValue), label(r.value), r.reason ?? ""]), empty: R.none },
+      { title: R.disagreeTitle, columns: ["", R.item, R.respondent, R.reason], rows: pushed.filter((r) => r.kind === "disagree").map((r) => [...itemOf(r), marked(r), r.reason ?? ""]), empty: R.none },
+      { title: R.unclearTitle, columns: ["", R.item, R.respondent, R.question], rows: unclear.map((r) => [...itemOf(r), marked(r), r.reason ?? ""]), empty: R.none },
+      { title: R.missingTitle, columns: [R.missingText, R.area, R.suggestedValue, R.respondent], rows: missing.map((m) => [m.text, m.area ?? "", label(m.value), marked(m)]), empty: R.none },
     ],
     signOffs: signOffs.map((s) => ({ who: name(s), when: s.signedOff ? formatUtc(s.submittedAt) : `${formatUtc(s.submittedAt)}, ${RESPONSES_COPY.changedSince.toLowerCase()}`, confidence: s.confidence === null ? SUMMARY_COPY.noConfidence : String(s.confidence) })),
     actions: [...actions].sort((a, b) => order[a.state] - order[b.state]).map((a) => ({
