@@ -17,7 +17,7 @@ export const EXPORT_COPY = {
   },
   // The Export tab (E10-1, acceptance 1).
   tab: {
-    line: "Each file holds what this page shows: the same filter and the same switch. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
+    line: "Each CSV file holds what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
     files: {
       answers: { title: "Answers", line: "One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment." },
       items: { title: "Items with totals", line: "One row per item: the counts of each answer, not answered, and the agreement." },
@@ -35,7 +35,7 @@ export const EXPORT_COPY = {
   // E10-2: the import page.
   importPage: {
     title: "Import a project",
-    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instruments, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a link to the people who have not started; for anyone else, revoke their invite and press New link.",
+    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instruments, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.",
     field: "Project file (.json)",
     submit: "Import project",
     link: "Import a project",

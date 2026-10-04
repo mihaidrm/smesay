@@ -18,7 +18,7 @@ import { monthStart } from "@/db/queries/usage";
 import { roomInPlan, withinPlan } from "@/lib/plans";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
-import { FIELDS_MAX } from "@/lib/respondent-fields";
+import { FIELDS_MAX, OPTIONS_MAX, OPTIONS_MIN } from "@/lib/respondent-fields";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
 
@@ -41,8 +41,15 @@ export const FILE_ENUMS = {
   insightState: ["open", "done", "dismissed"],
 } as const;
 
-const date = z.iso.datetime({ offset: true });
-const text = (max: number) => z.string().max(max);
+// A date Postgres's timestamptz holds and the app writes: ISO 8601 with an offset, between 1970
+// and 9999 in UTC (postgresql.org/docs/current/datatype-datetime.html gives the type's range).
+const date = z.iso.datetime({ offset: true }).refine((s) => { const y = new Date(s).getUTCFullYear(); return y >= 1970 && y <= 9999; });
+// Text with no NUL character, which Postgres text and jsonb do not store
+// (postgresql.org/docs/current/datatype-character.html: "The character with code zero ... cannot be stored").
+const text = (max: number) => z.string().max(max).refine((s) => !s.includes("\u0000"));
+// What a list import keeps whole (src/db/queries/importCommit.ts writes text, reference, area,
+// value and the extra columns with no limit): bounded only by the file's 5 MB.
+const WHOLE = 5 * 1024 * 1024;
 const id = z.string().min(1).max(64);
 // Postgres integer (postgresql.org/docs/current/datatype-numeric.html: -2147483648 to
 // +2147483647); a count in the file is never negative.
@@ -53,14 +60,16 @@ const count = z.number().int().min(0).max(2147483647);
 // ProjectContext, ItemFlags; custom holds the extra columns of an import, text by name).
 const importReport = z.strictObject({
   emptyRows: count, exactDuplicates: count, overLimit: count, rowsRead: count, headerRow: count, unrecognisedValues: count,
-  duplicateRefs: z.array(z.strictObject({ kept: text(200), folded: z.array(text(200)).max(2000) })).max(2000),
+  duplicateRefs: z.array(z.strictObject({ kept: text(WHOLE), folded: z.array(text(WHOLE)) })),
 }).nullable();
 const areas = z.array(z.strictObject({ name: text(200), rationale: text(1000) })).max(50).nullable();
 const contextUsed = z.strictObject({ goal: text(2000).nullable(), terms: text(2000).nullable() }).nullable();
 const flags = z.strictObject({ duplicateOf: text(200).optional(), ambiguity: text(1000).optional(), dismissed: z.boolean().optional(), foldedRefs: z.array(text(200)).max(2000).optional(), areaBy: z.enum(["ai", "pm"]).optional(), importedArea: text(200).optional() }).nullable();
-const custom = z.record(text(200), text(5000)).nullable();
+const custom = z.record(text(WHOLE), text(WHOLE)).nullable();
+// A dropdown has OPTIONS_MIN to OPTIONS_MAX options, as the Build form requires (respondent-fields.ts).
 const respondentFields = z.array(z.strictObject({ key: z.string().min(1).max(60), label: z.string().min(1).max(200), type: z.enum(["text", "dropdown", "email"]), mandatory: z.boolean(), options: z.array(z.string().min(1).max(200)).max(50).optional() }))
-  .max(FIELDS_MAX).refine((list) => new Set(list.map((f) => f.key)).size === list.length);
+  .max(FIELDS_MAX).refine((list) => new Set(list.map((f) => f.key)).size === list.length)
+  .refine((list) => list.every((f) => f.type !== "dropdown" || ((f.options?.length ?? 0) >= OPTIONS_MIN && (f.options?.length ?? 0) <= OPTIONS_MAX)));
 const scaleLabels = z.record(text(50), text(200)).nullable();
 const closing = z.strictObject({ confidence: z.literal(true), missingForm: z.boolean(), signOffText: text(SIGN_OFF_MAX), closingQuestion: text(CLOSING_QUESTION_MAX).optional() });
 
@@ -75,12 +84,12 @@ const ProjectFile = z.strictObject({
     id, version: count.min(1), source: z.enum(FILE_ENUMS.source), sourceFilename: text(300).nullable(), importReport, importedAt: date,
     areas, shapeRuns: count, shapedAt: date.nullable(), contextUsed,
     items: z.array(z.strictObject({
-      id, position: count.min(1), sourceRef: text(200).nullable(), originalText: text(5000), readerText: text(5000).nullable(), readerStatus: z.enum(FILE_ENUMS.readerStatus).nullable(),
-      area: text(200).nullable(), areaRationale: text(1000).nullable(), proposedValue: text(200).nullable(), custom, flags, perspectives: z.array(text(100)),
+      id, position: count.min(1), sourceRef: text(WHOLE).nullable(), originalText: text(WHOLE), readerText: text(WHOLE).nullable(), readerStatus: z.enum(FILE_ENUMS.readerStatus).nullable(),
+      area: text(WHOLE).nullable(), areaRationale: text(WHOLE).nullable(), proposedValue: text(WHOLE).nullable(), custom, flags, perspectives: z.array(text(100)),
     })).max(2000),
-  })).max(100),
+  })),
   instruments: z.array(z.strictObject({
-    id, itemSetId: id, title: text(200), intro: text(5000).nullable(), method: z.enum(FILE_ENUMS.method), showProposed: z.boolean(), layout: z.enum(FILE_ENUMS.layout),
+    id, itemSetId: id, title: text(200).refine((s) => s.trim() !== ""), intro: text(5000).nullable(), method: z.enum(FILE_ENUMS.method), showProposed: z.boolean(), layout: z.enum(FILE_ENUMS.layout),
     respondentFields, scaleLabels, perspectives: z.array(text(100)), closing, publishedAt: date.nullable(), createdAt: date,
   })).max(100),
   invites: z.array(z.strictObject({
@@ -135,9 +144,9 @@ export async function exportProject(actor: Actor, projectId: string, now = new D
 
 const D = (s: string | null) => (s === null ? null : new Date(s));
 
-// Every id a row refers to is a row of the file, and every rule the database holds the rows to
-// (src/db/schema.ts: unique indexes, checks, composite keys) holds, so a file the checks pass
-// is written whole; otherwise the database would refuse it half way, with its own error.
+// Every id a row refers to is a row of the file, and the rules of src/db/schema.ts a crafted file
+// can break (unique indexes, checks, composite keys) hold, so the PM reads which part is wrong.
+// A refusal these checks do not foresee still rolls back whole (importProject catches it).
 function missingReference(f: ProjectExport): string | null {
   const sets = new Set(f.itemSets.map((s) => s.id));
   const items = new Set(f.itemSets.flatMap((s) => s.items.map((it) => it.id)));
@@ -164,12 +173,19 @@ function missingReference(f: ProjectExport): string | null {
   const setOfInstrument = new Map(f.instruments.map((i) => [i.id, i.itemSetId]));
   const setOfItem = new Map(f.itemSets.flatMap((s) => s.items.map((it) => [it.id, s.id] as const)));
   if (f.responses.some((r) => setOfInstrument.get(r.instrumentId) !== r.itemSetId)) return "a response's list";
+  // response_invite_instrument_fk: a response came by an invite of its own instrument.
+  const instrumentOfInvite = new Map(f.invites.map((v) => [v.id, v.instrumentId]));
+  if (f.responses.some((r) => instrumentOfInvite.get(r.inviteId) !== r.instrumentId)) return "a response's invite";
+  // A submitted response has its first Submit (the plan counts by it).
+  if (f.responses.some((r) => r.submittedAt !== null && r.firstSubmittedAt === null)) return "a response's dates";
   if (f.responses.some((r) => r.answers.some((a) => setOfItem.get(a.itemId) !== r.itemSetId) || new Set(r.answers.map((a) => a.itemId)).size !== r.answers.length)) return "an answer's item";
   // invite_personal_email_check and invite_personal_email_idx: a personal invite has an email,
   // one per instrument.
   const personal = f.invites.filter((v) => v.kind === "personal");
-  if (personal.some((v) => !v.email)) return "a personal invite's email";
-  if (new Set(personal.map((v) => `${v.instrumentId} ${v.email}`)).size !== personal.length) return "a personal invite's email";
+  // The address check of the invitee form (src/lib/invitees-rules.ts), and one per instrument
+  // whatever its case.
+  if (personal.some((v) => !v.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))) return "a personal invite's email";
+  if (new Set(personal.map((v) => `${v.instrumentId} ${v.email!.toLowerCase()}`)).size !== personal.length) return "a personal invite's email";
   // insight_closed_check: an open action has no closing date, a closed one has one.
   if (f.insights.some((s) => (s.state === "open") !== (s.closedAt === null))) return "an action's state";
   return null;
@@ -215,9 +231,15 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
   // A database refusal the checks above did not foresee: the transaction rolls back, and the
   // error, which carries the rows' values (drizzle-orm's DrizzleQueryError puts the query's
   // params in its message), is not rethrown, so no respondent's data reaches the server log.
+  // Postgres's integrity and data errors (SQLSTATE classes 23 and 22: postgresql.org/docs/
+  // current/errcodes-appendix.html) are the file's; anything else (a lost connection, a
+  // deadlock) is thrown again without the values, so the PM gets the error page's "Try again".
   try {
     return { projectId: await projectTransfer.writeProject(actor.ws, input, actor.userId, now) };
-  } catch {
-    return { error: E.damaged("the file") };
+  } catch (err) {
+    const code = String((err as { cause?: { code?: unknown } })?.cause?.code ?? "");
+    console.error(`project import: the database refused the file (SQLSTATE ${code || "none"})`);
+    if (code.startsWith("23") || code.startsWith("22")) return { error: E.damaged("the file") };
+    throw new Error("project import: the write did not finish");
   }
 }

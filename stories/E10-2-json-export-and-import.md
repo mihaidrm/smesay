@@ -27,7 +27,7 @@ workspace recreates it.
 
 ## Technical notes
 Export built from the same query helpers; import runs inside one transaction and uses the
-E1-3 helpers so every row carries the new workspace id. 41 KB for the seed (PM app board).
+E1-3 helpers so every row carries the new workspace id.
 As built, writeProject inserts the rows itself inside the transaction, each with the importing
 workspace's id from the session, and the composite (id, workspace_id) keys hold every
 reference to that workspace; the seed's file is about 20 KB (one line, no indentation).
@@ -46,8 +46,8 @@ Built 2026-10-04 (design note 70, decision 0044):
   recreates it under the current workspace in one transaction (writeProject) with new ids and
   new tokens; fields and answers are kept; the public link comes in revoked, so nothing is
   published until the PM publishes again, and personal invites keep their state with new
-  tokens nobody has (Remind sends a link to those not started; anyone else gets a new link by
-  Revoke then New link). A response keeps only the fields its instrument asks for. Responses
+  tokens nobody has (Remind sends a new link to those who have not submitted; Revoke then New
+  link sends one to anyone). A response keeps only the fields its instrument asks for. Responses
   submitted this month count toward the plan's monthly responses, and a file that would pass
   them is refused. project.test.ts exports the seed, imports it into
   a second workspace (its sample mark taken off: a sample file is refused) and finds the same

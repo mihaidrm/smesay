@@ -10,8 +10,12 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E10-2, under dec
   src/db/types.ts gives it, and the rules the database holds the rows to (unique versions and
   emails, text that is not blank, answers on their response's list, an action's state and date)
   are checked in code before the transaction, so the PM reads the damaged-file sentence, not
-  the error page; a refusal no check foresaw is caught and gets the same sentence, and its
-  error, which carries the rows' values, never reaches the log.
+  the error page. A refusal no check foresaw rolls back: an integrity or data error (SQLSTATE
+  classes 23 and 22) gets the same sentence, anything else (a lost connection) the error page;
+  the log gets one line with the SQLSTATE, never the rows' values. Text is as long as the list
+  import keeps it, with no NUL character; dates fall between 1970 and 9999; a dropdown has 2 to
+  20 options, a personal invite a valid address, an instrument a title, as the app's forms
+  require.
 - Ids in the file are the old rows' ids, used as keys inside the file only; the import makes new
   ids and maps every reference, and refuses a file whose references point at rows it does not
   hold, before writing anything. The whole import is one transaction.
@@ -19,8 +23,8 @@ Made in the Claude Code cloud session of 2026-10-04 for stories/E10-2, under dec
   and name do (the PM typed them), and the privacy policy says so (E11-3).
 - The public link comes in revoked, so an imported project is not published until the PM
   publishes it. A personal invite keeps its state with a new token nobody has; after publishing,
-  Remind sends a link to the people not started, and anyone else gets one by Revoke then New
-  link.
+  Remind sends a new link to the people who have not submitted, and Revoke then New link sends
+  one to anyone.
   Revoking the personal invites too would drop the people not started yet from Results.
 - An action's closer is written as their email and comes in with no closer (the person may not
   be a member of the new workspace); its date stays.

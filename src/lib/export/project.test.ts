@@ -132,6 +132,14 @@ describe("importProject", () => {
     const personal = pm.invites.filter((v) => v.kind === "personal");
     expect(await refused({ ...pm, invites: pm.invites.map((v) => (v.id === personal[1].id ? { ...v, email: personal[0].email } : v)) })).toEqual({ error: E.damaged("a personal invite's email") });
     expect(await refused({ ...pm, insights: pm.insights.map((x) => ({ ...x, state: "done", closedAt: null })) })).toEqual({ error: E.damaged("an action's state") });
+    // What the app's own forms and Postgres refuse.
+    expect(await refused({ ...pm, itemSets: pm.itemSets.map((st) => ({ ...st, items: st.items.map((it, i) => (i === 0 ? { ...it, originalText: "a\u0000b" } : it)) })) })).toEqual({ error: E.damaged("itemSets.0.items.0.originalText") });
+    expect(await refused({ ...pm, project: { ...pm.project, createdAt: "1969-12-31T23:59:59Z" } })).toEqual({ error: E.damaged("project.createdAt") });
+    expect(await refused({ ...pm, responses: pm.responses.map((r, i) => (i === 0 ? { ...r, submittedAt: r.submittedAt ?? r.createdAt, firstSubmittedAt: null } : r)) })).toEqual({ error: E.damaged("a response's dates") });
+    expect(await refused({ ...pm, instruments: pm.instruments.map((i) => ({ ...i, title: "  " })) })).toEqual({ error: E.damaged("instruments.0.title") });
+    expect(await refused({ ...pm, instruments: pm.instruments.map((i) => ({ ...i, respondentFields: [{ key: "team", label: "Team", type: "dropdown", mandatory: true, options: [] }] })) })).toEqual({ error: E.damaged("instruments.0.respondentFields") });
+    expect(await refused({ ...pm, invites: pm.invites.map((v) => (v.id === personal[0].id ? { ...v, email: "not an email" } : v)) })).toEqual({ error: E.damaged("a personal invite's email") });
+    expect(await refused({ ...pm, invites: pm.invites.map((v) => (v.id === personal[1].id ? { ...v, email: personal[0].email!.toUpperCase() } : v)) })).toEqual({ error: E.damaged("a personal invite's email") });
     expect((await projects.list(b.ws)).length).toBe(before);
   });
 
