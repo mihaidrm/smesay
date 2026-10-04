@@ -35,6 +35,7 @@ test("write actions from the answers, each citing the answers behind it", async 
   await page.goto(`${projectUrl}/build`);
   await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   await page.goto(`${projectUrl}/share`);
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("link-state")).toHaveText("Published");

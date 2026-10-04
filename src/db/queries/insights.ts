@@ -4,7 +4,7 @@
 // replaces a project's open actions and keeps the done and dismissed ones (replaceOpen).
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { insight } from "@/db/schema";
+import { insight, project } from "@/db/schema";
 import type { InsightKind, WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
 import { isUuid, scoped } from "./scoped";
@@ -25,13 +25,16 @@ export type InsightWithCitations = Insight & { answers: CitedAnswer[]; missing: 
 
 const ids = (list: string[]) => sql.join(list.map((id) => sql`${id}`), sql`, `);
 
-const people = (ws: WorkspaceId) => sql`
+// The respondents of the project's instruments only (the anonymous numbers count within an
+// instrument, as on Results).
+const people = (ws: WorkspaceId, projectId: string) => sql`
   people as (
     select r.id, r.instrument_id,
         coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) as who,
         case when coalesce(r.fields ->> 'name', '') = '' and iv.kind = 'public'
           then row_number() over (partition by r.instrument_id, iv.kind order by r.created_at, r.id) end as anon
       from response r join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
+        join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws} and ins.project_id = ${projectId}
       where r.workspace_id = ${ws}
   )`;
 
@@ -62,12 +65,12 @@ export const insights = {
     const answerIds = rows.flatMap((r) => r.citedAnswerIds);
     const missingIds = rows.flatMap((r) => r.citedMissingItemIds);
     const answers = answerIds.length === 0 ? [] : await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_text: string | null; reader_status: string | null; who: string | null; anon: string | number | null }>(sql`
-      with ${people(ws)}
+      with ${people(ws, projectId)}
       select a.id, a.item_id, it.source_ref, it.original_text, it.reader_text, it.reader_status, p.who, p.anon
         from answer a join people p on p.id = a.response_id join item it on it.id = a.item_id and it.workspace_id = ${ws}
         where a.workspace_id = ${ws} and a.id in (${ids(answerIds)})`);
     const missing = missingIds.length === 0 ? [] : await db.execute<{ id: string; who: string | null; anon: string | number | null }>(sql`
-      with ${people(ws)}
+      with ${people(ws, projectId)}
       select m.id, p.who, p.anon
         from missing_item m join people p on p.id = m.response_id
         where m.workspace_id = ${ws} and m.id in (${ids(missingIds)})`);
@@ -76,7 +79,10 @@ export const insights = {
     const order = { open: 0, done: 1, dismissed: 2 } as const;
     return rows
       .sort((a, b) => order[a.state] - order[b.state] || a.createdAt.getTime() - b.createdAt.getTime())
-      .map((r) => ({ ...r, answers: r.citedAnswerIds.flatMap((id) => answerOf.get(id) ?? []), missing: r.citedMissingItemIds.flatMap((id) => missingOf.get(id) ?? []) }));
+      .map((r) => ({ ...r, answers: r.citedAnswerIds.flatMap((id) => answerOf.get(id) ?? []), missing: r.citedMissingItemIds.flatMap((id) => missingOf.get(id) ?? []) }))
+      // An action whose every citation is gone (an answer changed, a missing item cleared) is
+      // never shown (the story's outcome); the open count leaves it out too (results.ts).
+      .filter((r) => r.answers.length + r.missing.length > 0);
   },
 
   // A new run (E9-1, acceptance 4): the project's open actions go, the done and dismissed ones
@@ -84,6 +90,8 @@ export const insights = {
   // model's order so the tab lists them as written (one statement would stamp them alike).
   replaceOpen: async (ws: WorkspaceId, projectId: string, rows: { kind: InsightKind; title: string; why: string; citedAnswerIds: string[]; citedMissingItemIds: string[]; model: string; tokensIn: number; tokensOut: number; costEurCents: number }[]): Promise<Insight[]> =>
     db.transaction(async (tx) => {
+      // Two runs at once (two tabs) write one after the other: the project row's lock.
+      await tx.select({ id: project.id }).from(project).where(and(eq(project.workspaceId, ws), eq(project.id, projectId))).for("update");
       await tx.delete(insight).where(and(eq(insight.workspaceId, ws), eq(insight.projectId, projectId), eq(insight.state, "open")));
       if (rows.length === 0) return [];
       const at = Date.now();

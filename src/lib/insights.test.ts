@@ -8,6 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { aiRuns, answers, invites, items, missingItems, projects, responses } from "@/db/queries";
+import { results } from "@/db/queries/results";
 import { insights } from "@/db/queries/insights";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
@@ -19,6 +20,9 @@ import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
 import { citationLines, keptActions, share, writeActions } from "@/lib/insights";
 import { openDraft, saveFields } from "@/lib/instruments";
+import type { ResultsFilter } from "@/lib/results-filter";
+
+const COUNTED_VIEW: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
 import { memoryOutbox } from "@/lib/mail";
 import { savePaste } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
@@ -148,6 +152,38 @@ describe("writeActions", () => {
     await writeActions(a, p.project.id, { fetch });
     expect(await insights.listWithCitations(b.ws, p.project.id)).toEqual([]);
     expect((await insights.listWithCitations(a.ws, p.project.id)).length).toBe(4);
+  });
+});
+
+describe("after the audit", () => {
+  it("keeps the open actions when a run keeps none, and hides an action whose citations are gone", async () => {
+    const p = await answeredProject();
+    await writeActions(a, p.project.id, { fetch: transport(fourAndABadOne).fetch });
+    const none = await writeActions(a, p.project.id, { fetch: transport(() => ({ actions: [{ kind: "rewrite", title: "Unknown.", why: "Unknown.", answers: ["A99"], missing: [] }] })).fetch });
+    expect(none).toEqual({ written: [] });
+    expect(await insights.listWithCitations(a.ws, p.project.id)).toHaveLength(4);
+    // The missing item is cleared: the coverage action citing only it is no longer shown or counted.
+    await missingItems.remove(a.ws, p.missing.id);
+    const listed = await insights.listWithCitations(a.ws, p.project.id);
+    expect(listed.map((r) => r.kind)).toEqual(["conflict", "rewrite", "followUp"]);
+    const numbers = await results.numbers(a.ws, p.instrument.id, COUNTED_VIEW);
+    expect(numbers?.actions).toBe(3);
+  });
+
+  it("never sends the name field, even as a dropdown of names", async () => {
+    const p = await answeredProject();
+    const named = await saveFields(a.ws, p.project.id, p.instrument.id, JSON.stringify([{ label: "Name", type: "dropdown", mandatory: true, options: "Ana Pop\nBo Lind" }, { label: "Team", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]));
+    if (!("instrument" in named)) throw new Error(named.error);
+    const { fetch, calls } = transport(fourAndABadOne);
+    await writeActions(a, p.project.id, { fetch });
+    expect(calls[0].data).toContain("[R1] Team: Sales");
+    expect(calls[0].data).not.toMatch(/Ana Pop|Bo Lind|Name:/);
+  });
+
+  it("reads and writes nothing across workspaces at the query layer", async () => {
+    const p = await answeredProject();
+    expect(await insights.inputFor(b.ws, p.instrument.id)).toEqual({ answers: [], missing: [] });
+    await expect(insights.replaceOpen(b.ws, p.project.id, [{ kind: "rewrite", title: "T.", why: "W.", citedAnswerIds: [p.anaFlags.id], citedMissingItemIds: [], model: "m", tokensIn: 1, tokensOut: 1, costEurCents: 0 }])).rejects.toThrow();
   });
 });
 

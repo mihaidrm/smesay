@@ -27,7 +27,7 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
         <WriteActions projectId={projectId} again={rows.length > 0} />
       )}
       {rows.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="actions-empty">{sample ? ACTIONS_COPY.none : ACTIONS_COPY.empty}</p>
+        <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="actions-empty">{sample ? ACTIONS_COPY.sampleEmpty : ACTIONS_COPY.empty}</p>
       ) : (
         <ol className="flex flex-col gap-3" data-testid="actions-list">
           {rows.map((r) => (
@@ -38,13 +38,16 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
               </div>
               <h3 className="text-[15px] font-bold" data-testid="action-title">{r.title}</h3>
               {r.why && <p className="text-sm" data-testid="action-why">{r.why}</p>}
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted" aria-label={ACTIONS_COPY.citedBy} data-testid="action-citations">
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-ink-muted">
+              <span aria-hidden="true">{ACTIONS_COPY.citedBy}:</span>
+              <ul className="flex flex-wrap gap-x-4 gap-y-1" aria-label={ACTIONS_COPY.citedBy} data-testid="action-citations">
                 {citationLines(r.answers, r.missing, RESPONSES_COPY.anonymous).map((c, i) => (
                   <li key={i} data-testid="action-citation">
                     {c.itemId ? <Link href={itemHref(c.itemId)} scroll={false} data-item-link={c.itemId} className="rounded-sm underline underline-offset-4 outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">{c.text}</Link> : c.text}
                   </li>
                 ))}
               </ul>
+              </div>
             </li>
           ))}
         </ol>

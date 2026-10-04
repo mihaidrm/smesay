@@ -17,6 +17,6 @@ recommendation").
 2. Question. The fourth sample action ("Consider adding mileage from addresses to Submitting")
    cites a missing item, not an answer. Schema v1 has `insight.cited_answer_ids` only, and
    story E9-1 drops an action whose citations do not exist. Decided: a second column,
-   `cited_missing_item_ids uuid[]`, added in migration 0002 with E9-1; INTERFACES.md's
+   `cited_missing_item_ids uuid[]`, added in migration 0002 with E9-1 (built as migration 0021, 2026-10-04); INTERFACES.md's
    InsightOutput carries both lists; the seed fills the fourth action's citation then. Until
    E9-1, the fourth sample action is seeded without a citation.

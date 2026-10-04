@@ -526,8 +526,8 @@ none, and whether Import's context changed since the run.
 Owner: E9-1. Consumer: the Actions tab (Results) and E9-2.
 Version 1, 2026-10-04. The zod schema is InsightOutput in src/lib/ai/insights-schema.ts; every
 object strict. Refs are the ones the prompt gives (src/lib/ai/prompts/insights.ts
-buildActionsPrompt): I[n] items, R[n] respondents (their dropdown fields only, no name or
-email), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
+buildActionsPrompt): I[n] items, R[n] respondents (their dropdown fields only, the name field
+left out even as a dropdown), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
 { actions: [{ kind: "rewrite" | "conflict" | "followUp" | "coverage", title: string (1 to 140
 chars), why: string (1 to 400 chars), answers: string[] (A refs), missing: string[] (M refs) }]
 (up to 8) }
@@ -536,9 +536,10 @@ The app keeps an action only when it cites at least one ref and every ref it cit
 kind, title, why, cited_answer_ids and cited_missing_item_ids, the model, and its share of the
 run's tokens and cost (share(); the shares add up to the run). writeActions(actor, projectId,
 deps) runs it: results.read, the sample refused, the answers of submitted responses only
-(decision 0030), ai_run purpose insights. insights.replaceOpen(ws, projectId, rows) replaces
-the open actions in one transaction and keeps done and dismissed; insights.listWithCitations
-(ws, projectId) gives each action its cited answers (item, reference, item text, the name as on
+(decision 0030), ai_run purpose insights. A run that keeps none leaves the open actions as they are. insights.replaceOpen(ws, projectId,
+rows) replaces the open actions in one transaction, under the project row's lock, and keeps
+done and dismissed; insights.listWithCitations
+(ws, projectId) leaves out an action whose every citation is gone and gives each action its cited answers (item, reference, item text, the name as on
 Results) and missing items, open first, then done, then dismissed, each in the order written.
 citationLines(answers, missing, anonymous) gives "[Name] and [Name] on [REF]" (an item with no
 reference by its text in quotes, cut at 40 characters) and "[Name], missing item".

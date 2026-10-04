@@ -63,7 +63,9 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const counts = new Map((await agreement.byItem(actor.ws, instrument.id, COUNTED)).map((c) => [c.itemId, c]));
   const input = await insights.inputFor(actor.ws, instrument.id);
   if (input.answers.length === 0) return { error: ACTIONS_COPY.emptyNoAnswers, retry: false };
-  const groups = instrument.respondentFields.filter((f) => f.type === "dropdown");
+  // The dropdown fields, except the name field even when the PM made it a dropdown of names:
+  // the model sees groups, never a person (note 66).
+  const groups = instrument.respondentFields.filter((f) => f.type === "dropdown" && f.key !== "name");
   const respondents = new Map<string, Record<string, string>>();
   for (const r of [...input.answers, ...input.missing]) if (!respondents.has(r.responseId)) respondents.set(r.responseId, Object.fromEntries(groups.map((g) => [g.label, r.fields[g.key] ?? ""])));
   const answers: ActionsAnswer[] = input.answers.flatMap((a) => (a.kind === "change" || a.kind === "disagree" || a.kind === "unclear" ? [{ id: a.id, itemId: a.itemId, respondent: a.responseId, kind: a.kind, value: a.value, text: a.reason ?? a.comment }] : []));
@@ -83,6 +85,8 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
     return { error: ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
+  // A run that keeps nothing leaves the open actions as they are (the tab says so).
+  if (kept.length === 0) return { written: [] };
   const tokensIn = share(result.run.tokensIn, kept.length);
   const tokensOut = share(result.run.tokensOut, kept.length);
   const cost = share(result.run.costEurCents, kept.length);

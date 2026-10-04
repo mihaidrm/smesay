@@ -62,9 +62,16 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run evals
+      # The actions set (stories/E9-1, acceptance 5), on the same run and key.
+      - if: always() && steps.key.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npm run evals -- insights
       - uses: actions/upload-artifact@v4
         if: always() && steps.key.outputs.run == 'true'
         with:
           name: evals-results
-          path: evals/results/latest.json
+          path: |
+            evals/results/latest.json
+            evals/results/insights.json
           retention-days: 30
