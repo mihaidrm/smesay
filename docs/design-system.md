@@ -214,13 +214,16 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 ## Respondent columns
 
 Three column widths on the respondent side, decided 2026-10-01 after Mihai's review of the
-desktop board. About you, done, closed and inactive: 560 px, with the name field at 360 px, the
-role select at 360 px and the primary button sized to its label (280 px), left-aligned under the
-form. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point
+desktop board; the short pages changed on 2026-10-05 (decision 0051). About you, done, nothing
+to rate and the link pages (unknown, not yet open, closed, inactive, the passcode): on a
+desktop a centered card 720 px wide, 48 px from the top, content at 32 px from its sides, the
+fields filling it, About you's Start at 320 px centered in the card's footer with its hint
+under it, and "Powered by" under the card as the last line of the page; on a phone the same
+parts full width, "Powered by" under the action. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point
 there. On a phone every column is the screen width and controls span it. The convention behind
-it (single column, field width matched to the expected input, labels above fields, the primary
-action under the form in the same column) is standard form guidance; the NN/g and GOV.UK pages
-on it could not be opened from this environment, so it is recorded here unverified.
+it (single column, labels above fields, the primary action under the form) is standard form
+guidance; the NN/g and GOV.UK pages on it could not be opened from this environment, so it is
+recorded here unverified.
 
 ## Rating row (respondent cards)
 

@@ -426,4 +426,4 @@ a change.
 | 2026-10-05 | No game and no search box on the 404: the way back comes first, and nothing is public to search before the launch gate | design note 92 | |
 | 2026-10-05 | On the 404, a page with the light app mode shows a light band when it bounces past its ends on macOS and iOS, since the page behind the dark scene is the app's own | src/app/not-found.tsx | |
 | 2026-10-05 | The landing page's primary buttons have the same light ring offset in light mode that the 404's had (the base button's offset wins over the navy one); fixed on the 404 only | src/app/landing-page/page.tsx | Fix with the landing's next change |
-
+| 2026-10-05 | The short respondent pages' card starts at a 576 px column and is 720 px wide; About you's Start is 320 px and centered, its hint centered under it | src/components/respondent/frame.ts, decision 0051 | Open /sample on a desktop and on a phone |

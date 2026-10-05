@@ -8,14 +8,17 @@
 // instrument has perspectives (stories/E5-4), and the footer. The respondent app renders it on
 // a link and in the builder's preview (stories/E5-6, acceptance 3), so the two cannot drift.
 // In preview mode the band says nothing is saved, and Start keeps everything in memory (the
-// app's start, E5-6 acceptance 4). Phone first:
-// the column is the screen width; on desktop E7-1 puts it in the 560 px column, where the
-// fields are 360 px and Start is 280 px, left-aligned (docs/design-system.md, Respondent
-// columns). The widths follow the component's own width, not the window's (a container
-// query: tailwindcss.com/docs/responsive-design, container queries; @lg is 32rem).
+// app's start, E5-6 acceptance 4). Phone first: the column is the screen width, Start spans
+// it under the form and "Powered by" is the last line. From a 576 px column the page is the
+// centered card of src/components/respondent/frame.ts (decision 0051): the fields fill the
+// card, Start is 320 px and centered in the card's footer with its hint under it, and
+// "Powered by" sits under the card (docs/design-system.md, Respondent columns). The widths
+// follow the component's own width, not the window's (a container query:
+// tailwindcss.com/docs/responsive-design, container queries; @xl is 36rem).
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
+import { FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED } from "./frame";
 import { RespondentHeader } from "./respondent-header";
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
@@ -64,7 +67,7 @@ export type AboutYouProps = {
   poweredBy?: PoweredByShow;
 };
 
-const FIELD = "h-12 w-full @lg:w-[360px] rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
+const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
 export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, nav, className, poweredBy = true }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
@@ -82,11 +85,12 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
   const disabled = missing.length > 0;
   const set = (key: string, value: string) => setValues((v) => ({ ...v, [key]: value }));
   return (
-    <div className={cn("@container flex min-h-full flex-col bg-ground text-ink", className)} data-testid="about-you" data-preview={preview || undefined}>
+    <div className={cn(FRAME_OUTER, "min-h-full", className)} data-testid="about-you" data-preview={preview || undefined}>
+      <div className={FRAME_CARD}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
-      <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} noteTestId="about-you-note" />
+      <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} noteTestId="about-you-note" className={FRAME_HEADER} />
       {nav}
-      <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
+      <div className="flex grow flex-col gap-4 px-5 pt-4 pb-5 @xl:px-8 @xl:pt-7">
         <div className="flex flex-col gap-1">
           <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{title}</Heading>
           {intro && <p className="text-sm leading-5 text-ink-muted" data-testid="about-you-intro">{intro}</p>}
@@ -134,14 +138,15 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
           </fieldset>
         )}
         <p className="text-sm text-ink-muted">{ABOUT_YOU_COPY.footer(workspaceName)}</p>
-        <PoweredBy show={poweredBy} privacy />
       </div>
-      <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @lg:w-[280px] @lg:self-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
+      <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4 @xl:items-center @xl:px-8 @xl:pt-5 @xl:pb-5">
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @xl:w-[320px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
-        <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
+        <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm @xl:min-h-0 @xl:text-center", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
       </div>
+      </div>
+      <PoweredBy show={poweredBy} privacy className={FRAME_POWERED} />
     </div>
   );
 }

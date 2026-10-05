@@ -49,6 +49,7 @@ import { useWrapSaver } from "./wrap-saver";
 import { signOffFor } from "@/lib/closing";
 import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
+import { FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED } from "@/components/respondent/frame";
 import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
@@ -426,7 +427,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
   // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
   // ("No items to review.", E5-5).
-  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[560px]";
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[720px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
@@ -434,17 +435,19 @@ export function RespondentApp(props: RespondentAppProps) {
       ) : screen.kind === "chapter" && chapters[screen.index] ? (
         chapterScreen(screen.index)
       ) : screen.kind === "done" && submitted ? (
-        <div className="flex min-h-screen flex-col" data-testid="done-screen">
-          <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
-          <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8">
+        <div className={FRAME_OUTER} data-testid="done-screen">
+          <div className={FRAME_CARD}>
+          <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />
+          <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
             <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{submitted.returning ? RESPONDENT_COPY.welcomeSubmitted(submitted.name) : RESPONDENT_COPY.thanks(submitted.name)}</h1>
             <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{sample ? SAMPLE_COPY.notSent : submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
             {changedSince && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p>}
             <p className="text-[15px] leading-[23px]" data-testid="done-summary">{RESPONDENT_COPY.summary({ agreed: tally.agreed, changed: tally.higher + tally.lower, notNeeded: tally.notNeeded, unclear: tally.unclear, rated: tally.rated, added: wrap.missing.text.trim() ? 1 : 0 }, !instrument.showProposed)}</p>
             <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
             {sample && <a href={SAMPLE_COPY.startHref} rel="noreferrer" className="flex h-12 items-center self-start rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="sample-start-free">{SAMPLE_COPY.startFree}</a>}
-            <PoweredBy show={props.poweredBy} privacy className="mt-auto" />
           </main>
+          </div>
+          <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
         <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
@@ -454,14 +457,16 @@ export function RespondentApp(props: RespondentAppProps) {
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
           tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={sample ? null : wrapSaver.notice ?? wrapSaver.error} onSubmit={sample ? sampleSubmit : preview ? undefined : submit} poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("closing")} />
       ) : (
-        <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
-          <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
+        <div className={FRAME_OUTER} data-testid="nothing-to-rate">
+          <div className={FRAME_CARD}>
+          <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />
           {previewStrip}
-          <main className="flex flex-col gap-4 px-5 pt-6">
+          <main className="flex flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
             <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{RESPONDENT_COPY.aboutYou}</button>
-            <PoweredBy show={props.poweredBy} />
           </main>
+          </div>
+          <PoweredBy show={props.poweredBy} className={FRAME_POWERED} />
         </div>
       )}
     </div>
