@@ -12,7 +12,10 @@
 // docs/copy/app.md (Share).
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { instruments, invites, itemSets, projects } from "@/db/queries";
+import { instruments, invites, itemSets, projects, responses } from "@/db/queries";
+import { StepTip } from "../step-tip";
+import { shareTip } from "@/lib/guide";
+import { GUIDE_LINES } from "@/lib/guide-lines";
 import type { Instrument } from "@/db/queries/instruments";
 import type { Invite } from "@/db/queries/invites";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
@@ -50,12 +53,20 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
   const builtOn = await itemSets.get(current.ws, instrument.itemSetId);
   const newerDraft = live && live.instrumentId !== newest.id ? newest : null;
   const newerSet = newerDraft ? await itemSets.get(current.ws, newerDraft.itemSetId) : null;
+  // The guide (stories/E15-3, E15-4): the link in draft; a link out three days with no answer.
+  const open = live !== null && live.instrumentId === instrument.id && linkState(live) === "open";
+  const openSince = open && instrument.publishedAt ? (live.opensAt && live.opensAt > instrument.publishedAt ? live.opensAt : instrument.publishedAt) : null;
+  const tip = shareTip({ publishedAt: instrument.publishedAt, open, openSince, responses: open ? await responses.countForInstrument(current.ws, instrument.id) : 0 });
   return (
     <WithPreview projectId={project.id} step="share">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-bold tracking-[-0.02em]">{SHARE_COPY.title}</h2>
         <p className="text-ink-muted">{SHARE_COPY.line} {builtOn && <span data-testid="share-version">{SHARE_COPY.version(builtOn.version)}</span>}</p>
       </div>
+      {!project.isSample && (
+        <StepTip path={`/app/projects/${project.id}/share`} tip={tip}
+          action={tip === "rescue.noResponse" ? { label: GUIDE_LINES["rescue.noResponse"].action, href: "#share-invites-title" } : undefined} />
+      )}
       <LinkCard projectId={project.id} isSample={project.isSample} instrument={instrument} invite={live} />
       <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} linkState={linkState(live)} />
       {newerDraft && newerSet && builtOn && (

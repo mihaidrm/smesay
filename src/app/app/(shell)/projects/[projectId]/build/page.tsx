@@ -23,6 +23,8 @@ import { IntroForm } from "./intro-form";
 import { PerspectivesForm } from "./perspectives-form";
 import { ScoringForm } from "./scoring-form";
 import { WithPreview } from "../with-preview";
+import { StepTip } from "../step-tip";
+import { buildTip } from "@/lib/guide";
 
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -54,6 +56,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         <h2 className="text-xl font-bold tracking-[-0.02em]">{BUILD_COPY.title}</h2>
         <p className="text-ink-muted" data-testid="build-line">{BUILD_COPY.line(builtOn.version)}</p>
       </div>
+      {!locked && <StepTip path={`/app/projects/${project.id}/build`} tip={buildTip({ intro: instrument.intro, fields: instrument.respondentFields })} />}
       <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
           <section className="card flex flex-col gap-3" aria-labelledby="build-intro-title">

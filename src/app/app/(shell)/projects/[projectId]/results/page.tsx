@@ -16,7 +16,10 @@ import { FadeOnChange } from "@/components/app/fade-on-change";
 import { StatTile } from "@/components/app/tiles";
 import { EmptyState } from "@/components/ui/banner";
 import { buttonVariants } from "@/components/ui/button";
-import { instruments, invites, members, projects } from "@/db/queries";
+import { guide, instruments, invites, items, members, projects } from "@/db/queries";
+import { GuideCard } from "@/components/app/guide-card";
+import { SAMPLE_TIPS, walkthroughOver, type SampleScreen } from "@/lib/guide";
+import { GUIDE_LINES } from "@/lib/guide-lines";
 import type { Instrument } from "@/db/queries/instruments";
 import { results, resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -108,6 +111,8 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
   const none = active && n.invited === 0;
   return (
     <div className="flex flex-col gap-5" data-testid="results">
+      {isSample && <SampleWalkthrough ws={ws} projectId={projectId} instrument={instrument} screen={item ? "detail" : tab === "pushed" ? "registers" : tab === "agreement" ? "strip" : null}
+        next={{ strip: href(filter, "pushed"), registers: null, detail: "/app/projects/new" }} itemHref={itemHref} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />
         <TileChooser projectId={projectId} tiles={tiles} />
@@ -207,4 +212,19 @@ function NoAnswers({ projectId, sampleId, link }: { projectId: string; sampleId:
       </span>
     </EmptyState>
   );
+}
+
+// The sample walkthrough (stories/E15-3, acceptance 3): on the sample's Results, one tip per
+// screen in the "analysis" pose: the strip and the agreement table, then the Different priority
+// and Disagree register, then an item's detail. Each tip's action opens the next screen (the
+// person moves it on, never a timer); the third says Start a project. Dismissing any of the
+// three ends the walkthrough (src/lib/guide.ts walkthroughOver). Not during an admin's view.
+async function SampleWalkthrough({ ws, projectId, instrument, screen, next, itemHref }: { ws: Parameters<typeof results.numbers>[0]; projectId: string; instrument: Instrument; screen: SampleScreen | null; next: { strip: string; registers: null; detail: string }; itemHref: (id: string) => string }) {
+  if (!screen) return null;
+  const { session, viewing } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  if (viewing || walkthroughOver(await guide.state(session.user.id))) return null;
+  const first = screen === "registers" ? (await items.forSet(ws, instrument.itemSetId)).sort((a, b) => a.position - b.position)[0] ?? null : null;
+  const href = screen === "strip" ? next.strip : screen === "detail" ? next.detail : first ? itemHref(first.id) : null;
+  const tip = SAMPLE_TIPS[screen];
+  return <GuideCard id={tip} action={href ? { label: GUIDE_LINES[tip].action ?? "", href } : undefined} />;
 }

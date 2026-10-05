@@ -6,7 +6,9 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "@/db/test-db";
+import { events } from "@/db/queries/events";
 import { firstProjectFacts, guide } from "@/db/queries/guide";
+import { responses } from "@/db/queries/responses";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
@@ -55,7 +57,7 @@ describe("the guide state", () => {
 
 describe("firstProjectFacts", () => {
   const facts = (ws: string, user = userId) => firstProjectFacts(unsafeWorkspaceId(ws), user);
-  const named = [{ key: "name", label: "Name", type: "text", mandatory: true }, { key: "team", label: "Team", type: "select", mandatory: true, options: ["Finance", "Sales"] }];
+  const named = [{ key: "name", label: "Name", type: "text", mandatory: true }, { key: "team", label: "Team", type: "dropdown", mandatory: true, options: ["Finance", "Sales"] }];
 
   it("ticks from the data, the person's own project, the sample ignored", async () => {
     // Only the sample (which has a set, a run and a published link): nothing of the person's own.
@@ -110,5 +112,27 @@ describe("firstProjectFacts", () => {
     // B's first link is B's: A's date is A's own event.
     const [{ at }] = await sql`select min(created_at) as at from event where workspace_id = ${wsId} and name = 'invite_sent'`;
     expect(a.firstPublishedAt?.getTime()).toBe(new Date(at).getTime());
+  });
+});
+
+describe("the step tips' reads (stories/E15-4)", () => {
+  it("events.lastWith returns the newest row of A with its properties, never B's", async () => {
+    const project = `tip-${stamp}`;
+    await sql`insert into event (workspace_id, user_id, name, properties, created_at) values (${wsId}, ${userId}, 'shape_failed', ${JSON.stringify({ reason: "budget", project })}::jsonb, now() - interval '2 hours')`;
+    await sql`insert into event (workspace_id, user_id, name, properties, created_at) values (${wsId}, ${userId}, 'shape_failed', ${JSON.stringify({ reason: "failed", project })}::jsonb, now() - interval '1 hour')`;
+    // B's newer row for the same project id is not A's.
+    await sql`insert into event (workspace_id, user_id, name, properties) values (${otherWs}, ${otherId}, 'shape_failed', ${JSON.stringify({ reason: "invalid", project })}::jsonb)`;
+    const a = await events.lastWith(unsafeWorkspaceId(wsId), "shape_failed", "project", project);
+    expect(a?.properties.reason).toBe("failed");
+    expect((await events.lastWith(unsafeWorkspaceId(otherWs), "shape_failed", "project", project))?.properties.reason).toBe("invalid");
+    expect(await events.lastWith(unsafeWorkspaceId(wsId), "shape_failed", "project", "none")).toBeNull();
+  });
+
+  it("responses.countForInstrument counts A's responses only", async () => {
+    const [{ id: inst, n }] = await sql`select i.id, count(r.id)::int as n from instrument i join response r on r.instrument_id = i.id where i.workspace_id = ${otherWs} group by i.id limit 1`;
+    expect(n).toBeGreaterThan(0);
+    expect(await responses.countForInstrument(unsafeWorkspaceId(otherWs), inst)).toBe(n);
+    expect(await responses.countForInstrument(unsafeWorkspaceId(wsId), inst)).toBe(0);
+    expect(await responses.countForInstrument(unsafeWorkspaceId(otherWs), "not-a-uuid")).toBe(0);
   });
 });

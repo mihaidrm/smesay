@@ -660,7 +660,7 @@ workspace's link from links.byToken carries revokedAt = deleted_at.
 
 Product events (E13-1): EventName, the keys of EVENTS in src/lib/analytics-catalogue.ts, with
 their properties: signed_up, workspace_created, member_joined, project_created { from: new |
-import }, import_committed { source: upload | paste, rows }, shape_run { items, costCents },
+import }, import_committed { source: upload | paste, rows }, shape_run { items, costCents }, shape_failed { reason: paused | budget | plan | rateLimited | failed | invalid, project } (E15-4),
 instrument_published { method: moscow | fit | kcd, layout: chapters | item | page },
 invite_sent { kind: personal | public, project (E15-2) }, link_opened { kind, instrument }, response_started
 { instrument }, response_submitted { instrument, items, minutes }, reminder_sent, insight_run
@@ -775,4 +775,14 @@ tipVisible(state, id), pathHidden(state), PATH_STEPS, DONE_HOURS 24, pathView(fa
 actions dismissTipAction(tipId) and setShowTipsAction(on) in src/app/app/(shell)/
 guide-actions.ts. Components: <GuideCard id action? secondary? (path.start only)> and <ShowTips on
 disabled?> in src/components/app/; MascotPose gains "help".
+
+Step and rescue tips (E15-3, E15-4): in src/lib/guide.ts, importTip({ hasSet, pending: {
+createdAt } or null }, now), shapeTip({ hasSet, importedAt, shapedAt, lastFailedAt, pending }),
+buildTip({ intro, fields }), shareTip({ publishedAt, open, openSince, responses }, now): TipId or null;
+RESCUE_UPLOAD_MINUTES 10, RESCUE_NO_RESPONSE_DAYS 3; SampleScreen (strip, registers, detail),
+SAMPLE_TIPS, walkthroughOver(state). <StepTip tip action? path> in src/app/app/(shell)/
+projects/[projectId]/step-tip.tsx. events.lastWith(ws, name, key, value): the newest
+row's { createdAt, properties } or null, in src/db/queries/events.ts, and lastEventWith(name,
+ws, key, value): { at, properties } or null, in src/lib/analytics.ts;
+responses.countForInstrument(ws, instrumentId).
 

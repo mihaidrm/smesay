@@ -19,6 +19,9 @@ import { PasteForm } from "./paste-form";
 import { UploadPreview } from "./preview";
 import { UploadForm } from "./upload-form";
 import { WithPreview } from "../with-preview";
+import { StepTip } from "../step-tip";
+import { importTip } from "@/lib/guide";
+import { GUIDE_LINES } from "@/lib/guide-lines";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -35,6 +38,10 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const setItems = log.versions[0]?.items ?? 0;
   // The banner owed from E3-6 (stories/E6-1): the project has a public link in force.
   const published = set !== null && (await invites.livePublic(current.ws, project.id)) !== null;
+  // The guide (stories/E15-3, E15-4): an upload not imported yet, or no list at all.
+  const mappable = upload !== null && upload.mapping !== null && upload.preview.columns.length > 0;
+  const notImported = upload !== null && !(set && set.uploadId === upload.id);
+  const tip = notImported && !mappable ? null : importTip({ hasSet: set !== null, pending: notImported && mappable ? { createdAt: upload.createdAt } : null });
   return (
     <WithPreview projectId={project.id} step="import">
       <div className="flex flex-col gap-1">
@@ -46,6 +53,10 @@ export default async function ImportPage({ params }: { params: Promise<{ project
           </p>
         )}
       </div>
+      {!project.isSample && (
+        <StepTip path={`/app/projects/${project.id}/import`} tip={tip}
+          action={tip === "rescue.mapping" ? { label: GUIDE_LINES["rescue.mapping"].action, href: "#mapping-title" } : undefined} />
+      )}
       {published && <Banner data-testid="published-banner">{IMPORT_COPY.published}</Banner>}
       <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
       <section className="flex flex-col gap-3 card p-4" aria-labelledby="about-title">

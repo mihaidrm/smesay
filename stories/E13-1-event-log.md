@@ -36,7 +36,8 @@ Writes are awaited inside the request after the step has succeeded (design note 
 that fails never fails the user's action; the failure is logged. Index on (name, created_at) and on workspace_id.
 
 Built 2026-10-05 (design note 82, decision 0044):
-- Acceptance 1: docs/analytics.md and src/lib/analytics-catalogue.ts list the 21 events.
+- Acceptance 1: docs/analytics.md and src/lib/analytics-catalogue.ts list the 22 events (21 at the build; shape_failed added by E15-4 on 2026-10-05, carrying
+  the refusal reason and the project id, for the Shape rescue tip).
   project_created carries from (new, import), insight_run carries actions and costCents (the
   story named none; both are counts or fixed values). trackProblem refuses a name not in the
   catalogue (src/db/queries/analytics.test.ts).

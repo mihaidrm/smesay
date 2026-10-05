@@ -118,6 +118,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   if (!result.ok) {
     // Every refusal leaves a line, so a paused product or a spent budget is in the log.
     log("error", "Shaping did not run.", { set: set.id, reason: result.reason, detail: result.detail });
+    await track("shape_failed", { reason: result.reason, project: project.id }, { workspaceId: actor.ws, userId: actor.userId });
     return { error: result.message, retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const byRef = new Map(rows.map((it) => [ref(it), it]));

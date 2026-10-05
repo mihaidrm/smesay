@@ -18,6 +18,10 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-text";
 import { areaNames, contextLine, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
+import { StepTip } from "../step-tip";
+import { shapeTip } from "@/lib/guide";
+import { GUIDE_LINES } from "@/lib/guide-lines";
+import { lastEventWith } from "@/lib/analytics";
 import { FlagBanners } from "./flags";
 import { ReaderAll } from "./reader-all";
 import { ShapeButton } from "./shape-button";
@@ -49,6 +53,12 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   const showReaders = shaped || project.isSample;
   // Flags (stories/E4-4): the banners above the areas and a note per flag on the item.
   const flags = flagsFor(rows);
+  // The guide (stories/E15-3, E15-4): a refused run after the last good one, a list not shaped,
+  // reader versions waiting. Not on the sample.
+  const failed = set && !project.isSample ? await lastEventWith("shape_failed", current.ws, "project", project.id) : null;
+  const tip = project.isSample || !set ? null : shapeTip({ hasSet: rows.length > 0, importedAt: set.importedAt, shapedAt: set.shapedAt, lastFailedAt: failed?.at ?? null, pending: suggested });
+  // "Try again" only where a run can work again: not after a budget, plan or pause refusal.
+  const retryable = failed !== null && ["failed", "invalid", "rateLimited"].includes(String(failed.properties.reason));
   const notesFor = (id: string) => flags.filter((f) => f.itemId === id).map((f) => (f.kind === "ambiguity" ? SHAPE_COPY.ambiguityNote(SHAPE_COPY.sentence(f.what)) : SHAPE_COPY.duplicateItemNote(f.otherRef)));
   return (
     <WithPreview projectId={project.id} step="shape">
@@ -72,6 +82,8 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
         {project.isSample && <p className="text-[13px] text-ink-muted" data-testid="sample-read-only">{PROJECTS_COPY.sample}</p>}
+        <StepTip path={`/app/projects/${project.id}/shape`} tip={tip}
+          action={tip === "rescue.shapeFailed" && retryable ? { label: GUIDE_LINES["rescue.shapeFailed"].action, href: "#shape-run" } : undefined} />
         {set && rows.length > 0 && !project.isSample && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={`/app/projects/${project.id}/import#about-title`} />}
         {perspectivesNote && (
           <p className="text-[13px] text-ink-muted" data-testid="perspectives-note">

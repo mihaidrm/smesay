@@ -58,8 +58,8 @@ describe("trackProblem", () => {
     expect(trackProblem("response_submitted", { instrument: INSTRUMENT, items: 6, minutes: 4 }, { workspaceId: ws, userId: null })).toBeNull();
   });
 
-  it("lists the 21 events of the story", () => {
-    expect(Object.keys(EVENTS)).toHaveLength(21);
+  it("lists the 21 events of the story and shape_failed (stories/E15-4)", () => {
+    expect(Object.keys(EVENTS)).toHaveLength(22);
   });
 });
 
