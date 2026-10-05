@@ -2,7 +2,8 @@
 // the round-headed robot of the Robot Vector Collection (Craftwork, commercial licence in
 // public/assets/mascot/LICENCE.txt), in four poses: "hi" greets (sign-in, the landing hero,
 // the respondent thank-you), "idea" gives a tip (the Projects empty state), "reading" reads
-// the list (Import), "analysis" shows a chart (Results). The yellows of the pack are
+// the list (Import), "analysis" shows a chart (Results). The 404 uses all four, one per rating
+// of the missing page (stories/E11-7). The yellows of the pack are
 // recoloured to the brand violet in the files. It sits on a light disc in both modes, so its
 // dark outlines read on the dark surface too. Decorative: the alt is empty and the page
 // text carries the meaning. Design note 37.

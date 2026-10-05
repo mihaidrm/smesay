@@ -278,7 +278,7 @@ of the content; page means it replaces the screen.
 | Where | When | Message |
 |---|---|---|
 | Page, respondent routes and logo (E11-1) | Over 100 requests a minute from one address (429) | Too many requests from your connection. Wait a minute and try again. (Title: Too many requests) |
-| Page | 404 | This page does not exist. Check the address, or go to your projects. [Button: Go to your projects] |
+| Page | 404 | This page does not exist. Check the address, or go to your projects. [Button: Go to your projects] [Button: Go back] (the scene above them: The 404 page, below) |
 | Page, respondent link (E11-6) | 404 below a link | This page does not exist. Check the link you were sent, or ask the person who sent it for a new one. |
 | Page | 500 | The server could not finish this request. It has been logged. Try again in a minute; if it keeps failing, email [SUPPORT EMAIL]. [Button: Try again] |
 | Page | Maintenance (MAINTENANCE=1) | SMEsay is being updated and is back within [MINUTES] minutes. Respondent links keep their saved answers. (Title: SMEsay is being updated) |
@@ -327,3 +327,24 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | The view-only page (/app/view-only) | Any write during an admin's view: a server action, or an export asked for by its address (the download links are disabled) | You are viewing as [WORKSPACE]. Changes are off. / Stop viewing to go back to your own workspace, or keep looking: every page of this workspace is open to you, read-only. / Back to the projects |
 | Under the View as button | The workspace is marked deleted | This workspace is marked deleted. Restore it first. |
+
+## The 404 page
+
+The scene above the 404's title and line (stories/E11-7). The words of the robot and the card;
+the title, the line and "Go to your projects" are the 404 row above.
+
+| Where | Text |
+|---|---|
+| Under the big 404, with a pointer only (hidden from screen readers, as the light is) | The lights are off here. Move your pointer to look around. |
+| Card reference | 404 |
+| Card title | The page at this address |
+| Card line | The address bar proposed it as a must. Rate it the way your experts rate a list. |
+| The robot, before a rating | The robot looked everywhere and found nothing to read. |
+| The robot, Must (agree) | Agreed, it is a must. It still does not exist. Your projects do. |
+| The robot, Should or Could (different priority) | A lower priority. Fair: it can wait, and your projects cannot. |
+| The robot, Not needed (disagree) | Not needed. Then nothing is missing. |
+| The robot, Unclear | Unclear to the robot too. Check the address for a typo. |
+| Before the robot's line, for screen readers only | You rated it [VALUE]. |
+| Under the card | Nothing you rate on this page is saved. |
+| Second button, when there is a page to go back to | Go back |
+
