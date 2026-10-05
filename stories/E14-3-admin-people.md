@@ -1,7 +1,7 @@
 # E14-3 People: who can sign in, how, and where
 
 User: Mihai, helping someone who cannot get in
-Status: ready
+Status: built
 Outcome: one page per person with their sign-in methods, workspaces and sessions, and the
 actions that get them unstuck.
 

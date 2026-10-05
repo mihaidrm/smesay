@@ -47,5 +47,4 @@ that help, each audited, with the product's rules holding for admins too.
 
 ## Rejected
 
-- Linking a deleted workspace's members to People: People arrives with E14-3.
 - Editing a workspace's content: out of scope in the story.

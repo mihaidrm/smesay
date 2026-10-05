@@ -118,7 +118,7 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
       <Section title={C.sections.members} testId="admin-members">
         {people.members.length === 0 ? <p className="text-sm text-ink-muted">{C.noMembers}</p> : <table className="w-full text-sm">
           <thead><tr><th className={TH}>{C.memberColumns.name}</th><th className={TH}>{C.memberColumns.email}</th><th className={TH}>{C.memberColumns.role}</th><th className={TH}>{C.memberColumns.joined}</th></tr></thead>
-          <tbody>{people.members.map((m) => <tr key={m.userId}><td className={TD}>{m.name}</td><td className={TD}>{m.email}</td><td className={TD}>{C.roles[m.role]}</td><td className={TD}>{DAY.format(m.createdAt)}</td></tr>)}</tbody>
+          <tbody>{people.members.map((m) => <tr key={m.userId}><td className={TD}>{m.name}</td><td className={TD}><Link href={`/admin/people/${encodeURIComponent(m.userId)}`} className="text-violet-text underline-offset-4 hover:underline">{m.email}</Link></td><td className={TD}>{C.roles[m.role]}</td><td className={TD}>{DAY.format(m.createdAt)}</td></tr>)}</tbody>
         </table>}
       </Section>
       <Section title={C.sections.invites} testId="admin-invites">

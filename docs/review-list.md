@@ -384,3 +384,11 @@ a change.
 | 2026-10-05 | A restore after the removal job has deleted the files (logo, uploads) but not the rows, by a race or a failed run, gives back the workspace without those files; members who left it do not come back. The confirm line says both | src/lib/workspace-removal.ts, src/lib/admin-copy.ts | |
 | 2026-10-05 | Support notes cannot be edited or removed; the confirm line says so | src/app/admin/workspaces/[id]/page.tsx | |
 | 2026-10-05 | The AI budget the admin sets is a whole number of euro from 0 to 10000 | src/db/queries/admin.ts AI_BUDGET_MAX_EUR | |
+| 2026-10-05 | An admin cannot delete an account that is the only owner of a workspace, a deleted one waiting for removal included; someone else becomes owner first, or the owner deletes the workspace | src/lib/accounts.ts deleteAccount | |
+| 2026-10-05 | Deleting an account also deletes every workspace invitation to the address, accepted or not, and its unused sign-in links; the privacy policy says so | src/db/queries/admin.ts forgetEmail, docs/legal/privacy.md | For the lawyer |
+| 2026-10-05 | The sole-owner check and the deletion are not under one lock: an owner stepping down at the same moment could leave a workspace with none | src/lib/accounts.ts | Rare; a lock later? |
+| 2026-10-05 | The People list has no paging; it reads every account at once | src/db/queries/admin.ts peopleDirectory | Page it past a few thousand? |
+| 2026-10-05 | Microsoft does not show as a sign-in method until its sign-in exists (decision 0034) | src/db/queries/admin.ts SignInMethod | |
+| 2026-10-05 | "Last sign-in" on the People pages is a new column, user.last_sign_in_at, written by better-auth's session hook; the migration filled it from the sessions still kept, so someone who signed out before shows "never" until their next sign-in | src/lib/auth.ts, drizzle/0032 | |
+| 2026-10-05 | Sessions show the browser and system family from five patterns, not a user-agent library; anything else reads Other | src/lib/accounts.ts userAgentFamily | |
+| 2026-10-05 | After an account is deleted its audit rows show the person as "deleted": the row keeps the user id only | src/app/admin/audit/page.tsx | |

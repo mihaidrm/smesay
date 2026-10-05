@@ -14,6 +14,9 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  // E14-3: when the person last signed in, set by the session hook in src/lib/auth.ts; better-auth
+  // deletes a session on sign-out, so the sessions alone cannot say it.
+  lastSignInAt: timestamp("last_sign_in_at"),
   // E8-1: the person's choices on Results, per instrument (INTERFACES.md ResultsPrefs).
   resultsPrefs: jsonb("results_prefs").$type<ResultsPrefs>().notNull().default(sql`'{}'::jsonb`),
 });

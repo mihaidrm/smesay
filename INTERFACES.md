@@ -735,3 +735,20 @@ resendInvite(ws, inviteId, headers) in src/lib/members.ts (inviteMember keeps it
 and calls the first). instrumentState(publishedAt, publicLink, now): "draft" | "published" |
 "closed" | "revoked" in src/lib/admin-copy.ts.
 
+Admin people (E14-3): in src/db/queries/admin.ts, peopleDirectory(proof, { q, id }, now):
+AdminPerson[] { id, email, name, emailVerified, createdAt, methods ("link", "google"),
+workspaces: { id, name, role }[], lastSignIn (user.lastSignInAt, or null), openSessions } newest
+sign-in first, q matching email or name; adminPerson(proof, id): AdminPerson or null;
+personSessions(proof, userId): { id, createdAt, expiresAt, open, userAgent }[] (never the token
+or the address); personEvents(proof, userId, limit); invitesFor(proof, email, validMinutes): {
+id, workspaceId, workspaceName, invitedAt, open }[] not accepted, live workspaces only;
+soleOwnedBy(proof, userId): { id, name }[] where the user is the only owner, deleted workspaces
+waiting for removal included; forgetEmail(proof, email): { invites, links } (every workspace
+invitation to the address and its unused sign-in links deleted); assertAdmin(proof). user gains
+lastSignInAt (timestamp, null), set by better-auth's session.create.after hook in
+src/lib/auth.ts. In src/lib/accounts.ts, each taking the proof: userAgentFamily(ua): { browser,
+os }; signOutEverywhere(proof, userId): the number of open sessions ended;
+removeMemberAsAdmin(proof, ws, userId): { error } or { removed: true } (the last-owner rule);
+deleteAccount(proof, userId, email): { error } or { deleted: true }, refused while the person is
+a workspace's only owner, the address forgotten, then better-auth's internalAdapter.deleteUser.
+
