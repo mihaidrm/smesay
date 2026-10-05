@@ -182,12 +182,11 @@ SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · DPA �
 hello@smesay.app. The four legal words link to /legal/privacy, /legal/terms, /legal/dpa and
 /legal/subprocessors (E11-3); the address stays text until the domain is bought.
 
-## Question bubble (E12-5, proposed; waits for Mihai, decision 0046)
+## Question bubble (E12-5, decided 2026-10-05, decision 0049)
 
 Button, bottom right: a speech-bubble icon, named "Ask us a question" for screen readers.
 Panel title: Ask us a question
-Line: We read every message and reply by email within one working day. (the promise is
-Mihai's to confirm)
+Line: We read every message and reply by email within one working day.
 Fields: Your email; Your question
 Under the fields: We use your email only to reply. Privacy (a link to /legal/privacy)
 Button: Send; while sending: Sending
