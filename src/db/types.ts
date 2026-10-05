@@ -86,10 +86,15 @@ export type FunnelStep = (typeof FUNNEL_STEPS)[number];
 // Proof that the caller checked the admin rule (src/lib/admin.ts requireAdmin): every
 // cross-workspace read in src/db/queries/admin.ts takes one, so a page or route that forgot
 // the check does not compile (stories/E13-2, E14-1).
-export type AdminProof = { readonly checked: "admin" } & { readonly __brand: "AdminProof" };
+// It carries the admin's user id from the session, which the audit row records (E14-1).
+export type AdminProof = { readonly checked: "admin"; readonly userId: string } & { readonly __brand: "AdminProof" };
 
 // What an admin can do (stories/E14-1 to E14-4), one admin_audit row each. Change INTERFACES.md
 // first.
 export const ADMIN_ACTIONS = ["plan_changed", "ai_budget_set", "invite_resent", "link_revoked", "workspace_restored", "note_added", "magic_link_sent", "signed_out_everywhere", "member_removed", "account_deleted", "view_started", "view_stopped"] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 export type AuditChanges = Record<string, string | number | boolean | null>;
+// What became of the action after its row was written: null while it runs, or when the process
+// stopped before the outcome was written.
+export const AUDIT_OUTCOMES = ["done", "refused", "failed"] as const;
+export type AuditOutcome = (typeof AUDIT_OUTCOMES)[number];

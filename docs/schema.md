@@ -396,10 +396,11 @@ one row per admin action, written in the action's own transaction; the target wo
 | target_workspace_id | uuid |  |
 | target_user_id | text |  |
 | changes | jsonb | not null, default {} |
+| outcome | text |  |
 | created_at | timestamp with time zone | not null, default now() |
 
 Indexes: admin_audit_created_idx on created_at; admin_audit_workspace_idx on target_workspace_id; admin_audit_admin_idx on admin_user_id.
-Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null.
+Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null.
 
 ## upload
 

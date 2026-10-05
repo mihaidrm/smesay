@@ -8,35 +8,47 @@ Made in the Claude Code cloud session of 2026-10-05 for stories/E14-1, under dec
   (NavLink, design note 34), "Back to the app" and the signed-in email at the bottom. No
   workspace chip and no project list: the admin area belongs to no workspace. Each nav item
   arrives with its page (Overview and Audit log now, Workspaces with E14-2, People with E14-3),
-  so the nav never links to a page that does not exist.
-- The admin check runs in the layout and again in every page and action. A unit test reads
-  every page, layout, route and server action file under src/app/admin/ and fails when one
-  does not call requireAdmin(); the e2e walks the list of admin addresses (e2e/admin-routes.ts)
-  signed out and as another email and expects 404 on each.
-- One transaction for an action and its row. The product's helpers know nothing of the admin
-  area, so the database client keeps the open transaction in AsyncLocalStorage
-  (nodejs.org/api/async_context.html) and every use of db inside goes to it; a helper's own
-  db.transaction() becomes a savepoint. The row is written after the action, so a refused row
-  (the action check, the target check) rolls the action back, and a failed action writes no
-  row.
+  so the nav never links to a page that does not exist; the story's acceptance 2 says so.
+- The admin check runs in the layout, so the sidebar never reaches anyone else, and again in
+  every page and action: a layout does not run again on client navigation (Next's
+  authentication guide, node_modules/next/dist/docs/01-app/02-guides/authentication.md), so it
+  guards nothing alone. A unit test reads every page, layout, route and server action file under
+  src/app/admin/ (comments left out) and fails when one does not call requireAdmin(); the e2e
+  walks the list of admin addresses (e2e/admin-routes.ts) signed out and as another email and
+  expects 404 on each. requireAdmin() is cached per request, so the layout and the page read the
+  session once.
+- The audit row is written before the action, by the admin the session names (the proof
+  carries the user id), and the action runs only when the row is in; afterwards the row gets
+  its outcome: done, refused (the product's helper returned { error }) or failed (it threw). A
+  row without an outcome is an action whose end was not recorded. This replaces the story's
+  first wording, one transaction around the action and its row: see Rejected.
+- A row's changes take ids and fixed values: at most 12 keys and strings of at most 80
+  characters, so free text (a note, a respondent's words) cannot be put in one by mistake.
 - admin_audit has no foreign keys: the target workspace or person and the admin are plain
   columns, so a row outlives what it names and the log shows "deleted" instead of losing the
-  line. A check keeps the action inside the catalogue of twelve and requires a target.
+  line; a workspace marked deleted and waiting for removal shows its name with "(deleted,
+  removal pending)". The privacy policy now says the ids stay, with a lawyer marker.
 - The audit page reads its filters and page from the address (?workspace=, ?admin=, ?page=), a
   GET form with two native selects and a Show button, so it works before any script loads and
   a filtered view can be linked. New to the design system: the native select in the PM app,
-  with the respondent fields' radius and border. 50 rows a page, Newer and Older.
-- "What changed" prints the row's changes as key: value pairs, in a mono line.
+  with the respondent fields' radius and border. 50 rows a page, Newer and Older; a page past
+  the end shows the last one. A workspace or admin removed since stays in the filter as
+  "deleted (" and the start of its id ")".
+- "What changed" prints the row's changes as key: value pairs, in a mono line; "Outcome" says
+  Done, Refused, Failed or Not recorded.
 
 ## Why
 
 Story E14-1 asks for one admin area, one rule for who sees it, and a record of every admin
-action that cannot be skipped. A record written outside the action's transaction could be lost
-on a crash after the action, or written for an action that failed.
+action that cannot be skipped.
 
 ## Rejected
 
+- One transaction around the action and its row, with the product's helpers routed into it
+  through the database client (the first build of this story). The fresh-context review found
+  three faults: an email the action sent cannot be taken back when the row then fails, so the
+  action happened without its row anyway; a helper that catches a database error and goes on
+  (track(), the slug retry) leaves the transaction aborted and fails the whole action; and the
+  routing changed the client every query in the product goes through.
 - Passing a transaction handle through every product helper: it would change dozens of
   signatures for the admin area's sake, and E14-2 asks that admins use the helpers unchanged.
-- Writing the row first and the action second, on separate connections: a failed action would
-  leave a row for something that did not happen.

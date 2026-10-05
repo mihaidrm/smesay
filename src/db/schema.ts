@@ -13,7 +13,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import { ADMIN_ACTIONS, EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
+import { ADMIN_ACTIONS, AUDIT_OUTCOMES, EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
 import type { AuditChanges, ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
 
 export * from "./auth-schema";
@@ -456,8 +456,9 @@ export const event = pgTable("event", {
 ]);
 
 
-// What admins did (stories/E14-1): one row per admin action, written in the action's own
-// transaction (src/db/queries/admin.ts audited). No workspace_id of its own and no foreign keys:
+// What admins did (stories/E14-1): one row per admin action, written before the action runs
+// and marked with its outcome after (src/db/queries/admin.ts audited), so no action runs without
+// its row. No workspace_id of its own and no foreign keys:
 // the target is a column, and a row outlives its target and its admin, so the log shows
 // "deleted" rather than losing the line. changes holds ids and fixed values, never a secret and
 // never respondent text.
@@ -468,11 +469,13 @@ export const adminAudit = pgTable("admin_audit", {
   targetWorkspaceId: uuid("target_workspace_id"),
   targetUserId: text("target_user_id"),
   changes: jsonb("changes").$type<AuditChanges>().notNull().default({}),
+  outcome: text("outcome", { enum: AUDIT_OUTCOMES }),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   index("admin_audit_created_idx").on(t.createdAt),
   index("admin_audit_workspace_idx").on(t.targetWorkspaceId),
   index("admin_audit_admin_idx").on(t.adminUserId),
   check("admin_audit_action_check", oneOf("action", ADMIN_ACTIONS)),
+  check("admin_audit_outcome_check", sql`${t.outcome} is null or ${oneOf("outcome", AUDIT_OUTCOMES)}`),
   check("admin_audit_target_check", sql`${t.targetWorkspaceId} is not null or ${t.targetUserId} is not null`),
 ]);

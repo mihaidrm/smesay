@@ -129,7 +129,11 @@ AI
 Admin area (E13-2, E14)
 - /admin served only to ADMIN_EMAILS; everyone else gets 404. The admin queries live in one
   module the product's pages never import.
-- Every admin action writes an audit row in the same transaction; "view as" is read-only,
+- Every admin action writes its audit row before it runs, by the admin of the session, and the
+  action runs only when the row is in; the row then records done, refused or failed. The
+  admin_audit table is the one application table without workspace_id besides the auth tables:
+  its target is a column with no foreign key, so a row outlives the workspace or person it
+  names (E14-1); "view as" is read-only,
   shows a banner, expires after 60 minutes and is audited at start and stop.
 - No respondent names or answers in the admin area except through "view as".
 

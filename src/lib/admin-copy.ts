@@ -1,5 +1,5 @@
 // The admin page's words (stories/E13-2; docs/copy/app.md, Admin). Mihai's page only.
-import type { AdminAction, AuditChanges, FunnelStep } from "@/db/types";
+import type { AdminAction, AuditChanges, AuditOutcome, FunnelStep } from "@/db/types";
 
 export const ADMIN_COPY = {
   title: "Overview",
@@ -42,19 +42,23 @@ export const ADMIN_SHELL_COPY = {
 export const AUDIT_COPY = {
   crumb: "SMEsay admin",
   title: "Audit log",
-  intro: "Every action an admin took, newest first. Each row was written with its action, so nothing here happened without a row.",
+  intro: "Every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it.",
   workspace: "Workspace",
   admin: "Admin",
   all: "All",
   apply: "Show",
   clear: "Clear the filters",
-  columns: { time: "Time (UTC)", admin: "Admin", action: "Action", target: "Workspace or person", changes: "What changed" },
+  columns: { time: "Time (UTC)", admin: "Admin", action: "Action", outcome: "Outcome", target: "Workspace or person", changes: "What changed" },
+  outcomes: { done: "Done", refused: "Refused", failed: "Failed", none: "Not recorded" } satisfies Record<AuditOutcome | "none", string>,
   actions: {
     plan_changed: "Changed the plan", ai_budget_set: "Set the AI budget", invite_resent: "Sent an invitation again", link_revoked: "Revoked a link",
     workspace_restored: "Restored the workspace", note_added: "Added a support note", magic_link_sent: "Sent a sign-in link", signed_out_everywhere: "Signed the person out everywhere",
     member_removed: "Removed a member", account_deleted: "Deleted the account", view_started: "Started viewing as the owner", view_stopped: "Stopped viewing",
   } satisfies Record<AdminAction, string>,
   deleted: "deleted",
+  markedDeleted: (name: string) => `${name} (deleted, removal pending)`,
+  // A workspace or admin removed since, in the filter: the start of its id.
+  gone: (id: string) => `deleted (${id.slice(0, 8)})`,
   none: "No admin actions yet.",
   noneFiltered: "No admin actions match these filters.",
   pageOf: (page: number, pages: number, total: number) => `Page ${page} of ${pages}, ${total} ${total === 1 ? "action" : "actions"}`,

@@ -427,11 +427,12 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Crumb, title and line | SMEsay admin / Audit log / Every action an admin took, newest first. Each row was written with its action, so nothing here happened without a row. |
+| Crumb, title and line | SMEsay admin / Audit log / Every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it. |
 | Filters | Workspace, Admin (each with All), Show, Clear the filters |
-| Columns | Time (UTC), Admin, Action, Workspace or person, What changed |
+| Columns | Time (UTC), Admin, Action, Outcome, Workspace or person, What changed |
+| Outcome | Done, Refused, Failed, Not recorded |
 | Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing |
-| A target or admin removed since | deleted |
+| A target or admin removed since | deleted; a workspace waiting for removal: [NAME] (deleted, removal pending); in the filters: deleted ([first 8 characters of the id]) |
 | What changed | key: value pairs (none for an empty value) |
 | Empty | No admin actions yet. (filtered: No admin actions match these filters.) |
 | Pages | Page [N] of [M], [T] actions (1 action); Newer, Older |

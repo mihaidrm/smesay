@@ -1,5 +1,5 @@
 {
-  "id": "e73f09c2-f26f-40d3-92ec-3f907a1d26da",
+  "id": "e61a6273-2f92-4600-bcaa-52a3ecffc448",
   "prevId": "e2837990-2d50-4264-960d-c3e68b218529",
   "version": "7",
   "dialect": "postgresql",
@@ -45,6 +45,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'::jsonb"
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -109,6 +115,10 @@
         "admin_audit_action_check": {
           "name": "admin_audit_action_check",
           "value": "\"action\" in ('plan_changed', 'ai_budget_set', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped')"
+        },
+        "admin_audit_outcome_check": {
+          "name": "admin_audit_outcome_check",
+          "value": "\"admin_audit\".\"outcome\" is null or \"outcome\" in ('done', 'refused', 'failed')"
         },
         "admin_audit_target_check": {
           "name": "admin_audit_target_check",

@@ -17,7 +17,9 @@ describe("the admin area", () => {
   it("checks the admin rule in every page, layout, route and action", () => {
     const entries = files.filter((f) => /(^|\/)(page|layout|route)\.tsx?$/.test(f) || /"use server"/.test(readFileSync(f, "utf8")));
     expect(entries.length).toBeGreaterThanOrEqual(3);
-    for (const f of entries) expect(readFileSync(f, "utf8"), path.relative(ROOT, f)).toMatch(/await requireAdmin\(\)/);
+    // Comments are left out, so a call named only in a comment does not count.
+    const code = (f: string) => readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    for (const f of entries) expect(code(f), path.relative(ROOT, f)).toMatch(/await requireAdmin\(\)/);
   });
 
   it("lists every page for the 404 test", () => {

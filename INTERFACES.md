@@ -702,15 +702,19 @@ createWorkspaceWithSample({ name, slug, firstSource }); AdminWorkspace gains fir
 Admin audit (E14-1): ADMIN_ACTIONS in src/db/types.ts (plan_changed, ai_budget_set,
 invite_resent, link_revoked, workspace_restored, note_added, magic_link_sent,
 signed_out_everywhere, member_removed, account_deleted, view_started, view_stopped) and
-AdminAction. Table admin_audit { id, adminUserId, action (AdminAction), targetWorkspaceId (uuid,
-null), targetUserId (text, null), changes (jsonb Record<string, string | number | boolean |
-null>), createdAt }: no foreign keys, so a row outlives its target and its admin; at least one
-target. inTransaction(fn) in src/db/index.ts runs fn with every use of db inside one
-transaction. In src/db/queries/admin.ts: audited(proof, { adminUserId, action,
-targetWorkspaceId?, targetUserId?, changes? }, fn): fn's result, fn and the row in one
-transaction (the row written after fn; a refused row rolls fn back); auditLog(proof, { page,
-workspaceId?, adminUserId? }): { rows: AuditRow[] { id, action, adminEmail (null when the user
-is gone), targetWorkspaceId, targetWorkspaceName, targetUserId, targetUserEmail (null when gone),
-changes, createdAt }, total } newest first, AUDIT_PAGE 50 per page; auditFilters(proof): {
-workspaces: { id, name }[], admins: { id, email }[] } from the rows.
+AdminAction; AUDIT_OUTCOMES (done, refused, failed) and AuditOutcome. AdminProof gains userId
+(the session's). Table admin_audit { id, adminUserId, action (AdminAction), targetWorkspaceId
+(uuid, null), targetUserId (text, null), changes (jsonb Record<string, string | number |
+boolean | null>), outcome (AuditOutcome, null until recorded), createdAt }: no foreign keys, so a
+row outlives its target and its admin; at least one target. In src/db/queries/admin.ts:
+audited(proof, { action, targetWorkspaceId?, targetUserId?, changes? }, fn): fn's result; the
+row (adminUserId from the proof) is written first and fn runs only when it is in; then outcome
+done, refused (fn returned { error }) or failed (fn threw, rethrown). changes: at most 12 keys,
+strings at most CHANGE_MAX (80) characters. auditLog(proof, { page, workspaceId?, adminUserId?
+}): { rows: AuditRow[] { id, action, outcome, adminEmail (null when the user is gone),
+targetWorkspaceId, targetWorkspaceName (null when gone), targetWorkspaceDeleted, targetUserId,
+targetUserEmail (null when gone), changes, createdAt }, total, page } newest first, AUDIT_PAGE
+50 per page, a page past the end read as the last; auditFilters(proof): { workspaces: { id,
+name or null }[], admins: { id, email or null }[] } from the rows. requireAdmin() is cached per
+request.
 

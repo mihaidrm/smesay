@@ -41,8 +41,8 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
 }
 
 async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
-  const page = Math.max(1, Number.parseInt(search.page ?? "1", 10) || 1);
-  const [{ rows, total }, filters] = await Promise.all([auditLog(proof, { page, workspaceId: search.workspace, adminUserId: search.admin }), auditFilters(proof)]);
+  const asked = Number.parseInt(search.page ?? "1", 10) || 1;
+  const [{ rows, total, page }, filters] = await Promise.all([auditLog(proof, { page: asked, workspaceId: search.workspace, adminUserId: search.admin }), auditFilters(proof)]);
   const pages = Math.max(1, Math.ceil(total / AUDIT_PAGE));
   const href = (p: number) => `/admin/audit?${new URLSearchParams({ ...(search.workspace ? { workspace: search.workspace } : {}), ...(search.admin ? { admin: search.admin } : {}), page: String(p) })}`;
   const filtered = Boolean(search.workspace || search.admin);
@@ -53,14 +53,14 @@ async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
           {C.workspace}
           <select name="workspace" defaultValue={search.workspace ?? ""} className={SELECT}>
             <option value="">{C.all}</option>
-            {filters.workspaces.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+            {filters.workspaces.map((w) => <option key={w.id} value={w.id}>{w.name ?? C.gone(w.id)}</option>)}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-[13px] font-semibold text-ink-muted">
           {C.admin}
           <select name="admin" defaultValue={search.admin ?? ""} className={SELECT}>
             <option value="">{C.all}</option>
-            {filters.admins.map((a) => <option key={a.id} value={a.id}>{a.email}</option>)}
+            {filters.admins.map((a) => <option key={a.id} value={a.id}>{a.email ?? C.gone(a.id)}</option>)}
           </select>
         </label>
         <button type="submit" className={buttonVariants({ variant: "secondary" })}>{C.apply}</button>
@@ -76,6 +76,7 @@ async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
                 <th className="px-4 py-2.5">{C.columns.time}</th>
                 <th className="px-3 py-2.5">{C.columns.admin}</th>
                 <th className="px-3 py-2.5">{C.columns.action}</th>
+                <th className="px-3 py-2.5">{C.columns.outcome}</th>
                 <th className="px-3 py-2.5">{C.columns.target}</th>
                 <th className="px-3 py-2.5">{C.columns.changes}</th>
               </tr>
@@ -86,8 +87,9 @@ async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
                   <td className="whitespace-nowrap px-4 py-2">{TIME.format(r.createdAt)}</td>
                   <td className="px-3 py-2">{r.adminEmail ?? C.deleted}</td>
                   <td className="px-3 py-2 font-semibold">{C.actions[r.action]}</td>
+                  <td className="px-3 py-2" data-testid="audit-outcome">{C.outcomes[r.outcome ?? "none"]}</td>
                   <td className="px-3 py-2">
-                    {r.targetWorkspaceId && <div>{r.targetWorkspaceName ?? C.deleted}</div>}
+                    {r.targetWorkspaceId && <div>{r.targetWorkspaceName === null ? C.deleted : r.targetWorkspaceDeleted ? C.markedDeleted(r.targetWorkspaceName) : r.targetWorkspaceName}</div>}
                     {r.targetUserId && <div className="text-ink-muted">{r.targetUserEmail ?? C.deleted}</div>}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs text-ink-muted">{auditChanges(r.changes)}</td>
@@ -98,7 +100,7 @@ async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
         </div>
       )}
       <div className="flex items-center gap-3 text-sm text-ink-muted" data-testid="audit-pages">
-        <span>{C.pageOf(Math.min(page, pages), pages, total)}</span>
+        <span>{C.pageOf(page, pages, total)}</span>
         {page > 1 && <Link href={href(page - 1)} className={buttonVariants({ variant: "secondary", size: "small" })}>{C.newer}</Link>}
         {page < pages && <Link href={href(page + 1)} className={buttonVariants({ variant: "secondary", size: "small" })}>{C.older}</Link>}
       </div>

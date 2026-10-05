@@ -71,6 +71,7 @@ SMEsay is not hosted yet. The plan for launch is below; the subprocessor list (/
 - An owner can delete a workspace in Settings. Every member loses access at once. The removal job then deletes every row and file in it and sends the owner who deleted it one email. [LAWYER: the removal job runs every hour from launch, so removal takes under 24 hours; until then it is started by hand. Confirm the period to promise.]
 - Backups: [LAWYER: confirm the backup retention period once it is set for the host.]
 - Respondents' answers are kept until the workspace is deleted. [LAWYER: confirm whether a maximum retention period is needed.]
+- The log of what SMEsay's administrators did (for example changing a plan or sending a sign-in link) keeps the id of the workspace or account it concerned after that workspace or account is deleted, with no name or email. [LAWYER: confirm that keeping these ids is allowed, and for how long.]
 - The usage record of a workspace goes when the workspace is deleted. The record of a sign-up and of a workspace deletion holds no workspace and stays; if your account is deleted, your user id is removed from it.
 
 ## Exports you make

@@ -1,7 +1,9 @@
 // The admin shell (stories/E14-1, acceptance 2): the PM app's sidebar (the lockup, NavLink
 // items, the signed-in email) with the admin pages, and "Back to the app". The admin check runs
-// here and again in every page and action, so a page added without its own check still serves
-// only the admin emails (src/lib/admin.ts; anyone else gets the 404 page). Desktop only, as the
+// here, so the sidebar is never sent to anyone else, and every page and action runs it again
+// itself: a layout's check does not run again on client navigation (node_modules/next/dist/docs/
+// 01-app/02-guides/authentication.md, Layouts), so it guards nothing on its own
+// (src/app/admin/admin-routes.test.ts checks each file). Desktop only, as the
 // PM side in R1 (decision 0020). Each nav item arrives with its page: Workspaces with E14-2,
 // People with E14-3. Copy: docs/copy/app.md, Admin shell.
 import Link from "next/link";
