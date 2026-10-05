@@ -1,12 +1,16 @@
 // The app's one logger (stories/E11-5, acceptance 3; SECURITY.md, Data). A line is a fixed
 // sentence plus named fields, and only the fields in FIELDS are printed: ids, counts, money,
-// step and reason codes. A field outside the list is dropped, whatever a caller passes, so a
-// name, an email or an answer cannot reach the log through this module. The sentence is the
+// step and reason codes. A field outside the list is dropped, whatever a caller passes, and every
+// value goes through the same scrub as an error report (src/lib/scrub.ts), so a later caller
+// passing an error's message cannot carry an email, quoted text or a failed query's values. Logs
+// written by Next and by better-auth themselves do not pass through here (docs/review-list.md). The sentence is the
 // caller's constant; text from a request or the database goes in no sentence. The lint rule
 // no-console keeps src/ on this module (eslint.config.mjs).
 //
 // Output goes to the console, which the host collects (docs/runbooks, launch gate): error and
 // warn to stderr, info to stdout (nodejs.org/api/console.html).
+
+import { scrubText } from "@/lib/scrub";
 
 export const FIELDS = [
   "workspace", "project", "set", "purpose", "reason", "detail", "step", "error", "sqlstate",
@@ -23,7 +27,7 @@ const VALUE_MAX = 200;
 export function formatLine(message: string, fields: LogFields = {}): string {
   const parts = Object.entries(fields)
     .filter(([key, value]) => ALLOWED.has(key) && value !== undefined && value !== null && value !== "")
-    .map(([key, value]) => `${key}=${String(value).replace(/\s+/g, " ").slice(0, VALUE_MAX)}`);
+    .map(([key, value]) => `${key}=${(typeof value === "number" ? String(value) : scrubText(String(value).replace(/\s+/g, " "))).slice(0, VALUE_MAX)}`);
   return parts.length === 0 ? message : `${message} ${parts.join(" ")}`;
 }
 

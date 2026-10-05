@@ -9,6 +9,8 @@ describe("log", () => {
     expect(formatLine("jobs:purge removed a workspace.", fields)).toBe("jobs:purge removed a workspace. workspace=w1 count=3");
     expect(formatLine("A line.")).toBe("A line.");
     expect(formatLine("A line.", { detail: "two\nlines" })).toBe("A line. detail=two lines");
+    // A value goes through the error report's scrub (src/lib/scrub.ts).
+    expect(formatLine("It failed.", { error: "No invite for ana@firma.ro", count: 2 })).toBe("It failed. error=No invite for [removed] count=2");
   });
   it("sends errors to stderr and the rest to stdout", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});

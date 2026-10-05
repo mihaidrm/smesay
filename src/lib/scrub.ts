@@ -8,24 +8,37 @@
 //   line numbers (no local variables, no source lines); the route and the request's method;
 // - dropped: user, request headers, cookies, query and body, breadcrumbs, extra, tags,
 //   contexts, server name.
-// A message keeps its words but loses what could be a person's data: email addresses, quoted
-// text, the values in a database error's "Key (column)=(value)", the token in a /r/ link and
-// any long hex or base64 run. Pure: no SDK import, so a unit test feeds it a plain object.
+// A message keeps its first line only, and loses what could be a person's data there: a failed
+// query's SQL and bound values (drizzle-orm's DrizzleQueryError puts "Failed query: [SQL]" and
+// "params: [VALUES]" in its message, node_modules/drizzle-orm/errors.js; only "Failed query" is
+// kept, the database's own error follows as the linked cause), email addresses, quoted text and
+// anything after an unmatched quote, the values in "Key (column)=(value)", IP addresses, the
+// token in a /r/ link and any long hex or base64 run. What it cannot see is an unquoted name in
+// a library's own sentence; the gate's test event checks what a real error carries
+// (docs/review-list.md). Pure: no SDK import, so a unit test feeds it a plain object.
 
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const QUOTED = /"[^"]*"|'[^']*'|`[^`]*`|“[^”]*”/g;
 const KEY_VALUE = /\(([^()]*)\)=\(([^()]*)\)/g;
 const LINK = /\/r\/[^/?#\s]+/g;
 const LONG_RUN = /\b[0-9a-f]{20,}\b|[A-Za-z0-9+_-]{32,}={0,2}/gi;
-export const MESSAGE_MAX = 300;
+const LONE_QUOTE = /["'`“].*$/;
+const IPV4 = /\b\d{1,3}(?:\.\d{1,3}){3}\b/g;
+const IPV6 = /\b(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}\b/gi;
+export const MESSAGE_MAX = 200;
 export const REMOVED = "[removed]";
 
 export function scrubText(text: string): string {
-  return text
+  if (/^\s*Failed query\b/.test(text)) return "Failed query";
+  const first = text.split(/\r?\n/)[0].replace(/\bparams:.*$/i, "");
+  return first
     .replace(EMAIL, REMOVED)
     .replace(KEY_VALUE, `($1)=(${REMOVED})`)
     .replace(QUOTED, REMOVED)
+    .replace(LONE_QUOTE, REMOVED)
     .replace(LINK, "/r/[token]")
+    .replace(IPV4, REMOVED)
+    .replace(IPV6, REMOVED)
     .replace(LONG_RUN, REMOVED)
     .slice(0, MESSAGE_MAX);
 }
@@ -33,7 +46,8 @@ export function scrubText(text: string): string {
 // The shapes read here, a subset of Sentry's Event (node_modules/@sentry/core/build/types/
 // types/event.d.ts); everything else on the event is not copied.
 type Frame = { filename?: string; function?: string; module?: string; lineno?: number; colno?: number; in_app?: boolean };
-type Exception = { type?: string; value?: string; stacktrace?: { frames?: Frame[] } };
+type Mechanism = { type?: string; handled?: boolean };
+type Exception = { type?: string; value?: string; mechanism?: Mechanism; stacktrace?: { frames?: Frame[] } };
 export type ReportEvent = {
   event_id?: string; timestamp?: number; level?: string; platform?: string; environment?: string; release?: string;
   message?: string | { message?: string; formatted?: string };
@@ -52,8 +66,10 @@ export function scrubEvent<E extends ReportEvent>(event: E): E {
     environment: event.environment, release: event.release,
   };
   if (message !== undefined) out.message = scrubText(message);
-  if (event.exception?.values) out.exception = { values: event.exception.values.map((e) => ({ type: e.type, value: e.value === undefined ? undefined : scrubText(e.value), stacktrace: e.stacktrace?.frames ? { frames: e.stacktrace.frames.map(frame) } : undefined })) };
-  if (event.transaction) out.transaction = scrubText(event.transaction);
+  // The mechanism's type and handled flag say how the error was caught (an unhandled request
+  // error stays unhandled in Sentry); its data field is not copied.
+  if (event.exception?.values) out.exception = { values: event.exception.values.map((e) => ({ type: e.type, value: e.value === undefined ? undefined : scrubText(e.value), mechanism: e.mechanism ? { type: e.mechanism.type, handled: e.mechanism.handled } : undefined, stacktrace: e.stacktrace?.frames ? { frames: e.stacktrace.frames.map(frame) } : undefined })) };
+  if (event.transaction) out.transaction = scrubText(event.transaction.replace(/[?#]\S*/, ""));
   if (event.request) out.request = { method: event.request.method, url: event.request.url === undefined ? undefined : pathOnly(event.request.url) };
   return out as E;
 }

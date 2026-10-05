@@ -32,7 +32,9 @@ export const DATA_COLLECTION: DataCollection = {
 export function sentryOptions(dsn: string, environment: string | undefined) {
   return {
     dsn,
-    environment,
+    // Only when set: an undefined value would replace the SDK's own default (SENTRY_ENVIRONMENT,
+    // then NODE_ENV; node_modules/@sentry/nextjs/build/cjs/server/index.js).
+    ...(environment ? { environment } : {}),
     dataCollection: DATA_COLLECTION,
     maxBreadcrumbs: 0,
     beforeBreadcrumb: () => null,

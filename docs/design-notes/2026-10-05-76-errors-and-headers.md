@@ -27,6 +27,19 @@ decision 0044.
   script, so every page renders per request: the legal pages are no longer built once. The
   fixed headers come from next.config.ts on every response, static files included.
 - Styles keep 'unsafe-inline' because the app uses style attributes; a nonce cannot cover them.
+- The proxy's matcher now covers /api and server actions too, so their bodies pass through it,
+  under Next's 10 MB cap (node_modules/next/dist/docs/01-app/03-api-reference/05-config/
+  01-next-config-js/proxyClientMaxBodySize.md); uploads stop at 6 MB.
+
+## Audit
+
+The fresh-context audit found 1 blocking point: a failed query's message carries its bound
+values ("params: ..."), which the scrub let through. Now a message keeps its first line only,
+a failed query keeps "Failed query", and an unmatched quote, IP addresses and the transaction's
+query string go too; log values pass through the same scrub. Also fixed: docs/accounts.md step
+10 keeps the DSN for the host, not .env.local; SECURITY.md and two review-list rows no longer
+say the CSP is missing; the mechanism (handled or not) is kept; an empty SENTRY_ENVIRONMENT
+leaves the SDK's default; onRequestError runs on Node.js only.
 
 ## Components added
 
