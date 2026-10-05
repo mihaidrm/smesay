@@ -239,6 +239,13 @@
       "when": 1791190247469,
       "tag": "0033_view_as",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1791190529343,
+      "tag": "0034_guide_state",
+      "breakpoints": true
     }
   ]
 }

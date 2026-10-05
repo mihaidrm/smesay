@@ -8,7 +8,12 @@
 // text carries the meaning. Design note 37.
 import { cn } from "cn";
 
-export type MascotPose = "hi" | "idea" | "reading" | "analysis";
+export type MascotPose = "hi" | "idea" | "reading" | "analysis" | "help";
+
+// "help" (the rescue tips, stories/E15-4) is a pose of the pack not placed yet (docs/assets.md
+// row 1): until Mihai places its file, the "idea" robot stands in, in the same frame (decision
+// 0041). data-pose keeps the pose asked for.
+const FILE: Record<MascotPose, string> = { hi: "hi", idea: "idea", reading: "reading", analysis: "analysis", help: "idea" };
 
 export function Mascot({ pose, size = 88, className }: { pose: MascotPose; size?: number; className?: string }) {
   return (
@@ -20,7 +25,7 @@ export function Mascot({ pose, size = 88, className }: { pose: MascotPose; size?
     >
       {/* A plain img: the file is the app's own static asset at one size, nothing for next/image to resize or host. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/assets/mascot/${pose}.svg`} alt="" width={Math.round(size * 0.82)} height={Math.round(size * 0.82)} draggable={false} />
+      <img src={`/assets/mascot/${FILE[pose]}.svg`} alt="" width={Math.round(size * 0.82)} height={Math.round(size * 0.82)} draggable={false} />
     </span>
   );
 }

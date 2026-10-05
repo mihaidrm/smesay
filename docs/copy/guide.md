@@ -52,3 +52,6 @@ Share one link. Line under the steps: Then: read the results.
 |---|---|
 | Switch in the sidebar footer, above the mode toggle | Show tips |
 | Dismiss on every card | Dismiss |
+| The card's name for screen readers | Tip |
+| A step of the path, read after its name | done (ticked); next (the next step) |
+| Under the card or the switch, when Dismiss or Show tips was not stored | That was not saved. Check the connection and try again. |

@@ -662,11 +662,11 @@ Product events (E13-1): EventName, the keys of EVENTS in src/lib/analytics-catal
 their properties: signed_up, workspace_created, member_joined, project_created { from: new |
 import }, import_committed { source: upload | paste, rows }, shape_run { items, costCents },
 instrument_published { method: moscow | fit | kcd, layout: chapters | item | page },
-invite_sent { kind: personal | public }, link_opened { kind, instrument }, response_started
+invite_sent { kind: personal | public, project (E15-2) }, link_opened { kind, instrument }, response_started
 { instrument }, response_submitted { instrument, items, minutes }, reminder_sent, insight_run
 { actions, costCents }, export_downloaded { format: csv | json | pdf | zip }, sample_opened,
 sample_deleted, quickstart_seen, workspace_deleted, guide_shown, guide_dismissed and
-guide_acted { tip: one of GUIDE_TIPS, empty until E15 }. rows, items, minutes, actions and
+guide_acted { tip: one of GUIDE_TIPS, the ids of docs/copy/guide.md (E15-1) }. rows, items, minutes, actions and
 costCents are whole numbers from 0 to COUNT_MAX (1,000,000,000); instrument is a uuid. track(name,
 properties, { workspaceId: WorkspaceId or null, userId: string or null }): Promise<boolean> in
 src/lib/analytics.ts is the only writer (events.record in src/db/queries/events.ts); it returns
@@ -763,4 +763,16 @@ requireWritableWorkspace(nextPath) and refuseWhileViewing(session) in
 src/lib/current-workspace.ts send a write during a view to /app/view-only. openDraft(ws, project,
 { create }) in src/lib/instruments.ts (create false never makes an instrument). VIEW_AS_COPY in
 src/lib/view-as-copy.ts.
+
+Guide (E15-1, E15-2): user.guideState (GuideState, default { tipsOff: false, dismissed: [] },
+drizzle/0034). GUIDE_LINES { [TipId]: { pose, line, action or null } }, TIP_IDS, GUIDE_COPY and
+GuidePose (hi, idea, reading, analysis, help) in src/lib/guide-lines.ts, equal to
+docs/copy/guide.md by test; GUIDE_TIPS in the analytics catalogue is TIP_IDS. In
+src/db/queries/guide.ts: guide.state(userId), guide.dismiss(userId, tipId), guide.setTipsOff(
+userId, off); firstProjectFacts(ws, userId): FirstProjectFacts { project (the person's newest,
+{ id, name } or null), hasSet, shaped, built, published, firstPublishedAt }. In src/lib/guide.ts:
+tipVisible(state, id), pathHidden(state), PATH_STEPS, DONE_HOURS 24, pathView(facts, now): { tip, projectId, ticked } or null. Server
+actions dismissTipAction(tipId) and setShowTipsAction(on) in src/app/app/(shell)/
+guide-actions.ts. Components: <GuideCard id action? secondary? (path.start only)> and <ShowTips on
+disabled?> in src/components/app/; MascotPose gains "help".
 

@@ -399,3 +399,9 @@ a change.
 | 2026-10-05 | A view ends after 60 minutes, when Stop viewing is pressed, when the workspace is marked deleted, or when the email leaves ADMIN_EMAILS; each end writes a view_stopped row with the reason | src/lib/view-as.ts | |
 | 2026-10-05 | A view ended by signing out, or by the email leaving ADMIN_EMAILS, writes no view_stopped row; the start row and the 60 minutes bound it. Two requests at the moment of expiry may each write a stop row | src/lib/view-as.ts | |
 | 2026-10-05 | During a view, Results shows the first owner's choices (tiles, view, the unsubmitted switch), so its counts match that owner's screen | src/app/app/(shell)/projects/[projectId]/results/page.tsx | |
+| 2026-10-05 | E15-1 and E15-2 ship in one pull request: E15-1's Playwright test needs a tip on Projects, which is E15-2's path card | stories/E15-1, stories/E15-2 | |
+| 2026-10-05 | The first-project path's Build step ticks when the instrument has an intro and fields other than the two defaults; Shape ticks for a list that came with areas once the person has gone on to Build (whether they opened Shape is not recorded) | src/db/queries/guide.ts firstProjectFacts | |
+| 2026-10-05 | The path is per person: their newest project; Share ticks from the invite_sent events, which now carry the project, so an imported project file does not count | src/db/queries/guide.ts, design note 89 | |
+| 2026-10-05 | "Your link is live" shows for 24 hours after the workspace's first own link, then the path card is gone for good | src/lib/guide.ts DONE_HOURS | |
+| 2026-10-05 | Dismissing any line of the first-project path hides the whole card, since its line changes with each step | src/app/app/(shell)/page.tsx | |
+| 2026-10-05 | The "help" pose of the rescue tips is shown with the "idea" robot until you place help.svg from the pack | docs/assets.md, src/components/app/mascot.tsx | Place the pose |

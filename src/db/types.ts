@@ -98,3 +98,7 @@ export type AuditChanges = Record<string, string | number | boolean | null>;
 // stopped before the outcome was written.
 export const AUDIT_OUTCOMES = ["done", "refused", "failed"] as const;
 export type AuditOutcome = (typeof AUDIT_OUTCOMES)[number];
+
+// The guide's state for a person (stories/E15-1, INTERFACES.md): tips off, and the ids of
+// docs/copy/guide.md they dismissed.
+export type GuideState = { tipsOff: boolean; dismissed: string[] };

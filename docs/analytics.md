@@ -21,7 +21,7 @@ failed write is logged without its values and never fails what the person was do
 | import_committed | source: upload, paste; rows | the import commit (src/lib/imports.ts) | yes | yes |
 | shape_run | items; costCents | a shaping run that applied (src/lib/shaping.ts) | yes | yes |
 | instrument_published | method: moscow, fit, kcd; layout: chapters, item, page | Publish on Share, and Publish again after a withdrawn link | yes | yes |
-| invite_sent | kind: personal, public | each personal invite sent or renewed; the public link published (again after a withdrawal) | yes | yes |
+| invite_sent | kind: personal, public; project (E15-2) | each personal invite sent or renewed; the public link published (again after a withdrawal) | yes | yes |
 | link_opened | kind: personal, public; instrument | each render of an open link's app, including a mail scanner's or a preview fetcher's request and the PM opening the link | yes | none |
 | response_started | instrument | a new response at Start | yes | none |
 | response_submitted | instrument; items; minutes (from Start to the first Submit) | the first Submit | yes | none |

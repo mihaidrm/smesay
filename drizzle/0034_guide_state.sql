@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "guide_state" jsonb DEFAULT '{"tipsOff": false, "dismissed": []}'::jsonb NOT NULL;

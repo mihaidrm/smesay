@@ -2,8 +2,8 @@
 // board, design v2, decision 0041): a 248 px sidebar on the surface with the lockup, the
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
 // one, the member count), the nav (Projects, Settings), the project list,
-// then at the bottom the sample card, Help (the quickstart, stories/E12-2), the mode toggle and
-// the signed-in email with Sign out.
+// then at the bottom the sample card, Help (the quickstart, stories/E12-2), Show tips (the
+// guide's switch, stories/E15-1), the mode toggle and the signed-in email with Sign out.
 // The sample opens on Results from the list and the card (stories/E8-8, acceptance 1).
 // The sidebar is pinned to the viewport (sticky, the viewport's height) so the whole menu
 // stays in view however long the page is; only its project list scrolls, inside the
@@ -18,7 +18,8 @@ import { WorkspaceTile } from "@/components/app/tiles";
 import { Lockup } from "@/components/brand/mark";
 import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
-import { members, projects } from "@/db/queries";
+import { guide, members, projects } from "@/db/queries";
+import { ShowTips } from "@/components/app/show-tips";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
 import { SignOutButton } from "../sign-out-button";
@@ -32,7 +33,7 @@ const VIEW_UNTIL = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { session, memberships, current, viewing } = await requireCurrentWorkspace("/app");
-  const [memberRows, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
+  const [memberRows, projectRows, guideState] = await Promise.all([members.list(current.ws), projects.list(current.ws), guide.state(session.user.id)]);
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <div className="flex min-h-screen items-start">
@@ -72,6 +73,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </div>
           )}
           <NavLink href="/app/quickstart" icon={<CircleHelp aria-hidden="true" />}>{QUICKSTART_COPY.help}</NavLink>
+          <ShowTips on={!guideState.tipsOff} disabled={viewing !== null} />
           <ModeToggle />
           <div className="flex flex-col gap-2 px-2.5 text-ink-muted">
             <div className="truncate text-xs" title={session.user.email}>{session.user.email}</div>

@@ -144,7 +144,7 @@ Phase 3, R1 build, fifteen epics in order (about 47 sessions, 24 weeks, to about
 - E12 Landing and onboarding: Mihai, when ready.
 - E13 Analytics for us: done.
 - E14 Admin and support: done.
-- E15 Onboarding and tutorial: open.
+- E15 Onboarding and tutorial: building.
 <!-- /sync:phases -->
 
 Do not: read or reference any client engagement material; create accounts; commit secrets;
