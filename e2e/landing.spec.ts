@@ -126,3 +126,27 @@ test("the comparison with a spreadsheet, a form and a workshop", async ({ page }
   const widths = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(widths[0]).toBeLessThanOrEqual(widths[1]);
 });
+
+// Mihai, 2026-10-05: the nav stays at the top while the page scrolls, and a nav link glides
+// to its section (scroll-behavior: smooth) and stops with the section's top under the nav.
+test("the nav stays in view and its links scroll smoothly to their section", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/landing-page");
+  const header = page.getByTestId("landing-header");
+  await expect(header).not.toHaveAttribute("data-scrolled");
+  await page.getByRole("navigation", { name: "Page" }).getByRole("link", { name: "Pricing" }).click();
+  // Smooth: a moment after the click the page is on its way, not there yet.
+  await page.waitForTimeout(60);
+  const early = await page.evaluate(() => window.scrollY);
+  const target = await page.evaluate(() => document.getElementById("pricing")!.getBoundingClientRect().top + window.scrollY - 80);
+  expect(early).toBeGreaterThan(0);
+  expect(early).toBeLessThan(target - 50);
+  await expect.poll(async () => page.evaluate(() => Math.round(document.getElementById("pricing")!.getBoundingClientRect().top)), { timeout: 5000 }).toBe(80);
+  await expect(header).toHaveAttribute("data-scrolled", "true");
+  const box = (await header.boundingBox())!;
+  expect(box.y).toBe(0);
+  await expect(page.getByRole("navigation", { name: "Page" }).getByRole("link", { name: "Questions" })).toBeVisible();
+  // The nav still works from down the page.
+  await page.getByRole("navigation", { name: "Page" }).getByRole("link", { name: "How it works" }).click();
+  await expect.poll(async () => page.evaluate(() => Math.round(document.getElementById("how")!.getBoundingClientRect().top)), { timeout: 5000 }).toBe(80);
+});
