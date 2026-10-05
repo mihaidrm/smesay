@@ -19,10 +19,10 @@
 // for a response that is not the device's is "not started"; the autosave route after a
 // revocation answers 410 and writes nothing.
 import { beforeAll, describe, expect, it } from "vitest";
-import { answers, invites, items, projects, responses } from "@/db/queries";
+import { answers, instruments, invites, items, projects, responses } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
-import type { RespondentFieldSpec, WorkspaceId } from "@/db/types";
+import type { AnswerKind, ReasonRule, RespondentFieldSpec, WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
 import { openDraft, saveFields, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
@@ -32,7 +32,7 @@ import { memoryOutbox, type Mail } from "@/lib/mail";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, startResponse } from "@/lib/respondent";
 import { cookieValue } from "@/lib/request-cookies";
 import { isJsonType, JSON_BODY_MAX, readJson } from "@/lib/request-json";
-import { answeredCount, answerFor, carriedFields, chaptersFor, gapsOf, isComplete, landingOf, needsReason, noteFor, progressOf, parseAnswerInput, parseFieldValues, parsePicks, parseScreen, pickedOf, RESPONDENT_COPY, RESPONDENT_ERRORS, resumeAt, screenCount, screenParam, type RespondentItem } from "@/lib/respondent-rules";
+import { answeredCount, answerFor, carriedFields, chaptersFor, gapsOf, isComplete, landingOf, needsReason, noteFor, progressOf, parseAnswerInput, parseFieldValues, parsePicks, parseScreen, pickedOf, RESPONDENT_COPY, RESPONDENT_ERRORS, resumeAt, screenCount, screenParam, tallyOf, textRequired, type AnswerState, type RespondentItem } from "@/lib/respondent-rules";
 import { linkState } from "@/lib/sharing";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { savePaste } from "@/lib/uploads";
@@ -103,12 +103,12 @@ describe("screens, completeness and the request readers", () => {
   });
   it("counts an answer only when complete: a reason for change, disagree and unclear", () => {
     expect((["agree", "pick", "change", "disagree", "unclear"] as const).map(needsReason)).toEqual([false, false, true, true, true]);
-    expect(isComplete({ kind: "change", value: "S", reason: "Later", comment: null })).toBe(true);
-    expect(isComplete({ kind: "unclear", value: null, reason: "  ", comment: null })).toBe(false);
-    expect(isComplete({ kind: "agree", value: "M", reason: null, comment: null })).toBe(true);
-    expect(isComplete(undefined)).toBe(false);
+    expect(isComplete({ kind: "change", value: "S", reason: "Later", comment: null }, "differs")).toBe(true);
+    expect(isComplete({ kind: "unclear", value: null, reason: "  ", comment: null }, "differs")).toBe(false);
+    expect(isComplete({ kind: "agree", value: "M", reason: null, comment: null }, "differs")).toBe(true);
+    expect(isComplete(undefined, "differs")).toBe(false);
     const done = { kind: "agree" as const, value: "M", reason: null, comment: null };
-    expect(answeredCount([{ id: "1" }, { id: "2" }, { id: "3" }], { "1": done, "2": { ...done, kind: "disagree", reason: null }, "9": done })).toBe(1);
+    expect(answeredCount([{ id: "1" }, { id: "2" }, { id: "3" }], { "1": done, "2": { ...done, kind: "disagree", reason: null }, "9": done }, "differs")).toBe(1);
   });
   it("reads a cookie, and takes JSON only, within 16 KB", async () => {
     const req = (cookie: string) => new Request("http://x.example/", { headers: { cookie } });
@@ -136,7 +136,7 @@ describe("chaptersFor", () => {
   });
 });
 
-async function publishedProject(name: string, opts: { passcode?: string; blind?: boolean; closes?: string } = {}) {
+async function publishedProject(name: string, opts: { passcode?: string; blind?: boolean; closes?: string; reasonRule?: ReasonRule } = {}) {
   const project = await projects.create(a.ws, { name, createdBy: a.userId });
   const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should", "Three | Paying | Could"].join("\n"));
   if (!("upload" in pasted)) throw new Error(pasted.error);
@@ -148,6 +148,10 @@ async function publishedProject(name: string, opts: { passcode?: string; blind?:
   if (opts.blind) {
     const blind = await saveScoring(a.ws, project.id, instrument.id, "moscow", false, null, "chapters");
     if (!("instrument" in blind)) throw new Error(blind.error);
+  }
+  if (opts.reasonRule) {
+    const ruled = await saveScoring(a.ws, project.id, instrument.id, "moscow", true, null, "chapters", opts.reasonRule);
+    if (!("instrument" in ruled)) throw new Error(ruled.error);
   }
   const rows = await items.forSet(a.ws, instrument.itemSetId);
   await tagItem(a.ws, project.id, rows[2].id, JSON.stringify(["Finance"]));
@@ -320,15 +324,53 @@ describe("the answer rules", () => {
     expect(answerFor("moscow", true, "M", { picked: "4", reason: null, comment: null })).toEqual({ error: RESPONDENT_ERRORS.badAnswer });
   });
   it("says exactly what a card is missing, or nothing when it is complete", () => {
-    expect(noteFor(null)).toBe("notRated");
-    expect(noteFor({ kind: "agree", value: "M", reason: null, comment: null })).toBeNull();
-    expect(noteFor({ kind: "pick", value: "S", reason: null, comment: null })).toBeNull();
-    expect(noteFor({ kind: "change", value: "S", reason: null, comment: null })).toBe("sayWhy");
-    expect(noteFor({ kind: "disagree", value: "W", reason: "  ", comment: null })).toBe("sayWhy");
-    expect(noteFor({ kind: "change", value: "S", reason: "Too late", comment: null })).toBeNull();
-    expect(noteFor({ kind: "unclear", value: null, reason: null, comment: null })).toBe("writeQuestion");
-    expect(noteFor({ kind: "unclear", value: null, reason: "Which team?", comment: null })).toBeNull();
+    expect(noteFor(null, "differs")).toBe("notRated");
+    expect(noteFor({ kind: "agree", value: "M", reason: null, comment: null }, "differs")).toBeNull();
+    expect(noteFor({ kind: "pick", value: "S", reason: null, comment: null }, "differs")).toBeNull();
+    expect(noteFor({ kind: "change", value: "S", reason: null, comment: null }, "differs")).toBe("sayWhy");
+    expect(noteFor({ kind: "disagree", value: "W", reason: "  ", comment: null }, "differs")).toBe("sayWhy");
+    expect(noteFor({ kind: "change", value: "S", reason: "Too late", comment: null }, "differs")).toBeNull();
+    expect(noteFor({ kind: "unclear", value: null, reason: null, comment: null }, "differs")).toBe("writeQuestion");
+    expect(noteFor({ kind: "unclear", value: null, reason: "Which team?", comment: null }, "differs")).toBeNull();
     expect([pickedOf({ kind: "unclear", value: null, reason: null, comment: null }), pickedOf({ kind: "change", value: "S", reason: null, comment: null }), pickedOf(undefined)]).toEqual(["unclear", "S", null]);
+  });
+  // E5-2, acceptance 6 (design note 98): the PM's rule for when an answer needs its text, for
+  // every answer kind with its box empty, blank and written. The text sits where it always
+  // did (the reason for change, disagree and unclear; the comment for agree and pick), so a
+  // text in the other box never completes an answer.
+  it("applies the PM's reason rule to every answer kind", () => {
+    const KINDS: AnswerKind[] = ["agree", "pick", "change", "disagree", "unclear"];
+    const RULES: ReasonRule[] = ["differs", "never", "always"];
+    const of = (kind: AnswerKind, reason: string | null, comment: string | null): AnswerState => ({ kind, value: kind === "unclear" ? null : "S", reason, comment });
+    const written = (kind: AnswerKind) => (needsReason(kind) ? of(kind, "Because", null) : of(kind, null, "Because"));
+    const empty = (kind: AnswerKind) => of(kind, null, null);
+    const blank = (kind: AnswerKind) => (needsReason(kind) ? of(kind, "  ", null) : of(kind, null, "  "));
+    const wrongBox = (kind: AnswerKind) => (needsReason(kind) ? of(kind, null, "Because") : of(kind, "Because", null));
+    const required: Record<ReasonRule, boolean[]> = { differs: [false, false, true, true, true], never: [false, false, false, false, false], always: [true, true, true, true, true] };
+    for (const rule of RULES) {
+      expect(KINDS.map((k) => textRequired(k, rule)), rule).toEqual(required[rule]);
+      for (const [i, kind] of KINDS.entries()) {
+        const needed = required[rule][i];
+        expect(isComplete(written(kind), rule), `${rule} ${kind} written`).toBe(true);
+        expect(isComplete(empty(kind), rule), `${rule} ${kind} empty`).toBe(!needed);
+        expect(isComplete(blank(kind), rule), `${rule} ${kind} blank`).toBe(!needed);
+        expect(isComplete(wrongBox(kind), rule), `${rule} ${kind} other box`).toBe(!needed);
+        // The note names what is missing: Unclear's question, else the reason or comment.
+        expect(noteFor(empty(kind), rule), `${rule} ${kind} note`).toBe(!needed ? null : kind === "unclear" ? "writeQuestion" : "sayWhy");
+        expect(noteFor(written(kind), rule)).toBeNull();
+      }
+      expect(isComplete(null, rule)).toBe(false);
+      expect(noteFor(null, rule)).toBe("notRated");
+    }
+    // The counts, the landing, the Wrap up's gaps and its tally follow the rule too.
+    const it_ = (id: string, proposed: string | null = "S"): RespondentItem => ({ id, reference: null, title: `Item ${id}`, details: null, area: null, proposed, perspectives: [] });
+    const chapters = [{ name: "A", intro: null, items: [it_("1"), it_("2")] }, { name: "B", intro: null, items: [it_("3")] }];
+    const answers = { "1": of("agree", null, null), "2": of("change", null, null), "3": of("unclear", null, null) };
+    expect(RULES.map((r) => answeredCount(chapters.flatMap((c) => c.items), answers, r))).toEqual([1, 3, 0]);
+    expect(RULES.map((r) => resumeAt(chapters, answers, r))).toEqual([{ index: 0, item: 1 }, { index: 1, item: 0 }, { index: 0, item: 0 }]);
+    expect(RULES.map((r) => landingOf(chapters, answers, r, "chapters", undefined, true).screen)).toEqual([{ kind: "chapter", index: 0 }, { kind: "wrap" }, { kind: "chapter", index: 0 }]);
+    expect(RULES.map((r) => gapsOf(chapters, {}, (id) => answers[id as "1"], r).map((g) => g.note))).toEqual([["notSaved", "sayWhy", "writeQuestion"], ["notSaved", "notSaved", "notSaved"], ["sayWhy", "sayWhy", "writeQuestion"]]);
+    expect(RULES.map((r) => Object.values(tallyOf("moscow", chapters.flatMap((c) => c.items), answers, r)).flat().length)).toEqual([1, 3, 0]);
   });
   it("reads a card's post: the item, the pick, trimmed texts within 2000 characters, the version, the page and its save number, the response", () => {
     const post = { base: 0, page: "page-0001", seq: 1, after: [], response: "r" };
@@ -355,35 +397,35 @@ describe("the answer rules", () => {
     const done = { "1": true, "3": true, "4": false };
     expect(progressOf(chapters, done)).toEqual([{ done: 1, count: 2 }, { done: 1, count: 2 }]);
     const cards: Record<string, { kind: "change" | "agree"; value: string; reason: null; comment: null }> = { "4": { kind: "change", value: "S", reason: null, comment: null }, "2": { kind: "agree", value: "M", reason: null, comment: null } };
-    expect(gapsOf(chapters, done, (id) => cards[id] ?? null)).toEqual([
+    expect(gapsOf(chapters, done, (id) => cards[id] ?? null, "differs")).toEqual([
       { itemId: "2", reference: null, title: "Item 2", chapter: 0, note: "notSaved" },
       { itemId: "4", reference: null, title: "Item 4", chapter: 1, note: "sayWhy" },
     ]);
-    expect(gapsOf(chapters, {}, () => null).map((g) => g.note)).toEqual(["notRated", "notRated", "notRated", "notRated"]);
+    expect(gapsOf(chapters, {}, () => null, "differs").map((g) => g.note)).toEqual(["notRated", "notRated", "notRated", "notRated"]);
     expect([parseScreen("wrap", true, 2), parseScreen("wrap", false, 2), screenParam({ kind: "wrap" })]).toEqual([{ kind: "wrap" }, { kind: "about" }, "wrap"]);
   });
   it("lands a returning respondent on the first unfinished chapter and item", () => {
     const it_ = (id: string): RespondentItem => ({ id, reference: null, title: id, details: null, area: null, proposed: null, perspectives: [] });
     const chapters = [{ name: "A", intro: null, items: [it_("1"), it_("2")] }, { name: "B", intro: null, items: [it_("3"), it_("4")] }];
     const done = { kind: "agree" as const, value: "M", reason: null, comment: null };
-    expect(resumeAt(chapters, {})).toEqual({ index: 0, item: 0 });
-    expect(resumeAt(chapters, { "1": done, "2": done, "3": done })).toEqual({ index: 1, item: 1 });
-    expect(resumeAt(chapters, { "1": done, "2": { ...done, kind: "change", value: "S" } })).toEqual({ index: 0, item: 1 });
-    expect(resumeAt(chapters, { "1": done, "2": done, "3": done, "4": done })).toEqual({ index: 1, item: 0 });
-    expect(resumeAt([], {})).toEqual({ index: 0, item: 0 });
+    expect(resumeAt(chapters, {}, "differs")).toEqual({ index: 0, item: 0 });
+    expect(resumeAt(chapters, { "1": done, "2": done, "3": done }, "differs")).toEqual({ index: 1, item: 1 });
+    expect(resumeAt(chapters, { "1": done, "2": { ...done, kind: "change", value: "S" } }, "differs")).toEqual({ index: 0, item: 1 });
+    expect(resumeAt(chapters, { "1": done, "2": done, "3": done, "4": done }, "differs")).toEqual({ index: 1, item: 0 });
+    expect(resumeAt([], {}, "differs")).toEqual({ index: 0, item: 0 });
     // landingOf (E7-4, acceptance 4): the screen, the item and Welcome back.
     const half = { "1": done, "2": { ...done, kind: "change" as const, value: "S" } };
-    expect(landingOf(chapters, half, "item", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 1, welcome: { answered: 1, total: 4 } });
-    expect(landingOf(chapters, half, "chapters", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 0, welcome: { answered: 1, total: 4 } });
-    expect(landingOf(chapters, half, "page", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 0, welcome: { answered: 1, total: 4 } });
+    expect(landingOf(chapters, half, "differs", "item", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 1, welcome: { answered: 1, total: 4 } });
+    expect(landingOf(chapters, half, "differs", "chapters", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 0, welcome: { answered: 1, total: 4 } });
+    expect(landingOf(chapters, half, "differs", "page", undefined, true)).toEqual({ screen: { kind: "chapter", index: 0 }, item: 0, welcome: { answered: 1, total: 4 } });
     // Everything complete: the Wrap up, with Welcome back.
-    expect(landingOf(chapters, { "1": done, "2": done, "3": done, "4": done }, "chapters", undefined, true)).toEqual({ screen: { kind: "wrap" }, item: 0, welcome: { answered: 4, total: 4 } });
+    expect(landingOf(chapters, { "1": done, "2": done, "3": done, "4": done }, "differs", "chapters", undefined, true)).toEqual({ screen: { kind: "wrap" }, item: 0, welcome: { answered: 4, total: 4 } });
     // Only incomplete answers still say Welcome back, with 0 answered; none at all, no Welcome back.
-    expect(landingOf(chapters, { "1": { ...done, kind: "unclear" as const, value: null } }, "chapters", undefined, true).welcome).toEqual({ answered: 0, total: 4 });
-    expect(landingOf(chapters, {}, "chapters", undefined, true).welcome).toBeNull();
+    expect(landingOf(chapters, { "1": { ...done, kind: "unclear" as const, value: null } }, "differs", "chapters", undefined, true).welcome).toEqual({ answered: 0, total: 4 });
+    expect(landingOf(chapters, {}, "differs", "chapters", undefined, true).welcome).toBeNull();
     // A screen in the address is taken as it is; not started is About you.
-    expect(landingOf(chapters, half, "chapters", "2", true)).toEqual({ screen: { kind: "chapter", index: 1 }, item: 0, welcome: null });
-    expect(landingOf(chapters, half, "chapters", undefined, false)).toEqual({ screen: { kind: "about" }, item: 0, welcome: null });
+    expect(landingOf(chapters, half, "differs", "chapters", "2", true)).toEqual({ screen: { kind: "chapter", index: 1 }, item: 0, welcome: null });
+    expect(landingOf(chapters, half, "differs", "chapters", undefined, false)).toEqual({ screen: { kind: "about" }, item: 0, welcome: null });
   });
   it("counts the single page as one screen", () => {
     expect([screenCount("page", 3), screenCount("page", 0), screenCount("chapters", 3), screenCount("item", 2)]).toEqual([1, 0, 3, 2]);
@@ -493,5 +535,45 @@ describe("saving an answer", () => {
     expect([afterRevoke.status, await afterRevoke.json()]).toEqual([410, { error: "revoked" }]);
     expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === two.id)?.kind).toBe("unclear");
     expect((await answers.forResponse(a.ws, started.response.id)).find((r) => r.itemId === one.id)?.kind).toBe("change");
+  }, 60_000);
+});
+
+// E5-2, acceptance 6 (design note 98): the server decides whether an answer is complete by the
+// instrument's reason rule, and the reminder's count in SQL (completeSql) agrees with
+// isComplete under each rule on the same stored answers.
+describe("the PM's reason rule on the server", () => {
+  it("marks an answer complete by the rule, and the SQL count agrees with isComplete under each rule", async () => {
+    const now = new Date("2026-10-05T12:00:00Z");
+    const w = (seq: number) => ({ base: 0, page: "page-rule-0001", seq, after: [] });
+    const always = await publishedProject("Rule always", { reasonRule: "always" });
+    expect((await instruments.get(a.ws, always.instrument.id))?.reasonRule).toBe("always");
+    const [one, two] = await items.forSet(a.ws, always.instrument.itemSetId);
+    const started = await startResponse(always.link.token, {}, { fields: { name: "Ana", role: "Sales" }, perspectives: [] }, now);
+    if ("status" in started) throw new Error(started.error);
+    const device = { device: started.device! };
+    const rid = started.response.id;
+    // On every answer: an agreeing answer needs its comment, Unclear its question.
+    expect(await saveAnswer(always.link.token, device, { itemId: one.id, picked: "M", ...w(1), response: rid }, now)).toMatchObject({ answer: { kind: "agree", comment: null }, complete: false });
+    expect(await saveAnswer(always.link.token, device, { itemId: one.id, picked: "M", comment: "Core to the flow", ...w(2), response: rid }, now)).toMatchObject({ answer: { kind: "agree", comment: "Core to the flow" }, complete: true });
+    expect(await saveAnswer(always.link.token, device, { itemId: two.id, picked: "unclear", ...w(3), response: rid }, now)).toMatchObject({ complete: false });
+    expect(await answers.countForResponse(a.ws, rid)).toBe(1);
+    const count = { differs: 1, never: 2, always: 1 } as const;
+    for (const rule of ["differs", "never", "always"] as const) {
+      await instruments.update(a.ws, always.instrument.id, { reasonRule: rule });
+      const rows = Object.fromEntries((await answers.forResponse(a.ws, rid)).map((r) => [r.itemId, { kind: r.kind, value: r.value, reason: r.reason, comment: r.comment }]));
+      expect(answeredCount([{ id: one.id }, { id: two.id }], rows, rule), rule).toBe(count[rule]);
+      expect(await answers.countForResponse(a.ws, rid), rule).toBe(count[rule]);
+    }
+    // Another workspace counts nothing of it.
+    expect(await answers.countForResponse(b.ws, rid)).toBe(0);
+    // Never: a change with no reason and Unclear with no question are complete.
+    const never = await publishedProject("Rule never", { reasonRule: "never" });
+    const [n1, n2] = await items.forSet(a.ws, never.instrument.itemSetId);
+    const begun = await startResponse(never.link.token, {}, { fields: { name: "Ana", role: "Sales" }, perspectives: [] }, now);
+    if ("status" in begun) throw new Error(begun.error);
+    const nd = { device: begun.device! };
+    expect(await saveAnswer(never.link.token, nd, { itemId: n1.id, picked: "S", ...w(1), response: begun.response.id }, now)).toMatchObject({ answer: { kind: "change", reason: null }, complete: true });
+    expect(await saveAnswer(never.link.token, nd, { itemId: n2.id, picked: "unclear", ...w(2), response: begun.response.id }, now)).toMatchObject({ answer: { kind: "unclear", reason: null }, complete: true });
+    expect(await answers.countForResponse(a.ws, begun.response.id)).toBe(2);
   }, 60_000);
 });

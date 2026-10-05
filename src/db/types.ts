@@ -34,6 +34,9 @@ export type ScoringMethod = "moscow" | "fit" | "kcd";
 // The respondent journey's shape (decision 0016; INTERFACES.md Layout): one area per screen,
 // one item per screen, or every area on one page.
 export type Layout = "chapters" | "item" | "page";
+// When an answer needs its text written to count as complete (INTERFACES.md ReasonRule):
+// when it differs from the proposal (the default), never, or on every answer.
+export type ReasonRule = "differs" | "never" | "always";
 // The four answers and the rate-blind pick (decisions 0014, 0018; INTERFACES.md AnswerKind).
 export type AnswerKind = "agree" | "change" | "disagree" | "unclear" | "pick";
 export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";

@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0034_guide_state).
+v1, 2026-10-05 (the date of the latest migration, 0035_reason_rule).
 
-Generated from the snapshot of the 35 migrations in drizzle/ (0034_snapshot.json) by
+Generated from the snapshot of the 36 migrations in drizzle/ (0035_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -175,6 +175,7 @@ how one set version is shown to respondents: method, proposed value shown or not
 | method | text | not null, default moscow |
 | show_proposed | boolean | not null, default true |
 | layout | text | not null, default chapters |
+| reason_rule | text | not null, default differs |
 | respondent_fields | jsonb | not null, default [] |
 | scale_labels | jsonb |  |
 | perspectives | jsonb | not null, default [] |
@@ -187,7 +188,7 @@ Unique: instrument_id_workspace_uq on id, workspace_id; instrument_id_item_set_u
 Foreign keys: instrument_project_fk (project_id, workspace_id) references project (id, workspace_id) on delete cascade; instrument_item_set_fk (item_set_id, workspace_id) references item_set (id, workspace_id) on delete restrict; instrument_item_set_project_fk (item_set_id, project_id) references item_set (id, project_id) on delete restrict.
 
 Indexes: instrument_workspace_idx on workspace_id; instrument_project_idx on project_id; instrument_item_set_idx on item_set_id.
-Checks: instrument_method_check: method in ('moscow', 'fit', 'kcd'); instrument_layout_check: layout in ('chapters', 'item', 'page').
+Checks: instrument_method_check: method in ('moscow', 'fit', 'kcd'); instrument_layout_check: layout in ('chapters', 'item', 'page'); instrument_reason_rule_check: reason_rule in ('differs', 'never', 'always').
 
 ## invite
 

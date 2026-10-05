@@ -51,7 +51,7 @@ import { signOffFor } from "@/lib/closing";
 import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "@/components/respondent/frame";
-import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { ClosingSpec, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
@@ -69,7 +69,7 @@ export type RespondentAppProps = {
   accent: string;
   logoUrl: string | null;
   headerNote: string | null;
-  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout };
+  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout; reasonRule: ReasonRule };
   prefilled: ResponseFields | undefined;
   items: RespondentItem[];
   areas: AreaMeta[];
@@ -178,7 +178,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // once however many saves were refused; Start then sends the cards' drafts again, so the
   // answers on the page are kept with the new details. Straight after a Start it is the
   // browser refusing the cookie, and the sentence says so instead.
-  const saver = useAnswerSaver(token, responseId, started && !preview, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
+  const saver = useAnswerSaver(token, responseId, started && !preview, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a, props.instrument.reasonRule)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
     onSaved: (reply) => { savedSinceStart.current = true; heard(reply); },
@@ -328,13 +328,13 @@ export function RespondentApp(props: RespondentAppProps) {
   const names = chapters.map((c) => c.name ?? instrument.title);
   // What counts as answered: what the server holds complete, or in the preview the cards as
   // they stand (nothing is saved there).
-  const done = preview ? Object.fromEntries(items.map((it) => [it.id, isComplete(answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed))])) : saver.done;
+  const done = preview ? Object.fromEntries(items.map((it) => [it.id, isComplete(answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed), instrument.reasonRule)])) : saver.done;
   const progress = progressOf(chapters, done);
   const byId = new Map(items.map((it) => [it.id, it]));
-  const gaps = gapsOf(chapters, done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null));
+  const gaps = gapsOf(chapters, done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null), instrument.reasonRule);
   // The Wrap up's tally and sections, from the cards as the respondent left them.
   const answersNow = Object.fromEntries(chapters.flatMap((c) => c.items).map((it) => [it.id, answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed)]));
-  const buckets = tallyOf(instrument.method, chapters.flatMap((c) => c.items), answersNow);
+  const buckets = tallyOf(instrument.method, chapters.flatMap((c) => c.items), answersNow, instrument.reasonRule);
   const tally = Object.fromEntries(Object.entries(buckets).map(([k, ids]) => [k, ids.length])) as Record<Bucket, number>;
   const chapterOf = new Map(chapters.flatMap((c, i) => c.items.map((it) => [it.id, i] as const)));
   const sections: WrapSection[] = (["higher", "lower", "notNeeded", "unclear"] as const).flatMap((bucket) => buckets[bucket].map((id) => {
@@ -418,7 +418,7 @@ export function RespondentApp(props: RespondentAppProps) {
     const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} reasonRule={instrument.reasonRule} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}

@@ -25,6 +25,7 @@ import type { ResultsFilter } from "@/lib/results-filter";
 import { proposedCode, SCALES } from "@/lib/scoring";
 import type { ResultsNumbers } from "@/lib/results-tiles";
 import type { DetailCounts } from "@/lib/results-detail";
+import { completeSql } from "./complete";
 import { isUuid } from "./scoped";
 
 const list = (values: string[]) => sql.join(values.map((v) => sql`${v}`), sql`, `);
@@ -65,7 +66,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
   const conds = personConditions(ws, f);
   const where = conds.length > 0 ? sql`where ${sql.join(conds, sql` and `)}` : sql``;
   return sql`with inst as (
-      select id, item_set_id, project_id from instrument where workspace_id = ${ws} and id = ${instrumentId}
+      select id, item_set_id, project_id, reason_rule from instrument where workspace_id = ${ws} and id = ${instrumentId}
     ),
     its as (
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
@@ -262,13 +263,13 @@ export const tracker = {
           group by p.id
       ),
       -- Progress counts the complete answers to the items the person sees, as the respondent's
-      -- own count does (src/lib/respondent-rules.ts isComplete: a reason where the kind needs
-      -- one); the answers with a reason or comment are those that count under the switch, so
-      -- the column adds up to the strip's tile.
+      -- own count does (src/lib/respondent-rules.ts isComplete under the instrument's reason
+      -- rule: completeSql, ./complete.ts); the answers with a reason or comment are those that
+      -- count under the switch, so the column adds up to the strip's tile.
       given as (
         select a.response_id,
             count(*) filter (where (cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives)
-              and (a.kind not in ('change', 'disagree', 'unclear') or a.reason ~ '\\S'))::int as answered,
+              and ${completeSql(sql`(select inst.reason_rule from inst)`, { kind: sql`a.kind`, reason: sql`a.reason`, comment: sql`a.comment` })})::int as answered,
             count(*) filter (where (a.reason is not null or a.comment is not null) and (${f.includeUnsubmitted} or p.submitted_at is not null))::int as with_comment
           from answer a join sel p on p.id = a.response_id join its on its.id = a.item_id
           where a.workspace_id = ${ws}

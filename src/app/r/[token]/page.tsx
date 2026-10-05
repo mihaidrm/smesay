@@ -81,7 +81,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const prefilled = carriedFields(link.invite, instrument.respondentFields);
   // Where the visit lands, and "Welcome back" when it returns with answers (landingOf: E7-3,
   // acceptance 2; E7-4, acceptance 4); a submitted response lands on Done (E7-5).
-  const landing = landingOf(chapters, view.answers, instrument.layout, at, response !== null, Boolean(response?.submittedAt));
+  const landing = landingOf(chapters, view.answers, instrument.reasonRule, instrument.layout, at, response !== null, Boolean(response?.submittedAt));
   const firstName = (response?.fields.name ?? (link.invite.kind === "personal" ? link.invite.name : null) ?? "").trim().split(/\s+/)[0] || null;
   const welcome = landing.welcome ? { name: firstName, ...landing.welcome } : null;
   const screen: Screen = landing.screen;
@@ -94,7 +94,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         accent={accent}
         logoUrl={logoUrl}
         headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null}
-        instrument={{ title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: instrument.perspectives, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed, layout: instrument.layout }}
+        instrument={{ title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: instrument.perspectives, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed, layout: instrument.layout, reasonRule: instrument.reasonRule }}
         prefilled={link.invite.kind === "personal" ? prefilled : undefined}
         items={view.items}
         areas={view.areas}

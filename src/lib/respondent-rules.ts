@@ -5,9 +5,11 @@
 // (E6-2), the chapters a respondent sees (the areas in the list's order, the items the
 // perspectives they picked leave visible, E5-4), and when an answer is complete (the
 // respondent board's complete() rule, design note 12: a value that differs from the
-// proposal, Not needed or Unclear needs its reason or question written). Words:
+// proposal, Not needed or Unclear needs its reason or question written; from 2026-10-05 the
+// PM's ReasonRule on Build decides, design note 98: that default, never, or every answer,
+// an agreeing one and a rating needing their comment). Words:
 // RESPONDENT_COPY (docs/copy/app.md and errors.md, the respondent sections).
-import type { AnswerKind, Layout, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
+import type { AnswerKind, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
 import { isVisible } from "@/lib/perspectives";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
 import { classify, DISAGREE_CODE, SCALES, UNCLEAR } from "@/lib/scoring";
@@ -77,6 +79,9 @@ export const RESPONDENT_COPY = {
   welcomeSubmitted: (name: string | null) => (name ? `Welcome back, ${name}.` : "Welcome back."),
   submittedOn: (when: string, closes: string | null) => (closes ? `You submitted on ${when}. You can change your answers until ${closes}.` : `You submitted on ${when}. You can change your answers while the link is open.`),
   closedSubmitted: (when: string, closed: string, changed: boolean) => `Your answers were submitted on ${when}.${changed ? " You changed some after that and did not submit them again." : ""} The link closed on ${closed}; nothing can be changed now.`,
+  // The comment box's label when the PM requires text on every answer (E5-2, acceptance 6;
+  // design note 98): the box opens on its own for an agreeing answer and a rating.
+  commentRequired: "Comment, required",
 } as const;
 
 export const RESPONDENT_ERRORS = {
@@ -202,16 +207,25 @@ export const sameWrap = (a: WrapValue, b: WrapValue): boolean => {
 // An answer as stored (INTERFACES.md, AnswerKind) and when it is complete.
 export type AnswerState = { kind: AnswerKind; value: string | null; reason: string | null; comment: string | null };
 
+// Which box an answer's text goes in: the reason box (a reason, or Unclear's question) for
+// change, disagree and unclear, the comment box for agree and pick. It decides where the text
+// is stored, whatever the PM's rule; textRequired says whether that box must be filled.
 export const needsReason = (kind: AnswerKind): boolean => kind === "change" || kind === "disagree" || kind === "unclear";
 
-export function isComplete(answer: AnswerState | null | undefined): boolean {
+// Whether an answer of this kind counts only with its text written, under the instrument's
+// ReasonRule (INTERFACES.md; design note 98): when it differs from the proposal (the reason
+// box's kinds), never, or always (the comment box's kinds too).
+export const textRequired = (kind: AnswerKind, rule: ReasonRule): boolean => (rule === "never" ? false : rule === "always" ? true : needsReason(kind));
+
+export function isComplete(answer: AnswerState | null | undefined, rule: ReasonRule): boolean {
   if (!answer) return false;
-  return needsReason(answer.kind) ? Boolean(answer.reason?.trim()) : true;
+  if (!textRequired(answer.kind, rule)) return true;
+  return Boolean((needsReason(answer.kind) ? answer.reason : answer.comment)?.trim());
 }
 
 // How many of these items carry a complete answer.
-export function answeredCount(items: { id: string }[], answers: Record<string, AnswerState>): number {
-  return items.filter((it) => isComplete(answers[it.id])).length;
+export function answeredCount(items: { id: string }[], answers: Record<string, AnswerState>, rule: ReasonRule): number {
+  return items.filter((it) => isComplete(answers[it.id], rule)).length;
 }
 
 // The screen in the address (?at=about, ?at=[chapter number], ?at=wrap, ?at=done); before
@@ -234,9 +248,9 @@ export function parseScreen(raw: string | null | undefined, started: boolean, ch
 
 // The first chapter with an item not complete, on that item; every item complete, the last
 // chapter (E7-3, acceptance 2; note 12, finding 9). landingOf below decides the screen.
-export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerState>): { index: number; item: number } {
+export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerState>, rule: ReasonRule): { index: number; item: number } {
   for (let i = 0; i < chapters.length; i++) {
-    const item = chapters[i].items.findIndex((it) => !isComplete(answers[it.id]));
+    const item = chapters[i].items.findIndex((it) => !isComplete(answers[it.id], rule));
     if (item !== -1) return { index: i, item };
   }
   return { index: Math.max(chapters.length - 1, 0), item: 0 };
@@ -249,17 +263,17 @@ export function resumeAt(chapters: Chapter[], answers: Record<string, AnswerStat
 // screen). "Welcome back" shows on that landing when the response holds any answer, complete
 // or not, with the count of complete ones.
 export type Landing = { screen: Screen; item: number; welcome: { answered: number; total: number } | null };
-export function landingOf(chapters: Chapter[], answers: Record<string, AnswerState>, layout: Layout, at: string | null | undefined, started: boolean, submitted = false): Landing {
+export function landingOf(chapters: Chapter[], answers: Record<string, AnswerState>, rule: ReasonRule, layout: Layout, at: string | null | undefined, started: boolean, submitted = false): Landing {
   if (!started || at || chapters.length === 0) return { screen: parseScreen(at ?? null, started, screenCount(layout, chapters.length)), item: 0, welcome: null };
   // Submitted: the Done screen (E7-5; E7-6 adds its welcome back).
   if (submitted) return { screen: { kind: "done" }, item: 0, welcome: null };
   const visible = chapters.flatMap((c) => c.items);
-  const answered = answeredCount(visible, answers);
+  const answered = answeredCount(visible, answers, rule);
   const any = visible.some((it) => answers[it.id]);
   const welcome = any ? { answered, total: visible.length } : null;
   if (answered === visible.length) return { screen: { kind: "wrap" }, item: 0, welcome };
   if (layout === "page") return { screen: { kind: "chapter", index: 0 }, item: 0, welcome };
-  const resume = resumeAt(chapters, answers);
+  const resume = resumeAt(chapters, answers, rule);
   return { screen: { kind: "chapter", index: resume.index }, item: layout === "item" ? resume.item : 0, welcome };
 }
 
@@ -275,15 +289,16 @@ export function progressOf(chapters: Chapter[], done: Record<string, boolean>): 
 // respondent left it ("Not rated yet", "Say why.", "Write your question."), or "Not saved
 // yet" when the card is complete and its answer has not reached the server.
 export type Gap = { itemId: string; reference: string | null; title: string; chapter: number; note: Exclude<CardNote, null> | "notSaved" };
-export function gapsOf(chapters: Chapter[], done: Record<string, boolean>, card: (itemId: string) => AnswerState | null): Gap[] {
-  return chapters.flatMap((c, chapter) => c.items.filter((it) => !done[it.id]).map((it) => ({ itemId: it.id, reference: it.reference, title: it.title, chapter, note: noteFor(card(it.id)) ?? "notSaved" })));
+export function gapsOf(chapters: Chapter[], done: Record<string, boolean>, card: (itemId: string) => AnswerState | null, rule: ReasonRule): Gap[] {
+  return chapters.flatMap((c, chapter) => c.items.filter((it) => !done[it.id]).map((it) => ({ itemId: it.id, reference: it.reference, title: it.title, chapter, note: noteFor(card(it.id), rule) ?? "notSaved" })));
 }
 
-// What the card's note says (E7-2, acceptance 3): the missing part, or null when complete.
+// What the card's note says (E7-2, acceptance 3): the missing part, or null when complete
+// under the rule (an agreeing answer or a rating without its required comment: sayWhy).
 export type CardNote = "notRated" | "sayWhy" | "writeQuestion" | null;
-export function noteFor(answer: AnswerState | null | undefined): CardNote {
+export function noteFor(answer: AnswerState | null | undefined, rule: ReasonRule): CardNote {
   if (!answer) return "notRated";
-  if (isComplete(answer)) return null;
+  if (isComplete(answer, rule)) return null;
   return answer.kind === "unclear" ? "writeQuestion" : "sayWhy";
 }
 
@@ -359,11 +374,11 @@ export function bucketOf(method: ScoringMethod, proposed: string | null, answer:
   const r = RANK[method];
   return proposed !== null && (r[answer.value ?? ""] ?? 0) > (r[proposed] ?? 0) ? "higher" : "lower";
 }
-export function tallyOf(method: ScoringMethod, items: { id: string; proposed: string | null }[], answers: Record<string, AnswerState | null>): Record<Bucket, string[]> {
+export function tallyOf(method: ScoringMethod, items: { id: string; proposed: string | null }[], answers: Record<string, AnswerState | null>, rule: ReasonRule): Record<Bucket, string[]> {
   const out: Record<Bucket, string[]> = { agreed: [], higher: [], lower: [], notNeeded: [], unclear: [], rated: [] };
   for (const it of items) {
     const a = answers[it.id];
-    if (a && isComplete(a)) out[bucketOf(method, it.proposed, a)].push(it.id);
+    if (a && isComplete(a, rule)) out[bucketOf(method, it.proposed, a)].push(it.id);
   }
   return out;
 }

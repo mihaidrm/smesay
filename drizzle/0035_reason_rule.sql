@@ -1,0 +1,2 @@
+ALTER TABLE "instrument" ADD COLUMN "reason_rule" text DEFAULT 'differs' NOT NULL;--> statement-breakpoint
+ALTER TABLE "instrument" ADD CONSTRAINT "instrument_reason_rule_check" CHECK ("reason_rule" in ('differs', 'never', 'always'));

@@ -17,8 +17,8 @@
 // saved state (E7-2, E7-3). One component for both, so the two cannot drift.
 import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "cn";
-import type { ScaleLabels, ScoringMethod } from "@/db/types";
-import { answerFor, needsReason, noteFor, RESPONDENT_COPY, type AnswerState } from "@/lib/respondent-rules";
+import type { ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
+import { answerFor, needsReason, noteFor, RESPONDENT_COPY, textRequired, type AnswerState } from "@/lib/respondent-rules";
 import { labelFor } from "@/lib/scoring";
 import { RatingRow } from "./rating-row";
 
@@ -33,6 +33,7 @@ export type ItemCardProps = {
   labels: ScaleLabels | null;
   proposed: string | null;
   showProposed: boolean;
+  reasonRule: ReasonRule;
   accent: string;
   // The builder's preview rings what its step changes (stories/E5-6, acceptance 2): the
   // rating row (Build), the whole card (Import) or its wording (Shape).
@@ -67,7 +68,7 @@ const BOX = "min-h-[52px] w-full grow resize-none rounded-xl border border-hairl
 // tap on its edge stays the box's.
 const TOGGLE = "relative rounded-sm text-xs font-semibold after:absolute after:-inset-x-1.5 after:-top-3 after:-bottom-5 after:content-[''] text-ink-muted underline-offset-2 focus:outline-hidden hover:text-ink hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, accent, ring, ringCard = false, ringWording = false, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
+export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, reasonRule, accent, ring, ringCard = false, ringWording = false, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
   const [own, setOwn] = useState<CardDraft>(EMPTY_DRAFT);
   const draft = controlled ?? own;
   const set = (next: CardDraft) => (onChange ? onChange(next) : setOwn(next));
@@ -88,7 +89,9 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   const answer = answerOfDraft(draft, method, showProposed, proposed);
   const reasonNeeded = answer !== null && needsReason(answer.kind);
   const commentAllowed = answer !== null && !reasonNeeded;
-  const slot: "reason" | "comment" | "details" = detailsOpen && details ? "details" : reasonNeeded ? "reason" : commentAllowed && commentOpen ? "comment" : "details";
+  // The PM's rule on every answer (E5-2, acceptance 6): the comment is required, so its box opens on its own.
+  const commentRequired = answer !== null && !reasonNeeded && textRequired(answer.kind, reasonRule);
+  const slot: "reason" | "comment" | "details" = detailsOpen && details ? "details" : reasonNeeded ? "reason" : commentAllowed && (commentOpen || commentRequired) ? "comment" : "details";
   useEffect(() => {
     const el = detailsRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -99,7 +102,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
     void document.fonts?.ready.then(check);
     return () => { live = false; observer.disconnect(); };
   }, [details, slot]);
-  const note = noteFor(answer);
+  const note = noteFor(answer, reasonRule);
   const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note === "sayWhy" ? RESPONDENT_COPY.sayWhy : note === "writeQuestion" ? RESPONDENT_COPY.writeQuestion : onChange ? (saved ? savedLabel : unsaved ? RESPONDENT_COPY.notSavedYet : "") : (labelFor(method, labels, draft.picked) ?? "");
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(labelFor(method, labels, answer.value) ?? "", labelFor(method, labels, proposed) ?? "");
   return (
@@ -117,17 +120,17 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
         </div>
       ) : slot === "comment" ? (
         <div className="relative z-10 flex grow flex-col gap-1">
-          <label htmlFor={`${prefix}-comment`} className="text-xs leading-4 text-ink-muted">{RESPONDENT_COPY.commentLabel}</label>
+          <label htmlFor={`${prefix}-comment`} className="text-xs leading-4 text-ink-muted">{commentRequired ? RESPONDENT_COPY.commentRequired : RESPONDENT_COPY.commentLabel}</label>
           <textarea id={`${prefix}-comment`} value={draft.comment} maxLength={2000} onChange={(e) => set({ ...draft, comment: e.target.value })} className={BOX} data-testid="card-comment" />
         </div>
       ) : (
         <div ref={detailsRef} tabIndex={scrolls ? 0 : undefined} role={scrolls ? "region" : undefined} aria-label={scrolls ? `${RESPONDENT_COPY.details}: ${title}` : undefined} className="relative z-10 min-h-0 grow overflow-y-auto rounded-lg bg-ground px-2.5 py-1.5 text-[13px] leading-[18px] wrap-anywhere text-ink-muted focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="card-details">{details ?? ""}</div>
       )}
       <div className="flex min-h-6 shrink-0 items-center gap-3 text-xs">
-        {details && (reasonNeeded || (commentAllowed && commentOpen)) && (
+        {details && (reasonNeeded || (commentAllowed && (commentOpen || commentRequired))) && (
           <button type="button" aria-expanded={slot === "details"} onClick={() => setDetailsOpen((v) => !v)} className={TOGGLE}>{slot === "details" ? RESPONDENT_COPY.hideDetails : RESPONDENT_COPY.details}</button>
         )}
-        {commentAllowed && onChange && (
+        {commentAllowed && !commentRequired && onChange && (
           <button type="button" aria-expanded={slot === "comment"} onClick={() => { setCommentOpen(slot !== "comment"); setDetailsOpen(false); }} className={TOGGLE}>{slot === "comment" ? RESPONDENT_COPY.hideComment : RESPONDENT_COPY.addComment}</button>
         )}
         <span aria-live="polite" className={cn("ml-auto text-right font-semibold", error ? "text-danger" : note === null ? (saved ? "text-agree-text" : "text-ink") : note === "notRated" ? "font-normal text-ink-muted" : "text-sun-text")} data-testid="item-card-note">{noteText}</span>

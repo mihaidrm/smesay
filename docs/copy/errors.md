@@ -114,7 +114,8 @@ of the content; page means it replaces the screen.
 | Inline, scoring (E5-2) | A label over 20 characters | Each label is 1 to 20 characters. Leave one empty to keep the default. |
 | Inline, scoring (E5-2) | Two values with the same label, or a label "Unclear" | Each value needs its own label, and Unclear is taken. |
 | Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
-| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch or label then and saves the layout only (E5-3) | Published instruments keep their method. Build a new instrument to change it. |
+| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch, label or reason rule then and saves the layout only (E5-3) | Published instruments keep their method and when a reason is required. Build a new instrument to change them. |
+| Inline, scoring (E5-2, acceptance 6) | A reason rule that is not one of the three, through the server | Pick when a reason is required: when the answer differs, never, or on every answer. |
 | Inline, scoring (E5-3) | A layout that is not one of the three, through the server | Pick one of the three layouts: chapters, one item per screen, or a single long page. |
 | Inline, perspectives (E5-4) | An eleventh perspective | Up to 10 perspectives. Remove one to add another. |
 | Inline, perspectives (E5-4) | A name over 30 characters | Each perspective is 1 to 30 characters, one per line. |
@@ -209,8 +210,9 @@ of the content; page means it replaces the screen.
 | Note under the Start button (E7-1), from the server | A field over 200 characters | Keep [LABEL] to 200 characters. |
 | Note under the Start button (E7-1), from the server | The form did not arrive as JSON, or a perspective not on the list (a stale page) | Your details did not reach the server as a form. Reload the page and try again. / Pick the perspectives from the list on the page. Reload the page and try again. |
 | Card note (E7-2) | Not rated | Not rated yet |
-| Card note (E7-2) | Different priority or Not needed, no reason | Say why. |
-| Card note (E7-2) | Unclear, no question | Write your question. |
+| Card note (E7-2) | Different priority or Not needed, no reason (under the default rule and On every answer; never under Never, E5-2 acceptance 6) | Say why. |
+| Card note (E7-2) | Unclear, no question (under the default rule and On every answer; never under Never) | Write your question. |
+| Card note (E5-2, acceptance 6) | On every answer: an agreeing answer or a rating with no comment | Say why. |
 | Card note (E7-2) | Saved: the server has the complete answer | Saved |
 | Card note (E7-2), from the server | The answer is not one of the card's values, or did not arrive as JSON (a stale page) | The answer did not reach the server as one of the card's values. Reload the page and try again. |
 | Card note (E7-2), from the server | A reason or comment over 2,000 characters | Keep the reason and the comment to 2000 characters each. |
