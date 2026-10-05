@@ -68,7 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {sample && (
             <div className="flex flex-col gap-2 rounded-xl border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
               <div className="text-[13px] font-bold">Try the sample</div>
-              <div className="text-xs leading-[17px] text-ink-muted">{sample.name}: every screen has data, nothing to set up.</div>
+              <div className="text-xs leading-[17px] text-ink-muted">{sample.name} has data on every screen and nothing to set up.</div>
               <Link href={`/app/projects/${sample.id}/results`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
             </div>
           )}

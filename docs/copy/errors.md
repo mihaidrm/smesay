@@ -50,15 +50,15 @@ of the content; page means it replaces the screen.
 | Inline, upload | Upload pressed with no file chosen (E3-2) | Choose an xlsx or csv file, then press Upload. |
 | Inline, upload | The file has the extension but is not a workbook or readable text (E3-2) | The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it. |
 | Inline, upload | Upload on the sample project, through the server (E3-2) | The sample project cannot be edited. |
-| Inline, preview | No header row found | No header row found. Pick the row that holds the column names, or tell us which column is the requirement. |
+| Inline, preview | No header row found | We found no header row. Pick the row that holds the column names, or tell us which column is the requirement. |
 | Inline, mapping card | No column mapped to the item text (E3-3) | Pick the column that holds the requirement text. Without it there is nothing to import. |
 | Select option, mapping card | A sixth Custom field (E3-3) | Up to five custom fields |
 | Inline, paste box | Empty or one line (E3-4) | Paste at least two lines, one item per line. |
 | Inline, paste box | Over 2,000 lines (E3-4) | This list has [N] lines. The limit is 2,000. Split it and paste the first part. |
 | Inline, paste box | Over 5 MB (E3-4) | This list is [SIZE]. The limit is 5 MB. Paste a shorter list. |
-| Card, check before import | Empty rows, duplicates, long items (counts already on the board) | [N] empty rows, skipped. [N] exact duplicates, imported once. [N] items over 1,000 characters, imported whole; consider splitting them in Shape. |
+| Card, check before import | Empty rows, duplicates, long items (counts already on the board) | [N] empty rows were skipped. [N] exact duplicates were imported once. [N] items are over 1,000 characters and were imported whole; consider splitting them in Shape. |
 | Page, the signed-in error page | Upload interrupted: the connection drops before the server action runs, so nothing is stored and the error page shows (E3-2; its copy is the 500 row below, E11-6) | The upload stopped before the file arrived. Check your connection and upload it again. Nothing was imported. (the wording for E11-6 to show when the failed request was an upload) |
-| Inline, check card | Import pressed while every row is empty in the item text column (E3-5) | Nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file. |
+| Inline, check card | Import pressed while every row is empty in the item text column (E3-5) | There is nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file. |
 | Inline, check card | Import pressed again for a file already imported (E3-5; a replayed form) | This file is already imported as version [N]. Upload or paste the next version to import again. |
 | Banner, import | The project has a public link in force (E6-1: shown above the versions on every visit; the text only, the upload card keeps its own Import button) | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. |
 
@@ -183,7 +183,7 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Page (already on the board) | Link closed (by its close date, by a newer version's link, or the project archived: [DATE] is then the day it was archived) | Link closed. The project team at [WORKSPACE] stopped collecting answers for [PROJECT] on [DATE]. Nothing you sent is lost. If you were still answering, contact the project team: [PM CONTACT] (the last sentence only when a contact is known: a personal invite's sender, E6-2; the public link shows none) |
 | Page (already on the board) | Link revoked | Link inactive. The project team at [WORKSPACE] withdrew this link. If you were asked to answer, ask them for a new one. Nothing was saved from this visit. |
-| Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; nothing to do now. (the title is the first sentence, the line the second; E6-1) |
+| Page | Link not yet open | This link opens on [OPEN DATE AND TIME]. Come back then; there is nothing to do now. (the title is the first sentence, the line the second; E6-1) |
 | Page | Token unknown | This link does not match any project. Check that you copied the whole link, or ask the person who sent it for a new one. |
 | Page (E7-1) | The sample project's link (it never collects answers, E8-8 acceptance 2) | This is a sample link. It belongs to the sample project in [WORKSPACE] and does not collect answers. Ask the person who sent it for the real link. (Under it, the sample band: Sample data: invented answers, for looking around, E8-8 acceptance 1) |
 | Page, under the closed line (E7-1, acceptance 3) | A closed personal link whose respondent started, answered at least one item and did not submit (none answered: the closed page alone; submitted: E7-6) | You answered [N] of [M] items before it closed. They were not submitted; the project team sees them marked as not submitted. ("item" when [M] is 1) |
@@ -191,7 +191,7 @@ of the content; page means it replaces the screen.
 | Inline, passcode page (E6-1: 5 wrong attempts per link and address, or 60 per link, in 15 minutes; unchanged by E11-1) | Passcode attempts exceeded | Too many passcode attempts. Wait [MINUTES] minutes and try again. |
 | Inline, passcode page (E6-1) | The link closed, was revoked or lost its passcode while the page was open | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, passcode page (E6-1) | The process's attempt table is full of live entries (docs/review-list.md) | Too many people are entering passcodes right now. Wait a few minutes and try again. |
-| Page (E6-1; E11-6 builds the full error pages) | The link page failed to load (a server error) | This page could not be loaded. Something went wrong on our side. Try again in a moment. [Button: Try again] |
+| Page (E6-1; E11-6 builds the full error pages) | The link page failed to load (a server error) | This page could not be loaded. Our server could not open this link. Try again in a moment. [Button: Try again] |
 | Page (E7-6) | A submitted response opened again while the link is open (personal link, or a public link on the same device) | Welcome back, [FIRST NAME]. You submitted on [DATE AND TIME UTC]. You can change your answers until [CLOSE DATE AND TIME UTC]. (without a close date: while the link is open) Then the summary line and [Button: Change my answers] |
 | Page under "Link closed." (E7-6) | Personal link already submitted, link closed (a closed public link shows no per-device state, decision 0031) | Your answers were submitted on [DATE AND TIME UTC]. The link closed on [CLOSE DATE AND TIME UTC]; nothing can be changed now. |
 | Page under "Link closed." (E7-6) | The same, with answers changed after the last Submit and not submitted again | Your answers were submitted on [DATE AND TIME UTC]. You changed some after that and did not submit them again. The link closed on [CLOSE DATE AND TIME UTC]; nothing can be changed now. |
@@ -216,7 +216,7 @@ of the content; page means it replaces the screen.
 | Card note (E7-2), from the server | A reason or comment over 2,000 characters | Keep the reason and the comment to 2000 characters each. |
 | Card note (E7-2), from the server | The item is not in the respondent's list (a perspective changed, a stale page) | This item is not in your list. Reload the page to see your items. |
 | Note under the Start button (E7-2), from the server | An answer sent for a response this device does not have (cookies cleared in another tab); the page returns to About you, marks every card not saved, and sends the cards again after Start | Your details were not found on this device. Press Start again and the answers on this page are saved with them. |
-| Banner over the chapter (E7-3) | Connection lost: an answer could not reach the server | Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects. |
+| Banner over the chapter (E7-3) | Connection lost: an answer could not reach the server | Your latest answers are not saved. Your connection dropped; this page keeps trying. They stay on this device until it reconnects. |
 | Header note (E7-3) | Answers that cannot reach the server: the connection dropped, or the server failed or refused for now (a 5xx, a rate limit); it stays until every failed answer has gone through | Not saved |
 | Card note (E7-3) | A complete answer not yet on the server while the page cannot reach it | Not saved yet |
 | Card note (E7-3), from the server | Another window or device saved the item's answer after this page's change was made on it (also for a change the device kept unsent and sent on opening); the card shows the stored answer | This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand. |
@@ -341,9 +341,9 @@ the title, the line and "Go to your projects" are the 404 row above.
 | Card line | The address bar proposed it as a must. Rate it the way your experts rate a list. |
 | The robot, before a rating | The robot looked everywhere and found nothing to read. |
 | The robot, Must (agree) | Agreed, it is a must. It still does not exist. Your projects do. |
-| The robot, Should or Could (different priority) | A lower priority. Fair: it can wait, and your projects cannot. |
-| The robot, Not needed (disagree) | Not needed. Then nothing is missing. |
-| The robot, Unclear | Unclear to the robot too. Check the address for a typo. |
+| The robot, Should or Could (different priority) | So it is a lower priority. Fair enough: it can wait, and your projects cannot. |
+| The robot, Not needed (disagree) | You marked it not needed, so nothing is missing. |
+| The robot, Unclear | It is unclear to the robot too. Check the address for a typo. |
 | Before the robot's line, for screen readers only | You rated it [VALUE]. |
 | Under the card | Nothing you rate on this page is saved. |
 | Second button, when there is a page to go back to | Go back |

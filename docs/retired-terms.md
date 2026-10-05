@@ -26,3 +26,4 @@ decision retires a term; remove the old wording in the same commit (decision 001
 | grey-100 | decision 0041 | tint |
 | ink-raised | decision 0041 | raised |
 | Geist Sans | decision 0041 | Plus Jakarta Sans |
+| How your answers are used | decision 0053 | How are your answers used? |

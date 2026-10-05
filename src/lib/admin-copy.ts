@@ -4,11 +4,11 @@ import type { AdminAction, AuditChanges, AuditOutcome, FunnelStep, PlanKey } fro
 export const ADMIN_COPY = {
   title: "Overview",
   crumb: "SMEsay admin",
-  intro: "Every workspace, its usage, and the steps from sign-up to submission. The sample projects are left out.",
+  intro: "This page shows every workspace, its usage, and the steps from sign-up to submission. The sample projects are left out.",
   totals: { workspaces: "workspaces", projects: "projects", published: "instruments published", submitted: "responses submitted" },
-  metric: (value: number, threshold: number | null) => (threshold === null ? `${value}. No threshold set yet: paid plans stay off.` : value >= threshold ? `${value} of ${threshold}: the threshold is reached, paid plans can switch on.` : `${value} of ${threshold} to switch paid plans on.`),
+  metric: (value: number, threshold: number | null) => (threshold === null ? `${value}. No threshold is set yet, so paid plans stay off.` : value >= threshold ? `${value} of ${threshold}: the threshold is reached, paid plans can switch on.` : `${value} of ${threshold} to switch paid plans on.`),
   funnelTitle: "Funnel per week",
-  funnelNote: "Each step's count, and under it the share of the step before in the same week; a step can count more than the one before (one publish, many invites). Weeks start on Monday, UTC.",
+  funnelNote: "Each step shows its count and, under it, its share of the step before in the same week; a step can count more than the one before (one publish, many invites). Weeks start on Monday, UTC.",
   week: "Week of",
   steps: {
     signed_up: "Sign-ups", workspace_created: "Workspaces", project_created: "Projects", import_committed: "Imports",
@@ -42,7 +42,7 @@ export const ADMIN_SHELL_COPY = {
 export const AUDIT_COPY = {
   crumb: "SMEsay admin",
   title: "Audit log",
-  intro: "Every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it.",
+  intro: "This log lists every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it.",
   workspace: "Workspace",
   admin: "Admin",
   all: "All",
@@ -91,7 +91,7 @@ const WORKSPACE_PLAN_NAMES: Record<PlanKey, string> = { free: "Free", pro: "Pro"
 export const WORKSPACE_ADMIN_COPY = {
   crumb: "SMEsay admin",
   listTitle: "Workspaces",
-  listIntro: "Every workspace, deleted ones too, by last activity. The figures leave the sample projects out.",
+  listIntro: "This page lists every workspace, deleted ones too, by last activity. The figures leave the sample projects out.",
   search: "Name, slug or a member's email",
   searchButton: "Search",
   clear: "Clear",
@@ -104,7 +104,7 @@ export const WORKSPACE_ADMIN_COPY = {
   sections: { settings: "Settings", budget: "AI budget", members: "Members", invites: "Invitations waiting", projects: "Projects", uploads: "Uploads", events: "Last 20 product events", notes: "Support notes", deleted: "Marked deleted" },
   settings: { slug: "Slug", accent: "Accent", logo: "Logo", logoSet: "set", logoNone: "none", accentNone: "default", plan: "Plan", created: "Created" },
   deletedLine: (when: string, by: string | null) => `Deleted ${when}${by ? ` by ${by}` : ""}. The removal job deletes it within 24 hours of that; until then it can be restored.`,
-  budgetLine: (spent: string, budget: number) => `${spent} spent this month of EUR ${budget}. Seen and set only here (decision 0036).`,
+  budgetLine: (spent: string, budget: number) => `The workspace has spent ${spent} of EUR ${budget} this month. Only this page shows and sets the budget (decision 0036).`,
   budgetLabel: "Monthly AI budget in euro",
   planLabel: "Plan",
   // The plans' names as src/lib/plans.ts PLANS has them (a test keeps the two equal); written
@@ -173,7 +173,7 @@ export const WORKSPACE_ADMIN_COPY = {
 export const PEOPLE_ADMIN_COPY = {
   crumb: "SMEsay admin",
   listTitle: "People",
-  listIntro: "Everyone with an account, by last sign-in. Respondents have no account and are not here.",
+  listIntro: "This page lists everyone with an account, by last sign-in. Respondents have no account and are not here.",
   search: "Email or name",
   searchButton: "Search",
   clear: "Clear",
@@ -196,7 +196,7 @@ export const PEOPLE_ADMIN_COPY = {
   noInvites: "No invitations waiting.",
   inviteLine: (workspace: string, when: string, open: boolean) => `${workspace}, invited ${when}${open ? "" : " (the link has expired)"}`,
   noEvents: "No product events yet.",
-  deleteLine: "Only at the person's own request. Their memberships go; what they made in workspaces stays without their name.",
+  deleteLine: "Delete an account only at the person's own request. Their memberships go; what they made in workspaces stays without their name.",
   // The action buttons, each with its confirm line (acceptance 3).
   sendLink: "Send a sign-in link",
   confirmSendLink: (email: string) => `Send a sign-in link to ${email}? It works once and expires in 15 minutes.`,
@@ -221,12 +221,12 @@ export const PEOPLE_ADMIN_COPY = {
 // The guide on the Overview (stories/E15-5, acceptances 2 and 3).
 export const GUIDE_ADMIN_COPY = {
   firstTitle: "First project, per sign-up week",
-  firstNote: "Of the people who signed up that week: how many have a project of their own with a list, shaped, built and shared (the first-project path's rule, over any of their projects), and the median hours from sign-up to the first link published or invite sent for one of them.",
+  firstNote: "For the people who signed up that week, the table shows how many have a project of their own with a list, shaped, built and shared (the first-project path's rule, over any of their projects), and the median hours from sign-up to the first link published or invite sent for one of them.",
   firstColumns: { week: "Week of", signups: "Sign-ups", imported: "Import", shaped: "Shape", built: "Build", shared: "Share", median: "Median hours to the first link" },
   noMedian: "none yet",
   benchmark: "For comparison: the average SaaS activation rate is 37.5 percent and the average onboarding checklist completion rate 19.2 percent (Userpilot, SaaS Product Metrics Benchmark Report 2025, userpilot.com/saas-product-metrics). The first ten real sign-ups set SMEsay's own baseline.",
   guideTitle: "Guide, last 30 days",
-  guideNote: "Each tip's shows, dismissals and presses of its action, each counted once a day per person. A tip shown with an action is to review when it was dismissed more often than acted on; one shown without one when more than half of its shows were dismissed.",
+  guideNote: "The table counts each tip's shows, dismissals and presses of its action, once a day per person. A tip shown with an action is to review when it was dismissed more often than acted on; one shown without one when more than half of its shows were dismissed.",
   guideColumns: { tip: "Tip", shown: "Shown", dismissed: "Dismissed", acted: "Acted on", rate: "Acted on of shown" },
   noAction: "no action",
   toReview: "to review",

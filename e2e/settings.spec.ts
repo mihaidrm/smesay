@@ -37,7 +37,7 @@ test("owner sets the name, the logo and the accent", async ({ page, request }) =
 
   await page.getByLabel("Workspace name").fill("Marlow Group Ltd");
   await page.getByLabel("Accent colour").fill("#1F4F7A");
-  await expect(page.getByTestId("accent-line")).toContainText("Contrast on white 8.54:1");
+  await expect(page.getByTestId("accent-line")).toContainText("The contrast on white is 8.54:1");
   await page.getByLabel("Logo").setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: ONE_PIXEL_PNG });
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status")).toContainText("Saved.");
@@ -50,7 +50,7 @@ test("owner sets the name, the logo and the accent", async ({ page, request }) =
   expect((await served.body()).equals(ONE_PIXEL_PNG)).toBe(true);
 
   await page.getByLabel("Accent colour").fill("#FFD500");
-  await expect(page.getByTestId("accent-line")).toContainText("Contrast on white 1.42:1");
+  await expect(page.getByTestId("accent-line")).toContainText("The contrast on white is 1.42:1");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status")).toContainText("This colour is too light on white");
 

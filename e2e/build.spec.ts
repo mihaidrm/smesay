@@ -57,7 +57,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
   // The stepper says Build on the first open, while the draft is being created, and after.
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
-  await expect(page.getByTestId("build-line")).toHaveText("What respondents see, from version 1 of the list. The preview on the right follows every save.");
+  await expect(page.getByTestId("build-line")).toHaveText("This is what respondents see, built from version 1 of the list. The preview on the right follows every save.");
   await expect(page.getByLabel("Title")).toHaveValue("New expense tool");
   await expect(page.getByTestId("intro-hint")).toHaveText("Write one or two lines so respondents know what the list is for. They see this first.");
   await expect(page.getByTestId("field-row")).toHaveCount(2);

@@ -39,7 +39,7 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
           : <div className="flex size-10 items-center justify-center rounded-lg bg-violet font-extrabold text-on-violet" aria-hidden="true">{initial}</div>}
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-logo">Logo</Label>
-          <span className="text-xs text-ink-muted">PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark.</span>
+          <span className="text-xs text-ink-muted">Use a PNG or SVG up to 1 MB. It shows at 24 px in the respondent header in place of the mark.</span>
           <input id="ws-logo" name="logo" type="file" accept="image/png,image/svg+xml" className="text-sm"
             onChange={(e) => setFileError((e.target.files?.[0]?.size ?? 0) > LOGO_MAX_BYTES ? LOGO_COPY.tooBig : null)}
             aria-invalid={fileError || state.field === "logo" ? true : undefined} aria-describedby={fileError || state.field === "logo" ? "ws-logo-error" : undefined} />
@@ -56,7 +56,7 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
           <p id="ws-accent-line" className={`text-xs ${ratio !== null && ratio < MIN_CONTRAST ? "text-danger" : "text-ink-muted"}`} data-testid="accent-line">
             {state.field === "accentHex" ? state.error
               : ratio === null ? BRAND_COPY.noAccent
-              : `Contrast on white ${ratio.toFixed(2)}:1. ${BRAND_COPY.accentUse}`}
+              : `The contrast on white is ${ratio.toFixed(2)}:1. ${BRAND_COPY.accentUse}`}
           </p>
         </div>
       </div>

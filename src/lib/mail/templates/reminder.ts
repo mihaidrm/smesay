@@ -13,7 +13,7 @@ export function reminderEmail(input: ReminderEmailInput): Email {
   return renderEmail({
     origin: url,
     subject: closesAt ? `Reminder: ${projectName} closes on ${closeDay}` : `Reminder: ${projectName}`,
-    preheader: `${answered} of ${itemCount} answered so far.`,
+    preheader: `You have answered ${answered} of ${itemCount} so far.`,
     before: [
       { text: input.respondentName ? `Hi ${input.respondentName},` : "Hi," },
       { text: closesAt ? `${pmName} is still waiting for your answers on ${projectName}. The link closes on ${formatUtc(closesAt)}.` : `${pmName} is still waiting for your answers on ${projectName}.` },

@@ -12,8 +12,8 @@ before anything is imported.
    instead."
 2. The header row is detected as the first row with at least two filled cells where most
    cells are short text and the rows below are longer or typed differently (a one-column
-   list gets the picker, decision 0040). When no row qualifies, the message "No header row
-   found. Pick the row that holds the column names, or tell us which column is the
+   list gets the picker, decision 0040). When no row qualifies, the message "We found no
+   header row. Pick the row that holds the column names, or tell us which column is the
    requirement." appears with a row picker.
 3. The preview shows the first ten data rows with the detected column letters and names (PM
    app board, Import: Ref, Requirement, Module, Priority). Multi-sheet xlsx: the first sheet

@@ -8,7 +8,7 @@ line per card, up to 140 characters, one action at most. Plain English, WRITING.
 
 | Id | Pose | Condition | Line | Action |
 |---|---|---|---|---|
-| path.start | hi | no project of the person's own | Four steps to your first link. Start with the list you were about to email round. | Start a project (secondary: Try it on the sample first) |
+| path.start | hi | no project of the person's own | Your first link is four steps away. Start with the list you were about to email round. | Start a project (secondary: Try it on the sample first) |
 | path.import | idea | a project, no set | Upload the spreadsheet or paste the list. The columns are mapped on the next card. | Go to Import |
 | path.shape | idea | a set, no shape run | Let the AI group the items into areas and write a readable version of each. Nothing changes until you accept. | Go to Shape |
 | path.build | idea | a run, instrument without an intro | Write two lines so respondents know what the list is for, and check the fields they fill in. | Go to Build |
@@ -36,7 +36,7 @@ Share one link. Line under the steps: Then: read the results.
 |---|---|---|---|---|
 | sample.strip | analysis | Results, headline strip and agreement table | The numbers at the top count answers; the table shows each item with who agreed, who chose a different priority and who disagreed. | Next |
 | sample.registers | analysis | Different priority and Disagree tab | Every different priority and every disagree comes with a reason. This is what you read before the meeting. | Next |
-| sample.detail | analysis | an item's detail | One item, every answer. The AI's to-do list cites these rows. | Start a project |
+| sample.detail | analysis | an item's detail | This page shows every answer to one item. The AI's to-do list cites these rows. | Start a project |
 
 ## Rescue tips (E15-4)
 
@@ -44,7 +44,7 @@ Share one link. Line under the steps: Then: read the results.
 |---|---|---|---|---|
 | rescue.mapping | help | Import, an upload or paste with columns to map, stored ten minutes ago or more and not imported yet | The list is uploaded but not imported yet. Map the item column and press Import. | Map the columns |
 | rescue.shapeFailed | help | Shape, a run refused or failed (a shape_failed event) after the newest list was imported and after its last run that applied. Try again only when the reason can pass on a second run (failed, invalid, rate limited) | The last run did not finish. Try again, or move on: Build works without the AI's version. | Try again |
-| rescue.noResponse | help | Share, a link open for three days or more (from the publish, or the open date when later) with no response | No answer yet after three days. A personal invite with a name gets more replies than a shared link. | Send invites |
+| rescue.noResponse | help | Share, a link open for three days or more (from the publish, or the open date when later) with no response | Nobody has answered in three days. A personal invite with a name gets more replies than a shared link. | Send invites |
 
 ## Sidebar
 

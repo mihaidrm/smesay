@@ -11,9 +11,9 @@ export const SECONDS_PER_ITEM = 20;
 
 export const INVITEES_COPY = {
   card: "Personal invites",
-  line: "One link per person, sent by email from you. Each answers under their name and can carry on from any device.",
+  line: "Each person gets their own link, sent by email from you. Each answers under their name and can carry on from any device.",
   field: "People, one per line",
-  hint: "Addresses apart by commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance",
+  hint: "Separate the addresses with commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance",
   send: "Send",
   needLink: "Publish the public link first. Personal links take its open and close dates.",
   sent: (n: number) => `${n} ${n === 1 ? "invite" : "invites"} sent.`,

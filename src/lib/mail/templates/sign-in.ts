@@ -10,7 +10,7 @@ export function signInEmail(url: string): Email {
   return renderEmail({
     origin: url,
     subject: "Your sign-in link for SMEsay",
-    preheader: `Works once, for ${minutes} minutes.`,
+    preheader: `The link works once, for ${minutes} minutes.`,
     before: [{ text: "Hi," }, { text: `Here is your link to sign in to SMEsay. It works once and stops working in ${minutes} minutes.` }],
     button: { label: "Sign in", url },
     after: [{ text: "If you did not ask for this link, ignore this email. Nobody can sign in without it." }],

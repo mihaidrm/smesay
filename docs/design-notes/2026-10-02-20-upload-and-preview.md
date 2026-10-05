@@ -1,7 +1,7 @@
 # Design note 20: the upload card and the preview, 2026-10-02
 
-Story E3-2. Built from the PM app board (Import step: the summary line "expense-requirements.xlsx,
-6 rows read, header found on row 1." under the title) and docs/design-system.md. The board has
+Story E3-2. Built from the PM app board (Import step: the summary line "We read 6 rows from
+expense-requirements.xlsx and found the header on row 1." under the title) and docs/design-system.md. The board has
 no upload control and no preview table of its own, so both are composed from the design system
 here; the mapping card that follows them on the board is E3-3. Screenshots beside the boards:
 import-upload-desktop.png (a new project, the About card and the upload card),

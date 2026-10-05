@@ -74,7 +74,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   const areas = page.getByTestId("area");
   await expect(areas).toHaveCount(3);
   await expect(areas.nth(0)).toContainText("Submitting");
-  await expect(areas.nth(0).getByTestId("rationale")).toHaveText("First, because submitting starts it.");
+  await expect(areas.nth(0).getByTestId("rationale")).toHaveText("This comes first, because submitting starts it.");
   await expect(areas.nth(0).getByTestId("item")).toHaveCount(4);
   await expect(page.getByTestId("placed-pill")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Run again" })).toBeVisible();

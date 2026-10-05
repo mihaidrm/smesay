@@ -11,7 +11,7 @@ export const AREAS_MAX = 8;
 export const ShapeOutput = z.strictObject({
   areas: z.array(z.strictObject({
     name: z.string().min(1).max(60).describe("The area's name, two to four words, as a reader would see it"),
-    rationale: z.string().min(1).max(200).describe("One sentence on why this area comes here, such as: First, because every claim starts here."),
+    rationale: z.string().min(1).max(200).describe("One sentence on why this area comes here, such as: This comes first, because every claim starts here."),
     items: z.array(z.string()).min(1).describe("The refs of the items in this area, in reading order"),
   })).min(1).max(12).describe("Every item in exactly one area, the areas in reading order"),
   items: z.array(z.strictObject({

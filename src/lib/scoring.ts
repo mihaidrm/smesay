@@ -16,7 +16,7 @@ export type ScaleValue = { code: string; label: string; caption?: string };
 
 export const METHODS: { key: ScoringMethod; label: string; hint: string }[] = [
   { key: "moscow", label: "MoSCoW", hint: "Must, Should, Could, Not needed" },
-  { key: "fit", label: "1 to 5 fit", hint: "How well the item fits the need" },
+  { key: "fit", label: "1 to 5 fit", hint: "Respondents rate how well the item fits the need" },
   { key: "kcd", label: "Keep, change, drop", hint: "For reviewing an existing list" },
 ];
 

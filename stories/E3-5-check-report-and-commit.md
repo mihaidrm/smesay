@@ -6,9 +6,9 @@ Outcome: empty rows, exact duplicates and long items are listed before anything 
 then one click creates the items.
 
 ## Acceptance criteria
-1. The check card (PM app board, Import) shows before commit: "[N] empty rows, skipped. [N]
-   exact duplicates, imported once. [N] items over 1,000 characters, imported whole; consider
-   splitting them in Shape." plus the unrecognised proposed values line from E3-3. Each count
+1. The check card (PM app board, Import) shows before commit: "[N] empty rows were skipped.
+   [N] exact duplicates were imported once. [N] items are over 1,000 characters and were
+   imported whole; consider splitting them in Shape." plus the unrecognised proposed values line from E3-3. Each count
    expands to the rows concerned.
 2. Exact duplicate means identical text after trimming and collapsing whitespace, case kept;
    the duplicate rows fold into the first and their references are listed on the kept item

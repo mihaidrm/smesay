@@ -6,7 +6,7 @@ Outcome: every item lands in exactly one area, the areas are ordered with a reas
 the PM can move items between areas.
 
 ## Acceptance criteria
-1. Shape (PM app board) shows the areas in order, each with its rationale ("First, because
+1. Shape (PM app board) shows the areas in order, each with its rationale ("This comes first, because
    every claim starts here.") and its items. Every item is in exactly one area; a test on the
    golden set output checks the partition.
 2. When the import carried an area column, the model keeps those areas and names, and only

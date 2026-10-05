@@ -62,7 +62,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       <section className="flex flex-col gap-3 card p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">
           <h3 id="about-title" className="font-semibold">About this project</h3>
-          <p className="text-[13px] text-ink-muted">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</p>
+          <p className="text-[13px] text-ink-muted">Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</p>
         </div>
         <ContextForm projectId={project.id} goal={project.contextGoal ?? ""} terms={project.contextTerms ?? ""} readOnly={project.isSample} />
       </section>

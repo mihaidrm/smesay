@@ -8,7 +8,7 @@ export const TITLE_MAX = 80;
 
 export const BUILD_COPY = {
   title: "Build the instrument",
-  line: (version: number) => `What respondents see, from version ${version} of the list. The preview on the right follows every save.`,
+  line: (version: number) => `This is what respondents see, built from version ${version} of the list. The preview on the right follows every save.`,
   noSet: "Import a list first. Build works on an imported version.",
   noSetLink: "Go to Import",
   introCard: "Intro",
@@ -19,7 +19,7 @@ export const BUILD_COPY = {
   badTitle: `Give the instrument a title, up to ${TITLE_MAX} characters. Respondents see it in the header.`,
   longIntro: `The intro is over ${INTRO_MAX.toLocaleString("en-GB")} characters. Shorten it; respondents read it on a phone.`,
   fieldsCard: "Respondent fields",
-  fieldsLine: "What respondents fill in before they rate. Required fields must be filled before Start.",
+  fieldsLine: "Respondents fill these in before they rate. Required fields must be filled before Start.",
   labelLabel: "Label",
   typeLabel: "Type",
   requiredLabel: "Required",
@@ -35,7 +35,7 @@ export const BUILD_COPY = {
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
   // The scoring card (stories/E5-2; the PM app board, Build).
   scoringCard: "Scoring",
-  scoringLine: "How respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method.",
+  scoringLine: "Pick how respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method.",
   methodLabel: "Method",
   showProposedTitle: "Show the proposed value to respondents",
   showProposedLine: "On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard.",
@@ -44,7 +44,7 @@ export const BUILD_COPY = {
   labelFor: "Label for",
   // Perspectives (stories/E5-4).
   perspectivesCard: "Perspectives",
-  perspectivesLine: "Groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone.",
+  perspectivesLine: "Perspectives are groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone.",
   perspectivesLabel: "Perspectives, one per line",
   perspectivesTagged: (tagged: number, total: number) => `${tagged} of ${total} items carry a perspective. Tag items on Shape.`,
   perspectivesList: (names: string[]) => `${names.join(", ")}.`,
@@ -52,7 +52,7 @@ export const BUILD_COPY = {
   perspectivesNone: "No perspectives yet. Every item goes to everyone.",
   // The layout (stories/E5-3; the PM app board, Build).
   layoutLabel: "Layout",
-  layoutLine: "How the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
+  layoutLine: "Pick how the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
   previewItemOf: (n: number, total: number, area: string) => `Item ${n} of ${total} in ${area}`,
   previewAllOnOne: (n: number) => `All ${n} on one page`,
   previewProgress: (answered: number, total: number) => `${answered} of ${total}`,
@@ -74,7 +74,7 @@ export const ABOUT_YOU_COPY = {
   footer: (workspace: string) => `Your answers go to the project team at ${workspace}. They are saved as you go on this device, so you can close this page and come back.`,
   poweredBy: "Powered by",
   // The privacy notice beside Powered by (E11-3, acceptance 3).
-  privacy: "How your answers are used",
+  privacy: "How are your answers used?",
   newTab: "(opens in a new tab)",
   previewNote: "Preview: nothing you enter here is saved",
   // A personal link (stories/E6-2, acceptance 3): the fields the PM filled are not asked.

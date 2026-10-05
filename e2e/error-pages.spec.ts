@@ -30,13 +30,13 @@ test("the 404 pages of the PM side and of a respondent link", async ({ page }) =
   const card = page.getByTestId("lost-card");
   await expect(line).toHaveText("The robot looked everywhere and found nothing to read.");
   await card.getByRole("radio", { name: "Not needed" }).click();
-  await expect(line).toHaveText("You rated it Not needed. Not needed. Then nothing is missing.");
+  await expect(line).toHaveText("You rated it Not needed. You marked it not needed, so nothing is missing.");
   await expect(page.getByTestId("mascot")).toHaveAttribute("data-pose", "analysis");
   await card.getByRole("radio", { name: "Should" }).click();
-  await expect(line).toHaveText("You rated it Should. A lower priority. Fair: it can wait, and your projects cannot.");
+  await expect(line).toHaveText("You rated it Should. So it is a lower priority. Fair enough: it can wait, and your projects cannot.");
   await expect(page.getByTestId("mascot")).toHaveAttribute("data-pose", "idea");
   await card.getByRole("radio", { name: "Unclear" }).click();
-  await expect(line).toHaveText("You rated it Unclear. Unclear to the robot too. Check the address for a typo.");
+  await expect(line).toHaveText("You rated it Unclear. It is unclear to the robot too. Check the address for a typo.");
   await card.getByRole("radio", { name: "Must, proposed" }).click();
   await expect(line).toHaveText("You rated it Must. Agreed, it is a must. It still does not exist. Your projects do.");
   await expect(page.getByTestId("mascot")).toHaveAttribute("data-pose", "hi");
@@ -73,7 +73,7 @@ test.describe("on a touch screen", () => {
     await expect(page.getByTestId("lights-off")).toHaveCount(0);
     await expect(page.getByTestId("mascot")).not.toHaveClass(/landing-float/);
     await page.getByTestId("lost-card").getByRole("radio", { name: "Could" }).tap();
-    await expect(page.getByTestId("robot-line")).toHaveText("You rated it Could. A lower priority. Fair: it can wait, and your projects cannot.");
+    await expect(page.getByTestId("robot-line")).toHaveText("You rated it Could. So it is a lower priority. Fair enough: it can wait, and your projects cannot.");
   });
 });
 

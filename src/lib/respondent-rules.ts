@@ -42,7 +42,7 @@ export const RESPONDENT_COPY = {
   // Saving (E7-3; docs/copy/errors.md, Respondent answering).
   notSaved: "Not saved",
   notSavedYet: "Not saved yet",
-  offline: "Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.",
+  offline: "Your latest answers are not saved. Your connection dropped; this page keeps trying. They stay on this device until it reconnects.",
   storageOff: "This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost.",
   // Moving through the chapters (E7-4; docs/copy/app.md, Respondent navigation).
   chapters: "Chapters",

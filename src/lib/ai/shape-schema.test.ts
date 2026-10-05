@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { shapeJsonSchema, ShapeOutput } from "./shape-schema";
 import { assertStrict } from "./strict";
 
-const good = { areas: [{ name: "Ordering", rationale: "First, because every order starts here.", items: ["1", "2"] }], items: [{ ref: "1", reader: "Shops order by phone until 16:00.", flags: { ambiguity: null, duplicateOf: null } }, { ref: "2", reader: "The form shows last week's order.", flags: { ambiguity: "Which week counts as last week.", duplicateOf: null } }] };
+const good = { areas: [{ name: "Ordering", rationale: "This comes first, because every order starts here.", items: ["1", "2"] }], items: [{ ref: "1", reader: "Shops order by phone until 16:00.", flags: { ambiguity: null, duplicateOf: null } }, { ref: "2", reader: "The form shows last week's order.", flags: { ambiguity: "Which week counts as last week.", duplicateOf: null } }] };
 
 describe("ShapeOutput", () => {
   it("is strict at every level", () => {

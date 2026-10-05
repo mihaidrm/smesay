@@ -19,7 +19,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 200,
-            "description": "One sentence on why this area comes here, such as: First, because every claim starts here."
+            "description": "One sentence on why this area comes here, such as: This comes first, because every claim starts here."
           },
           "items": {
             "minItems": 1,

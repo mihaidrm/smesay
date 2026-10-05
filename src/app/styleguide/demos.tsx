@@ -62,7 +62,7 @@ export function Demos() {
         </div>
         <div className="flex w-full max-w-[360px] flex-col gap-1.5">
           <Label htmlFor="sg-ctx">What is this about?</Label>
-          <Textarea id="sg-ctx" rows={2} placeholder="A few words on what the list is for and who answers." />
+          <Textarea id="sg-ctx" rows={2} placeholder="Write a few words on what the list is for and who answers." />
         </div>
       </Row>
       <Row title="Status pills" note="Tint fill, text from the table, 12 px weight 600. Always with the word.">

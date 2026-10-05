@@ -5,7 +5,7 @@ import { formatUtc } from "@/lib/sharing-format";
 export const WORKSPACE_DATA_COPY = {
   heading: "Data",
   exportTitle: "Export everything",
-  exportLine: "One zip file with every project's JSON file, the workspace's settings, the members and the logo.",
+  exportLine: "You get one zip file with every project's JSON file, the workspace's settings, the members and the logo.",
   exportButton: "Download zip",
   exportFailed: "The zip export did not finish. Try again; if it fails again, reload the page and export again.",
   deleteTitle: "Delete this workspace",

@@ -19,8 +19,8 @@ confirm, each showing its version and date, and every instrument links to the pr
    paragraph when the form is built (changed 2026-10-04 under decision 0044, docs/review-list.md).
 2. Each page shows "Version [N], [DATE]" at the top; versions are files in docs/legal/ and
    the pages render them, so a change is a commit.
-3. The respondent About you page and the Done page link to the privacy notice ("How your
-   answers are used") in the footer beside Powered by; the landing page footer links to all
+3. The respondent About you page and the Done page link to the privacy notice ("How are your
+   answers used?") in the footer beside Powered by; the landing page footer links to all
    four (docs/copy/landing.md).
 4. The markers are counted by a script (`npm run legal:markers`) and listed in docs/accounts.md
    step 12 for the lawyer; the pages ship with the markers visible until Mihai says they are
@@ -54,7 +54,7 @@ Built 2026-10-04 (design note 74, decision 0044):
   checked against the code again; design note 74 lists what changed.
 - Acceptance 2: each file starts with "version: N" and "date: YYYY-MM-DD"; each page shows
   "Version [N], [DATE]" at the top; a change is a commit.
-- Acceptance 3: About you and the Done page carry "How your answers are used" beside Powered by
+- Acceptance 3: About you and the Done page carry "How are your answers used?" beside Powered by
   (src/components/respondent/powered-by.tsx, privacy), on every plan, opening in a new tab; the
   landing page's footer links to the four pages (docs/copy/landing.md).
 - Acceptance 4: `npm run legal:markers` (scripts/legal-markers.mjs) lists the markers per page

@@ -15,7 +15,7 @@ instrument shows a closed page, not an error.
    project. Check that you copied the whole link, or ask the person who sent it for a new
    one." (docs/copy/errors.md).
 3. Before the open date the link shows "This link opens on [OPEN DATE AND TIME]. Come back
-   then; nothing to do now." After the close date it shows the closed page from the
+   then; there is nothing to do now." After the close date it shows the closed page from the
    respondent board ("Link closed. The project team at [WORKSPACE] stopped collecting answers
    for [PROJECT] on [DATE]. Nothing you sent is lost. ..."). Both return a page, not data
    (SECURITY.md).

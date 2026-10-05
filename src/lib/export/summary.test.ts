@@ -103,11 +103,11 @@ describe("summaryHtml", () => {
     const rows = Array.from({ length: 47 }, (_, i) => [`R-${i}`, "Item", "Ioana Marin", "Too slow"]);
     const r = register("Disagree", ["", "Item", "Respondent", "Reason"], rows, "Answers");
     expect([r.rows.length, r.total, REGISTER_ROWS_MAX]).toEqual([20, 47, 20]);
-    expect(r.more).toBe("And 27 more in the Answers CSV on the Export tab.");
+    expect(r.more).toBe("The Answers CSV on the Export tab has 27 more.");
     expect(register("Disagree", [], rows.slice(0, 20), "Answers").more).toBeNull();
     const html = summaryHtml({ ...VIEW, registers: [r] });
     expect(html).toContain("<h2>Disagree (47)</h2>");
-    expect(html).toContain("And 27 more in the Answers CSV on the Export tab.");
+    expect(html).toContain("The Answers CSV on the Export tab has 27 more.");
     expect(html.match(/<td>R-\d+<\/td>/g)).toHaveLength(20);
   });
   it("puts the sections in the story's order, the last on its own page", () => {

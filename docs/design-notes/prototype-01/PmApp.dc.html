@@ -66,7 +66,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{isProjects}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; align-items: flex-end; justify-content: space-between">
-<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Projects</h2><div style="color: #5B6069">One project per validation. Free plan while we build it: no limit on projects or responses.</div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Projects</h2><div style="color: #5B6069">Each project holds one validation. Free plan while we build it: no limit on projects or responses.</div></div>
 <div style="display: flex; gap: 8px"><button type="button" style="min-height: 40px; padding: 0 20px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Import a project</button><button type="button" onClick="{{goProject}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">New project</button></div>
 </div>
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
@@ -93,8 +93,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Brand on the respondent side</div>
 <div style="padding: 16px; display: flex; flex-direction: column; gap: 14px">
 <div style="display: flex; flex-direction: column; gap: 6px"><label for="ws-name" style="font-weight: 500">Workspace name</label><input id="ws-name" type="text" value="{{wsName}}" onChange="{{setWsName}}" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div>
-<div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600">M</div><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Logo</div><div style="font-size: 12px; color: #5B6069">PNG or SVG, up to 1 MB. Shown at 28 px in the respondent header.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Upload</button></div>
-<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 40px; border-radius: 8px; background: #1F4F7A; display: block"></span><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Accent colour <span style="font-family: 'Geist Mono', monospace; font-weight: 400; color: #5B6069">#1F4F7A</span></div><div style="font-size: 12px; color: #22643F">Contrast on white 8.54:1. Used on the progress bar and focus ring. Buttons stay black.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Change</button></div>
+<div style="display: flex; align-items: center; gap: 12px"><div style="width: 40px; height: 40px; border-radius: 8px; background: #16181C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600">M</div><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Logo</div><div style="font-size: 12px; color: #5B6069">Use a PNG or SVG up to 1 MB. It shows at 28 px in the respondent header.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Upload</button></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 40px; border-radius: 8px; background: #1F4F7A; display: block"></span><div style="display: flex; flex-direction: column; gap: 2px"><div style="font-weight: 500">Accent colour <span style="font-family: 'Geist Mono', monospace; font-weight: 400; color: #5B6069">#1F4F7A</span></div><div style="font-size: 12px; color: #22643F">The contrast on white is 8.54:1. The accent colours the progress bar and focus ring. Buttons stay black.</div></div><button type="button" style="margin-left: auto; min-height: 40px; padding: 0 18px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500; min-height: 32px">Change</button></div>
 <div style="display: flex; justify-content: flex-end"><button type="button" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500">Save</button></div>
 </div>
 </div>
@@ -131,10 +131,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Import the list</h2>
 <button type="button" onClick="{{goShape}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">Import 6 items</button>
 </div>
-<div style="color: #5B6069">expense-requirements.xlsx, 6 rows read, header found on row 1.</div>
+<div style="color: #5B6069">We read 6 rows from expense-requirements.xlsx and found the header on row 1.</div>
 </div>
 <div style="border: 1px solid #E3E1DC; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; padding: 16px">
-<div style="display: flex; flex-direction: column; gap: 4px"><div style="font-weight: 500">About this project</div><div style="font-size: 13px; color: #5B6069">A few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="font-weight: 500">About this project</div><div style="font-size: 13px; color: #5B6069">Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</div></div>
 <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; flex-direction: column; gap: 4px"><label for="ctx-goal" style="font-size: 13px; font-weight: 500">What is this about?</label><textarea id="ctx-goal" rows="2" value="{{ctxGoal}}" onChange="{{setCtxGoal}}" style="box-sizing: border-box; padding: 8px 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF; resize: none"></textarea></div>
 <div style="display: flex; gap: 12px; align-items: flex-end"><div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px"><label for="ctx-terms" style="font-size: 13px; font-weight: 500">Terms to keep as written, optional</label><input id="ctx-terms" type="text" value="{{ctxTerms}}" onChange="{{setCtxTerms}}" placeholder="Product names, internal acronyms, the client's own labels" style="min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div><div style="font-size: 12px; color: #5B6069; white-space: nowrap">{{ctxCount}}</div></div>
@@ -256,7 +256,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <h2 style="margin: 0; font-size: 24px; font-weight: 400">Build the instrument</h2>
 <button type="button" onClick="{{goShare}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">Continue</button>
 </div>
-<div style="color: #5B6069">What respondents see, from version 1 of the list. The preview on the right follows every change.</div>
+<div style="color: #5B6069">This is what respondents see, built from version 1 of the list. The preview on the right follows every change.</div>
 </div>
 <div style="display: flex; gap: 24px; align-items: flex-start">
 <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px">
@@ -338,7 +338,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-bottom: 1px solid #E3E1DC">
 <div style="font-size: 13px; font-weight: 500">People, one per line</div>
 <div style="min-height: 72px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF"></div>
-<div style="color: #5B6069; font-size: 13px">Addresses apart by commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance</div>
+<div style="color: #5B6069; font-size: 13px">Separate the addresses with commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance</div>
 <div style="display: flex; justify-content: flex-end"><button type="button" style="min-height: 32px; padding: 0 12px; border: 1px solid #C9C7C1; border-radius: 999px; background: #FFFFFF; font-weight: 500">Send</button></div>
 </div>
 <div style="display: flex; gap: 12px; padding: 8px 16px; border-bottom: 1px solid #E3E1DC; font-size: 12px; color: #5B6069">
@@ -659,7 +659,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{pvIsAbout}}" hint-placeholder-val="{{false}}">
 <div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 20px calc((100% - 560px) / 2); display: flex; flex-direction: column; gap: 16px">
 <h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
-<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. The new tool should do six things, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
 <div style="font-size: 14px; color: {{pvOpenFg}}; padding: 8px 10px; border-radius: 8px; background: {{pvOpenBg}}; box-shadow: {{hlD.open}}">{{pvOpenNote}}</div>
 <div style="display: flex; flex-direction: column; gap: 6px; border-radius: 8px; box-shadow: {{hlD.fields}}"><div style="font-size: 14px; font-weight: 500">Your name</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF"></div>
 <div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
@@ -719,7 +719,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <sc-if value="{{pvIsAbout}}" hint-placeholder-val="{{false}}">
 <div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
 <h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
-<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="color: #454A52; font-size: 16px; line-height: 24px">We are replacing the expense tool for all 400 staff. The new tool should do six things, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
 <div style="font-size: 14px; color: {{pvOpenFg}}; padding: 8px 10px; border-radius: 8px; background: {{pvOpenBg}}; box-shadow: {{hlP.open}}">{{pvOpenNote}}</div>
 <div style="display: flex; flex-direction: column; gap: 6px; border-radius: 8px; box-shadow: {{hlP.fields}}"><div style="font-size: 14px; font-weight: 500">Your name</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF"></div>
 <div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
@@ -804,9 +804,9 @@ const items = [
 { id: 'i6', ref: 'CL-06', area: 'Paying', proposed: 'C', reader: 'Employees can request a cash advance before a trip.', original: 'Travel advance request workflow (pre-trip).' }
 ];
 const areas = [
-{ name: 'Submitting', rationale: 'First, because every claim starts here.' },
-{ name: 'Approving', rationale: 'Second, what happens to a claim once it is in.' },
-{ name: 'Paying', rationale: 'Last, the money.' }
+{ name: 'Submitting', rationale: 'This comes first, because every claim starts here.' },
+{ name: 'Approving', rationale: 'This covers what happens to a claim once it is in.' },
+{ name: 'Paying', rationale: 'This comes last and covers paying the money back.' }
 ];
 const people = [
 { id: 'r1', name: 'Ioana Marin', role: 'Sales', status: 'Submitted', done: 6, date: '7 Oct 2026', source: 'Personal invite', reminders: 0 },
@@ -884,7 +884,7 @@ const selOn = { bg: '#F6F6F4', bd: '#16181C' };
 const selOff = { bg: '#FFFFFF', bd: '#E3E1DC' };
 const methods = [
 ['moscow', 'MoSCoW', 'Must, Should, Could, Not needed'],
-['fit', '1 to 5 fit', 'How well the item fits the need'],
+['fit', '1 to 5 fit', 'Respondents rate how well the item fits the need'],
 ['kcd', 'Keep, change, drop', 'For reviewing an existing list']
 ].map((x) => {
 const active = s.method === x[0];
@@ -1001,12 +1001,12 @@ const members = [
 ].filter((m) => !s.removed[m.id]).map((m) => Object.assign({}, m, { remove: () => patch('removed', m.id, true) }));
 const inviteOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.inviteEmail);
 const exportDefs = [
-{ id: 'x1', title: 'Answers', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
-{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per item: the counts of each answer, not answered, and the agreement.', note: 'The Agreement tab\'s counts are these rows.', size: '2 KB' },
-{ id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
-{ id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'One row per missing item suggested, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
-{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'One JSON file with every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
-{ id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'A PDF of what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.', note: '', size: '' }
+{ id: 'x1', title: 'Answers', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment.', note: 'Opens in Excel with dates intact. 30 rows for this project.', size: '6 KB' },
+{ id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one item: the counts of each answer, not answered, and the agreement.', note: 'The Agreement tab\'s counts are these rows.', size: '2 KB' },
+{ id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
+{ id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one suggested missing item, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
+{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'This JSON file holds every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
+{ id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'The PDF holds what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.', note: '', size: '' }
 ];
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));
 const isProject = s.view === 'project';

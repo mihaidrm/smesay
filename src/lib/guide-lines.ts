@@ -8,7 +8,7 @@ export type GuidePose = "hi" | "idea" | "reading" | "analysis" | "help";
 type Line = { pose: GuidePose; line: string; action: string | null };
 
 export const GUIDE_LINES = {
-  "path.start": { pose: "hi", line: "Four steps to your first link. Start with the list you were about to email round.", action: "Start a project (secondary: Try it on the sample first)" },
+  "path.start": { pose: "hi", line: "Your first link is four steps away. Start with the list you were about to email round.", action: "Start a project (secondary: Try it on the sample first)" },
   "path.import": { pose: "idea", line: "Upload the spreadsheet or paste the list. The columns are mapped on the next card.", action: "Go to Import" },
   "path.shape": { pose: "idea", line: "Let the AI group the items into areas and write a readable version of each. Nothing changes until you accept.", action: "Go to Shape" },
   "path.build": { pose: "idea", line: "Write two lines so respondents know what the list is for, and check the fields they fill in.", action: "Go to Build" },
@@ -23,10 +23,10 @@ export const GUIDE_LINES = {
   "share.draft": { pose: "idea", line: "Publish when the instrument is ready. You can withdraw the link at any time; answers already given are kept.", action: null },
   "sample.strip": { pose: "analysis", line: "The numbers at the top count answers; the table shows each item with who agreed, who chose a different priority and who disagreed.", action: "Next" },
   "sample.registers": { pose: "analysis", line: "Every different priority and every disagree comes with a reason. This is what you read before the meeting.", action: "Next" },
-  "sample.detail": { pose: "analysis", line: "One item, every answer. The AI's to-do list cites these rows.", action: "Start a project" },
+  "sample.detail": { pose: "analysis", line: "This page shows every answer to one item. The AI's to-do list cites these rows.", action: "Start a project" },
   "rescue.mapping": { pose: "help", line: "The list is uploaded but not imported yet. Map the item column and press Import.", action: "Map the columns" },
   "rescue.shapeFailed": { pose: "help", line: "The last run did not finish. Try again, or move on: Build works without the AI's version.", action: "Try again" },
-  "rescue.noResponse": { pose: "help", line: "No answer yet after three days. A personal invite with a name gets more replies than a shared link.", action: "Send invites" },
+  "rescue.noResponse": { pose: "help", line: "Nobody has answered in three days. A personal invite with a name gets more replies than a shared link.", action: "Send invites" },
 } as const satisfies Record<string, Line>;
 
 export type TipId = keyof typeof GUIDE_LINES;

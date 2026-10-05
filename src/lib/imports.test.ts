@@ -41,7 +41,7 @@ describe("checkUpload and commitUpload", () => {
     const check = await checkUpload(saved.upload);
     expect(check?.report).toMatchObject({ rowsRead: 5, headerRow: 1, emptyRows: 1, exactDuplicates: 1, overLimit: 0, unrecognisedValues: 1, duplicateRefs: [{ kept: "CL-01", folded: ["CL-02"] }] });
     expect(check?.items.map((i) => i.text)).toEqual(["OCR receipt capture", "Approve from email", "Pay by payroll"]);
-    expect(IMPORT_COPY.counts(check!.report)).toEqual({ empty: "1 empty row, skipped.", duplicates: "1 exact duplicate, imported once.", long: "0 items over 1,000 characters, imported whole; consider splitting them in Shape.", values: "1 proposed value not recognised, kept as written." });
+    expect(IMPORT_COPY.counts(check!.report)).toEqual({ empty: "1 empty row was skipped.", duplicates: "1 exact duplicate was imported once.", long: "0 items are over 1,000 characters and were imported whole; consider splitting them in Shape.", values: "1 proposed value was not recognised and is kept as written." });
     expect(await latestSet(a.ws, projectA)).toBeNull();
     const committed = await commitUpload(a.ws, saved.upload.id, a.userId);
     if (!("set" in committed)) throw new Error(committed.error);

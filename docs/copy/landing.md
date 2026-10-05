@@ -24,7 +24,7 @@ and the CSV.
 
 Buttons: Start free. Try the sample as a respondent (to /sample, stories/E12-4).
 
-Under the buttons: No account for the experts. Nothing to install. Free while we build it.
+Under the buttons: Your experts need no account and install nothing. It is free while we build it.
 
 Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
 "Expenses over the policy limit are flagged before they reach the approver." You proposed
@@ -40,7 +40,7 @@ Title: Three steps. The AI does the dull one.
 
 Start from the spreadsheet you already have. Let the AI make it readable. Send one link.
 
-1. Import the list. xlsx, csv or a pasted list. Columns are matched once and remembered.
+1. Import the list. Upload an xlsx or csv file, or paste a list. Columns are matched once and remembered.
    (Fragment: expense-requirements.xlsx)
 2. Shape it. AI sorts the list into areas and writes each item in plain words. You choose
    which wording your experts see. (Fragment, design note 53, concept 3: a switch "Your sheet" and "Shaped". Your
@@ -61,10 +61,10 @@ Start from the spreadsheet you already have. Let the AI make it readable. Send o
 
 Title: What you get back.
 
-Beside it: Not a pile of replies. A picture of where your experts agree, where they do not
+Beside it: Instead of a pile of replies, you get a picture of where your experts agree, where they do not
 and why, and what to decide next.
 
-Results card. Label: See where the list is weak. Title: Every item, every area, as answers
+Results card. Label: See where the list is weak. Title: Every item and every area updates as answers
 arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
 the chart to the view your meeting needs.
 Tiles: Submitted 5 of 7. Agreement 63%. Different priority 7. Unclear 2.
@@ -142,7 +142,7 @@ Under it: It does not replace the meeting where you decide. It gives that meetin
 
 Title: Free while we build it with the first users.
 
-Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you
+Projects and experts are unlimited, and the AI is included. Paid plans come later and nothing you
 build now is lost or locked.
 
 Buttons: Start free. Try the sample as a respondent (to /sample, stories/E12-4).
@@ -173,7 +173,7 @@ Each opens in place (a plus that turns to a cross):
 - What happens to my list and the answers? They stay in your workspace. Export them as CSV
   whenever you like. Archive a project when it is done; delete the workspace and the app
   removes its data within 24 hours.
-- How much does it cost? Nothing while we build it with the first users. Paid plans come
+- How much does it cost? It costs nothing while we build it with the first users. Paid plans come
   later, and nothing you build now is lost or locked.
 
 ## Footer
@@ -216,7 +216,7 @@ screen:
 
 - The hero chip "Live: 5 of 7 experts answering right now" (outside the live card), "Send
   the list as a link", "go through it item by item", "a dashboard, a to-do list written by
-  AI, and the CSV", "No account for the experts. Nothing to install.": the public link (E6),
+  AI, and the CSV", "Your experts need no account and install nothing.": the public link (E6),
   the respondent side (E7), the dashboard (E8), the to-do list (E9) and the CSV (E10).
 - Step 3 "Send one link" and "Experts answer without an account or an app. Their answers
   arrive while they work": E5 to E7, and E8-7 (live updates, built 2026-10-04) for "arrive

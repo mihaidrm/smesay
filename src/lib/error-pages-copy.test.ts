@@ -25,10 +25,10 @@ describe("the 404 scene", () => {
   it("gives each rating its own line and pose", () => {
     expect(robotFor(null)).toEqual({ line: "The robot looked everywhere and found nothing to read.", pose: "reading" });
     expect(robotFor("M")).toEqual({ line: "Agreed, it is a must. It still does not exist. Your projects do.", pose: "hi" });
-    expect(robotFor("S")).toEqual({ line: "A lower priority. Fair: it can wait, and your projects cannot.", pose: "idea" });
+    expect(robotFor("S")).toEqual({ line: "So it is a lower priority. Fair enough: it can wait, and your projects cannot.", pose: "idea" });
     expect(robotFor("C")).toEqual(robotFor("S"));
-    expect(robotFor("W")).toEqual({ line: "Not needed. Then nothing is missing.", pose: "analysis" });
-    expect(robotFor("unclear")).toEqual({ line: "Unclear to the robot too. Check the address for a typo.", pose: "reading" });
+    expect(robotFor("W")).toEqual({ line: "You marked it not needed, so nothing is missing.", pose: "analysis" });
+    expect(robotFor("unclear")).toEqual({ line: "It is unclear to the robot too. Check the address for a typo.", pose: "reading" });
   });
 
   it("says in the page what docs/copy/errors.md says", () => {

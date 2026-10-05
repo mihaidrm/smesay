@@ -1,5 +1,5 @@
 // The preview of the latest upload (stories/E3-2, acceptance 2 and 3): the summary line from
-// the board ("expense-requirements.xlsx, 6 rows read, header found on row 1."), a sheet picker
+// the board ("We read 6 rows from expense-requirements.xlsx and found the header on row 1."), a sheet picker
 // when the workbook has several sheets, a header row picker (always available; opened by the
 // message when no row was found), then the first ten data rows under the column letters and
 // names. A pasted list (stories/E3-4) has no pickers and its own summary line. Server

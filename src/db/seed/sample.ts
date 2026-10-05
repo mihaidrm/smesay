@@ -16,17 +16,17 @@ export const project = {
 };
 
 export const areas = [
-  { name: "Submitting", rationale: "First, because every claim starts here." },
-  { name: "Approving", rationale: "Second, what happens to a claim once it is in." },
-  { name: "Paying", rationale: "Last, the money." },
+  { name: "Submitting", rationale: "This comes first, because every claim starts here." },
+  { name: "Approving", rationale: "This covers what happens to a claim once it is in." },
+  { name: "Paying", rationale: "This comes last and covers paying the money back." },
 ];
 
 // position, reference, area, proposed value (M, S, C, W), reader text, original text, details.
 export const items = [
   { n: 1, ref: "CL-01", area: "Submitting", proposed: "M", reader: "Photograph a receipt and the amount, date and merchant are filled in automatically.", original: "OCR receipt capture via mobile (auto-fill amt/date/vendor).", details: "Covers paper receipts and PDFs. Out of scope: receipts in a language the OCR does not read." },
-  { n: 2, ref: "CL-02", area: "Submitting", proposed: "S", reader: "Split one receipt across two projects or cost centres.", original: "Multi-allocation of single expense line to 2+ cost centres/projects.", details: "Split by amount or by percentage. Each part follows its own approval chain." },
+  { n: 2, ref: "CL-02", area: "Submitting", proposed: "S", reader: "Split one receipt across two projects or cost centres.", original: "Multi-allocation of single expense line to 2+ cost centres/projects.", details: "The split can be by amount or by percentage. Each part follows its own approval chain." },
   { n: 3, ref: "CL-03", area: "Approving", proposed: "M", reader: "Managers approve or reject from the email, without logging in.", original: "Approval actionable from notification email (no login).", details: "The email shows the amount, the category and the receipt thumbnail. Links expire after seven days." },
-  { n: 4, ref: "CL-04", area: "Approving", proposed: "S", reader: "Expenses over the policy limit are flagged before they reach the approver.", original: "Policy engine: auto-flag out-of-policy claims pre-approval.", details: "Limits per category and per role. A flagged claim still reaches the approver, with the flag." },
+  { n: 4, ref: "CL-04", area: "Approving", proposed: "S", reader: "Expenses over the policy limit are flagged before they reach the approver.", original: "Policy engine: auto-flag out-of-policy claims pre-approval.", details: "Limits are set per category and per role. A flagged claim still reaches the approver, with the flag." },
   { n: 5, ref: "CL-05", area: "Paying", proposed: "M", reader: "Approved expenses are paid with the next salary run.", original: "Reimbursement via payroll integration, next cycle.", details: "Cut-off is the 20th of the month. Claims approved after the cut-off go into the following run." },
   { n: 6, ref: "CL-06", area: "Paying", proposed: "C", reader: "Employees can request a cash advance before a trip.", original: "Travel advance request workflow (pre-trip).", details: "Advance is reconciled against the trip claims. The spreadsheet does not say who repays an advance if the trip is cancelled." },
 ];
@@ -37,7 +37,7 @@ export const sourceFilename = "expense-requirements.xlsx";
 
 export const instrument = {
   title: "New expense tool",
-  intro: "We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.",
+  intro: "We are replacing the expense tool for all 400 staff. The new tool should do six things, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.",
   method: "moscow" as const,
   showProposed: true,
   layout: "chapters" as const,

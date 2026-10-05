@@ -54,7 +54,7 @@ describe("the access rule and the page's arithmetic", () => {
     expect(weekStart(new Date("2026-10-05T10:00:00Z")).toISOString()).toBe("2026-10-05T00:00:00.000Z");
     expect(weekStart(new Date("2026-10-11T23:59:00Z")).toISOString()).toBe("2026-10-05T00:00:00.000Z");
     expect([share(3, 4), share(40, 1), share(1, 0)]).toEqual(["75%", "4000%", ""]);
-    expect(ADMIN_COPY.metric(3, null)).toBe("3. No threshold set yet: paid plans stay off.");
+    expect(ADMIN_COPY.metric(3, null)).toBe("3. No threshold is set yet, so paid plans stay off.");
     expect(ADMIN_COPY.metric(3, 10)).toBe("3 of 10 to switch paid plans on.");
     expect(ADMIN_COPY.metric(12, 10)).toBe("12 of 10: the threshold is reached, paid plans can switch on.");
     const rows = [{ projects: 1, responsesThisMonth: 2, aiCostCentsThisMonth: 0 }, { projects: 3, responsesThisMonth: 0, aiCostCentsThisMonth: 5 }];
