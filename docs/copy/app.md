@@ -289,7 +289,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
-| Header | [WORKSPACE INITIALS] [WORKSPACE NAME] (the SMEsay mark when the link matches no workspace); on a link page with a workspace, the Dark mode switch at the right end (a moon or a sun; screen readers hear "Dark mode, switch"; design note 97) |
+| Header | [WORKSPACE INITIALS] [WORKSPACE NAME] (the SMEsay mark when the link matches no workspace, and on the link's error and not-found pages); the Dark mode switch at the right end (a moon or a sun; screen readers hear "Dark mode, switch"; design note 97) |
 | Passcode page | This link needs a passcode. The person who sent you the link has it. You type it once on this device. Field: Passcode. [Button: Continue] |
 | Dates on these pages | [DATE AND TIME] UTC, as "6 Oct 2026, 09:00 UTC" |
 

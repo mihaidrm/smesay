@@ -69,7 +69,8 @@ Public links and respondents
   that wrote it and the saves of other pages it was made on top of (their random page ids
   and numbers), never the sign-off, until the server holds them (they save as they
   are written, PUT /r/[link token]/wrap, named for the response like every save, and Submit
-  names it too); removed then and by a closed, revoked or unknown link's page. A kept change
+  names it too); removed then and by a closed, revoked or unknown link's page. A press on the header's Dark mode switch (design note 97) keeps
+  smesay-mode, "dark" or "light", in localStorage, the PM app's key; nothing else. A kept change
   goes to the server only when the server holds nothing newer (the version rule), so an old
   one never replaces a later answer, a submitted one included. A respondent's action sends
   mail only to an address the PM chose (a personal invite's, the receipt on its first
@@ -174,7 +175,10 @@ Dependencies and backups
 
 Mode script
 - src/app/layout.tsx puts one inline script in the head to set the dark class before paint.
-  It is a fixed string, reads one localStorage key and compares it with one word. It carries
+  It is a fixed string, reads one localStorage key (smesay-mode) and compares it with one
+  word. It runs the same check again when the system setting changes and on the storage event
+  another page of the site fires for that key or for a cleared storage; it reads nothing from
+  the event but its key (developer.mozilla.org/docs/Web/API/Window/storage_event). It carries
   the request's nonce (E11-5), read from the x-nonce header src/proxy.ts sets
   (node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md, "Reading the nonce").
 

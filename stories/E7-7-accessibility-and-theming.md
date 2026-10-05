@@ -107,3 +107,13 @@ Built 2026-10-04 (design note 57, decision 0044):
   box (12 px above the text, 20 below); stories/E2-5 and decision 0041 name the accent's
   five uses; the copy doc has the region's name; note 57 records the region and the
   stacking; showsPoweredBy takes the plan type, with the Enterprise case tested.
+
+Built 2026-10-05 (design note 97, acceptance 7): the switch is src/components/respondent/mode-button.tsx in
+RespondentHeader, and in the SMEsay-mark header of the pages with no workspace (an unknown
+link, the link's error and not-found pages, the preview's refused pages). e2e/sample-instrument.spec.ts,
+"the header's switch turns the sample dark and keeps the choice": light at first, dark after a
+press with smesay-mode "dark" stored, still dark after a reload, light again after a second
+press. CI run 37355041221 on 797a432: 847 unit tests and 64 Playwright tests passed. The audit
+of the same day found the switch's focus without a forced-colours outline (now
+focus:outline-hidden, acceptance 2) and a long workspace name squeezing the close date at 390
+px (the name now wraps beside a note kept to 40% of the row).
