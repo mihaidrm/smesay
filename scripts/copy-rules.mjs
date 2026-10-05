@@ -7,15 +7,22 @@ export const BANNED = [
   'here\'s the thing', 'seamless', 'leverage', 'empower', 'unlock', 'elevate', 'robust', 'cutting-edge'
 ];
 
+// Banned in the product's code only (src/): docs and stories quote them as the rule
+// (docs/copy/errors.md, "Never 'invalid input'"; stories/E11-6, acceptance 4).
+export const BANNED_IN_SRC = ['invalid input'];
+
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const RULES = BANNED.map((w) => ({ word: w, re: new RegExp('(^|[^a-z])' + escape(w) + '($|[^a-z])') }));
+const rule = (w) => ({ word: w, re: new RegExp('(^|[^a-z])' + escape(w) + '($|[^a-z])') });
+const RULES = BANNED.map(rule);
+const SRC_RULES = BANNED_IN_SRC.map(rule);
 
 // Returns one problem per rule broken on the line: { kind: 'em dash' } or { kind: 'banned word', word }.
-export function scanLine(line) {
+// src: the line is from the product's code, where BANNED_IN_SRC applies too.
+export function scanLine(line, { src = false } = {}) {
   const problems = [];
   if (line.includes(EM_DASH)) problems.push({ kind: 'em dash' });
   const low = line.toLowerCase();
-  for (const r of RULES) if (r.re.test(low)) problems.push({ kind: 'banned word', word: r.word });
+  for (const r of src ? [...RULES, ...SRC_RULES] : RULES) if (r.re.test(low)) problems.push({ kind: 'banned word', word: r.word });
   return problems;
 }
 

@@ -24,8 +24,9 @@ for (const root of process.argv.slice(2)) {
   for (const f of files(root)) {
     scanned += 1;
     const lines = readFileSync(f, 'utf8').split('\n');
+    const src = f.split(/[\\/]/)[0] === 'src';
     lines.forEach((line, i) => {
-      for (const p of scanLine(line)) { problems += 1; console.log(`${f}:${i + 1}: ${p.kind}${p.word ? ' "' + p.word + '"' : ''}`); }
+      for (const p of scanLine(line, { src })) { problems += 1; console.log(`${f}:${i + 1}: ${p.kind}${p.word ? ' "' + p.word + '"' : ''}`); }
     });
   }
 }

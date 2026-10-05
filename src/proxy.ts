@@ -31,6 +31,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { addressOf, LOCAL, minutesOf, respondentLimit } from "@/lib/ratelimit";
 import { RATE_LIMIT_COPY, limitedPage } from "@/lib/ratelimit-copy";
 import { contentSecurityPolicy } from "@/lib/security-headers";
+import { ERROR_PAGE_COPY, maintenanceMinutes, maintenancePage } from "@/lib/error-pages-copy";
 
 const CSP = "content-security-policy";
 const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
@@ -38,9 +39,20 @@ const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
 export function proxy(request: NextRequest) {
   const nonce = randomBytes(16).toString("base64");
   const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https: request.nextUrl.protocol === "https:" });
-  const response = route(request, csp);
+  const response = process.env.MAINTENANCE === "1" ? maintenance(request) : route(request, csp);
   response.headers.set(CSP, csp);
   return response;
+}
+
+// MAINTENANCE=1 (stories/E11-6, acceptance 1): every request gets 503 with Retry-After
+// (developer.mozilla.org/docs/Web/HTTP/Reference/Status/503): a page for a page request, JSON for
+// the respondent app's calls, whose answer queue keeps the answers and retries (src/lib/
+// answer-queue.ts reads any other status as "retry"). MAINTENANCE_MINUTES sets the minutes shown.
+function maintenance(request: NextRequest): NextResponse {
+  const minutes = maintenanceMinutes(process.env.MAINTENANCE_MINUTES);
+  const headers = { "retry-after": String(minutes * 60), "cache-control": "no-store" };
+  if (request.method === "GET" && (request.headers.get("accept") ?? "").includes("text/html")) return new NextResponse(maintenancePage(minutes), { status: 503, headers: { ...headers, "content-type": "text/html; charset=utf-8" } });
+  return NextResponse.json({ error: ERROR_PAGE_COPY.maintenanceLine(minutes), code: "maintenance" }, { status: 503, headers });
 }
 
 // The request goes on with the policy on its headers, for Next to read the nonce.

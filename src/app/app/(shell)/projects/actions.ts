@@ -19,10 +19,12 @@ import { renewInvitee, revokeInvitee, sendInvites } from "@/lib/invitees";
 import { remindAll, remindInvitee } from "@/lib/reminders";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { readAuthEnv } from "@/lib/auth";
+import { signedIn } from "@/lib/session";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
-// retry (E4-2): the error is worth a "Try again" button.
-export type ProjectFormState = { error: string | null; saved: boolean; retry?: boolean };
+// retry (E4-2): the error is worth a "Try again" button. signedOut (E11-6): the session had ended;
+// the form keeps its text and shows the banner.
+export type ProjectFormState = { error: string | null; saved: boolean; retry?: boolean; signedOut?: boolean };
 const NONE: ProjectFormState = { error: null, saved: false };
 
 export async function createProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
@@ -47,6 +49,7 @@ export async function importProjectAction(_previous: ProjectFormState, formData:
 }
 
 export async function saveContextAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  if (!(await signedIn())) return { ...NONE, signedOut: true };
   const { current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {

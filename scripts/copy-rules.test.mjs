@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { BANNED, EM_DASH, scanLine, scanText } from './copy-rules.mjs';
+import { BANNED, BANNED_IN_SRC, EM_DASH, scanLine, scanText } from './copy-rules.mjs';
 
 describe('scanLine', () => {
   it('passes plain text', () => {
     expect(scanLine('Publish, then share one link.')).toEqual([]);
+  });
+
+  it('flags "invalid input" in the product\'s code only (stories/E11-6, acceptance 4)', () => {
+    expect(BANNED_IN_SRC).toEqual(['invalid input']);
+    expect(scanLine('error: "Invalid input."', { src: true })).toEqual([{ kind: 'banned word', word: 'invalid input' }]);
+    expect(scanLine('Never "invalid input".')).toEqual([]);
   });
 
   it('flags an em dash', () => {

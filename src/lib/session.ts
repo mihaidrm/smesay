@@ -8,6 +8,12 @@ import { auth } from "@/lib/auth";
 
 export type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
+// Whether a request carries a live session, without redirecting: a form's save answers "signed
+// out" so the page keeps what was typed (stories/E11-6, acceptance 3).
+export async function signedIn(): Promise<boolean> {
+  return (await auth.api.getSession({ headers: await headers() })) !== null;
+}
+
 export async function requireSession(nextPath: string): Promise<Session> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect(`/sign-in?next=${encodeURIComponent(nextPath)}`);

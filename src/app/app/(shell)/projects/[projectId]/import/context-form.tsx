@@ -2,19 +2,26 @@
 // The About this project form (stories/E3-1, acceptance 3): the count follows the fields as
 // typed, trimmed as the server trims them (src/lib/project-context.ts, the same rule). The sample project is
 // read-only (stories/E8-8, acceptance 2). useActionState: react.dev/reference/react/useActionState.
-import { useActionState, useState } from "react";
+// A save that finds the session ended shows the signed-out banner and keeps the text; the draft
+// is in the tab's session storage until the server saves it (stories/E11-6, acceptance 3).
+import { useActionState, useEffect } from "react";
+import { SignedOutBanner } from "@/components/app/signed-out-banner";
+import { useDraft } from "@/components/app/use-draft";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CONTEXT_MAX, contextCount, contextLength } from "@/lib/project-context";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
+import { ERROR_PAGE_COPY } from "@/lib/error-pages-copy";
 import { saveContextAction, type ProjectFormState } from "../../actions";
 
 export function ContextForm({ projectId, goal: initialGoal, terms: initialTerms, readOnly }: { projectId: string; goal: string; terms: string; readOnly: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveContextAction, { error: null, saved: false });
-  const [goal, setGoal] = useState(initialGoal);
-  const [terms, setTerms] = useState(initialTerms);
+  const { values: { goal, terms }, set, restored, clear } = useDraft(`context:${projectId}`, { goal: initialGoal, terms: initialTerms });
+  const setGoal = (v: string) => set("goal", v);
+  const setTerms = (v: string) => set("terms", v);
+  useEffect(() => { if (state.saved) clear(); }, [state, clear]);
   const over = contextLength(goal.trim(), terms.trim()) > CONTEXT_MAX;
   return (
     <form action={action} noValidate className="flex flex-col gap-3">
@@ -30,6 +37,8 @@ export function ContextForm({ projectId, goal: initialGoal, terms: initialTerms,
         </div>
         <div id="ctx-count" data-testid="context-count" className={`whitespace-nowrap text-xs ${over ? "text-danger" : "text-ink-muted"}`}>{contextCount(goal.trim(), terms.trim())}</div>
       </div>
+      {state.signedOut && <SignedOutBanner />}
+      {restored && !state.saved && !state.signedOut && <p role="status" data-testid="draft-back" className="text-[13px] text-ink-muted">{ERROR_PAGE_COPY.draftBack}</p>}
       {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       {!state.error && state.saved && <p role="status" className="text-[13px] text-agree-text">{PROJECTS_COPY.saved}</p>}
       {!readOnly && <div className="flex justify-end"><Button type="submit" loading={pending} disabled={over}>Save</Button></div>}
