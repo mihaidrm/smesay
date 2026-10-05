@@ -37,7 +37,10 @@ export const db: Db = new Proxy(base, {
     const store = current.getStore();
     const from = store?.open ? (store.tx as unknown as Db) : target;
     const value = Reflect.get(from, prop, from);
-    return typeof value === "function" ? value.bind(from) : value;
+    // Methods (select, insert, transaction) are bound to the client they came from. A function
+    // held as the client's own property is returned as it is: $client is postgres.js's sql
+    // function, whose own properties (listen, json) a bound copy would lose.
+    return typeof value === "function" && !Object.hasOwn(from, prop) ? value.bind(from) : value;
   },
 });
 
