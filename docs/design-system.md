@@ -214,14 +214,17 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 ## Respondent columns
 
 Three column widths on the respondent side, decided 2026-10-01 after Mihai's review of the
-desktop board; the short pages changed on 2026-10-05 (decision 0051). About you, done, nothing
-to rate and the link pages (unknown, not yet open, closed, inactive, the passcode): on a
-desktop a centered card 720 px wide, 48 px from the top and at least 16 px from the window's
-sides, content at 32 px from its sides, the
-fields filling it, About you's Start at 320 px centered in the card's footer with its hint
-under it, and "Powered by" under the card as the last line of the page; on a phone the same
-parts full width, "Powered by" under the action. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point
-there. On a phone every column is the screen width and controls span it. The convention behind
+desktop board; on 2026-10-05 every step became a card (decisions 0051 and 0052). On a desktop
+each step is a centered card, 48 px from the top and at least 16 px from the window's sides,
+content at 32 px from its sides, its actions centered in the card's bottom band (the dark one
+at least 320 px wide, with its line under it; the passcode's Continue centered under its
+field instead), focus rings offset on the card's white, and "Powered by" under the card as the
+last line of the page. The widths: About you, done, nothing to rate and the link pages (unknown, not yet open,
+closed, inactive, the passcode) and the link's error and 404 pages 720 px, the fields filling it; the Wrap up 760 px; a chapter
+1000 px with two card columns, because density is the point there. In the chapter and the
+Wrap up the content keeps the ground colour inside the card, so the item cards and tiles do
+not sit white on white. On a phone the same parts are full width, the actions in the bottom
+band and "Powered by" under it. On a phone every column is the screen width and controls span it. The convention behind
 it (single column, labels above fields, the primary action under the form) is standard form
 guidance; the NN/g and GOV.UK pages on it could not be opened from this environment, so it is
 recorded here unverified.

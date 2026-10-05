@@ -67,7 +67,7 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
     <div className="flex flex-col gap-0 border-b border-hairline bg-surface" data-testid="chapter-nav">
       {showRow && (
         <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && "m-1 rounded-full ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ring || undefined}>
-          <ol className="flex gap-1.5 overflow-x-auto px-5 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="chapter-row">
+          <ol className="flex gap-1.5 overflow-x-auto px-5 py-2 @xl:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="chapter-row">
             {pill({ kind: "about" }, RESPONDENT_COPY.aboutYou, "row-about")}
             {chapters.map((c, i) => pill({ kind: "chapter", index: i }, <>{c.name}<span className="font-mono text-[11px] font-medium" aria-hidden="true">{progress[i]?.done ?? 0}/{progress[i]?.count ?? 0}</span></>, `row-chapter-${i + 1}`, `${c.name}, ${RESPONDENT_COPY.pillAnswered(progress[i]?.done ?? 0, progress[i]?.count ?? 0)}`))}
             {pill({ kind: "wrap" }, RESPONDENT_COPY.wrapUp, "row-wrap")}

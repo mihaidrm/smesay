@@ -5,7 +5,8 @@
 // you with the saved values and Forward to the chapter; the chapter's Back the same without
 // a reload; a reload lands on the same chapter (the device cookie); at 1440 by 900 the
 // About you is a centered 720 px card with Start at 320 px centered in it and "Powered by"
-// under the card (decision 0051); the sample
+// under the card, and every step after it the same frame: the chapter 1000 px and the Wrap
+// up 760 px, Continue and Submit 320 px and centered (decision 0052); the sample
 // project's link shows its own page and collects nothing.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -87,6 +88,13 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await link.reload();
   await link.locator("[data-ready]").waitFor();
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
+  // On a phone the count sits under the buttons and "Powered by" is the last line, under the
+  // footer (decision 0052).
+  const phoneGo = (await link.getByTestId("chapter-continue").boundingBox())!;
+  const phoneNote = (await link.getByTestId("chapter-note").boundingBox())!;
+  expect(phoneNote.y).toBeGreaterThan(phoneGo.y + phoneGo.height);
+  const phonePowered = (await link.getByTestId("powered-by").boundingBox())!;
+  expect(phonePowered.y).toBeGreaterThan(phoneNote.y + phoneNote.height);
   await phone.close();
 
   // The desktop: About you a centered 720 px card, Start centered, "Powered by" last.
@@ -111,6 +119,32 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   const cards = deskPage.getByTestId("item-card");
   const [first, second] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
   expect(first && second && Math.abs(first.y - second.y) < 2).toBe(true);
+  // Every step has the same frame (decision 0052): the chapter a centered 1000 px card,
+  // Continue 320 px and centered with the note under it, "Powered by" under the card.
+  const frame = async (action: string, width: number) => {
+    const card = (await deskPage.getByTestId(action).locator("xpath=ancestor::div[contains(@class,'@xl:rounded-[20px]')][1]").boundingBox())!;
+    expect(card.width).toBe(width);
+    expect(Math.abs(card.x + card.width / 2 - 720)).toBeLessThanOrEqual(1);
+    const button = (await deskPage.getByTestId(action).boundingBox())!;
+    expect(button.width).toBe(320);
+    expect(button.y + button.height).toBeLessThan(card.y + card.height);
+    const powered = (await deskPage.getByTestId("powered-by").boundingBox())!;
+    expect(powered.y).toBeGreaterThan(card.y + card.height);
+    return button;
+  };
+  const go = await frame("chapter-continue", 1000);
+  const chapterBack = (await deskPage.getByTestId("chapter-back").boundingBox())!;
+  expect(Math.abs((chapterBack.x + go.x + go.width) / 2 - 720)).toBeLessThanOrEqual(1);
+  const note = (await deskPage.getByTestId("chapter-note").boundingBox())!;
+  expect(note.y).toBeGreaterThan(go.y + go.height);
+  expect(Math.abs(note.x + note.width / 2 - 720)).toBeLessThanOrEqual(1);
+  // The Wrap up: a centered 760 px card, Submit 320 px and centered.
+  await deskPage.getByTestId("row-wrap").click();
+  await expect(deskPage.getByTestId("wrap-up-submit")).toBeVisible();
+  const submit = await frame("wrap-up-submit", 760);
+  // Back and Submit are centered as a pair.
+  const back = (await deskPage.getByTestId("wrap-up-back").boundingBox())!;
+  expect(Math.abs((back.x + submit.x + submit.width) / 2 - 720)).toBeLessThanOrEqual(1);
   await desk.close();
 
   // The sample project's link: its own page.

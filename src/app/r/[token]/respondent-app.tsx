@@ -10,7 +10,8 @@
 // first load writes ?at= into its own history entry (replaceState), so Back from the first
 // chapter returns to About you. About you again after Start shows the values and picks
 // Start saved; picks ticked there change the chapters only when Start saves them.
-// The desktop column is 560 px for About you and 1000 px for a chapter
+// The desktop column is 752 px for About you, 1032 px for a chapter and 792 px for the Wrap
+// up, each holding a card 32 px narrower (decisions 0051 and 0052)
 // (docs/design-system.md, Respondent columns). The cards' drafts live here and go to the
 // server through the saver (answer-saver.ts, E7-2 and E7-3); the saved answers the page
 // read seed them (E7-2: a complete answer the server has reads "Saved"), and the answers
@@ -25,7 +26,7 @@
 // it. A screen change moves focus to the new screen's heading (data-screen-heading, tabIndex
 // -1), so a screen reader hears where it landed; a row of "Still to finish" opens its own
 // item: the item itself in the one-item layout, otherwise its card scrolled into view with
-// focus on its first control. The Wrap up's column is 760 px.
+// focus on its first control. The Wrap up's card is 760 px.
 // E7-5: the Wrap up's tally and sections come from the cards; its form (the missing item,
 // the closing answer, confidence, the sign-off) is held here; Submit posts it to
 // /r/[token]/submit and lands on the Done screen (?at=done: "Thank you, [NAME]." and the
@@ -49,7 +50,7 @@ import { useWrapSaver } from "./wrap-saver";
 import { signOffFor } from "@/lib/closing";
 import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
-import { FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED } from "@/components/respondent/frame";
+import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "@/components/respondent/frame";
 import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
@@ -394,18 +395,18 @@ export function RespondentApp(props: RespondentAppProps) {
   // The visitors' sample has its own band above the header (src/app/sample/page.tsx).
   const previewStrip = preview && !sample ? <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text" data-testid="preview-note">{ABOUT_YOU_COPY.previewNote}</div> : null;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
-    <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text" role="status" data-testid="welcome-back">
+    <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text @xl:px-8" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
       <p>{RESPONDENT_COPY.answeredBefore(props.welcome.answered, props.welcome.total)}</p>
     </div>
   ) : null;
-  const since = changedSince && submitted && screen.kind === "wrap" ? <p className="border-b border-sun bg-sun-soft px-5 py-2.5 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p> : null;
+  const since = changedSince && submitted && screen.kind === "wrap" ? <p className="border-b border-sun bg-sun-soft px-5 py-2.5 text-sm font-semibold text-sun-text @xl:px-8" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p> : null;
   const banner = welcome || since || saver.offline || (saver.storageOff && !storageNoticeDone) ? (
     <>
       {welcome}
       {since}
       {(saver.offline || (saver.storageOff && !storageNoticeDone)) && (
-        <div className="flex flex-col gap-1 border-b border-sun bg-sun-soft px-5 py-2.5 text-sm text-sun-text" role="status" data-testid="saving-banner">
+        <div className="flex flex-col gap-1 border-b border-sun bg-sun-soft px-5 py-2.5 text-sm text-sun-text @xl:px-8" role="status" data-testid="saving-banner">
           {saver.offline && <p>{RESPONDENT_COPY.offline}</p>}
           {saver.storageOff && !storageNoticeDone && <p data-testid="storage-notice">{RESPONDENT_COPY.storageOff}</p>}
         </div>
@@ -427,7 +428,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
   // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
   // ("No items to review.", E5-5).
-  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[752px]";
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1032px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[792px]" : "max-w-[752px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
@@ -443,15 +444,19 @@ export function RespondentApp(props: RespondentAppProps) {
             <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{sample ? SAMPLE_COPY.notSent : submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
             {changedSince && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p>}
             <p className="text-[15px] leading-[23px]" data-testid="done-summary">{RESPONDENT_COPY.summary({ agreed: tally.agreed, changed: tally.higher + tally.lower, notNeeded: tally.notNeeded, unclear: tally.unclear, rated: tally.rated, added: wrap.missing.text.trim() ? 1 : 0 }, !instrument.showProposed)}</p>
-            <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
-            {sample && <a href={SAMPLE_COPY.startHref} rel="noreferrer" className="flex h-12 items-center self-start rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="sample-start-free">{SAMPLE_COPY.startFree}</a>}
           </main>
+          <div className={FRAME_ACTIONS}>
+            <div className="flex flex-wrap items-center gap-3 @xl:justify-center">
+              <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
+              {sample && <a href={SAMPLE_COPY.startHref} rel="noreferrer" className={cn("flex h-12 items-center justify-center rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface", FRAME_PRIMARY)} data-testid="sample-start-free">{SAMPLE_COPY.startFree}</a>}
+            </div>
+          </div>
           </div>
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
         <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
-          top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />{nav}{banner}</>}
+          top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
@@ -461,10 +466,12 @@ export function RespondentApp(props: RespondentAppProps) {
           <div className={FRAME_CARD}>
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />
           {previewStrip}
-          <main className="flex flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
+          <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
-            <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground">{RESPONDENT_COPY.aboutYou}</button>
           </main>
+          <div className={FRAME_ACTIONS}>
+            <button type="button" onClick={() => go({ kind: "about" })} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:self-center" data-testid="nothing-about-you">{RESPONDENT_COPY.aboutYou}</button>
+          </div>
           </div>
           <PoweredBy show={props.poweredBy} className={FRAME_POWERED} />
         </div>

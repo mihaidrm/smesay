@@ -49,7 +49,9 @@ Built 2026-10-04 (design note 54, decision 0044):
   long page shows the bar only (E5-3).
 - Acceptance 2: the footer has Back and "Continue to [NEXT AREA]" or "Continue to Wrap up",
   never disabled, and the note "[N] of [M] still to rate here. You can come back later." or
-  "All [M] rated in this chapter."
+  "All [M] rated in this chapter." On a desktop (decision 0052) the footer is the bottom band
+  of the chapter's centered card: the two buttons centered as a pair, Continue 320 px, the
+  note centered under them, and "Powered by" under the card.
 - Acceptance 3: the Wrap up lists every item without a complete answer on the server under
   "Still to finish", with Not rated yet, Say why. or Write your question. (gapsOf); each row
   opens its own item (its chapter, on that item in the one-item layout). E7-4 built the live
