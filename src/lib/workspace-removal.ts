@@ -56,8 +56,8 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
 // job deletes past these, so the privacy page's periods are what the code does: ended sessions
 // and expired sign-in links at the next run, usage events after EVENT_RETENTION_MONTHS and admin
 // log rows after AUDIT_RETENTION_MONTHS. Counts are logged; no id, name or email.
-export const EVENT_RETENTION_MONTHS = 25;
-export const AUDIT_RETENTION_MONTHS = 24;
+export const EVENT_RETENTION_MONTHS = 13;
+export const AUDIT_RETENTION_MONTHS = 12;
 
 const monthsBefore = (now: Date, months: number) => { const d = new Date(now); d.setUTCMonth(d.getUTCMonth() - months); return d; };
 
