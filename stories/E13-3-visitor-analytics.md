@@ -50,7 +50,7 @@ no stored IP address).
   The snippet's exact form (a second tag or an init line) is checked at the gate
   (docs/accounts.md step 11, docs/review-list.md).
 - Acceptance 2: Start free and Try the sample are click goals (GoalLink); Sign up shows on
-  the workspace step (GoalOnOpen); First project and First instrument published go from the
+  the workspace step (GoalOnOpen); First project and First validation published go from the
   server to the Events API when the workspace's first project_created or instrument_published
   event (E13-1) is written, after the response.
 - Acceptance 3: no cookie from Plausible (its data policy); docs/legal/privacy.md and

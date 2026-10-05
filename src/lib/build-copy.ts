@@ -7,7 +7,7 @@ export const INTRO_MAX = 1000;
 export const TITLE_MAX = 80;
 
 export const BUILD_COPY = {
-  title: "Build the instrument",
+  title: "Build the validation",
   line: (version: number) => `This is what respondents see, built from version ${version} of the list. The preview on the right follows every save.`,
   noSet: "Import a list first. Build works on an imported version.",
   noSetLink: "Go to Import",
@@ -16,7 +16,7 @@ export const BUILD_COPY = {
   introLabel: "Intro",
   introHint: FIELDS_COPY.introHint,
   introCount: (n: number) => `${n.toLocaleString("en-GB")} of ${INTRO_MAX.toLocaleString("en-GB")} characters`,
-  badTitle: `Give the instrument a title, up to ${TITLE_MAX} characters. Respondents see it in the header.`,
+  badTitle: `Give the validation a title, up to ${TITLE_MAX} characters. Respondents see it in the header.`,
   longIntro: `The intro is over ${INTRO_MAX.toLocaleString("en-GB")} characters. Shorten it; respondents read it on a phone.`,
   fieldsCard: "Respondent fields",
   fieldsLine: "Respondents fill these in before they rate. Required fields must be filled before Start.",
@@ -29,13 +29,13 @@ export const BUILD_COPY = {
   save: "Save",
   saved: "Saved.",
   // The owed line from E3-6 (acceptance 3): a newer set than the one the instrument is built on.
-  newer: (built: number, latest: number) => `Version ${latest} of the list was imported after this instrument was built on version ${built}. The instrument keeps version ${built} until you build on the new one; the intro, the fields, the scoring and the perspective names are copied over. Items are tagged again on Shape.`,
+  newer: (built: number, latest: number) => `Version ${latest} of the list was imported after this validation was built on version ${built}. The validation keeps version ${built} until you build on the new one; the intro, the fields, the scoring and the perspective names are copied over. Items are tagged again on Shape.`,
   buildOn: (version: number) => `Build on version ${version}`,
-  alreadyLatest: "This instrument is already built on the latest version of the list.",
+  alreadyLatest: "This validation is already built on the latest version of the list.",
   replaced: "This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one.",
   // The scoring card (stories/E5-2; the PM app board, Build).
   scoringCard: "Scoring",
-  scoringLine: "Pick how respondents rate each item. Changing the method empties nothing on a draft; a published instrument keeps its method.",
+  scoringLine: "Pick how respondents rate each item. Changing the method empties nothing on a draft; a published validation keeps its method.",
   methodLabel: "Method",
   showProposedTitle: "Show the proposed value to respondents",
   showProposedLine: "On: they agree or push back on your proposal. Off: they rate blind. Both feed the same dashboard.",
@@ -55,13 +55,13 @@ export const BUILD_COPY = {
   perspectivesNone: "No perspectives yet. Every item goes to everyone.",
   // The layout (stories/E5-3; the PM app board, Build).
   layoutLabel: "Layout",
-  layoutLine: "Pick how the list is split into screens. Chapters are the default; a published instrument can still change its layout.",
+  layoutLine: "Pick how the list is split into screens. Chapters are the default; a published validation can still change its layout.",
   previewItemOf: (n: number, total: number, area: string) => `Item ${n} of ${total} in ${area}`,
   previewAllOnOne: (n: number) => `All ${n} on one page`,
   previewProgress: (answered: number, total: number) => `${answered} of ${total}`,
   on: "On",
   off: "Off",
-  locked: "Published instruments keep their method and when a reason is required. Build a new instrument to change them.",
+  locked: "Published validations keep their method and when a reason is required. Build a new validation to change them.",
   // The sample is read-only (stories/E8-8, acceptance 2).
   sample: "The sample project cannot be edited.",
   lastField: FIELDS_COPY.lastField,

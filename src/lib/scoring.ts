@@ -119,7 +119,7 @@ export const SCORING_ERRORS = {
   badLabel: `Each label is 1 to ${LABEL_MAX} characters. Leave one empty to keep the default.`,
   sameLabel: "Each value needs its own label, and Unclear is taken.",
   badShape: "The labels did not reach the server as a list. Reload the page and try again.",
-  locked: "Published instruments keep their method and when a reason is required. Build a new instrument to change them.",
+  locked: "Published validations keep their method and when a reason is required. Build a new validation to change them.",
 } as const;
 
 export const isMethod = (value: unknown): value is ScoringMethod => value === "moscow" || value === "fit" || value === "kcd";

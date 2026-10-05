@@ -60,7 +60,7 @@ of the content; page means it replaces the screen.
 | Page, the signed-in error page | Upload interrupted: the connection drops before the server action runs, so nothing is stored and the error page shows (E3-2; its copy is the 500 row below, E11-6) | The upload stopped before the file arrived. Check your connection and upload it again. Nothing was imported. (the wording for E11-6 to show when the failed request was an upload) |
 | Inline, check card | Import pressed while every row is empty in the item text column (E3-5) | There is nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file. |
 | Inline, check card | Import pressed again for a file already imported (E3-5; a replayed form) | This file is already imported as version [N]. Upload or paste the next version to import again. |
-| Banner, import | The project has a public link in force (E6-1: shown above the versions on every visit; the text only, the upload card keeps its own Import button) | This list is published. Importing a new version does not change the published instrument; you build a new one on the new version. |
+| Banner, import | The project has a public link in force (E6-1: shown above the versions on every visit; the text only, the upload card keeps its own Import button) | This list is published. Importing a new version does not change the published validation; you build a new one on the new version. |
 
 ## Shaping (E4)
 
@@ -102,35 +102,35 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Inline, intro | Intro empty (a hint under the field, not a refusal: a draft may have no intro yet) | Write one or two lines so respondents know what the list is for. They see this first. |
 | Inline, fields | No respondent field (Remove on the last one, and the server on an empty list) | Keep at least one field, so you can tell answers apart. Name is the usual one. |
-| Inline, intro (E5-1) | Title empty or over 80 characters | Give the instrument a title, up to 80 characters. Respondents see it in the header. |
+| Inline, intro (E5-1) | Title empty or over 80 characters | Give the validation a title, up to 80 characters. Respondents see it in the header. |
 | Inline, intro (E5-1) | Intro over 1,000 characters | The intro is over 1,000 characters. Shorten it; respondents read it on a phone. |
 | Inline, fields (E5-1) | A ninth field, through the server | Up to 8 fields. Remove one to add another. |
 | Inline, fields (E5-1) | A label empty or over 60 characters | Give every field a label, up to 60 characters. |
 | Inline, fields (E5-1) | A dropdown with under 2 or over 20 options, a repeated option, or an option over 60 characters | A dropdown needs 2 to 20 different options, one per line, each up to 60 characters. |
 | Inline, fields (E5-1) | A type that is not text, dropdown or email, through the server | Pick a type for every field: Text, Dropdown or Email. |
 | Inline, fields (E5-1) | The posted list is not JSON or not a list | The fields did not reach the server as a list. Reload the page and try again. |
-| Inline, Build on version (E5-1) | The instrument is already on the latest set | This instrument is already built on the latest version of the list. |
+| Inline, Build on version (E5-1) | The validation is already on the latest set | This validation is already built on the latest version of the list. |
 | Inline, scoring (E5-2) | A method that is not one of the three, through the server | Pick one of the three methods: MoSCoW, 1 to 5 fit, or keep, change, drop. |
 | Inline, scoring (E5-2) | A label over 20 characters | Each label is 1 to 20 characters. Leave one empty to keep the default. |
 | Inline, scoring (E5-2) | Two values with the same label, or a label "Unclear" | Each value needs its own label, and Unclear is taken. |
 | Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
-| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch, label or reason rule then and saves the layout only (E5-3) | Published instruments keep their method and when a reason is required. Build a new instrument to change them. |
+| Inline, scoring (E5-2) | Shown under the locked controls of a published validation (a link or an invite exists); the server ignores a posted method, switch, label or reason rule then and saves the layout only (E5-3) | Published validations keep their method and when a reason is required. Build a new validation to change them. |
 | Inline, scoring (E5-2, acceptance 6) | A reason rule that is not one of the three, through the server | Pick when a reason is required: when the answer differs, never, or on every answer. |
 | Inline, scoring (E5-3) | A layout that is not one of the three, through the server | Pick one of the three layouts: chapters, one item per screen, or a single long page. |
 | Inline, perspectives (E5-4) | An eleventh perspective | Up to 10 perspectives. Remove one to add another. |
 | Inline, perspectives (E5-4) | A name over 30 characters | Each perspective is 1 to 30 characters, one per line. |
 | Inline, perspectives (E5-4) | Two lines naming the same perspective, ignoring case | Each perspective once. Two lines name the same one. |
-| Inline, perspective chips on Shape (E5-4) | A tag that is not one of the instrument's names, through the server | That perspective is not on the instrument. Define it on Build first. |
-| Inline, perspective chips on Shape (E5-4) | Tagging while the instrument has no perspectives, through the server | Define perspectives on Build first, then tag items here. |
-| Inline, perspectives and chips (E5-4) | Saving the names or a tag on a published instrument (a link or an invite exists), through the server | Published instruments keep their perspectives and tags. Build a new instrument to change them. |
-| Inline, perspective chips on Shape (E5-4) | A tag on an item of a newer version than the one the instrument is built on, through the server | These items are on version [N] of the list; the instrument is built on version [M]. Build on version [N] first, then tag items here. |
-| Inline, perspective chips on Shape (E5-4) | A tag on an item of an older version than the instrument's (a stale Shape tab after Build on version N) | These items are version [N] of the list; the instrument is now built on version [M]. Reload the page to tag the current items. |
+| Inline, perspective chips on Shape (E5-4) | A tag that is not one of the validation's names, through the server | That perspective is not on the validation. Define it on Build first. |
+| Inline, perspective chips on Shape (E5-4) | Tagging while the validation has no perspectives, through the server | Define perspectives on Build first, then tag items here. |
+| Inline, perspectives and chips (E5-4) | Saving the names or a tag on a published validation (a link or an invite exists), through the server | Published validations keep their perspectives and tags. Build a new validation to change them. |
+| Inline, perspective chips on Shape (E5-4) | A tag on an item of a newer version than the one the validation is built on, through the server | These items are on version [N] of the list; the validation is built on version [M]. Build on version [N] first, then tag items here. |
+| Inline, perspective chips on Shape (E5-4) | A tag on an item of an older version than the validation's (a stale Shape tab after Build on version N) | These items are version [N] of the list; the validation is now built on version [M]. Reload the page to tag the current items. |
 | Inline, perspectives (E5-4) | The names or the tags did not arrive as text or a list | The tags did not reach the server as a list. Reload the page and try again. |
 | Inline, closing (E5-5) | The confidence flag posted off, through the server | The confidence question is always asked. It cannot be switched off. Reload the page and try again. |
 | Inline, closing (E5-5) | The closing question over 200 characters | The closing question is over 200 characters. Shorten it; respondents answer it on a phone. |
 | Inline, closing (E5-5) | The sign-off empty or over 300 characters | Write the sign-off in 1 to 300 characters. Respondents tick it before they submit. |
 | Inline, closing (E5-5) | An em dash in the question or the sign-off (the one copy rule applied to the PM's words) | Replace the em dash with a comma, a colon or a full stop. Respondents read this as written. |
-| Inline, closing (E5-5) | Shown under the question of a published instrument; the server refuses a save that posts another question then (a stale tab), and saves the switch and the sign-off when the question is unchanged | Published instruments keep their closing question. Build a new instrument to change it. |
+| Inline, closing (E5-5) | Shown under the question of a published validation; the server refuses a save that posts another question then (a stale tab), and saves the switch and the sign-off when the question is unchanged | Published validations keep their closing question. Build a new validation to change it. |
 | Inline, Build (E5-1) | Save or Build on version on a draft that is no longer the project's newest (a stale tab) | This draft was replaced by one built on a newer version of the list. Reload the page to edit the current one. |
 | Inline, Build (E5-1) | Save or Build on version on the sample, through the server (E8-8) | The sample project cannot be edited. |
 | Inline, dates (E6-1) | Close date before the open date (a published link's close date may be moved into the past, which closes it) | The close date is before the open date. Pick a later close date. |
@@ -140,8 +140,8 @@ of the content; page means it replaces the screen.
 | Inline, dates (E6-1) | A date that did not arrive as one, through the server | The dates did not reach the server as dates. Reload the page and try again. |
 | Inline, passcode | Passcode under 6 characters | Use at least 6 characters. Respondents type it once per device. |
 | Inline, passcode (E6-1) | Passcode over 64 characters | Use at most 64 characters for the passcode. |
-| Inline, Share (E6-1) | Save on a draft that has no link yet (a stale tab) | This instrument is not published yet. Press Publish first. |
-| Inline, Share (E6-1) | Publish when the link already exists (a second press, another tab) | This instrument is already published. Reload the page to see its link. |
+| Inline, Share (E6-1) | Save on a draft that has no link yet (a stale tab) | This validation is not published yet. Press Publish first. |
+| Inline, Share (E6-1) | Publish when the link already exists (a second press, another tab) | This validation is already published. Reload the page to see its link. |
 | Card, public link (already on the board) | Draft | Not published yet. Nobody can open the link. |
 | Card, public link (already on the board) | Published | Anyone with the link can respond until the close date. |
 | Card, public link (already on the board) | Revoked | The link now shows a page saying it was withdrawn. Answers already given are kept. |
@@ -155,7 +155,7 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-2) | Send while the public link is revoked (E6-4) | The public link is revoked. Publish again to send invites. |
 | Inline, invites (E6-2) | The list would pass 500 personal invites in the workspace in any 24 hours | This workspace can send [N] more invites right now (500 in any 24 hours). Shorten the list, or try again later. (none left: This workspace sent 500 invites in the last 24 hours. Try again later.) |
 | Inline, invites (E6-2), under "[N] invites sent." | A Not sent address pasted again within 15 minutes of its last send start (another request may still be sending it, or that request died) | A send to [EMAIL] started in the last 15 minutes and may still be going. If the row still says Not sent after that, paste the address again. |
-| Inline, invites (E6-2) | Send on an instrument whose link a newer version's publish replaced between the page load and the check under the lock (a stale tab gets the Build page's replaced message from own() first) | A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link. |
+| Inline, invites (E6-2) | Send on a validation whose link a newer version's publish replaced between the page load and the check under the lock (a stale tab gets the Build page's replaced message from own() first) | A newer version of the list was published while you were sending. Nothing was sent. Reload the page, paste the people again and send: the invites go with the newer version's link. |
 | Inline, invites (E6-2) | The list did not arrive as text | The list did not reach the server as text. Reload the page and try again. |
 | Inline, invites (E6-3), in place of Remind and as the server's refusal | Reminder too soon (under three days since the last) | Reminded [DAYS] days ago. The next reminder can go on [DATE AND TIME UTC]. |
 | Inline, invites (E6-3), under the count | The reminder's email failed (the claim is given back) | The reminder to [EMAIL] was not sent: [PROVIDER REASON]. Try again later. |
@@ -165,7 +165,7 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-3), under the button | Remind everyone when nobody is due (a stale tab) | Nobody is due a reminder. |
 | Inline, invites (E6-3) | Remind while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
 | Inline, Share (E6-4) | Revoke link on a link already revoked (a stale tab) | This link is already revoked. Press Publish again for a new one. |
-| Inline, Share (E6-4) | Revoke link before publishing (a stale tab) | This instrument is not published yet. Press Publish first. |
+| Inline, Share (E6-4) | Revoke link before publishing (a stale tab) | This validation is not published yet. Press Publish first. |
 | Inline, Share (E6-4) | Revoke link in a tab that showed a link published again since | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, invites (E6-4) | Revoke in a tab that showed a row given a new link since | [EMAIL] got a new link since the page opened. Reload the page to see the row as it is. |
 | Inline, invites (E6-4) | A revoked address pasted in the box again | [EMAIL] is revoked. Press New link on its row to send a fresh one. |
@@ -174,7 +174,7 @@ of the content; page means it replaces the screen.
 | Inline, invites (E6-4) | New link on a row that is not revoked (a stale tab) | [EMAIL] is not revoked, so it has its link. Reload the page to see the row as it is. |
 | Inline, invites (E6-4), under New link | The new link's email failed (the row reads Not sent with the reason) | The new link for [EMAIL] was made but not sent: [PROVIDER REASON]. Paste the address again to send it. |
 | Inline, invites (E6-4) | New link while the public link is not published, closed or revoked | The same three lines as sending an invite (E6-2 rows above). |
-| Inline, invites (E6-4) | New link on an instrument whose link a newer version replaced since the page opened | A newer version of the list was published since the page opened. Nothing was sent. Reload the page to see where things stand. |
+| Inline, invites (E6-4) | New link on a validation whose link a newer version replaced since the page opened | A newer version of the list was published since the page opened. Nothing was sent. Reload the page to see where things stand. |
 | Inline, Share (E6-4) | Save the dates in a tab that showed a link published again since | This link changed since the page opened. Reload the page to see where it stands. |
 | Inline, invites (E6-2), under "[N] invites sent.", one line per address; the row stays with the status Not sent and the reason | Email could not be sent | The invite to [EMAIL] was not sent: [PROVIDER REASON]. Check the address and try again. ([PROVIDER REASON] is the server's first line, cut to 200 characters, its final period dropped, with every word holding a host, an address or a login cut to "[server]" (SECURITY.md); when nothing but servers was in it: the mail server refused it, and its reason named only servers; when it was empty: the mail server refused it) |
 

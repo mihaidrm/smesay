@@ -11,11 +11,11 @@ line per card, up to 140 characters, one action at most. Plain English, WRITING.
 | path.start | hi | no project of the person's own | Your first link is four steps away. Start with the list you were about to email round. | Start a project (secondary: Try it on the sample first) |
 | path.import | idea | a project, no set | Upload the spreadsheet or paste the list. The columns are mapped on the next card. | Go to Import |
 | path.shape | idea | a set, no shape run | Let the AI group the items into areas and write a readable version of each. Nothing changes until you accept. | Go to Shape |
-| path.build | idea | a run, instrument without an intro | Write two lines so respondents know what the list is for, and check the fields they fill in. | Go to Build |
-| path.share | idea | an instrument with an intro, no link | Publish one link, or send personal invites. Respondents need no account. | Go to Share |
+| path.build | idea | a run, validation without an intro | Write two lines so respondents know what the list is for, and check the fields they fill in. | Go to Build |
+| path.share | idea | a validation with an intro, no link | Publish one link, or send personal invites. Respondents need no account. | Go to Share |
 | path.done | hi | a published link (the card's last show before it goes) | Your link is live. Answers arrive on Results as they come in. | See results |
 
-Card title: Your first validation. Steps: Import the list, Shape it, Build the instrument,
+Card title: Your first validation. Steps: Import the list, Shape it, Build the validation,
 Share one link. Line under the steps: Then: read the results.
 
 ## Step tips (E15-3)
@@ -28,7 +28,7 @@ Share one link. Line under the steps: Then: read the results.
 | shape.pending | idea | Shape, suggestions not yet accepted or rejected | Accept the reader versions you like. Respondents read the accepted version; you keep the original. | none |
 | build.intro | idea | Build, intro empty | Write one or two lines so respondents know what the list is for. They see this first. | none (the field is there) |
 | build.fields | idea | Build, fields still Name and Role as text | A dropdown Role lets Results split answers by group. Pick Dropdown and type the roles. | none |
-| share.draft | idea | Share, link in draft | Publish when the instrument is ready. You can withdraw the link at any time; answers already given are kept. | none |
+| share.draft | idea | Share, link in draft | Publish when the validation is ready. You can withdraw the link at any time; answers already given are kept. | none |
 
 ## Sample walkthrough (E15-3), the sample project's Results
 

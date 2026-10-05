@@ -249,7 +249,8 @@ is billed per use.
    script needs the init line its documentation mentions is unverified (stories/E13-3,
    docs/review-list.md).
 4. Add these goals as custom events: Start free, Try the sample, Sign up, First project, First
-   instrument published.
+   validation published (renamed from First instrument published on 2026-10-05, decision
+   0057).
 5. Before the variables are set anywhere, the privacy policy's "Error reports and visit counts"
    changes to describe Plausible (its marker says what), and Plausible moves from "Planned for
    launch" to "In use" in the subprocessor list.

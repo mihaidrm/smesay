@@ -56,7 +56,7 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(app.locator("nav[data-ring]")).toHaveCount(0);
 
   await page.goto(`${project}/build`);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await page.goto(`${project}/share`);
   await expect(panel.getByTestId("preview-caption")).toHaveText("Share sets the closing date in the header.");
   // Publish is a form the page handles once it has loaded (as the revoke and share specs wait).
@@ -92,6 +92,6 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(page).toHaveURL(/\/results/);
   await expect(panel).toHaveCount(0);
   await page.goto(`${sample}/build`);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await expect(panel).toHaveCount(0);
 });

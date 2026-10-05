@@ -14,7 +14,7 @@ This agreement applies when an organisation (the customer) uses SMEsay to collec
 
 - Subject matter: running the customer's validations in SMEsay.
 - Duration: while the workspace exists, then until the removal job has deleted it after an owner deletes the workspace, and until the backups that hold it have expired.
-- Nature and purpose: storing the customer's lists and instruments, collecting respondents' answers, showing the results, exporting them, and, when the customer asks, sending the answers to the AI to write actions.
+- Nature and purpose: storing the customer's lists and validations, collecting respondents' answers, showing the results, exporting them, and, when the customer asks, sending the answers to the AI to write actions.
 - People concerned: the customer's respondents, and the members and invitees of the workspace.
 - Data about respondents: the respondent fields the customer chose to ask for (for example names, roles, emails); for a personal link, the name, email and role hint the customer entered and when the link was sent and reminded; answers, reasons, questions, comments, the perspectives picked, suggested missing items, the closing question's answer, confidence, sign-offs and their times.
 - Data about members and invitees: names, emails, roles, and the time each joined.

@@ -14,7 +14,7 @@ export const HEX = /^#[0-9a-f]{6}$/i;
 export const BRAND_COPY = {
   badHex: "Enter the colour as six hex digits, like #1F4F7A.",
   tooLight: "This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours.",
-  saved: "Saved. Your instruments carry the new name, logo and accent.",
+  saved: "Saved. Your validations carry the new name, logo and accent.",
   accentUse: "The accent colours the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink.",
   noAccent: "No accent set. The respondent page uses violet.",
 };

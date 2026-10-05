@@ -45,7 +45,7 @@ test("submit, reopen, welcome back, change, submit again", async ({ page, reques
   await page.getByRole("button", { name: "Import 2 items" }).click();
   await expect(page.getByTestId("imported-line")).toBeVisible();
   await page.goto(`${projectUrl}/build`);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await page.goto(`${projectUrl}/share`);
   await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");

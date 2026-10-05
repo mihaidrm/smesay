@@ -20,5 +20,8 @@ Apply to UI copy, emails, docs, error messages, commit messages and comments.
   the reader is written as a question ("How are your answers used?"), not as a clause.
   Exceptions: headings, labels, buttons, table cells, short statuses, empty states, toasts and
   limit hints (decision 0053).
+- What the PM builds and respondents answer is a "validation" wherever a person reads it: the
+  app, emails, exports, the legal pages and docs/copy. "Instrument" stays the word in the code,
+  the schema, INTERFACES.md and the stories (decision 0057).
 
 The scan script (`npm run scan:copy`) fails a build on em dashes and the banned words above.

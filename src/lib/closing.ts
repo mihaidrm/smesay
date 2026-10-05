@@ -33,7 +33,7 @@ export const CLOSING_COPY = {
   always: "Always on",
   signOffLabel: "Sign-off text",
   signOffHint: `Respondents tick this before they submit. It can be up to ${SIGN_OFF_MAX} characters.`,
-  questionLocked: "Published instruments keep their closing question. Build a new instrument to change it.",
+  questionLocked: "Published validations keep their closing question. Build a new validation to change it.",
 } as const;
 
 export const WRAP_UP_COPY = {

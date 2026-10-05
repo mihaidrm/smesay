@@ -27,7 +27,7 @@ export const IMPORT_COPY = {
   noCheck: "Pick the column that holds the item text above, and the check appears here.",
   newVersion: "Import a new version",
   // The banner owed from E3-6, once an instrument can be published (E6-1).
-  published: "This list is published. Importing a new version does not change the published instrument; you build a new one on the new version.",
+  published: "This list is published. Importing a new version does not change the published validation; you build a new one on the new version.",
   imported: (n: number, version: number, date: string) => `Imported ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"} as version ${version} on ${date}.`,
   counts: (r: { emptyRows: number; exactDuplicates: number; overLimit: number; unrecognisedValues: number }) => ({
     empty: `${r.emptyRows.toLocaleString("en-GB")} empty ${r.emptyRows === 1 ? "row was" : "rows were"} skipped.`,

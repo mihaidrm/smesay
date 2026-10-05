@@ -12,5 +12,5 @@ export const VIEW_AS_COPY = {
   notDeleted: "This workspace is marked deleted. Restore it first.",
   // Build during a view, for a project with a list and no instrument yet (the owner's first
   // open of Build makes one; a view does not).
-  buildNotOpened: "The owner has not opened Build for this project yet, so it has no instrument to show.",
+  buildNotOpened: "The owner has not opened Build for this project yet, so it has no validation to show.",
 };

@@ -23,7 +23,7 @@ each suggestion. The original wording is always kept and shown to you. Nothing c
 you press Accept. Add a few words about the project at the top of Import so the AI keeps your
 names and terms as written.
 
-Step 3, Build the instrument
+Step 3, Build the validation
 Pick how people rate (Must, Should, Could, Not needed; 1 to 5 fit; or keep, change, drop),
 whether they see your proposed value, and which fields they fill in (name and role by
 default). The preview on the right shows what they will see, on a desktop or a phone.

@@ -15,10 +15,10 @@ export const PERSPECTIVES_COPY = {
   unknownTag: "That perspective is not on the instrument. Define it on Build first.",
   noneDefined: "Define perspectives on Build first, then tag items here.",
   badShape: "The tags did not reach the server as a list. Reload the page and try again.",
-  locked: "Published instruments keep their perspectives and tags. Build a new instrument to change them.",
-  otherSet: (built: number, latest: number) => `These items are on version ${latest} of the list; the instrument is built on version ${built}. Build on version ${latest} first, then tag items here.`,
+  locked: "Published validations keep their perspectives and tags. Build a new validation to change them.",
+  otherSet: (built: number, latest: number) => `These items are on version ${latest} of the list; the validation is built on version ${built}. Build on version ${latest} first, then tag items here.`,
   otherSetLink: "Go to Build",
-  olderSet: (shown: number, built: number) => `These items are version ${shown} of the list; the instrument is now built on version ${built}. Reload the page to tag the current items.`,
+  olderSet: (shown: number, built: number) => `These items are version ${shown} of the list; the validation is now built on version ${built}. Reload the page to tag the current items.`,
   // The respondent's items screen when their picks leave nothing to rate (stories/E5-4;
   // every state has a screen), with no pick or with one that matches no item.
   nothingVisible: "Nothing to rate yet. Go back to About you and pick the perspectives that describe you.",

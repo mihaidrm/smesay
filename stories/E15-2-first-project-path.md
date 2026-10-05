@@ -8,7 +8,7 @@ the data, and points to the next one, until the first link is published.
 ## Acceptance criteria
 1. On Projects, above the table (design note 39, question 1), a card "Your first validation"
    with the robot ("hi" until a project exists, then "idea") and four steps: Import the list,
-   Shape it, Build the instrument, Share one link, then the line "Then: read the results".
+   Shape it, Build the validation, Share one link, then the line "Then: read the results".
    Each step is a link to that step of the newest project of the person's own.
 2. A step is ticked from the data, never from a click: Import when the project has a set,
    Shape when a shape run exists on that set (or the person has opened Shape and the list

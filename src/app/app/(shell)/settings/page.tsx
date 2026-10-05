@@ -37,7 +37,7 @@ export default async function SettingsPage() {
       <div className="flex flex-col gap-1">
         <div className="text-xs text-ink-muted" data-testid="breadcrumb">{workspace.name}</div>
         <h1 className="text-[30px] font-extrabold leading-9 tracking-[-0.03em]">Workspace settings</h1>
-        <p className="text-ink-muted">Name, logo and accent appear on every instrument.</p>
+        <p className="text-ink-muted">Name, logo and accent appear on every validation.</p>
       </div>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="card" aria-labelledby="brand-title">

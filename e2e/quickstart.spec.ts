@@ -24,7 +24,7 @@ test("shown once after the first sign-in, then under Help", async ({ page, reque
   const quickstart = page.getByTestId("quickstart");
   await expect(quickstart.getByRole("heading", { level: 1 })).toHaveText("Your first validation in four steps");
   await expect(quickstart.getByRole("listitem")).toHaveCount(4);
-  await expect(quickstart.getByRole("heading", { level: 2 })).toHaveText(["Import the list", "Shape it", "Build the instrument", "Share one link", "Then: read the results"]);
+  await expect(quickstart.getByRole("heading", { level: 2 })).toHaveText(["Import the list", "Shape it", "Build the validation", "Share one link", "Then: read the results"]);
 
   await quickstart.getByRole("link", { name: "Open the sample project" }).click();
   await expect(page).toHaveURL(/\/app\/projects\/[^/]+\/results$/);

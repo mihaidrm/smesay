@@ -134,7 +134,7 @@ describe("importProject", () => {
     expect(await refused({ ...pm, version: PROJECT_VERSION + 1 })).toEqual({ error: E.newer(PROJECT_VERSION + 1, PROJECT_VERSION) });
     expect(await refused(file)).toEqual({ error: E.sample });
     expect(await refused(" ".repeat(PROJECT_FILE_MAX + 1))).toEqual({ error: E.tooLarge });
-    expect(await refused({ ...pm, responses: pm.responses.map((r, i) => (i === 0 ? { ...r, inviteId: randomUUID() } : r)) })).toEqual({ error: E.damaged("a response's instrument, list or invite") });
+    expect(await refused({ ...pm, responses: pm.responses.map((r, i) => (i === 0 ? { ...r, inviteId: randomUUID() } : r)) })).toEqual({ error: E.damaged("a response's validation, list or invite") });
     expect("error" in (await refused({ ...pm, project: { ...pm.project, owner: "someone" } }))).toBe(true);
     // The JSON columns have the shapes the app reads.
     expect(await refused({ ...pm, instruments: pm.instruments.map((i) => ({ ...i, respondentFields: { evil: 1 } })) })).toEqual({ error: E.damaged("instruments.0.respondentFields") });
