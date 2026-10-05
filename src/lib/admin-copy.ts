@@ -1,0 +1,25 @@
+// The admin page's words (stories/E13-2; docs/copy/app.md, Admin). Mihai's page only.
+import type { FunnelStep } from "@/db/types";
+
+export const ADMIN_COPY = {
+  title: "Overview",
+  crumb: "SMEsay admin",
+  intro: "Every workspace, its usage, and the steps from sign-up to submission. The sample projects are left out.",
+  totals: { workspaces: "workspaces", projects: "projects", published: "instruments published", submitted: "responses submitted" },
+  metric: (value: number, threshold: number | null) => (threshold === null ? `${value}. No threshold set yet: paid plans stay off.` : value >= threshold ? `${value} of ${threshold}: the threshold is reached, paid plans can switch on.` : `${value} of ${threshold} to switch paid plans on.`),
+  funnelTitle: "Funnel per week",
+  funnelNote: "Each step's count, and under it the share of the step before in the same week; a step can count more than the one before (one publish, many invites). Weeks start on Monday, UTC.",
+  week: "Week of",
+  steps: {
+    signed_up: "Sign-ups", workspace_created: "Workspaces", project_created: "Projects", import_committed: "Imports",
+    instrument_published: "Published", invite_sent: "Invites", link_opened: "Links opened", response_started: "Started",
+    response_submitted: "Submitted", export_downloaded: "Exports",
+  } satisfies Record<FunnelStep, string>,
+  workspacesTitle: "Workspaces",
+  columns: { name: "Name", created: "Created", members: "Members", projects: "Projects", published: "Published", responses: "Responses this month", cost: "AI cost this month", last: "Last activity" },
+  noWorkspaces: "No workspaces yet.",
+  loading: "Loading the overview",
+};
+
+// The share of the step before, as a percentage; nothing when the step before is 0.
+export const share = (n: number, before: number): string => (before === 0 ? "" : `${Math.round((n / before) * 100)}%`);

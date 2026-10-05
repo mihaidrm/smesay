@@ -24,6 +24,9 @@ const EXCEPTIONS = {
   [path.join(SRC, "lib", "workspace-removal.ts")]: ["queries/internal"],
 };
 
+const ADMIN_APP = path.join(SRC, "app", "admin") + path.sep;
+const isAdminPage = (file) => file.startsWith(ADMIN_APP) || /\.test\.(m|c)?tsx?$/.test(file) && file.startsWith(path.join(SRC, "db", "queries") + path.sep);
+
 function resolve(spec, fromFile) {
   if (spec.startsWith("@/")) return path.normalize(path.join(SRC, spec.slice(2)));
   if (spec.startsWith(".")) return path.normalize(path.join(path.dirname(fromFile), spec));
@@ -47,6 +50,8 @@ export function forbiddenTarget(spec, fromFile) {
   if (name === "seed/sample") return null;
   // track() is the only writer of events (stories/E13-1, acceptance 3).
   if (name === "queries/events") return fromFile === path.join(SRC, "lib", "analytics.ts") || /\.test\.(m|c)?tsx?$/.test(fromFile) ? null : "the database";
+  // The cross-workspace reads (stories/E13-2) only for the admin pages, behind requireAdmin().
+  if (name === "queries/admin") return isAdminPage(fromFile) ? null : "the database";
   if (name.startsWith("queries/") && name !== "queries/scoped" && name !== "queries/internal") return null;
   return "the database";
 }

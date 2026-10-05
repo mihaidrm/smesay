@@ -360,3 +360,7 @@ a change.
 | 2026-10-05 | "Sample: nothing you enter here is saved" is the watermark band directly above the header, not a line inside the header | src/app/sample/page.tsx | Inside the header instead? |
 | 2026-10-05 | The landing's sample buttons now read "Try the sample as a respondent" (the E12-4 user line); a long label for the hero's ghost button | src/app/landing-page/page.tsx | A shorter label, such as "Try the sample"? |
 | 2026-10-05 | On /sample the band says "Sample: nothing you enter here is saved" while each answered card says "Saved on this device" (both from E12-4's acceptances): saved means kept in the tab, not sent | stories/E12-4, src/lib/sample-copy.ts | Reword one of them? |
+| 2026-10-05 | The paid-plan metric on the admin page is "workspaces with a response submitted this month"; the threshold is not set, so the page says paid plans stay off | src/lib/plans.ts PAID_PLAN_SWITCH | Your metric and threshold |
+| 2026-10-05 | The admin numbers, the funnel included, leave out the sample projects and deleted workspaces; once the removal job deletes a workspace its events go too (E13-1), so a past week's funnel can drop | src/db/queries/admin.ts | Keep counts of removed workspaces? |
+| 2026-10-05 | The admin workspace table shows every workspace on one page, no paging | src/app/admin/page.tsx | Page it past a few hundred? |
+| 2026-10-05 | ADMIN_EMAILS for your own address goes in .env.local and at the gate in the host's settings; the e2e server uses e2e-admin@marlow.example | .env.example, playwright.config.ts | Set it |

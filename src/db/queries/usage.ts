@@ -27,3 +27,29 @@ export async function usage(workspaceId: WorkspaceId, now = new Date()): Promise
   ]);
   return { projects: projects.n, responsesThisMonth: responses.n, aiRunsThisMonth: runs.n, aiCostCentsThisMonth: Number(runs.cents ?? 0) };
 }
+
+// Every live workspace's usage in three grouped queries, for the admin page (stories/E13-2),
+// on the same conditions as usage() above: own projects only (the sample left out), responses
+// by their first Submit this month, AI runs this month on own projects. A test checks the two
+// agree for every workspace (src/db/queries/admin.test.ts), so the plan check and the admin
+// page cannot drift.
+export async function usageByWorkspace(now = new Date()): Promise<Map<string, Usage>> {
+  const start = monthStart(now);
+  const own = and(eq(project.isSample, false));
+  const [projects, responses, runs] = await Promise.all([
+    db.select({ id: project.workspaceId, n: count() }).from(project).where(own).groupBy(project.workspaceId),
+    db.select({ id: response.workspaceId, n: count() }).from(response)
+      .innerJoin(instrument, and(eq(instrument.id, response.instrumentId), eq(instrument.workspaceId, response.workspaceId)))
+      .innerJoin(project, and(eq(project.id, instrument.projectId), eq(project.workspaceId, instrument.workspaceId)))
+      .where(and(own, gte(response.firstSubmittedAt, start))).groupBy(response.workspaceId),
+    db.select({ id: aiRun.workspaceId, n: count(), cents: sum(aiRun.costEurCents) }).from(aiRun)
+      .innerJoin(project, and(eq(project.id, aiRun.projectId), eq(project.workspaceId, aiRun.workspaceId)))
+      .where(and(own, gte(aiRun.createdAt, start))).groupBy(aiRun.workspaceId),
+  ]);
+  const out = new Map<string, Usage>();
+  const at = (id: string) => out.get(id) ?? out.set(id, { projects: 0, responsesThisMonth: 0, aiRunsThisMonth: 0, aiCostCentsThisMonth: 0 }).get(id)!;
+  for (const r of projects) at(r.id).projects = r.n;
+  for (const r of responses) at(r.id).responsesThisMonth = r.n;
+  for (const r of runs) { at(r.id).aiRunsThisMonth = r.n; at(r.id).aiCostCentsThisMonth = Number(r.cents ?? 0); }
+  return out;
+}

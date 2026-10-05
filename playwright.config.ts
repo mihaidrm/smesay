@@ -35,7 +35,7 @@ export default defineConfig({
       // (node_modules/next/dist/server/lib/generate-agent-files.js, detected through AI_AGENT,
       // CLAUDECODE or CLAUDE_CODE in next/dist/compiled/@vercel/detect-agent); the
       // block has em dashes and the pre-commit hook refuses it. webServer.env: test.d.ts.
-      env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "", ANTHROPIC_BASE_URL: "http://localhost:4010", ANTHROPIC_API_KEY: "e2e-fake-key-for-the-stand-in", ANTHROPIC_MONTHLY_BUDGET_EUR: "100000" },
+      env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "", ANTHROPIC_BASE_URL: "http://localhost:4010", ANTHROPIC_API_KEY: "e2e-fake-key-for-the-stand-in", ANTHROPIC_MONTHLY_BUDGET_EUR: "100000", ADMIN_EMAILS: "e2e-admin@marlow.example" },
       url: "http://localhost:3000",
       reuseExistingServer: false,
       timeout: 120_000,

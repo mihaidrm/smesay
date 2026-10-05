@@ -77,3 +77,13 @@ export const CSV_FILES = ["answers", "items", "people", "missing"] as const;
 export type CsvFile = (typeof CSV_FILES)[number];
 export const EXPORT_FILES = [...CSV_FILES, "project", "summary", "workspace"] as const;
 export type ExportFile = (typeof EXPORT_FILES)[number];
+
+// The admin funnel's steps, in order (stories/E13-2): event names of the catalogue
+// (src/lib/analytics-catalogue.ts), from sign-up to an export.
+export const FUNNEL_STEPS = ["signed_up", "workspace_created", "project_created", "import_committed", "instrument_published", "invite_sent", "link_opened", "response_started", "response_submitted", "export_downloaded"] as const;
+export type FunnelStep = (typeof FUNNEL_STEPS)[number];
+
+// Proof that the caller checked the admin rule (src/lib/admin.ts requireAdmin): every
+// cross-workspace read in src/db/queries/admin.ts takes one, so a page or route that forgot
+// the check does not compile (stories/E13-2, E14-1).
+export type AdminProof = { readonly checked: "admin" } & { readonly __brand: "AdminProof" };

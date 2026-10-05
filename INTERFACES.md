@@ -675,3 +675,16 @@ NO_WORKSPACE_EVENTS (signed_up, workspace_deleted) carry no workspace. publishLi
 returns the instrument; acceptPendingInvites takes an optional joined: string[] that receives
 the workspaces joined.
 
+Admin (E13-2): requireAdmin(): { session, proof: AdminProof } in src/lib/admin.ts (notFound()
+unless the signed-in, verified email is in ADMIN_EMAILS; adminEmails(value), isAdmin(email,
+list)); AdminProof in src/db/types.ts. The one cross-workspace module, src/db/queries/admin.ts
+(lint: src/app/admin/ and database tests only), every read taking the proof first:
+funnel(proof, now): FunnelWeek[] { week (Monday UTC), counts by FunnelStep } newest first,
+FUNNEL_WEEKS 12, deleted workspaces' events left out; workspaceUsage(proof, now):
+AdminWorkspace[] { id, name, createdAt, members, projects, published, responsesThisMonth,
+aiCostCentsThisMonth, lastActivity }; totals(proof): { workspaces, projects, published,
+submitted }; weekStart(date). usageByWorkspace(now): Map of workspace id to Usage in
+src/db/queries/usage.ts, on usage()'s conditions. FUNNEL_STEPS and FunnelStep in
+src/db/types.ts; PLAN_METRICS { label, value(rows) } and PAID_PLAN_SWITCH { metric, threshold }
+in src/lib/plans.ts; share(n, before) in src/lib/admin-copy.ts.
+
