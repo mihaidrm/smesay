@@ -147,7 +147,11 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   if ("error" in fields) return { status: 422, error: fields.error };
   const picks = parsePicks(link.instrument.perspectives, input.perspectives);
   if ("error" in picks) return { status: 422, error: picks.error };
-  const data = { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, fields: fields.values, perspectives: picks.picks };
+  // created_at and updated_at from the same clock as every later write of this response
+  // (saveAnswer, restart and submit keep the greatest of the stored time and their own now),
+  // not the database's: with a fixed now, as in the tests, the row would otherwise start in
+  // the future of every write made to it.
+  const data = { instrumentId: link.instrument.id, itemSetId: link.instrument.itemSetId, inviteId: link.invite.id, fields: fields.values, perspectives: picks.picks, createdAt: now, updatedAt: now };
   // The link re-read under the invite row's lock: a Revoke or a date change committed since
   // openLinkFor wins (src/db/queries/responses.ts).
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
