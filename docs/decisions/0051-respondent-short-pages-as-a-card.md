@@ -14,7 +14,7 @@ action. From a 576 px column (a container query) the page is a centered card 720
 Start at 320 px, centered, and its hint centered under it. The fields fill the card. "Powered
 by" and the privacy link sit under the card as the last thing on the page. Amended the same
 day: the card keeps 16 px from the window's sides when the window is under 752 px wide. Chapters (1000 px)
-and the Wrap up (760 px) are unchanged.
+and the Wrap up (760 px) were unchanged here; decision 0052 puts them in the same card.
 
 Consequences: src/components/respondent/frame.ts holds the frame's classes; about-you.tsx,
 link-page.tsx, respondent-header.tsx (a className) and the Done and nothing-to-rate screens in

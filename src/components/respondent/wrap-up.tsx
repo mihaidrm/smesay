@@ -20,10 +20,13 @@
 // what the Wrap up's own save says (`saveNote`: changed elsewhere, or refused) shows above
 // the form whatever Submit's state. Phone first. Tap targets on the
 // live link are 48 px (docs/design-system.md, Respondent tap targets): the Go to and Change
-// buttons keep their pill and take a 48 px hit area.
+// buttons keep their pill and take a 48 px hit area. The frame of ./frame.ts (decision 0051):
+// from a 576 px column a centered card, Back and Submit centered in its bottom band with the
+// line under them, and "Powered by" under the card.
 import { useId, useRef, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
+import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
@@ -103,15 +106,16 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
   const onlyConfidence = needed.length === 1 && confidence === null;
   const live = Boolean(onSubmit);
   return (
-    <div className={cn("flex min-h-full flex-col bg-ground text-ink", className)} data-testid="wrap-up" data-preview={preview || undefined}>
+    <div className={cn(FRAME_OUTER, "min-h-full", className)} data-testid="wrap-up" data-preview={preview || undefined}>
+      <div className={FRAME_CARD}>
       {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
       {top ?? (
-        <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3">
+        <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", FRAME_HEADER)}>
           <span className="grow text-[15px] font-bold">{workspaceName}</span>
           <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
         </header>
       )}
-      <Body className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
+      <Body className="flex grow flex-col gap-4 bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
         <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{WRAP_UP_COPY.title}</Heading>
         <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
           {tileKeys.map((key) => (
@@ -226,15 +230,16 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span>{signOffFor(closing)}</span>
         </label>
         </fieldset>
-        <PoweredBy show={poweredBy} />
       </Body>
-      <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <div className="flex items-center gap-3">
+      <div className={FRAME_ACTIONS}>
+        <div className="flex items-center gap-3 @xl:justify-center">
         {onBack && <button type="button" disabled={submitting} onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
-        <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className="h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
+        <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className={cn("h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 @xl:grow-0", FRAME_PRIMARY)} data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
         </div>
-        <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>
+        <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", FRAME_LINE, submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>
       </div>
+      </div>
+      <PoweredBy show={poweredBy} className={FRAME_POWERED} />
     </div>
   );
 }

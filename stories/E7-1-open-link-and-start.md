@@ -23,9 +23,10 @@ fields the PM asked for, and Start lands on the first chapter.
 4. Works without an account on iOS Safari, Android Chrome, desktop Chrome, Edge and Firefox:
    Mihai checks iOS and Android on his devices (decision 0004); Playwright runs Chromium at
    390 by 844 and 1440 by 900.
-5. The desktop layout is the same flow in a centered 720 px card for About you, done, closed
-   and inactive, with "Powered by" under the card (decision 0051, amended 2026-10-05;
-   docs/design-system.md, Respondent columns).
+5. The desktop layout is the same flow in a centered card on every step: 720 px for About
+   you, done, closed and inactive, 1000 px for a chapter and 760 px for the Wrap up, with the
+   actions centered in its bottom band and "Powered by" under the card (decisions 0051 and
+   0052; docs/design-system.md, Respondent columns).
 6. Playwright: open the sample link, fill name and role, start, see the first chapter.
 
 ## Out of scope

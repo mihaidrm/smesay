@@ -18,7 +18,7 @@
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
-import { FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED } from "./frame";
+import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 import { RespondentHeader } from "./respondent-header";
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
@@ -139,11 +139,11 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
         )}
         <p className="text-sm text-ink-muted">{ABOUT_YOU_COPY.footer(workspaceName)}</p>
       </div>
-      <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4 @xl:items-center @xl:px-8 @xl:pt-5 @xl:pb-5">
-        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @xl:w-[320px] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
+      <div className={FRAME_ACTIONS}>
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className={cn("h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface", FRAME_PRIMARY)} data-testid="about-you-start">
           {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
-        <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm @xl:min-h-0 @xl:text-center", startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
+        <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", FRAME_LINE, startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
       </div>
       </div>
       <PoweredBy show={poweredBy} privacy className={FRAME_POWERED} />
