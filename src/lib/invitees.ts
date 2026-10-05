@@ -1,6 +1,6 @@
 // Personal invites (stories/E6-2): one invite row of kind personal per address on the
 // published instrument, each with its own token (newToken, 32 hex characters as the public
-// link's) and email 2 (src/lib/mail/invite-email.ts) sent from the platform as "[PM NAME]
+// link's) and email 2 (src/lib/mail/templates/invite.ts) sent from the platform as "[PM NAME]
 // via SMEsay" with the PM's address as reply-to. The personal links take the public link's
 // open and close instants and follow them (invites.updatePublic, invites.publish) and have
 // no passcode (the address is the proof; docs/review-list.md), so the public link is
@@ -20,7 +20,7 @@ import { invites, items, projects, workspaces } from "@/db/queries";
 import type { Invite, InviteeRow } from "@/db/queries/invites";
 import type { WorkspaceId } from "@/db/types";
 import { INVITEES_COPY, INVITEES_ERRORS, INVITEES_PER_DAY, inviteeLine, minutesFor, parseInvitees, type Invitee } from "@/lib/invitees-rules";
-import { inviteEmail } from "@/lib/mail/invite-email";
+import { inviteEmail } from "@/lib/mail/templates/invite";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
 import { linkState, newToken, own } from "@/lib/sharing";

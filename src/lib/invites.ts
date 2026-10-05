@@ -4,7 +4,7 @@
 // because the invite is sent through better-auth's server API, which the sign-in route's own
 // limiter does not cover (node_modules/better-auth/dist/api/index.mjs, onRequestRateLimit runs in
 // the handler only). No server import here, so the client side can show the numbers.
-import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
+import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/templates/sign-in";
 
 export const INVITE_VALID_MINUTES = SIGN_IN_LINK_MINUTES;
 export const INVITE_LIMIT = 5;

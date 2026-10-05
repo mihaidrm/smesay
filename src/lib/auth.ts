@@ -42,7 +42,7 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendMail } from "@/lib/mail";
-import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/sign-in-email";
+import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/templates/sign-in";
 import { addressOf, LOCAL, minutesOf, signInLimit } from "@/lib/ratelimit";
 import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
 import { log } from "@/lib/log";

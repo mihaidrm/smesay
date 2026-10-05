@@ -58,7 +58,7 @@ Built 2026-10-02.
   `MAIL_SMTP_URL` points at the compose Mailpit locally and at Resend's SMTP endpoint at the
   launch gate (resend.com/docs/send-with-smtp), so the switch is a variable, not a driver.
   `memory:` keeps messages in an outbox for the unit test. The sign-in email is email 1 of
-  docs/copy/emails.md with N = 15, as text and a one-column HTML (src/lib/mail/sign-in-email.ts).
+  docs/copy/emails.md with N = 15, as text and a one-column HTML (src/lib/mail/templates/sign-in.ts).
   The footer's privacy policy link is absolute and points at /legal/privacy, which E11-3
   builds; until then it opens the 404 page. The mark as a 22 px inline image needs a hosted
   PNG and checks in real clients, so the HTML carries the text wordmark until E12-3 makes the

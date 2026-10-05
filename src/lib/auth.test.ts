@@ -8,7 +8,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { prepareTestDatabase } from "@/db/test-db";
 import { auth, createAuth, GOOGLE_ERROR_PATH, readAuthEnv, readGoogleEnv, SESSION_DAYS } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
-import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
+import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/templates/sign-in";
 import { signInLimit } from "@/lib/ratelimit";
 
 type Auth = ReturnType<typeof createAuth>;

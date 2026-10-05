@@ -4,14 +4,14 @@
 // submitted, the invite sent, not revoked, the last reminder REMIND_AFTER_HOURS ago or
 // none) and the claim is one statement (invites.claimReminder), so two presses cannot
 // both send; a reminder whose email fails gives the claim back. Email 3
-// (src/lib/mail/reminder-email.ts) carries "You have not started yet." or "You answered
+// (src/lib/mail/templates/reminder.ts) carries "You have not started yet." or "You answered
 // [N] of [M] items." from the invite's newest response and its answers. The link in force
 // must be open or opening later (the same checks as sending an invite).
 import { answers, invites, items, projects, responses, workspaces } from "@/db/queries";
 import type { InviteeRow } from "@/db/queries/invites";
 import type { WorkspaceId } from "@/db/types";
 import { INVITEES_COPY, listInvitees, reasonOf, type Sender } from "@/lib/invitees";
-import { reminderEmail } from "@/lib/mail/reminder-email";
+import { reminderEmail } from "@/lib/mail/templates/reminder";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
 import { canRemind, REMIND_AFTER_HOURS, REMINDERS_COPY, tooSoonLine } from "@/lib/reminders-rules";

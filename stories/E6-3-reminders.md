@@ -32,7 +32,7 @@ Built 2026-10-03 (design note 48, decision 0044):
   every button off); under three days since the last reminder
   the row shows "Reminded [DAYS] days ago. The next reminder can go on [DATE]." in place
   of the button (src/lib/reminders-rules.ts canRemind), and the server says the same.
-- Acceptance 2: email 3 (src/lib/mail/reminder-email.ts) with "You have not started yet."
+- Acceptance 2: email 3 (src/lib/mail/templates/reminder.ts) with "You have not started yet."
   when the invite has no answer and "You answered [N] of [M] items." from the newest
   response's answers (answers.countForResponse), sent as "[PM NAME] via SMEsay" with
   reply-to the PM.

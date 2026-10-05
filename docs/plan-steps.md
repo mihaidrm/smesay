@@ -82,7 +82,8 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E15 Onboarding and tutorial | The robot as the guide: the guide card and its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips, the measurement on the admin page (design note 39; after E8 and E13, before the launch gate) | none | 3 | open |
 
 Launch gate: Mihai decides the product is worth a domain. Then: name, domain, personal Vercel
-and Neon, Resend, Sentry, Plausible, legal pages confirmed, deploy. After that, one organisation
+and Neon, Resend, Sentry, Plausible, legal pages confirmed (with COMPANY_ADDRESS set for the
+emails' footer, E12-3), deploy. After that, one organisation
 Mihai does not work for runs a real validation.
 
 ## Phase 4. First users (about 6 weeks)

@@ -19,7 +19,7 @@ import { isVisible } from "@/lib/perspectives";
 import { viewOf, type LinkView } from "@/lib/link-access";
 import { signOffFor } from "@/lib/closing";
 import { sendMail, type Mail } from "@/lib/mail";
-import { receiptEmail } from "@/lib/mail/receipt-email";
+import { receiptEmail } from "@/lib/mail/templates/receipt";
 import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { answerFor, answeredCount, areasOf, carriedFields, changedSinceSubmit, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
