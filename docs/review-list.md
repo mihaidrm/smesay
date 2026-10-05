@@ -392,3 +392,10 @@ a change.
 | 2026-10-05 | "Last sign-in" on the People pages is a new column, user.last_sign_in_at, written by better-auth's session hook; the migration filled it from the sessions still kept, so someone who signed out before shows "never" until their next sign-in | src/lib/auth.ts, drizzle/0032 | |
 | 2026-10-05 | Sessions show the browser and system family from five patterns, not a user-agent library; anything else reads Other | src/lib/accounts.ts userAgentFamily | |
 | 2026-10-05 | After an account is deleted its audit rows show the person as "deleted": the row keeps the user id only | src/app/admin/audit/page.tsx | |
+| 2026-10-05 | During a view, every write (a server action or an export) lands on a view-only page with the refusal, instead of a message under the form | src/lib/current-workspace.ts requireWritableWorkspace, design note 88 | |
+| 2026-10-05 | During a view every button and field of the content is disabled, filters that are buttons included; links and the sidebar still work | src/app/app/(shell)/layout.tsx | |
+| 2026-10-05 | During a view, exports (CSV, JSON, PDF, the workspace zip) are refused, since each writes the workspace's export log | src/app/api/*/export | |
+| 2026-10-05 | During a view, Build on a project that has a list but no instrument yet shows its empty state rather than creating one | src/lib/instruments.ts openDraft | |
+| 2026-10-05 | A view ends after 60 minutes, when Stop viewing is pressed, when the workspace is marked deleted, or when the email leaves ADMIN_EMAILS; each end writes a view_stopped row with the reason | src/lib/view-as.ts | |
+| 2026-10-05 | A view ended by signing out, or by the email leaving ADMIN_EMAILS, writes no view_stopped row; the start row and the 60 minutes bound it. Two requests at the moment of expiry may each write a stop row | src/lib/view-as.ts | |
+| 2026-10-05 | During a view, Results shows the first owner's choices (tiles, view, the unsubmitted switch), so its counts match that owner's screen | src/app/app/(shell)/projects/[projectId]/results/page.tsx | |

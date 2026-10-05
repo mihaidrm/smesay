@@ -40,6 +40,11 @@ export const session = pgTable(
     // additional field (src/lib/auth.ts), set only after a membership check and checked again
     // on every request, so no foreign key: a stale id is simply not current any more.
     currentWorkspaceId: uuid("current_workspace_id"),
+    // An admin viewing a workspace as its owner sees it (stories/E14-4): the workspace and when
+    // the view ends, set only by the admin's View as action (src/lib/view-as.ts) and honoured
+    // only while the email is still an admin's. No foreign key, as current_workspace_id.
+    viewAsWorkspaceId: uuid("view_as_workspace_id"),
+    viewAsUntil: timestamp("view_as_until"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );

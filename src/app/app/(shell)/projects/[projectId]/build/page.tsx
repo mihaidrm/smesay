@@ -9,7 +9,8 @@
 // not edited. Copy: docs/copy/app.md (Build).
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { items, projects } from "@/db/queries";
+import { itemSets, items, projects } from "@/db/queries";
+import { VIEW_AS_COPY } from "@/lib/view-as-copy";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
@@ -25,16 +26,17 @@ import { WithPreview } from "../with-preview";
 
 export default async function BuildPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  const { current } = await requireCurrentWorkspace(`/app/projects/${projectId}/build`);
+  const { current, viewing } = await requireCurrentWorkspace(`/app/projects/${projectId}/build`);
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();
-  const draft = await openDraft(current.ws, project);
+  const draft = await openDraft(current.ws, project, { create: !viewing });
+  const hasSet = viewing !== null && draft === null && (await itemSets.list(current.ws)).some((s) => s.projectId === project.id);
   if (!draft) {
     return (
       <div className="flex flex-col gap-5">
         <h2 className="text-xl font-bold tracking-[-0.02em]">{BUILD_COPY.title}</h2>
         <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-hairline-strong bg-surface p-6" data-testid="build-empty">
-          <div className="font-semibold">{BUILD_COPY.noSet}</div>
+          <div className="font-semibold">{viewing && hasSet ? VIEW_AS_COPY.buildNotOpened : BUILD_COPY.noSet}</div>
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{BUILD_COPY.noSetLink}</Link>
         </div>
       </div>

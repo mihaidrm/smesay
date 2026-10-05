@@ -28,11 +28,12 @@ function Status({ status }: { status: ProjectStatus }) {
 }
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ archived?: string }> }) {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current, viewing } = await requireCurrentWorkspace("/app");
   // The quickstart once per person per workspace (stories/E12-2, acceptance 1): until the
   // quickstart page stamps quickstart_seen_at, Projects sends there first. After naming a
   // workspace that is the first page; an invited member sees it on first reaching Projects.
-  if ((await members.get(current.ws, session.user.id))?.quickstartSeenAt === null) redirect("/app/quickstart");
+  // Not during an admin's view (E14-4): the admin sees the owner's Projects.
+  if (!viewing && (await members.get(current.ws, session.user.id))?.quickstartSeenAt === null) redirect("/app/quickstart");
   const { archived } = await searchParams;
   const showArchived = archived === "1";
   const [rows, used] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws)]);

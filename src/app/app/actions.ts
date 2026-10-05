@@ -12,7 +12,7 @@ import { workspaces } from "@/db/queries";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import type { WorkspaceId } from "@/db/types";
 import { NotFoundError } from "@/lib/errors";
-import { setCurrentWorkspace } from "@/lib/current-workspace";
+import { refuseWhileViewing, setCurrentWorkspace } from "@/lib/current-workspace";
 import { requireSession } from "@/lib/session";
 import { requireWorkspace } from "@/lib/workspace";
 import { track } from "@/lib/analytics";
@@ -23,6 +23,7 @@ export type CreateWorkspaceState = { error: string | null };
 
 export async function createWorkspace(_previous: CreateWorkspaceState, formData: FormData): Promise<CreateWorkspaceState> {
   const session = await requireSession("/app/new");
+  await refuseWhileViewing(session);
   if ((await workspaces.listForUser(session.user.id)).length > 0) redirect("/app");
   const parsed = workspaceNameSchema.safeParse(formData.get("name"));
   if (!parsed.success) return { error: WORKSPACE_NAME_ERROR };
@@ -36,6 +37,7 @@ export async function createWorkspace(_previous: CreateWorkspaceState, formData:
 
 export async function switchWorkspace(formData: FormData): Promise<void> {
   const session = await requireSession("/app/switch");
+  await refuseWhileViewing(session);
   const workspaceId = String(formData.get("workspaceId") ?? "");
   let ws: WorkspaceId;
   try {
@@ -53,6 +55,7 @@ export async function switchWorkspace(formData: FormData): Promise<void> {
 // The workspace is the one the page shows, found again from the session (never the form).
 export async function leaveDeletedWorkspace(): Promise<void> {
   const session = await requireSession("/app/deleted");
+  await refuseWhileViewing(session);
   const stored = session.session.currentWorkspaceId ?? null;
   const deleted = (stored ? await workspaces.deletedForUser(session.user.id, stored) : null) ?? await workspaces.deletedForUser(session.user.id, null);
   if (deleted) await workspaces.leaveDeleted(session.user.id, deleted.id);

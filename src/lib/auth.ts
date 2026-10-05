@@ -168,7 +168,12 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
       // from a request body (input: false), only by src/lib/current-workspace.ts after the
       // membership check. Extending the session schema: better-auth.com/docs/concepts/database,
       // "Extending core schema"; the column is session.current_workspace_id (migration 0002).
-      additionalFields: { currentWorkspaceId: { type: "string", required: false, input: false } },
+      // viewAs*: the admin's read-only view of a workspace (stories/E14-4, src/lib/view-as.ts).
+      additionalFields: {
+        currentWorkspaceId: { type: "string", required: false, input: false },
+        viewAsWorkspaceId: { type: "string", required: false, input: false },
+        viewAsUntil: { type: "date", required: false, input: false },
+      },
     },
     advanced: { disableOriginCheck: options.disableOriginCheck },
     // Sign-in attempts (stories/E11-1, acceptance 2): 5 per email and 5 per address, then a wait

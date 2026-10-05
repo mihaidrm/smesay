@@ -413,3 +413,10 @@ html.mode-sweep::view-transition-new(mode-thumb) {
     transform: none !important;
   }
 }
+
+/* An admin's view (stories/E14-4): a download link inside the disabled content looks and acts
+   disabled, as the buttons do (the export writes the workspace's export log). */
+fieldset:disabled [data-download] {
+  opacity: 0.4;
+  pointer-events: none;
+}

@@ -1,13 +1,13 @@
 "use server";
 // Server actions of the project pages (stories/E3-1): create, save the context, archive,
 // unarchive, delete the sample; of the upload (stories/E3-2): upload a file, pick a sheet
-// or a header row; and of Build (stories/E5-1), at the end of the file. The workspace comes from the session (requireCurrentWorkspace);
+// or a header row; and of Build (stories/E5-1), at the end of the file. The workspace comes from the session (requireWritableWorkspace);
 // the project id from the form is only ever looked up inside that workspace, so another
 // workspace's id is 404. Server Functions and useActionState: node_modules/next/dist/docs/
 // 01-app/01-getting-started/07-mutating-data.md.
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
-import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
 import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
 import { EXPORT_COPY } from "@/lib/export/copy";
@@ -30,7 +30,7 @@ export type ProjectFormState = { error: string | null; saved: boolean; retry?: b
 const NONE: ProjectFormState = { error: null, saved: false };
 
 export async function createProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app/projects/new");
+  const { session, current } = await requireWritableWorkspace("/app/projects/new");
   const result = await createProject({ ws: current.ws, userId: session.user.id }, formData.get("name"));
   if ("error" in result) return { ...NONE, error: result.error };
   await track("project_created", { from: "new" }, { workspaceId: current.ws, userId: session.user.id });
@@ -42,7 +42,7 @@ export async function createProjectAction(_previous: ProjectFormState, formData:
 // Import a project (stories/E10-2): the file's text to importProject, then the new project's
 // Results. A file over the limit is refused before it is read.
 export async function importProjectAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app/projects/import");
+  const { session, current } = await requireWritableWorkspace("/app/projects/import");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ...NONE, error: EXPORT_COPY.importErrors.noFile };
   if (file.size > PROJECT_FILE_MAX) return { ...NONE, error: EXPORT_COPY.importErrors.tooLarge };
@@ -56,7 +56,7 @@ export async function importProjectAction(_previous: ProjectFormState, formData:
 
 export async function saveContextAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
   if (!(await signedIn())) return { ...NONE, signedOut: true };
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveContext(current.ws, projectId, formData.get("goal"), formData.get("terms"));
@@ -73,7 +73,7 @@ export async function saveContextAction(_previous: ProjectFormState, formData: F
 }
 
 export async function archiveAction(formData: FormData): Promise<void> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const archived = formData.get("archived") === "1";
   try {
@@ -87,7 +87,7 @@ export async function archiveAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteSampleAction(formData: FormData): Promise<void> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   if (!(await deleteSample(current.ws, String(formData.get("projectId") ?? "")))) notFound();
   await track("sample_deleted", {}, { workspaceId: current.ws, userId: session.user.id });
   revalidatePath("/app", "layout");
@@ -101,7 +101,7 @@ export async function deleteSampleAction(formData: FormData): Promise<void> {
 // 10-error-handling.md, "Uncaught exceptions"), and nothing is stored. The checks and the
 // store are in src/lib/uploads.ts.
 export async function uploadAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { ...NONE, error: UPLOAD_COPY.noFile };
@@ -118,7 +118,7 @@ export async function uploadAction(_previous: ProjectFormState, formData: FormDa
 }
 
 export async function chooseAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const uploadId = String(formData.get("uploadId") ?? "");
   const sheet = formData.has("sheet") ? String(formData.get("sheet")) : undefined;
   // 0 is "no header row"; anything that is not a whole number is treated as "find it again".
@@ -138,7 +138,7 @@ export async function chooseAction(_previous: ProjectFormState, formData: FormDa
 // The mapping card (stories/E3-3): every select of the card is in the form, named by the
 // column key; the server cleans the set (src/lib/import/mapping.ts) and saves it.
 export async function mapAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const uploadId = String(formData.get("uploadId") ?? "");
   const raw: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) if (key.startsWith("col:")) raw[key.slice(4)] = value;
@@ -154,7 +154,7 @@ export async function mapAction(_previous: ProjectFormState, formData: FormData)
 
 // The paste box (stories/E3-4): the text goes through the same checks and store as a file.
 export async function pasteAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await savePaste({ ws: current.ws, userId: session.user.id }, projectId, String(formData.get("text") ?? ""));
@@ -171,7 +171,7 @@ export async function pasteAction(_previous: ProjectFormState, formData: FormDat
 // the set is written in one transaction, and the Import page re-renders with the stepper on
 // Shape.
 export async function commitAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const uploadId = String(formData.get("uploadId") ?? "");
   try {
     const result = await commitUpload(current.ws, uploadId, session.user.id);
@@ -188,7 +188,7 @@ export async function commitAction(_previous: ProjectFormState, formData: FormDa
 // Shape (stories/E4-2): run the model over the latest set; move one item to another area.
 // ForbiddenError (a member without the right) is thrown as the 403 page, like the others.
 export async function shapeAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await shapeSet({ ws: current.ws, userId: session.user.id }, projectId);
@@ -202,7 +202,7 @@ export async function shapeAction(_previous: ProjectFormState, formData: FormDat
 }
 
 export async function moveAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const itemId = String(formData.get("itemId") ?? "");
   try {
@@ -219,7 +219,7 @@ export async function moveAction(_previous: ProjectFormState, formData: FormData
 // Reader versions (stories/E4-3): one item's Accept, Reject or Undo; an edit; Accept all or
 // Reject all over the latest set.
 export async function readerAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const move = String(formData.get("move") ?? "");
   if (move !== "accept" && move !== "reject" && move !== "undo") notFound();
@@ -235,7 +235,7 @@ export async function readerAction(_previous: ProjectFormState, formData: FormDa
 }
 
 export async function editReaderAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await editReader({ ws: current.ws, userId: session.user.id }, projectId, String(formData.get("itemId") ?? ""), formData.get("text"));
@@ -249,7 +249,7 @@ export async function editReaderAction(_previous: ProjectFormState, formData: Fo
 }
 
 export async function readerAllAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const move = String(formData.get("move") ?? "");
   if (move !== "accept" && move !== "reject") notFound();
@@ -266,7 +266,7 @@ export async function readerAllAction(_previous: ProjectFormState, formData: For
 
 // Flags (stories/E4-4): dismiss one item's flags.
 export async function dismissFlagAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await dismissFlag({ ws: current.ws, userId: session.user.id }, projectId, String(formData.get("itemId") ?? ""));
@@ -283,7 +283,7 @@ export async function dismissFlagAction(_previous: ProjectFormState, formData: F
 // instrument id from the form is looked up inside the workspace and checked against the
 // project (src/lib/instruments.ts), so neither id can reach another workspace's rows.
 export async function saveIntroAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveIntro(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("title"), formData.get("intro"));
@@ -297,7 +297,7 @@ export async function saveIntroAction(_previous: ProjectFormState, formData: For
 }
 
 export async function saveFieldsAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveFields(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("fields"));
@@ -311,7 +311,7 @@ export async function saveFieldsAction(_previous: ProjectFormState, formData: Fo
 }
 
 export async function buildOnLatestAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await buildOnLatest(current.ws, projectId, String(formData.get("instrumentId") ?? ""));
@@ -327,7 +327,7 @@ export async function buildOnLatestAction(_previous: ProjectFormState, formData:
 }
 
 export async function saveScoringAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveScoring(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("method"), formData.get("showProposed"), formData.get("labels"), formData.get("layout"));
@@ -341,7 +341,7 @@ export async function saveScoringAction(_previous: ProjectFormState, formData: F
 }
 
 export async function saveClosingAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveClosing(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("closingQuestion"), formData.get("missingForm"), formData.get("signOffText"), formData.get("confidence"));
@@ -355,7 +355,7 @@ export async function saveClosingAction(_previous: ProjectFormState, formData: F
 }
 
 export async function savePerspectivesAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await savePerspectives(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("perspectives"));
@@ -371,7 +371,7 @@ export async function savePerspectivesAction(_previous: ProjectFormState, formDa
 
 // The chips on an item on Shape (stories/E5-4): the whole list of the item's tags.
 export async function tagItemAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await tagItem(current.ws, projectId, String(formData.get("itemId") ?? ""), formData.get("tags"));
@@ -389,7 +389,7 @@ export async function tagItemAction(_previous: ProjectFormState, formData: FormD
 // Share (stories/E6-1): Publish creates the public link; Save changes its dates and passcode.
 // The project list's status and the stepper follow the link, so the layout is revalidated.
 export async function publishAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await publishLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"));
@@ -407,7 +407,7 @@ export async function publishAction(_previous: ProjectFormState, formData: FormD
 }
 
 export async function saveLinkAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), String(formData.get("inviteId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"), formData.get("removePasscode") === "1");
@@ -426,7 +426,7 @@ export async function saveLinkAction(_previous: ProjectFormState, formData: Form
 // failed: one message per address not sent; again: those addresses as lines for the box.
 export type InvitesFormState = ProjectFormState & { sent: number; failed: string[]; again: string[] };
 export async function sendInvitesAction(_previous: InvitesFormState, formData: FormData): Promise<InvitesFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   try {
@@ -447,7 +447,7 @@ export async function sendInvitesAction(_previous: InvitesFormState, formData: F
 export type RemindFormState = ProjectFormState & { sent: number; failed: string[] };
 const REMIND_NONE: RemindFormState = { ...NONE, sent: 0, failed: [] };
 export async function remindAction(_previous: RemindFormState, formData: FormData): Promise<RemindFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");
@@ -463,7 +463,7 @@ export async function remindAction(_previous: RemindFormState, formData: FormDat
   }
 }
 export async function remindAllAction(_previous: RemindFormState, formData: FormData): Promise<RemindFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   try {
@@ -482,7 +482,7 @@ export async function remindAllAction(_previous: RemindFormState, formData: Form
 // The kill switch (stories/E6-4): revoke the public link, revoke one personal link, or
 // make a new personal link and send it.
 export async function revokeLinkAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");
@@ -498,7 +498,7 @@ export async function revokeLinkAction(_previous: ProjectFormState, formData: Fo
   }
 }
 export async function revokeInviteAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");
@@ -514,7 +514,7 @@ export async function revokeInviteAction(_previous: ProjectFormState, formData: 
   }
 }
 export async function renewInviteAction(_previous: InvitesFormState, formData: FormData): Promise<InvitesFormState> {
-  const { session, current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireWritableWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   const instrumentId = String(formData.get("instrumentId") ?? "");
   const inviteId = String(formData.get("inviteId") ?? "");

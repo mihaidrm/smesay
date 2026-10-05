@@ -21,15 +21,20 @@ import { requireSession, type Session } from "@/lib/session";
 import { requireWorkspace } from "@/lib/workspace";
 import { track } from "@/lib/analytics";
 import { chooseWorkspace } from "@/lib/workspace-choice";
+import { viewingOf, type Viewing } from "@/lib/view-as";
 
 export type Current = { workspace: Workspace; ws: WorkspaceId };
 // deleted: a workspace the person is still a member of was deleted (stories/E11-2), the stored
 // one first; the app shows the deleted page (/app/deleted) until they leave it, which ends their
 // membership of it, instead of choosing another without a word.
-export type AppContext = { session: Session; memberships: Workspace[]; current: Current | null; storedId: string | null; deleted: DeletedWorkspace | null };
+// viewing: an admin's read-only view of this workspace (stories/E14-4, src/lib/view-as.ts); the
+// workspace is then the only one listed and the current one, and nothing may be written.
+export type AppContext = { session: Session; memberships: Workspace[]; current: Current | null; storedId: string | null; deleted: DeletedWorkspace | null; viewing: Viewing | null };
 
 export const getAppContext = cache(async (nextPath: string): Promise<AppContext> => {
   const session = await requireSession(nextPath);
+  const viewing = await viewingOf(session);
+  if (viewing) return { session, memberships: [viewing.workspace], current: { workspace: viewing.workspace, ws: viewing.ws }, storedId: session.session.currentWorkspaceId ?? null, deleted: null, viewing };
   // An open invitation for the signed-in address becomes a membership first (stories/E2-4).
   const joined: string[] = [];
   await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES, joined);
@@ -50,7 +55,7 @@ export const getAppContext = cache(async (nextPath: string): Promise<AppContext>
     if (choice.kind === "select") await setCurrentWorkspace(session, ws);
     current = { workspace: choice.workspace, ws };
   }
-  return { session, memberships, current, storedId, deleted };
+  return { session, memberships, current, storedId, deleted, viewing: null };
 });
 
 // The shell and every page in it: no membership goes to the create page, memberships without
@@ -60,6 +65,22 @@ export async function requireCurrentWorkspace(nextPath: string): Promise<AppCont
   if (context.current) return { ...context, current: context.current };
   if (context.deleted) redirect("/app/deleted");
   redirect(context.memberships.length === 0 ? "/app/new" : "/app/switch");
+}
+
+// The one helper every server action and every writing route takes its workspace from (stories/
+// E14-4, acceptance 2): requireCurrentWorkspace, except that during an admin's view it answers
+// with the view-only page instead (/app/view-only: "You are viewing as [WORKSPACE]. Changes are
+// off."), so no write runs. src/app/app/view-only.test.ts checks every server action file uses it.
+export async function requireWritableWorkspace(nextPath: string): Promise<AppContext & { current: Current }> {
+  const context = await requireCurrentWorkspace(nextPath);
+  if (context.viewing) redirect("/app/view-only");
+  return context;
+}
+
+// For the actions that work without a current workspace (create, switch, leave a deleted one):
+// refused the same way during a view.
+export async function refuseWhileViewing(session: Session): Promise<void> {
+  if (await viewingOf(session)) redirect("/app/view-only");
 }
 
 export async function setCurrentWorkspace(session: Session, ws: WorkspaceId | null): Promise<void> {

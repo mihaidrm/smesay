@@ -132,12 +132,19 @@ AI
 
 Admin area (E13-2, E14)
 - /admin served only to ADMIN_EMAILS; everyone else gets 404. The admin queries live in one
-  module the product's pages never import.
+  module, src/db/queries/admin.ts, which lint lets only the admin pages and three library files
+  import: src/lib/accounts.ts (the account actions, E14-3), src/lib/view-as.ts (the admin's view,
+  E14-4, which every PM page reaches through src/lib/current-workspace.ts) and the tests. Every
+  function there takes the AdminProof, made only by src/lib/admin.ts (requireAdmin, and
+  adminProofFor for the view check), from a session whose verified email is in ADMIN_EMAILS.
 - Every admin action writes its audit row before it runs, by the admin of the session, and the
   action runs only when the row is in; the row then records done, refused or failed. The
   admin_audit table is the one application table without workspace_id besides the auth tables:
   its target is a column with no foreign key, so a row outlives the workspace or person it
-  names (E14-1); "view as" is read-only,
+  names (E14-1); "view as" (E14-4) lives on the admin's session row, counts only while the
+  email is an admin's, serves the workspace through the admin module, and every server action
+  and writing route takes its workspace from requireWritableWorkspace, which refuses during a
+  view (a unit test checks every action file); "view as" is read-only,
   shows a banner, expires after 60 minutes and is audited at start and stop.
 - No respondent names or answers in the admin area except through "view as".
 

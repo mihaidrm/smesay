@@ -29,13 +29,14 @@ export type Draft = { instrument: Instrument; builtOn: ItemSet; newer: ItemSet |
 
 // The draft Build shows. Null when the project has no set yet (the empty state). A project
 // with a set and no instrument gets one here, on first open (acceptance 1); the sample
-// always has one from the seed, so it is never created here.
-export async function openDraft(ws: WorkspaceId, project: Project): Promise<Draft | null> {
+// always has one from the seed, so it is never created here. create false (an admin's
+// read-only view, stories/E14-4) never creates one either: Build then shows its empty state.
+export async function openDraft(ws: WorkspaceId, project: Project, options: { create?: boolean } = {}): Promise<Draft | null> {
   const latest = await latestSet(ws, project.id);
   if (!latest) return null;
   let instrument = await instruments.latestForProject(ws, project.id);
   if (!instrument) {
-    if (project.isSample) return null;
+    if (project.isSample || options.create === false) return null;
     instrument = await instruments.createOnSet(ws, { projectId: project.id, itemSetId: latest.id, title: project.name, respondentFields: DEFAULT_FIELDS });
     if (!instrument) throw new NotFoundError();
   }

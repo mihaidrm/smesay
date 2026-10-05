@@ -24,6 +24,8 @@ const EXCEPTIONS = {
   [path.join(SRC, "lib", "workspace-removal.ts")]: ["queries/internal"],
   // E14-3: the account actions take the admin proof and forget an address across workspaces.
   [path.join(SRC, "lib", "accounts.ts")]: ["queries/admin"],
+  // E14-4: the admin's view of a workspace finds it through the admin module, behind the proof.
+  [path.join(SRC, "lib", "view-as.ts")]: ["queries/admin"],
 };
 
 const ADMIN_APP = path.join(SRC, "app", "admin") + path.sep;
