@@ -134,9 +134,9 @@ Button: See your answers
 
 The receipt lists the counts with the link, not the answers (decision 0031).
 
-## 5. Question from the landing page (E12-5, proposed; to SMEsay, not to a user)
+## 5. Question from the landing page (E12-5, decision 0049; to SMEsay, not to a user)
 
-Sent to SUPPORT_EMAIL when a visitor sends a question from the landing page's bubble.
+Sent to NEXT_PUBLIC_SUPPORT_EMAIL when a visitor sends a question from the landing page's bubble.
 Plain text, no design, nothing stored in the app (decision 0046).
 
 From: SMEsay <no-reply@[DOMAIN]>

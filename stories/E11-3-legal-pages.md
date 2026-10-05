@@ -15,7 +15,7 @@ confirm, each showing its version and date, and every instrument links to the pr
    whole-project JSON of E10-2 hold respondents' names, emails and free text, the values of
    every respondent field the PM configured, invite role hints, and the email of the workspace
    member who closed an action; E10-2, acceptance 4) and contact. The landing page's questions
-   (E12-5) are not covered here: E12-5 is deferred (decision 0046) and its acceptance 7 adds the
+   (E12-5) are not covered here: E12-5 is not built yet (ready since decision 0049) and its acceptance 7 adds the
    paragraph when the form is built (changed 2026-10-04 under decision 0044, docs/review-list.md).
 2. Each page shows "Version [N], [DATE]" at the top; versions are files in docs/legal/ and
    the pages render them, so a change is a commit.
