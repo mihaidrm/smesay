@@ -420,7 +420,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Under the lockup | Admin |
-| Nav (label "Admin pages") | Overview, Audit log (Workspaces with E14-2, People with E14-3) |
+| Nav (label "Admin pages") | Overview, Workspaces, People, Audit log |
 | Bottom | Back to the app; the signed-in email |
 
 ## Admin audit log (E14-1, /admin/audit)
@@ -466,4 +466,30 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Buttons | Change the plan, Set the budget, Send again, Revoke the link, Restore the workspace, Add the note; Confirm, Cancel |
 | Confirm lines | Change the plan of [NAME] to [PLAN]? The workspace's limits change at once. / Set the AI budget of [NAME] to EUR [N] a month? / Send the invitation to [EMAIL] again? They get a new sign-in link; an earlier one still works until it expires. / Revoke the public link of [TITLE]? Respondents see that it is no longer active; answers given so far stay. / Restore [NAME]? Members who have not left it get it back. Files the removal job already deleted do not come back. / Add this note? It cannot be edited or removed. |
 | Done lines | Plan changed to [PLAN]. / AI budget set to EUR [N] a month. / Invitation sent again to [EMAIL]. / Link revoked. / Workspace restored. / Note added. |
+| Refusals | in docs/copy/errors.md, Admin |
+
+## Admin people (E14-3, /admin/people)
+
+| Where | Text |
+|---|---|
+| Crumb, title and line | SMEsay admin / People / Everyone with an account, by last sign-in. Respondents have no account and are not here. |
+| Search | placeholder and label: Email or name; Search; Clear |
+| Columns | Email, Name, Email verified (yes, no), Signs in with (Sign-in link, Google, Microsoft), Workspaces ([NAME] (owner or member)), Created, Last sign-in (never), Open sessions |
+| Empty | No accounts yet. (search: Nobody matches "[QUERY]".) |
+| Loading | Loading the people |
+
+## Admin person page (E14-3, /admin/people/[ID])
+
+| Where | Text |
+|---|---|
+| Back link and title | All people / [EMAIL] |
+| Sections | Account, Workspaces, Sessions, Invitations waiting, Last 20 product events, Delete the account |
+| Account | Name, Email verified, Signs in with, Created, Last sign-in; buttons Send a sign-in link, Sign out everywhere |
+| Workspaces | [NAME] [ROLE] and Remove; none: Not a member of any workspace. |
+| Sessions | Started, Expires, Browser ([BROWSER] on [SYSTEM]), State (open, expired); none: No sessions. |
+| Invitations waiting | [WORKSPACE], invited [TIME] (the link has expired); none: No invitations waiting. |
+| Events | [TIME] [EVENT NAME] ([WORKSPACE]) [KEY=VALUE]; none: No product events yet. |
+| Delete the account | Only at the person's own request. Their memberships go; what they made in workspaces stays without their name. |
+| Confirm lines | Send a sign-in link to [EMAIL]? It works once and expires in 15 minutes. / Sign [EMAIL] out on every device? / Remove [EMAIL] from [WORKSPACE]? / Delete the account of [EMAIL]? This cannot be undone. |
+| Done lines | Sign-in link sent to [EMAIL]. / [N] sessions ended. (1 session ended.) / Removed from [WORKSPACE]. / Account deleted. |
 | Refusals | in docs/copy/errors.md, Admin |

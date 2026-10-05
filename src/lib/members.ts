@@ -69,6 +69,14 @@ export async function sendWorkspaceInvite(ws: WorkspaceId, input: { email: strin
   return { sent: true, email };
 }
 
+// An admin removes a person from a workspace (stories/E14-3, acceptance 3): no role check (the
+// admin is not a member), the same last-owner rule and messages as removeMember.
+export async function removeMemberAsAdmin(ws: WorkspaceId, userId: string): Promise<Refused | { removed: true }> {
+  const result = await members.removeKeepingOwner(ws, userId);
+  if (!result.ok) return { error: result.reason === "missing" ? MEMBERS_COPY.gone : MEMBERS_COPY.lastOwner };
+  return { removed: true };
+}
+
 // An admin sends an open invitation again (E14-2): the invitation as it stands, by its id, with
 // the member who first sent it kept as the sender. An accepted or unknown id is refused.
 export async function resendInvite(ws: WorkspaceId, inviteId: string, headers?: Headers): Promise<Refused | { sent: true; email: string }> {

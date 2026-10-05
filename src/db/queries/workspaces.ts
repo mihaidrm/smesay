@@ -4,7 +4,7 @@
 // hands out its id and no helper is reached with it. The helpers that take no session (the
 // seed's, the removal job's) are in internal.ts, which lint keeps out of routes.
 // db.transaction: orm.drizzle.team/docs/transactions.
-import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user, workspace, workspaceMember } from "@/db/schema";
 import type { PlanKey } from "@/db/types";
@@ -20,6 +20,13 @@ export const workspaces = {
   listForUser: async (userId: string): Promise<Workspace[]> =>
     (await db.select({ w: workspace }).from(workspace).innerJoin(workspaceMember, eq(workspaceMember.workspaceId, workspace.id))
       .where(and(eq(workspaceMember.userId, userId), live())).orderBy(workspace.createdAt)).map((r) => r.w),
+  // The live workspaces where the user is the only owner (stories/E14-3: an account that would
+  // leave a workspace without an owner is not deleted).
+  soleOwnedBy: async (userId: string): Promise<Workspace[]> => {
+    const owners = db.select({ id: workspaceMember.workspaceId }).from(workspaceMember).where(eq(workspaceMember.role, "owner")).groupBy(workspaceMember.workspaceId).having(sql`count(*) = 1`);
+    return (await db.select({ w: workspace }).from(workspace).innerJoin(workspaceMember, eq(workspaceMember.workspaceId, workspace.id))
+      .where(and(eq(workspaceMember.userId, userId), eq(workspaceMember.role, "owner"), live(), inArray(workspace.id, owners))).orderBy(workspace.name)).map((r) => r.w);
+  },
   getForUser: async (userId: string, workspaceId: string): Promise<Workspace | null> => {
     if (!isUuid(workspaceId)) return null;
     return (await db.select({ w: workspace }).from(workspace).innerJoin(workspaceMember, eq(workspaceMember.workspaceId, workspace.id))

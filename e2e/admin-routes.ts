@@ -2,4 +2,4 @@
 // asks each for anyone else and expects 404; src/app/admin/admin-routes.test.ts fails when a
 // page under src/app/admin/ is missing here. A dynamic segment takes an id that exists nowhere,
 // which a non-admin must not be able to tell from one that does.
-export const ADMIN_ROUTES = ["/admin", "/admin/audit", "/admin/workspaces", "/admin/workspaces/00000000-0000-4000-8000-000000000000"];
+export const ADMIN_ROUTES = ["/admin", "/admin/audit", "/admin/workspaces", "/admin/workspaces/00000000-0000-4000-8000-000000000000", "/admin/people", "/admin/people/no-such-person"];

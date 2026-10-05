@@ -735,3 +735,18 @@ resendInvite(ws, inviteId, headers) in src/lib/members.ts (inviteMember keeps it
 and calls the first). instrumentState(publishedAt, publicLink, now): "draft" | "published" |
 "closed" | "revoked" in src/lib/admin-copy.ts.
 
+Admin people (E14-3): in src/db/queries/admin.ts, peopleDirectory(proof, { q }, now):
+AdminPerson[] { id, email, name, emailVerified, createdAt, methods ("link", "google",
+"microsoft"), workspaces: { id, name, role }[], lastSignIn (the newest session's start, or
+null), openSessions } newest sign-in first, q matching email or name; adminPerson(proof, id):
+AdminPerson or null; personSessions(proof, userId): { id, createdAt, expiresAt, open, userAgent }[]
+(never the token or the address); personEvents(proof, userId, limit); invitesFor(proof, email,
+validMinutes): { id, workspaceId, workspaceName, invitedAt, open }[] not accepted, live
+workspaces only. workspaces.soleOwnedBy(userId): the live workspaces where the user is the only
+owner. In src/lib/accounts.ts:
+userAgentFamily(ua): { browser, os }; signOutEverywhere(userId): number of sessions ended;
+lastOwnerOf(userId): workspace names where the person is the only owner; deleteAccount(userId):
+{ error } or { deleted: true } through better-auth's internalAdapter.deleteUser, refused while
+the person is a workspace's only owner. removeMemberAsAdmin(ws, userId) in src/lib/members.ts
+(the last-owner rule, no role check).
+

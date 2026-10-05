@@ -384,3 +384,7 @@ a change.
 | 2026-10-05 | A restore after the removal job has deleted the files (logo, uploads) but not the rows, by a race or a failed run, gives back the workspace without those files; members who left it do not come back. The confirm line says both | src/lib/workspace-removal.ts, src/lib/admin-copy.ts | |
 | 2026-10-05 | Support notes cannot be edited or removed; the confirm line says so | src/app/admin/workspaces/[id]/page.tsx | |
 | 2026-10-05 | The AI budget the admin sets is a whole number of euro from 0 to 10000 | src/db/queries/admin.ts AI_BUDGET_MAX_EUR | |
+| 2026-10-05 | An admin cannot delete an account that is the only owner of a workspace; someone else becomes owner first, or the owner deletes the workspace | src/lib/accounts.ts deleteAccount | |
+| 2026-10-05 | "Last sign-in" on the People pages is the newest session's start; better-auth keeps no sign-in time and E13-1 records sign-ups only | src/db/queries/admin.ts peopleDirectory | |
+| 2026-10-05 | Sessions show the browser and system family from five patterns, not a user-agent library; anything else reads Other | src/lib/accounts.ts userAgentFamily | |
+| 2026-10-05 | After an account is deleted its audit rows show the person as "deleted": the row keeps the user id only | src/app/admin/audit/page.tsx | |
