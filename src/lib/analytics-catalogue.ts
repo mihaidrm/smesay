@@ -26,6 +26,8 @@ export const EVENTS = {
   project_created: { from: ["new", "import"] },
   import_committed: { source: ["upload", "paste"], rows: "count" },
   shape_run: { items: "count", costCents: "count" },
+  // E15-4: a shaping run that did not apply, with why (src/lib/ai/client.ts Refusal).
+  shape_failed: { reason: ["paused", "budget", "plan", "rateLimited", "failed", "invalid"], project: "id" },
   instrument_published: { method: METHODS, layout: LAYOUTS },
   // project (E15-2): the first-project path ticks Share from it.
   invite_sent: { kind: ["personal", "public"], project: "id" },

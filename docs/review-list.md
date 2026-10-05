@@ -405,3 +405,11 @@ a change.
 | 2026-10-05 | "Your link is live" shows for 24 hours after the workspace's first own link, then the path card is gone for good | src/lib/guide.ts DONE_HOURS | |
 | 2026-10-05 | Dismissing any line of the first-project path hides the whole card, since its line changes with each step | src/app/app/(shell)/page.tsx | |
 | 2026-10-05 | The "help" pose of the rescue tips is shown with the "idea" robot until you place help.svg from the pack | docs/assets.md, src/components/app/mascot.tsx | Place the pose |
+| 2026-10-05 | E15-3 and E15-4 ship in one pull request: both put their cards through the same per-page choice | stories/E15-3, stories/E15-4 | |
+| 2026-10-05 | The Import rescue shows for an upload or paste with columns to map, ten minutes old or more and not imported; the story's "no mapping saved" cannot be told from the guessed mapping. An upload with no columns read shows its own error and no tip | src/lib/guide.ts importTip, docs/copy/guide.md | |
+| 2026-10-05 | A refused or failed shaping run is now a shape_failed product event with the reason and the project; the Shape rescue reads it | src/lib/shaping.ts, docs/analytics.md | |
+| 2026-10-05 | E15-4 acceptance 3 (each rescue tip counted shown, dismissed and acted on, and "to review" on the admin page) lands with E15-5's measurement | stories/E15-4, stories/E15-5 | |
+| 2026-10-05 | The rescue thresholds compare the app server's clock with timestamps the database wrote; a skew of seconds between the two moves a boundary by as much, which is accepted | src/lib/guide.ts | |
+| 2026-10-05 | A shaping refusal that happens before the run (no list, a list being imported, a view) writes no shape_failed event, so it shows no rescue; its own message stays on the page | src/lib/shaping.ts | |
+| 2026-10-05 | The Shape rescue's "Try again" goes to the Shape button on the page rather than starting a run, so a run is always the person's own press; it shows only for failed, invalid and rate limited | src/app/app/(shell)/projects/[projectId]/shape/page.tsx | |
+| 2026-10-05 | The Share rescue counts from when the link could first be answered (the publish, or the open date when later) and shows only while the link is open | src/lib/guide.ts shareTip | |

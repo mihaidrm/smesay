@@ -12,7 +12,7 @@ import { shapeAction, type ProjectFormState } from "../../actions";
 export function ShapeButton({ projectId, shaped }: { projectId: string; shaped: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(shapeAction, { error: null, saved: false });
   return (
-    <form action={action} className="flex flex-wrap items-center justify-end gap-3">
+    <form action={action} id="shape-run" className="flex flex-wrap items-center justify-end gap-3">
       <input type="hidden" name="projectId" value={projectId} />
       {state.error && !pending && (
         <div id="shape-error" role="alert" className="flex items-center gap-3 rounded-lg bg-unclear-tint px-4 py-2 text-sm text-unclear-text">

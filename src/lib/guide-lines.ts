@@ -24,7 +24,7 @@ export const GUIDE_LINES = {
   "sample.strip": { pose: "analysis", line: "The numbers at the top count answers; the table shows each item with who agreed, who chose a different priority and who disagreed.", action: "Next" },
   "sample.registers": { pose: "analysis", line: "Every different priority and every disagree comes with a reason. This is what you read before the meeting.", action: "Next" },
   "sample.detail": { pose: "analysis", line: "One item, every answer. The AI's to-do list cites these rows.", action: "Start a project" },
-  "rescue.mapping": { pose: "help", line: "The file is uploaded but not imported yet. Map the item column and press Import.", action: "Map the columns" },
+  "rescue.mapping": { pose: "help", line: "The list is uploaded but not imported yet. Map the item column and press Import.", action: "Map the columns" },
   "rescue.shapeFailed": { pose: "help", line: "The last run did not finish. Try again, or move on: Build works without the AI's version.", action: "Try again" },
   "rescue.noResponse": { pose: "help", line: "No answer yet after three days. A personal invite with a name gets more replies than a shared link.", action: "Send invites" },
 } as const satisfies Record<string, Line>;

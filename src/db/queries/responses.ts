@@ -10,7 +10,7 @@
 // Both re-read the invite's token, dates and revocation under the lock (`stillOpen`), so a Start
 // that races a Revoke or a date change writes nothing once the change is committed: the
 // revoke's UPDATE waits for the lock or the Start waits for the revoke (E6-4).
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { answer, invite, missingItem, response } from "@/db/schema";
 import type { Answer } from "./answers";
@@ -61,6 +61,10 @@ export const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: i
 
 export const responses = {
   ...scoped(response),
+  // How many responses an instrument has, started or submitted (the rescue tip on Share,
+  // stories/E15-4).
+  countForInstrument: async (workspaceId: WorkspaceId, instrumentId: string): Promise<number> =>
+    isUuid(instrumentId) ? (await db.select({ n: count() }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.instrumentId, instrumentId))))[0].n : 0,
   forInvite: async (workspaceId: WorkspaceId, inviteId: string): Promise<Response | null> => {
     if (!isUuid(inviteId)) return null;
     const rows = await db.select().from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.inviteId, inviteId))).orderBy(desc(response.updatedAt), desc(response.id)).limit(1);

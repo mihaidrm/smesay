@@ -1,7 +1,7 @@
 # E15-3 One tip per step page, and the sample walkthrough on Results
 
 User: a PM on Import, Shape, Build or Share for the first time
-Status: ready
+Status: built
 Outcome: on each step page the robot says the one thing to do next, from the data, and on
 the sample's Results it explains what the person is looking at, one screen at a time.
 
@@ -35,5 +35,9 @@ the sample's Results it explains what the person is looking at, one screen at a 
 
 ## Technical notes
 The condition per tip is a pure function of the page's loaded rows (src/lib/guide.ts),
-called by each step page with what it already loads, so no extra query per page. The
-walkthrough step is a query parameter (?guide=2) so a reload keeps the place.
+called by each step page with what it already loads. Built 2026-10-05 (design note 90): two
+reads were added where the page did not load the fact, responses.countForInstrument (Share)
+and events.lastWith (Shape, the newest shape_failed of the project). The walkthrough has no
+query parameter: the step is the Results screen itself (the agreement tab, the Different
+priority and Disagree tab, an item's detail), so a reload keeps the place and the Next link
+is a link to the next screen.

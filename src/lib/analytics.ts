@@ -37,6 +37,15 @@ export async function track<N extends EventName>(name: N, properties: Empty<N> e
 
 // Whether the event just tracked was the workspace's first of its name (Plausible's "first"
 // goals, stories/E13-3); false when it cannot tell.
+
+// Whether the event just tracked was the workspace's first of its name (Plausible's "first"
+// goals, stories/E13-3); false when it cannot tell.
 export async function wasFirst(name: EventName, workspaceId: WorkspaceId): Promise<boolean> {
   try { return (await events.countInWorkspace(workspaceId, name)) === 1; } catch { return false; }
+}
+
+// The newest event of a name with this property value, its time and properties, or null; a
+// failed read is null, so a guide tip is left out rather than failing the page (stories/E15-4).
+export async function lastEventWith(name: EventName, workspaceId: WorkspaceId, key: string, value: string): Promise<{ at: Date; properties: Record<string, string | number> } | null> {
+  try { const row = await events.lastWith(workspaceId, name, key, value); return row ? { at: new Date(row.createdAt), properties: row.properties } : null; } catch { return null; }
 }

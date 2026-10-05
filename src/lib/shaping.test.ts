@@ -10,6 +10,7 @@ import { applyShaping, moveItem } from "@/db/queries/shaping";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { AI_COPY } from "@/lib/ai/copy";
+import { lastEventWith } from "@/lib/analytics";
 import { ShapeOutput } from "@/lib/ai/shape-schema";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
@@ -150,6 +151,11 @@ describe("shapeSet", () => {
     const strayed = transport(answer([{ name: "Approving", items: ["2", "1"] }, { name: "Submitting", items: ["4", "5"] }, { name: "Paying", items: ["3"] }], ["1", "2", "3", "4", "5"]));
     expect(await shapeSet(a, withAreas, strayed)).toEqual({ error: AI_COPY.invalid, retry: true });
     expect(await items.forSet(a.ws, before[0].itemSetId)).toEqual(before);
+    // Each refusal is a shape_failed event for the project (stories/E15-4: the rescue tip reads it).
+    const failed = await lastEventWith("shape_failed", a.ws, "project", withAreas);
+    expect(failed?.at).toBeInstanceOf(Date);
+    expect(failed?.properties.reason).toBe("invalid");
+    expect(await lastEventWith("shape_failed", a.ws, "project", plain)).toBeNull();
   });
 
   it("moves an item on the PM's word, a move to its own area changes nothing, and a re-run leaves the moved item", async () => {

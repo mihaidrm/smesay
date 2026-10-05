@@ -23,7 +23,7 @@ Share one link. Line under the steps: Then: read the results.
 | Id | Pose | Screen and condition | Line | Action |
 |---|---|---|---|---|
 | import.empty | reading | Import, no upload and no set | Upload an xlsx or csv, or paste the list. One item per row. | none (the upload card is there) |
-| import.mapping | reading | Import, an upload with a mapping not yet checked | Tell us which column is the item and which is the proposed value. The rest is kept as custom fields. | none |
+| import.mapping | reading | Import, an upload or paste with columns to map, not imported yet, under ten minutes old | Tell us which column is the item and which is the proposed value. The rest is kept as custom fields. | none |
 | shape.notRun | idea | Shape, a set and no run | Shape with AI groups the items and writes a readable version of each. The originals are never changed. | none (the button is there) |
 | shape.pending | idea | Shape, suggestions not yet accepted or rejected | Accept the reader versions you like. Respondents read the accepted version; you keep the original. | none |
 | build.intro | idea | Build, intro empty | Write one or two lines so respondents know what the list is for. They see this first. | none (the field is there) |
@@ -42,9 +42,9 @@ Share one link. Line under the steps: Then: read the results.
 
 | Id | Pose | Condition | Line | Action |
 |---|---|---|---|---|
-| rescue.mapping | help | an upload stored over ten minutes with no mapping saved | The file is uploaded but not imported yet. Map the item column and press Import. | Map the columns |
-| rescue.shapeFailed | help | the last shape run failed and no run followed | The last run did not finish. Try again, or move on: Build works without the AI's version. | Try again |
-| rescue.noResponse | help | a link published over three days with no response | No answer yet after three days. A personal invite with a name gets more replies than a shared link. | Send invites |
+| rescue.mapping | help | Import, an upload or paste with columns to map, stored ten minutes ago or more and not imported yet | The list is uploaded but not imported yet. Map the item column and press Import. | Map the columns |
+| rescue.shapeFailed | help | Shape, a run refused or failed (a shape_failed event) after the newest list was imported and after its last run that applied. Try again only when the reason can pass on a second run (failed, invalid, rate limited) | The last run did not finish. Try again, or move on: Build works without the AI's version. | Try again |
+| rescue.noResponse | help | Share, a link open for three days or more (from the publish, or the open date when later) with no response | No answer yet after three days. A personal invite with a name gets more replies than a shared link. | Send invites |
 
 ## Sidebar
 
