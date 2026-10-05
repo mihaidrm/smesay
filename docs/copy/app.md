@@ -414,3 +414,26 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Funnel columns | Week of, Sign-ups, Workspaces, Projects, Imports, Published, Invites, Links opened, Started, Submitted, Exports |
 | Workspaces | Workspaces; columns Name, Created, Members, Projects, Published, Responses this month, AI cost this month, Last activity; empty: No workspaces yet. |
 | Loading | Loading the overview |
+
+## Admin shell (E14-1, every /admin page)
+
+| Where | Text |
+|---|---|
+| Under the lockup | Admin |
+| Nav (label "Admin pages") | Overview, Audit log (Workspaces with E14-2, People with E14-3) |
+| Bottom | Back to the app; the signed-in email |
+
+## Admin audit log (E14-1, /admin/audit)
+
+| Where | Text |
+|---|---|
+| Crumb, title and line | SMEsay admin / Audit log / Every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it. |
+| Filters | Workspace, Admin (each with All), Show, Clear the filters |
+| Columns | Time (UTC), Admin, Action, Outcome, Workspace or person, What changed |
+| Outcome | Done, Refused, Failed, Not recorded |
+| Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing |
+| A target or admin removed since | deleted; a workspace waiting for removal: [NAME] (deleted, removal pending); in the filters: deleted ([first 8 characters of the id]) |
+| What changed | key: value pairs by key in alphabetical order (none for an empty value) |
+| Empty | No admin actions yet. (filtered: No admin actions match these filters.) |
+| Pages | Page [N] of [M], [T] actions (1 action); Newer, Older |
+| Loading | Loading the audit log |

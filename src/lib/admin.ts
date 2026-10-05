@@ -5,6 +5,7 @@
 // not-found.md).
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { auth } from "@/lib/auth";
 import type { AdminProof } from "@/db/types";
 import type { Session } from "@/lib/session";
@@ -17,9 +18,11 @@ export function isAdmin(email: string | null | undefined, list = adminEmails()):
   return Boolean(email) && list.includes(email!.trim().toLowerCase());
 }
 
-// The session and the proof the admin reads take (src/db/types.ts AdminProof).
-export async function requireAdmin(): Promise<{ session: Session; proof: AdminProof }> {
+// The session and the proof the admin reads take (src/db/types.ts AdminProof), with the admin's
+// user id from the session for the audit row. cache() keeps one session read per request when
+// the layout and the page both ask (react.dev/reference/react/cache).
+export const requireAdmin = cache(async (): Promise<{ session: Session; proof: AdminProof }> => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user.emailVerified || !isAdmin(session.user.email)) notFound();
-  return { session, proof: { checked: "admin" } as AdminProof };
-}
+  return { session, proof: { checked: "admin", userId: session.user.id } as AdminProof };
+});

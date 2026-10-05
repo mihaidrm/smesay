@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0029_first_source).
+v1, 2026-10-05 (the date of the latest migration, 0030_admin_audit).
 
-Generated from the snapshot of the 30 migrations in drizzle/ (0029_snapshot.json) by
+Generated from the snapshot of the 31 migrations in drizzle/ (0030_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -383,6 +383,24 @@ one row per product step from the catalogue: name, counts and fixed values, no p
 
 Indexes: event_name_created_idx on name, created_at; event_workspace_idx on workspace_id; event_user_idx on user_id.
 Checks: event_respondent_no_user_check: event.name not in ('link_opened', 'response_started', 'response_submitted') or event.user_id is null.
+
+## admin_audit
+
+one row per admin action, written in the action's own transaction; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| admin_user_id | text | not null |
+| action | text | not null |
+| target_workspace_id | uuid |  |
+| target_user_id | text |  |
+| changes | jsonb | not null, default {} |
+| outcome | text |  |
+| created_at | timestamp with time zone | not null, default now() |
+
+Indexes: admin_audit_created_idx on created_at; admin_audit_workspace_idx on target_workspace_id; admin_audit_admin_idx on admin_user_id.
+Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null.
 
 ## upload
 

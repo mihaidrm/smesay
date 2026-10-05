@@ -1,5 +1,5 @@
 // The admin page's words (stories/E13-2; docs/copy/app.md, Admin). Mihai's page only.
-import type { FunnelStep } from "@/db/types";
+import type { AdminAction, AuditChanges, AuditOutcome, FunnelStep } from "@/db/types";
 
 export const ADMIN_COPY = {
   title: "Overview",
@@ -26,3 +26,48 @@ export const ADMIN_COPY = {
 
 // The share of the step before, as a percentage; nothing when the step before is 0.
 export const share = (n: number, before: number): string => (before === 0 ? "" : `${Math.round((n / before) * 100)}%`);
+
+// The admin shell (stories/E14-1, acceptance 2).
+export const ADMIN_SHELL_COPY = {
+  area: "Admin",
+  nav: "Admin pages",
+  overview: "Overview",
+  workspaces: "Workspaces",
+  people: "People",
+  audit: "Audit log",
+  back: "Back to the app",
+};
+
+// The audit log (stories/E14-1, acceptance 4).
+export const AUDIT_COPY = {
+  crumb: "SMEsay admin",
+  title: "Audit log",
+  intro: "Every action an admin took, newest first. Each row is written before its action runs, then marked with what became of it.",
+  workspace: "Workspace",
+  admin: "Admin",
+  all: "All",
+  apply: "Show",
+  clear: "Clear the filters",
+  columns: { time: "Time (UTC)", admin: "Admin", action: "Action", outcome: "Outcome", target: "Workspace or person", changes: "What changed" },
+  outcomes: { done: "Done", refused: "Refused", failed: "Failed", none: "Not recorded" } satisfies Record<AuditOutcome | "none", string>,
+  actions: {
+    plan_changed: "Changed the plan", ai_budget_set: "Set the AI budget", invite_resent: "Sent an invitation again", link_revoked: "Revoked a link",
+    workspace_restored: "Restored the workspace", note_added: "Added a support note", magic_link_sent: "Sent a sign-in link", signed_out_everywhere: "Signed the person out everywhere",
+    member_removed: "Removed a member", account_deleted: "Deleted the account", view_started: "Started viewing as the owner", view_stopped: "Stopped viewing",
+  } satisfies Record<AdminAction, string>,
+  deleted: "deleted",
+  markedDeleted: (name: string) => `${name} (deleted, removal pending)`,
+  // A workspace or admin removed since, in the filter: the start of its id.
+  gone: (id: string) => `deleted (${id.slice(0, 8)})`,
+  none: "No admin actions yet.",
+  noneFiltered: "No admin actions match these filters.",
+  pageOf: (page: number, pages: number, total: number) => `Page ${page} of ${pages}, ${total} ${total === 1 ? "action" : "actions"}`,
+  newer: "Newer",
+  older: "Older",
+  loading: "Loading the audit log",
+};
+
+// The changes of a row as one line: key: value pairs by key in alphabetical order (jsonb keeps
+// its own key order, not the order written: postgresql.org/docs/current/datatype-json.html).
+export const auditChanges = (changes: AuditChanges): string =>
+  Object.entries(changes).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}: ${v === null ? "none" : String(v)}`).join(", ");
