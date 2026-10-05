@@ -73,3 +73,5 @@ Built 2026-10-02.
 - Mihai checks the real flow on his PC: sign in with the magic link, sign out, "Continue with
   Google" with the same Gmail, one user row (Settings, Members shows one person); then with
   a second Google account, a new user. The acceptance note records it.
+- 2026-10-05: Mihai signed in with "Continue with Google" on his PC against localhost:3000 and
+  reached the app; /admin opened for his ADMIN_EMAILS address (E14-1).
