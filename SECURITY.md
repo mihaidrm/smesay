@@ -19,7 +19,11 @@ Multi-tenancy
   workspace budget, E9-3) and src/lib/workspace-removal.ts (the removal job) import that module. Scripts
   outside src/ read the database directly and never run in the app: scripts/ai-smoke.ts and
   evals/run.ts for their own throwaway rows, and the backup scripts (scripts/backup-tools.ts,
-  scripts/backup-check.ts), which read every workspace's rows and objects to copy them.
+  scripts/backup-check.ts), which read every workspace's rows and objects to copy them. The
+  admin area is the one exception in the app (E13-2, E14): src/db/queries/admin.ts reads across
+  workspaces behind requireAdmin(), and adminWorkspace() turns the workspace id in an admin
+  page's address or form into the WorkspaceId the product's helpers take, so an admin acts on a
+  workspace through the same scoped helpers its members use.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
 - A PM form whose save found the session ended keeps its text in the tab's sessionStorage under
   smesay-draft:[form] (E11-6: context:[project id] for the project context box), only from that

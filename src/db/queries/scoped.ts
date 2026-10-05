@@ -3,8 +3,8 @@
 // from this factory, so a row of another workspace can never be listed, read, changed or removed
 // through src/db/queries/: each statement carries `where workspace_id = $1`, and get, update and
 // remove add the id on top. The workspace id is a WorkspaceId, a branded string that only
-// src/lib/workspace.ts produces from the session (and unsafeWorkspaceId() below, for the seed and
-// the tests, which lint keeps out of routes). Create and update drop `id` and `workspaceId` from
+// src/lib/workspace.ts produces from the session (and unsafeWorkspaceId() below, for the seed,
+// the tests and the admin area, which lint keeps out of routes). Create and update drop `id` and `workspaceId` from
 // what they are given, so a request body cannot move a row or plant one under another workspace.
 // Drizzle: eq, and, count from "drizzle-orm"; select, insert, update, delete, returning from
 // drizzle-orm/pg-core (node_modules/drizzle-orm/pg-core/db.d.ts).
@@ -16,7 +16,8 @@ import { NotFoundError } from "@/lib/errors";
 
 export type { WorkspaceId };
 
-// For the seed, the tests and links.byToken (the token-proved read of E6-1) only
+// For the seed, the tests, links.byToken (the token-proved read of E6-1) and adminWorkspace in
+// src/db/queries/admin.ts (an admin's id from the address, after the admin check, E14-2) only
 // (eslint-rules/db-access.mjs keeps this module out of routes).
 export const unsafeWorkspaceId = (id: string): WorkspaceId => id as WorkspaceId;
 

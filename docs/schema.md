@@ -386,7 +386,7 @@ Checks: event_respondent_no_user_check: event.name not in ('link_opened', 'respo
 
 ## admin_audit
 
-one row per admin action, written in the action's own transaction; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1).
+one row per admin action, written before the action runs and marked done, refused or failed after; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1).
 
 | Column | Type | Notes |
 |---|---|---|

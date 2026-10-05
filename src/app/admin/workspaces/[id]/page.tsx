@@ -5,12 +5,12 @@
 // support notes. No respondent names and no answers. The reads compose the product's own
 // helpers (members, projects.summaries, usage) with the WorkspaceId adminWorkspace() gives, so a
 // bug in a helper shows the same to the owner and the admin. The actions (acceptance 3) are in
-// ./actions.ts behind a confirm line (./confirm-form.tsx). Copy: docs/copy/app.md, Admin
+// ./actions.ts behind a confirm line (src/app/admin/confirm-form.tsx). Copy: docs/copy/app.md, Admin
 // workspace page.
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { projects } from "@/db/queries";
+import { projects, workspaceInvites } from "@/db/queries";
 import { adminNotes, adminWorkspace, projectVersions, workspaceEvents, workspaceInstruments, workspaceUploads } from "@/db/queries/admin";
 import { usage } from "@/db/queries/usage";
 import type { AdminProof, WorkspaceId } from "@/db/types";
@@ -23,7 +23,7 @@ import { listMembersAndInvites } from "@/lib/members";
 import { PLANS } from "@/lib/plans";
 import { projectStatus } from "@/lib/project-status";
 import { addNoteAction, changePlanAction, resendInviteAction, restoreAction, revokeLinkAction, setBudgetAction } from "./actions";
-import { ConfirmForm } from "./confirm-form";
+import { ConfirmForm } from "../../confirm-form";
 
 export const dynamic = "force-dynamic";
 
@@ -61,13 +61,23 @@ function Section({ title, children, testId }: { title: string; children: React.R
 }
 
 async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w: Workspace }) {
-  const [people, open, archived, instruments, versions, uploads, events, notes, used] = await Promise.all([
-    listMembersAndInvites(ws), projects.summaries(ws), projects.summaries(ws, { archived: true }), workspaceInstruments(proof, ws), projectVersions(proof, ws),
+  const [people, invitations, active, archived, instruments, versions, uploads, events, notes, used] = await Promise.all([
+    listMembersAndInvites(ws), workspaceInvites.list(ws), projects.summaries(ws), projects.summaries(ws, { archived: true }), workspaceInstruments(proof, ws), projectVersions(proof, ws),
     workspaceUploads(proof, ws), workspaceEvents(proof, ws, 20), adminNotes.list(proof, ws), usage(ws),
   ]);
   const now = new Date();
+  // Every invitation not yet accepted, the expired ones too, so one that "did not work" an hour
+  // ago can be sent again; listMembersAndInvites gives the ones still within their minutes.
+  const waiting = invitations.filter((i) => i.acceptedAt === null).sort((a, b) => b.invitedAt.getTime() - a.invitedAt.getTime());
+  const open = new Set(people.invited.map((i) => i.id));
+  // Revoke is offered where the product would do it (src/lib/sharing.ts own): not on the sample,
+  // an archived project or an instrument replaced by a newer one, and not in a deleted workspace.
+  const latest = new Map<string, string>();
+  for (const i of instruments) latest.set(i.projectId, i.id);
+  const noRevoke = (p: { id: string; isSample: boolean; archivedAt: Date | null }, instrumentId: string): string | null =>
+    w.deletedAt ? C.noRevoke.deleted : p.isSample ? C.noRevoke.sample : p.archivedAt ? C.noRevoke.archived : latest.get(p.id) !== instrumentId ? C.noRevoke.replaced : null;
   const hidden = { workspaceId: w.id };
-  const all = [...open, ...archived];
+  const all = [...active, ...archived];
   const projectName = new Map(all.map((p) => [p.id, p.name]));
   return (
     <>
@@ -106,22 +116,25 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
         </Section>
       </div>
       <Section title={C.sections.members} testId="admin-members">
-        <table className="w-full text-sm">
+        {people.members.length === 0 ? <p className="text-sm text-ink-muted">{C.noMembers}</p> : <table className="w-full text-sm">
           <thead><tr><th className={TH}>{C.memberColumns.name}</th><th className={TH}>{C.memberColumns.email}</th><th className={TH}>{C.memberColumns.role}</th><th className={TH}>{C.memberColumns.joined}</th></tr></thead>
           <tbody>{people.members.map((m) => <tr key={m.userId}><td className={TD}>{m.name}</td><td className={TD}>{m.email}</td><td className={TD}>{C.roles[m.role]}</td><td className={TD}>{DAY.format(m.createdAt)}</td></tr>)}</tbody>
-        </table>
+        </table>}
       </Section>
       <Section title={C.sections.invites} testId="admin-invites">
-        {people.invited.length === 0 ? <p className="text-sm text-ink-muted">{C.noInvites}</p> : (
+        {waiting.length === 0 ? <p className="text-sm text-ink-muted">{C.noInvites}</p> : (
           <table className="w-full text-sm">
             <thead><tr><th className={TH}>{C.inviteColumns.email}</th><th className={TH}>{C.inviteColumns.invited}</th><th className={TH}>{C.inviteColumns.expires}</th><th className={TH} /></tr></thead>
-            <tbody>{people.invited.map((i) => (
-              <tr key={i.id}>
-                <td className={TD}>{i.email}</td><td className={TD}>{TIME.format(i.invitedAt)}</td>
-                <td className={TD}>{TIME.format(new Date(i.invitedAt.getTime() + INVITE_VALID_MINUTES * 60_000))}</td>
-                <td className={TD}><ConfirmForm action={resendInviteAction} hidden={{ ...hidden, inviteId: i.id }} label={C.resend} confirmLine={C.confirmResend(i.email)} testId="resend-form" /></td>
-              </tr>
-            ))}</tbody>
+            <tbody>{waiting.map((i) => {
+              const expires = TIME.format(new Date(i.invitedAt.getTime() + INVITE_VALID_MINUTES * 60_000));
+              return (
+                <tr key={i.id} data-testid="admin-invite">
+                  <td className={TD}>{i.email}</td><td className={TD}>{TIME.format(i.invitedAt)}</td>
+                  <td className={TD}>{open.has(i.id) ? expires : C.expired(expires)}</td>
+                  <td className={TD}>{!w.deletedAt && <ConfirmForm action={resendInviteAction} hidden={{ ...hidden, inviteId: i.id }} label={C.resend} confirmLine={C.confirmResend(i.email)} testId="resend-form" />}</td>
+                </tr>
+              );
+            })}</tbody>
           </table>
         )}
       </Section>
@@ -137,18 +150,20 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
             </div>
             {instruments.some((i) => i.projectId === p.id) && (
               <table className="w-full text-sm">
-                <thead><tr><th className={TH}>{C.instrumentColumns.title}</th><th className={TH}>{C.instrumentColumns.state}</th><th className={TH}>{C.instrumentColumns.version}</th><th className={TH}>{C.instrumentColumns.link}</th><th className={TH}>{C.instrumentColumns.opens}</th><th className={TH}>{C.instrumentColumns.closes}</th><th className={TH} /></tr></thead>
+                <thead><tr><th className={TH}>{C.instrumentColumns.title}</th><th className={TH}>{C.instrumentColumns.state}</th><th className={TH}>{C.instrumentColumns.version}</th><th className={TH}>{C.instrumentColumns.link}</th><th className={TH}>{C.instrumentColumns.created}</th><th className={TH}>{C.instrumentColumns.published}</th><th className={TH}>{C.instrumentColumns.opens}</th><th className={TH}>{C.instrumentColumns.closes}</th><th className={TH} /></tr></thead>
                 <tbody>{instruments.filter((i) => i.projectId === p.id).map((i) => {
                   const state = instrumentState(i.publishedAt, i.publicLink, now);
                   return (
                     <tr key={i.id} data-testid="admin-instrument">
                       <td className={TD}>{i.title}</td><td className={TD}>{C.states[state]}</td><td className={TD}>{C.version(i.version)}</td>
                       <td className={TD}>{C.links(i.publicLink !== null, i.personalLinks)}</td>
+                      <td className={TD}>{TIME.format(i.createdAt)}</td>
+                      <td className={TD}>{i.publishedAt ? TIME.format(i.publishedAt) : C.never}</td>
                       <td className={TD}>{i.publicLink?.opensAt ? TIME.format(i.publicLink.opensAt) : C.never}</td>
                       <td className={TD}>{i.publicLink?.closesAt ? TIME.format(i.publicLink.closesAt) : C.never}</td>
-                      <td className={TD}>{i.publicLink && !i.publicLink.revokedAt && (
+                      <td className={TD}>{i.publicLink && !i.publicLink.revokedAt && (noRevoke(p, i.id) !== null ? <span className="text-xs text-ink-muted">{noRevoke(p, i.id)}</span> : (
                         <ConfirmForm action={revokeLinkAction} hidden={{ ...hidden, projectId: p.id, instrumentId: i.id, inviteId: i.publicLink.id }} label={C.revoke} confirmLine={C.confirmRevoke(i.title)} variant="destructive" testId="revoke-form" />
-                      )}</td>
+                      ))}</td>
                     </tr>
                   );
                 })}</tbody>

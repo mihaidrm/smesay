@@ -26,7 +26,7 @@ const PURPOSE = {
   ai_run: 'every call to the model: purpose, tokens, cost in euro cents, duration (E4 budget)',
   export_log: 'every download of an export: who, when, the file, the filter in words, the rows (E10-1, for E11-2)',
   admin_note: 'a support note an admin wrote on a workspace, shown only on its admin page; goes with the workspace (E14-2)',
-  admin_audit: 'one row per admin action, written in the action\'s own transaction; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1)',
+  admin_audit: 'one row per admin action, written before the action runs and marked done, refused or failed after; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1)',
   event: 'one row per product step from the catalogue: name, counts and fixed values, no personal data beyond the user id; no workspace for sign-ups and deletions (E13-1, docs/analytics.md)',
   user: 'better-auth: the signed-in person',
   session: 'better-auth: a browser session',

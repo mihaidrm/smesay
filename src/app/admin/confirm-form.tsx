@@ -1,13 +1,19 @@
 "use client";
-// One admin action as a form with its confirm line (stories/E14-2, acceptance 3): the first press
-// shows the line with Confirm and Cancel instead of acting; Confirm submits to the server action,
-// whose answer (done or refused) shows under the form (useActionState: react.dev/reference/react/
-// useActionState). The confirm line is built from what the form holds when it is pressed, so a
-// plan picked in the select is the plan named. New to the design system: design note 86.
-import { useActionState, useState } from "react";
+// One admin action as a form with its confirm line (stories/E14-2 and E14-3, acceptance 3).
+// The first press shows the line with Confirm and Cancel instead of acting, and the form's
+// fields go inert (html.spec.whatwg.org/multipage/interaction.html#the-inert-attribute) until
+// Confirm or Cancel, so what is sent is what the line named; inert fields are still sent with
+// the form. Confirm sends the form to the server action; its answer (done or refused) shows
+// under the form (useActionState: react.dev/reference/react/useActionState). The action runs
+// from the submit handler in a transition (react.dev/reference/react/startTransition) rather
+// than as the form's action, so a refusal keeps what was typed; after a done line the fields go
+// back to their defaults. New to the design system: design note 86.
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { WORKSPACE_ADMIN_COPY as C } from "@/lib/admin-copy";
-import type { AdminActionState } from "./actions";
+
+// What every admin action answers: a refusal or a done line.
+export type AdminActionState = { error: string | null; done: string | null };
 
 type Props = {
   action: (previous: AdminActionState, formData: FormData) => Promise<AdminActionState>;
@@ -26,21 +32,28 @@ type Props = {
 export function ConfirmForm({ action, hidden, label, confirmLine, valueField, valueLabels, children, testId, variant = "secondary" }: Props) {
   const [state, run, pending] = useActionState(action, { error: null, done: null });
   const [asking, setAsking] = useState<string | null>(null);
+  const form = useRef<HTMLFormElement>(null);
+  useEffect(() => { if (state.done) form.current?.reset(); }, [state]);
   return (
     <form
-      action={(formData) => { setAsking(null); run(formData); }}
+      ref={form}
       onSubmit={(e) => {
-        if (asking !== null) return;
         e.preventDefault();
-        const value = valueField ? String(new FormData(e.currentTarget).get(valueField) ?? "").trim() : "";
-        setAsking(confirmLine.replace("[VALUE]", valueLabels?.[value] ?? value));
+        const data = new FormData(e.currentTarget);
+        if (asking === null) {
+          const value = valueField ? String(data.get(valueField) ?? "").trim() : "";
+          setAsking(confirmLine.replace("[VALUE]", valueLabels?.[value] ?? value));
+          return;
+        }
+        setAsking(null);
+        startTransition(() => run(data));
       }}
       className="flex flex-col gap-2"
       data-testid={testId}
     >
       {Object.entries(hidden).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <div className="flex flex-wrap items-end gap-2">
-        {children}
+        {children && <div className="contents" inert={asking !== null}>{children}</div>}
         {asking === null && <Button type="submit" variant={variant} size="small" disabled={pending}>{label}</Button>}
       </div>
       {asking !== null && (

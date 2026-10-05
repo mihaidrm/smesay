@@ -8,6 +8,9 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "@/db/test-db";
+import { projects } from "@/db/queries";
+import { usage } from "@/db/queries/usage";
+import { listMembersAndInvites } from "@/lib/members";
 import { adminNotes, adminWorkspace, projectVersions, workspaceDirectory, workspaceEvents, workspaceInstruments, workspaceUploads } from "@/db/queries/admin";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -23,7 +26,14 @@ const ownerId = `ws-owner-${stamp}`;
 const memberId = `ws-member-${stamp}`;
 const proof = { checked: "admin", userId: adminId } as AdminProof;
 
-vi.mock("@/lib/admin", () => ({ requireAdmin: async () => ({ session: { user: { id: adminId } }, proof }) }));
+// The admin check: passes, or (admin.signedIn false) refuses as notFound() does, by throwing.
+const admin = vi.hoisted(() => ({ signedIn: true }));
+vi.mock("@/lib/admin", () => ({
+  requireAdmin: async () => {
+    if (!admin.signedIn) throw new Error("NEXT_HTTP_ERROR_FALLBACK;404");
+    return { session: { user: { id: adminId } }, proof };
+  },
+}));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
@@ -115,6 +125,35 @@ describe("the reads", () => {
   });
 });
 
+describe("workspace A and workspace B", () => {
+  it("the admin reads of A never return B's notes, instruments, uploads or events", async () => {
+    const b = await createWorkspaceWithSample({ name: `Other ${stamp}`, slug: `other-${stamp}` }, ownerId);
+    made.push(b.id);
+    const A = (await adminWorkspace(proof, wsId))!.ws, B = (await adminWorkspace(proof, b.id))!.ws;
+    await adminNotes.add(proof, B, adminId, "A note on B only.");
+    const [{ id: p }] = await sql`insert into project (workspace_id, name) values (${b.id}, 'B project') returning id`;
+    await sql`insert into upload (workspace_id, project_id, object_key, filename, kind, byte_size, preview) values (${b.id}, ${p}, 'uploads/x', 'b.csv', 'csv', 10, '{}'::jsonb)`;
+    await sql`insert into event (workspace_id, name) values (${b.id}, 'project_created')`;
+    expect((await adminNotes.list(proof, A)).map((n) => n.text)).not.toContain("A note on B only.");
+    expect((await adminNotes.list(proof, B)).map((n) => n.text)).toEqual(["A note on B only."]);
+    const bInstruments = new Set((await workspaceInstruments(proof, B)).map((i) => i.id));
+    expect((await workspaceInstruments(proof, A)).some((i) => bInstruments.has(i.id))).toBe(false);
+    expect((await workspaceUploads(proof, A)).map((u) => u.filename)).not.toContain("b.csv");
+    expect((await workspaceUploads(proof, B)).map((u) => u.filename)).toEqual(["b.csv"]);
+    expect((await projectVersions(proof, A)).has(p)).toBe(false);
+    const aEvents = await workspaceEvents(proof, A, 100);
+    expect(aEvents.length).toBeLessThan(100);
+    expect((await sql`select count(*)::int as n from event where workspace_id = ${wsId}`)[0].n).toBe(aEvents.length);
+  });
+
+  it("the page's product reads with the admin's WorkspaceId show A's members, projects and usage", async () => {
+    const A = (await adminWorkspace(proof, wsId))!.ws;
+    expect((await listMembersAndInvites(A)).members.map((m) => m.userId).sort()).toEqual([memberId, ownerId].sort());
+    expect((await projects.summaries(A)).map((x) => x.name)).toContain("Expenses");
+    expect((await usage(A)).projects).toBe(1);
+  });
+});
+
 describe("the actions", () => {
   it("change the plan, with its row, and refuse a bad or same plan without one", async () => {
     expect(await actions.changePlanAction(blank, form({ workspaceId: wsId, plan: "gold" }))).toEqual({ error: C.badPlan, done: null });
@@ -122,7 +161,12 @@ describe("the actions", () => {
     expect(await actions.changePlanAction(blank, form({ workspaceId: "00000000-0000-4000-8000-000000000000", plan: "pro" }))).toEqual({ error: C.missing, done: null });
     expect(await actions.changePlanAction(blank, form({ workspaceId: wsId, plan: "team" }))).toEqual({ error: null, done: "Plan changed to Team." });
     expect((await sql`select plan from workspace where id = ${wsId}`)[0].plan).toBe("team");
-    expect(await rows()).toEqual([{ action: "plan_changed", admin_user_id: adminId, changes: { from: "free", to: "team" }, outcome: "done" }]);
+    // The plan it already had is decided inside the action, so it is a refused row; the
+    // malformed and missing ones above are not actions and wrote nothing.
+    expect(await rows()).toEqual([
+      { action: "plan_changed", admin_user_id: adminId, changes: { from: "free", to: "free" }, outcome: "refused" },
+      { action: "plan_changed", admin_user_id: adminId, changes: { from: "free", to: "team" }, outcome: "done" },
+    ]);
   });
 
   it("set the AI budget, with its row", async () => {
@@ -149,6 +193,42 @@ describe("the actions", () => {
     expect((await rows()).at(-1)).toMatchObject({ action: "invite_resent", outcome: "refused" });
   });
 
+  it("refuse a crafted form that names another workspace's link or invitation", async () => {
+    const b = (await workspaceDirectory(proof, { q: `other-${stamp}` }))[0];
+    const B = (await adminWorkspace(proof, b.id))!.ws;
+    const [{ id: p }] = await sql`insert into project (workspace_id, name) values (${b.id}, 'B published') returning id`;
+    const [{ id: s }] = await sql`insert into item_set (workspace_id, project_id, version, source) values (${b.id}, ${p}, 1, 'csv') returning id`;
+    const [{ id: i }] = await sql`insert into instrument (workspace_id, project_id, item_set_id, title, published_at) values (${b.id}, ${p}, ${s}, 'B round', now()) returning id`;
+    const [{ id: link }] = await sql`insert into invite (workspace_id, instrument_id, kind, token, closes_at) values (${b.id}, ${i}, 'public', ${("b" + stamp).padEnd(32, "0")}, now() + interval '7 days') returning id`;
+    const [{ id: inv }] = await sql`insert into workspace_invite (workspace_id, email, role) values (${b.id}, ${`b-${stamp}@marlow.example`}, 'member') returning id`;
+    const sent = memoryOutbox.length;
+    // workspaceId names A, the rest are B's.
+    expect((await actions.revokeLinkAction(blank, form({ workspaceId: wsId, projectId: p, instrumentId: i, inviteId: link }))).error).toBe(C.gone);
+    expect((await sql`select revoked_at from invite where id = ${link}`)[0].revoked_at).toBeNull();
+    expect((await rows()).at(-1)).toMatchObject({ action: "link_revoked", outcome: "refused" });
+    expect((await actions.resendInviteAction(blank, form({ workspaceId: wsId, inviteId: inv }))).error).toBe("This invitation is no longer open. Reload the page to see the current ones.");
+    expect(memoryOutbox.length).toBe(sent);
+    // Not uuids: a malformed form, refused before any row.
+    const before = (await rows()).length;
+    expect((await actions.revokeLinkAction(blank, form({ workspaceId: wsId, projectId: "x", instrumentId: i, inviteId: link }))).error).toBe(C.gone);
+    expect((await rows()).length).toBe(before);
+    expect(B).toBe(b.id);
+  });
+
+  it("do nothing for anyone but an admin", async () => {
+    admin.signedIn = false;
+    try {
+      const before = (await rows()).length;
+      await expect(actions.changePlanAction(blank, form({ workspaceId: wsId, plan: "enterprise" }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+      await expect(actions.addNoteAction(blank, form({ workspaceId: wsId, note: "x" }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+      await expect(actions.restoreAction(blank, form({ workspaceId: wsId }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+      expect((await rows()).length).toBe(before);
+      expect((await sql`select plan from workspace where id = ${wsId}`)[0].plan).not.toBe("enterprise");
+    } finally {
+      admin.signedIn = true;
+    }
+  });
+
   it("revoke a public link through the kill switch", async () => {
     const found = (await adminWorkspace(proof, wsId))!;
     const i = (await workspaceInstruments(proof, found.ws)).find((x) => x.title === "Round one")!;
@@ -163,9 +243,13 @@ describe("the actions", () => {
 
   it("restore a workspace marked deleted, and refuse a live one", async () => {
     expect((await actions.restoreAction(blank, form({ workspaceId: wsId }))).error).toBe(C.notDeleted);
+    expect((await rows()).at(-1)).toMatchObject({ action: "workspace_restored", outcome: "refused" });
     await workspaces.markDeleted((await adminWorkspace(proof, wsId))!.ws, ownerId);
     // A deleted workspace keeps its plan until restored.
     expect((await actions.changePlanAction(blank, form({ workspaceId: wsId, plan: "pro" }))).error).toBe(C.deletedNoChange);
+    // Nor can an invitation be sent again or a link revoked in it.
+    const [{ id: inv }] = await sql`insert into workspace_invite (workspace_id, email, role) values (${wsId}, ${`late-${stamp}@marlow.example`}, 'member') returning id`;
+    expect((await actions.resendInviteAction(blank, form({ workspaceId: wsId, inviteId: inv }))).error).toBe(C.deletedNoChange);
     expect(await actions.restoreAction(blank, form({ workspaceId: wsId }))).toEqual({ error: null, done: C.restored });
     expect((await sql`select deleted_at, deleted_by from workspace where id = ${wsId}`)[0]).toEqual({ deleted_at: null, deleted_by: null });
     expect((await rows()).at(-1)).toMatchObject({ action: "workspace_restored", outcome: "done" });

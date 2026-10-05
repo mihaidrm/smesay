@@ -453,17 +453,17 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Back link and title | All workspaces / [WORKSPACE NAME] |
-| Sections | Marked deleted, Settings, AI budget, Members, Open invitations, Projects, Uploads, Last 20 product events, Support notes |
+| Sections | Marked deleted, Settings, AI budget, Members, Invitations waiting, Projects, Uploads, Last 20 product events, Support notes |
 | Marked deleted | Deleted [DATE, TIME] by [EMAIL]. The removal job deletes it within 24 hours of that; until then it can be restored. |
 | Settings | Slug, Accent (default), Logo (set, none), Plan, Created |
 | AI budget | [EUR N.NN] spent this month of EUR [N]. Seen and set only here (decision 0036). Field: Monthly AI budget in euro |
-| Members | Name, Email, Role (Owner, Member), Joined |
-| Open invitations | Email, Invited, Expires; none: No open invitations. |
-| Projects | [NAME], status, [N] items, version [N] (not set), Archived [DATE]; instruments: Instrument, State (Draft, Published, Closed, Revoked), Built on, Links (public, [N] personal, none), Opens, Closes; none: No projects. |
+| Members | Name, Email, Role (Owner, Member), Joined; none: No members. Members of a deleted workspace can leave it before it is removed. |
+| Invitations waiting | every invitation not accepted: Email, Invited, Link expires ([TIME], or [TIME] (expired)); none: No invitations waiting. |
+| Projects | [NAME], status, [N] items, version [N] (not set), Archived [DATE]; instruments: Instrument, State (Draft, Published, Closed, Revoked), Built on, Links (public, [N] personal, none), Created, Published, Opens, Closes; where the product would refuse a revoke, in place of the button: sample, project archived, replaced by a newer instrument; none: No projects. |
 | Uploads | File, Project, Kind, Size, Uploaded; none: No uploads. |
 | Events | [TIME] [EVENT NAME] [KEY=VALUE]; none: No product events yet. |
 | Support notes | [TIME], [ADMIN EMAIL or deleted] and the text; none: No notes yet. Field: A note for this workspace, seen only here |
 | Buttons | Change the plan, Set the budget, Send again, Revoke the link, Restore the workspace, Add the note; Confirm, Cancel |
-| Confirm lines | Change the plan of [NAME] to [PLAN]? The workspace's limits change at once. / Set the AI budget of [NAME] to EUR [N] a month? / Send the invitation to [EMAIL] again? The old link stops working. / Revoke the public link of [TITLE]? Respondents see that it is no longer active; answers given so far stay. / Restore [NAME]? Its members get it back as it was. / Add this note? It cannot be edited or removed. |
+| Confirm lines | Change the plan of [NAME] to [PLAN]? The workspace's limits change at once. / Set the AI budget of [NAME] to EUR [N] a month? / Send the invitation to [EMAIL] again? They get a new sign-in link; an earlier one still works until it expires. / Revoke the public link of [TITLE]? Respondents see that it is no longer active; answers given so far stay. / Restore [NAME]? Members who have not left it get it back. Files the removal job already deleted do not come back. / Add this note? It cannot be edited or removed. |
 | Done lines | Plan changed to [PLAN]. / AI budget set to EUR [N] a month. / Invitation sent again to [EMAIL]. / Link revoked. / Workspace restored. / Note added. |
 | Refusals | in docs/copy/errors.md, Admin |
