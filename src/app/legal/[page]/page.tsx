@@ -9,7 +9,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Lockup } from "@/components/brand/mark";
+import { notFound } from "next/navigation";
 import { LEGAL_PAGES, LEGAL_TITLES, readLegal, type Inline, type LegalPage } from "@/lib/legal";
+
+// Rendered per request, dynamicParams false does not stop an unknown name reaching the page
+// (CI on E11-5: /legal/cookies read docs/legal/cookies.md and answered 500), so the page checks
+// the name against the four itself and answers 404.
+const known = (page: string): page is LegalPage => (LEGAL_PAGES as readonly string[]).includes(page);
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -18,7 +24,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ page: string }> }): Promise<Metadata> {
   const { page } = await params;
-  return { title: `${LEGAL_TITLES[page as LegalPage]} · SMEsay` };
+  return known(page) ? { title: `${LEGAL_TITLES[page]} · SMEsay` } : {};
 }
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -32,7 +38,8 @@ function Parts({ parts }: { parts: Inline[] }) {
 
 export default async function LegalPageView({ params }: { params: Promise<{ page: string }> }) {
   const { page } = await params;
-  const doc = readLegal(page as LegalPage);
+  if (!known(page)) notFound();
+  const doc = readLegal(page);
   return (
     <main className="mx-auto flex min-h-screen max-w-[760px] flex-col gap-6 bg-ground px-4 py-10 text-ink md:px-8">
       <Link href="/" aria-label="SMEsay home"><Lockup /></Link>
