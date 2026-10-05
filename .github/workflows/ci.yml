@@ -73,6 +73,12 @@ jobs:
       - run: npm run check:bundle
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      # Backup, then restore into a new empty database and compare every table's row count
+      # (stories/E11-4, acceptance 5). The Postgres tools run from the postgres:16-alpine image,
+      # on the host's network, so they match the service's version.
+      - run: npm run backup:check
+        env:
+          PG_TOOLS: docker
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

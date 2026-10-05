@@ -13,8 +13,9 @@ Multi-tenancy
   owner's email (E11-2). Outside src/db the lint rule lets only src/lib/workspace.ts (the
   membership check), src/lib/ai/client.ts with its test, src/lib/insights.test.ts (which sets a
   workspace budget, E9-3) and src/lib/workspace-removal.ts (the removal job) import that module. Scripts
-  outside src/ (scripts/ai-smoke.ts, evals/run.ts) read the database directly for their own
-  throwaway rows; they never run in the app.
+  outside src/ read the database directly and never run in the app: scripts/ai-smoke.ts and
+  evals/run.ts for their own throwaway rows, and the backup scripts (scripts/backup-tools.ts,
+  scripts/backup-check.ts), which read every workspace's rows and objects to copy them.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
 
 Public links and respondents
@@ -110,7 +111,9 @@ Headers and transport
 
 Dependencies and backups
 - `npm audit` clean of high and critical at release; lockfile committed.
-- Nightly backups; one restore into a fresh database performed and documented before launch.
+- Nightly backups; one restore into a fresh database performed and documented before launch
+  (E11-4: `npm run backup`, `npm run restore`, docs/runbooks/backup-restore.md; CI backs up,
+  restores into an empty database and compares every table's row count on every push).
 
 Mode script
 - src/app/layout.tsx puts one inline script in the head to set the dark class before paint.

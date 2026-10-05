@@ -39,6 +39,16 @@ npm run build
 npm run test:e2e         # Playwright, one test per user-facing flow; export DATABASE_URL first (e2e/results-conflict.spec.ts adds respondents to the sample)
 ```
 
+Data, by hand (stories/E11-2 and E11-4; docs/runbooks/backup-restore.md):
+
+```
+npm run backup           # the database and the bucket to BACKUP_PATH, in a folder named by its time
+npm run restore -- [DIR] # into the empty database DATABASE_URL names, after its name is typed
+npm run backup:check     # backup, restore into a new empty database, compare the row counts (CI runs it)
+npm run jobs:purge       # remove the workspaces deleted in Settings, their rows and files
+npm run legal:markers    # the lawyer's markers in docs/legal/ (stories/E11-3)
+```
+
 On a machine with a preinstalled Chromium and no download access, set
 `PLAYWRIGHT_CHROMIUM_PATH` to its path before `npm run test:e2e`. The app reads the same variable
 at run time: the PDF summary (stories/E10-3) prints with that Chromium, else with the one
