@@ -44,6 +44,18 @@ row count, the number of objects), and prints the counts.
 
         $env:DATABASE_URL="postgres://smesay:smesay@localhost:5432/smesay_restore"; npm run restore -- ./backups/[FOLDER]; Remove-Item Env:DATABASE_URL
 
+   In the Windows Command Prompt (a prompt like `C:\Users\[NAME]\smesay>`), the same in three
+   lines; the `$env:` form fails there with "The filename, directory name, or volume label
+   syntax is incorrect.":
+
+        set DATABASE_URL=postgres://smesay:smesay@localhost:5432/smesay_restore
+        npm run restore -- ./backups/[FOLDER]
+        set DATABASE_URL=
+
+   The variable set in the window wins over the one in `.env.local`: the script loads the file
+   with Node's `--env-file-if-exists`, and a variable already in the environment takes
+   precedence (nodejs.org/api/cli.html, --env-file).
+
 3. Type the database's name when asked (the prompt does not show it). A database that holds any
    table, sequence, index or type is refused.
 
@@ -62,10 +74,11 @@ To make the restored database the app's, point `DATABASE_URL` at it in `.env.loc
 |---|---|---|---|---|---|---|---|
 | 2026-10-04 23:27 | The Claude Code cloud session (Postgres 16.14, tools on the PATH) into a fresh database | 4.3 MB, the dump 4,482,017 bytes | 20 | 78,114 | 78,114 | 0 (the session's bucket is in memory) | 1.0 s |
 | 2026-10-04 23:57 | The cloud session, `npm run backup:check` after the audit fixes (the migration log now counted, one probe object) | the dump 4,489,909 bytes | 21 | 78,283 | 78,283 | 1 | 0.8 s |
-| [DATE] | Mihai's PC, with compose, into a fresh database | | | | | | |
+| 2026-10-05 15:59 | Mihai's PC (Windows, Command Prompt), Postgres from compose, into a fresh database | backups/2026-10-05T15-59-00Z | 24 | 340 | 340 | 0 of 4 (the app's bucket is in use, so the restore skipped them by design) | 0.8 s |
 
-The last row is Mihai's to fill (SECURITY.md: one restore performed and documented before
-launch): run the backup, create `smesay_restore`, run the restore, and write the line.
+The last row is the restore on Mihai's PC that SECURITY.md asks for before launch (one
+restore performed and documented). The objects part is proved by `npm run backup:check` in CI,
+which restores into an empty bucket on every push.
 
 ## Every night at the launch gate
 
