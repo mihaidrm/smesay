@@ -31,7 +31,8 @@ test("respondent screens for the board", async ({ page, request, browser }) => {
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
-  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  // Naming it seeds the sample project, which can take more than the default 5 seconds on CI.
+  await expect(page).toHaveURL(/\/app\/quickstart$/, { timeout: 15_000 });
   // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
   await expect(page.getByTestId("quickstart")).toBeVisible();
   await page.goto("/app");
