@@ -18,6 +18,9 @@ const TOKEN = "0123456789abcdef0123456789abcdef";
 // Tables without workspace_id: the identity tables better-auth owns (a user exists before any
 // workspace; decision 0028, accepted 2026-10-02).
 const AUTH_TABLES = ["user", "session", "account", "verification"];
+// The one application table without workspace_id besides those (stories/E14-1): the admin audit
+// log names its target in a column, with no foreign key, so a row outlives its target.
+const UNSCOPED_TABLES = ["admin_audit"];
 const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event"];
 // Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
 const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by"];
@@ -51,7 +54,7 @@ afterAll(async () => { await sql.end(); });
 
 describe("migrations", () => {
   it("create every table of docs/schema.md and nothing else", async () => {
-    expect(await tableNames()).toEqual([...APP_TABLES, ...AUTH_TABLES].sort());
+    expect(await tableNames()).toEqual([...APP_TABLES, ...AUTH_TABLES, ...UNSCOPED_TABLES].sort());
   });
 
   it("apply nothing the second time", async () => {

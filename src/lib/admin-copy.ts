@@ -1,5 +1,5 @@
 // The admin page's words (stories/E13-2; docs/copy/app.md, Admin). Mihai's page only.
-import type { FunnelStep } from "@/db/types";
+import type { AdminAction, AuditChanges, FunnelStep } from "@/db/types";
 
 export const ADMIN_COPY = {
   title: "Overview",
@@ -26,3 +26,43 @@ export const ADMIN_COPY = {
 
 // The share of the step before, as a percentage; nothing when the step before is 0.
 export const share = (n: number, before: number): string => (before === 0 ? "" : `${Math.round((n / before) * 100)}%`);
+
+// The admin shell (stories/E14-1, acceptance 2).
+export const ADMIN_SHELL_COPY = {
+  area: "Admin",
+  nav: "Admin pages",
+  overview: "Overview",
+  workspaces: "Workspaces",
+  people: "People",
+  audit: "Audit log",
+  back: "Back to the app",
+};
+
+// The audit log (stories/E14-1, acceptance 4).
+export const AUDIT_COPY = {
+  crumb: "SMEsay admin",
+  title: "Audit log",
+  intro: "Every action an admin took, newest first. Each row was written with its action, so nothing here happened without a row.",
+  workspace: "Workspace",
+  admin: "Admin",
+  all: "All",
+  apply: "Show",
+  clear: "Clear the filters",
+  columns: { time: "Time (UTC)", admin: "Admin", action: "Action", target: "Workspace or person", changes: "What changed" },
+  actions: {
+    plan_changed: "Changed the plan", ai_budget_set: "Set the AI budget", invite_resent: "Sent an invitation again", link_revoked: "Revoked a link",
+    workspace_restored: "Restored the workspace", note_added: "Added a support note", magic_link_sent: "Sent a sign-in link", signed_out_everywhere: "Signed the person out everywhere",
+    member_removed: "Removed a member", account_deleted: "Deleted the account", view_started: "Started viewing as the owner", view_stopped: "Stopped viewing",
+  } satisfies Record<AdminAction, string>,
+  deleted: "deleted",
+  none: "No admin actions yet.",
+  noneFiltered: "No admin actions match these filters.",
+  pageOf: (page: number, pages: number, total: number) => `Page ${page} of ${pages}, ${total} ${total === 1 ? "action" : "actions"}`,
+  newer: "Newer",
+  older: "Older",
+  loading: "Loading the audit log",
+};
+
+// The changes of a row as one line: key: value pairs, in the order written.
+export const auditChanges = (changes: AuditChanges): string =>
+  Object.entries(changes).map(([k, v]) => `${k}: ${v === null ? "none" : String(v)}`).join(", ");

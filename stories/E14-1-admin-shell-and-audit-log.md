@@ -1,7 +1,7 @@
 # E14-1 Admin shell and the audit log
 
 User: Mihai, helping a workspace that wrote in
-Status: ready
+Status: built
 Outcome: one /admin area with a navigation, served only to the admin emails, where every
 action an admin takes is recorded and listed.
 

@@ -699,3 +699,18 @@ src/db/queries/events.ts (used by wasFirst); goalBody(config, name, url) and SIG
 in src/lib/plausible.ts; sendClientGoal(goal) in src/components/analytics/goal-link.tsx; workspace.firstSource (text, null), set by
 createWorkspaceWithSample({ name, slug, firstSource }); AdminWorkspace gains firstSource.
 
+Admin audit (E14-1): ADMIN_ACTIONS in src/db/types.ts (plan_changed, ai_budget_set,
+invite_resent, link_revoked, workspace_restored, note_added, magic_link_sent,
+signed_out_everywhere, member_removed, account_deleted, view_started, view_stopped) and
+AdminAction. Table admin_audit { id, adminUserId, action (AdminAction), targetWorkspaceId (uuid,
+null), targetUserId (text, null), changes (jsonb Record<string, string | number | boolean |
+null>), createdAt }: no foreign keys, so a row outlives its target and its admin; at least one
+target. inTransaction(fn) in src/db/index.ts runs fn with every use of db inside one
+transaction. In src/db/queries/admin.ts: audited(proof, { adminUserId, action,
+targetWorkspaceId?, targetUserId?, changes? }, fn): fn's result, fn and the row in one
+transaction (the row written after fn; a refused row rolls fn back); auditLog(proof, { page,
+workspaceId?, adminUserId? }): { rows: AuditRow[] { id, action, adminEmail (null when the user
+is gone), targetWorkspaceId, targetWorkspaceName, targetUserId, targetUserEmail (null when gone),
+changes, createdAt }, total } newest first, AUDIT_PAGE 50 per page; auditFilters(proof): {
+workspaces: { id, name }[], admins: { id, email }[] } from the rows.
+

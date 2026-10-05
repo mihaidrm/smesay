@@ -5,10 +5,11 @@
 // (src/db/queries/usage.ts, E2-6), so the numbers are the customers' own. Counts are computed
 // in SQL (CLAUDE.md, dashboard rules): date_trunc('week') starts weeks on Monday, the ISO week
 // (postgresql.org/docs/current/functions-datetime.html, date_trunc).
-import { and, count, eq, gte, inArray, isNotNull, isNull, max, or, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { event, instrument, project, response, workspace, workspaceMember } from "@/db/schema";
-import { FUNNEL_STEPS, type AdminProof, type FunnelStep } from "@/db/types";
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, max, or, sql, type SQL } from "drizzle-orm";
+import { db, inTransaction } from "@/db";
+import { adminAudit, event, instrument, project, response, user, workspace, workspaceMember } from "@/db/schema";
+import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type FunnelStep } from "@/db/types";
+import { alias } from "drizzle-orm/pg-core";
 import { usageByWorkspace } from "./usage";
 
 export const FUNNEL_WEEKS = 12;
@@ -86,3 +87,65 @@ export async function totals(proof: AdminProof): Promise<AdminTotals> {
   ]);
   return { workspaces: w.n, projects: p.n, published: i.n, submitted: r.n };
 }
+
+export type AuditEntry = { adminUserId: string; action: AdminAction; targetWorkspaceId?: string | null; targetUserId?: string | null; changes?: AuditChanges };
+
+// An admin action and its audit row in one transaction (stories/E14-1, acceptance 3): fn runs
+// first, through the product's own helpers (every use of db inside goes to the transaction,
+// src/db/index.ts inTransaction), then the row is written; a refused row, or a throw from fn,
+// rolls both back, so an action without its row cannot happen.
+export async function audited<T>(proof: AdminProof, entry: AuditEntry, fn: () => Promise<T>): Promise<T> {
+  checked(proof);
+  return inTransaction(async () => {
+    const result = await fn();
+    await db.insert(adminAudit).values({
+      adminUserId: entry.adminUserId,
+      action: entry.action,
+      targetWorkspaceId: entry.targetWorkspaceId ?? null,
+      targetUserId: entry.targetUserId ?? null,
+      changes: entry.changes ?? {},
+    });
+    return result;
+  });
+}
+
+export const AUDIT_PAGE = 50;
+
+export type AuditRow = { id: string; action: AdminAction; adminEmail: string | null; targetWorkspaceId: string | null; targetWorkspaceName: string | null; targetUserId: string | null; targetUserEmail: string | null; changes: AuditChanges; createdAt: Date };
+
+// Newest first, AUDIT_PAGE rows a page (page 1 is the first), filtered by target workspace and
+// by admin (acceptance 4). A target or an admin removed since shows as null, which the page
+// prints as "deleted". Ids that are not uuids match nothing rather than failing the query.
+export async function auditLog(proof: AdminProof, opts: { page: number; workspaceId?: string | null; adminUserId?: string | null }): Promise<{ rows: AuditRow[]; total: number }> {
+  checked(proof);
+  const where: SQL[] = [];
+  if (opts.workspaceId) where.push(isUuid(opts.workspaceId) ? eq(adminAudit.targetWorkspaceId, opts.workspaceId) : sql`false`);
+  if (opts.adminUserId) where.push(eq(adminAudit.adminUserId, opts.adminUserId));
+  const filter = where.length ? and(...where) : undefined;
+  const page = Math.max(1, Math.floor(opts.page) || 1);
+  const admin = alias(user, "admin_user"), target = alias(user, "target_user");
+  const [rows, [{ n }]] = await Promise.all([
+    db.select({
+      id: adminAudit.id, action: adminAudit.action, adminEmail: admin.email, targetWorkspaceId: adminAudit.targetWorkspaceId, targetWorkspaceName: workspace.name,
+      targetUserId: adminAudit.targetUserId, targetUserEmail: target.email, changes: adminAudit.changes, createdAt: adminAudit.createdAt,
+    }).from(adminAudit)
+      .leftJoin(admin, eq(admin.id, adminAudit.adminUserId))
+      .leftJoin(target, eq(target.id, adminAudit.targetUserId))
+      .leftJoin(workspace, eq(workspace.id, adminAudit.targetWorkspaceId))
+      .where(filter).orderBy(desc(adminAudit.createdAt), desc(adminAudit.id)).limit(AUDIT_PAGE).offset((page - 1) * AUDIT_PAGE),
+    db.select({ n: count() }).from(adminAudit).where(filter),
+  ]);
+  return { rows, total: n };
+}
+
+// The filter choices: the workspaces and admins that appear in the log, by name and email.
+export async function auditFilters(proof: AdminProof): Promise<{ workspaces: { id: string; name: string }[]; admins: { id: string; email: string }[] }> {
+  checked(proof);
+  const [workspaces, admins] = await Promise.all([
+    db.selectDistinct({ id: workspace.id, name: workspace.name }).from(adminAudit).innerJoin(workspace, eq(workspace.id, adminAudit.targetWorkspaceId)).orderBy(workspace.name, workspace.id),
+    db.selectDistinct({ id: user.id, email: user.email }).from(adminAudit).innerJoin(user, eq(user.id, adminAudit.adminUserId)).orderBy(user.email),
+  ]);
+  return { workspaces, admins };
+}
+
+const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
