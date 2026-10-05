@@ -50,3 +50,19 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
   }
   return report;
 }
+
+// How long SMEsay keeps what has no other end (decision 0054; docs/legal/privacy.md, and the
+// review sheet docs/legal/lawyer-review.md where the lawyer checks each period). The same hourly
+// job deletes past these, so the privacy page's periods are what the code does: ended sessions
+// and expired sign-in links at the next run, usage events after EVENT_RETENTION_MONTHS and admin
+// log rows after AUDIT_RETENTION_MONTHS. Counts are logged; no id, name or email.
+export const EVENT_RETENTION_MONTHS = 25;
+export const AUDIT_RETENTION_MONTHS = 24;
+
+const monthsBefore = (now: Date, months: number) => { const d = new Date(now); d.setUTCMonth(d.getUTCMonth() - months); return d; };
+
+export async function purgeExpired(now = new Date()): Promise<{ sessions: number; links: number; events: number; audit: number }> {
+  const counts = await internal.purgeExpired(now, monthsBefore(now, EVENT_RETENTION_MONTHS), monthsBefore(now, AUDIT_RETENTION_MONTHS));
+  log("info", "jobs:purge removed expired records.", { detail: `sessions ${counts.sessions}, sign-in links ${counts.links}, events ${counts.events}, admin log rows ${counts.audit}` });
+  return counts;
+}

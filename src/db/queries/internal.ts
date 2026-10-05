@@ -3,9 +3,10 @@
 // eslint-rules/db-access.mjs names. Lint keeps this
 // module out of every other file (eslint-rules/db-access.mjs), and the index barrel does not
 // export it, so a route cannot reach a workspace by a bare id.
-import { and, eq, gte, inArray, isNotNull, sum } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, lt, sum } from "drizzle-orm";
 import { db } from "@/db";
-import { aiRun, project, response, user, workspace } from "@/db/schema";
+import { session, verification } from "@/db/auth-schema";
+import { adminAudit, aiRun, event, project, response, user, workspace } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
 import { isUuid } from "./scoped";
@@ -21,6 +22,15 @@ export const internal = {
   // whose owner is attached by E2's first sign-in.
   createEmptyWorkspace: async (data: NewWorkspace & { id?: string }): Promise<Workspace> =>
     (await db.insert(workspace).values(data).returning())[0],
+  // What has passed its retention (decision 0054, docs/legal/privacy.md), deleted by the hourly
+  // job: sessions that have ended, sign-in links that have expired, usage events older than
+  // eventsBefore and admin log rows older than auditBefore. Counts per table, no ids.
+  purgeExpired: async (now: Date, eventsBefore: Date, auditBefore: Date): Promise<{ sessions: number; links: number; events: number; audit: number }> => ({
+    sessions: (await db.delete(session).where(lt(session.expiresAt, now)).returning({ id: session.id })).length,
+    links: (await db.delete(verification).where(lt(verification.expiresAt, now)).returning({ id: verification.id })).length,
+    events: (await db.delete(event).where(lt(event.createdAt, eventsBefore)).returning({ id: event.id })).length,
+    audit: (await db.delete(adminAudit).where(lt(adminAudit.createdAt, auditBefore)).returning({ id: adminAudit.id })).length,
+  }),
   // The removal job (stories/E11-2, acceptance 3): every workspace marked deleted, with the email
   // of the owner who deleted it.
   deletedWorkspaces: async (): Promise<DeletedWorkspace[]> =>
