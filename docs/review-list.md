@@ -376,3 +376,9 @@ a change.
 | 2026-10-05 | The audit rows keep the ids of a removed workspace or deleted account (no names, no emails); the privacy policy says so, with a lawyer marker | docs/legal/privacy.md | For the lawyer |
 | 2026-10-05 | The admin nav gains each item with its page (Workspaces with E14-2, People with E14-3), so E14-1 alone shows Overview and Audit log (story amended) | src/app/admin/layout.tsx | |
 | 2026-10-05 | The audit log's times are in UTC, like the funnel's weeks | src/app/admin/audit/page.tsx | Your time zone instead? |
+| 2026-10-05 | The admin Workspaces list includes deleted workspaces, marked under the name, so one deleted by mistake can be found and restored | src/app/admin/workspaces/page.tsx | |
+| 2026-10-05 | A deleted workspace cannot change plan until restored; the AI budget can still be set | src/app/admin/workspaces/[id]/actions.ts | |
+| 2026-10-05 | The admin's resend keeps the member who first invited as the sender, and counts toward the workspace's invite limit like any invite | src/lib/members.ts resendInvite | |
+| 2026-10-05 | A restore after the removal job has started on the files (logo, uploads) but before the rows go gives back the workspace without those files; the job runs files first, rows second | src/lib/workspace-removal.ts | Rare: restore within the hour of deleting |
+| 2026-10-05 | Support notes cannot be edited or removed; the confirm line says so | src/app/admin/workspaces/[id]/page.tsx | |
+| 2026-10-05 | The AI budget the admin sets is a whole number of euro from 0 to 10000 | src/db/queries/admin.ts AI_BUDGET_MAX_EUR | |

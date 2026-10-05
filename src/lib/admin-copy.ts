@@ -1,5 +1,5 @@
 // The admin page's words (stories/E13-2; docs/copy/app.md, Admin). Mihai's page only.
-import type { AdminAction, AuditChanges, AuditOutcome, FunnelStep } from "@/db/types";
+import type { AdminAction, AuditChanges, AuditOutcome, FunnelStep, PlanKey } from "@/db/types";
 
 export const ADMIN_COPY = {
   title: "Overview",
@@ -71,3 +71,96 @@ export const AUDIT_COPY = {
 // its own key order, not the order written: postgresql.org/docs/current/datatype-json.html).
 export const auditChanges = (changes: AuditChanges): string =>
   Object.entries(changes).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}: ${v === null ? "none" : String(v)}`).join(", ");
+
+// An instrument's state on the admin workspace page (stories/E14-2, acceptance 2): a draft until
+// published; then its public link in force decides: revoked, closed (the close date passed) or
+// published.
+export type InstrumentState = "draft" | "published" | "closed" | "revoked";
+export function instrumentState(publishedAt: Date | null, link: { closesAt: Date | null; revokedAt: Date | null } | null, now = new Date()): InstrumentState {
+  if (!publishedAt) return "draft";
+  if (link?.revokedAt) return "revoked";
+  if (link?.closesAt && link.closesAt <= now) return "closed";
+  return "published";
+}
+
+export const formatBytes = (n: number): string => (n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`);
+
+const WORKSPACE_PLAN_NAMES: Record<PlanKey, string> = { free: "Free", pro: "Pro", team: "Team", enterprise: "Enterprise" };
+
+// The Workspaces list and a workspace's admin page (stories/E14-2).
+export const WORKSPACE_ADMIN_COPY = {
+  crumb: "SMEsay admin",
+  listTitle: "Workspaces",
+  listIntro: "Every workspace, deleted ones too, by last activity. The figures leave the sample projects out.",
+  search: "Name, slug or a member's email",
+  searchButton: "Search",
+  clear: "Clear",
+  columns: { name: "Name", plan: "Plan", created: "Created", owners: "Owners", members: "Members", projects: "Projects", published: "Published", responses: "Responses this month", cost: "AI cost this month", last: "Last activity" },
+  deletedOn: (date: string) => `Deleted ${date}`,
+  none: "No workspaces yet.",
+  noMatch: (q: string) => `No workspace matches "${q}".`,
+  loading: "Loading the workspaces",
+  back: "All workspaces",
+  sections: { settings: "Settings", budget: "AI budget", members: "Members", invites: "Open invitations", projects: "Projects", uploads: "Uploads", events: "Last 20 product events", notes: "Support notes", deleted: "Marked deleted" },
+  settings: { slug: "Slug", accent: "Accent", logo: "Logo", logoSet: "set", logoNone: "none", accentNone: "default", plan: "Plan", created: "Created" },
+  deletedLine: (when: string, by: string | null) => `Deleted ${when}${by ? ` by ${by}` : ""}. The removal job deletes it within 24 hours of that; until then it can be restored.`,
+  budgetLine: (spent: string, budget: number) => `${spent} spent this month of EUR ${budget}. Seen and set only here (decision 0036).`,
+  budgetLabel: "Monthly AI budget in euro",
+  planLabel: "Plan",
+  // The plans' names as src/lib/plans.ts PLANS has them (a test keeps the two equal); written
+  // here because the confirm form is a client component and plans.ts reads the database.
+  plans: WORKSPACE_PLAN_NAMES,
+  memberColumns: { name: "Name", email: "Email", role: "Role", joined: "Joined" },
+  roles: { owner: "Owner", member: "Member" },
+  inviteColumns: { email: "Email", invited: "Invited", expires: "Expires" },
+  noInvites: "No open invitations.",
+  projectColumns: { name: "Project", status: "Status", items: "Items", version: "Latest version", archived: "Archived" },
+  noProjects: "No projects.",
+  instrumentColumns: { title: "Instrument", state: "State", link: "Links", opens: "Opens", closes: "Closes", version: "Built on" },
+  states: { draft: "Draft", published: "Published", closed: "Closed", revoked: "Revoked" } satisfies Record<InstrumentState, string>,
+  links: (pub: boolean, personal: number) => [pub ? "public" : null, personal ? `${personal} personal` : null].filter(Boolean).join(", ") || "none",
+  version: (v: number) => `version ${v}`,
+  uploadColumns: { file: "File", kind: "Kind", size: "Size", date: "Uploaded" },
+  noUploads: "No uploads.",
+  noEvents: "No product events yet.",
+  noNotes: "No notes yet.",
+  deletedAdmin: "deleted",
+  items: (n: number) => `${n} ${n === 1 ? "item" : "items"}`,
+  noteLabel: "A note for this workspace, seen only here",
+  yes: "yes",
+  no: "no",
+  never: "not set",
+  // The action buttons, each with its confirm line (acceptance 3).
+  changePlan: "Change the plan",
+  confirmPlan: (name: string) => `Change the plan of ${name} to [VALUE]? The workspace's limits change at once.`,
+  setBudget: "Set the budget",
+  confirmBudget: (name: string) => `Set the AI budget of ${name} to EUR [VALUE] a month?`,
+  resend: "Send again",
+  confirmResend: (email: string) => `Send the invitation to ${email} again? The old link stops working.`,
+  revoke: "Revoke the link",
+  confirmRevoke: (title: string) => `Revoke the public link of ${title}? Respondents see that it is no longer active; answers given so far stay.`,
+  restore: "Restore the workspace",
+  confirmRestore: (name: string) => `Restore ${name}? Its members get it back as it was.`,
+  addNote: "Add the note",
+  confirmNote: "Add this note? It cannot be edited or removed.",
+  confirm: "Confirm",
+  cancel: "Cancel",
+  // Results and refusals (docs/copy/errors.md, Admin).
+  planDone: (plan: PlanKey) => `Plan changed to ${WORKSPACE_PLAN_NAMES[plan]}.`,
+  budgetDone: (eur: number) => `AI budget set to EUR ${eur} a month.`,
+  resent: (email: string) => `Invitation sent again to ${email}.`,
+  revoked: "Link revoked.",
+  restored: "Workspace restored.",
+  noted: "Note added.",
+  missing: "This workspace no longer exists. Go back to the list.",
+  gone: "This changed in the meantime. Reload the page and try again.",
+  failed: "That did not work, and it has been logged. Try again in a minute.",
+  badPlan: "Pick a plan from the list.",
+  samePlan: "The workspace is already on this plan.",
+  deletedNoChange: "This workspace is marked deleted. Restore it first.",
+  badBudget: "Enter a whole number of euro from 0 to 10000.",
+  sameBudget: "The budget is already this amount.",
+  notDeleted: "This workspace is not marked deleted, or the removal job has already removed it.",
+  emptyNote: "Write the note first.",
+  longNote: "Notes are up to 2,000 characters. Shorten it and add it again.",
+};

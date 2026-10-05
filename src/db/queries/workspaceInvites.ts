@@ -15,7 +15,7 @@ export const workspaceInvites = {
   // One row per address: the old invitation (open, expired or accepted) goes and the new one
   // comes in the same transaction, so two invites to one address at once cannot collide on the
   // unique index. The address is stored in lower case.
-  replace: async (workspaceId: WorkspaceId, data: { email: string; role: MemberRole; invitedBy: string }): Promise<WorkspaceInvite> =>
+  replace: async (workspaceId: WorkspaceId, data: { email: string; role: MemberRole; invitedBy: string | null }): Promise<WorkspaceInvite> =>
     db.transaction(async (tx) => {
       const email = data.email.toLowerCase();
       await tx.delete(workspaceInvite).where(and(eq(workspaceInvite.workspaceId, workspaceId), eq(workspaceInvite.email, email)));

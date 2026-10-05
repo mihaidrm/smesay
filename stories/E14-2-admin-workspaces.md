@@ -1,7 +1,7 @@
 # E14-2 Workspaces: what a workspace has, and the support actions
 
 User: Mihai, answering "why can't I..." from a workspace owner
-Status: ready
+Status: built
 Outcome: one page per workspace with everything an admin needs to see to help, and the few
 actions that help, each audited.
 

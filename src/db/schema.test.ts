@@ -21,9 +21,9 @@ const AUTH_TABLES = ["user", "session", "account", "verification"];
 // The one application table without workspace_id besides those (stories/E14-1): the admin audit
 // log names its target in a column, with no foreign key, so a row outlives its target.
 const UNSCOPED_TABLES = ["admin_audit"];
-const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event"];
+const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event", "admin_note"];
 // Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
-const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by"];
+const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by", "admin_user_id"];
 
 type Fk = { table_name: string; constraint_name: string; columns: string[]; ref_table: string; ref_columns: string[] };
 async function foreignKeys(): Promise<Fk[]> {

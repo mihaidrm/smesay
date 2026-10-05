@@ -718,3 +718,20 @@ targetUserEmail (null when gone), changes, createdAt }, total, page } newest fir
 name or null }[], admins: { id, email or null }[] } from the rows. requireAdmin() is cached per
 request.
 
+Admin workspaces (E14-2): in src/db/queries/admin.ts, workspaceDirectory(proof, { q }, now):
+AdminDirectoryRow[] { id, name, slug, plan, createdAt, deletedAt, owners (emails), members,
+projects, published, responsesThisMonth, aiCostCentsThisMonth, lastActivity } sorted by last
+activity, deleted workspaces included, q matching name, slug or a member's email;
+adminWorkspace(proof, id): { ws: WorkspaceId, workspace } or null (deleted ones too);
+workspaceInstruments(proof, ws): AdminInstrument[] { id, projectId, title, publishedAt,
+createdAt, version, publicLink ({ id, opensAt, closesAt, revokedAt } or null), personalLinks };
+workspaceUploads(proof, ws): { id, projectId, filename, kind, byteSize, createdAt }[];
+workspaceEvents(proof, ws, limit): { name, properties, createdAt }[] newest first;
+adminNotes.list(proof, ws) and adminNotes.add(proof, ws, adminUserId, text): AdminNote { id,
+adminEmail, text, createdAt }. Table admin_note { id, workspaceId, adminUserId, text, createdAt }.
+workspaces.restoreDeleted(ws): Workspace or null (clears deletedAt and deletedBy while the row
+is still marked deleted). sendWorkspaceInvite(ws, { email, invitedBy, headers }) and
+resendInvite(ws, inviteId, headers) in src/lib/members.ts (inviteMember keeps its role check
+and calls the first). instrumentState(publishedAt, publicLink, now): "draft" | "published" |
+"closed" | "revoked" in src/lib/admin-copy.ts.
+

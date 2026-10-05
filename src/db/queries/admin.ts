@@ -5,13 +5,16 @@
 // (src/db/queries/usage.ts, E2-6), so the numbers are the customers' own. Counts are computed
 // in SQL (CLAUDE.md, dashboard rules): date_trunc('week') starts weeks on Monday, the ISO week
 // (postgresql.org/docs/current/functions-datetime.html, date_trunc).
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, max, or, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, exists, gte, ilike, inArray, isNotNull, isNull, max, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAudit, event, instrument, project, response, user, workspace, workspaceMember } from "@/db/schema";
-import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FunnelStep } from "@/db/types";
+import { adminAudit, adminNote, event, instrument, invite, itemSet, project, response, upload, user, workspace, workspaceMember } from "@/db/schema";
+import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FunnelStep, type WorkspaceId } from "@/db/types";
 import { alias } from "drizzle-orm/pg-core";
 import { log } from "@/lib/log";
+import { internal } from "./internal";
+import { unsafeWorkspaceId } from "./scoped";
 import { usageByWorkspace } from "./usage";
+import type { Workspace } from "./workspaces";
 
 export const FUNNEL_WEEKS = 12;
 
@@ -180,3 +183,107 @@ export async function auditFilters(proof: AdminProof): Promise<{ workspaces: { i
 }
 
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
+export type AdminDirectoryRow = { id: string; name: string; slug: string; plan: Workspace["plan"]; createdAt: Date; deletedAt: Date | null; owners: string[]; members: number; projects: number; published: number; responsesThisMonth: number; aiCostCentsThisMonth: number; lastActivity: Date };
+
+// The Workspaces page (stories/E14-2, acceptance 1): every workspace, the deleted ones too (with
+// deletedAt), by last activity; q matches the name, the slug or a member's email, in any case,
+// as typed (% and _ are matched as themselves). The usage figures are E2-6's, as on the
+// Overview. One query per figure for all the rows, never one per workspace.
+export async function workspaceDirectory(proof: AdminProof, opts: { q?: string | null } = {}, now = new Date()): Promise<AdminDirectoryRow[]> {
+  checked(proof);
+  const q = (opts.q ?? "").trim().slice(0, 200);
+  const like = `%${q.replace(/[\\%_]/g, (c) => "\\" + c)}%`;
+  const match = q ? or(ilike(workspace.name, like), ilike(workspace.slug, like), exists(db.select({ one: sql`1` }).from(workspaceMember).innerJoin(user, eq(user.id, workspaceMember.userId)).where(and(eq(workspaceMember.workspaceId, workspace.id), ilike(user.email, like))))) : undefined;
+  const list = await db.select({ id: workspace.id, name: workspace.name, slug: workspace.slug, plan: workspace.plan, createdAt: workspace.createdAt, deletedAt: workspace.deletedAt }).from(workspace).where(match);
+  if (list.length === 0) return [];
+  const ids = list.map((w) => w.id);
+  const [people, published, activity, used] = await Promise.all([
+    db.select({ id: workspaceMember.workspaceId, role: workspaceMember.role, email: user.email }).from(workspaceMember).innerJoin(user, eq(user.id, workspaceMember.userId)).where(inArray(workspaceMember.workspaceId, ids)).orderBy(user.email),
+    db.select({ id: instrument.workspaceId, n: count() }).from(instrument).innerJoin(project, and(eq(project.id, instrument.projectId), eq(project.workspaceId, instrument.workspaceId)))
+      .where(and(inArray(instrument.workspaceId, ids), isNotNull(instrument.publishedAt), eq(project.isSample, false))).groupBy(instrument.workspaceId),
+    db.select({ id: event.workspaceId, at: max(event.createdAt) }).from(event).where(inArray(event.workspaceId, ids)).groupBy(event.workspaceId),
+    usageByWorkspace(now),
+  ]);
+  const p = new Map(published.map((r) => [r.id, r.n])), a = new Map(activity.map((r) => [r.id, r.at]));
+  return list.map((w) => {
+    const u = used.get(w.id);
+    const mine = people.filter((m) => m.id === w.id);
+    const last = a.get(w.id) ?? null;
+    return { ...w, owners: mine.filter((m) => m.role === "owner").map((m) => m.email), members: mine.length, projects: u?.projects ?? 0, published: p.get(w.id) ?? 0, responsesThisMonth: u?.responsesThisMonth ?? 0, aiCostCentsThisMonth: u?.aiCostCentsThisMonth ?? 0, lastActivity: last && last > w.createdAt ? last : w.createdAt };
+  }).sort((x, y) => y.lastActivity.getTime() - x.lastActivity.getTime() || x.name.localeCompare(y.name));
+}
+
+// The one way the admin area turns an id from the address into a WorkspaceId (stories/E14-2):
+// the workspace exists (deleted or not) and the caller passed the admin check. The product's
+// own helpers then take it, as they take the one requireWorkspace() gives a member.
+export async function adminWorkspace(proof: AdminProof, id: string): Promise<{ ws: WorkspaceId; workspace: Workspace } | null> {
+  checked(proof);
+  if (!isUuid(id)) return null;
+  const row = (await db.select().from(workspace).where(eq(workspace.id, id)))[0];
+  return row ? { ws: unsafeWorkspaceId(row.id), workspace: row } : null;
+}
+
+export type AdminInstrument = { id: string; projectId: string; title: string; publishedAt: Date | null; createdAt: Date; version: number; publicLink: { id: string; opensAt: Date | null; closesAt: Date | null; revokedAt: Date | null } | null; personalLinks: number };
+
+// Each instrument of the workspace with the version of the list it was built on, its public
+// link in force (the newest; a revoked one is replaced by "Publish again", E6-4) and how many
+// personal links it has (acceptance 2).
+export async function workspaceInstruments(proof: AdminProof, ws: WorkspaceId): Promise<AdminInstrument[]> {
+  checked(proof);
+  const [rows, links] = await Promise.all([
+    db.select({ id: instrument.id, projectId: instrument.projectId, title: instrument.title, publishedAt: instrument.publishedAt, createdAt: instrument.createdAt, version: itemSet.version })
+      .from(instrument).innerJoin(itemSet, and(eq(itemSet.id, instrument.itemSetId), eq(itemSet.workspaceId, instrument.workspaceId)))
+      .where(eq(instrument.workspaceId, ws)).orderBy(instrument.createdAt),
+    db.select({ id: invite.id, instrumentId: invite.instrumentId, kind: invite.kind, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt, createdAt: invite.createdAt })
+      .from(invite).where(eq(invite.workspaceId, ws)).orderBy(desc(invite.createdAt)),
+  ]);
+  return rows.map((r) => {
+    const mine = links.filter((l) => l.instrumentId === r.id);
+    const pub = mine.find((l) => l.kind === "public");
+    return { ...r, publicLink: pub ? { id: pub.id, opensAt: pub.opensAt, closesAt: pub.closesAt, revokedAt: pub.revokedAt } : null, personalLinks: mine.filter((l) => l.kind === "personal").length };
+  });
+}
+
+export async function workspaceUploads(proof: AdminProof, ws: WorkspaceId): Promise<{ id: string; projectId: string; filename: string; kind: string; byteSize: number; createdAt: Date }[]> {
+  checked(proof);
+  return db.select({ id: upload.id, projectId: upload.projectId, filename: upload.filename, kind: upload.kind, byteSize: upload.byteSize, createdAt: upload.createdAt })
+    .from(upload).where(eq(upload.workspaceId, ws)).orderBy(desc(upload.createdAt));
+}
+
+// The workspace's last product events (E13-1): names, counts and fixed values, no personal data.
+export async function workspaceEvents(proof: AdminProof, ws: WorkspaceId, limit = 20): Promise<{ name: string; properties: Record<string, string | number>; createdAt: Date }[]> {
+  checked(proof);
+  return db.select({ name: event.name, properties: event.properties, createdAt: event.createdAt }).from(event).where(eq(event.workspaceId, ws)).orderBy(desc(event.createdAt), desc(event.id)).limit(limit);
+}
+
+export const NOTE_MAX = 2000;
+export type AdminNote = { id: string; adminEmail: string | null; text: string; createdAt: Date };
+
+// Support notes (acceptance 3): shown only on the workspace's admin page, newest first.
+export const adminNotes = {
+  list: async (proof: AdminProof, ws: WorkspaceId): Promise<AdminNote[]> => {
+    checked(proof);
+    return db.select({ id: adminNote.id, adminEmail: user.email, text: adminNote.text, createdAt: adminNote.createdAt }).from(adminNote)
+      .leftJoin(user, eq(user.id, adminNote.adminUserId)).where(eq(adminNote.workspaceId, ws)).orderBy(desc(adminNote.createdAt), desc(adminNote.id));
+  },
+  add: async (proof: AdminProof, ws: WorkspaceId, adminUserId: string, text: string): Promise<{ id: string }> => {
+    checked(proof);
+    return (await db.insert(adminNote).values({ workspaceId: ws, adminUserId, text }).returning({ id: adminNote.id }))[0];
+  },
+};
+
+// The AI budget (decision 0036): seen and set only here; the write is the product's own
+// (internal.setAiBudgetEur, which the AI client reads).
+export const AI_BUDGET_MAX_EUR = 10_000;
+export async function setAiBudget(proof: AdminProof, ws: WorkspaceId, eur: number): Promise<Workspace | null> {
+  checked(proof);
+  return internal.setAiBudgetEur(ws, eur);
+}
+
+// The latest list version of each project of the workspace (acceptance 2).
+export async function projectVersions(proof: AdminProof, ws: WorkspaceId): Promise<Map<string, number>> {
+  checked(proof);
+  const rows = await db.select({ id: itemSet.projectId, v: max(itemSet.version) }).from(itemSet).where(eq(itemSet.workspaceId, ws)).groupBy(itemSet.projectId);
+  return new Map(rows.map((r) => [r.id, r.v ?? 0]));
+}

@@ -50,16 +50,31 @@ export async function inviteMember(actor: Actor, rawEmail: unknown): Promise<Ref
   const parsed = z.email().safeParse(text.toLowerCase());
   if (!parsed.success) return { error: MEMBERS_COPY.badAddress(text) };
   const email = parsed.data;
-  if ((await members.listWithUsers(actor.ws)).some((m) => m.email.toLowerCase() === email)) return { error: MEMBERS_COPY.alreadyMember(email) };
-  if ((await workspaceInvites.countSince(actor.ws, INVITE_LIMIT_MINUTES)) >= INVITE_LIMIT) return { error: MEMBERS_COPY.tooMany };
-  const row = await workspaceInvites.replace(actor.ws, { email, role: "member", invitedBy: actor.userId });
+  return sendWorkspaceInvite(actor.ws, { email, invitedBy: actor.userId, headers: actor.headers });
+}
+
+// The part of an invitation after the role check, shared by inviteMember and the admin's resend
+// (stories/E14-2, acceptance 4): the same member check, the same limit, the same row and email.
+export async function sendWorkspaceInvite(ws: WorkspaceId, input: { email: string; invitedBy: string | null; headers?: Headers }): Promise<Refused | { sent: true; email: string }> {
+  const email = input.email.toLowerCase();
+  if ((await members.listWithUsers(ws)).some((m) => m.email.toLowerCase() === email)) return { error: MEMBERS_COPY.alreadyMember(email) };
+  if ((await workspaceInvites.countSince(ws, INVITE_LIMIT_MINUTES)) >= INVITE_LIMIT) return { error: MEMBERS_COPY.tooMany };
+  const row = await workspaceInvites.replace(ws, { email, role: "member", invitedBy: input.invitedBy });
   try {
-    await auth.api.signInMagicLink({ headers: actor.headers ?? new Headers(), body: { email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } });
+    await auth.api.signInMagicLink({ headers: input.headers ?? new Headers(), body: { email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } });
   } catch {
-    await workspaceInvites.remove(actor.ws, row.id);
+    await workspaceInvites.remove(ws, row.id);
     return { error: MEMBERS_COPY.notSent(email) };
   }
   return { sent: true, email };
+}
+
+// An admin sends an open invitation again (E14-2): the invitation as it stands, by its id, with
+// the member who first sent it kept as the sender. An accepted or unknown id is refused.
+export async function resendInvite(ws: WorkspaceId, inviteId: string, headers?: Headers): Promise<Refused | { sent: true; email: string }> {
+  const invite = (await workspaceInvites.list(ws)).find((i) => i.id === inviteId);
+  if (!invite || invite.acceptedAt !== null) return { error: MEMBERS_COPY.inviteGone };
+  return sendWorkspaceInvite(ws, { email: invite.email, invitedBy: invite.invitedBy, headers });
 }
 
 export async function removeMember(actor: Actor, userId: string): Promise<Refused | { removed: true }> {
