@@ -1,6 +1,7 @@
 # Quickstart
 
-Shown once after the first sign-in, and always under Help. Four steps, one screen each. Nothing
+Shown once after the first sign-in (once per person per workspace), and always under Help in
+the sidebar footer. Four steps on one page, each a card. Nothing
 below describes a feature the product does not have (R1 scope, stories/backlog.md).
 
 ## Page copy
@@ -46,4 +47,7 @@ Secondary link: Open the sample project
   the app and "Then" here on purpose; the quickstart is about getting to a link.
 - "About ten minutes" is a claim to check against the first real users. Replace with a measured
   number or remove it before launch.
-- The sample project link opens the sample with the watermark (decision 0003).
+- The sample project link opens the sample with the watermark (decision 0003). It is left out
+  when the workspace has no sample (deleted, E8-8, or archived).
+- Built 2026-10-05 in src/lib/quickstart-copy.ts (stories/E12-2); the help link's label is
+  "Help".

@@ -39,6 +39,11 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await expect(owner).toHaveURL(/\/app\/new$/);
   await owner.getByLabel("Workspace name").fill("Marlow Group");
   await owner.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(owner).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(owner.getByTestId("quickstart")).toBeVisible();
+  await owner.goto("/app");
   await expect(owner).toHaveURL(/\/app$/);
   await owner.getByRole("link", { name: "Settings" }).click();
   await expect(owner).toHaveURL(/\/app\/settings$/);
@@ -58,7 +63,8 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await expect(owner.getByTestId("invited-row").first()).toContainText(inviteeEmail);
 
   const invitee = await person(browser, inviteeEmail, false);
-  await expect(invitee).toHaveURL(/\/app$/);
+  // A member's first visit to a workspace shows its quickstart once too (stories/E12-2).
+  await expect(invitee).toHaveURL(/\/app\/quickstart$/);
   await expect(invitee.getByTestId("breadcrumb")).toHaveText("Marlow Group");
   await invitee.goto("/app/settings");
   await expect(invitee.getByTestId("member-row")).toHaveCount(2);

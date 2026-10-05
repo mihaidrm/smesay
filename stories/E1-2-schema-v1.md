@@ -64,7 +64,7 @@ jsonb columns with `.$type<>()` from src/db/types.ts, the TypeScript twins of IN
 - `workspace`: id, name, slug (unique), accent_hex, logo_object_key, ai_budget_eur (default 10, decision 0036),
   created_at, deleted_at (E11 removes rows within 24 hours of deletion).
 - `workspace_member`: workspace_id, user_id (text, fk `user`, on delete cascade), role
-  (owner, member), created_at; primary key (workspace_id, user_id); index on user_id (the
+  (owner, member), created_at, quickstart_seen_at (E12-2, migration 0027); primary key (workspace_id, user_id); index on user_id (the
   sign-in path looks up a user's workspaces).
 - `project`: id, workspace_id, name, context_goal, context_terms (decision 0011), is_sample
   (boolean, default false: the watermarked sample project, E1-4), created_by (fk `user`, on

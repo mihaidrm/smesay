@@ -1,7 +1,7 @@
 // Membership helpers (stories/E1-3). Keyed by (workspace_id, user_id); the workspace id is the
 // session's (WorkspaceId), so a member of A cannot list, change or remove B's members. The role
 // check for owner-only actions is E2-4's.
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { user, workspaceMember } from "@/db/schema";
 import type { MemberRole } from "@/db/types";
@@ -28,6 +28,11 @@ export const members = {
     (await db.select().from(workspaceMember).where(oneRow(workspaceId, userId)).limit(1))[0] ?? null,
   add: async (workspaceId: WorkspaceId, userId: string, role: MemberRole): Promise<Member> =>
     (await db.insert(workspaceMember).values({ workspaceId, userId, role }).returning())[0],
+  // The quickstart's first showing (stories/E12-2, acceptance 1): stamps quickstart_seen_at
+  // when it is still null, so only the first call wins; true when this call was the first.
+  markQuickstartSeen: async (workspaceId: WorkspaceId, userId: string, now: Date): Promise<boolean> =>
+    (await db.update(workspaceMember).set({ quickstartSeenAt: now })
+      .where(and(oneRow(workspaceId, userId), isNull(workspaceMember.quickstartSeenAt))).returning({ userId: workspaceMember.userId })).length > 0,
   // Removal and role change that keep at least one owner (stories/E2-4, acceptance 4), in one
   // transaction with the workspace's member rows locked (select ... for update,
   // orm.drizzle.team/docs/rqb#select-for-update is the query builder's `.for("update")`,
