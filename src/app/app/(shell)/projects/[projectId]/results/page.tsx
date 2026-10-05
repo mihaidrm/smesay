@@ -41,7 +41,7 @@ import { PanelSkeleton } from "./skeletons";
 import { ActionsTab } from "./actions-tab";
 import { ExportTab } from "./export-tab";
 import { TileChooser } from "./tile-chooser";
-import { track } from "@/lib/analytics";
+import { guideShown, track } from "@/lib/analytics";
 import { UnsubmittedSwitch } from "./unsubmitted-switch";
 
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
@@ -226,5 +226,6 @@ async function SampleWalkthrough({ ws, projectId, instrument, screen, next, item
   const first = screen === "registers" ? (await items.forSet(ws, instrument.itemSetId)).sort((a, b) => a.position - b.position)[0] ?? null : null;
   const href = screen === "strip" ? next.strip : screen === "detail" ? next.detail : first ? itemHref(first.id) : null;
   const tip = SAMPLE_TIPS[screen];
+  await guideShown(tip, href !== null, { workspaceId: ws, userId: session.user.id });
   return <GuideCard id={tip} action={href ? { label: GUIDE_LINES[tip].action ?? "", href } : undefined} />;
 }

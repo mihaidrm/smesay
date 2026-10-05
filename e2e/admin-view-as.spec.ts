@@ -1,9 +1,11 @@
 // An admin's view of a workspace, main path (stories/E14-4, acceptance 5): a PM makes a
 // workspace; an admin opens it in the admin area, starts View as, sees the banner and Settings
 // with its Save disabled, stops the view and is back on the workspace's admin page, and the
-// audit log has both rows. playwright.config.ts lists e2e-admin-view@marlow.example in
+// audit log has both rows; the owner's Projects shows the admin no guide card and writes no
+// guide event for them. playwright.config.ts lists e2e-admin-view@marlow.example in
 // ADMIN_EMAILS.
 import { expect, test } from "@playwright/test";
+import postgres from "postgres";
 import { latestLink } from "./mailpit";
 
 // One rate-limit bucket per spec file (e2e/workspace.spec.ts says why).
@@ -44,6 +46,18 @@ test("an admin views a workspace read-only and stops", async ({ browser, page, r
   const banner = page.getByTestId("view-as-banner");
   await expect(banner).toContainText(`Viewing ${name} as its owner sees it. Changes are off.`);
   await expect(page.getByTestId("sidebar")).toContainText(name);
+  // The owner's Projects drew no guide card for the admin, and wrote no guide event for them
+  // into the workspace (stories/E15-5; design note 91).
+  await expect(page.getByTestId("guide-card")).toHaveCount(0);
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set: this test reads the event table.");
+  const sql = postgres(process.env.DATABASE_URL, { max: 1 });
+  try {
+    const [{ n }] = await sql`select count(*)::int as n from event e join "user" u on u.id = e.user_id join workspace w on w.id = e.workspace_id
+      where u.email = 'e2e-admin-view@marlow.example' and w.name = ${name} and e.name like 'guide_%'`;
+    expect(n).toBe(0);
+  } finally {
+    await sql.end();
+  }
 
   // Settings as the owner sees it, every control disabled.
   await page.getByRole("link", { name: "Settings" }).click();

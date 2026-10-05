@@ -4,6 +4,7 @@
 // and never fails the user's action: a refused event or a failed insert is logged, without the
 // values, and the caller goes on. Callers await it after their own work has succeeded; the
 // insert is one row.
+import type { TipId } from "@/lib/guide-lines";
 import { events } from "@/db/queries/events";
 import type { WorkspaceId } from "@/db/types";
 import { EVENTS, isEventName, NO_WORKSPACE_EVENTS, propsProblem, RESPONDENT_EVENTS, type EventName, type EventProps } from "@/lib/analytics-catalogue";
@@ -35,6 +36,23 @@ export async function track<N extends EventName>(name: N, properties: Empty<N> e
   }
 }
 
+// The guide's shows (stories/E15-5, acceptance 1): track() at most once a day per person and
+// value of `key`. False when refused, already counted today, or not written.
+export async function trackOncePerDay<N extends EventName>(name: N, properties: EventProps<N>, who: { workspaceId: WorkspaceId; userId: string }, key: keyof EventProps<N> & string): Promise<boolean> {
+  const props = properties as Record<string, string | number>;
+  try {
+    const problem = trackProblem(name, props, who);
+    if (problem) {
+      log("warn", "An event was refused.", { detail: String(name).slice(0, 40), reason: problem });
+      return false;
+    }
+    return await events.recordOncePerDay(who.workspaceId, { userId: who.userId, name, properties: props }, key);
+  } catch (error) {
+    log("error", "An event could not be written.", { detail: name, error: error instanceof Error ? error.name : "error" });
+    return false;
+  }
+}
+
 // Whether the event just tracked was the workspace's first of its name (Plausible's "first"
 // goals, stories/E13-3); false when it cannot tell.
 
@@ -48,4 +66,12 @@ export async function wasFirst(name: EventName, workspaceId: WorkspaceId): Promi
 // failed read is null, so a guide tip is left out rather than failing the page (stories/E15-4).
 export async function lastEventWith(name: EventName, workspaceId: WorkspaceId, key: string, value: string): Promise<{ at: Date; properties: Record<string, string | number> } | null> {
   try { const row = await events.lastWith(workspaceId, name, key, value); return row ? { at: new Date(row.createdAt), properties: row.properties } : null; } catch { return null; }
+}
+
+// A guide card drawn for the person (stories/E15-5, acceptance 1): guide_shown at most once a
+// day per tip and person, with whether the card was drawn with an action (the Shape rescue and
+// the walkthrough's second card can be drawn without one), so the admin page judges a tip by the
+// buttons it really had; never fails the page.
+export async function guideShown(tip: TipId, withAction: boolean, who: { workspaceId: WorkspaceId; userId: string }): Promise<void> {
+  await trackOncePerDay("guide_shown", { tip, action: withAction ? "yes" : "no" }, who, "tip");
 }

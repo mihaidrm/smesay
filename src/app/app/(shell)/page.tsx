@@ -15,6 +15,7 @@ import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import { redirect } from "next/navigation";
 import { firstProjectFacts, guide, members, projects } from "@/db/queries";
 import { pathHidden, pathView } from "@/lib/guide";
+import { guideShown } from "@/lib/analytics";
 import { FirstProjectPath } from "./first-project-path";
 import { usage } from "@/db/queries/usage";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -43,6 +44,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   // any of its lines was dismissed (src/lib/guide.ts pathHidden); not on the archived list and
   // not during an admin's view (E14-4), where the person is the admin.
   const path = !showArchived && !viewing && !pathHidden(guideState) ? pathView(await firstProjectFacts(current.ws, session.user.id)) : null;
+  if (path) await guideShown(path.tip, true, { workspaceId: current.ws, userId: session.user.id });
   const sampleId = rows.find((p) => p.isSample)?.id ?? null;
   // "No projects yet" is for a workspace with no project of its own at all, archived ones
   // included; "All your projects are archived" when the list is empty only because every

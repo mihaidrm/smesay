@@ -1,7 +1,7 @@
 # E15-5 Measuring the guide: shown, dismissed, acted on, and the first-project funnel
 
 User: Mihai deciding which tips stay
-Status: ready
+Status: built
 Outcome: every tip's shown, dismissed and acted-on counts, and the first-project path's
 completion per week, on the admin page next to the funnel.
 
@@ -32,3 +32,22 @@ completion per week, on the admin page next to the funnel.
 Events through E13-1's tracking function with the catalogue extended; the funnel is one
 query in src/db/queries/analytics.ts grouped by sign-up week, reading the same tables as
 E15-2's state rule so the two cannot disagree.
+
+Built 2026-10-05 (design note 91, decision 0044):
+- Acceptance 1: guide_shown carries the tip and whether the card was drawn with an action
+  (action yes or no); guide_shown, guide_dismissed and guide_acted are each written at most once
+  a day (UTC) per tip and person (events.recordOncePerDay), so repeated presses count once.
+  Pressing "Try it on the sample first" on the path's start counts as acted on.
+- Acceptance 2: the table is "Guide, last 30 days" on the Overview. A tip drawn with an action
+  is "to review" when dismissed more often than acted on; a tip never drawn with an action
+  (the step tips whose button is on the page, the Shape rescue after a refusal "Try again"
+  cannot pass) when more than half of its shows were dismissed. Deleted workspaces are left
+  out.
+- Acceptance 3: a table of its own under the funnel ("First project, per sign-up week", 12
+  weeks) rather than a row, since each week has five counts and a median. The steps are
+  E15-2's rules counted over any of the person's projects; Share is an invite_sent for one of
+  them, sent by anyone in its workspace.
+- Acceptance 5: src/db/queries/guide-measure.test.ts; each query read 10,000 events in about
+  20 ms locally. Playwright: e2e/admin.spec.ts (a card shown, used and dismissed is counted on
+  the Overview) and e2e/admin-view-as.spec.ts (an admin's view writes no guide event).
+- Technical note: the queries are in src/db/queries/admin.ts, not analytics.ts.

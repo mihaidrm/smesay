@@ -3,10 +3,10 @@
 The steps that matter in the product, one row each in the `event` table (stories/E13-1). Written
 only by `track(name, properties, { workspaceId, userId })` in src/lib/analytics.ts, from the
 catalogue in src/lib/analytics-catalogue.ts (this file and that one list the same events; a
-unit test checks that every event below except the guide's is called somewhere in the app).
+unit test checks that every event below is called somewhere in the app).
 
 What a property can hold: a count (a whole number from 0 to 1,000,000,000), a uuid or one value
-of a fixed list (the guide's tip ids are an empty list until E15 names them). Nothing else fits, so no email, name
+of a fixed list (the guide's tip ids are the ids of docs/copy/guide.md). Nothing else fits, so no email, name
 or typed text is ever stored. A respondent's event carries no user id (track() refuses one,
 and a check on the table, event_respondent_no_user_check, too). Only src/lib/analytics.ts
 may import the table's helpers (the lint rule; tests aside). A refused event or a
@@ -33,11 +33,12 @@ failed write is logged without its values and never fails what the person was do
 | sample_deleted | none | Delete sample | yes | yes |
 | quickstart_seen | none | the first showing of the quickstart (E12-2) | yes | yes |
 | workspace_deleted | none | Delete this workspace | none (kept after the workspace goes) | yes |
-| guide_shown | tip | E15-5, once the guide card is built | yes | yes |
-| guide_dismissed | tip | E15-5 | yes | yes |
-| guide_acted | tip | E15-5 | yes | yes |
+| guide_shown | tip, action (yes, no: whether the card had an action) | a guide card drawn for the person, at most once a day per tip and person (E15-5) | yes | yes |
+| guide_dismissed | tip | Dismiss on a guide card, at most once a day per tip and person (E15-5) | yes | yes |
+| guide_acted | tip | the guide card's action pressed, at most once a day per tip and person (E15-5) | yes | yes |
 
 Kept and removed: a workspace's events go with it when the removal job deletes the workspace
 (the foreign key cascades, E11-2). signed_up and workspace_deleted hold no workspace and stay;
 a removed user's id goes null on them. Indexes on (name, created_at), workspace_id and user_id.
-The admin page (E13-2) counts the funnel from this table in SQL.
+The admin page (E13-2) counts the funnel, the first-project funnel and the guide table (E15-5)
+from this table in SQL.

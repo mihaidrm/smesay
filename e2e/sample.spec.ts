@@ -26,7 +26,9 @@ test("sample project: the band on every step, delete from its header", async ({ 
   await expect(page).toHaveURL(/\/app$/);
   await page.getByRole("link", { name: /Sample project/ }).first().click();
   await expect(page).toHaveURL(/\/results/);
-  await expect(page.getByTestId("breadcrumb")).toHaveText("Marlow Group · sample project");
+  // The project header's breadcrumb: while the page changes, the Projects page's own breadcrumb
+  // can still be in the document for a moment, so a bare test id matches two.
+  await expect(page.getByTestId("project-header").getByTestId("breadcrumb")).toHaveText("Marlow Group · sample project");
   const band = "Sample data: invented answers, for looking around";
   await expect(page.getByTestId("sample-band")).toHaveText(band);
   await expect(page.getByTestId("sample-band").getByRole("button")).toHaveCount(0);

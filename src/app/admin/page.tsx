@@ -6,10 +6,10 @@
 // Desktop only, as the PM side in R1 (decision 0020). E14-1 puts this page in the admin shell.
 import { StatTile } from "@/components/app/tiles";
 import { Suspense } from "react";
-import { funnel, totals, workspaceUsage } from "@/db/queries/admin";
+import { firstProjectFunnel, funnel, guideStats, totals, workspaceUsage } from "@/db/queries/admin";
 import { FUNNEL_STEPS } from "@/db/types";
 import { requireAdmin } from "@/lib/admin";
-import { ADMIN_COPY as C, share } from "@/lib/admin-copy";
+import { ADMIN_COPY as C, GUIDE_ADMIN_COPY as G, actedRate, share } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/ai/prices";
 import { PAID_PLAN_SWITCH, PLAN_METRICS } from "@/lib/plans";
 import type { AdminProof } from "@/db/types";
@@ -40,7 +40,7 @@ export default async function AdminPage() {
 
 async function Overview({ proof }: { proof: AdminProof }) {
   const now = new Date();
-  const [weeks, rows, all] = await Promise.all([funnel(proof, now), workspaceUsage(proof, now), totals(proof)]);
+  const [weeks, rows, all, firstWeeks, tips] = await Promise.all([funnel(proof, now), workspaceUsage(proof, now), totals(proof), firstProjectFunnel(proof, now), guideStats(proof, now)]);
   const metric = PLAN_METRICS[PAID_PLAN_SWITCH.metric];
   return (
     <>
@@ -75,6 +75,64 @@ async function Overview({ proof }: { proof: AdminProof }) {
                       {i > 0 && <div className="text-xs text-ink-muted">{share(w.counts[s], w.counts[FUNNEL_STEPS[i - 1]])}</div>}
                     </td>
                   ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="flex flex-col gap-2" data-testid="admin-first-project">
+        <h2 className="text-lg font-bold">{G.firstTitle}</h2>
+        <p className="text-sm text-ink-muted">{G.firstNote}</p>
+        <div className="card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs font-semibold text-ink-muted">
+                <th className="px-4 py-2.5">{G.firstColumns.week}</th>
+                {(["signups", "imported", "shaped", "built", "shared"] as const).map((k) => <th key={k} className="px-3 py-2.5 text-right">{G.firstColumns[k]}</th>)}
+                <th className="px-3 py-2.5 text-right">{G.firstColumns.median}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {firstWeeks.map((w) => (
+                <tr key={w.week.toISOString()} className="border-t border-hairline">
+                  <td className="whitespace-nowrap px-4 py-2">{DAY.format(w.week)}</td>
+                  <td className="px-3 py-2 text-right font-mono">{w.signups}</td>
+                  {(["imported", "shaped", "built", "shared"] as const).map((k) => (
+                    <td key={k} className="px-3 py-2 text-right font-mono">{w[k]}<div className="text-xs text-ink-muted">{share(w[k], w.signups)}</div></td>
+                  ))}
+                  <td className="px-3 py-2 text-right font-mono">{w.medianHoursToLink ?? G.noMedian}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-ink-muted" data-testid="admin-benchmark">{G.benchmark}</p>
+      </section>
+      <section className="flex flex-col gap-2" data-testid="admin-guide">
+        <h2 className="text-lg font-bold">{G.guideTitle}</h2>
+        <p className="text-sm text-ink-muted">{G.guideNote}</p>
+        <div className="card overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs font-semibold text-ink-muted">
+                <th className="px-4 py-2.5">{G.guideColumns.tip}</th>
+                <th className="px-3 py-2.5 text-right">{G.guideColumns.shown}</th>
+                <th className="px-3 py-2.5 text-right">{G.guideColumns.dismissed}</th>
+                <th className="px-3 py-2.5 text-right">{G.guideColumns.acted}</th>
+                <th className="px-3 py-2.5 text-right">{G.guideColumns.rate}</th>
+                <th className="px-3 py-2.5" />
+              </tr>
+            </thead>
+            <tbody>
+              {tips.map((t) => (
+                <tr key={t.tip} className="border-t border-hairline" data-testid="admin-guide-row" data-tip={t.tip}>
+                  <td className="px-4 py-2 font-mono text-xs">{t.tip}</td>
+                  <td className="px-3 py-2 text-right font-mono">{t.shown}</td>
+                  <td className="px-3 py-2 text-right font-mono">{t.dismissed}</td>
+                  <td className="px-3 py-2 text-right font-mono">{t.hasAction ? t.acted : G.noAction}</td>
+                  <td className="px-3 py-2 text-right font-mono">{t.hasAction ? actedRate(t.acted, t.shown) : ""}</td>
+                  <td className="px-3 py-2">{t.toReview && <span className="font-semibold text-danger">{G.toReview}</span>}</td>
                 </tr>
               ))}
             </tbody>

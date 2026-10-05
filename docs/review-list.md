@@ -413,3 +413,12 @@ a change.
 | 2026-10-05 | A shaping refusal that happens before the run (no list, a list being imported, a view) writes no shape_failed event, so it shows no rescue; its own message stays on the page | src/lib/shaping.ts | |
 | 2026-10-05 | The Shape rescue's "Try again" goes to the Shape button on the page rather than starting a run, so a run is always the person's own press; it shows only for failed, invalid and rate limited | src/app/app/(shell)/projects/[projectId]/shape/page.tsx | |
 | 2026-10-05 | The Share rescue counts from when the link could first be answered (the publish, or the open date when later) and shows only while the link is open | src/lib/guide.ts shareTip | |
+| 2026-10-05 | A guide tip without an action is "to review" when more than half of its shows were dismissed; one with an action when dismissed more often than acted on | src/db/queries/admin.ts guideStats | Is half the right line? |
+| 2026-10-05 | The first-project funnel counts E15-2's steps over any of the person's projects, not only the newest | src/db/queries/admin.ts firstProjectFunnel | |
+| 2026-10-05 | The R1 baseline for the guide waits for the first ten real sign-ups and your acceptance of E15-5 | docs/plan-steps.md | Record it then |
+| 2026-10-05 | guide_dismissed and guide_acted are written at most once a day per tip and person, like guide_shown, so repeated presses and a loop of calls count once a day | src/app/app/(shell)/guide-actions.ts | |
+| 2026-10-05 | A tip shown both with and without its action in the 30 days is judged as one with an action ("to review" when dismissed more often than acted on) | src/db/queries/admin.ts guideStats | |
+| 2026-10-05 | The first-project funnel's Share is an invite_sent for one of the person's projects, sent by anyone in its workspace (E15-2's rule), not one the person sent | src/db/queries/admin.ts firstProjectFunnel | |
+| 2026-10-05 | The once-a-day rule has no unique constraint: two loads at the same moment can write two rows. Accepted for a count read over 30 days | src/db/queries/events.ts recordOncePerDay | |
+| 2026-10-05 | The guide's write actions have no rate limit of their own: the once-a-day rule caps each person at one row per tip and event a day, which bounds the table | src/app/app/(shell)/guide-actions.ts | |
+| 2026-10-05 | The first-project funnel test reads this week's row from a sign-up written at the database's now; a run in the instant a UTC week turns can read the wrong week. Accepted for a unit test | src/db/queries/guide-measure.test.ts | |

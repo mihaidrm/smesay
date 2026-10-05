@@ -95,13 +95,27 @@ describe("the event table", () => {
   });
 });
 
-// Acceptance 4, the wiring: every event of a built story is called somewhere in the app (the
-// guide's events wait for E15-5). That each is written after its step is tested where the step
-// is (respondent-submit.test.ts for response_started and response_submitted).
+// Acceptance 4, the wiring: every event of a built story is called somewhere in the app. The
+// guide's (E15-5): guide_shown through guideShown at each of the three places a card is drawn,
+// guide_dismissed and guide_acted in the guide's actions, which the card calls on Dismiss and on
+// its action. That each is written after its step is tested where the step is
+// (respondent-submit.test.ts for response_started and response_submitted).
 describe("the call sites", () => {
   const files = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(`${dir}/${e.name}`) : /\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name) ? [`${dir}/${e.name}`] : []));
   const source = files("src").filter((f) => !f.endsWith("analytics-catalogue.ts") && !f.endsWith("lib/analytics.ts")).map((f) => readFileSync(f, "utf8")).join("\n");
   it.each(Object.keys(EVENTS).filter((n) => !n.startsWith("guide_")))("%s is tracked", (name) => {
     expect(source).toContain(`track("${name}"`);
+  });
+  it("the guide's events are tracked where a card is drawn, dismissed or used", () => {
+    const read = (f: string) => readFileSync(f, "utf8");
+    for (const f of ["src/app/app/(shell)/page.tsx", "src/app/app/(shell)/projects/[projectId]/step-tip.tsx", "src/app/app/(shell)/projects/[projectId]/results/page.tsx"]) expect(read(f), f).toMatch(/await guideShown\(/);
+    expect(read("src/lib/analytics.ts")).toContain('trackOncePerDay("guide_shown"');
+    const actions = read("src/app/app/(shell)/guide-actions.ts");
+    expect(actions).toContain('trackOncePerDay("guide_dismissed"');
+    expect(actions).toContain('trackOncePerDay("guide_acted"');
+    const card = read("src/components/app/guide-card.tsx");
+    expect(card).toContain("await dismissTipAction(id)");
+    expect(card).toContain("actedTipAction(id)");
+    expect(card.match(/onClick=\{acted\}/g)).toHaveLength(2);
   });
 });

@@ -7,13 +7,15 @@ import { GuideCard, type GuideAction } from "@/components/app/guide-card";
 import { guide } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { tipVisible } from "@/lib/guide";
+import { guideShown } from "@/lib/analytics";
 import type { TipId } from "@/lib/guide-lines";
 
 export async function StepTip({ tip, action, path }: { tip: TipId | null; action?: GuideAction; path: string }) {
   if (!tip) return null;
-  const { session, viewing } = await requireCurrentWorkspace(path);
+  const { session, current, viewing } = await requireCurrentWorkspace(path);
   if (viewing) return null;
   const state = await guide.state(session.user.id);
   if (!tipVisible(state, tip)) return null;
+  await guideShown(tip, action !== undefined, { workspaceId: current.ws, userId: session.user.id });
   return <GuideCard id={tip} action={action} />;
 }

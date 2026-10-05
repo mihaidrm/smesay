@@ -415,6 +415,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Funnel columns | Week of, Sign-ups, Workspaces, Projects, Imports, Published, Invites, Links opened, Started, Submitted, Exports |
 | Workspaces | Workspaces; columns Name, Created, Members, Projects, Published, Responses this month, AI cost this month, Last activity; empty: No workspaces yet. |
 | Loading | Loading the overview |
+| First project (E15-5) | First project, per sign-up week / Of the people who signed up that week: how many have a project of their own with a list, shaped, built and shared (the first-project path's rule, over any of their projects), and the median hours from sign-up to the first link published or invite sent for one of them. Columns: Week of, Sign-ups, Import, Shape, Build, Share (each with its share of sign-ups), Median hours to the first link (none yet) |
+| Benchmark under it | For comparison: the average SaaS activation rate is 37.5 percent and the average onboarding checklist completion rate 19.2 percent (Userpilot, SaaS Product Metrics Benchmark Report 2025, userpilot.com/saas-product-metrics). The first ten real sign-ups set SMEsay's own baseline. |
+| Guide (E15-5) | Guide, last 30 days / Each tip's shows, dismissals and presses of its action, each counted once a day per person. A tip shown with an action is to review when it was dismissed more often than acted on; one shown without one when more than half of its shows were dismissed. Columns: Tip, Shown, Dismissed, Acted on (no action), Acted on of shown; mark: to review |
 
 ## Admin shell (E14-1, every /admin page)
 
