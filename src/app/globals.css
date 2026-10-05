@@ -484,3 +484,14 @@ select:not([multiple]) {
     display: none;
   }
 }
+
+/* The landing page's nav links glide to their section (Mihai, 2026-10-05). scroll-behavior on
+   the root scroller (developer.mozilla.org/docs/Web/CSS/scroll-behavior), only on a page that
+   asks for it (:has, developer.mozilla.org/docs/Web/CSS/:has) and only when the visitor has not
+   asked for reduced motion (developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion).
+   Each section keeps the sticky nav's height above it (scroll-mt-20, scroll-margin-top). */
+@media (prefers-reduced-motion: no-preference) {
+  html:has([data-smooth-scroll]) {
+    scroll-behavior: smooth;
+  }
+}
