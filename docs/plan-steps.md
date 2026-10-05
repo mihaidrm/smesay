@@ -110,6 +110,13 @@ and Notion developer apps (accounts.md step 13). Product Hunt launch.
 Stripe with Stripe Tax and the plans, single-tenant hosting, the Docker self-host package with
 bring-your-own AI key, SSO, audit log, DPA flow. Partner programme for consultancies.
 
+Auto translation (decision 0055): respondents answer the instrument in their own language. The
+AI translates the items, the help lines and the closing question, either on the fly or once per
+language when the PM publishes. Their free text (reasons, questions, comments, missing items)
+reaches the dashboard translated into the PM's language, with the original kept beside it. It
+calls the model on every respondent's text, so its cost is a spend decision for Mihai (decision
+0039) and it belongs with the paid plans.
+
 ## What Claude does in every session, without being asked
 
 Record decisions in docs/decisions/ the same day. Write a dated design note for design work.

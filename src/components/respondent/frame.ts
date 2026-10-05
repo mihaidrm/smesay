@@ -15,8 +15,8 @@ export const FRAME_HEADER = "@xl:px-8";
 // The card's bottom band: the actions, centered from 576 px, with their line under them.
 export const FRAME_ACTIONS = "flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4 @xl:items-center @xl:px-8 @xl:pt-5 @xl:pb-5";
 // The one dark action of a step (Start, Continue, Submit, Start free): at least 320 px from
-// 576 px, wider when its label needs it ("Continue to [AREA]" takes area names up to 60
-// characters).
+// 576 px, wider when its label needs it ("Continue to section [N]: [AREA]" takes area names up
+// to 60 characters).
 export const FRAME_PRIMARY = "@xl:min-w-[320px]";
 // A control's focus ring offset: the ground on a phone, the card's white from 576 px.
 export const FRAME_RING_OFFSET = "focus-visible:ring-offset-ground @xl:focus-visible:ring-offset-surface";

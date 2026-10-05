@@ -68,7 +68,8 @@ export const BUILD_COPY = {
 // The hint under Start is startHint() in src/lib/respondent-fields.ts (decision 0043).
 export const ABOUT_YOU_COPY = {
   start: "Start",
-  startWith: (chapter: string) => `Start with ${chapter}`,
+  // The first chapter by number (decision 0055); plain Start when there are no chapters.
+  startSection: (chapter: string) => `Start section 1: ${chapter}`,
   choose: "Choose one",
   optional: "optional",
   footer: (workspace: string) => `Your answers go to the project team at ${workspace}. They are saved as you go on this device, so you can close this page and come back.`,

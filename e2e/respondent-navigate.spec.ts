@@ -86,6 +86,8 @@ test("chapter row, progress, Continue, Wrap up still to finish, welcome back", a
   // The screen change moves focus to the new screen's heading.
   await expect(link.getByRole("heading", { level: 1, name: "Wrap up" })).toBeFocused();
   await expect(link.getByTestId("wrap-up-gaps")).toContainText("1 still to finish.");
+  // The button names the chapter by number (decision 0055).
+  await expect(link.getByTestId("wrap-up-go")).toHaveText("Go to section 1: Submitting");
   // Submit stays off while an item is still to finish (E7-5).
   await expect(link.getByTestId("wrap-up-submit")).toBeDisabled();
   const unfinished = link.getByTestId("unfinished-item");

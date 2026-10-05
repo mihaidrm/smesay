@@ -7,9 +7,11 @@
 // Respondent columns: 1000 px); one item per screen, one card with "Item [N] of [M] in
 // [AREA]" and Previous and Next item; the single page, every area in order with its
 // heading and "All [N] on one page". Phone first. E7-4: the chapter row and the bar under
-// the header (`nav`), and the footer with Back, "Continue to [NEXT AREA]" or "Continue to
-// Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
-// later." or "All [M] rated in this chapter." The frame of ./frame.ts (decisions 0051 and 0052): from a
+// the header (`nav`), and the footer with Back, "Continue to section [N]: [NEXT AREA]" (N is
+// the next chapter's position, decision 0055) or "Continue to Wrap up" (never blocked; the
+// label wraps to a second line on a phone rather than being cut,
+// tailwindcss.com/docs/overflow-wrap) and the note "[N] of [M] still to rate here. You can
+// come back later." or "All [M] rated in this section." The frame of ./frame.ts (decisions 0051 and 0052): from a
 // 576 px column the screen is a centered card, its cards on the ground inside it, the
 // footer's buttons centered with the note under them (under them on a phone too, as Start's
 // hint, and Continue is described by it), and "Powered by" under the card.
@@ -114,7 +116,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
       <footer className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">
           <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
-          <button type="button" onClick={onContinue} aria-describedby={noteId} className={cn("h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
+          <button type="button" onClick={onContinue} aria-describedby={noteId} className={cn("min-h-12 min-w-0 grow rounded-full bg-ink px-6 py-2 text-base leading-5 wrap-break-word font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
         </div>
         <p id={noteId} className="text-sm text-ink-muted @xl:text-center" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
       </footer>

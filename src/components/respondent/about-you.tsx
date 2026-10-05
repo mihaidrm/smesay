@@ -11,8 +11,10 @@
 // app's start, E5-6 acceptance 4). Phone first: the column is the screen width, Start spans
 // it under the form and "Powered by" is the last line. From a 576 px column the page is the
 // centered card of src/components/respondent/frame.ts (decision 0051): the fields fill the
-// card, Start is 320 px and centered in the card's footer with its hint under it, and
-// "Powered by" sits under the card (docs/design-system.md, Respondent columns). The widths
+// card, Start is at least 320 px and centered in the card's footer with its hint under it, and
+// "Powered by" sits under the card. Start says "Start section 1: [FIRST AREA]" (decision 0055;
+// "Start" with no areas or on the single long page) and wraps to a second line rather than
+// overflow (tailwindcss.com/docs/overflow-wrap) (docs/design-system.md, Respondent columns). The widths
 // follow the component's own width, not the window's (a container query:
 // tailwindcss.com/docs/responsive-design, container queries; @xl is 36rem).
 import { useId, useState } from "react";
@@ -140,8 +142,8 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
         <p className="text-sm text-ink-muted">{ABOUT_YOU_COPY.footer(workspaceName)}</p>
       </div>
       <div className={FRAME_ACTIONS}>
-        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className={cn("h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface", FRAME_PRIMARY)} data-testid="about-you-start">
-          {firstChapter ? ABOUT_YOU_COPY.startWith(firstChapter) : ABOUT_YOU_COPY.start}
+        <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className={cn("min-h-12 rounded-full bg-ink px-6 py-2 text-base leading-5 font-bold wrap-break-word text-ground transition-opacity disabled:opacity-40 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface", FRAME_PRIMARY)} data-testid="about-you-start">
+          {firstChapter ? ABOUT_YOU_COPY.startSection(firstChapter) : ABOUT_YOU_COPY.start}
         </button>
         <div id={`${prefix}-hint`} aria-live="polite" className={cn("min-h-5 text-sm", FRAME_LINE, startError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="about-you-hint">{disabled ? startHint(fields) : (startError ?? "")}</div>
       </div>
