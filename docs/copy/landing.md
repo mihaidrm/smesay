@@ -193,10 +193,12 @@ Button: Send; while sending: Sending
 Sent: Sent. We will reply to [EMAIL].
 Email missing or not an address: Enter your email so we can reply.
 Question empty: Write your question.
-Question too long: Keep your question to 2000 characters.
+Question too long: Keep your question to 2,000 characters.
 Send failed: Your question was not sent. Check your connection and press Send again, or
 email [SUPPORT EMAIL].
 Too many: You have sent 5 questions in the last hour. Email [SUPPORT EMAIL] instead.
+Too many from one connection (20 an hour, a shared office network for example): Too many
+questions came from your connection in the last hour. Email [SUPPORT EMAIL] instead.
 Close button: Close
 
 ## Page metadata

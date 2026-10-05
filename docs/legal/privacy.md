@@ -42,6 +42,12 @@ For what respondents give in a workspace, the organisation that owns the workspa
 - On the sample instrument at /sample, what you enter stays in the browser tab only (smesay-sample) and is gone when you close the tab. Nothing is sent to us. [LAWYER: confirm this needs no more than this line.]
 - Your IP address, as the host reports it, is counted in the server's memory to limit how many requests one address can make on the answer pages and the logo address (100 a minute) and how many passcodes it can try (counted over 15 minutes). It is not written to the database. It stays in memory until the server restarts or the count store fills up, whichever comes first. [LAWYER: confirm whether a fixed maximum is needed, and whether the hosting provider's own request logs, which hold IP addresses, need a line here and their retention.]
 
+## Questions sent from the landing page
+
+- When you send a question with "Ask us a question" on the landing page, your email address and your question go to us as one email, so we can reply to you. SMEsay itself stores neither, and neither is written to its logs. The email also says which page you sent it from and when.
+- The email stays in our inbox for as long as we need it to answer you and follow up. [LAWYER: confirm the legal basis (answering the visitor's request) and the retention to promise for these emails; until the launch gate they go to the founder's own mailbox, and at the launch gate to hello@smesay.app, whose mail provider is chosen then.]
+- To limit repeated messages, your email address and your IP address are counted in the server's memory (5 questions per email address and 20 messages per connection in an hour). They are not written to the database. They stay in memory until the same address is counted again after the hour, the server restarts or the count store fills up (50,000 entries), whichever comes first. [LAWYER: confirm whether a fixed maximum is needed.]
+
 ## What the AI sees
 
 SMEsay uses Anthropic's Claude models through Anthropic's API for two things, and only when a user presses the button for them:

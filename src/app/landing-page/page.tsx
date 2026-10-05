@@ -35,6 +35,7 @@ import { PlausibleScript } from "@/components/analytics/plausible-script";
 import { GOALS } from "@/lib/plausible";
 import { cleanSource, signInHref } from "@/lib/utm";
 import { ShapeDemo } from "./shape-demo";
+import { QuestionBubble } from "./question-bubble";
 
 export const metadata: Metadata = {
   title: "SMEsay: send the list as a link",
@@ -276,7 +277,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <footer className="border-t border-[#343252] px-5 py-8 text-[13px] text-[#A8A4BE] md:px-8" style={{ background: NAVY }}>
+      <footer className="border-t border-[#343252] px-5 pt-8 pb-24 text-[13px] text-[#A8A4BE] md:px-8 md:pb-8" style={{ background: NAVY }}>
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-2 md:flex-row md:justify-between">
           <span>SMEsay. What the SMEs say. SME: subject matter expert.</span>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-2">
@@ -288,6 +289,8 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           </nav>
         </div>
       </footer>
+      {/* The question bubble (stories/E12-5), only when the support address is set. */}
+      {process.env.NEXT_PUBLIC_SUPPORT_EMAIL && <QuestionBubble supportEmail={process.env.NEXT_PUBLIC_SUPPORT_EMAIL} />}
     </main>
   );
 }

@@ -140,7 +140,7 @@ The receipt lists the counts with the link, not the answers (decision 0031).
 Sent to NEXT_PUBLIC_SUPPORT_EMAIL when a visitor sends a question from the landing page's bubble.
 Plain text, no design, nothing stored in the app (decision 0046).
 
-From: SMEsay <no-reply@[DOMAIN]>
+From: the app's sender address (EMAIL_FROM), as emails 2 to 4
 Reply-To: [VISITOR EMAIL]
 Subject: Question from the landing page: [VISITOR EMAIL]
 

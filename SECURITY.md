@@ -104,6 +104,16 @@ Public links and respondents
   X-Forwarded-For entry, the one the host's proxy appends. Without the header the respondent
   routes and sign-in do not limit by IP (sign-in still limits by email); passcodes count such
   requests as one address, under the per-link limit.
+- The landing page's question bubble, POST /api/support (E12-5): the only public route that
+  sends mail on a visitor's word. JSON only (the media type exactly application/json) up to
+  16 KB; 20 posts per IP an hour, counted before the body is read, and 5 questions per typed
+  address an hour, both in the process's memory and both given back when the mail fails;
+  without the header no IP limit, as above. A hidden field a person never fills makes the
+  route answer "Sent" and mail nothing. The address must have no character an email header
+  reads as syntax and no control character, so the Reply-To is what was typed; the mail goes
+  only to NEXT_PUBLIC_SUPPORT_EMAIL. Nothing is stored and nothing is logged; the address and
+  the IP stay in memory as counts until their key is counted again after the hour, the server
+  restarts or the store fills.
 
 Data
 - Uploads validated by type and size (5 MB, 2,000 rows); parsed server-side in the request,

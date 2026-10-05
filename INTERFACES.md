@@ -796,3 +796,17 @@ hasAction, shown, dismissed, acted, toReview }; firstProjectFunnel(proof, now):
 FirstProjectWeek[] { week, signups, imported, shaped, built, shared, medianHoursToLink } newest
 first, FUNNEL_WEEKS weeks. GUIDE_ADMIN_COPY and actedRate(acted, shown) in src/lib/admin-copy.ts.
 
+## Question bubble (E12-5)
+Owner: E12-5. Consumer: src/app/landing-page/question-bubble.tsx.
+Version 1, 2026-10-05. POST /api/support, JSON (application/json, at most 16 KB) { email,
+question, page, website }: 200 { sent: true } (also when website, the hidden field, is filled,
+whatever else is sent; nothing is mailed then), 400 { problem: "email" | "questionEmpty" |
+"questionLong" }, 413 or 415 { problem: "body" }, 429 { tooMany: "connection" | "address" }
+with Retry-After, 404 { problem: "off" } when NEXT_PUBLIC_SUPPORT_EMAIL is empty, 503
+{ problem: "mail" } when the mail did not go. src/lib/support.ts: readSupport(body),
+takeConnection(connection, now) (20 posts an hour, before the body is read; LOCAL not
+counted), takeAddress(email, now) (5 an hour), giveBack(email, connection) after a failed
+mail, supportEmail(to, input, origin, now) (email 5, text only, Reply-To the visitor).
+QUESTION_MAX (2000), SUPPORT_PER_ADDRESS (5) and isSupportAddress(value) in
+src/lib/support-copy.ts with the words. windowLimiter gains undo(key). Mail.html is optional
+for a text-only message.
