@@ -10,6 +10,9 @@ import { latestLink } from "./mailpit";
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.75" } });
 
 test("only an admin email sees the admin page", async ({ page, request }) => {
+  // Every admin address twice (signed out, then as another email): more than the default 30 s
+  // on a cold dev server.
+  test.setTimeout(90_000);
   // The 404 says nothing an unknown address does not: the same title, no admin words.
   await page.goto("/no-such-page");
   const unknownTitle = await page.title();
