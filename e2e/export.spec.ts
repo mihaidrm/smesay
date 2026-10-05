@@ -17,6 +17,11 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(page.getByTestId("quickstart")).toBeVisible();
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   const href = await page.getByRole("link", { name: /Sample project/ }).first().getAttribute("href");
   const id = href!.match(/projects\/([0-9a-f-]{36})/)![1];
@@ -65,6 +70,11 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   await page2.goto(await latestLink(request, email2));
   await page2.getByLabel("Workspace name").fill("Other Group");
   await page2.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page2).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(page2.getByTestId("quickstart")).toBeVisible();
+  await page2.goto("/app");
   await expect(page2).toHaveURL(/\/app$/);
   for (const f of ["answers", "items", "people", "missing"]) expect((await page2.request.get(`/api/projects/${id}/export/${f}`)).status()).toBe(404);
   await other.close();

@@ -57,3 +57,22 @@ describe("createWorkspaceWithSample", () => {
     expect(isUniqueViolation(null)).toBe(false);
   });
 });
+
+// members.markQuickstartSeen (stories/E12-2, acceptance 1): the first showing per person per
+// workspace is stamped once, and a stamp in one workspace does not mark the other.
+describe("markQuickstartSeen", () => {
+  it("stamps the first showing only, per workspace", async () => {
+    const stamp = Date.now();
+    const a = await createWorkspaceWithSample({ name: "Quickstart A", slug: `quickstart-a-${stamp}` }, userId);
+    const b = await createWorkspaceWithSample({ name: "Quickstart B", slug: `quickstart-b-${stamp}` }, userId);
+    made.push(a.id, b.id);
+    const wsA = unsafeWorkspaceId(a.id), wsB = unsafeWorkspaceId(b.id);
+    expect((await members.get(wsA, userId))?.quickstartSeenAt).toBeNull();
+    const first = new Date("2026-10-05T09:00:00Z");
+    expect(await members.markQuickstartSeen(wsA, userId, first)).toBe(true);
+    expect(await members.markQuickstartSeen(wsA, userId, new Date("2026-10-06T09:00:00Z"))).toBe(false);
+    expect((await members.get(wsA, userId))?.quickstartSeenAt?.toISOString()).toBe(first.toISOString());
+    expect((await members.get(wsB, userId))?.quickstartSeenAt).toBeNull();
+    expect(await members.markQuickstartSeen(wsB, "someone-else", first)).toBe(false);
+  });
+});

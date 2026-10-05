@@ -1,7 +1,7 @@
 # E12-2 Quickstart in the app
 
 User: a new PM in the first five minutes
-Status: ready
+Status: built
 Outcome: a four-step page shown once after the first sign-in and always under Help, from
 which a new user reaches a published instrument in under five minutes without help.
 
@@ -26,4 +26,22 @@ which a new user reaches a published instrument in under five minutes without he
 - None.
 
 ## Technical notes
-workspace_member.quickstart_seen_at in migration 0002 (per person per workspace).
+workspace_member.quickstart_seen_at (per person per workspace), added by migration 0027
+(drizzle/0027_quickstart.sql).
+
+Built 2026-10-05 (design note 78, decision 0044):
+- Acceptance 1: the page is /app/quickstart (src/app/app/(shell)/quickstart/page.tsx), copy in
+  src/lib/quickstart-copy.ts from docs/copy/quickstart.md. Projects (/app) sends a member whose
+  quickstart_seen_at is null to it; opening it stamps the column once
+  (members.markQuickstartSeen, src/db/queries/members.ts). Naming the workspace redirects to
+  /app, so the quickstart is the first page after it; an invited member sees it on first
+  reaching Projects in that workspace. Help in the sidebar footer opens it any time.
+- Acceptance 2: "Start a project" links to /app/projects/new; "Open the sample project" links
+  to the sample's Results, shown while the workspace has its sample (deleted or archived: the
+  link is left out).
+- Acceptance 3: Mihai's timed run. "About ten minutes" stays in the intro until then.
+- Acceptance 4: e2e/quickstart.spec.ts; the unit test for the stamp is in
+  src/db/queries/onboarding.test.ts. The 34 other specs and the board capture that name a
+  workspace now pass through the quickstart first; e2e/members.spec.ts expects it for the
+  invitee. Migration 0027 marks every membership that existed before it as seen, so people
+  already using the app are not sent to it.

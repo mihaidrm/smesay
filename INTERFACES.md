@@ -185,7 +185,8 @@ refuses isSample true (SampleFlagError); the flag is set only when the sample is
 (createSampleProject, imported from src/db/queries/projects.ts by src/db/seed/sample-seed.ts
 only; not in the @/db/queries barrel).
 Members: list, listWithUsers (with name and email), countOwners, get, add, setRole, remove by
-(ws, userId). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
+(ws, userId); markQuickstartSeen(ws, userId, now): boolean stamps quickstart_seen_at once and
+is true only for the call that stamped it (E12-2). Member carries quickstartSeenAt (Date or null). workspaceInvites: the scoped six over workspace_invite (E2-4); acceptPendingInvites
 (userId, email) in src/db/queries/onboarding.ts turns open invitations for the session's email
 into memberships. Brand (E2-5): workspaces.publicBrand(workspaceId) gives name, accent and logo key to public
 pages; aiRuns.costThisMonthCents(ws); `saveBrand()` in src/lib/brand.ts; `effectiveAccent()`

@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-04 (the date of the latest migration, 0026_workspace_deletion).
+v1, 2026-10-05 (the date of the latest migration, 0027_quickstart).
 
-Generated from the snapshot of the 27 migrations in drizzle/ (0026_snapshot.json) by
+Generated from the snapshot of the 28 migrations in drizzle/ (0027_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -58,6 +58,7 @@ who belongs to a workspace and as what (owner, member); user_id is better-auth's
 | user_id | text | fk user.id, on delete cascade, not null |
 | role | text | not null |
 | created_at | timestamp with time zone | not null, default now() |
+| quickstart_seen_at | timestamp with time zone |  |
 
 Primary key: (workspace_id, user_id).
 

@@ -18,6 +18,11 @@ test("remind one invitee, read email 3, see the three-day rule", async ({ page, 
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(page.getByTestId("quickstart")).toBeVisible();
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   await page.getByRole("link", { name: "New project" }).first().click();
   await page.getByLabel("Project name").fill("Expense tool");
