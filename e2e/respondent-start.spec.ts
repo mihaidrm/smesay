@@ -24,6 +24,8 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await page.getByRole("button", { name: "Create workspace" }).click();
   // Naming the first workspace opens the quickstart once (stories/E12-2).
   await expect(page).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(page.getByTestId("quickstart")).toBeVisible();
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   // The sample opens on Results (E8-8); its project address is taken from the link.

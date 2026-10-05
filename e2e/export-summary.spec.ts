@@ -23,6 +23,8 @@ test("download the summary PDF, and render 200 items and 50 responses under 10 s
   await page.getByRole("button", { name: "Create workspace" }).click();
   // Naming the first workspace opens the quickstart once (stories/E12-2).
   await expect(page).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(page.getByTestId("quickstart")).toBeVisible();
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   const href = await page.getByRole("link", { name: /Sample project/ }).first().getAttribute("href");

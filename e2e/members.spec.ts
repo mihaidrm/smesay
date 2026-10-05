@@ -41,6 +41,8 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await owner.getByRole("button", { name: "Create workspace" }).click();
   // Naming the first workspace opens the quickstart once (stories/E12-2).
   await expect(owner).toHaveURL(/\/app\/quickstart$/);
+  // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
+  await expect(owner.getByTestId("quickstart")).toBeVisible();
   await owner.goto("/app");
   await expect(owner).toHaveURL(/\/app$/);
   await owner.getByRole("link", { name: "Settings" }).click();
