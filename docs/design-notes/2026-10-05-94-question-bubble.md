@@ -14,9 +14,14 @@ and 0049.
   above the button. The title, the one-line promise, two fields, the privacy line and a full
   width Send in the landing's primary button style.
 - The button turns into a close icon while the panel is open. On a phone the sheet covers the
-  button, and the panel's own Close button closes it.
-- Sent replaces the form with a green line naming the address; the next opening starts a new
-  question. Errors show in red under the fields, named by the field they concern.
+  button and the footer, so the Tab key stays inside the sheet there (WCAG 2.2, 2.4.11 Focus
+  Not Obscured, w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html); Close and
+  Escape close it. On a desktop the bubble stays visible beside the card and Tab moves freely.
+- Sent replaces the form with a green line naming the address, inside a status region that is
+  always in the panel so screen readers announce it, and the focus moves to the line; the next
+  opening starts a new question. Errors show in red under the fields, named by the field they
+  concern. A full connection has its own line, so a person on a shared office network is not
+  told they sent 5 questions.
 
 ## Why the footer is taller on a phone
 

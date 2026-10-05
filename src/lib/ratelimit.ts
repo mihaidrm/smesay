@@ -51,6 +51,11 @@ export function windowLimiter({ max, windowMs }: { max: number; windowMs: number
       slot.count += 1;
       return slot.count <= max ? { allowed: true } : { allowed: false, retryAfterMs: slot.until - now };
     },
+    // Gives back one counted request (a question whose mail did not go, stories/E12-5).
+    undo(key: string): void {
+      const slot = slots.get(key);
+      if (slot && slot.count > 0) slot.count -= 1;
+    },
     size: () => slots.size,
     clear: () => slots.clear(),
   };

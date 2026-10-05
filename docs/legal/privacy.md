@@ -46,7 +46,7 @@ For what respondents give in a workspace, the organisation that owns the workspa
 
 - When you send a question with "Ask us a question" on the landing page, your email address and your question go to us as one email, so we can reply to you. SMEsay itself stores neither, and neither is written to its logs. The email also says which page you sent it from and when.
 - The email stays in our inbox for as long as we need it to answer you and follow up. [LAWYER: confirm the legal basis (answering the visitor's request) and the retention to promise for these emails; until the launch gate they go to the founder's own mailbox, and at the launch gate to hello@smesay.app, whose mail provider is chosen then.]
-- To limit repeated messages, your email address and your IP address are counted in the server's memory for an hour (5 questions per email address and 20 per connection). They are not written to the database.
+- To limit repeated messages, your email address and your IP address are counted in the server's memory (5 questions per email address and 20 messages per connection in an hour). They are not written to the database. They stay in memory until the same address is counted again after the hour, the server restarts or the count store fills up (50,000 entries), whichever comes first. [LAWYER: confirm whether a fixed maximum is needed.]
 
 ## What the AI sees
 

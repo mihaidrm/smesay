@@ -5,6 +5,14 @@
 export const QUESTION_MAX = 2000;
 export const SUPPORT_PER_ADDRESS = 5;
 
+// An address to reply to: one @, a dot in the domain, and none of the characters an email
+// header reads as syntax (comma, semicolon, angle brackets, parentheses, quotes, brackets,
+// backslash) or any control character, so the Reply-To nodemailer writes is the address typed
+// (nodemailer parses addresses with its own addressparser: node_modules/nodemailer/dist/
+// cjs/addressparser/index.js). Stricter than the app's invitee check on purpose.
+const ADDRESS = /^[^\s@,;<>()"[\]\\\u0000-\u001f\u007f-\u009f]+@[^\s@,;<>()"[\]\\\u0000-\u001f\u007f-\u009f]+\.[^\s@,;<>()"[\]\\\u0000-\u001f\u007f-\u009f]+$/;
+export const isSupportAddress = (value: string) => value.length <= 254 && ADDRESS.test(value);
+
 export const SUPPORT_COPY = {
   button: "Ask us a question",
   title: "Ask us a question",
@@ -22,4 +30,5 @@ export const SUPPORT_COPY = {
   questionLong: (max: number) => `Keep your question to ${max.toLocaleString("en-GB")} characters.`,
   failed: (support: string) => `Your question was not sent. Check your connection and press Send again, or email ${support}.`,
   tooMany: (count: number, support: string) => `You have sent ${count} questions in the last hour. Email ${support} instead.`,
+  tooManyConnection: (support: string) => `Too many questions came from your connection in the last hour. Email ${support} instead.`,
 } as const;

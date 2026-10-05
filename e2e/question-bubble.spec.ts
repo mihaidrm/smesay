@@ -3,7 +3,8 @@
 // it opens the panel with the focus in the email field; Escape closes it, gives the focus back
 // to the button and keeps the typed text; a missing address is named; Send shows the sent
 // line, and Mailpit holds the email with Reply-To the visitor (mailpit.axllent.org/docs/api-v1:
-// GET /api/v1/search, GET /api/v1/message/{ID}/headers).
+// GET /api/v1/search, GET /api/v1/message/{ID}/headers); after Sent, Escape still closes the
+// panel and the focus goes back to the button; on a phone Tab and Shift+Tab stay in the sheet.
 import { expect, test, type Page } from "@playwright/test";
 
 const MAILPIT = process.env.MAILPIT_URL ?? "http://localhost:8025";
@@ -49,6 +50,14 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
     if (viewport.width >= 768) expect((await panel.boundingBox())!.width).toBe(360);
     else expect((await panel.boundingBox())!.width).toBe(viewport.width);
     await panel.getByLabel("Your question").fill("Can experts answer in Romanian?");
+    if (viewport.width < 768) {
+      // The sheet covers the bubble and the footer: the focus never leaves it (WCAG 2.2, 2.4.11).
+      for (const key of ["Shift+Tab", "Shift+Tab", "Shift+Tab", "Tab", "Tab", "Tab", "Tab", "Tab", "Tab"]) {
+        await page.keyboard.press(key);
+        expect(await panel.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+      }
+      await panel.getByLabel("Your question").focus();
+    }
     await page.keyboard.press("Escape");
     await expect(panel).toBeHidden();
     await expect(bubble).toBeFocused();
@@ -76,6 +85,12 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 
     const headers = await (await request.get(`${MAILPIT}/api/v1/message/${id}/headers`)).json();
     expect(headers["Reply-To"]?.[0]).toContain(visitor);
 
+    await expect(panel.getByTestId("question-sent")).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
+    await expect(bubble).toBeFocused();
+    await bubble.click();
+    await expect(panel.getByLabel("Your email")).toHaveValue(visitor);
     await panel.getByRole("button", { name: "Close" }).click();
     await expect(bubble).toBeFocused();
   });

@@ -444,3 +444,4 @@ a change.
 | 2026-10-05 | The question bubble also limits one connection to 20 questions an hour, besides 5 per typed address, so new addresses cannot fill the inbox | src/lib/support.ts, design note 94 | |
 | 2026-10-05 | The landing footer keeps 96 px under its last line on a phone, so the question bubble covers none of its links | src/app/landing-page/page.tsx | Scroll to the bottom of the landing page on a phone |
 | 2026-10-05 | The question bubble's length line reads "2,000 characters", as the app writes numbers elsewhere | docs/copy/landing.md | |
+| 2026-10-05 | The question bubble names the connection limit in its own line ("Too many questions came from your connection in the last hour."), and on a phone Tab stays inside the sheet, since the sheet covers the bubble and the footer | docs/copy/landing.md, src/app/landing-page/question-bubble.tsx | |
