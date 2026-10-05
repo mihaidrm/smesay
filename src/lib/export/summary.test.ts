@@ -19,7 +19,7 @@ import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
 import { DEFAULT_TILES, tileView } from "@/lib/results-tiles";
 import { requireWorkspace } from "@/lib/workspace";
 import { pageCount } from "./pdf";
-import { summaryView } from "./summary";
+import { register, REGISTER_ROWS_MAX, summaryView } from "./summary";
 import { SUMMARY_COPY, summaryFooter, summaryHeader, summaryHtml, type SummaryView } from "./summary-html";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -80,6 +80,7 @@ describe("summaryView", () => {
     const v = (await summaryView(input(f)))!;
     expect(v.lines).toEqual(["Filtered: Disagree"]);
     expect(v.registers.find((r) => r.title === "Disagree")!.rows).toHaveLength(expected.disagree);
+    expect(v.registers.find((r) => r.title === "Disagree")!.total).toBe(expected.disagree);
   });
   it("is nothing for another workspace's instrument", async () => {
     expect(await summaryView({ ...input(NONE), ws: wsB })).toBeNull();
@@ -92,12 +93,23 @@ const VIEW: SummaryView = {
   areas: [{ name: "Submitting", counts: { agree: 3, change: 1, disagree: 0, unclear: 1, pick: 0, notAnswered: 0 }, percent: "60%" }],
   confidence: [0, 1, 0, 2, 2],
   tables: [{ area: "Submitting", rows: [{ ref: "CL-04", text: "Photograph a receipt", proposed: "Should", counts: { agree: 3, change: 1, disagree: 0, unclear: 1, pick: 0, notAnswered: 0 }, percent: "60%" }] }],
-  registers: [{ title: "Unclear", columns: ["", "Item", "Respondent", "Question"], rows: [["CL-04", "Photograph a receipt", "Ioana Marin", "What about <b>PDF</b> & scans?"]], empty: "None under this filter." }],
+  registers: [{ title: "Unclear", columns: ["", "Item", "Respondent", "Question"], rows: [["CL-04", "Photograph a receipt", "Ioana Marin", "What about <b>PDF</b> & scans?"]], total: 1, more: null, empty: "None under this filter." }],
   signOffs: [{ who: "Ioana Marin", when: "9 Oct 2026, 16:30 UTC", confidence: "4" }],
   actions: [{ state: "Open", kind: "Rewrite", title: "Say what a receipt is", why: "Two people asked.", cites: "From: Ioana Marin on CL-04" }],
 };
 
 describe("summaryHtml", () => {
+  it("stops each register at 20 rows and names the CSV with the rest (decision 0048)", () => {
+    const rows = Array.from({ length: 47 }, (_, i) => [`R-${i}`, "Item", "Ioana Marin", "Too slow"]);
+    const r = register("Disagree", ["", "Item", "Respondent", "Reason"], rows, "Answers");
+    expect([r.rows.length, r.total, REGISTER_ROWS_MAX]).toEqual([20, 47, 20]);
+    expect(r.more).toBe("And 27 more in the Answers CSV on the Export tab.");
+    expect(register("Disagree", [], rows.slice(0, 20), "Answers").more).toBeNull();
+    const html = summaryHtml({ ...VIEW, registers: [r] });
+    expect(html).toContain("<h2>Disagree (47)</h2>");
+    expect(html).toContain("And 27 more in the Answers CSV on the Export tab.");
+    expect(html.match(/<td>R-\d+<\/td>/g)).toHaveLength(20);
+  });
   it("puts the sections in the story's order, the last on its own page", () => {
     const html = summaryHtml(VIEW);
     const at = (s: string) => html.indexOf(s);

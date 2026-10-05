@@ -18,6 +18,9 @@ const nameOf = (disposition: string | null, fallback: string) => {
 
 // pages (E10-3): the page limit and the note with "{pages}" where the count goes; the note shows
 // when the route's x-summary-pages header is over the limit.
+export const pagesNote = (count: number, pages?: { limit: number; note: string }) =>
+  pages && count > pages.limit ? pages.note.replace("{pages}", String(count)) : null;
+
 export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId, fallbackName, pages }: { href: string; label: string; srLabel: string; busyLabel: string; failed: string; testId: string; fallbackName: string; pages?: { limit: number; note: string } }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -40,8 +43,7 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      const count = Number(res.headers.get("x-summary-pages"));
-      if (pages && count > pages.limit) setNote(pages.note.replace("{pages}", String(count)));
+      setNote(pagesNote(Number(res.headers.get("x-summary-pages")), pages));
     } catch {
       setError(true);
     } finally {

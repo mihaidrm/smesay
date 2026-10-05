@@ -1,8 +1,8 @@
 // The main path of E10-3: Summary for the deck downloads the sample as a PDF with its page
 // count; then a generated project of 200 items and 50 submitted responses, imported through
 // Import a project (E10-2), renders its summary in under 10 seconds (acceptance 2), timed from
-// the request to the last byte; it runs over 30 pages, so the Export tab says so after the
-// download.
+// the request to the last byte; with each register stopped at 20 rows (decision 0048) it fits
+// 30 pages, so the Export tab shows no note.
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -65,8 +65,11 @@ test("download the summary PDF, and render 200 items and 50 responses under 10 s
   expect(pdf.status()).toBe(200);
   expect(elapsed).toBeLessThan(10_000);
 
-  // Over 30 pages the file still downloads and the note says how long it runs.
+  // Each register stops at 20 rows (decision 0048), so the generated case fits the 30 pages a
+  // deck takes and the Export tab shows no note; the note over the limit is
+  // export-download.test.ts's.
+  expect(Number(pdf.headers()["x-summary-pages"])).toBeLessThanOrEqual(30);
   await page.goto(`/app/projects/${generatedId}/results?unsubmitted=0&tab=export`);
   await Promise.all([page.waitForEvent("download", { timeout: 30_000 }), page.getByTestId("export-summary-download").click()]);
-  await expect(page.getByTestId("export-summary-download-pages")).toHaveText(`The summary runs to ${pdf.headers()["x-summary-pages"]} pages, over the 30 a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again.`);
+  await expect(page.getByTestId("export-summary-download-pages")).toHaveCount(0);
 });
