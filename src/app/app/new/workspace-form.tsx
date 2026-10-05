@@ -9,10 +9,13 @@ import { Label } from "@/components/ui/label";
 import { WORKSPACE_NAME_MAX } from "@/lib/workspace-name";
 import { createWorkspace, type CreateWorkspaceState } from "../actions";
 
-export function WorkspaceForm() {
+// source: where the person came from (stories/E13-3), sent back with the name and cleaned again
+// by the action.
+export function WorkspaceForm({ source = null }: { source?: string | null }) {
   const [state, action, pending] = useActionState<CreateWorkspaceState, FormData>(createWorkspace, { error: null });
   return (
     <form action={action} noValidate className="flex flex-col gap-4">
+      {source && <input type="hidden" name="source" value={source} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor="name">Workspace name</Label>
         <Input id="name" name="name" maxLength={WORKSPACE_NAME_MAX} autoComplete="organization"

@@ -50,6 +50,8 @@ export const workspace = pgTable("workspace", {
   deletedAt: ts("deleted_at"),
   // Who deleted it (stories/E11-2): the owner the deleted page names and the removal job emails.
   deletedBy: text("deleted_by").references(() => user.id, { onDelete: "set null" }),
+  // The utm_source the first owner arrived with, cleaned (stories/E13-3; src/lib/utm.ts).
+  firstSource: text("first_source"),
 }, (t) => [uniqueIndex("workspace_slug_idx").on(t.slug), check("workspace_plan_check", oneOf("plan", PLAN_KEYS))]);
 
 export const workspaceMember = pgTable("workspace_member", {

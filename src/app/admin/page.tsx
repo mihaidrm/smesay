@@ -90,6 +90,7 @@ async function Overview({ proof }: { proof: AdminProof }) {
                 <tr className="text-left text-xs font-semibold text-ink-muted">
                   <th className="px-4 py-2.5">{C.columns.name}</th>
                   <th className="px-3 py-2.5">{C.columns.created}</th>
+                  <th className="px-3 py-2.5">{C.columns.source}</th>
                   <th className="px-3 py-2.5 text-right">{C.columns.members}</th>
                   <th className="px-3 py-2.5 text-right">{C.columns.projects}</th>
                   <th className="px-3 py-2.5 text-right">{C.columns.published}</th>
@@ -103,6 +104,7 @@ async function Overview({ proof }: { proof: AdminProof }) {
                   <tr key={r.id} className="border-t border-hairline" data-testid="admin-workspace-row">
                     <td className="px-4 py-2 font-semibold">{r.name}</td>
                     <td className="whitespace-nowrap px-3 py-2">{DAY.format(r.createdAt)}</td>
+                    <td className="px-3 py-2 font-mono text-xs" data-testid="admin-source">{r.firstSource ?? C.noSource}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.members}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.projects}</td>
                     <td className="px-3 py-2 text-right font-mono">{r.published}</td>

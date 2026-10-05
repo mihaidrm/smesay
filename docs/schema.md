@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0028_events).
+v1, 2026-10-05 (the date of the latest migration, 0029_first_source).
 
-Generated from the snapshot of the 29 migrations in drizzle/ (0028_snapshot.json) by
+Generated from the snapshot of the 30 migrations in drizzle/ (0029_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -44,6 +44,7 @@ organisation: members, AI budget, branding defaults (accent and logo); deleted_a
 | created_at | timestamp with time zone | not null, default now() |
 | deleted_at | timestamp with time zone |  |
 | deleted_by | text | fk user.id, on delete set null |
+| first_source | text |  |
 
 Indexes: workspace_slug_idx (unique) on slug.
 Checks: workspace_plan_check: plan in ('free', 'pro', 'team', 'enterprise').

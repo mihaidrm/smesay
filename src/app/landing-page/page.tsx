@@ -30,6 +30,10 @@ import { CompareDemo } from "./compare-demo";
 import { CursorLight } from "./cursor-light";
 import { ResultsDemo } from "./results-demo";
 import { Reveal } from "./reveal";
+import { GoalLink } from "@/components/analytics/goal-link";
+import { PlausibleScript } from "@/components/analytics/plausible-script";
+import { GOALS } from "@/lib/plausible";
+import { cleanSource, signInHref } from "@/lib/utm";
 import { ShapeDemo } from "./shape-demo";
 
 export const metadata: Metadata = {
@@ -95,9 +99,12 @@ const QUESTIONS: [string, string][] = [
   ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
 ];
 
-export default function LandingPage() {
+export default async function LandingPage({ searchParams }: { searchParams: Promise<{ utm_source?: string | string[] }> }) {
+  // The source the visitor came with goes on to sign-in (stories/E13-3, acceptance 4).
+  const start = signInHref(cleanSource((await searchParams).utm_source));
   return (
     <main className="flex flex-col font-sans text-[#15131F]">
+      <PlausibleScript />
       <section className="relative overflow-hidden text-[#F3F1FA]" style={{ background: NAVY }}>
         <div aria-hidden="true" className="pointer-events-none absolute -top-[260px] -left-[200px] size-[900px] rounded-full bg-[radial-gradient(circle,rgba(109,76,245,0.55),rgba(109,76,245,0)_62%)]" />
         <div aria-hidden="true" className="pointer-events-none absolute top-[120px] -right-[160px] size-[760px] rounded-full bg-[radial-gradient(circle,rgba(255,107,87,0.38),rgba(255,107,87,0)_60%)]" />
@@ -112,7 +119,7 @@ export default function LandingPage() {
             <a href="#compare" className={navLink}>Compare</a>
             <a href="#pricing" className={navLink}>Pricing</a>
             <a href="#questions" className={navLink}>Questions</a>
-            <Link href="/sign-in" className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</Link>
+            <GoalLink goal={GOALS.startFree} href={start} className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</GoalLink>
           </nav>
         </div>
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-start gap-12 px-5 pt-10 pb-16 md:px-8 lg:flex-row lg:items-center lg:justify-between lg:pt-6 lg:pb-14">
@@ -121,8 +128,8 @@ export default function LandingPage() {
             <h1 className="mt-[22px] text-[40px] leading-[44px] font-extrabold tracking-[-0.04em] md:text-[66px] md:leading-[68px]">Send the list as a link. <span className="bg-[linear-gradient(90deg,#B8A8FF_0%,#FF8A78_60%,#FFD36E_100%)] bg-clip-text text-transparent">Get back who agrees, and why.</span></h1>
             <p className="mt-[26px] max-w-[520px] text-[17px] leading-[26px] text-[#C9C4E0] md:text-[19px] md:leading-[30px]">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</p>
             <div className="mt-[34px] flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center">
-              <Link href="/sign-in" className={primary}>Start free<span aria-hidden="true" className="ml-2 transition-transform duration-150 group-hover/button:translate-x-[3px]">→</span></Link>
-              <Link href="/sample" className={ghost}>Try the sample as a respondent</Link>
+              <GoalLink goal={GOALS.startFree} href={start} className={primary}>Start free<span aria-hidden="true" className="ml-2 transition-transform duration-150 group-hover/button:translate-x-[3px]">→</span></GoalLink>
+              <GoalLink goal={GOALS.trySample} href="/sample" className={ghost}>Try the sample as a respondent</GoalLink>
             </div>
             <div className="mt-[26px] flex items-center gap-3.5 text-[13px] text-[#C9C4E0]">
               <div className="flex" aria-hidden="true">
@@ -236,7 +243,7 @@ export default function LandingPage() {
           <Reveal className="max-w-[560px]">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Free while we build it with the first users.</h2>
             <p className="mt-[18px] text-[17px] leading-[26px] text-[#C9C4E0]">Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you build now is lost or locked.</p>
-            <div className="mt-[30px] flex flex-col gap-3.5 sm:flex-row"><Link href="/sign-in" className={primary}>Start free</Link><Link href="/sample" className={ghost}>Try the sample as a respondent</Link></div>
+            <div className="mt-[30px] flex flex-col gap-3.5 sm:flex-row"><GoalLink goal={GOALS.startFree} href={start} className={primary}>Start free</GoalLink><GoalLink goal={GOALS.trySample} href="/sample" className={ghost}>Try the sample as a respondent</GoalLink></div>
           </Reveal>
           <Reveal delay={120} className="flex w-full max-w-[440px] flex-col gap-3.5 rounded-[20px] border border-[#343252] bg-[#1E1D33] p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
             <div className="flex items-baseline justify-between"><span className="text-[20px] font-bold">Free</span><span className="rounded-full bg-[#2E2B55] px-2.5 py-1 text-xs font-semibold text-[#B8A8FF]">While we build it</span></div>

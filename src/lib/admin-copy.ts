@@ -16,8 +16,11 @@ export const ADMIN_COPY = {
     response_submitted: "Submitted", export_downloaded: "Exports",
   } satisfies Record<FunnelStep, string>,
   workspacesTitle: "Workspaces",
-  columns: { name: "Name", created: "Created", members: "Members", projects: "Projects", published: "Published", responses: "Responses this month", cost: "AI cost this month", last: "Last activity" },
+  columns: { name: "Name", created: "Created", source: "Came from", members: "Members", projects: "Projects", published: "Published", responses: "Responses this month", cost: "AI cost this month", last: "Last activity" },
   noWorkspaces: "No workspaces yet.",
+  // A workspace with no recorded source: none in the link, or made before sources were kept
+  // (stories/E13-3).
+  noSource: "none recorded",
   loading: "Loading the overview",
 };
 

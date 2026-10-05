@@ -18,16 +18,21 @@
 // the app. upgrade-insecure-requests only when the app is served over HTTPS, so a local or CI
 // server on http://localhost keeps its scripts.
 
-export type CspOptions = { nonce: string; dev: boolean; https: boolean };
+// analytics: Plausible's origin when it is switched on (stories/E13-3): its script loads with
+// the nonce like the app's own (with 'strict-dynamic' a script carrying the nonce runs whatever
+// its host, and host lists are ignored: developer.mozilla.org/docs/Web/HTTP/Reference/Headers/
+// Content-Security-Policy/script-src, "strict-dynamic"), and it sends its counts there, which
+// connect-src must allow. The proxy leaves it out on the respondent pages.
+export type CspOptions = { nonce: string; dev: boolean; https: boolean; analytics?: string | null };
 
-export function contentSecurityPolicy({ nonce, dev, https }: CspOptions): string {
+export function contentSecurityPolicy({ nonce, dev, https, analytics = null }: CspOptions): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data:",
     "font-src 'self'",
-    `connect-src 'self'${dev ? " ws:" : ""}`,
+    `connect-src 'self'${dev ? " ws:" : ""}${analytics ? ` ${analytics}` : ""}`,
     "frame-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",

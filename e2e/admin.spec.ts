@@ -32,6 +32,7 @@ test("only an admin email sees the admin page", async ({ page, request }) => {
   await page.context().clearCookies();
 
   await signIn("e2e-admin@marlow.example");
+  await page.waitForLoadState("networkidle");
   expect((await page.goto("/admin"))?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Overview");
   await expect(page.getByTestId("admin-totals").getByTestId("stat-tile")).toHaveCount(4);

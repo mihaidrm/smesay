@@ -20,7 +20,8 @@ import { remindAll, remindInvitee } from "@/lib/reminders";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { readAuthEnv } from "@/lib/auth";
 import { signedIn } from "@/lib/session";
-import { track } from "@/lib/analytics";
+import { track, wasFirst } from "@/lib/analytics";
+import { GOALS, goalRequest, plausibleConfig, sendGoal } from "@/lib/plausible";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button. signedOut (E11-6): the session had ended;
@@ -33,6 +34,7 @@ export async function createProjectAction(_previous: ProjectFormState, formData:
   const result = await createProject({ ws: current.ws, userId: session.user.id }, formData.get("name"));
   if ("error" in result) return { ...NONE, error: result.error };
   await track("project_created", { from: "new" }, { workspaceId: current.ws, userId: session.user.id });
+  if (plausibleConfig() && await wasFirst("project_created", current.ws)) sendGoal(GOALS.firstProject, await goalRequest("/app/projects/new"));
   revalidatePath("/app", "layout");
   redirect(`/app/projects/${result.project.id}/import`);
 }
@@ -47,6 +49,7 @@ export async function importProjectAction(_previous: ProjectFormState, formData:
   const result = await importProject({ ws: current.ws, userId: session.user.id }, await file.text());
   if ("error" in result) return { ...NONE, error: result.error };
   await track("project_created", { from: "import" }, { workspaceId: current.ws, userId: session.user.id });
+  if (plausibleConfig() && await wasFirst("project_created", current.ws)) sendGoal(GOALS.firstProject, await goalRequest("/app/projects/import"));
   revalidatePath("/app", "layout");
   redirect(`/app/projects/${result.projectId}/results`);
 }
@@ -393,6 +396,7 @@ export async function publishAction(_previous: ProjectFormState, formData: FormD
     if ("error" in result) return { ...NONE, error: result.error };
     const who = { workspaceId: current.ws, userId: session.user.id };
     await track("instrument_published", { method: result.instrument.method, layout: result.instrument.layout }, who);
+    if (plausibleConfig() && await wasFirst("instrument_published", current.ws)) sendGoal(GOALS.firstPublished, await goalRequest(`/app/projects/${projectId}/share`));
     await track("invite_sent", { kind: "public" }, who);
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

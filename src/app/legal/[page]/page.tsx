@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Lockup } from "@/components/brand/mark";
 import { notFound } from "next/navigation";
+import { PlausibleScript } from "@/components/analytics/plausible-script";
 import { LEGAL_PAGES, LEGAL_TITLES, readLegal, type Inline, type LegalPage } from "@/lib/legal";
 
 // Rendered per request, dynamicParams false does not stop an unknown name reaching the page
@@ -42,6 +43,7 @@ export default async function LegalPageView({ params }: { params: Promise<{ page
   const doc = readLegal(page);
   return (
     <main className="mx-auto flex min-h-screen max-w-[760px] flex-col gap-6 bg-ground px-4 py-10 text-ink md:px-8">
+      <PlausibleScript />
       <Link href="/" aria-label="SMEsay home"><Lockup /></Link>
       <p className="text-sm text-ink-muted" data-testid="legal-version">Version {doc.version}, {DATE.format(new Date(`${doc.date}T00:00:00Z`))}</p>
       <article className="flex flex-col gap-4 leading-7">

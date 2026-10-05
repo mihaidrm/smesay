@@ -34,3 +34,9 @@ export async function track<N extends EventName>(name: N, properties: Empty<N> e
     return false;
   }
 }
+
+// Whether the event just tracked was the workspace's first of its name (Plausible's "first"
+// goals, stories/E13-3); false when it cannot tell.
+export async function wasFirst(name: EventName, workspaceId: WorkspaceId): Promise<boolean> {
+  try { return (await events.countInWorkspace(workspaceId, name)) === 1; } catch { return false; }
+}

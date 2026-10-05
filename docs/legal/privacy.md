@@ -79,7 +79,7 @@ Users can download what a workspace holds: the CSV files of answers, items, peop
 
 ## Error reports and visit counts
 
-SMEsay sends no error reports to another company and counts no visits. [LAWYER: this section changes before either is switched on.]
+SMEsay sends no error reports to another company and counts no visits. [LAWYER: this section changes before either is switched on. For visit counts (Plausible, from launch): no cookies; Plausible counts a visitor from a hash of a daily salt, the site, the IP address and the browser's user agent, deletes the salt every 24 hours and stores no IP address; it keeps the page address, the referrer, the country, region and city worked out from the IP address, and the browser, operating system and device type (plausible.io/data-policy); for two goals (first project, first published instrument) SMEsay's server sends the visitor's IP address and user agent to Plausible itself; never on respondents' pages or the sample instrument; the landing page, sign-in, the legal pages and the signed-in app only. Confirm the wording and whether consent is needed.]
 
 ## Your rights
 

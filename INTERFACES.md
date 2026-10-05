@@ -688,3 +688,14 @@ src/db/queries/usage.ts, on usage()'s conditions. FUNNEL_STEPS and FunnelStep in
 src/db/types.ts; PLAN_METRICS { label, value(rows) } and PAID_PLAN_SWITCH { metric, threshold }
 in src/lib/plans.ts; share(n, before) in src/lib/admin-copy.ts.
 
+Visitor analytics (E13-3): plausibleConfig(env): { domain, scriptSrc } or null, PLAUSIBLE_ORIGIN,
+GOALS (Start free, Try the sample, Sign up, First project, First instrument published),
+sendGoal(name, { url, userAgent, forwardedFor }, send?) and goalRequest(path) in
+src/lib/plausible.ts; <PlausibleScript /> and <GoalLink goal> / <GoalOnOpen goal> in
+src/components/analytics/; wasFirst(name, ws) in src/lib/analytics.ts. CspOptions gains
+analytics (an origin for connect-src). cleanSource(value), nextWithSource(next, source) and
+signInHref(source) in src/lib/utm.ts; events.countInWorkspace(ws, name) in
+src/db/queries/events.ts (used by wasFirst); goalBody(config, name, url) and SIGN_UP_WINDOW_MS
+in src/lib/plausible.ts; sendClientGoal(goal) in src/components/analytics/goal-link.tsx; workspace.firstSource (text, null), set by
+createWorkspaceWithSample({ name, slug, firstSource }); AdminWorkspace gains firstSource.
+
