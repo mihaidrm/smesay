@@ -12,7 +12,7 @@ import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { Mail } from "@/lib/mail";
 import { listKeys, putObject } from "@/lib/storage";
-import { purgeDeletedWorkspaces } from "@/lib/workspace-removal";
+import { AUDIT_RETENTION_MONTHS, EVENT_RETENTION_MONTHS, purgeDeletedWorkspaces, purgeExpired } from "@/lib/workspace-removal";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 
@@ -77,5 +77,31 @@ describe("purgeDeletedWorkspaces", () => {
     const report = await purgeDeletedWorkspaces(async (m) => { if (m.to === `${ownerId}@example.com`) throw new Error("smtp down"); });
     expect(report.failed).toBeGreaterThanOrEqual(1);
     expect(await rowsOf(ws)).toBe(0);
+  });
+});
+
+// Retention (decision 0054, docs/legal/privacy.md): the hourly job deletes ended sessions,
+// expired sign-in links, usage events past EVENT_RETENTION_MONTHS and admin log rows past
+// AUDIT_RETENTION_MONTHS, and keeps everything younger.
+describe("purgeExpired", () => {
+  it("deletes what has passed its retention and keeps the rest", async () => {
+    const now = new Date("2026-10-05T12:00:00Z");
+    const userId = `retention-${randomUUID()}`;
+    await db.insert(user).values({ id: userId, name: "Kept", email: `${userId}@example.com`, emailVerified: true });
+    const tag = randomUUID();
+    await sql`insert into session (id, token, user_id, expires_at, created_at, updated_at) values (${`ended-${tag}`}, ${`t1-${tag}`}, ${userId}, ${new Date("2026-10-05T11:59:00Z")}, now(), now()), (${`live-${tag}`}, ${`t2-${tag}`}, ${userId}, ${new Date("2026-11-04T12:00:00Z")}, now(), now())`;
+    await sql`insert into verification (id, identifier, value, expires_at) values (${`old-${tag}`}, ${`a-${tag}`}, 'x', ${new Date("2026-10-05T11:00:00Z")}), (${`new-${tag}`}, ${`b-${tag}`}, 'x', ${new Date("2026-10-05T12:10:00Z")})`;
+    const eventEdge = new Date(now); eventEdge.setUTCMonth(eventEdge.getUTCMonth() - EVENT_RETENTION_MONTHS);
+    const auditEdge = new Date(now); auditEdge.setUTCMonth(auditEdge.getUTCMonth() - AUDIT_RETENTION_MONTHS);
+    const day = 24 * 60 * 60_000;
+    await sql`insert into event (user_id, name, properties, created_at) values (${userId}, 'signed_up', ${sql.json({ tag })}, ${new Date(eventEdge.getTime() - day)}), (${userId}, 'signed_up', ${sql.json({ tag })}, ${new Date(eventEdge.getTime() + day)})`;
+    await sql`insert into admin_audit (admin_user_id, action, target_user_id, created_at) values (${`old-${tag}`}, 'magic_link_sent', ${userId}, ${new Date(auditEdge.getTime() - day)}), (${`new-${tag}`}, 'magic_link_sent', ${userId}, ${new Date(auditEdge.getTime() + day)})`;
+
+    const counts = await purgeExpired(now);
+    expect(counts.sessions).toBeGreaterThanOrEqual(1);
+    expect((await sql`select id from session where id like ${`%-${tag}`}`).map((r) => r.id)).toEqual([`live-${tag}`]);
+    expect((await sql`select id from verification where id like ${`%-${tag}`}`).map((r) => r.id)).toEqual([`new-${tag}`]);
+    expect((await sql`select count(*)::int as n from event where properties->>'tag' = ${tag}`)[0].n).toBe(1);
+    expect((await sql`select admin_user_id from admin_audit where target_user_id = ${userId}`).map((r) => r.admin_user_id)).toEqual([`new-${tag}`]);
   });
 });
