@@ -15,6 +15,7 @@ const reexport = (code: string, filePath: string) => errors("smesay/no-db-reexpo
 
 describe("db-access", () => {
   const refused: [string, string][] = [
+    ['import { events } from "@/db/queries/events";', "src/app/app/actions.ts"],
     ['import { db } from "@/db";', "src/app/w/route.ts"],
     ['import { db } from "@/db/";', "src/app/w/route.ts"],
     ['import { db } from "@/db/index";', "src/app/w/route.ts"],
@@ -67,6 +68,7 @@ describe("db-access", () => {
     ['import { internal } from "@/db/queries/internal";', "src/lib/ai/client.test.ts"],
     ['import { internal } from "@/db/queries/internal";', "src/lib/insights.test.ts"],
     ['import { prepareTestDatabase } from "@/db/test-db";', "src/lib/thing.test.ts"],
+    ['import { events } from "@/db/queries/events";', "src/lib/analytics.ts"],
     ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/db/queries/x.test.ts"],
   ];
   it.each(allowed)("allows %s in %s", async (code, filePath) => {

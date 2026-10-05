@@ -25,6 +25,7 @@ For what respondents give in a workspace, the organisation that owns the workspa
 - Your workspaces: their names, logo and accent colour, the members and their roles, and the invitations sent.
 - What you put in: the lists you import (the rows and the original file), the projects and their context, the instruments, the personal invites you send (each person's name, email and role hint, when the invite was sent and reminded, and the email provider's error text if a send failed), and the actions written from the answers, with who closed each one.
 - Records the product keeps to work: each AI run (what it was for, the tokens used and the cost), and each export (who made it, when, which file and the filter used; a text filter is kept without what was typed).
+- A record of the steps you take in the product, so we can see which parts are used: the step's name (for example "project created" or "export downloaded"), when, your user id and workspace, and counts or fixed values such as the number of rows imported or the file type. It never holds your name, your email or anything you typed. For respondents the record holds the link's kind and the instrument, never anything about the person; on a personal link its time is close to the time of the person's answers, so the two could be matched by someone with access to both. [LAWYER: confirm the legal basis for this usage record and its retention.]
 - When you ask for a sign-in link: your email address (and your name, if you gave one), kept with the link until it is used, or after it expires until the link records are next cleared.
 - Each signed-in session: the IP address and the browser's user agent at sign-in, kept with the session's record. The record is deleted when you sign out, or when the session is next used after it has ended; a session nobody returns to stays in the database. [LAWYER: SMEsay does not yet delete ended sessions on a schedule; confirm the retention to promise.]
 - A session cookie that keeps you signed in. It lasts 30 days and is renewed at most once a day while you use SMEsay, so it ends between 29 and 30 days after you last used it. Signing in with Google also sets a cookie that lasts at most 10 minutes.
@@ -69,6 +70,7 @@ SMEsay is not hosted yet. The plan for launch is below; the subprocessor list (/
 - An owner can delete a workspace in Settings. Every member loses access at once. The removal job then deletes every row and file in it and sends the owner who deleted it one email. [LAWYER: the removal job runs every hour from launch, so removal takes under 24 hours; until then it is started by hand. Confirm the period to promise.]
 - Backups: [LAWYER: confirm the backup retention period once it is set for the host.]
 - Respondents' answers are kept until the workspace is deleted. [LAWYER: confirm whether a maximum retention period is needed.]
+- The usage record of a workspace goes when the workspace is deleted. The record of a sign-up and of a workspace deletion holds no workspace and stays; if your account is deleted, your user id is removed from it.
 
 ## Exports you make
 

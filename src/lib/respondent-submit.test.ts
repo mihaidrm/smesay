@@ -13,6 +13,7 @@
 // mark, a closed personal link's submitted page.
 import { beforeAll, describe, expect, it } from "vitest";
 import { invites, items, missingItems, projects, responses } from "@/db/queries";
+import { events } from "@/db/queries/events";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
@@ -178,6 +179,8 @@ describe("Submit", () => {
     if ("status" in started) throw new Error(started.error);
     const device = { device: started.device! };
     const rid = started.response.id;
+    // E13-1: a new response writes response_started once; nothing about the person.
+    expect(await events.countForInstrument(a.ws, "response_started", instrument.id)).toBe(1);
     const sent: Mail[] = [];
     const send = async (m: Mail) => { sent.push(m); };
     const body = { response: rid, confidence: 4, signedOff: true, closingAnswer: " All good ", missing: { text: "Mileage from addresses", area: "Submitting", value: "S" } };
@@ -212,7 +215,9 @@ describe("Submit", () => {
     expect(await saveWrap(link.token, device, { response: rid, confidence: 1 }, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.badShape });
     expect(await saveWrap(link.token, device, { response: "00000000-0000-4000-8000-000000000000", confidence: 9, ...v() }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
     expect(await saveWrap(link.token, {}, { response: rid, confidence: 1, ...v() }, now)).toEqual({ status: 409, error: RESPONDENT_ERRORS.notStarted });
+    expect(await events.countForInstrument(a.ws, "response_submitted", instrument.id)).toBe(0);
     expect(await submitResponse(link.token, device, sub(), BASE, now, send)).toEqual({ submittedAt: now, name: "Ana", version: 4, receipt: null });
+    expect(await events.countForInstrument(a.ws, "response_submitted", instrument.id)).toBe(1);
     const row = (await responses.get(a.ws, rid))!;
     expect([row.submittedAt?.toISOString(), row.firstSubmittedAt?.toISOString(), row.signedOff, row.confidence, row.signOffText, row.closingAnswer]).toEqual([now.toISOString(), now.toISOString(), true, 4, DEFAULT_SIGN_OFF, "All good"]);
     const missing = await missingItems.forResponse(a.ws, row.id);
@@ -239,6 +244,8 @@ describe("Submit", () => {
     const later = new Date("2026-10-06T08:30:00Z");
     expect(await submitResponse(link.token, device, { response: rid, confidence: 5, signedOff: true, missing: null, ...v() }, BASE, later, send)).toEqual({ submittedAt: later, name: "Ana", version: 6, receipt: null });
     const again = (await responses.get(a.ws, rid))!;
+    // Only the first Submit is the event.
+    expect(await events.countForInstrument(a.ws, "response_submitted", instrument.id)).toBe(1);
     expect([again.submittedAt?.toISOString(), again.firstSubmittedAt?.toISOString(), again.confidence, again.closingAnswer]).toEqual([later.toISOString(), now.toISOString(), 5, null]);
     expect(await missingItems.forResponse(a.ws, row.id)).toEqual([]);
     expect((await responses.list(a.ws)).filter((r) => r.inviteId === link.id)).toHaveLength(1);

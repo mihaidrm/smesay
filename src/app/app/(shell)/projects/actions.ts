@@ -20,6 +20,7 @@ import { remindAll, remindInvitee } from "@/lib/reminders";
 import { publishLink, revokeLink, saveLink } from "@/lib/sharing";
 import { readAuthEnv } from "@/lib/auth";
 import { signedIn } from "@/lib/session";
+import { track } from "@/lib/analytics";
 import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button. signedOut (E11-6): the session had ended;
@@ -31,6 +32,7 @@ export async function createProjectAction(_previous: ProjectFormState, formData:
   const { session, current } = await requireCurrentWorkspace("/app/projects/new");
   const result = await createProject({ ws: current.ws, userId: session.user.id }, formData.get("name"));
   if ("error" in result) return { ...NONE, error: result.error };
+  await track("project_created", { from: "new" }, { workspaceId: current.ws, userId: session.user.id });
   revalidatePath("/app", "layout");
   redirect(`/app/projects/${result.project.id}/import`);
 }
@@ -44,6 +46,7 @@ export async function importProjectAction(_previous: ProjectFormState, formData:
   if (file.size > PROJECT_FILE_MAX) return { ...NONE, error: EXPORT_COPY.importErrors.tooLarge };
   const result = await importProject({ ws: current.ws, userId: session.user.id }, await file.text());
   if ("error" in result) return { ...NONE, error: result.error };
+  await track("project_created", { from: "import" }, { workspaceId: current.ws, userId: session.user.id });
   revalidatePath("/app", "layout");
   redirect(`/app/projects/${result.projectId}/results`);
 }
@@ -81,8 +84,9 @@ export async function archiveAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteSampleAction(formData: FormData): Promise<void> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireCurrentWorkspace("/app");
   if (!(await deleteSample(current.ws, String(formData.get("projectId") ?? "")))) notFound();
+  await track("sample_deleted", {}, { workspaceId: current.ws, userId: session.user.id });
   revalidatePath("/app", "layout");
   redirect("/app");
 }
@@ -382,11 +386,14 @@ export async function tagItemAction(_previous: ProjectFormState, formData: FormD
 // Share (stories/E6-1): Publish creates the public link; Save changes its dates and passcode.
 // The project list's status and the stepper follow the link, so the layout is revalidated.
 export async function publishAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireCurrentWorkspace("/app");
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await publishLink(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("opensAt"), formData.get("closesAt"), formData.get("passcode"));
     if ("error" in result) return { ...NONE, error: result.error };
+    const who = { workspaceId: current.ws, userId: session.user.id };
+    await track("instrument_published", { method: result.instrument.method, layout: result.instrument.layout }, who);
+    await track("invite_sent", { kind: "public" }, who);
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -423,6 +430,7 @@ export async function sendInvitesAction(_previous: InvitesFormState, formData: F
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
     const failed = result.outcomes.filter((o) => !o.sent);
+    for (const o of result.outcomes) if (o.sent) await track("invite_sent", { kind: "personal" }, { workspaceId: current.ws, userId: session.user.id });
     return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? ""), again: failed.map((o) => o.line) };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
@@ -443,6 +451,7 @@ export async function remindAction(_previous: RemindFormState, formData: FormDat
     const result = await remindInvitee(current.ws, projectId, instrumentId, inviteId, { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...REMIND_NONE, error: result.error };
+    if (result.outcome.sent) await track("reminder_sent", {}, { workspaceId: current.ws, userId: session.user.id });
     return { ...REMIND_NONE, saved: true, sent: result.outcome.sent ? 1 : 0, failed: result.outcome.error ? [result.outcome.error] : [] };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
@@ -457,6 +466,7 @@ export async function remindAllAction(_previous: RemindFormState, formData: Form
     const result = await remindAll(current.ws, projectId, instrumentId, { name: session.user.name ?? null, email: session.user.email }, readAuthEnv().baseURL);
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...REMIND_NONE, error: result.error };
+    for (const o of result.outcomes) if (o.sent) await track("reminder_sent", {}, { workspaceId: current.ws, userId: session.user.id });
     const failed = result.outcomes.filter((o) => !o.sent);
     return { ...REMIND_NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? "") };
   } catch (error) {
@@ -509,6 +519,7 @@ export async function renewInviteAction(_previous: InvitesFormState, formData: F
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
     const o = result.outcome;
+    if (o.sent) await track("invite_sent", { kind: "personal" }, { workspaceId: current.ws, userId: session.user.id });
     return { ...NONE, saved: true, sent: o.sent ? 1 : 0, failed: o.error ? [o.error] : [], again: o.sent ? [] : [o.line] };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

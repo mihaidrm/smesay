@@ -19,6 +19,7 @@ import { hasReaderVersion, READER_MAX, readerIsOriginal } from "@/lib/item-text"
 import { requireRole, type Actor } from "@/lib/members";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
+import { track } from "@/lib/analytics";
 import { log } from "@/lib/log";
 
 export { SHAPE_COPY };
@@ -137,6 +138,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   }
   const updated = await applyShaping(actor.ws, set.id, areas, placements, context);
   if (!updated) throw new NotFoundError();
+  await track("shape_run", { items: rows.length, costCents: result.run.costEurCents }, { workspaceId: actor.ws, userId: actor.userId });
   return { set: updated, items: rows.length, areas: areas.length };
 }
 

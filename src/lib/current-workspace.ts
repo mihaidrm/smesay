@@ -19,6 +19,7 @@ import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { requireSession, type Session } from "@/lib/session";
 import { requireWorkspace } from "@/lib/workspace";
+import { track } from "@/lib/analytics";
 import { chooseWorkspace } from "@/lib/workspace-choice";
 
 export type Current = { workspace: Workspace; ws: WorkspaceId };
@@ -30,7 +31,15 @@ export type AppContext = { session: Session; memberships: Workspace[]; current: 
 export const getAppContext = cache(async (nextPath: string): Promise<AppContext> => {
   const session = await requireSession(nextPath);
   // An open invitation for the signed-in address becomes a membership first (stories/E2-4).
-  await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES);
+  const joined: string[] = [];
+  await acceptPendingInvites(session.user.id, session.user.email, INVITE_VALID_MINUTES, joined);
+  // member_joined (stories/E13-1), once per membership the invitation just made; the id is the
+  // workspace the person is now a member of, checked as every other one.
+  // A workspace deleted in between is skipped: the event is never worth failing the page.
+  for (const id of joined) {
+    const ws = await requireWorkspace(await headers(), id).catch(() => null);
+    if (ws) await track("member_joined", {}, { workspaceId: ws, userId: session.user.id });
+  }
   const memberships = await workspaces.listForUser(session.user.id);
   const storedId = session.session.currentWorkspaceId ?? null;
   const deleted = (storedId !== null && !memberships.some((w) => w.id === storedId) ? await workspaces.deletedForUser(session.user.id, storedId) : null) ?? await workspaces.deletedForUser(session.user.id, null);

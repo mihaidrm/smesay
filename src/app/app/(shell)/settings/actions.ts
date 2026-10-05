@@ -12,6 +12,7 @@ import { saveBrand } from "@/lib/brand";
 import { inviteMember, removeMember, setMemberRole } from "@/lib/members";
 import { redirect } from "next/navigation";
 import { deleteWorkspace } from "@/lib/workspace-data";
+import { track } from "@/lib/analytics";
 import { WORKSPACE_DATA_COPY } from "@/lib/workspace-data-copy";
 
 export type MembersState = { error: string | null; sent?: string | null };
@@ -82,8 +83,11 @@ export async function saveBrandAction(_previous: BrandState, formData: FormData)
 export type DeleteState = { error: string | null };
 export async function deleteWorkspaceAction(_previous: DeleteState, formData: FormData): Promise<DeleteState> {
   try {
-    const result = await deleteWorkspace(await actor(), formData.get("name"));
+    const who = await actor();
+    const result = await deleteWorkspace(who, formData.get("name"));
     if ("error" in result) return { error: result.error };
+    // Kept without the workspace: its own events go with it (stories/E13-1, acceptance 5).
+    await track("workspace_deleted", {}, { workspaceId: null, userId: who.userId });
   } catch (error) {
     if (error instanceof ForbiddenError) return { error: WORKSPACE_DATA_COPY.ownerOnly };
     throw error;

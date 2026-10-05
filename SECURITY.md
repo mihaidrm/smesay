@@ -104,6 +104,10 @@ Data
   rule no-console keeps src/ on it (E11-5). Sentry, when SENTRY_DSN is set, has every data
   collection off and its beforeSend rebuilds each event from an allow-list with emails, quoted
   text, database values and link tokens removed (src/lib/sentry.ts, src/lib/scrub.ts).
+- Product events (E13-1) are written only by track() (src/lib/analytics.ts): a name from the
+  catalogue and properties that are counts, uuids, short keys or values from fixed lists, so
+  an email, a name or typed text cannot be stored; respondent events carry no user id. A
+  workspace's events go with it.
 
 AI
 - Anthropic key server-side only; one product spend cap (ANTHROPIC_MONTHLY_BUDGET_EUR),

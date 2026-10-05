@@ -45,6 +45,7 @@ import { sendMail } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/templates/sign-in";
 import { addressOf, LOCAL, minutesOf, signInLimit } from "@/lib/ratelimit";
 import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
+import { track } from "@/lib/analytics";
 import { log } from "@/lib/log";
 
 const DAY = 60 * 60 * 24;
@@ -138,6 +139,10 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
           // A user row needs a verified email: the magic link verifies it on creation; a social
           // sign-in with an unverified claim creates nothing (stories/E2-2, acceptance 3).
           before: async (user) => (user.emailVerified === true ? undefined : false),
+          // The sign-up event (stories/E13-1), after the row is committed: better-auth queues
+          // create.after until its transaction ends (node_modules/better-auth/dist/db/
+          // with-hooks.mjs, queueAfterTransactionHook).
+          after: async (user) => { await track("signed_up", {}, { workspaceId: null, userId: user.id }); },
         },
       },
     },

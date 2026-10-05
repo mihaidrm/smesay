@@ -29,6 +29,7 @@ import { exportProject } from "@/lib/export/project";
 import { summaryView } from "@/lib/export/summary";
 import { summaryFooter, summaryHeader, summaryHtml } from "@/lib/export/summary-html";
 import { describeFilter, filterActive, parseResultsFilter, type FilterContext, type SearchParams } from "@/lib/results-filter";
+import { track } from "@/lib/analytics";
 import { DEFAULT_TILES, storedTiles } from "@/lib/results-tiles";
 
 const CHUNK = 500;
@@ -46,6 +47,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
   if (file === "project") {
     const body = await exportProject({ ws: current.ws, userId: session.user.id }, project.id);
     await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: "project", filter: null, rows: body.responses.length });
+    await track("export_downloaded", { format: "json" }, { workspaceId: current.ws, userId: session.user.id });
     return new Response(JSON.stringify(body), { headers: { "content-type": "application/json; charset=utf-8", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "project", date)), "cache-control": "no-store" } });
   }
   if (!instrument) return new Response(null, { status: 404 });
@@ -63,10 +65,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
     if (!view) return new Response(null, { status: 404 });
     const pdf = await renderPdf(summaryHtml(view), { header: summaryHeader(view), footer: summaryFooter() });
     await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: "summary", filter: logFilter, rows: pdf.pages });
+    await track("export_downloaded", { format: "pdf" }, { workspaceId: current.ws, userId: session.user.id });
     return new Response(new Uint8Array(pdf.bytes), { headers: { "content-type": "application/pdf", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "summary", date)), "x-summary-pages": String(pdf.pages), "cache-control": "no-store" } });
   }
   const table = await exportTable(current.ws, instrument, file as CsvFile, filter, ctx, project.isSample);
   await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: file as ExportFile, filter: logFilter, rows: table.rows.length });
+  await track("export_downloaded", { format: "csv" }, { workspaceId: current.ws, userId: session.user.id });
   const lines = [...table.preamble, table.header, ...table.rows];
   const encoder = new TextEncoder();
   let at = 0;

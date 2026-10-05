@@ -28,6 +28,7 @@ import { LinkWatch } from "./link-watch";
 import { PasscodeForm } from "./passcode-form";
 import { PreviewRoute } from "./preview-route";
 import { isPreviewToken } from "@/lib/preview-token";
+import { track } from "@/lib/analytics";
 import { RespondentApp } from "./respondent-app";
 
 export const dynamic = "force-dynamic";
@@ -72,6 +73,8 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   if (view.kind === "closedSubmitted") return <><ForgetQueue token={token} /><LinkPage {...page} title={LINK_PAGE_COPY.closedTitle} line={RESPONDENT_COPY.closedSubmitted(formatUtc(view.submittedAt), formatUtc(view.closedAt), view.changed)} /></>;
   if (view.kind !== "ready") return null;
   const { instrument } = link;
+  // link_opened (stories/E13-1): every render of an open link's app; nothing about the person.
+  await track("link_opened", { kind: link.invite.kind, instrument: instrument.id }, { workspaceId: link.ws, userId: null });
   const response = view.response;
   const picks = response?.perspectives ?? [];
   const chapters = chaptersFor(view.areas, view.items, picks);

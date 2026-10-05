@@ -15,6 +15,7 @@ import { NotFoundError } from "@/lib/errors";
 import { mappingError } from "@/lib/import/mapping";
 import { parseFile } from "@/lib/import/parse";
 import { checkRows, type CheckResult } from "@/lib/import/report";
+import { track } from "@/lib/analytics";
 import { getObject } from "@/lib/storage";
 
 export const IMPORT_COPY = {
@@ -61,6 +62,7 @@ export async function commitUpload(ws: WorkspaceId, uploadId: string, userId: st
     items: check.items.map((it) => ({ ref: it.ref, text: it.text, area: it.area, value: it.value, custom: it.custom, foldedRefs: it.foldedRefs })),
   });
   if (!set) throw new NotFoundError();
+  await track("import_committed", { source: upload.kind === "pasted" ? "paste" : "upload", rows: check.items.length }, { workspaceId: ws, userId });
   return { set };
 }
 

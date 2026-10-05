@@ -24,6 +24,7 @@ import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { answerFor, answeredCount, areasOf, carriedFields, changedSinceSubmit, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
+import { track } from "@/lib/analytics";
 import { linkState } from "@/lib/sharing";
 
 export const DEVICE_COOKIE = "smesay-device";
@@ -154,7 +155,10 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
     const started = await responses.startPersonal(link.ws, { ...data, deviceToken: newDeviceToken() }, stillOpen);
     if (!started) return { status: 404, error: "unknown" };
     if ("refused" in started) return refusalOf(started.refused, token, now);
-    if (started.created) return { response: started.response, device: null };
+    if (started.created) {
+      await track("response_started", { instrument: link.instrument.id }, { workspaceId: link.ws, userId: null });
+      return { response: started.response, device: null };
+    }
     if (!startChanges(started.response, fields.values, picks.picks)) return { response: started.response, device: null };
     const updated = await responses.restart(link.ws, started.response.id, { fields: fields.values, perspectives: picks.picks }, now);
     return { response: updated ?? started.response, device: null };
@@ -169,6 +173,7 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   const created = await responses.createPublic(link.ws, { ...data, deviceToken: device }, stillOpen);
   if (!created) return { status: 404, error: "unknown" };
   if ("refused" in created) return refusalOf(created.refused, token, now);
+  await track("response_started", { instrument: link.instrument.id }, { workspaceId: link.ws, userId: null });
   return { response: created, device };
 }
 
@@ -310,6 +315,7 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   // first Submit's, and every later one is stored at least a millisecond after it, so two
   // Submits at once on one personal link send one receipt, even with the same clock.
   const first = saved.submittedAt !== null && saved.submittedAt.getTime() === saved.firstSubmittedAt?.getTime();
+  if (first) await track("response_submitted", { instrument: link.instrument.id, items: visible.length, minutes: Math.max(0, Math.round(((saved.submittedAt ?? now).getTime() - response.createdAt.getTime()) / 60_000)) }, { workspaceId: link.ws, userId: null });
   const to = link.invite.kind === "personal" && first ? link.invite.email : null;
   const receipt = to
     ? async () => {

@@ -51,7 +51,8 @@ export async function createWorkspaceWithSample({ name, slug }: { name: string; 
 // in lower case (workspaceInvites.replace), so the index on email serves the lookup. Returns
 // how many memberships were added. on conflict do nothing:
 // orm.drizzle.team/docs/insert#on-conflict-do-nothing.
-export async function acceptPendingInvites(userId: string, email: string, validMinutes: number): Promise<number> {
+// joined, when given, receives the id of each workspace the person joined (for E13-1's event).
+export async function acceptPendingInvites(userId: string, email: string, validMinutes: number, joined: string[] = []): Promise<number> {
   const address = email.trim().toLowerCase();
   const since = new Date(Date.now() - validMinutes * 60 * 1000);
   return db.transaction(async (tx) => {
@@ -62,6 +63,7 @@ export async function acceptPendingInvites(userId: string, email: string, validM
     for (const invite of open) {
       const inserted = await tx.insert(workspaceMember).values({ workspaceId: invite.workspaceId, userId, role: invite.role }).onConflictDoNothing().returning();
       added += inserted.length;
+      if (inserted.length > 0) joined.push(invite.workspaceId);
       await tx.update(workspaceInvite).set({ acceptedAt: new Date() }).where(eq(workspaceInvite.id, invite.id));
     }
     return added;

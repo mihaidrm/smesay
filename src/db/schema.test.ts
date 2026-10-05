@@ -18,7 +18,7 @@ const TOKEN = "0123456789abcdef0123456789abcdef";
 // Tables without workspace_id: the identity tables better-auth owns (a user exists before any
 // workspace; decision 0028, accepted 2026-10-02).
 const AUTH_TABLES = ["user", "session", "account", "verification"];
-const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log"];
+const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event"];
 // Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
 const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by"];
 
@@ -72,6 +72,12 @@ describe("workspace scoping", () => {
       const ok = fks.some((f) => f.table_name === t && f.columns.join() === "workspace_id" && f.ref_table === "workspace");
       expect(ok, `${t} has no workspace_id foreign key to workspace`).toBe(true);
     }
+  });
+
+  it("workspace_id is not null everywhere but on event (E13-1, docs/review-list.md)", async () => {
+    const rows = await sql`select table_name, is_nullable from information_schema.columns where table_schema = 'public' and column_name = 'workspace_id'`;
+    const nullable = rows.filter((r) => r.is_nullable === "YES").map((r) => r.table_name);
+    expect(nullable).toEqual(["event"]);
   });
 
   it("every parent reference is a composite key with workspace_id", async () => {
@@ -178,6 +184,7 @@ describe("rules in the database", () => {
     await sql`insert into ai_run (workspace_id, project_id, purpose, model) values (${ws}, ${p}, 'shape', 'test')`;
     await sql`insert into upload (workspace_id, project_id, object_key, filename, kind, byte_size, preview) values (${ws}, ${p}, 'uploads/x/y.csv', 'list.csv', 'csv', 10, '{}')`;
     await sql`insert into workspace_mapping (workspace_id, headers_key, mapping) values (${ws}, 'Ref', '{"Ref": "ref"}')`;
+    await sql`insert into event (workspace_id, name) values (${ws}, 'project_created')`;
     await sql`delete from workspace where id = ${ws}`;
     for (const t of APP_TABLES.filter((t) => t !== "workspace" && t !== "workspace_member")) {
       const [{ n }] = await sql.unsafe(`select count(*)::int as n from "${t}" where workspace_id = '${ws}'`);
