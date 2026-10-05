@@ -86,9 +86,10 @@ function route(request: NextRequest, csp: string): NextResponse {
   // A server action under /app without a session cookie goes on to the action, which answers
   // "signed out" so the form keeps its text (stories/E11-6, acceptance 3; src/lib/session.ts
   // signedIn). A redirect here would reach Next's client as a reply it cannot read and replace
-  // the page with the error page. Next takes a server action only as a POST with the
-  // next-action header (node_modules/next/dist/server/lib/server-action-request-meta.js); every
-  // action still checks the session itself.
+  // the page with the error page. A fetch action is a POST with the next-action header
+  // (node_modules/next/dist/server/lib/server-action-request-meta.js, isFetchAction); a form
+  // posted before hydration (multipart, no header) still goes to sign-in, as before. Every
+  // action checks the session itself (SECURITY.md, Auth and sessions).
   if (request.method === "POST" && request.headers.has("next-action")) return next(request, csp);
   const wanted = path + request.nextUrl.search;
   const signIn = new URL("/sign-in", request.url);

@@ -5,6 +5,10 @@ Auth and sessions
 - OAuth state and PKCE verified; providers matched to one user by verified email only.
 - Sessions httpOnly, Secure, SameSite=Lax; rotation on privilege change. A production process
   refuses an http base URL other than localhost.
+- Every exported server action checks the session itself (requireSession, requireCurrentWorkspace,
+  signedIn or the action's own actor helper) before it reads or writes data: the proxy's sign-in
+  redirect is optimistic and lets a server action under /app through without a cookie, so the
+  action can answer "signed out" (E11-6). The respondent's passcode action needs no session.
 
 Multi-tenancy
 - Every query scoped by workspace id from the session, never from the request body. Two reads
@@ -17,6 +21,11 @@ Multi-tenancy
   evals/run.ts for their own throwaway rows, and the backup scripts (scripts/backup-tools.ts,
   scripts/backup-check.ts), which read every workspace's rows and objects to copy them.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.
+- A PM form whose save found the session ended keeps its text in the tab's sessionStorage under
+  smesay-draft:[form] (E11-6: context:[project id] for the project context box), only from that
+  answer on, until the server saves it or the tab closes. The key is per project, not per
+  person: whoever signs in again in the same tab sees the draft. sessionStorage, like
+  localStorage, is readable by any script on the origin; the CSP keeps foreign scripts out.
 
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
@@ -50,12 +59,9 @@ Public links and respondents
   goes to the server only when the server holds nothing newer (the version rule), so an old
   one never replaces a later answer, a submitted one included. A respondent's action sends
   mail only to an address the PM chose (a personal invite's, the receipt on its first
-  Submit), never to one typed on a public link. On the PM side, a form whose save found the
-  session ended keeps its text in the tab's sessionStorage under smesay-draft:[form] (E11-6:
-  the project context box), only from that answer on, until the server saves it or the tab
-  closes. localStorage is per origin, so any script running on an SMEsay
-  page can read it; the CSP with nonces (Headers and transport, E11-5) is what keeps foreign
-  scripts out.
+  Submit), never to one typed on a public link. localStorage is per origin, so any script
+  running on an SMEsay page can read it; the CSP with nonces (Headers and transport, E11-5) is
+  what keeps foreign scripts out.
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
   status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
   Passcode attempts rate-limited.

@@ -73,4 +73,11 @@ describe("proxy", () => {
     }
     expect(proxy(req("/r/abc", "10.9.0.6")).status).toBe(200);
   });
+  it("lets a signed-out server action under /app reach the action, and nothing else", () => {
+    const action = (method: string, headers: Record<string, string>) => proxy(new NextRequest(`${BASE}/app/projects/p1/import`, { method, headers: { "x-forwarded-for": "10.9.0.7", ...headers } }));
+    expect(action("POST", { "next-action": "abc" }).status).toBe(200);
+    expect(action("GET", { "next-action": "abc" }).status).toBe(307);
+    expect(action("POST", {}).status).toBe(307);
+    expect(action("PUT", { "next-action": "abc" }).status).toBe(307);
+  });
 });
