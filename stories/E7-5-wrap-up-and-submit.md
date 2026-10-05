@@ -84,7 +84,7 @@ Built 2026-10-04 (design note 55, decision 0044):
   change while Submit posts. Submit names the response the page
   answers for, as every save does; a response that is not this device's is "not started",
   and the page goes back to About you with everything kept, as when a card's save finds it.
-- Acceptance 5 as amended: the receipt (email 4, src/lib/mail/receipt-email.ts) goes to a
+- Acceptance 5 as amended: the receipt (email 4, src/lib/mail/templates/receipt.ts) goes to a
   personal invite's address on its first Submit, after the reply (Next's after()); nothing
   goes to a typed address.
 - Acceptance 6: e2e/respondent-submit.spec.ts completes a two-item list on a personal link,

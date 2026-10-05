@@ -225,7 +225,7 @@ older instruments' personal links with their public one.
 sendInvites(ws, projectId, instrumentId, rawList, sender, baseUrl, now, send) in
 src/lib/invitees.ts (outcomes: email, line, sent, error, in the order pasted), with
 refusalCopy(refused), cutServers(line) and reasonOf(error) beside it; parseInvitees and minutesFor in src/lib/invitees-rules.ts;
-inviteEmail(input) in src/lib/mail/invite-email.ts (InviteEmailInput: pmName, workspaceName,
+inviteEmail(input) in src/lib/mail/templates/invite.ts (InviteEmailInput: pmName, workspaceName,
 projectName, respondentName, itemCount, minutes, intro, url, opensAt when the link opens
 after the send, closesAt); sendMail() takes fromName and replyTo.
 Reminders (E6-3): invites.claimReminder(ws, id, now, minHours) (one statement: reminders_sent
@@ -236,7 +236,13 @@ responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, res
 remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) and
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
 and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
-src/lib/mail/reminder-email.ts; formatUtc now lives in src/lib/sharing-format.ts.
+src/lib/mail/templates/reminder.ts; formatUtc now lives in src/lib/sharing-format.ts.
+Email frame (E12-3): renderEmail(parts: EmailParts): Email in src/lib/mail/templates/layout.ts,
+EmailParts { origin (string or null: no mark and no privacy link), subject, preheader?, before:
+Para[], button? { label, url }, after?: Para[] }, Para { text, preLine? }, Email { subject, text,
+html }; COMPANY and companyAddress() (COMPANY_ADDRESS, null when unset). Every email function
+returns Email; deletionEmail(workspace, deletedAt, origin or null). sampleEmails(origin) in
+samples.ts fills each for the unit test and `npm run email:samples`.
 The kill switch (E6-4): invites.revokePublic(ws, instrumentId, inviteId, now) (the project's
 link in force, under the project row's lock, when it is the row named; refused: none,
 replaced, revoked, changed), invites.revokePersonal(ws, id, token, now) (the row's token, read

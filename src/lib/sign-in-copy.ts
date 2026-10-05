@@ -1,7 +1,7 @@
 // The sign-in page's messages (docs/copy/errors.md, "Sign-in and workspace"; docs/copy/app.md)
 // and the mapping from a refused request to one of them, so the library's own text never
 // reaches the screen (audit finding of 2026-10-02).
-import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/sign-in-email";
+import { SIGN_IN_LINK_MINUTES } from "@/lib/mail/templates/sign-in";
 
 // The wait when the server sends none (src/lib/ratelimit.ts: the first wait is one minute).
 export const WAIT_MINUTES = 1;

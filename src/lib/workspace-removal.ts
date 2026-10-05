@@ -8,7 +8,7 @@
 // launch gate. Counts are logged; no name or email.
 import { internal } from "@/db/queries/internal";
 import { sendMail } from "@/lib/mail";
-import { deletionEmail } from "@/lib/mail/deletion-email";
+import { deletionEmail } from "@/lib/mail/templates/deletion";
 import { deleteObject, listKeys } from "@/lib/storage";
 import { log } from "@/lib/log";
 
@@ -23,6 +23,9 @@ export type PurgeReport = { workspaces: number; responses: number; projects: num
 // workspace is gone (docs/review-list.md).
 export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): Promise<PurgeReport> {
   const report: PurgeReport = { workspaces: 0, responses: 0, projects: 0, objects: 0, emails: 0, failed: 0 };
+  // The email's mark and privacy link are on the app's address (stories/E12-3); without
+  // BETTER_AUTH_URL the email goes without them, and the deletion is never held up by it.
+  const origin = process.env.BETTER_AUTH_URL || null;
   for (const ws of await internal.deletedWorkspaces()) {
     let step = "objects";
     try {
@@ -37,7 +40,7 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
       log("info", "jobs:purge removed a workspace.", { workspace: ws.id, objects: keys.length, responses: rows.responses, projects: rows.projects });
       if (rows.workspaces === 1 && ws.deletedByEmail) {
         step = "email";
-        await send({ to: ws.deletedByEmail, ...deletionEmail(ws.name, ws.deletedAt) });
+        await send({ to: ws.deletedByEmail, ...deletionEmail(ws.name, ws.deletedAt, origin) });
         report.emails += 1;
       }
     } catch (error) {

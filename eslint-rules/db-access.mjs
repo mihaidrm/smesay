@@ -42,6 +42,9 @@ export function forbiddenTarget(spec, fromFile) {
   // A test anywhere may prepare the test database; it never gets the client from it.
   if (name === "test-db" && /\.test\.(m|c)?tsx?$/.test(fromFile)) return null;
   if (name === "types" || name === "queries") return null;
+  // The Marlow Group facts (src/db/seed/sample.ts) are constants with no import: the visitors'
+  // sample (E12-4) and the email samples (E12-3) read them, never the database.
+  if (name === "seed/sample") return null;
   if (name.startsWith("queries/") && name !== "queries/scoped" && name !== "queries/internal") return null;
   return "the database";
 }
