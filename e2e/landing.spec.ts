@@ -134,14 +134,15 @@ test("the nav stays in view and its links scroll smoothly to their section", asy
   await page.goto("/landing-page");
   const header = page.getByTestId("landing-header");
   await expect(header).not.toHaveAttribute("data-scrolled");
-  await page.getByRole("navigation", { name: "Page" }).getByRole("link", { name: "Pricing" }).click();
-  // Smooth: a moment after the click the page is on its way, not there yet.
-  await page.waitForTimeout(60);
-  const early = await page.evaluate(() => window.scrollY);
+  // Smooth, not a jump: every scroll position on the way is recorded, and at least one lies
+  // between the top and the section. A fixed wait before one reading raced the scroll's start
+  // on CI (it read 0 once).
+  await page.evaluate(() => { const w = window as unknown as { seen: number[] }; w.seen = []; window.addEventListener("scroll", () => w.seen.push(window.scrollY)); });
   const target = await page.evaluate(() => document.getElementById("pricing")!.getBoundingClientRect().top + window.scrollY - 80);
-  expect(early).toBeGreaterThan(0);
-  expect(early).toBeLessThan(target - 50);
+  await page.getByRole("navigation", { name: "Page" }).getByRole("link", { name: "Pricing" }).click();
   await expect.poll(async () => page.evaluate(() => Math.round(document.getElementById("pricing")!.getBoundingClientRect().top)), { timeout: 5000 }).toBe(80);
+  const seen = await page.evaluate(() => (window as unknown as { seen: number[] }).seen);
+  expect(seen.some((y) => y > 0 && y < target - 50)).toBe(true);
   await expect(header).toHaveAttribute("data-scrolled", "true");
   const box = (await header.boundingBox())!;
   expect(box.y).toBe(0);
