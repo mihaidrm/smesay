@@ -16,7 +16,7 @@ import { FadeOnChange } from "@/components/app/fade-on-change";
 import { StatTile } from "@/components/app/tiles";
 import { EmptyState } from "@/components/ui/banner";
 import { buttonVariants } from "@/components/ui/button";
-import { instruments, invites, projects } from "@/db/queries";
+import { instruments, invites, members, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { results, resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -49,13 +49,16 @@ const parseTab = (v: string | string[] | undefined): Tab => (typeof v === "strin
 export default async function ResultsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<SearchParams> }) {
   const { projectId } = await params;
   const query = await searchParams;
-  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const { session, current, viewing } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();
   const instrument = await instruments.latestForProject(current.ws, project.id);
   const sample = project.isSample ? null : (await projects.list(current.ws)).find((p) => p.isSample) ?? null;
   if (!instrument) return <NoAnswers projectId={project.id} sampleId={sample?.id ?? null} link={RESULTS_COPY.link.notPublished} />;
-  const prefs = await resultsPrefs.get(session.user.id, instrument.id);
+  // During an admin's view (E14-4) the choices are an owner's, so the counts are the ones the
+  // owner sees; the first owner by join date when there are several.
+  const prefsOf = viewing ? (await members.list(current.ws)).filter((m) => m.role === "owner").sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0]?.userId ?? session.user.id : session.user.id;
+  const prefs = await resultsPrefs.get(prefsOf, instrument.id);
   const stored = typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null;
   const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
   const filter = parseResultsFilter(query, ctx, stored);
@@ -67,7 +70,8 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   if (query.unsubmitted === undefined) {
     // sample_opened (stories/E13-1): opening the sample arrives without the full address and
     // is sent to it once; a tab, a filter or a reload keeps the address and is not counted.
-    if (project.isSample) await track("sample_opened", {}, { workspaceId: current.ws, userId: session.user.id });
+    // Not during an admin's view (E14-4): it would count the admin as the workspace's visitor.
+    if (project.isSample && !viewing) await track("sample_opened", {}, { workspaceId: current.ws, userId: session.user.id });
     redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
   }
   // Live updates (E8-7) whenever the project has an instrument, whatever the state of its

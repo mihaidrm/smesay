@@ -25,7 +25,7 @@ import { WithPreview } from "../with-preview";
 
 export default async function ShapePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  const { current } = await requireCurrentWorkspace(`/app/projects/${projectId}/shape`);
+  const { current, viewing } = await requireCurrentWorkspace(`/app/projects/${projectId}/shape`);
   const project = await projects.get(current.ws, projectId);
   if (!project) notFound();
   const set = await latestSet(current.ws, project.id);
@@ -79,14 +79,14 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           </p>
         )}
       </div>
-      <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample} />
+      <FlagBanners projectId={project.id} flags={flags} readOnly={project.isSample || viewing !== null} />
       {!set || rows.length === 0 ? (
         <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-hairline-strong bg-surface p-6" data-testid="shape-empty">
           <div className="font-semibold">{SHAPE_COPY.noSet}</div>
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped} readerOnly={project.isSample} perspectives={perspectives} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped || viewing !== null} readerOnly={project.isSample || viewing !== null} perspectives={perspectives} />
       )}
     </WithPreview>
   );

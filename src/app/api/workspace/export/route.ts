@@ -3,14 +3,14 @@
 // export_log with file "workspace", no project and the number of projects as its rows. A request
 // another site starts gets 403 and writes nothing (as the export route, E10-1).
 import { exportLogs } from "@/db/queries";
-import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { ForbiddenError } from "@/lib/errors";
 import { track } from "@/lib/analytics";
 import { exportWorkspace } from "@/lib/workspace-data";
 
 export async function GET(request: Request) {
   if (request.headers.get("sec-fetch-site") === "cross-site") return new Response(null, { status: 403 });
-  const { session, current } = await requireCurrentWorkspace("/app/settings");
+  const { session, current } = await requireWritableWorkspace("/app/settings");
   let out: Awaited<ReturnType<typeof exportWorkspace>>;
   try {
     out = await exportWorkspace({ ws: current.ws, userId: session.user.id });

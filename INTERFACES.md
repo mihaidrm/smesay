@@ -752,3 +752,15 @@ removeMemberAsAdmin(proof, ws, userId): { error } or { removed: true } (the last
 deleteAccount(proof, userId, email): { error } or { deleted: true }, refused while the person is
 a workspace's only owner, the address forgotten, then better-auth's internalAdapter.deleteUser.
 
+View as (E14-4): session gains viewAsWorkspaceId (uuid, null) and viewAsUntil (timestamp, null),
+better-auth additional fields (src/lib/auth.ts). In src/lib/view-as.ts: VIEW_MINUTES 60;
+Viewing { workspace, ws, until }; viewFields(session): { workspaceId, until }; viewingOf(session,
+now): Viewing or null (an expired view or a deleted workspace writes view_stopped, then clears
+the fields; an email no longer an admin's clears them with no row); startView(proof, session,
+ws, now): until (a view held is stopped first); stopView(proof, session, now). adminProofFor(session):
+AdminProof or null in src/lib/admin.ts. AppContext gains viewing (Viewing or null);
+requireWritableWorkspace(nextPath) and refuseWhileViewing(session) in
+src/lib/current-workspace.ts send a write during a view to /app/view-only. openDraft(ws, project,
+{ create }) in src/lib/instruments.ts (create false never makes an instrument). VIEW_AS_COPY in
+src/lib/view-as-copy.ts.
+

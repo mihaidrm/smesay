@@ -13,9 +13,11 @@ import { track } from "@/lib/analytics";
 import { QUICKSTART_COPY as Q } from "@/lib/quickstart-copy";
 
 export default async function QuickstartPage() {
-  const { session, current } = await requireCurrentWorkspace("/app/quickstart");
+  const { session, current, viewing } = await requireCurrentWorkspace("/app/quickstart");
   const list = await projects.list(current.ws);
-  if (await members.markQuickstartSeen(current.ws, session.user.id, new Date())) await track("quickstart_seen", {}, { workspaceId: current.ws, userId: session.user.id });
+  // Nothing is stamped or counted during an admin's view (E14-4), even when the admin is also a
+  // member of the workspace.
+  if (!viewing && await members.markQuickstartSeen(current.ws, session.user.id, new Date())) await track("quickstart_seen", {}, { workspaceId: current.ws, userId: session.user.id });
   const sample = list.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <main className="flex max-w-[880px] flex-col gap-6 px-8 py-6" data-testid="quickstart">

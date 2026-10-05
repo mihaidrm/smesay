@@ -19,8 +19,10 @@ import { DataSection } from "./data";
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 export default async function SettingsPage() {
-  const { session, current } = await requireCurrentWorkspace("/app/settings");
-  const me = await members.get(current.ws, session.user.id);
+  const { session, current, viewing } = await requireCurrentWorkspace("/app/settings");
+  // During an admin's view (E14-4) the page is drawn as an owner sees it; the shell disables
+  // every control and the actions refuse.
+  const me = viewing ? { role: "owner" as const } : await members.get(current.ws, session.user.id);
   const manage = me !== null && can(me.role, "members.invite");
   const brandManage = me !== null && can(me.role, "workspace.rename");
   const { members: rows, invited } = await listMembersAndInvites(current.ws);
@@ -74,7 +76,7 @@ export default async function SettingsPage() {
         </div>
         {rows.map((m) => (
           <MemberRow key={m.userId} userId={m.userId} name={m.name} email={m.email} role={m.role} joined={DATE.format(m.createdAt)}
-            manage={manage} self={m.userId === session.user.id} lastOwner={m.role === "owner" && owners <= 1} />
+            manage={manage} self={!viewing && m.userId === session.user.id} lastOwner={m.role === "owner" && owners <= 1} />
         ))}
         {invited.map((i) => (
           <div key={i.id} data-testid="invited-row" className="flex min-h-9 items-center gap-4 border-b border-hairline px-4 py-2 text-ink-muted">

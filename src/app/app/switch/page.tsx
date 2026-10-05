@@ -11,7 +11,9 @@ import { switchWorkspace } from "../actions";
 import { SignedInFooter } from "../signed-in-footer";
 
 export default async function SwitchWorkspacePage() {
-  const { session, memberships, storedId } = await getAppContext("/app/switch");
+  const { session, memberships, storedId, viewing } = await getAppContext("/app/switch");
+  // During an admin's view there is nothing to switch to (E14-4): back to the viewed workspace.
+  if (viewing) redirect("/app");
   if (memberships.length === 0) redirect("/app/new");
   const removed = storedId !== null && !memberships.some((w) => w.id === storedId);
   return (

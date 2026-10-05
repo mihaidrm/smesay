@@ -1,7 +1,7 @@
 # E14-4 View a workspace as its owner sees it, read-only
 
 User: Mihai, looking at the exact screen a PM describes
-Status: ready
+Status: built
 Outcome: an admin can open any workspace's pages as the owner sees them, change nothing,
 and leave a trace.
 

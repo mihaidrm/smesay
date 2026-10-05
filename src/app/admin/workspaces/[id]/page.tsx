@@ -24,6 +24,8 @@ import { PLANS } from "@/lib/plans";
 import { projectStatus } from "@/lib/project-status";
 import { addNoteAction, changePlanAction, resendInviteAction, restoreAction, revokeLinkAction, setBudgetAction } from "./actions";
 import { ConfirmForm } from "../../confirm-form";
+import { startViewAction } from "../../view-as/actions";
+import { VIEW_AS_COPY } from "@/lib/view-as-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +87,12 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
         <Section title={C.sections.deleted} testId="admin-deleted">
           <p>{C.deletedLine(TIME.format(w.deletedAt), people.members.find((m) => m.userId === w.deletedBy)?.email ?? null)}</p>
           <ConfirmForm action={restoreAction} hidden={hidden} label={C.restore} confirmLine={C.confirmRestore(w.name)} testId="restore-form" />
+        </Section>
+      )}
+      {!w.deletedAt && (
+        <Section title={VIEW_AS_COPY.start} testId="admin-view-as">
+          <p className="text-sm text-ink-muted">{VIEW_AS_COPY.startLine}</p>
+          <ConfirmForm action={startViewAction} hidden={hidden} label={VIEW_AS_COPY.start} confirmLine={VIEW_AS_COPY.confirmStart(w.name)} testId="view-as-form" />
         </Section>
       )}
       <div className="grid grid-cols-2 gap-6">

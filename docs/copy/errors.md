@@ -320,3 +320,10 @@ of the content; page means it replaces the screen.
 | Remove | Not a member, or the last owner | the Members messages above: This person is no longer a member of this workspace. / This workspace needs at least one owner. Make someone else an owner first. |
 | Delete | The admin's own account | An admin cannot delete their own account. Ask another admin to delete it. |
 | Delete | The only owner of a workspace, deleted ones waiting for removal included | This person is the only owner of [WORKSPACES]. Ask them to make another member an owner, or to delete the workspace, then delete the account. |
+
+## View as (E14-4)
+
+| Where | When | Text |
+|---|---|---|
+| The view-only page (/app/view-only) | Any write during an admin's view: a server action, or an export asked for by its address (the download links are disabled) | You are viewing as [WORKSPACE]. Changes are off. / Stop viewing to go back to your own workspace, or keep looking: every page of this workspace is open to you, read-only. / Back to the projects |
+| Under the View as button | The workspace is marked deleted | This workspace is marked deleted. Restore it first. |

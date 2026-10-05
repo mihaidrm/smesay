@@ -27,7 +27,9 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
   const [note, setNote] = useState<string | null>(null);
   async function download(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    if (busy) return;
+    // Inside the disabled content of an admin's view (E14-4) a download writes the export log,
+    // so it does nothing; the link is drawn disabled (data-download, src/app/globals.css).
+    if (busy || e.currentTarget.closest("fieldset:disabled")) return;
     setBusy(true);
     setError(false);
     setNote(null);
@@ -52,7 +54,7 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
   }
   return (
     <div className="flex flex-col gap-2">
-      <a href={href} download onClick={download} aria-busy={busy || undefined} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })} data-testid={testId}>
+      <a href={href} download onClick={download} aria-busy={busy || undefined} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })} data-testid={testId} data-download>
         {busy ? busyLabel : label}<span className="sr-only"> {srLabel}</span>
       </a>
       {note && <p role="status" className="rounded-lg bg-sun-soft px-3 py-2 text-sm text-sun-text" data-testid={`${testId}-pages`}>{note}</p>}

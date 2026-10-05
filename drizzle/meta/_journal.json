@@ -232,6 +232,13 @@
       "when": 1791189776735,
       "tag": "0032_last_sign_in",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791190247469,
+      "tag": "0033_view_as",
+      "breakpoints": true
     }
   ]
 }

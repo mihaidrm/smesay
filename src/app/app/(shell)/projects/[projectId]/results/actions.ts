@@ -8,7 +8,7 @@
 import { revalidatePath } from "next/cache";
 import { instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
-import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { RESULTS_COPY } from "@/lib/results-copy";
 import { parseTileChoice } from "@/lib/results-tiles";
 import { setActionState, writeActions } from "@/lib/insights";
@@ -16,7 +16,7 @@ import { setActionState, writeActions } from "@/lib/insights";
 export type ResultsActionState = { error: string | null };
 
 async function instrumentFor(projectId: string) {
-  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const { session, current } = await requireWritableWorkspace(`/app/projects/${projectId}/results`);
   const project = await projects.get(current.ws, projectId);
   const instrument = project ? await instruments.latestForProject(current.ws, project.id) : null;
   return instrument ? { userId: session.user.id, instrumentId: instrument.id } : null;
@@ -55,7 +55,7 @@ export async function saveView(projectId: string, view: string): Promise<Results
 // written: how many actions the run kept, so a run that kept none says so.
 export type WriteActionsState = { error: string | null; retry: boolean; written: number | null };
 export async function writeActionsAction(projectId: string): Promise<WriteActionsState> {
-  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const { session, current } = await requireWritableWorkspace(`/app/projects/${projectId}/results`);
   const result = await writeActions({ ws: current.ws, userId: session.user.id }, projectId);
   if ("error" in result) return { error: result.error, retry: result.retry, written: null };
   revalidatePath(`/app/projects/${projectId}/results`);
@@ -66,7 +66,7 @@ export async function writeActionsAction(projectId: string): Promise<WriteAction
 // checked again in src/lib/insights.ts.
 export type ActionStateResult = { error: string | null };
 export async function setActionStateAction(projectId: string, insightId: string, from: string, state: string): Promise<ActionStateResult> {
-  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results`);
+  const { session, current } = await requireWritableWorkspace(`/app/projects/${projectId}/results`);
   const result = await setActionState({ ws: current.ws, userId: session.user.id }, projectId, insightId, from, state);
   if ("error" in result) return { error: result.error };
   revalidatePath(`/app/projects/${projectId}/results`);

@@ -24,14 +24,19 @@ import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
 import { SignOutButton } from "../sign-out-button";
 import { PlausibleScript } from "@/components/analytics/plausible-script";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import { Button } from "@/components/ui/button";
+import { VIEW_AS_COPY } from "@/lib/view-as-copy";
+import { stopViewAction } from "../../admin/view-as/actions";
+
+const VIEW_UNTIL = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { session, memberships, current } = await requireCurrentWorkspace("/app");
+  const { session, memberships, current, viewing } = await requireCurrentWorkspace("/app");
   const [memberRows, projectRows] = await Promise.all([members.list(current.ws), projects.list(current.ws)]);
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <div className="flex min-h-screen items-start">
-      <PlausibleScript />
+      {!viewing && <PlausibleScript />}
       <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm" data-testid="sidebar">
         <div className="px-2 pt-1 pb-4"><Lockup text={17} /></div>
         <div className="mb-2.5 flex items-center gap-2.5 rounded-xl bg-tint px-3 py-2.5">
@@ -74,7 +79,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-grow flex-col">{children}</div>
+      {viewing ? (
+        <div className="flex min-w-0 flex-grow flex-col">
+          {/* An admin's view (stories/E14-4, acceptances 2 and 3): the banner names the workspace and
+              stops the view; every form control below is disabled through the fieldset
+              (html.spec.whatwg.org/multipage/form-elements.html#the-fieldset-element), shown at
+              the 40 percent the buttons take when disabled, while links still go everywhere. */}
+          <div role="status" className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline-strong bg-violet-soft px-8 py-2.5 text-sm text-violet-text" data-testid="view-as-banner">
+            <span className="font-semibold">{VIEW_AS_COPY.banner(viewing.workspace.name, VIEW_UNTIL.format(viewing.until))}</span>
+            <form action={stopViewAction}><Button type="submit" variant="secondary" size="small">{VIEW_AS_COPY.stop}</Button></form>
+          </div>
+          <fieldset disabled className="flex min-w-0 flex-grow flex-col" data-testid="view-as-content">{children}</fieldset>
+        </div>
+      ) : <div className="flex min-w-0 flex-grow flex-col">{children}</div>}
     </div>
   );
 }

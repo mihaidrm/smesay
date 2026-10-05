@@ -20,7 +20,7 @@
 import { exportLogs, instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
 import { EXPORT_FILES, type CsvFile, type ExportFile } from "@/db/types";
-import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { BOM, line } from "@/lib/export/csv";
 import { exportTable } from "@/lib/export/files";
@@ -37,7 +37,7 @@ const CHUNK = 500;
 export async function GET(request: Request, { params }: { params: Promise<{ projectId: string; file: string }> }) {
   const { projectId, file } = await params;
   if (request.headers.get("sec-fetch-site") === "cross-site") return new Response(null, { status: 403 });
-  const { session, current } = await requireCurrentWorkspace(`/app/projects/${projectId}/results?tab=export`);
+  const { session, current } = await requireWritableWorkspace(`/app/projects/${projectId}/results?tab=export`);
   if (!(EXPORT_FILES as readonly string[]).includes(file)) return new Response(null, { status: 404 });
   const project = await projects.get(current.ws, projectId);
   const instrument = project ? await instruments.latestForProject(current.ws, project.id) : null;

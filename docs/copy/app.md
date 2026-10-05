@@ -478,6 +478,17 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Empty | No accounts yet. (search: Nobody matches "[QUERY]".) |
 | Loading | Loading the people |
 
+## View as (E14-4, the workspace's admin page and every PM page during a view)
+
+| Where | Text |
+|---|---|
+| Admin workspace page, section and line | View as the owner / Opens this workspace's pages as its owner sees them, read-only, for 60 minutes. Respondent names and answers are visible there; starting and stopping are recorded in the audit log. |
+| Button and confirm line | View as the owner / View [WORKSPACE] as its owner sees it? Respondent names and answers will be visible to you. |
+| Banner on every PM page | Viewing [WORKSPACE] as its owner sees it. Changes are off. The view ends at [HH:MM] UTC. / Stop viewing |
+| Every button and field of the page | shown, disabled (buttons and download links at 40 percent, fields at 50); links still go everywhere |
+| Build, a project with a list and no instrument yet | The owner has not opened Build for this project yet, so it has no instrument to show. |
+| Refusal | in docs/copy/errors.md, View as |
+
 ## Admin person page (E14-3, /admin/people/[ID])
 
 | Where | Text |

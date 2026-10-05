@@ -23,6 +23,15 @@ export function isAdmin(email: string | null | undefined, list = adminEmails()):
 // the layout and the page both ask (react.dev/reference/react/cache).
 export const requireAdmin = cache(async (): Promise<{ session: Session; proof: AdminProof }> => {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user.emailVerified || !isAdmin(session.user.email)) notFound();
-  return { session, proof: { checked: "admin", userId: session.user.id } as AdminProof };
+  const proof = adminProofFor(session);
+  if (!session || !proof) notFound();
+  return { session, proof };
 });
+
+// The proof for a session already read, or null when it is not an admin's: the view-as check in
+// the PM app (src/lib/view-as.ts, stories/E14-4), where anyone else must get the app as usual,
+// not a 404. The one other place a proof is made.
+export function adminProofFor(session: Session | null): AdminProof | null {
+  if (!session || !session.user.emailVerified || !isAdmin(session.user.email)) return null;
+  return { checked: "admin", userId: session.user.id } as AdminProof;
+}
