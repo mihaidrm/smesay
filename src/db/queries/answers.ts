@@ -24,7 +24,7 @@
 import { and, count, eq, inArray, isNotNull, lt, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { answer, invite, response } from "@/db/schema";
-import type { InviteDates } from "./responses";
+import { DATES, type InviteDates } from "./responses";
 import type { WorkspaceId } from "@/db/types";
 import { isUuid, scoped } from "./scoped";
 
@@ -40,7 +40,8 @@ export const answers = {
   upsert: async (workspaceId: WorkspaceId, inviteId: string, data: { responseId: string; itemSetId: string; itemId: string; kind: Answer["kind"]; value: string | null; reason: string | null; comment: string | null; base: number; page: string; seq: number; after: { page: string; seq: number }[] }, stillOpen: (dates: InviteDates) => boolean, now: Date): Promise<(Answer & Since) | { refused: InviteDates } | ({ stale: Answer } & Since) | null> => {
     if (!isUuid(inviteId) || !isUuid(data.responseId)) return null;
     return db.transaction(async (tx) => {
-      const [locked] = await tx.select({ token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt }).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, inviteId))).for("share");
+      // DATES counts a deleted workspace as a revocation (E11-2), as the other writes' re-reads.
+      const [locked] = await tx.select(DATES).from(invite).where(and(eq(invite.workspaceId, workspaceId), eq(invite.id, inviteId))).for("share");
       if (!locked) return null;
       if (!stillOpen(locked)) return { refused: locked };
       const [own] = await tx.select({ id: response.id, submittedAt: response.submittedAt, signedOff: response.signedOff }).from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.id, data.responseId))).for("update");

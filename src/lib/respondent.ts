@@ -73,7 +73,8 @@ export const answerMap = (rows: Answer[]): Record<string, AnswerState> => Object
 export async function loadRespondent(token: string, cookies: RespondentCookies, now = new Date()): Promise<RespondentView> {
   const link = await links.byToken(token);
   if (!link) return { kind: "unknown" };
-  if (link.project.isSample) return { kind: "sample", link };
+  // A revoked link (a deleted workspace's too, E11-2) is inactive before it is the sample's page.
+  if (link.project.isSample && linkState(link.invite, now) !== "revoked") return { kind: "sample", link };
   const view = viewOf(link, cookies.passcode, now);
   // A revoked link on an archived project reads "closed" too; it shows nothing of its own.
   if (view.kind === "closed" && link.invite.kind === "personal" && linkState(link.invite, now) !== "revoked") {

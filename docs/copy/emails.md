@@ -145,9 +145,26 @@ Body:
 
 Sent from [PAGE ADDRESS] on [DATE AND TIME UTC]. Reply to this email to answer.
 
+## 6. Workspace deleted (E11-2; to the owner who deleted it, once the removal job has run)
+
+Sent by `npm run jobs:purge` after every row and file of the workspace is gone
+(src/lib/mail/deletion-email.ts). No button: there is nothing to do.
+
+Subject: [WORKSPACE] was deleted
+
+Body:
+Hi,
+
+Everything in [WORKSPACE] was deleted on [DATE, HH:MM] UTC.
+
+Its projects, responses, files and members are removed. Nothing in it can be brought back.
+
+[FOOTER]
+
 ## Not sent
 
 - No welcome email, no tips, no digest, no "your link was opened" notices. Decision 0003 and the
-  design system limit email to users to the four above; email 5 goes to SMEsay's own inbox.
+  design system limit email to users to the four above, and E11-2 adds email 6, the deletion
+  confirmation its acceptance 3 asks for; email 5 goes to SMEsay's own inbox.
 - No email to the PM when a response arrives; the dashboard is live (E8).
 - No email when the link closes. The PM set the date; the dashboard shows it.

@@ -6,13 +6,13 @@ import type { MemberRole } from "@/db/types";
 
 export const ACTIONS = [
   "projects.create", "projects.import", "projects.shape", "projects.build", "projects.share", "results.read", "results.export",
-  "workspace.rename", "workspace.delete", "workspace.accent", "workspace.logo",
+  "workspace.rename", "workspace.delete", "workspace.export", "workspace.accent", "workspace.logo",
   "members.invite", "members.remove", "members.role", "billing.change",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
 export const OWNER_ONLY: ReadonlySet<Action> = new Set<Action>([
-  "workspace.rename", "workspace.delete", "workspace.accent", "workspace.logo",
+  "workspace.rename", "workspace.delete", "workspace.export", "workspace.accent", "workspace.logo",
   "members.invite", "members.remove", "members.role", "billing.change",
 ]);
 

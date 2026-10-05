@@ -1,15 +1,16 @@
-// Helpers that take no session: the seed, the removal job (E11-2), the product's AI cap
-// (src/lib/ai/client.ts, the one product file lint lets in) and the tests. Lint keeps this
+// Helpers that take no session: the seed, the removal job (E11-2, src/lib/workspace-removal.ts),
+// the product's AI cap (src/lib/ai/client.ts) and the tests; lint lets in only the files
+// eslint-rules/db-access.mjs names. Lint keeps this
 // module out of every other file (eslint-rules/db-access.mjs), and the index barrel does not
 // export it, so a route cannot reach a workspace by a bare id.
-import { and, eq, gte, inArray, sum } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, sum } from "drizzle-orm";
 import { db } from "@/db";
-import { aiRun, project, workspace } from "@/db/schema";
+import { aiRun, project, response, user, workspace } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
 import { NotFoundError, SignedOutError } from "@/lib/errors";
 import { isUuid } from "./scoped";
 import { monthStart } from "./usage";
-import { workspaces, type NewWorkspace, type Workspace } from "./workspaces";
+import { workspaces, type DeletedWorkspace, type NewWorkspace, type Workspace } from "./workspaces";
 
 export const internal = {
   // The seed asks "is the sample there?"; deleted workspaces included, so a half-removed one
@@ -20,6 +21,27 @@ export const internal = {
   // whose owner is attached by E2's first sign-in.
   createEmptyWorkspace: async (data: NewWorkspace & { id?: string }): Promise<Workspace> =>
     (await db.insert(workspace).values(data).returning())[0],
+  // The removal job (stories/E11-2, acceptance 3): every workspace marked deleted, with the email
+  // of the owner who deleted it.
+  deletedWorkspaces: async (): Promise<DeletedWorkspace[]> =>
+    (await db.select({ id: workspace.id, name: workspace.name, deletedAt: workspace.deletedAt, deletedByEmail: user.email })
+      .from(workspace).leftJoin(user, eq(user.id, workspace.deletedBy)).where(isNotNull(workspace.deletedAt)))
+      .map((r) => ({ id: r.id, name: r.name, deletedAt: r.deletedAt!, deletedByEmail: r.deletedByEmail })),
+  // Deletes a deleted workspace's rows in decision 0028's order, in one transaction: its
+  // responses (their answers and missing items go with them), then its projects (sets, items,
+  // instruments, invites, actions, runs, uploads, export rows), then the workspace (members,
+  // invitations, mappings). Counts per step. A workspace not marked deleted is left alone.
+  purgeWorkspace: async (workspaceId: string): Promise<{ responses: number; projects: number; workspaces: number }> => {
+    if (!isUuid(workspaceId)) return { responses: 0, projects: 0, workspaces: 0 };
+    return db.transaction(async (tx) => {
+      const marked = await tx.select({ id: workspace.id }).from(workspace).where(and(eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt))).for("update");
+      if (marked.length === 0) return { responses: 0, projects: 0, workspaces: 0 };
+      const responses = (await tx.delete(response).where(eq(response.workspaceId, workspaceId)).returning({ id: response.id })).length;
+      const projects = (await tx.delete(project).where(eq(project.workspaceId, workspaceId)).returning({ id: project.id })).length;
+      const workspaces = (await tx.delete(workspace).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id })).length;
+      return { responses, projects, workspaces };
+    });
+  },
   // Removes the workspace and, through the cascades of schema v1, everything in it.
   hardDeleteWorkspace: async (workspaceId: string): Promise<boolean> =>
     isUuid(workspaceId) && (await db.delete(workspace).where(eq(workspace.id, workspaceId)).returning()).length > 0,

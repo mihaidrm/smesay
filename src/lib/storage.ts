@@ -7,7 +7,7 @@
 // node_modules/@smithy/types/dist-types/serde.d.ts. "memory:" as S3_ENDPOINT keeps objects in
 // a map for the unit tests and the session's dev server. The bucket is created on first use.
 // A missing variable is named and nothing is stored.
-import { CreateBucketCommand, DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { CreateBucketCommand, DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export type StoredObject = { body: Uint8Array; contentType: string };
 
@@ -84,4 +84,20 @@ export async function deleteObject(key: string): Promise<void> {
   if (isMemory()) { memory.delete(key); return; }
   await ensureBucket();
   await s3().send(new DeleteObjectCommand({ Bucket: env("S3_BUCKET"), Key: key }));
+}
+
+// Every key under a prefix (stories/E11-2: the removal job lists a workspace's objects), page by
+// page with ListObjectsV2 (dist-types/models/models_0.d.ts: Prefix, ContinuationToken; the
+// output's Contents, IsTruncated, NextContinuationToken).
+export async function listKeys(prefix: string): Promise<string[]> {
+  if (isMemory()) return [...memory.keys()].filter((k) => k.startsWith(prefix));
+  await ensureBucket();
+  const keys: string[] = [];
+  let token: string | undefined;
+  do {
+    const out = await s3().send(new ListObjectsV2Command({ Bucket: env("S3_BUCKET"), Prefix: prefix, ContinuationToken: token }));
+    for (const o of out.Contents ?? []) if (o.Key) keys.push(o.Key);
+    token = out.IsTruncated ? out.NextContinuationToken : undefined;
+  } while (token);
+  return keys;
 }

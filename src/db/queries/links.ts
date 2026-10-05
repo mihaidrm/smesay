@@ -21,7 +21,7 @@ export type Link = { ws: WorkspaceId; invite: Invite; instrument: Instrument; pr
 export const links = {
   byToken: async (token: string): Promise<Link | null> => {
     if (typeof token !== "string" || token.length < 32 || token.length > 128 || !/^[0-9a-f]+$/i.test(token)) return null;
-    const rows = await db.select({ invite, instrument, project, name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey, plan: workspace.plan })
+    const rows = await db.select({ invite, instrument, project, name: workspace.name, accentHex: workspace.accentHex, logoObjectKey: workspace.logoObjectKey, plan: workspace.plan, deletedAt: workspace.deletedAt })
       .from(invite)
       .innerJoin(instrument, eq(instrument.id, invite.instrumentId))
       .innerJoin(project, eq(project.id, instrument.projectId))
@@ -29,6 +29,9 @@ export const links = {
       .where(eq(invite.token, token)).limit(1);
     const row = rows[0];
     if (!row) return null;
-    return { ws: unsafeWorkspaceId(row.invite.workspaceId), invite: row.invite, instrument: row.instrument, project: row.project, brand: { name: row.name, accentHex: row.accentHex, logoObjectKey: row.logoObjectKey, plan: row.plan } };
+    // A deleted workspace's links read as revoked from the moment of deletion (stories/E11-2,
+    // acceptance 4), so the respondent side shows its inactive page and refuses every write.
+    const linkInvite = row.deletedAt && !row.invite.revokedAt ? { ...row.invite, revokedAt: row.deletedAt } : row.invite;
+    return { ws: unsafeWorkspaceId(row.invite.workspaceId), invite: linkInvite, instrument: row.instrument, project: row.project, brand: { name: row.name, accentHex: row.accentHex, logoObjectKey: row.logoObjectKey, plan: row.plan } };
   },
 };

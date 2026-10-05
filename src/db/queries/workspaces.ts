@@ -4,14 +4,15 @@
 // hands out its id and no helper is reached with it. The helpers that take no session (the
 // seed's, the removal job's) are in internal.ts, which lint keeps out of routes.
 // db.transaction: orm.drizzle.team/docs/transactions.
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { workspace, workspaceMember } from "@/db/schema";
+import { user, workspace, workspaceMember } from "@/db/schema";
 import type { PlanKey } from "@/db/types";
 import { isUuid, type WorkspaceId } from "./scoped";
 
 export type Workspace = typeof workspace.$inferSelect;
-export type NewWorkspace = Omit<typeof workspace.$inferInsert, "id" | "createdAt" | "deletedAt">;
+export type NewWorkspace = Omit<typeof workspace.$inferInsert, "id" | "createdAt" | "deletedAt" | "deletedBy">;
+export type DeletedWorkspace = { id: string; name: string; deletedAt: Date; deletedByEmail: string | null };
 
 const live = () => isNull(workspace.deletedAt);
 
@@ -54,8 +55,26 @@ export const workspaces = {
   setPlan: async (workspaceId: WorkspaceId, plan: PlanKey): Promise<Workspace | null> =>
     (await db.update(workspace).set({ plan }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
   // Starts the 24-hour removal (E11-2): the workspace disappears from every read at once.
-  markDeleted: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
-    (await db.update(workspace).set({ deletedAt: new Date() }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
+  // Who deleted it is kept for the deleted page and the removal job's email.
+  markDeleted: async (workspaceId: WorkspaceId, deletedBy: string, now = new Date()): Promise<Workspace | null> =>
+    (await db.update(workspace).set({ deletedAt: now, deletedBy }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
+  // Leaves a deleted workspace (stories/E11-2): the person's membership goes, so the deleted page
+  // does not show again; a live workspace's membership is never touched here.
+  leaveDeleted: async (userId: string, workspaceId: string): Promise<boolean> => {
+    if (!isUuid(workspaceId)) return false;
+    const gone = db.select({ id: workspace.id }).from(workspace).where(and(eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt)));
+    return (await db.delete(workspaceMember).where(and(eq(workspaceMember.userId, userId), eq(workspaceMember.workspaceId, workspaceId), inArray(workspaceMember.workspaceId, gone))).returning()).length > 0;
+  },
+  // A deleted workspace the user is still a member of until the removal job runs (the deleted
+  // page, stories/E11-2 acceptance 2): its name, when, and the email of the owner who deleted it.
+  // With no id: the first deleted workspace the user is still a member of.
+  deletedForUser: async (userId: string, workspaceId: string | null): Promise<DeletedWorkspace | null> => {
+    if (workspaceId !== null && !isUuid(workspaceId)) return null;
+    const row = (await db.select({ id: workspace.id, name: workspace.name, deletedAt: workspace.deletedAt, deletedByEmail: user.email })
+      .from(workspace).innerJoin(workspaceMember, eq(workspaceMember.workspaceId, workspace.id)).leftJoin(user, eq(user.id, workspace.deletedBy))
+      .where(and(eq(workspaceMember.userId, userId), workspaceId === null ? undefined : eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt))).orderBy(workspace.deletedAt).limit(1))[0];
+    return row && row.deletedAt ? { id: row.id, name: row.name, deletedAt: row.deletedAt, deletedByEmail: row.deletedByEmail } : null;
+  },
 };
 
 // The AI budget is not here: internal.setAiBudgetEur, from the admin area only (decision 0036).

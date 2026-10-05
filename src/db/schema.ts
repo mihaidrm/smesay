@@ -47,6 +47,8 @@ export const workspace = pgTable("workspace", {
   plan: text("plan", { enum: PLAN_KEYS }).notNull().default("free"),
   createdAt: ts("created_at").notNull().defaultNow(),
   deletedAt: ts("deleted_at"),
+  // Who deleted it (stories/E11-2): the owner the deleted page names and the removal job emails.
+  deletedBy: text("deleted_by").references(() => user.id, { onDelete: "set null" }),
 }, (t) => [uniqueIndex("workspace_slug_idx").on(t.slug), check("workspace_plan_check", oneOf("plan", PLAN_KEYS))]);
 
 export const workspaceMember = pgTable("workspace_member", {
@@ -411,7 +413,8 @@ export const aiRun = pgTable("ai_run", {
 export const exportLog = pgTable("export_log", {
   id: id(),
   workspaceId: wsRef(),
-  projectId: uuid("project_id").notNull(),
+  // Null for Export everything (stories/E11-2), which is the whole workspace.
+  projectId: uuid("project_id"),
   madeBy: text("made_by").references(() => user.id, { onDelete: "set null" }),
   file: text("file", { enum: EXPORT_FILES }).notNull(),
   filter: text("filter"),

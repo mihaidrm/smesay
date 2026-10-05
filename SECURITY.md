@@ -7,11 +7,12 @@ Auth and sessions
   refuses an http base URL other than localhost.
 
 Multi-tenancy
-- Every query scoped by workspace id from the session, never from the request body. The one
-  read across workspaces is the product's AI spend sum for its monthly cap (decision 0036), in
-  src/db/queries/internal.ts; outside src/db the lint rule lets only src/lib/workspace.ts
-  (the membership check), src/lib/ai/client.ts with its test, and src/lib/insights.test.ts (which
-  sets a workspace budget, E9-3) import that module. Scripts
+- Every query scoped by workspace id from the session, never from the request body. Two reads
+  go across workspaces, both in src/db/queries/internal.ts: the product's AI spend sum for its
+  monthly cap (decision 0036), and the removal job's list of deleted workspaces with the deleting
+  owner's email (E11-2). Outside src/db the lint rule lets only src/lib/workspace.ts (the
+  membership check), src/lib/ai/client.ts with its test, src/lib/insights.test.ts (which sets a
+  workspace budget, E9-3) and src/lib/workspace-removal.ts (the removal job) import that module. Scripts
   outside src/ (scripts/ai-smoke.ts, evals/run.ts) read the database directly for their own
   throwaway rows; they never run in the app.
 - Row ownership tested: a user in workspace A cannot read, write or enumerate workspace B.

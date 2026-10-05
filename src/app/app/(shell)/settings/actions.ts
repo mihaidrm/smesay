@@ -10,6 +10,9 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { ForbiddenError } from "@/lib/errors";
 import { saveBrand } from "@/lib/brand";
 import { inviteMember, removeMember, setMemberRole } from "@/lib/members";
+import { redirect } from "next/navigation";
+import { deleteWorkspace } from "@/lib/workspace-data";
+import { WORKSPACE_DATA_COPY } from "@/lib/workspace-data-copy";
 
 export type MembersState = { error: string | null; sent?: string | null };
 export type BrandState = { error: string | null; field: "name" | "accentHex" | "logo" | null; saved: boolean; tooLight: boolean };
@@ -72,4 +75,19 @@ export async function saveBrandAction(_previous: BrandState, formData: FormData)
     if (error instanceof ForbiddenError) return { ...none, error: error.message };
     throw error;
   }
+}
+
+// Delete this workspace (stories/E11-2, acceptance 2): owner only (403 as form state for a
+// member), the typed name checked on the server; then the deleted page.
+export type DeleteState = { error: string | null };
+export async function deleteWorkspaceAction(_previous: DeleteState, formData: FormData): Promise<DeleteState> {
+  try {
+    const result = await deleteWorkspace(await actor(), formData.get("name"));
+    if ("error" in result) return { error: result.error };
+  } catch (error) {
+    if (error instanceof ForbiddenError) return { error: WORKSPACE_DATA_COPY.ownerOnly };
+    throw error;
+  }
+  revalidatePath("/app", "layout");
+  redirect("/app/deleted");
 }

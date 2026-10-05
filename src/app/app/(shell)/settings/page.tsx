@@ -1,7 +1,8 @@
 // Workspace settings (stories/E2-5, acceptance 1; stories/E2-4, acceptance 1; the PM app board,
 // Settings): the brand card (name, logo, accent), the Plan card with the usage line
 // (stories/E2-6, acceptance 3; the AI budget is not shown, decision 0036), and the Members
-// section. Owners see the forms and controls; members see the values and the list. The server
+// section, and for owners the Data section (stories/E11-2: Export everything, Delete this
+// workspace). Owners see the forms and controls; members see the values and the list. The server
 // refuses what the UI hides (src/lib/brand.ts, src/lib/members.ts). Copy: docs/copy/app.md,
 // errors.md.
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -13,6 +14,7 @@ import { usage } from "@/db/queries/usage";
 import { formatEur } from "@/lib/ai/prices";
 import { BrandForm } from "./brand";
 import { InviteForm, MemberRow } from "./members";
+import { DataSection } from "./data";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -85,6 +87,7 @@ export default async function SettingsPage() {
         ))}
         {manage && <InviteForm />}
       </section>
+      {me !== null && (can(me.role, "workspace.export") || can(me.role, "workspace.delete")) && <DataSection workspaceName={workspace.name} />}
     </main>
   );
 }

@@ -53,7 +53,11 @@ async function writeMissing(tx: Tx, workspaceId: WorkspaceId, responseId: string
 }
 export type NewResponse = Pick<typeof response.$inferInsert, "instrumentId" | "itemSetId" | "inviteId" | "deviceToken" | "fields" | "perspectives">;
 export type InviteDates = Pick<Invite, "token" | "opensAt" | "closesAt" | "revokedAt">;
-const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: invite.revokedAt };
+// The link's dates as the writes re-read them under the invite row's lock; a deleted workspace's
+// deletion time counts as the revocation (stories/E11-2, as links.byToken reads it), so a
+// deletion committed before the re-read wins as a revoke does.
+// Every column named with its table, so the subquery's meaning cannot shift.
+export const DATES = { token: invite.token, opensAt: invite.opensAt, closesAt: invite.closesAt, revokedAt: sql`coalesce("invite"."revoked_at", (select "w"."deleted_at" from "workspace" "w" where "w"."id" = "invite"."workspace_id"))`.mapWith(invite.revokedAt) };
 
 export const responses = {
   ...scoped(response),
