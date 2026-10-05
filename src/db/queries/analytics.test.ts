@@ -11,7 +11,7 @@ import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { unsafeWorkspaceId } from "@/db/queries/scoped";
 import { EVENTS } from "@/lib/analytics-catalogue";
-import { track, trackProblem } from "@/lib/analytics";
+import { track, trackProblem, wasFirst } from "@/lib/analytics";
 
 let sql: ReturnType<typeof postgres>;
 const userId = `analytics-${Date.now()}`;
@@ -71,10 +71,16 @@ describe("track", () => {
     expect(await track("workspace_deleted", {}, { workspaceId: null, userId })).toBe(true);
     expect(await track("workspace_created", {}, { workspaceId: wsId, userId })).toBe(true);
     expect(await track("import_committed", { source: "paste", rows: 6 }, { workspaceId: wsId, userId })).toBe(true);
+    // wasFirst (E13-3's "first" goals): true after the workspace's first event of a name only.
+    expect(await track("project_created", { from: "new" }, { workspaceId: wsId, userId })).toBe(true);
+    expect(await wasFirst("project_created", wsId)).toBe(true);
+    expect(await track("project_created", { from: "import" }, { workspaceId: wsId, userId })).toBe(true);
+    expect(await wasFirst("project_created", wsId)).toBe(false);
+    expect(await wasFirst("instrument_published", wsId)).toBe(false);
     // @ts-expect-error: not in the catalogue, refused at run time too
     expect(await track("page_viewed", {}, { workspaceId: wsId, userId })).toBe(false);
     const rows = await sql`select name, properties, workspace_id from event where user_id = ${userId} order by created_at`;
-    expect(rows.map((r) => r.name)).toEqual(["signed_up", "workspace_deleted", "workspace_created", "import_committed"]);
+    expect(rows.map((r) => r.name)).toEqual(["signed_up", "workspace_deleted", "workspace_created", "import_committed", "project_created", "project_created"]);
     expect(rows[3].properties).toEqual({ source: "paste", rows: 6 });
 
     await sql`update workspace set deleted_at = now() where id = ${w.id}`;

@@ -22,6 +22,7 @@ import { members, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
 import { SignOutButton } from "../sign-out-button";
+import { PlausibleScript } from "@/components/analytics/plausible-script";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <div className="flex min-h-screen items-start">
+      <PlausibleScript />
       <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm" data-testid="sidebar">
         <div className="px-2 pt-1 pb-4"><Lockup text={17} /></div>
         <div className="mb-2.5 flex items-center gap-2.5 rounded-xl bg-tint px-3 py-2.5">

@@ -31,6 +31,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { addressOf, LOCAL, minutesOf, respondentLimit } from "@/lib/ratelimit";
 import { RATE_LIMIT_COPY, limitedPage } from "@/lib/ratelimit-copy";
 import { contentSecurityPolicy } from "@/lib/security-headers";
+import { PLAUSIBLE_ORIGIN, plausibleConfig } from "@/lib/plausible";
 import { ERROR_PAGE_COPY, maintenanceMinutes, maintenancePage } from "@/lib/error-pages-copy";
 
 const CSP = "content-security-policy";
@@ -38,7 +39,7 @@ const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
 
 export function proxy(request: NextRequest) {
   const nonce = randomBytes(16).toString("base64");
-  const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https: request.nextUrl.protocol === "https:" });
+  const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https: request.nextUrl.protocol === "https:", analytics: plausibleConfig() && !isRespondentPath(request.nextUrl.pathname) ? PLAUSIBLE_ORIGIN : null });
   const response = process.env.MAINTENANCE === "1" ? maintenance(request) : route(request, csp);
   response.headers.set(CSP, csp);
   return response;
@@ -62,6 +63,10 @@ function next(request: NextRequest, csp: string): NextResponse {
   headers.set("x-nonce", nonceOf(csp));
   return NextResponse.next({ request: { headers } });
 }
+
+// The respondent pages and the visitors' sample never load Plausible (stories/E13-3), so their
+// policy does not allow sending to it either.
+const isRespondentPath = (path: string) => path.startsWith("/r/") || path === "/sample" || path.startsWith("/brand/");
 
 function route(request: NextRequest, csp: string): NextResponse {
   const path = request.nextUrl.pathname;

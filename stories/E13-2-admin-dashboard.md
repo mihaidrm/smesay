@@ -13,7 +13,7 @@ the usage of every workspace.
    workspaces created, projects created, imports committed, instruments published, invites
    sent, links opened, responses started, responses submitted, exports downloaded; each as a
    count and as a share of the step before. Computed in SQL (CLAUDE.md, dashboard rules).
-3. Workspaces table: name, created, members, projects, instruments published, responses this
+3. Workspaces table: name, created, came from (E13-3's first source), members, projects, instruments published, responses this
    month, AI cost this month in euro cents, last activity; sorted by last activity; the usage
    numbers are E2-6's functions so the plan metric and this page cannot disagree.
 4. Totals at the top: workspaces, projects, published instruments, submitted responses, all

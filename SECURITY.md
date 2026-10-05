@@ -25,7 +25,14 @@ Multi-tenancy
   smesay-draft:[form] (E11-6: context:[project id] for the project context box), only from that
   answer on, until the server saves it or the tab closes. The key is per project, not per
   person: whoever signs in again in the same tab sees the draft. sessionStorage, like
-  localStorage, is readable by any script on the origin; the CSP keeps foreign scripts out.
+  localStorage, is readable by any script on the origin; the CSP keeps foreign scripts out,
+  except Plausible's once its variables are set at the gate (below).
+- Visit counts (E13-3): Plausible's script runs only on the landing page, sign-in, the legal
+  pages, the workspace step and the signed-in app, with the request's nonce, never on /r, the
+  visitors' sample or /admin (a test pins the pages); links into those pages are full page
+  loads, and a respondent's links out send no referrer, so a link token never reaches it. It
+  sets no cookie and stores no IP address (plausible.io/data-policy). Two goals go from the
+  server with the visitor's user agent and address, as the script would send them.
 
 Public links and respondents
 - Instrument tokens 128-bit random; respondent tokens separate from instrument tokens.
@@ -102,7 +109,8 @@ Data
   never logs a refused row's values.
 - A CSV export writes a text cell that starts with =, +, -, @, a tab or a line break with a
   single quote in front, so a spreadsheet does not run it as a formula (OWASP, CSV Injection).
-- No personal data in logs, Sentry events or analytics. Logs go through src/lib/log.ts, which
+- No personal data in logs, Sentry events or analytics (Plausible receives the visitor's
+  address and user agent to count a visit and keeps neither, see Visit counts above). Logs go through src/lib/log.ts, which
   prints a fixed sentence and only the fields on its allow-list (ids, counts, codes); the lint
   rule no-console keeps src/ on it (E11-5). Sentry, when SENTRY_DSN is set, has every data
   collection off and its beforeSend rebuilds each event from an allow-list with emails, quoted

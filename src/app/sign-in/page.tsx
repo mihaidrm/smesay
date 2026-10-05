@@ -11,15 +11,20 @@ import { GoogleButton } from "./google-button";
 import { safeNextPath } from "@/lib/safe-path";
 import { Mascot } from "@/components/app/mascot";
 import { Lockup } from "@/components/brand/mark";
+import { PlausibleScript } from "@/components/analytics/plausible-script";
+import { cleanSource, nextWithSource } from "@/lib/utm";
 import { SignInForm } from "./sign-in-form";
 
-export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next } = await searchParams;
-  const target = safeNextPath(next);
+export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string; utm_source?: string | string[] }> }) {
+  const { next, utm_source } = await searchParams;
+  // A source from the landing page's link rides through the magic link to the workspace step
+  // (stories/E13-3, acceptance 4).
+  const target = nextWithSource(safeNextPath(next), cleanSource(utm_source));
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect(target);
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+      <PlausibleScript />
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 -left-40 size-[520px] rounded-full bg-[radial-gradient(circle,rgba(109,76,245,0.28),rgba(109,76,245,0)_62%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-32 -bottom-40 size-[460px] rounded-full bg-[radial-gradient(circle,rgba(255,107,87,0.22),rgba(255,107,87,0)_60%)]" />
       <div className="card relative flex w-full max-w-md flex-col gap-8 rounded-[20px] p-8">

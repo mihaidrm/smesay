@@ -235,6 +235,16 @@ is billed per use.
 
 1. Go to https://plausible.io and start the trial. It has no free plan; about EUR 9 per month.
 2. Add the site with the domain from step 2. Set `PLAUSIBLE_DOMAIN=` to that domain.
+3. In the site's settings, General, Tracking, open the snippet and copy the `src` of its script
+   tag (it starts with https://plausible.io/js/). Set `PLAUSIBLE_SCRIPT_SRC=` to it. Send Claude
+   the whole snippet: the app renders the script tag only, and whether Plausible's current
+   script needs the init line its documentation mentions is unverified (stories/E13-3,
+   docs/review-list.md).
+4. Add these goals as custom events: Start free, Try the sample, Sign up, First project, First
+   instrument published.
+5. Before the variables are set anywhere, the privacy policy's "Error reports and visit counts"
+   changes to describe Plausible (its marker says what), and Plausible moves from "Planned for
+   launch" to "In use" in the subprocessor list.
 
 ## Step 11b. Your admin address (any time)
 
@@ -249,8 +259,8 @@ lawyer must confirm. You send the drafts to a Romanian lawyer once and tell Clau
 
 The drafts are docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md (stories/E11-3), shown
 at /legal/privacy, /legal/terms, /legal/dpa and /legal/subprocessors. `npm run legal:markers`
-lists every "[LAWYER: ...]" marker per page: 39 on 2026-10-04 (privacy 15, terms 9, DPA 12,
-subprocessors 3). Send the lawyer the four files and that list; when the lawyer has answered,
+lists every "[LAWYER: ...]" marker per page: 42 on 2026-10-05 (privacy 17, terms 9, DPA 12,
+subprocessors 4). Send the lawyer the four files and that list; when the lawyer has answered,
 tell Claude, and one commit replaces the markers.
 
 ## Step 13. Later phases

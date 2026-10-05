@@ -15,4 +15,6 @@ export const events = {
   // For the tests of the steps that write a respondent event (lint keeps it out of the app).
   countForInstrument: async (workspaceId: WorkspaceId, name: string, instrumentId: string): Promise<number> =>
     (await db.select({ n: count() }).from(event).where(and(eq(event.workspaceId, workspaceId), eq(event.name, name), sql`${event.properties}->>'instrument' = ${instrumentId}`)))[0].n,
+  countInWorkspace: async (workspaceId: WorkspaceId, name: string): Promise<number> =>
+    (await db.select({ n: count() }).from(event).where(and(eq(event.workspaceId, workspaceId), eq(event.name, name))))[0].n,
 };

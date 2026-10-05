@@ -49,12 +49,12 @@ export async function funnel(proof: AdminProof, now = new Date()): Promise<Funne
   return weeks.reverse();
 }
 
-export type AdminWorkspace = { id: string; name: string; createdAt: Date; members: number; projects: number; published: number; responsesThisMonth: number; aiCostCentsThisMonth: number; lastActivity: Date };
+export type AdminWorkspace = { id: string; name: string; createdAt: Date; firstSource: string | null; members: number; projects: number; published: number; responsesThisMonth: number; aiCostCentsThisMonth: number; lastActivity: Date };
 
 // One query per figure for all workspaces at once, never one per workspace.
 export async function workspaceUsage(proof: AdminProof, now = new Date()): Promise<AdminWorkspace[]> {
   checked(proof);
-  const live = await db.select({ id: workspace.id, name: workspace.name, createdAt: workspace.createdAt }).from(workspace).where(isNull(workspace.deletedAt));
+  const live = await db.select({ id: workspace.id, name: workspace.name, createdAt: workspace.createdAt, firstSource: workspace.firstSource }).from(workspace).where(isNull(workspace.deletedAt));
   if (live.length === 0) return [];
   const [members, published, activity, used] = await Promise.all([
     db.select({ id: workspaceMember.workspaceId, n: count() }).from(workspaceMember).groupBy(workspaceMember.workspaceId),
@@ -69,7 +69,7 @@ export async function workspaceUsage(proof: AdminProof, now = new Date()): Promi
   return live.map((w) => {
     const u = used.get(w.id);
     const last = a.get(w.id)?.at ?? null;
-    return { id: w.id, name: w.name, createdAt: w.createdAt, members: m.get(w.id)?.n ?? 0, projects: u?.projects ?? 0, published: p.get(w.id)?.n ?? 0, responsesThisMonth: u?.responsesThisMonth ?? 0, aiCostCentsThisMonth: u?.aiCostCentsThisMonth ?? 0, lastActivity: last && last > w.createdAt ? last : w.createdAt };
+    return { id: w.id, name: w.name, createdAt: w.createdAt, firstSource: w.firstSource, members: m.get(w.id)?.n ?? 0, projects: u?.projects ?? 0, published: p.get(w.id)?.n ?? 0, responsesThisMonth: u?.responsesThisMonth ?? 0, aiCostCentsThisMonth: u?.aiCostCentsThisMonth ?? 0, lastActivity: last && last > w.createdAt ? last : w.createdAt };
   }).sort((x, y) => y.lastActivity.getTime() - x.lastActivity.getTime() || x.name.localeCompare(y.name));
 }
 
