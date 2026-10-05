@@ -59,7 +59,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
       {!locked && <StepTip path={`/app/projects/${project.id}/build`} tip={buildTip({ intro: instrument.intro, fields: instrument.respondentFields })} />}
       <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
-          <section className="card flex flex-col gap-3" aria-labelledby="build-intro-title">
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-intro-title">
             <h3 id="build-intro-title" className="text-[15px] font-bold">{BUILD_COPY.introCard}</h3>
             {readOnly ? (
               <div className="flex flex-col gap-2 text-sm">
@@ -71,7 +71,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <IntroForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} title={instrument.title} intro={instrument.intro ?? ""} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-scoring-title">
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-scoring-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-scoring-title" className="text-[15px] font-bold">{BUILD_COPY.scoringCard}</h3>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.scoringLine}</p>
@@ -87,7 +87,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} layout={instrument.layout} locked={locked} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-perspectives-title">
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-perspectives-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-perspectives-title" className="text-[15px] font-bold">{BUILD_COPY.perspectivesCard}</h3>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
@@ -98,7 +98,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-closing-title" data-preview-screen="wrap">
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-closing-title" data-preview-screen="wrap">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3>
               <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
@@ -115,7 +115,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <ClosingForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} closing={instrument.closing} locked={locked} />
             )}
           </section>
-          <section className="card flex flex-col gap-3" aria-labelledby="build-fields-title">
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-fields-title">
             <div className="flex flex-col gap-0.5">
               <h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.fieldsLine}</p>

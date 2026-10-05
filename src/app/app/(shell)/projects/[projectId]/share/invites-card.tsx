@@ -28,7 +28,7 @@ export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkS
   const hint = linkState === "draft" ? INVITEES_COPY.needLink : linkState === "closed" ? INVITEES_COPY.linkClosed : linkState === "revoked" ? INVITEES_COPY.linkRevoked : INVITEES_COPY.hint;
   const canSend = linkState === "open" || linkState === "notOpen";
   return (
-    <section className="card flex max-w-[720px] flex-col gap-4" aria-labelledby="share-invites-title" data-testid="invites-card">
+    <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-invites-title" data-testid="invites-card">
       <div className="flex flex-col gap-1">
         <h3 id="share-invites-title" className="text-[15px] font-bold">{INVITEES_COPY.card}</h3>
         <p className="text-sm text-ink-muted">{INVITEES_COPY.line}</p>
