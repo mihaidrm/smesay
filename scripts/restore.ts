@@ -20,7 +20,7 @@ async function main() {
   const rows = Object.values(after).reduce((a, b) => a + b, 0);
   console.log(`restored ${Object.keys(after).length} tables, ${rows} rows and ${objects} objects in ${((Date.now() - started) / 1000).toFixed(1)} s`);
   if (objectsSkipped > 0) console.log(`${objectsSkipped} objects not put back: the bucket is in use. To restore them, point S3_BUCKET at an empty bucket and run the restore into a new empty database.`);
-  if (objectsMissing.length > 0) { console.error(`${objectsMissing.length} objects are not in the bucket after the restore. Run it again into a new empty database.`); process.exit(1); }
+  if (objectsMissing.length > 0) { console.error(`${objectsMissing.length} objects are missing from the bucket after the restore, or have another size. Empty the bucket, then run it again into a new empty database.`); process.exit(1); }
   if (diff.length > 0) { console.error(`row counts differ from the backup:\n${diff.join("\n")}`); process.exit(1); }
   console.log("every table's row count matches the backup");
 }

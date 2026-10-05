@@ -41,7 +41,7 @@ function run(url: string, program: "pg_dump" | "pg_restore", args: string[], inp
     const out: Buffer[] = []; const err: Buffer[] = [];
     child.stdout.on("data", (b: Buffer) => out.push(b));
     child.stderr.on("data", (b: Buffer) => err.push(b));
-    child.on("error", (error) => reject(new Error(`${cmd} could not start (${error.name}). Check PG_TOOLS (docs/runbooks/backup-restore.md).`)));
+    child.on("error", (error: NodeJS.ErrnoException) => reject(new Error(`${cmd} could not start (${error.code ?? error.name}). Check PG_TOOLS: local needs pg_dump on the PATH, compose and docker need Docker (docs/runbooks/backup-restore.md).`)));
     child.on("close", (code) => (code === 0 ? resolve(Buffer.concat(out)) : reject(new Error(`${program} exited ${code}:\n${redact(Buffer.concat(err).toString(), url)}`))));
     child.stdin.on("error", () => {});
     child.stdin.end(input ?? Buffer.alloc(0));
@@ -80,7 +80,7 @@ function writePrivate(path: string, data: Buffer) {
   writeFileSync(path, data, { mode: 0o600 });
 }
 
-function s3For(): S3Client {
+export function s3For(): S3Client {
   return new S3Client({ endpoint: need("S3_ENDPOINT"), region: process.env.S3_REGION ?? "auto", forcePathStyle: true, credentials: { accessKeyId: need("S3_ACCESS_KEY_ID"), secretAccessKey: need("S3_SECRET_ACCESS_KEY") } });
 }
 
@@ -114,23 +114,30 @@ export async function backup(now = new Date()): Promise<{ where: string; manifes
   return { where: `s3://${target.bucket}/${prefix}`, manifest };
 }
 
-// A backup at s3://[BUCKET]/[PREFIX]/[TIME] is copied to a private temporary folder first.
+// A backup at s3://[BUCKET]/[PREFIX]/[TIME] is copied to a private temporary folder first; a
+// download that fails partway deletes what it wrote (the files hold personal data).
 async function download(bucket: string, prefix: string): Promise<string> {
   const s3 = s3For();
   const dir = mkdtempSync(join(tmpdir(), "smesay-restore-"));
-  let token: string | undefined;
-  do {
-    const page = await s3.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: `${prefix}/`, ContinuationToken: token }));
-    for (const item of page.Contents ?? []) {
-      if (!item.Key) continue;
-      const body = await (await s3.send(new GetObjectCommand({ Bucket: bucket, Key: item.Key }))).Body?.transformToByteArray();
-      writePrivate(join(dir, item.Key.slice(prefix.length + 1)), Buffer.from(body ?? new Uint8Array()));
-    }
-    token = page.IsTruncated ? page.NextContinuationToken : undefined;
-  } while (token);
-  return dir;
+  try {
+    let token: string | undefined;
+    do {
+      const page = await s3.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: `${prefix}/`, ContinuationToken: token }));
+      for (const item of page.Contents ?? []) {
+        if (!item.Key) continue;
+        const body = await (await s3.send(new GetObjectCommand({ Bucket: bucket, Key: item.Key }))).Body?.transformToByteArray();
+        writePrivate(join(dir, item.Key.slice(prefix.length + 1)), Buffer.from(body ?? new Uint8Array()));
+      }
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    return dir;
+  } catch (error) {
+    rmSync(dir, { recursive: true, force: true });
+    throw error;
+  }
 }
 
+// objectsMissing: the keys not in the bucket after the restore, or there at another size.
 export type Restored = { manifest: Manifest; after: Record<string, number>; objects: number; objectsSkipped: number; objectsMissing: string[] };
 
 // Restores a backup (a folder, or an S3 prefix at the gate) into the database DATABASE_URL
@@ -146,6 +153,7 @@ export async function restore(source: string, confirm: string): Promise<Restored
   try {
     const dump = join(folder, "database.dump");
     if (!existsSync(dump)) throw new Error(`${dump} does not exist. Give the folder of one backup, named by its time. Nothing was restored.`);
+    if (!existsSync(join(folder, "manifest.json"))) throw new Error(`${folder} has no manifest.json: it is not a whole backup. Nothing was restored.`);
     const manifest = JSON.parse(readFileSync(join(folder, "manifest.json"), "utf8")) as Manifest;
     const present = await objectsIn(url);
     if (present > 0) throw new Error(`The database ${name} is not empty: ${present} tables, sequences, indexes or types. Restore only into an empty database. Nothing was restored.`);
@@ -171,8 +179,11 @@ export async function restore(source: string, confirm: string): Promise<Restored
           await putObject(key, readFileSync(file), types.get(key) ?? "application/octet-stream");
           objects += 1;
         }
-        const now = new Set(await listKeys(""));
-        for (const [key] of listed) if (!now.has(key)) objectsMissing.push(key);
+        // Each object is read back and its size compared with objects.txt.
+        for (const [key, bytes] of listed) {
+          const back = await getObject(key);
+          if (!back || back.body.length !== Number(bytes)) objectsMissing.push(key);
+        }
       }
     }
     return { manifest, after: await rowCounts(url), objects, objectsSkipped, objectsMissing };

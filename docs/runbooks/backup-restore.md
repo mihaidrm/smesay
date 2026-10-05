@@ -19,7 +19,8 @@ In `.env.local` (`.env.example` lists them):
 A missing variable is named and nothing runs. The connection reaches pg_dump and pg_restore in
 libpq's environment variables (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGSSLMODE), never on a command
 line, and an error from either has the password taken out. Backup folders are created readable by
-their owner only (0700, files 0600): they hold personal data. Delete old local backups by hand.
+their owner only (0700, files 0600) on Linux and macOS; Windows does not apply these modes, so
+keep the folder in your own user's files. Backups hold personal data. Delete old local backups by hand.
 
 ## Back up
 
@@ -38,6 +39,10 @@ row count, the number of objects), and prints the counts.
    first):
 
         DATABASE_URL=postgres://smesay:smesay@localhost:5432/smesay_restore npm run restore -- ./backups/[FOLDER]
+
+   In PowerShell on Windows, set the variable for the window, run, then remove it:
+
+        $env:DATABASE_URL="postgres://smesay:smesay@localhost:5432/smesay_restore"; npm run restore -- ./backups/[FOLDER]; Remove-Item Env:DATABASE_URL
 
 3. Type the database's name when asked (the prompt does not show it). A database that holds any
    table, sequence, index or type is refused.
@@ -59,7 +64,7 @@ To make the restored database the app's, point `DATABASE_URL` at it in `.env.loc
 | 2026-10-04 23:57 | The cloud session, `npm run backup:check` after the audit fixes (the migration log now counted, one probe object) | the dump 4,489,909 bytes | 21 | 78,283 | 78,283 | 1 | 0.8 s |
 | [DATE] | Mihai's PC, with compose, into a fresh database | | | | | | |
 
-The second row is Mihai's to fill (SECURITY.md: one restore performed and documented before
+The last row is Mihai's to fill (SECURITY.md: one restore performed and documented before
 launch): run the backup, create `smesay_restore`, run the restore, and write the line.
 
 ## Every night at the launch gate
@@ -76,6 +81,8 @@ jobs:purge`.
 
 `npm run backup:check` runs after the end-to-end tests on every push: it backs up the CI
 database, creates an empty one beside it, restores into it, compares every table's row count
-(the migration log included), drops it and deletes the backup folder. With the in-memory bucket
-(S3_ENDPOINT=memory:) it also puts a probe object before the backup, deletes it, and fails unless
-the restore puts it back byte for byte.
+(the migration log included), drops it and deletes the backup folder. For the objects it puts a
+probe object in the bucket before the backup and restores into a new, empty bucket (CI's RustFS),
+checks every object's size and the probe byte for byte, then empties and deletes that bucket and
+removes the probe. With S3_ENDPOINT=memory: (one store per process) the probe is deleted before
+the restore, which puts it back.

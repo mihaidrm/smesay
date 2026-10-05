@@ -21,7 +21,9 @@ describe("backup", () => {
   });
   it("puts the connection in libpq's variables and keeps the password out of an error", () => {
     expect(connectionEnv("postgres://u%40x:p%2Fw@db.example:6543/app?sslmode=require")).toEqual({ PGHOST: "db.example", PGPORT: "6543", PGUSER: "u@x", PGPASSWORD: "p/w", PGSSLMODE: "require" });
-    expect(connectionEnv("postgres://u:p@localhost/app").PGPORT).toBe("5432");
+    expect(connectionEnv("postgres://u:p@localhost/app")).toEqual({ PGHOST: "localhost", PGPORT: "5432", PGUSER: "u", PGPASSWORD: "p" });
+    expect(connectionEnv("postgres://u:p@localhost/app?ssl=true").PGSSLMODE).toBe("require");
+    expect(redact("auth failed for pa@ss", "postgres://u:pa@ss@localhost/db")).toBe("auth failed for [removed]");
     const url = "postgres://u:Secr3t%zzPW@localhost:5432/app";
     const said = redact(`one\ntwo\nthree\nfour\nfive\npg_dump: error: invalid percent-encoded token: "Secr3t%zzPW" in ${url}`, url);
     expect(said).not.toContain("Secr3t");

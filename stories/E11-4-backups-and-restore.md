@@ -49,9 +49,10 @@ Built 2026-10-04 (design note 75, decision 0044):
 - Acceptance 4: the runbook carries the cron line for the host; nothing runs on its own locally.
 - Acceptance 5: CI runs `npm run backup:check` after the end-to-end tests: a backup, a restore
   into a new empty database, every table's row count compared (the migration log included),
-  the database dropped and the backup folder deleted. With the in-memory bucket it also puts a
-  probe object, deletes it and checks the restore brings it back byte for byte. In the session:
-  21 tables, 78,283 rows and 1 object in 0.8 s.
+  the database dropped and the backup folder deleted. For the objects it puts a probe object,
+  restores into a new empty bucket (CI's RustFS) and checks every object's size and the probe
+  byte for byte, then deletes that bucket. In the session (in-memory bucket): 21 tables, 78,432
+  rows and 1 object in 0.9 s.
 - After the fresh-context audit (3 blocking, 9 should-fix, 6 nits): design note 75, Audit.
 - src/lib/backup.ts holds the deciding parts (which command, where, the name, the comparison)
   with src/lib/backup.test.ts.

@@ -8,4 +8,8 @@ backup()
     console.log(`backup written to ${where}: ${Object.keys(manifest.tables).length} tables, ${rows} rows, ${manifest.objects} objects`);
     process.exit(0);
   })
-  .catch((error: unknown) => { console.error(`backup failed: ${error instanceof Error ? error.message : String(error)}`); process.exit(1); });
+  .catch((error: unknown) => {
+    console.error(`backup failed: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("Nothing usable was written. Check that the database is up and DATABASE_URL is right, then run it again (docs/runbooks/backup-restore.md).");
+    process.exit(1);
+  });

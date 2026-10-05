@@ -43,14 +43,17 @@ const decoded = (part: string, what: string) => {
   try { return decodeURIComponent(part); } catch { throw new Error(`DATABASE_URL's ${what} has a % that is not percent-encoding: write % as %25.`); }
 };
 
-export function connectionEnv(url: string): Record<(typeof PG_ENV)[number], string> {
+// PGSSLMODE only when the URL says: sslmode=..., or ssl=true, which libpq reads as require
+// (postgresql.org/docs/16/libpq-connect.html, sslmode); otherwise the caller's own PGSSLMODE, or
+// libpq's default ("prefer"), applies.
+export function connectionEnv(url: string): Partial<Record<(typeof PG_ENV)[number], string>> {
   const u = new URL(url);
   return {
     PGHOST: u.hostname || "localhost",
     PGPORT: u.port || "5432",
     PGUSER: decoded(u.username, "user name"),
     PGPASSWORD: decoded(u.password, "password"),
-    PGSSLMODE: u.searchParams.get("sslmode") ?? "prefer",
+    ...(u.searchParams.get("sslmode") ? { PGSSLMODE: u.searchParams.get("sslmode")! } : u.searchParams.get("ssl") === "true" ? { PGSSLMODE: "require" } : {}),
   };
 }
 
@@ -60,7 +63,8 @@ export function redact(text: string, url: string): string {
   let out = text;
   // The password as written between "user:" and "@", and decoded when it can be: a malformed
   // percent sign is what makes libpq quote it back.
-  const raw = url.match(/^[a-z]+:\/\/[^:/@]*:([^@]*)@/i)?.[1];
+  // Up to the last "@", so an unencoded "@" in the password is covered too.
+  const raw = url.match(/^[a-z]+:\/\/[^:/@]*:(.*)@[^@]*$/i)?.[1];
   const secrets = [url];
   if (raw) {
     secrets.push(raw);
