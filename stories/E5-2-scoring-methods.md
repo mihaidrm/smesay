@@ -17,9 +17,20 @@ can be shown or hidden.
    stays the scale's code. Labels appear on cards, in registers and in exports.
 4. Changing the method on a draft re-renders every item; answers are not kept across a method
    change, so the method is locked once the instrument is published (the toggle and the method
-   are disabled with "Published instruments keep their method. Build a new instrument to
-   change it.").
+   are disabled with "Published instruments keep their method and when a reason is required.
+   Build a new instrument to change them."; the line named only the method before acceptance 6).
 5. A unit test maps every (method, shown, picked value) to the AnswerKind and value stored.
+6. (Added 2026-10-05, design note 98; Mihai: "When setting up these things, the PM should be
+   able to say when its mandatory to add comment or not".) The Scoring card offers "When a
+   reason is required" as three radio cards: When the answer differs (the default and the rule
+   before this criterion: a value other than the proposal, Not needed and Unclear need their
+   reason or question), Never (the boxes still show; an empty reason or question still counts
+   as answered), On every answer (an agreeing answer and a rating need a comment too; the
+   comment box opens on its own, labelled "Comment, required"). Unclear's question follows the
+   rule. The rule is checked on the server, decides when a card is complete everywhere (the
+   card's note, the counts, the Wrap up's gaps, Submit, the reminder's count, the Responses
+   tab's Progress), is copied by "Build on version N" and kept by the project file, and is
+   locked once published, like the method.
 
 ## Out of scope
 - Methods beyond the three: not in R1.
@@ -28,7 +39,7 @@ can be shown or hidden.
 - None.
 
 ## Technical notes
-instrument.method, show_proposed (docs/schema.md); labels in a new jsonb column
+instrument.method, show_proposed, reason_rule (docs/schema.md); labels in a new jsonb column
 `scale_labels` (migration 0013 as built; the note said 0002, shape ScaleLabels in INTERFACES.md). The mapping function in
 src/lib/scoring.ts is shared with E7 and E8.
 
@@ -52,4 +63,24 @@ Built 2026-10-03 (design note 41, decision 0044):
   instrument test saves, refuses and locks on the test database.
 - Playwright: e2e/build.spec.ts switches to 1 to 5 fit and sees the pills change, renames
   Must to Essential, turns the proposal off and on.
+
+Built 2026-10-05 (design note 98, decision 0044):
+- Acceptance 6: instrument.reason_rule (migration 0035_reason_rule, text, default `differs`,
+  checked to the three values; every existing row reads `differs`; ReasonRule in
+  INTERFACES.md). The cards after the labels on the Scoring card (scoring-form.tsx,
+  REASON_RULES_META in src/lib/scoring.ts), saved by saveScoring with the server's check
+  (SCORING_ERRORS.badReasonRule; a form that posts none keeps the stored rule; ignored once
+  published). textRequired(kind, rule) in src/lib/respondent-rules.ts, with isComplete,
+  noteFor, answeredCount, resumeAt, landingOf, gapsOf and tallyOf taking the rule; the
+  server's saveAnswer and submitResponse read it from the link's instrument; the SQL twin
+  completeSql (src/db/queries/complete.ts) counts the reminder's answers and the Responses
+  tab's Progress. The item card opens the comment box for an agreeing answer or a rating under
+  On every answer, labelled "Comment, required", with no "+ comment" toggle. buildOnLatest
+  copies the rule; the project file carries reasonRule (a file without it reads `differs`).
+  The visitors' sample keeps the default. Unit tests: src/lib/respondent.test.ts (every rule
+  by every answer kind, the server's complete flag, the SQL count against isComplete),
+  src/lib/respondent-submit.test.ts (Submit under On every answer and Never),
+  src/lib/instruments.test.ts (save, refuse, copy, lock), src/db/schema.test.ts (migration
+  0035 on a row from before it), src/lib/export/project.test.ts (round trip, an older file, an
+  unknown rule), src/db/queries/results.test.ts (Progress under each rule).
 

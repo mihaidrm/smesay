@@ -281,6 +281,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </button>
 </div>
 <div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-weight: 500">When a reason is required</div>
+<div style="font-size: 13px; color: #5B6069">An answer counts as finished only once its reason, question or comment is written. Unclear follows the same rule.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{reasonRules}}" as="rr" hint-placeholder-count="3">
+<button type="button" onClick="{{rr.pick}}" aria-pressed="{{rr.active}}" style="text-align: left; padding: 12px 14px; border: 1px solid {{rr.bd}}; border-radius: 6px; background: {{rr.bg}}; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 500">{{rr.label}}</span>
+<span style="font-size: 13px; color: #5B6069">{{rr.hint}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
 <div style="font-weight: 500">Layout</div>
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
 <sc-for list="{{layouts}}" as="la" hint-placeholder-count="3">
@@ -785,6 +799,7 @@ shaped: {},
 flagOpen: true,
 method: 'moscow',
 showProposed: true,
+reasonRule: 'differs',
 layout: 'area',
 link: 'draft',
 reminded: {},
@@ -890,6 +905,16 @@ const methods = [
 const active = s.method === x[0];
 const st = active ? selOn : selOff;
 return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ method: x[0] }) };
+});
+// When a reason is required (stories/E5-2, acceptance 6; design note 98).
+const reasonRules = [
+['differs', 'When the answer differs', 'A value other than the proposal, Not needed and Unclear need one. The default.'],
+['never', 'Never', 'Reasons and questions are optional. The boxes still show.'],
+['always', 'On every answer', 'An agreeing answer or a rating needs a comment too.']
+].map((x) => {
+const active = s.reasonRule === x[0];
+const st = active ? selOn : selOff;
+return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ reasonRule: x[0] }) };
 });
 const layouts = [['area', 'Chapters: one area per screen, compact cards'], ['item', 'One item per screen'], ['page', 'Single long page']].map((x) => {
 const active = s.layout === x[0];
@@ -1113,7 +1138,7 @@ areas: areas,
 shapeCount: acceptedCount + ' of ' + d.items.length + ' reader versions accepted.',
 acceptAll: setAll('accepted'), rejectAll: setAll('rejected'),
 flagOpen: s.flagOpen, dismissFlag: () => this.setState({ flagOpen: false }),
-methods: methods, layouts: layouts,
+methods: methods, reasonRules: reasonRules, layouts: layouts,
 showProposed: s.showProposed,
 showPill: s.showProposed && s.method === 'moscow',
 toggleProposed: () => this.setState({ showProposed: !s.showProposed }),

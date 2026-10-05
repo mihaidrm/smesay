@@ -16,7 +16,7 @@
 import { useId } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
-import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { Layout, ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
 import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
@@ -38,6 +38,8 @@ export type ChapterScreenProps = {
   method: ScoringMethod;
   labels: ScaleLabels | null;
   showProposed: boolean;
+  // When a card needs its text written to count (E5-2, acceptance 6; design note 98).
+  reasonRule: ReasonRule;
   drafts: Record<string, CardDraft>;
   saved: Record<string, boolean>;
   // What a saved card says, when not "Saved" (the visitors' sample: "Saved on this device").
@@ -63,11 +65,11 @@ const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 
 const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
+  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
   const chapter = chapters[index];
   const noteId = useId();
   const card = (it: RespondentItem) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));

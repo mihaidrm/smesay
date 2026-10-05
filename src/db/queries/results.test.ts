@@ -11,6 +11,7 @@ import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
 import { proposedCode } from "@/lib/scoring";
 import { figureOf, percentOf } from "@/lib/results-agreement";
+import { isComplete } from "@/lib/respondent-rules";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -269,6 +270,17 @@ describe("the Responses tab", () => {
     expect(by("Dana Okafor")).toMatchObject({ answered: 6, visible: 6 });
     expect(by("Sam Hill")).toMatchObject({ answered: 1, visible: 5, withComment: 2 });
     expect((await tracker.people(wsE, instrumentE, NONE, keys)).find((p) => p.who === "Sam Hill")!.withComment).toBe(0);
+    // E5-2, acceptance 6 (design note 98): Progress follows the instrument's reason rule, as
+    // the respondent's own count does (isComplete on the same answers to the items Sam sees).
+    const samRows = await sql`select a.kind, a.value, a.reason, a.comment from answer a join item it on it.id = a.item_id where a.response_id = ${sam} and cardinality(it.perspectives) = 0`;
+    const samAnswered = async () => (await tracker.people(wsE, instrumentE, { ...NONE, includeUnsubmitted: true }, keys)).find((p) => p.who === "Sam Hill")!.answered;
+    for (const rule of ["never", "always", "differs"] as const) {
+      await sql`update instrument set reason_rule = ${rule} where id = ${instrumentE}`;
+      expect(await samAnswered(), rule).toBe(samRows.filter((r) => isComplete({ kind: r.kind, value: r.value, reason: r.reason, comment: r.comment }, rule)).length);
+    }
+    await sql`update instrument set reason_rule = 'never' where id = ${instrumentE}`;
+    expect(await samAnswered()).toBe(samRows.length);
+    await sql`update instrument set reason_rule = 'differs' where id = ${instrumentE}`;
     expect(by("cy@x.example")).toMatchObject({ status: "inProgress", anon: null, source: "personal" });
     expect(by("bo@x.example")).toMatchObject({ status: "invited", anon: null });
     // The Name filter finds what the tab shows.

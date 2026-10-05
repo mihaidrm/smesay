@@ -16,11 +16,11 @@ import { invites, items, missingItems, projects, responses } from "@/db/queries"
 import { events } from "@/db/queries/events";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
 import { prepareTestDatabase } from "@/db/test-db";
-import type { WorkspaceId } from "@/db/types";
+import type { ReasonRule, WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { DEFAULT_SIGN_OFF } from "@/lib/closing";
 import { commitUpload } from "@/lib/imports";
-import { openDraft, saveClosing, saveFields, savePerspectives } from "@/lib/instruments";
+import { openDraft, saveClosing, saveFields, savePerspectives, saveScoring } from "@/lib/instruments";
 import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/templates/receipt";
@@ -61,17 +61,18 @@ const now = new Date("2026-10-05T12:00:00Z");
 // whatever the version (E7-3).
 let seq = 0;
 const PAGE = "page-submit-0001";
-const save = (token: string, cookies: RespondentCookies, response: string, body: { itemId: string; picked: string; reason?: string }, at = now) => saveAnswer(token, cookies, { ...body, base: 0, page: PAGE, seq: ++seq, response }, at);
+const save = (token: string, cookies: RespondentCookies, response: string, body: { itemId: string; picked: string; reason?: string; comment?: string }, at = now) => saveAnswer(token, cookies, { ...body, base: 0, page: PAGE, seq: ++seq, response }, at);
 // The Wrap up's writes of one test page, numbered the same way (src/lib/respondent-rules.ts
 // wrapTakes): `v()` gives the next write's version fields.
 let wseq = 0;
 const WPAGE = "page-wrap-0001";
 const v = (base = 0) => ({ base, page: WPAGE, seq: ++wseq, after: [] as { page: string; seq: number }[] });
 
-async function publishedProject(name: string, options: { question?: string; emailField?: boolean; perspectives?: string } = {}) {
+type ProjectOptions = { question?: string; emailField?: boolean; perspectives?: string; reasonRule?: ReasonRule };
+async function publishedProject(name: string, options: ProjectOptions = {}) {
   return publishedProjectIn(a, name, options);
 }
-async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: string, options: { question?: string; emailField?: boolean; perspectives?: string } = {}) {
+async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: string, options: ProjectOptions = {}) {
   const project = await projects.create(w.ws, { name, createdBy: w.userId });
   const pasted = await savePaste({ ws: w.ws, userId: w.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should"].join("\n"));
   if (!("upload" in pasted)) throw new Error(pasted.error);
@@ -86,6 +87,10 @@ async function publishedProjectIn(w: { ws: WorkspaceId; userId: string }, name: 
   if (options.question) {
     const closing = await saveClosing(w.ws, project.id, instrument.id, options.question, "1", DEFAULT_SIGN_OFF, "1");
     if (!("instrument" in closing)) throw new Error(closing.error);
+  }
+  if (options.reasonRule) {
+    const ruled = await saveScoring(w.ws, project.id, instrument.id, "moscow", true, null, "chapters", options.reasonRule);
+    if (!("instrument" in ruled)) throw new Error(ruled.error);
   }
   const published = await publishLink(w.ws, project.id, instrument.id, "", "2027-01-20T15:00:00Z", "", new Date("2026-10-03T12:00:00Z"));
   if (!("invite" in published)) throw new Error(published.error);
@@ -105,7 +110,7 @@ describe("the Wrap up's rules", () => {
     expect(bucketOf("moscow", null, at("pick", "M"))).toBe("rated");
     expect(bucketOf("fit", "3", at("change", "5"))).toBe("higher");
     expect(bucketOf("kcd", "K", at("change", "C"))).toBe("lower");
-    const tally = tallyOf("moscow", [{ id: "1", proposed: "S" }, { id: "2", proposed: "S" }, { id: "3", proposed: "M" }], { "1": at("change", "M"), "2": { kind: "change", value: "C", reason: null, comment: null }, "3": at("agree", "M") });
+    const tally = tallyOf("moscow", [{ id: "1", proposed: "S" }, { id: "2", proposed: "S" }, { id: "3", proposed: "M" }], { "1": at("change", "M"), "2": { kind: "change", value: "C", reason: null, comment: null }, "3": at("agree", "M") }, "differs");
     expect([tally.higher, tally.lower, tally.agreed]).toEqual([["1"], [], ["3"]]);
   });
   it("reads the Wrap up as Submit posts it", () => {
@@ -153,8 +158,8 @@ describe("the Wrap up's rules", () => {
   it("lands a submitted response on Done, and reads ?at=done", () => {
     const it_ = (id: string) => ({ id, reference: null, title: id, details: null, area: null, proposed: null, perspectives: [] });
     const chapters = [{ name: null, intro: null, items: [it_("1"), it_("2")] }];
-    expect(landingOf(chapters, {}, "chapters", null, true, true)).toEqual({ screen: { kind: "done" }, item: 0, welcome: null });
-    expect(landingOf(chapters, {}, "chapters", null, true, false).screen).toEqual({ kind: "chapter", index: 0 });
+    expect(landingOf(chapters, {}, "differs", "chapters", null, true, true)).toEqual({ screen: { kind: "done" }, item: 0, welcome: null });
+    expect(landingOf(chapters, {}, "differs", "chapters", null, true, false).screen).toEqual({ kind: "chapter", index: 0 });
     expect(parseScreen("done", true, 1)).toEqual({ kind: "done" });
   });
   it("words the receipt for a rate-blind list and a link with no close date", () => {
@@ -172,6 +177,31 @@ describe("the Wrap up's rules", () => {
 });
 
 describe("Submit", () => {
+  // E5-2, acceptance 6 (design note 98): Submit counts the open items by the instrument's
+  // reason rule: on every answer an agreeing answer needs its comment; never takes a change
+  // with no reason and Unclear with no question.
+  it("counts the items still to finish by the PM's reason rule", async () => {
+    const submitBody = (response: string) => ({ response, confidence: 4, signedOff: true, ...v() });
+    const always = await publishedProject("Submit rule always", { reasonRule: "always" });
+    const started = await startResponse(always.link.token, {}, { fields: { name: "Ana" } }, now);
+    if ("status" in started) throw new Error(started.error);
+    const device = { device: started.device! };
+    const rid = started.response.id;
+    await save(always.link.token, device, rid, { itemId: always.one.id, picked: "M" });
+    await save(always.link.token, device, rid, { itemId: always.two.id, picked: "S" });
+    expect(await submitResponse(always.link.token, device, submitBody(rid), BASE, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(2) });
+    await save(always.link.token, device, rid, { itemId: always.one.id, picked: "M", comment: "Core to the flow" });
+    expect(await submitResponse(always.link.token, device, submitBody(rid), BASE, now)).toEqual({ status: 422, error: RESPONDENT_ERRORS.itemsOpen(1) });
+    await save(always.link.token, device, rid, { itemId: always.two.id, picked: "S", comment: "As proposed" });
+    expect(await submitResponse(always.link.token, device, submitBody(rid), BASE, now)).toMatchObject({ submittedAt: now });
+    const never = await publishedProject("Submit rule never", { reasonRule: "never" });
+    const begun = await startResponse(never.link.token, {}, { fields: { name: "Ana" } }, now);
+    if ("status" in begun) throw new Error(begun.error);
+    const nd = { device: begun.device! };
+    await save(never.link.token, nd, begun.response.id, { itemId: never.one.id, picked: "C" });
+    await save(never.link.token, nd, begun.response.id, { itemId: never.two.id, picked: "unclear" });
+    expect(await submitResponse(never.link.token, nd, submitBody(begun.response.id), BASE, now)).toMatchObject({ submittedAt: now });
+  });
   it("refuses until everything is in, stores the submission, and a second Submit updates it", async () => {
     const { project, instrument, link, one, two } = await publishedProject("Submit public", { question: "Anything else?", emailField: true });
     // An email typed on a public link: no receipt goes to it (anyone could type any address).

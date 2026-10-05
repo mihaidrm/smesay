@@ -4,7 +4,7 @@
 // the rules every later epic relies on. migrate() from drizzle-orm/postgres-js/migrator
 // (node_modules/drizzle-orm/postgres-js/migrator.d.ts); the CI job also runs `npm run db:migrate`
 // twice on its own database.
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -128,6 +128,28 @@ describe("rules in the database", () => {
     await expect(sql`update item_set set version = 7 where id = ${setA}`).rejects.toThrow(/version is never renumbered/);
     await expect(sql`insert into item_set (workspace_id, project_id, version, source) values (${wsA}, ${projectA}, 2, 'email')`).rejects.toThrow(/item_set_source_check/);
     await expect(sql`insert into answer (workspace_id, response_id, item_set_id, item_id, kind) values (${wsA}, ${responseA}, ${setA}, ${itemA}, 'maybe')`).rejects.toThrow(/answer_kind_check/);
+  });
+
+  // E5-2, acceptance 6 (design note 98): every instrument has a reason rule, "differs" unless
+  // the PM picks another, and one outside the three is refused. Migration 0035 run on the
+  // table as it stood before it, holding a row, gives that row "differs" (sql.begin and
+  // sql.unsafe: node_modules/postgres/README.md; set local lasts to the transaction's end).
+  it("gives every instrument the reason rule differs, a row from before migration 0035 too", async () => {
+    const [row] = await sql`select reason_rule from instrument where id = ${instrumentA}`;
+    expect(row.reason_rule).toBe("differs");
+    await expect(sql`update instrument set reason_rule = 'sometimes' where id = ${instrumentA}`).rejects.toThrow(/instrument_reason_rule_check/);
+    const statements = readFileSync("drizzle/0035_reason_rule.sql", "utf8").split("--> statement-breakpoint").map((s) => s.trim()).filter(Boolean);
+    const old = await sql.begin(async (tx) => {
+      await tx.unsafe("create schema before_0035");
+      await tx.unsafe("set local search_path to before_0035");
+      await tx.unsafe("create table instrument (id integer primary key)");
+      await tx.unsafe("insert into instrument (id) values (1)");
+      for (const statement of statements) await tx.unsafe(statement);
+      const rows = await tx.unsafe("select reason_rule from instrument where id = 1");
+      await tx.unsafe("drop schema before_0035 cascade");
+      return rows[0].reason_rule as string;
+    });
+    expect(old).toBe("differs");
   });
 
   it("refuses a child row that points at another workspace's parent", async () => {

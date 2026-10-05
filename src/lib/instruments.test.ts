@@ -201,6 +201,33 @@ describe("saveScoring (stories/E5-2)", () => {
   });
 });
 
+// E5-2, acceptance 6 (Mihai, 2026-10-05; design note 98): when a reason is required, saved on
+// the Scoring card with the server's check, kept when a form posts none, copied onto a new
+// version, and locked once published like the method.
+describe("saveScoring, the reason rule (stories/E5-2, acceptance 6)", () => {
+  it("saves the rule, refuses an unknown one, copies it onto a new version and locks it once published", async () => {
+    const project = await projects.create(a.ws, { name: "Reason rule", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    expect(instrument.reasonRule).toBe("differs");
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "1", "{}", "chapters", "sometimes")).toEqual({ error: SCORING_ERRORS.badReasonRule });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "1", "{}", "chapters", "always")).toMatchObject({ instrument: { reasonRule: "always" } });
+    // A form that posts no rule (a tab opened before the control existed) keeps the stored one.
+    expect(await saveScoring(a.ws, project.id, instrument.id, "fit", "1", "{}", "chapters")).toMatchObject({ instrument: { method: "fit", reasonRule: "always" } });
+    expect(await saveScoring(a.ws, project.id, instrument.id, "moscow", "1", "{}", "chapters", "never")).toMatchObject({ instrument: { reasonRule: "never" } });
+    await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
+    const built = await buildOnLatest(a.ws, project.id, instrument.id);
+    if (!("instrument" in built)) throw new Error(built.error);
+    expect(built.instrument.reasonRule).toBe("never");
+    await invites.create(a.ws, { instrumentId: built.instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    // Published: a posted rule is ignored (the locked form posts none); the layout still changes.
+    expect(await saveScoring(a.ws, project.id, built.instrument.id, "moscow", "1", "{}", "item", "always")).toMatchObject({ instrument: { reasonRule: "never", layout: "item" } });
+    expect(await saveScoring(a.ws, project.id, built.instrument.id, null, null, null, "page")).toMatchObject({ instrument: { reasonRule: "never", layout: "page" } });
+    // Another workspace cannot save it.
+    await expect(saveScoring(b.ws, project.id, built.instrument.id, "moscow", "1", "{}", "chapters", "always")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
 // The passcode hash is scrypt at N = 2^16, r = 8, p = 2 (a few hundred ms a call), so these
 // tests get a longer timeout (it(name, fn, timeout): vitest.dev/api/#test).
 describe("publish (stories/E6-1)", () => {

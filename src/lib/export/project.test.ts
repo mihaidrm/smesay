@@ -106,6 +106,24 @@ describe("importProject", () => {
     expect("projectId" in again && again.projectId).not.toBe(result.projectId);
   });
 
+  // E5-2, acceptance 6 (design note 98): the reason rule goes out and comes back; a file
+  // written before the rule existed has none and reads the default; a value outside the
+  // three is a damaged file.
+  it("keeps the reason rule on a round trip, reads differs from an older file, refuses an unknown rule", async () => {
+    const file = await exportProject(a, sampleId);
+    expect(file.instruments.map((i) => i.reasonRule)).toEqual(file.instruments.map(() => "differs"));
+    const asPm = { ...file, sample: false, note: null };
+    const ruled = await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, reasonRule: "always" })) }));
+    if (!("projectId" in ruled)) throw new Error(ruled.error);
+    expect((await instruments.latestForProject(b.ws, ruled.projectId))?.reasonRule).toBe("always");
+    const back = await exportProject(b, ruled.projectId);
+    expect(back.instruments.map((i) => i.reasonRule)).toEqual(back.instruments.map(() => "always"));
+    const older = await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map(({ reasonRule: _dropped, ...i }) => (void _dropped, i)) }));
+    if (!("projectId" in older)) throw new Error(older.error);
+    expect((await instruments.latestForProject(b.ws, older.projectId))?.reasonRule).toBe("differs");
+    expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, reasonRule: "sometimes" })) }))).toEqual({ error: E.damaged("instruments.0.reasonRule") });
+  });
+
   it("refuses what is not a project file of this version, a damaged file and the sample's, and writes nothing", async () => {
     const file = await exportProject(a, sampleId);
     const pm = { ...file, sample: false, note: null };

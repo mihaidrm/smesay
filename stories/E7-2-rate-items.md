@@ -3,7 +3,8 @@
 User: an expert going through the chapters
 Status: built
 Outcome: each card takes one of the four answers through the rating row, and a card does not
-count as answered until its reason or question is written.
+count as answered until its reason or question is written (by default; from 2026-10-05 the PM
+sets when text is required on Build, stories/E5-2 acceptance 6).
 
 ## Acceptance criteria
 1. The chapter screen (respondent board, note 12, decision 0018): title, one-line intro,
@@ -26,7 +27,9 @@ count as answered until its reason or question is written.
    answering); while a reason or a question is missing it says nothing, since the box asks
    (amended 2026-10-05, design note 99; Mihai: the "Say why." note "seems like its
    condescening"; it said "Say why." and "Write your question." before). A card counts as
-   answered only when complete (the respondent board's `complete()` rule).
+   answered only when complete (the respondent board's `complete()` rule, under the PM's
+   reason rule from 2026-10-05: when the answer differs, the default; never; or on every
+   answer, where an agreeing answer or a rating needs a comment; E5-2, acceptance 6).
 4. The three layouts (E5-3) render here: chapters, one item per screen with "Item 1 of 2 in
    [AREA]", single page with every area and no chapter row. A Playwright test at 375 by 667
    opens each layout on the sample instrument and checks the document width and the
@@ -80,3 +83,10 @@ Built 2026-10-04 (design note 51, decision 0044):
   violet. The ink fallback for a failing accent is E7-7's.
 - Saving: a change waits 400 ms for the next, then goes out; focus leaving any control and
   the page being hidden send what waits. E7-3 adds the offline queue and its banner.
+
+Changed 2026-10-05 (E5-2, acceptance 6; design note 98): isComplete and noteFor take the
+instrument's reason rule; needsReason still picks the box the text is stored in. Under On
+every answer the card opens the comment box on its own for an agreeing answer or a rating,
+labelled "Comment, required", and shows no "+ comment" toggle; under Never the boxes show as
+before and an empty one leaves the card complete. The prompts and the layout of the card are
+unchanged.
