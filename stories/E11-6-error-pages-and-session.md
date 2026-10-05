@@ -47,6 +47,10 @@ Built 2026-10-05 (design note 77, decision 0044):
   out is back. Save to keep it." The banner leaves out [HOURS] (docs/copy/errors.md). Other
   forms adopt the same hook when their story is next touched (docs/review-list.md).
 - Acceptance 4: the copy scan flags "invalid input" in src/ (scripts/copy-rules.mjs,
-  BANNED_IN_SRC); src/ has none.
+  BANNED_IN_SRC); src/ has none. Partly met: some older messages give only what to enter
+  ("Enter a name for the project, up to 80 characters."), not what is wrong first; the list is
+  in docs/review-list.md for the copy pass.
+- After the fresh-context audit (1 blocking: the proxy sent a signed-out server action to
+  sign-in, so the banner could not appear): design note 77, Audit.
 - Tests: src/lib/error-pages-copy.test.ts, src/proxy.test.ts, scripts/copy-rules.test.mjs,
   e2e/error-pages.spec.ts, e2e/session-expiry.spec.ts.

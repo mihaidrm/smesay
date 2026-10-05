@@ -4,6 +4,6 @@
 // 03-api-reference/03-file-conventions/error.md).
 import { ServerError } from "@/components/app/server-error";
 
-export default function RootError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
-  return <ServerError retry={retry} />;
+export default function RootError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  return <ServerError retry={retry} logged={Boolean(error.digest)} />;
 }

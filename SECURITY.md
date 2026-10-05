@@ -50,7 +50,10 @@ Public links and respondents
   goes to the server only when the server holds nothing newer (the version rule), so an old
   one never replaces a later answer, a submitted one included. A respondent's action sends
   mail only to an address the PM chose (a personal invite's, the receipt on its first
-  Submit), never to one typed on a public link. localStorage is per origin, so any script running on an SMEsay
+  Submit), never to one typed on a public link. On the PM side, a form whose save found the
+  session ended keeps its text in the tab's sessionStorage under smesay-draft:[form] (E11-6:
+  the project context box), only from that answer on, until the server saves it or the tab
+  closes. localStorage is per origin, so any script running on an SMEsay
   page can read it; the CSP with nonces (Headers and transport, E11-5) is what keeps foreign
   scripts out.
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a

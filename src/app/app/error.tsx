@@ -5,6 +5,6 @@
 // it sits at the /app segment. Copy: the 500 row of docs/copy/errors.md (stories/E11-6).
 import { ServerError } from "@/components/app/server-error";
 
-export default function AppError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
-  return <ServerError retry={retry} />;
+export default function AppError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  return <ServerError retry={retry} logged={Boolean(error.digest)} />;
 }

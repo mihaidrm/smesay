@@ -4,7 +4,7 @@
 // read-only (stories/E8-8, acceptance 2). useActionState: react.dev/reference/react/useActionState.
 // A save that finds the session ended shows the signed-out banner and keeps the text; the draft
 // is in the tab's session storage until the server saves it (stories/E11-6, acceptance 3).
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { SignedOutBanner } from "@/components/app/signed-out-banner";
 import { useDraft } from "@/components/app/use-draft";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,15 @@ import { saveContextAction, type ProjectFormState } from "../../actions";
 
 export function ContextForm({ projectId, goal: initialGoal, terms: initialTerms, readOnly }: { projectId: string; goal: string; terms: string; readOnly: boolean }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveContextAction, { error: null, saved: false });
-  const { values: { goal, terms }, set, restored, clear } = useDraft(`context:${projectId}`, { goal: initialGoal, terms: initialTerms });
+  const { values: { goal, terms }, set, restored, clear } = useDraft(`context:${projectId}`, { goal: initialGoal, terms: initialTerms }, Boolean(state.signedOut));
+  // What the last Save sent, so a stored draft is cleared only when that is what is on screen.
+  const sent = useRef({ goal: initialGoal, terms: initialTerms });
   const setGoal = (v: string) => set("goal", v);
   const setTerms = (v: string) => set("terms", v);
-  useEffect(() => { if (state.saved) clear(); }, [state, clear]);
+  useEffect(() => { if (state.saved) clear(sent.current); }, [state, clear]);
   const over = contextLength(goal.trim(), terms.trim()) > CONTEXT_MAX;
   return (
-    <form action={action} noValidate className="flex flex-col gap-3">
+    <form action={action} onSubmit={() => { sent.current = { goal, terms }; }} noValidate className="flex flex-col gap-3">
       <input type="hidden" name="projectId" value={projectId} />
       <div className="flex flex-col gap-1">
         <Label htmlFor="ctx-goal" className="text-[13px]">What is this about?</Label>

@@ -17,6 +17,7 @@ export const ERROR_PAGE_COPY = {
   goToProjects: "Go to your projects",
   serverTitle: "The server could not finish this request.",
   serverLine: `It has been logged. Try again in a minute; if it keeps failing, email ${SUPPORT_EMAIL}.`,
+  serverLineUnlogged: `Try again in a minute; if it keeps failing, email ${SUPPORT_EMAIL}.`,
   tryAgain: "Try again",
   respondentNotFoundTitle: "This page does not exist.",
   respondentNotFoundLine: "Check the link you were sent, or ask the person who sent it for a new one.",

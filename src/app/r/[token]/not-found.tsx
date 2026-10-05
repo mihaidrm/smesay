@@ -1,6 +1,7 @@
 // The 404 of a respondent link (stories/E11-6, acceptance 2): in the respondent frame, with no
-// PM navigation and no link to projects. Shown by notFound() under /r/[token] and for any
-// address below a link that does not exist ([...rest]/page.tsx). Convention: node_modules/next/
+// PM navigation and no link to projects. Shown for any address below a link that is not one of
+// its routes ([...rest]/page.tsx calls notFound()); the link's own page shows its state pages
+// instead (unknown, closed, revoked). Convention: node_modules/next/
 // dist/docs/01-app/03-api-reference/03-file-conventions/not-found.md.
 import { Mark } from "@/components/brand/mark";
 import { ERROR_PAGE_COPY } from "@/lib/error-pages-copy";

@@ -83,6 +83,13 @@ function route(request: NextRequest, csp: string): NextResponse {
     return NextResponse.json({ error: RATE_LIMIT_COPY.respondent, code: "rateLimited", waitMinutes: minutesOf(verdict.retryAfterMs) }, { status: 429, headers });
   }
   if (!/^\/app(\/|$)/.test(path) || getSessionCookie(request)) return next(request, csp);
+  // A server action under /app without a session cookie goes on to the action, which answers
+  // "signed out" so the form keeps its text (stories/E11-6, acceptance 3; src/lib/session.ts
+  // signedIn). A redirect here would reach Next's client as a reply it cannot read and replace
+  // the page with the error page. Next takes a server action only as a POST with the
+  // next-action header (node_modules/next/dist/server/lib/server-action-request-meta.js); every
+  // action still checks the session itself.
+  if (request.method === "POST" && request.headers.has("next-action")) return next(request, csp);
   const wanted = path + request.nextUrl.search;
   const signIn = new URL("/sign-in", request.url);
   signIn.searchParams.set("next", wanted);
