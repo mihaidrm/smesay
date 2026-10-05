@@ -324,10 +324,10 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Dropdown first option | Choose one |
 | Footer line | Your answers go to the project team at [WORKSPACE NAME]. They are saved as you go on this device, so you can close this page and come back. |
 | Powered by | Powered by SMEsay (while the workspace is on the Free plan, E7-7; on About you, the chapters, the Wrap up, Done, the nothing-to-rate screen, the link pages with a workspace and the Build preview); on About you and Done, on every plan, beside it: How are your answers used? (a link to /legal/privacy, new tab; screen readers hear "(opens in a new tab)"; E11-3) |
-| Start button | Start with [FIRST CHAPTER] (Start, while the list has no areas); it lands on the first chapter (E7-1) |
-| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] [Button: Continue to [NEXT AREA] / Continue to Wrap up] |
-| Chapter row (E7-4; not on the single long page) | About you, [AREA] [DONE]/[COUNT] for each chapter (read as "[AREA], [DONE]/[COUNT] answered"), Wrap up; named "Chapters" for screen readers; under it a bar named "Items answered" ([N] of [M]) |
-| Footer note on a chapter (E7-4) | [N] of [M] still to rate here. You can come back later. / All [M] rated in this chapter. (one item: The item in this chapter is rated.) (the single long page: All [M] rated., one item: The item is rated.) (the single long page counts every item) |
+| Start button | Start section 1: [FIRST CHAPTER] (decision 0055; Start, while the list has no areas and on the single long page); it lands on the first chapter (E7-1) |
+| Chapter screen (E7-1; E7-2 to E7-4 add the answers, the row and Continue) | [CHAPTER NAME] (the instrument's title when the list has no areas), [THE AREA'S ONE-LINE INTRO], the cards; footer [Button: Back] [Button: Continue to section [N]: [NEXT AREA] / Continue to Wrap up] ([N] is the next chapter's position, from 1; decision 0055) |
+| Chapter row (E7-4; not on the single long page) | About you, [AREA] [DONE]/[COUNT] for each chapter (read as "[AREA], [DONE]/[COUNT] answered"), Wrap up; named "Sections" for screen readers (decision 0055); under it a bar named "Items answered" ([N] of [M]) |
+| Footer note on a chapter (E7-4) | [N] of [M] still to rate here. You can come back later. / All [M] rated in this section. (one item: The item in this section is rated.) (the single long page: All [M] rated., one item: The item is rated.) (the single long page counts every item) |
 | Chapter pill count, as a screen reader reads it (E7-4) | [CHAPTER], [N] of [M] answered (the pill shows [N]/[M]); the bar: [N] of [M] |
 | Returning visit, over the chapter or the Wrap up it lands on (E7-4) | Welcome back, [FIRST NAME]. (Welcome back. without a name) You answered [N] of [M] last time. (Nothing complete yet: Your answers so far are kept; none is complete yet.) |
 | Chapter name for items with no area (E7-1; the Build preview uses it too) | Other items |
@@ -342,7 +342,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Header | Build preview: [WORKSPACE NAME], [ANSWERED] of [TOTAL]. Live link (E7-4): the respondent header with Closes [DATE AND TIME UTC] and the chapter row |
 | Title | Wrap up |
 | Tally tiles (decision 0018 item 5) | Agreed, Higher priority, Lower priority, Not needed, Unclear; rate-blind: Rated, Not needed, Unclear |
-| Gaps box | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: the first chapter) |
+| Gaps box | [N] still to finish. [Button: Go to section [N]: [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: section 1 and the first chapter; on the single long page and a list with no areas: Go to [CHAPTER]; decision 0055) |
 | Live link, nothing left to finish (E7-4) | All [M] items are answered. (one item: The item is answered.) |
 | Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Say why., Write your question., Not saved yet), each opening its own item |
 | Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts; Back, the chapter row and the Wrap up's Go to, Change and Still to finish rows are disabled until it answers, E7-6) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |

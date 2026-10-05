@@ -70,6 +70,9 @@ Built 2026-10-04 (design note 50, decision 0044):
 - Acceptance 6: e2e/respondent-start.spec.ts opens a published project's link (the sample's
   link collects nothing, docs/review-list.md), fills Name and Role, starts, sees the first
   chapter with its cards, reloads onto the same chapter, and sees the sample link's page.
+- Start's label is "Start section 1: [FIRST AREA]" since decision 0055 (2026-10-05; "Start"
+  with no areas and on the single long page); it wraps to a second line rather than overflow,
+  and e2e/respondent-start.spec.ts reads it and "Continue to section 2: Approving".
 - Start: POST /r/[token]/start (start/route.ts) creates the response (one per personal
   invite, under the invite row's lock; one per device on the public link, keyed by the
   device cookie) or updates its fields; src/lib/respondent.test.ts covers the rules, the

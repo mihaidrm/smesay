@@ -15,8 +15,8 @@ Decision: every respondent step uses the frame of decision 0051
   row and the progress bar sit in the card. The item cards stay on the ground colour inside
   it, so a white card never sits on a white card.
 - The footer is the card's bottom band. Back and Continue, or Back and Submit, are centered
-  as a pair, and the dark button is at least 320 px wide (wider when "Continue to [AREA]"
-  needs it; area names take up to 60 characters). The note ("[N] of [M] still to rate
+  as a pair, and the dark button is at least 320 px wide (wider when "Continue to [AREA]",
+  "Continue to section [N]: [AREA]" since decision 0055, needs it; area names take up to 60 characters). The note ("[N] of [M] still to rate
   here.", "Still needed: ...") sits centered under the buttons, as Start's hint does, and
   describes the dark button for screen readers.
 - Done and nothing to rate move their buttons into the same bottom band, centered; the

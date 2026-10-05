@@ -35,7 +35,8 @@ text passes AA, and the PM's logo and accent apply within the theming rules.
    paint. A Playwright test turns the sample dark, reloads and turns it back.
 
 ## Out of scope
-- Right-to-left languages, translations: not in R1.
+- Right-to-left languages, translations: not in R1. Auto translation is on the R3 roadmap
+  (docs/plan-steps.md, Phase 6; decision 0055).
 
 ## Open questions
 - None.
