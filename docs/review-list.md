@@ -436,3 +436,4 @@ a change.
 | 2026-10-05 | The subprocessor list keeps version 1: the change is wording only, and the page is still a draft for the lawyer | docs/legal/subprocessors.md | Bump the version if the lawyer wants every wording change dated |
 | 2026-10-05 | A workspace's sample project is seeded once, so samples seeded before this change keep the old intro, area rationales and CL-02 and CL-04 details | src/db/seed/sample.ts | A sample made before 2026-10-05 |
 | 2026-10-05 | Left as they are: the v1 Main board's "Nothing to install or sign up for." (not on the list), the parenthetical descriptions in stories E2-5 and E10-1, and decisions 0040 and 0048 and review-list rows that record what was said then | docs/design-notes/prototype-01/Main.dc.html, stories/, docs/decisions/ | |
+| 2026-10-05 | The 404 robot's Not needed line is "Then nothing is missing.", since screen readers hear "You rated it Not needed." just before it | src/lib/error-pages-copy.ts | |

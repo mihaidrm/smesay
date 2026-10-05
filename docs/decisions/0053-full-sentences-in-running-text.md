@@ -1,11 +1,13 @@
 # 0053 Running text in full sentences; questions as questions, 2026-10-05
 
-Mihai, 2026-10-05, in two messages (as recorded in the session that made this change): the
-sample's intro "Six things the new tool should do, in three chapters." is not how people
-speak; normal speech is "The new tool should do six things, in three chapters." And the
-privacy link "How your answers are used" should be the question "How are your answers used?".
-He then approved the sweep as "prose only" and approved changing the AI prompt ("change the
-AI prompt").
+Mihai, 2026-10-05, on the sample's intro: "'Six thints the new tool should do' - not sure how
+you call this way of phrasing something - where you put something in front of something else -
+but the normal way to speak would be The new tool should do 6 things: ' I want you to check the
+entire app for things all this and fix them". Then, on the privacy link: 'How your answers
+are used --> How are you answers used ?'.
+
+Asked which strings to fix, he picked "Prose only (Recommended)" over rewriting every short UI
+line, and for the Shape prompt "Change it, you run evals (Recommended)".
 
 Decision: running text is written in full sentences with a subject and a verb, in normal word
 order, and a question to the reader is written as a question. This covers intros,

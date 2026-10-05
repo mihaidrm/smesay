@@ -342,7 +342,7 @@ the title, the line and "Go to your projects" are the 404 row above.
 | The robot, before a rating | The robot looked everywhere and found nothing to read. |
 | The robot, Must (agree) | Agreed, it is a must. It still does not exist. Your projects do. |
 | The robot, Should or Could (different priority) | So it is a lower priority. Fair enough: it can wait, and your projects cannot. |
-| The robot, Not needed (disagree) | You marked it not needed, so nothing is missing. |
+| The robot, Not needed (disagree) | Then nothing is missing. |
 | The robot, Unclear | It is unclear to the robot too. Check the address for a typo. |
 | Before the robot's line, for screen readers only | You rated it [VALUE]. |
 | Under the card | Nothing you rate on this page is saved. |

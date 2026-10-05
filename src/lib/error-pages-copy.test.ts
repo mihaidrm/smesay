@@ -27,7 +27,7 @@ describe("the 404 scene", () => {
     expect(robotFor("M")).toEqual({ line: "Agreed, it is a must. It still does not exist. Your projects do.", pose: "hi" });
     expect(robotFor("S")).toEqual({ line: "So it is a lower priority. Fair enough: it can wait, and your projects cannot.", pose: "idea" });
     expect(robotFor("C")).toEqual(robotFor("S"));
-    expect(robotFor("W")).toEqual({ line: "You marked it not needed, so nothing is missing.", pose: "analysis" });
+    expect(robotFor("W")).toEqual({ line: "Then nothing is missing.", pose: "analysis" });
     expect(robotFor("unclear")).toEqual({ line: "It is unclear to the robot too. Check the address for a typo.", pose: "reading" });
   });
 

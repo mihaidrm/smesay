@@ -30,7 +30,7 @@ test("the 404 pages of the PM side and of a respondent link", async ({ page }) =
   const card = page.getByTestId("lost-card");
   await expect(line).toHaveText("The robot looked everywhere and found nothing to read.");
   await card.getByRole("radio", { name: "Not needed" }).click();
-  await expect(line).toHaveText("You rated it Not needed. You marked it not needed, so nothing is missing.");
+  await expect(line).toHaveText("You rated it Not needed. Then nothing is missing.");
   await expect(page.getByTestId("mascot")).toHaveAttribute("data-pose", "analysis");
   await card.getByRole("radio", { name: "Should" }).click();
   await expect(line).toHaveText("You rated it Should. So it is a lower priority. Fair enough: it can wait, and your projects cannot.");
