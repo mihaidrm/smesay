@@ -32,6 +32,13 @@ const eslintConfig = defineConfig([
     plugins: { smesay },
     rules: { "smesay/ai-sdk": "error" },
   },
+  // Logs go through src/lib/log.ts and its allow-list of fields (stories/E11-5, acceptance 3).
+  // The seed is a command-line tool and prints its own report.
+  {
+    files: ["src/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    ignores: ["src/db/seed/**", "src/**/*.test.{ts,tsx}"],
+    rules: { "no-console": "error" },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

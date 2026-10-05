@@ -10,6 +10,7 @@ import { internal } from "@/db/queries/internal";
 import { sendMail } from "@/lib/mail";
 import { deletionEmail } from "@/lib/mail/deletion-email";
 import { deleteObject, listKeys } from "@/lib/storage";
+import { log } from "@/lib/log";
 
 export const OBJECT_PREFIXES = ["logos", "uploads"] as const;
 
@@ -33,7 +34,7 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
       report.responses += rows.responses;
       report.projects += rows.projects;
       report.workspaces += rows.workspaces;
-      console.log(`jobs:purge workspace ${ws.id}: ${keys.length} objects, ${rows.responses} responses, ${rows.projects} projects`);
+      log("info", "jobs:purge removed a workspace.", { workspace: ws.id, objects: keys.length, responses: rows.responses, projects: rows.projects });
       if (rows.workspaces === 1 && ws.deletedByEmail) {
         step = "email";
         await send({ to: ws.deletedByEmail, ...deletionEmail(ws.name, ws.deletedAt) });
@@ -41,7 +42,7 @@ export async function purgeDeletedWorkspaces(send: typeof sendMail = sendMail): 
       }
     } catch (error) {
       report.failed += 1;
-      console.error(`jobs:purge workspace ${ws.id} failed at ${step}: ${error instanceof Error ? error.name : "error"}`);
+      log("error", "jobs:purge failed for a workspace.", { workspace: ws.id, step, error: error instanceof Error ? error.name : "error" });
     }
   }
   return report;

@@ -222,7 +222,14 @@ is billed per use.
 
 1. Go to https://sentry.io/signup. On the sign-up form choose the data storage location
    "European Union". This cannot be changed later.
-2. Create a project of type Next.js. Copy the DSN into `.env.local` after `SENTRY_DSN=`.
+2. Create a project of type Next.js. Keep the DSN for the launch gate: it goes into the
+   host's environment as `SENTRY_DSN=`, with `SENTRY_ENVIRONMENT=production`, not into
+   `.env.local`. Locally it stays empty, so nothing is sent and no Sentry code loads (stories/
+   E11-5, acceptance 4). With the DSN set, the server sends errors to Sentry with personal data
+   removed; errors in the browser are not sent in R1.
+3. Before the DSN is set anywhere, the privacy policy's "Error reports and visit counts" and the
+   subprocessor list change to name Sentry (their markers say so). Then send one test error and
+   read what arrived in Sentry.
 
 ## Step 11. Plausible, visit counts (before E11)
 

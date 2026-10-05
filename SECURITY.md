@@ -51,8 +51,8 @@ Public links and respondents
   one never replaces a later answer, a submitted one included. A respondent's action sends
   mail only to an address the PM chose (a personal invite's, the receipt on its first
   Submit), never to one typed on a public link. localStorage is per origin, so any script running on an SMEsay
-  page can read it; the CSP with nonces (Headers and transport) is what keeps foreign
-  scripts out, and it is not configured yet (docs/review-list.md).
+  page can read it; the CSP with nonces (Headers and transport, E11-5) is what keeps foreign
+  scripts out.
 - Revoked and closed instruments return a page, not data; the state route (E6-4) answers a
   status and one word (open, notOpen, passcode, unknown, revoked, closed), nothing else.
   Passcode attempts rate-limited.
@@ -90,7 +90,11 @@ Data
   never logs a refused row's values.
 - A CSV export writes a text cell that starts with =, +, -, @, a tab or a line break with a
   single quote in front, so a spreadsheet does not run it as a formula (OWASP, CSV Injection).
-- No personal data in logs, Sentry events or analytics.
+- No personal data in logs, Sentry events or analytics. Logs go through src/lib/log.ts, which
+  prints a fixed sentence and only the fields on its allow-list (ids, counts, codes); the lint
+  rule no-console keeps src/ on it (E11-5). Sentry, when SENTRY_DSN is set, has every data
+  collection off and its beforeSend rebuilds each event from an allow-list with emails, quoted
+  text, database values and link tokens removed (src/lib/sentry.ts, src/lib/scrub.ts).
 
 AI
 - Anthropic key server-side only; one product spend cap (ANTHROPIC_MONTHLY_BUDGET_EUR),
@@ -106,7 +110,11 @@ Admin area (E13-2, E14)
 - No respondent names or answers in the admin area except through "view as".
 
 Headers and transport
-- HSTS, CSP with nonces, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
+- HSTS, CSP with nonces, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (E11-5).
+  src/proxy.ts sets the policy on every page with a nonce made per request (16 random bytes);
+  next.config.ts sets the fixed headers on every response (src/lib/security-headers.ts).
+  Scripts run only with the nonce ('strict-dynamic'); styles keep 'unsafe-inline' for style
+  attributes; frame-ancestors 'self' for the builder's preview; every page renders per request.
 - securityheaders.com grade A on the production domain.
 
 Dependencies and backups
@@ -117,7 +125,7 @@ Dependencies and backups
 
 Mode script
 - src/app/layout.tsx puts one inline script in the head to set the dark class before paint.
-  It is a fixed string, reads one localStorage key and compares it with one word. When the
-  content security policy lands (E11-5), that script takes the nonce the Next.js guide
-  describes (node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md).
+  It is a fixed string, reads one localStorage key and compares it with one word. It carries
+  the request's nonce (E11-5), read from the x-nonce header src/proxy.ts sets
+  (node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md, "Reading the nonce").
 

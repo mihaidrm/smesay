@@ -19,6 +19,7 @@ import { hasReaderVersion, READER_MAX, readerIsOriginal } from "@/lib/item-text"
 import { requireRole, type Actor } from "@/lib/members";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
+import { log } from "@/lib/log";
 
 export { SHAPE_COPY };
 
@@ -115,7 +116,7 @@ export async function shapeSet(actor: Actor, projectId: string, deps?: RunDeps):
   const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "shape", instructions: prompt.instructions, data: prompt.data, schema: ShapeOutput, check: (out) => checkShape(out, refs, prompt.importedAreas, importedOf, keptAreas) }, deps);
   if (!result.ok) {
     // Every refusal leaves a line, so a paused product or a spent budget is in the log.
-    console.error(`Shaping did not run for set ${set.id} (${result.reason}): ${result.detail}.`);
+    log("error", "Shaping did not run.", { set: set.id, reason: result.reason, detail: result.detail });
     return { error: result.message, retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const byRef = new Map(rows.map((it) => [ref(it), it]));

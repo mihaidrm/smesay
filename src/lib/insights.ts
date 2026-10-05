@@ -21,6 +21,7 @@ import { requireRole, type Actor } from "@/lib/members";
 import { itemsFor } from "@/lib/respondent";
 import type { ResultsFilter } from "@/lib/results-filter";
 import { labelFor, scaleFor } from "@/lib/scoring";
+import { log } from "@/lib/log";
 
 
 // Every counted answer under the default view: submitted responses only (decision 0030).
@@ -86,7 +87,7 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   // The check refuses nothing: an action citing an unknown ref is dropped, not the run.
   const result = await runModel({ ws: actor.ws, projectId: project.id, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000, expectedOutputTokens: ACTIONS_EXPECTED_OUTPUT }, deps);
   if (!result.ok) {
-    console.error(`Actions did not run for project ${project.id} (${result.reason}): ${result.detail}.`);
+    log("error", "Actions did not run.", { project: project.id, reason: result.reason, detail: result.detail });
     // A run refused for the cap or the budget says what it would have cost (E9-3, acceptance 2).
     const cost = result.estimateCents !== undefined ? `${ACTIONS_COPY.estimate(formatEur(result.estimateCents))} ` : "";
     return { error: cost + ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
