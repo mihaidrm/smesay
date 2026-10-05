@@ -392,7 +392,9 @@ describe("the answer rules", () => {
 });
 
 describe("saving an answer", () => {
-  const now = new Date("2026-10-05T12:00:00Z");
+  // An hour ahead of the real clock: the route calls below write with the real time, and the
+  // last-save checks need this test's writes to be the later ones whatever the time of day.
+  const now = new Date(Date.now() + 3_600_000);
   it("stores one answer per item that the last save replaces, and refuses what it must", async () => {
     // The route calls below run on the real clock, so this link closes far ahead.
     const { project, instrument, link } = await publishedProject("Answers", { closes: "2099-01-20T15:00:00Z" });
