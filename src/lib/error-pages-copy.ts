@@ -31,3 +31,23 @@ export const ERROR_PAGE_COPY = {
 // The maintenance page: plain HTML with its own styles, like the 429 page (src/lib/ratelimit-copy.ts),
 // since the proxy answers before the app renders.
 export const maintenancePage = (minutes: number) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${ERROR_PAGE_COPY.maintenanceTitle}</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f6fb;color:#15131f;font-family:system-ui,sans-serif}main{max-width:28rem;margin:1rem;padding:1.5rem;background:#fff;border:1px solid #e6e3f0;border-radius:1rem}h1{font-size:1.25rem;margin:0 0 .5rem}p{margin:0;line-height:1.5}@media (prefers-color-scheme:dark){body{background:#16152a;color:#f3f1fa}main{background:#1e1d33;border-color:#343252}}</style></head><body><main><h1>${ERROR_PAGE_COPY.maintenanceTitle}</h1><p>${ERROR_PAGE_COPY.maintenanceLine(minutes)}</p></main></body></html>`;
+
+// The 404's scene (stories/E11-7; docs/copy/errors.md, The 404 page): the lights are off, the
+// pointer is a torch over the big 404, and the missing page is a card to rate with the
+// respondent's own rating row; the robot answers each rating with one line. Nothing is saved.
+export const NOT_FOUND_SCENE = {
+  lightsOff: "The lights are off here. Move your pointer to look around.",
+  cardRef: "404",
+  cardTitle: "The page at this address",
+  cardLine: "The address bar proposed it as a must. Rate it the way your experts rate a list.",
+  idle: "The robot looked everywhere and found nothing to read.",
+  reactions: {
+    agree: "Agreed, it is a must. It still does not exist. Your projects do.",
+    change: "A lower priority. Fair: it can wait, and your projects cannot.",
+    disagree: "Not needed. Then nothing is missing.",
+    unclear: "Unclear to the robot too. Check the address for a typo.",
+  },
+  notSaved: "Nothing you rate on this page is saved.",
+  goBack: "Go back",
+} as const;
+

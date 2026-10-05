@@ -422,3 +422,8 @@ a change.
 | 2026-10-05 | The once-a-day rule has no unique constraint: two loads at the same moment can write two rows. Accepted for a count read over 30 days | src/db/queries/events.ts recordOncePerDay | |
 | 2026-10-05 | The guide's write actions have no rate limit of their own: the once-a-day rule caps each person at one row per tip and event a day, which bounds the table | src/app/app/(shell)/guide-actions.ts | |
 | 2026-10-05 | The first-project funnel test reads this week's row from a sign-up written at the database's now; a run in the instant a UTC week turns can read the wrong week. Accepted for a unit test | src/db/queries/guide-measure.test.ts | |
+| 2026-10-05 | The 404 is a dark page where the pointer lights a big 404, with the robot and a card to rate the missing page with the real rating row (Must proposed); still under reduced motion and on touch | stories/E11-7, design note 92 | Open any wrong address, move the pointer, rate the card |
+| 2026-10-05 | No game and no search box on the 404: the way back comes first, and nothing is public to search before the launch gate | design note 92 | |
+| 2026-10-05 | On the 404, a page with the light app mode shows a light band when it bounces past its ends on macOS and iOS, since the page behind the dark scene is the app's own | src/app/not-found.tsx | |
+| 2026-10-05 | The landing page's primary buttons have the same light ring offset in light mode that the 404's had (the base button's offset wins over the navy one); fixed on the 404 only | src/app/landing-page/page.tsx | Fix with the landing's next change |
+
