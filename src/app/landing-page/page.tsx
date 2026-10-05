@@ -35,6 +35,7 @@ import { PlausibleScript } from "@/components/analytics/plausible-script";
 import { GOALS } from "@/lib/plausible";
 import { cleanSource, signInHref } from "@/lib/utm";
 import { ShapeDemo } from "./shape-demo";
+import { StickyHeader } from "./sticky-header";
 import { QuestionBubble } from "./question-bubble";
 
 export const metadata: Metadata = {
@@ -104,14 +105,10 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
   // The source the visitor came with goes on to sign-in (stories/E13-3, acceptance 4).
   const start = signInHref(cleanSource((await searchParams).utm_source));
   return (
-    <main className="flex flex-col font-sans text-[#15131F]">
+    <main className="flex flex-col font-sans text-[#15131F]" data-smooth-scroll>
       <PlausibleScript />
-      <section className="relative overflow-hidden text-[#F3F1FA]" style={{ background: NAVY }}>
-        <div aria-hidden="true" className="pointer-events-none absolute -top-[260px] -left-[200px] size-[900px] rounded-full bg-[radial-gradient(circle,rgba(109,76,245,0.55),rgba(109,76,245,0)_62%)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute top-[120px] -right-[160px] size-[760px] rounded-full bg-[radial-gradient(circle,rgba(255,107,87,0.38),rgba(255,107,87,0)_60%)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute top-[520px] left-[520px] size-[620px] rounded-full bg-[radial-gradient(circle,rgba(245,183,64,0.22),rgba(245,183,64,0)_60%)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:28px_28px]" />
-        <CursorLight />
+      {/* Sticky over every section (Mihai, 2026-10-05); the hero keeps 76 px under it. */}
+      <StickyHeader>
         <div className="relative mx-auto flex h-[76px] w-full max-w-[1200px] items-center justify-between px-5 md:px-8">
           <Link href="/landing-page" className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#9B86FF]"><Lockup text={18} onInk /></Link>
           <nav aria-label="Page" className="flex items-center gap-5 text-[15px] font-medium text-[#C9C4E0] lg:gap-[30px]">
@@ -123,6 +120,14 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <GoalLink goal={GOALS.startFree} href={start} className={buttonVariants({ variant: "primary", className: "h-10 px-[18px] text-sm focus-visible:ring-offset-[#16152A]" })}>Start free</GoalLink>
           </nav>
         </div>
+      </StickyHeader>
+      <section className="relative overflow-hidden text-[#F3F1FA]" style={{ background: NAVY }}>
+        <div aria-hidden="true" className="pointer-events-none absolute -top-[260px] -left-[200px] size-[900px] rounded-full bg-[radial-gradient(circle,rgba(109,76,245,0.55),rgba(109,76,245,0)_62%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute top-[120px] -right-[160px] size-[760px] rounded-full bg-[radial-gradient(circle,rgba(255,107,87,0.38),rgba(255,107,87,0)_60%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute top-[520px] left-[520px] size-[620px] rounded-full bg-[radial-gradient(circle,rgba(245,183,64,0.22),rgba(245,183,64,0)_60%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:28px_28px]" />
+        <CursorLight />
+        <div aria-hidden="true" className="h-[76px]" />
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-start gap-12 px-5 pt-10 pb-16 md:px-8 lg:flex-row lg:items-center lg:justify-between lg:pt-6 lg:pb-14">
           <div className="landing-rise flex w-full max-w-[560px] flex-col items-start">
             <div className="inline-flex h-[30px] items-center gap-2 rounded-full border border-[#46445F] bg-white/[0.04] pr-3 pl-2 text-[13px] text-[#D4D0E4]"><span className="landing-pulse block size-2 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Live: 5 of 7 experts answering right now</div>
@@ -150,7 +155,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section id="how" className="bg-[#F7F6FB] py-16 md:py-24">
+      <section id="how" className="scroll-mt-20 bg-[#F7F6FB] py-16 md:py-24">
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Three steps. The AI does the dull one.</h2>
@@ -176,7 +181,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section id="outputs" className="border-t border-[#E6E3F0] bg-white py-16 md:py-24">
+      <section id="outputs" className="scroll-mt-20 border-t border-[#E6E3F0] bg-white py-16 md:py-24">
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">What you get back</h2>
@@ -222,7 +227,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section id="compare" className="border-t border-[#E6E3F0] bg-[#F7F6FB] py-16 md:py-24">
+      <section id="compare" className="scroll-mt-20 border-t border-[#E6E3F0] bg-[#F7F6FB] py-16 md:py-24">
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Why not a spreadsheet, a form or a workshop?</h2>
@@ -237,7 +242,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section id="pricing" className="relative overflow-hidden py-16 text-[#F3F1FA] md:py-24" style={{ background: NAVY }}>
+      <section id="pricing" className="scroll-mt-20 relative overflow-hidden py-16 text-[#F3F1FA] md:py-24" style={{ background: NAVY }}>
         <div aria-hidden="true" className="pointer-events-none absolute -right-[200px] -bottom-[300px] size-[800px] rounded-full bg-[radial-gradient(circle,rgba(109,76,245,0.45),rgba(109,76,245,0)_62%)]" />
         <CursorLight restX={300} restY={160} />
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-5 md:px-8 lg:flex-row lg:items-center lg:justify-between">
@@ -258,7 +263,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section id="questions" className="bg-[#F7F6FB] py-16 md:py-24">
+      <section id="questions" className="scroll-mt-20 bg-[#F7F6FB] py-16 md:py-24">
         <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
           <Reveal className="flex flex-col gap-4">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Questions</h2>
