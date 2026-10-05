@@ -10,7 +10,8 @@ EUR 60 that Mihai buys), with Dripify's feel as the reference and no copying of 
    once Mihai approves the boards; until then v1 stays on main.
 2. Two modes everywhere. The PM app and the admin area follow the system setting with a
    toggle in the sidebar. The landing page has a dark hero and pricing with light sections
-   between. The respondent side follows the phone's setting; the PM's accent still marks the
+   between. The respondent side follows the phone's setting (amended 2026-10-05, design note 97:
+   until the respondent presses the switch in the header); the PM's accent still marks the
    selected answer, the active chapter and the progress bar (decision 0016), lifted two steps
    on dark. This replaces "No dark mode on the respondent side" in the design system.
 3. The palette is Claude's: a lavender-white or deep navy ground, one violet accent, coral,

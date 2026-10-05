@@ -40,7 +40,8 @@ export const WRAP_UP_COPY = {
   title: "Wrap up",
   tally: { agreed: "Agreed", higher: "Higher priority", lower: "Lower priority", notNeeded: "Not needed", unclear: "Unclear", rated: "Rated" },
   toFinish: (n: number) => `${n} still to finish.`,
-  goTo: (chapter: string) => `Go to ${chapter}`,
+  // With the chapter's position from 1 when the chapters are separate screens (decision 0055).
+  goTo: (chapter: string, n: number | null) => (n === null ? `Go to ${chapter}` : `Go to section ${n}: ${chapter}`),
   nothingToReview: "You agreed with every proposed value. Nothing to review here.",
   noItems: "No items to review.",
   previewSubmit: "Submit is off in the preview.",

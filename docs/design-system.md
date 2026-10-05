@@ -136,6 +136,9 @@ Mail (decision 0004).
 - Radii, four: 12 (controls, inputs, rows, nav items, menus), 16 (cards), 20 (marketing cards,
   panels, the sign-in card), 999 (buttons, pills, the stepper, avatars). Tailwind: rounded-md
   and rounded-lg are 12, rounded-xl 16, rounded-2xl 20.
+- Dropdowns: Lucide's chevron-down, 16 px, 16 px from the right edge; the open list is a menu
+  (12 radius, card shadow) with 8 px options inside its 4 px inset, where the browser allows it
+  (design note 96).
 - Shadows: the card, 0 12px 32px rgba(45,32,110,0.10) on light and rgba(0,0,0,0.45) on dark,
   on every card, the active segment and menus; the glow under the primary button; the toast at
   0 12px 32px rgba(0,0,0,0.45). A hovered card lifts 2 px with the deeper shadow (marketing:

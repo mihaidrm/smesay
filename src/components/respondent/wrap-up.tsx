@@ -10,7 +10,8 @@
 // group with a roving tabindex and arrow keys, as the rating row (rating-row.tsx), with
 // Guessing and Certain described on 1 and 5. E7-4 renders it on the live link with the
 // header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
-// finish." with Go to the first one's item, and the list "Still to finish" naming each item
+// finish." with "Go to section [N]: [CHAPTER]" to the first one's item ("Go to [CHAPTER]" on
+// the single long page, decision 0055), and the list "Still to finish" naming each item
 // and what is missing (Not rated yet, Reason not written yet, Question not written yet), each a button to its
 // own item, and Back. E7-5: the tally from the respondent's answers, the sections of what
 // they suggested (higher, lower, not needed, their questions; agreed items are not listed)
@@ -45,6 +46,9 @@ export type WrapUpProps = {
   showProposed: boolean;
   // The chapters' names, for Go to; the preview also offers them as the missing item's areas.
   chapters: string[];
+  // Whether Go to names the chapter by number, "Go to section [N]: [CHAPTER]" (decision
+  // 0055): the chapters are separate screens with names, not the single long page.
+  numbered?: boolean;
   // The live link: the areas a missing item can name (areasOf); none means no area asked.
   areas?: string[];
   // How many items this respondent can see; all still to finish in the preview.
@@ -82,7 +86,7 @@ const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRat
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = "main";
   const firstGap = gaps?.[0];
@@ -133,9 +137,9 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl bg-sun-soft px-4 py-3 text-sm text-sun-text" data-testid="wrap-up-gaps">
             <span className="font-semibold">{WRAP_UP_COPY.toFinish(open)}</span>
             {gaps && firstGap && onGo && chapters[firstGap.chapter] ? (
-              <button type="button" disabled={submitting} onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words focus:outline-hidden after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-sun-soft disabled:opacity-40" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter])}</button>
+              <button type="button" disabled={submitting} onClick={() => onGo(firstGap.chapter, firstGap.itemId)} className="relative max-w-full rounded-full border border-current px-3 py-1 text-left text-[13px] font-semibold break-words focus:outline-hidden after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-sun-soft disabled:opacity-40" data-testid="wrap-up-go">{WRAP_UP_COPY.goTo(chapters[firstGap.chapter], numbered ? firstGap.chapter + 1 : null)}</button>
             ) : (
-              !gaps && chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0])}</span>
+              !gaps && chapters[0] && <span className="shrink-0 rounded-full border border-current px-3 py-1 text-[13px] font-semibold">{WRAP_UP_COPY.goTo(chapters[0], numbered ? 1 : null)}</span>
             )}
           </div>
         ) : gaps ? (

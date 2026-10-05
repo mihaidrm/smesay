@@ -65,7 +65,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="r-role" style="font-size: 14px; font-weight: 500">Your role</label>
-<select id="r-role" class="field" value="{{role}}" onChange="{{setRole}}" style="min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; font-size: 17px">
+<select id="r-role" class="field" value="{{role}}" onChange="{{setRole}}" style="min-height: 48px; box-sizing: border-box; padding: 0 44px 0 16px; border: 1px solid #C9C7C1; border-radius: 12px; appearance: none; background: #FFFFFF url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235e5a72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;) no-repeat right 16px center / 16px 16px; font-size: 17px">
 <option value="">Choose a role</option>
 <option value="Sales">Sales</option>
 <option value="Finance">Finance</option>
@@ -77,7 +77,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 <div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device, so you can close this page and come back. [PRIVACY NOTICE LINK]</div>
 <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: #5B6069; padding: 8px 0">Powered by <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E6B63"></rect><path d="M7 8.5h8v7H10l-3 2.5z" fill="#FFFFFF"></path><path d="M17 11.5h8v7h-5l-3 2.5z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M7 25h18" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"></path></svg><span style="font-weight: 600; color: #16181C">S<span style="color: #0E6B63">ME</span>say</span></div></div></div>
-<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col-narrow" style="display: flex; flex-direction: column; gap: 8px"><button type="button" class="cta hov" onClick="{{start}}" disabled="{{startDisabled}}" style="min-height: 48px; padding: 0 24px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; opacity: {{startOpacity}}">Start with Submitting</button>
+<div style="flex-shrink: 0; padding: 12px 20px 16px 20px; border-top: 1px solid #E6E4DF"><div class="col-narrow" style="display: flex; flex-direction: column; gap: 8px"><button type="button" class="cta hov" onClick="{{start}}" disabled="{{startDisabled}}" style="min-height: 48px; padding: 0 24px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; opacity: {{startOpacity}}">Start section 1: Submitting</button>
 <sc-if value="{{startDisabled}}" hint-placeholder-val="{{false}}"><div aria-live="polite" style="font-size: 14px; color: #5B6069">Fill in your name and role to start.</div></sc-if></div></div>
 </sc-if>
 
@@ -329,8 +329,8 @@ if (single && idx > 0) return this.setState({ idx: idx - 1 });
 if (areaIdx > 0) { const prev = areas[areaIdx - 1].name; return this.setState({ screen: 'area', area: prev, idx: single ? items.filter((x) => x.area === prev).length - 1 : 0 }); }
 return this.setState({ screen: 'about' });
 };
-const nextLabel = single && idx < inArea.length - 1 ? 'Continue' : (areaIdx < areas.length - 1 ? 'Continue to ' + areas[areaIdx + 1].name : 'Continue to Wrap up');
-const chapterNote = single ? ('Item ' + (idx + 1) + ' of ' + areaCount + ' in ' + s.area + '. ' + (areaDone === areaCount ? 'All rated.' : (areaCount - areaDone) + ' still to rate here.')) : (areaDone === areaCount ? 'All ' + areaCount + ' rated in this chapter.' : (areaCount - areaDone) + ' of ' + areaCount + ' still to rate here. You can come back later.');
+const nextLabel = single && idx < inArea.length - 1 ? 'Continue' : (areaIdx < areas.length - 1 ? 'Continue to section ' + (areaIdx + 2) + ': ' + areas[areaIdx + 1].name : 'Continue to Wrap up');
+const chapterNote = single ? ('Item ' + (idx + 1) + ' of ' + areaCount + ' in ' + s.area + '. ' + (areaDone === areaCount ? 'All rated.' : (areaCount - areaDone) + ' still to rate here.')) : (areaDone === areaCount ? 'All ' + areaCount + ' rated in this section.' : (areaCount - areaDone) + ' of ' + areaCount + ' still to rate here. You can come back later.');
 
 let agreed = 0, picked = 0, lower = 0, higher = 0, disagreed = 0, unclear = 0, unfinished = 0;
 const RANK = { M: 3, S: 2, C: 1, W: 0 };
@@ -397,7 +397,7 @@ name: s.name, role: s.role, setName: (e) => this.setState({ name: e.target.value
 startDisabled: !fieldsOk, startOpacity: fieldsOk ? 1 : 0.4, start: () => this.setState({ screen: 'area', area: 'Submitting', idx: 0 }),
 areaName: s.area, areaIntro: (areas[areaIdx] || areas[0]).intro, visible: view, next: next, back: back, nextLabel: nextLabel, chapterNote: chapterNote,
 summaryLine: summaryLine, rows: rows, sections: sections, tally: tally, nothingToReview: nothingToReview,
-hasGaps: answered < items.length || !fieldsOk, gapLine: !fieldsOk ? 'Your name and role are missing.' : (items.length - answered) + ' item' + (items.length - answered === 1 ? '' : 's') + ' still unrated.', gapChapter: !fieldsOk ? 'About you' : (firstGapArea || 'Submitting'), gapGo: () => this.setState(!fieldsOk ? { screen: 'about' } : { screen: 'area', area: firstGapArea || 'Submitting' }),
+hasGaps: answered < items.length || !fieldsOk, gapLine: !fieldsOk ? 'Your name and role are missing.' : (items.length - answered) + ' item' + (items.length - answered === 1 ? '' : 's') + ' still unrated.', gapChapter: !fieldsOk ? 'About you' : 'section ' + (Math.max(0, areas.findIndex((x) => x.name === (firstGapArea || 'Submitting'))) + 1) + ': ' + (firstGapArea || 'Submitting'), gapGo: () => this.setState(!fieldsOk ? { screen: 'about' } : { screen: 'area', area: firstGapArea || 'Submitting' }),
 missingText: s.missingText, setMissing: (e) => this.setState({ missingText: e.target.value }),
 closingText: s.closingText, setClosing: (e) => this.setState({ closingText: e.target.value }),
 confidence: confidence, signed: s.signed, toggleSigned: (e) => this.setState({ signed: e.target.checked }),

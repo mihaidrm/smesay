@@ -150,7 +150,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="font-size: 12px; color: #5B6069">Column {{m.letter}}</div>
 </div>
 <div style="color: #5B6069">maps to</div>
-<select id="{{m.id}}" value="{{m.to}}" onChange="{{m.set}}" style="flex-grow: 1; min-height: 36px; padding: 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; background: #FFFFFF">
+<select id="{{m.id}}" value="{{m.to}}" onChange="{{m.set}}" style="flex-grow: 1; min-height: 36px; padding: 0 44px 0 10px; border: 1px solid #C9C7C1; border-radius: 6px; appearance: none; background: #FFFFFF url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235e5a72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;) no-repeat right 16px center / 16px 16px">
 <option value="text">Item text</option>
 <option value="area">Area</option>
 <option value="value">Proposed value</option>
@@ -679,7 +679,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
 <div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device.</div>
 </div>
-<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
+<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start section 1: Submitting</div></div>
 </sc-if>
 <sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
 <div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlD.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">Link inactive</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div></div>
@@ -739,7 +739,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="font-size: 14px; font-weight: 500; margin-top: 6px">Your role</div><div style="height: 48px; max-width: 360px; box-sizing: border-box; border: 1px solid #C9C7C1; border-radius: 12px; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; color: #5B6069">Choose a role</div></div>
 <div style="font-size: 14px; color: #5B6069">Your answers go to the project team at Marlow Group. They are saved as you go on this device.</div>
 </div>
-<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start with Submitting</div></div>
+<div style="flex-shrink: 0; padding: 12px 16px 16px 16px; border-top: 1px solid #E6E4DF; display: flex; justify-content: center"><div style="width: 100%; max-width: 280px; height: 48px; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; display: flex; align-items: center; justify-content: center; opacity: 0.4">Start section 1: Submitting</div></div>
 </sc-if>
 <sc-if value="{{pvIsRevoked}}" hint-placeholder-val="{{false}}">
 <div style="flex-grow: 1; padding: 40px 20px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; border-radius: 8px; box-shadow: {{hlP.open}}"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px">Link inactive</h1><div style="color: #454A52; max-width: 480px">The project team at Marlow Group withdrew this link. If you were asked to answer, ask them for a new one.</div><div style="color: #5B6069; font-size: 15px">Nothing was saved from this visit.</div></div>
@@ -1128,7 +1128,7 @@ pvChapters: pvChapters, pvGroups: pvGroups, pvGridCols: pvGridCols,
 pvIsAbout: pvScreen === 'about', pvIsArea: pvScreen === 'area', pvIsRevoked: pvScreen === 'revoked',
 pvHeaderNote: s.step === 'share' ? (s.link === 'published' ? 'Closes 20 Oct 2026' : (s.link === 'revoked' ? 'Link withdrawn' : 'Not published yet')) : 'Saved on this device',
 pvOpenNote: linkNotes[s.link].note, pvOpenBg: linkNotes[s.link].bg, pvOpenFg: linkNotes[s.link].fg,
-pvNextLabel: s.layout === 'page' ? 'Continue to Wrap up' : (pvNextArea ? 'Continue to ' + pvNextArea.name : 'Continue to Wrap up'),
+pvNextLabel: s.layout === 'page' ? 'Continue to Wrap up' : (pvNextArea ? 'Continue to section ' + (pvAreaIdx + 2) + ': ' + pvNextArea.name : 'Continue to Wrap up'),
 pvFootNote: s.layout === 'page' ? 'All 6 on one page. You can come back later.' : (s.layout === 'item' ? 'Item 1 of ' + d.items.filter((it) => it.area === pvArea).length + ' in ' + pvArea + '.' : pvLayoutCount + ' of ' + pvLayoutCount + ' still to rate here. You can come back later.'),
 hlD: hlFor(6), hlP: hlFor(3),
 isImport: isProject && s.step === 'import', isShape: isProject && s.step === 'shape', isBuild: isProject && s.step === 'build', isShare: isProject && s.step === 'share',

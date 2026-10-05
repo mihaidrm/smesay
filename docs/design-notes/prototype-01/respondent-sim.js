@@ -12,7 +12,7 @@ ok(r.isAbout && r.showNav && r.chapters.length === 5 && r.chapters.map(x => x.la
 ok(r.startDisabled, 'start disabled without name and role');
 r.chapters[2].go(); r = c.renderVals(); ok(r.isArea && r.areaName === 'Approving' && r.visible.length === 2, 'free navigation to Approving shows two cards');
 r.chapters[0].go(); r = c.renderVals(); r.setName(ev('Dana Okafor')); r.setRole(ev('Finance')); r = c.renderVals(); ok(!r.startDisabled, 'start enabled'); r.start(); r = c.renderVals();
-ok(r.areaName === 'Submitting' && r.nextLabel === 'Continue to Approving', 'start lands on Submitting');
+ok(r.areaName === 'Submitting' && r.nextLabel === 'Continue to section 2: Approving', 'start lands on Submitting');
 r.visible[0].p1Pick(); r = c.renderVals(); ok(r.visible[0].p1On && r.visible[0].note === 'Saved' && c.state.answers.i1.kind === 'agree', 'picking the proposed value is agree');
 r.visible[1].p1Pick(); r = c.renderVals(); ok(c.state.answers.i2.kind === 'diff' && r.visible[1].commentOpen && r.visible[1].note === '' && r.visible[1].commentLabel === 'Could you tell us why you think the priority should be different?', 'another value opens a required comment');
 r.visible[1].setText(ev('Two projects per trip.')); r = c.renderVals(); ok(r.visible[1].note === 'Saved' && r.chapterNote.startsWith('All 2'), 'reason completes the chapter');
@@ -24,7 +24,7 @@ ok(r.visible[0].p1Cap === 'proposed' && r.visible[0].p1BdStyle === 'dashed' && r
 r.visible[1].toggleDetails(); r = c.renderVals(); ok(r.visible[1].detailsOpen && r.visible[1].detail.includes('From the spreadsheet'), 'View more opens the details above the rating row');
 r.visible[1].p2Pick(); r = c.renderVals(); ok(r.visible[1].showCommentToggle && !r.visible[1].commentOpen, 'agree: comment optional and closed'); r.visible[1].toggleComment(); r = c.renderVals(); ok(r.visible[1].commentOpen && r.visible[1].detailsOpen && r.visible[1].commentLabel === 'Comment, optional', 'optional comment opens beside the open details');
 r.next(); r = c.renderVals(); r.next(); r = c.renderVals(); ok(r.isWrap, 'continue past Paying reaches Wrap up');
-ok(r.hasGaps && r.gapLine === '2 items still unrated.' && r.gapChapter === 'Paying', 'wrap up names the gap and the chapter');
+ok(r.hasGaps && r.gapLine === '2 items still unrated.' && r.gapChapter === 'section 3: Paying', 'wrap up names the gap and the chapter');
 ok(r.submitDisabled && r.submitNote.includes('2 unrated items') && r.submitNote.includes('confidence'), 'submit lists what is missing');
 r.gapGo(); r = c.renderVals(); ok(r.isArea && r.areaName === 'Paying', 'go to gap lands on Paying');
 r.visible[0].p1Pick(); r = c.renderVals(); r.visible[1].p3Pick(); r = c.renderVals();

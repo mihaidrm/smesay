@@ -335,10 +335,12 @@ export function RespondentApp(props: RespondentAppProps) {
     }
   };
 
-  const firstChapter = chaptersFor(areas, items, picks)[0]?.name ?? null;
+  const page = instrument.layout === "page";
+  // Start names the first chapter by number (decision 0055); the single long page and a list
+  // with no areas have no sections, and Start says only "Start".
+  const firstChapter = page ? null : chaptersFor(areas, items, picks)[0]?.name ?? null;
   // In the preview the closing date is ringed on Share (the step that sets it).
   const note: React.ReactNode = saver.unsaved || wrapSaver.failed ? RESPONDENT_COPY.notSaved : headerNote && rings.has("note") ? <span className="rounded-md px-1 ring-2 ring-violet ring-offset-2 ring-offset-surface" data-ring>{headerNote}</span> : headerNote;
-  const page = instrument.layout === "page";
   const names = chapters.map((c) => c.name ?? instrument.title);
   // What counts as answered: what the server holds complete, or in the preview the cards as
   // they stand (nothing is saved there).
@@ -434,7 +436,7 @@ export function RespondentApp(props: RespondentAppProps) {
     return (
       <ChapterScreen slide={slide} workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} reasonRule={instrument.reasonRule} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
-        continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
+        continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(index + 2, names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
         onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy}
         rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} />
@@ -469,7 +471,7 @@ export function RespondentApp(props: RespondentAppProps) {
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
-        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}

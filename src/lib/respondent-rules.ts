@@ -53,16 +53,18 @@ export const RESPONDENT_COPY = {
   offline: "Your latest answers are not saved. Your connection dropped; this page keeps trying. They stay on this device until it reconnects.",
   storageOff: "This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost.",
   // Moving through the chapters (E7-4; docs/copy/app.md, Respondent navigation).
-  chapters: "Chapters",
+  // Respondents see the chapters as numbered sections (decision 0055).
+  chapters: "Sections",
   wrapUp: "Wrap up",
   answeredBar: "Items answered",
   // A pill's count and the bar, as a screen reader reads them.
   pillAnswered: (n: number, m: number) => `${n} of ${m} answered`,
   barValue: (n: number, m: number) => `${n} of ${m}`,
-  continueTo: (area: string) => `Continue to ${area}`,
+  // `n` is the next chapter's position, from 1 (decision 0055).
+  continueTo: (n: number, area: string) => `Continue to section ${n}: ${area}`,
   continueWrap: "Continue to Wrap up",
   toRateHere: (n: number, m: number) => `${n} of ${m} still to rate here. You can come back later.`,
-  allRated: (m: number) => (m === 1 ? "The item in this chapter is rated." : `All ${m} rated in this chapter.`),
+  allRated: (m: number) => (m === 1 ? "The item in this section is rated." : `All ${m} rated in this section.`),
   welcomeBack: (name: string | null) => (name ? `Welcome back, ${name}.` : "Welcome back."),
   answeredBefore: (n: number, m: number) => (n === 0 ? "Your answers so far are kept; none is complete yet." : `You answered ${n} of ${m} last time.`),
   stillToFinish: "Still to finish",
@@ -106,7 +108,7 @@ export const RESPONDENT_ERRORS = {
   wrapChanged: "Your Wrap up was changed in another window or on another device. This page shows the saved one now; change it again if yours should stand.",
   // E7-3: Start worked but the next save found no response: the browser refused the cookie.
   cookiesBlocked: "This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser.",
-  itemsOpen: (n: number) => `${n} ${n === 1 ? "item is" : "items are"} still to finish. Finish ${n === 1 ? "it" : "them"} in the chapters, then submit.`,
+  itemsOpen: (n: number) => `${n} ${n === 1 ? "item is" : "items are"} still to finish. Finish ${n === 1 ? "it" : "them"} in the sections, then submit.`,
   fieldsOpen: "Fill in your details on About you, then submit.",
   confidence: "Pick how sure you are, 1 to 5, before you submit.",
   signOff: "Tick the confirmation to submit.",

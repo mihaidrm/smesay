@@ -6,6 +6,7 @@
 // respondent frame (decision 0052): a centered card from 576 px, Try again in its bottom band.
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
+import { ModeButton } from "@/components/respondent/mode-button";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_PRIMARY } from "@/components/respondent/frame";
 import { LINK_PAGE_COPY } from "@/lib/sharing-copy";
 
@@ -14,7 +15,7 @@ export default function LinkError({ retry }: { error: Error & { digest?: string 
     <div className={cn(FRAME_OUTER, "mx-auto w-full max-w-[752px]")} data-testid="link-error">
       <div className={FRAME_CARD}>
       <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", FRAME_HEADER)}>
-        <span className="inline-flex items-center gap-2 text-[15px] font-bold"><Mark size={22} /> SMEsay</span>
+        <span className="inline-flex grow items-center gap-2 text-[15px] font-bold"><Mark size={22} /> SMEsay</span><ModeButton />
       </header>
       <main className="flex w-full grow flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
         <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{LINK_PAGE_COPY.errorTitle}</h1>

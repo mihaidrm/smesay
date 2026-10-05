@@ -96,7 +96,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(preview.getByLabel("Role")).toBeVisible();
   const start = preview.getByTestId("about-you-start");
   await expect(start).toBeDisabled();
-  await expect(start).toHaveText("Start with Submitting");
+  await expect(start).toHaveText("Start section 1: Submitting");
   await expect(start).toHaveCSS("opacity", "0.4");
   await expect(preview.getByTestId("about-you-hint")).toHaveText("Fill in your name and role to start.");
 

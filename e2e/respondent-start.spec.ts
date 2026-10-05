@@ -66,10 +66,12 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await link.getByLabel("Name").fill("Ana Pop");
   await link.getByLabel("Role").fill("Finance lead");
   await expect(link.getByTestId("about-you-start")).toBeEnabled();
-  await expect(link.getByTestId("about-you-start")).toHaveText("Start with Submitting");
+  await expect(link.getByTestId("about-you-start")).toHaveText("Start section 1: Submitting");
   await link.getByTestId("about-you-start").click();
   await expect(link.getByTestId("chapter-screen")).toBeVisible();
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
+  // Continue names the next chapter by number (decision 0055).
+  await expect(link.getByTestId("chapter-continue")).toHaveText("Continue to section 2: Approving");
   await expect(link.getByTestId("item-card")).toHaveCount(2);
   await expect(link).toHaveURL(/\?at=1$/);
   // The browser's Back and Forward move between About you and the chapter.

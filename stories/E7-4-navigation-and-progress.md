@@ -9,9 +9,9 @@ Wrap up tells unrated from skipped.
 1. The chapter row (About you, each area with "[done]/[count]", Wrap up) sits at the top of
    every screen and every pill is a link; a 4 px progress bar in the PM's accent under it
    (decision 0016). The active chapter uses the accent, others white with a hairline.
-2. Continue is never blocked: the footer shows Back, "Continue to [NEXT AREA]" or "Continue to
-   Wrap up", and the note "[N] of [M] still to rate here. You can come back later." or "All
-   [M] rated in this chapter."
+2. Continue is never blocked: the footer shows Back, "Continue to section [N]: [NEXT AREA]"
+   (decision 0055) or "Continue to Wrap up", and the note "[N] of [M] still to rate here. You
+   can come back later." or "All [M] rated in this section."
 3. An item never touched shows "Not rated yet" and is listed in the Wrap up under "Still to
    finish" with "Not rated yet"; an item where the respondent started an answer and did not
    finish is listed with what is missing ("Reason not written yet"; "Say why." until
@@ -55,9 +55,10 @@ Built 2026-10-04 (design note 54, decision 0044):
   workspace's accent, the others white with a hairline; each pill 32 px high with a 48 px
   hit area; a 4 px bar in the accent under it, a progressbar with its numbers. The single
   long page shows the bar only (E5-3).
-- Acceptance 2: the footer has Back and "Continue to [NEXT AREA]" or "Continue to Wrap up",
-  never disabled, and the note "[N] of [M] still to rate here. You can come back later." or
-  "All [M] rated in this chapter." On a desktop (decision 0052) the footer is the bottom band
+- Acceptance 2: the footer has Back and "Continue to section [N]: [NEXT AREA]" (decision
+  0055, 2026-10-05; it wraps to a second line on a phone rather than being cut) or "Continue
+  to Wrap up", never disabled, and the note "[N] of [M] still to rate here. You can come back
+  later." or "All [M] rated in this section." On a desktop (decision 0052) the footer is the bottom band
   of the chapter's centered card: the two buttons centered as a pair, Continue 320 px, the
   note centered under them, and "Powered by" under the card.
 - Acceptance 3: the Wrap up lists every item without a complete answer on the server under
