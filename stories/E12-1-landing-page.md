@@ -113,3 +113,8 @@ numbers were taken after that audit's fixes; CI run 37196295842 on cb32662: unit
 three words, the plain wording, the device and the group size conditions, the reminder
 limit, the survey form lines conceding what a form has too, the pressed option no longer
 covering the focus ring of the one before it, the board's frame at its measured height.
+
+Amended 2026-10-05 (Mihai; design note 95): the header is sticky over every section
+(src/app/landing-page/sticky-header.tsx), transparent over the hero and navy with a blur once
+the page scrolls; the nav links glide to their section (scroll-behavior: smooth, not under
+reduced motion) and each section stops 80 px from the top. e2e/landing.spec.ts covers both.
