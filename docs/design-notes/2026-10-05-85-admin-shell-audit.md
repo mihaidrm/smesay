@@ -34,7 +34,8 @@ Made in the Claude Code cloud session of 2026-10-05 for stories/E14-1, under dec
   with the respondent fields' radius and border. 50 rows a page, Newer and Older; a page past
   the end shows the last one. A workspace or admin removed since stays in the filter as
   "deleted (" and the start of its id ")".
-- "What changed" prints the row's changes as key: value pairs, in a mono line; "Outcome" says
+- "What changed" prints the row's changes as key: value pairs by key in alphabetical order
+  (jsonb does not keep the order written), in a mono line; "Outcome" says
   Done, Refused, Failed or Not recorded.
 
 ## Why

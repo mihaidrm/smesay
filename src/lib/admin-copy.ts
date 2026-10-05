@@ -67,6 +67,7 @@ export const AUDIT_COPY = {
   loading: "Loading the audit log",
 };
 
-// The changes of a row as one line: key: value pairs, in the order written.
+// The changes of a row as one line: key: value pairs by key in alphabetical order (jsonb keeps
+// its own key order, not the order written: postgresql.org/docs/current/datatype-json.html).
 export const auditChanges = (changes: AuditChanges): string =>
-  Object.entries(changes).map(([k, v]) => `${k}: ${v === null ? "none" : String(v)}`).join(", ");
+  Object.entries(changes).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}: ${v === null ? "none" : String(v)}`).join(", ");

@@ -433,7 +433,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Outcome | Done, Refused, Failed, Not recorded |
 | Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing |
 | A target or admin removed since | deleted; a workspace waiting for removal: [NAME] (deleted, removal pending); in the filters: deleted ([first 8 characters of the id]) |
-| What changed | key: value pairs (none for an empty value) |
+| What changed | key: value pairs by key in alphabetical order (none for an empty value) |
 | Empty | No admin actions yet. (filtered: No admin actions match these filters.) |
 | Pages | Page [N] of [M], [T] actions (1 action); Newer, Older |
 | Loading | Loading the audit log |
