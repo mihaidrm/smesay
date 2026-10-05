@@ -1,4 +1,10 @@
-// Runs before /app, the respondent routes (/r) and the public logo route (/brand).
+// Runs before every request but Next's static files and the public assets.
+//
+// Every response it lets through or makes carries the content security policy with a nonce
+// made for this request (stories/E11-5, acceptance 2; src/lib/security-headers.ts): the nonce
+// goes on the request's headers too, where Next reads it while rendering and puts it on its own
+// scripts (node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md, "Adding a
+// nonce with Proxy"). 16 random bytes, as every token (CLAUDE.md).
 //
 // /app (stories/E2-1, acceptance 5): a request without a session cookie goes to the sign-in page
 // with the full path it wanted in `next`. This is the quick check Next's authentication guide
@@ -19,12 +25,33 @@
 // (src/lib/ratelimit.ts, LOCAL).
 // File convention: node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/
 // proxy.md.
+import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { addressOf, LOCAL, minutesOf, respondentLimit } from "@/lib/ratelimit";
 import { RATE_LIMIT_COPY, limitedPage } from "@/lib/ratelimit-copy";
+import { contentSecurityPolicy } from "@/lib/security-headers";
+
+const CSP = "content-security-policy";
+const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
 
 export function proxy(request: NextRequest) {
+  const nonce = randomBytes(16).toString("base64");
+  const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https: request.nextUrl.protocol === "https:" });
+  const response = route(request, csp);
+  response.headers.set(CSP, csp);
+  return response;
+}
+
+// The request goes on with the policy on its headers, for Next to read the nonce.
+function next(request: NextRequest, csp: string): NextResponse {
+  const headers = new Headers(request.headers);
+  headers.set(CSP, csp);
+  headers.set("x-nonce", nonceOf(csp));
+  return NextResponse.next({ request: { headers } });
+}
+
+function route(request: NextRequest, csp: string): NextResponse {
   const path = request.nextUrl.pathname;
   if (path.startsWith("/r/") || path.startsWith("/brand/")) {
     const address = addressOf(request.headers);
@@ -34,20 +61,23 @@ export function proxy(request: NextRequest) {
     // (node_modules/next/dist/server/lib/server-action-request-meta.js); the link's page is
     // /r/[token] and nothing under it, so only that shape is let through.
     const serverAction = request.method === "POST" && request.headers.has("next-action") && /^\/r\/[^/]+\/?$/.test(path);
-    if (address === LOCAL || serverAction) return NextResponse.next();
+    if (address === LOCAL || serverAction) return next(request, csp);
     const verdict = respondentLimit.hit(address, Date.now());
-    if (verdict.allowed) return NextResponse.next();
+    if (verdict.allowed) return next(request, csp);
     const headers = { "retry-after": String(Math.ceil(verdict.retryAfterMs / 1000)), "cache-control": "no-store" };
     const page = request.method === "GET" && (request.headers.get("accept") ?? "").includes("text/html");
     if (page) return new NextResponse(limitedPage(), { status: 429, headers: { ...headers, "content-type": "text/html; charset=utf-8" } });
     // error is the sentence, as every respondent route's error is (the app shows it as it is).
     return NextResponse.json({ error: RATE_LIMIT_COPY.respondent, code: "rateLimited", waitMinutes: minutesOf(verdict.retryAfterMs) }, { status: 429, headers });
   }
-  if (getSessionCookie(request)) return NextResponse.next();
+  if (!/^\/app(\/|$)/.test(path) || getSessionCookie(request)) return next(request, csp);
   const wanted = path + request.nextUrl.search;
   const signIn = new URL("/sign-in", request.url);
   signIn.searchParams.set("next", wanted);
   return NextResponse.redirect(signIn);
 }
 
-export const config = { matcher: ["/app/:path*", "/r/:path*", "/brand/:path*"] };
+// Every path but Next's built files, its image route, the favicon and the public assets
+// (proxy.md, "Matcher"; the CSP guide's matcher, without its prefetch exception, so a prefetched
+// page carries the policy too).
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|assets/).*)"] };

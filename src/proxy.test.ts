@@ -40,4 +40,19 @@ describe("proxy", () => {
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe(`${BASE}/sign-in?next=%2Fapp%2Fprojects`);
   });
+  it("puts a fresh nonce policy on every response and on the request Next renders", () => {
+    const a = proxy(new NextRequest(`${BASE}/legal/privacy`));
+    const b = proxy(new NextRequest(`${BASE}/legal/privacy`));
+    const csp = a.headers.get("content-security-policy") ?? "";
+    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]{24}' 'strict-dynamic'/);
+    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).not.toContain("upgrade-insecure-requests");
+    expect(b.headers.get("content-security-policy")).not.toBe(csp);
+    // NextResponse.next({ request: { headers } }) passes request headers on as x-middleware-request-[NAME]
+    // (node_modules/next/dist/server/web/spec-extension/response.js).
+    expect(a.headers.get("x-middleware-request-content-security-policy")).toBe(csp);
+    expect(proxy(req("/app/projects", "10.9.0.4")).headers.get("content-security-policy")).toMatch(/nonce-/);
+    expect(proxy(new NextRequest(`${BASE}/apple`)).status).toBe(200);
+    expect(proxy(new NextRequest("https://smesay.app/")).headers.get("content-security-policy")).toContain("upgrade-insecure-requests");
+  });
 });

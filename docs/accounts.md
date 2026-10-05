@@ -223,6 +223,10 @@ is billed per use.
 1. Go to https://sentry.io/signup. On the sign-up form choose the data storage location
    "European Union". This cannot be changed later.
 2. Create a project of type Next.js. Copy the DSN into `.env.local` after `SENTRY_DSN=`.
+   Set `SENTRY_ENVIRONMENT=` to production on the host (it names the environment in Sentry).
+   With the DSN set, the server sends errors to Sentry with personal data removed (stories/
+   E11-5); without it, nothing is sent and no Sentry code loads. Errors in the browser are not
+   sent in R1.
 
 ## Step 11. Plausible, visit counts (before E11)
 

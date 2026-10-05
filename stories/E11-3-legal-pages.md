@@ -45,9 +45,9 @@ planned regions and says no error reports or visit counts are in use (docs/revie
 Built 2026-10-04 (design note 74, decision 0044):
 - Acceptance 1: docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md, drafted in plain
   English with 39 "[LAWYER: ...]" markers; /legal/privacy, /legal/terms, /legal/dpa and
-  /legal/subprocessors render them (src/app/legal/[page]/page.tsx, src/lib/legal.ts), built
-  once at build time; any other name under /legal is the 404 page. The privacy policy covers
-  every topic this criterion lists. The subprocessor list marks Anthropic as in use, the launch
+  /legal/subprocessors render them (src/app/legal/[page]/page.tsx, src/lib/legal.ts), per
+  request since E11-5 (the nonce); any other name under /legal is the 404 page. The privacy
+  policy covers every topic this criterion lists. The subprocessor list marks Anthropic as in use, the launch
   accounts as planned (decision 0006) and says no error reports or visit counts are in use; no
   company's legal name is written, the lawyer confirms them. After the fresh-context audit (8
   blocking statements the code contradicted), every statement on what is stored or sent was

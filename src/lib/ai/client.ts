@@ -23,6 +23,7 @@ import { isWithin, limitFor } from "@/lib/plans";
 import { AI_COPY } from "./copy";
 import { costEurCents, DEFAULT_MODEL, estimateCents } from "./prices";
 import { assertStrict } from "./strict";
+import { log } from "@/lib/log";
 
 // The same list as AI_PURPOSES in src/db/schema.ts (the check constraint on ai_run.purpose).
 export type AiPurpose = "shape" | "insights";
@@ -112,7 +113,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   // cap, and the plan's run cap through the same numbers, so none of the three can disagree.
   const cap = productCapEur();
   if (cap === null) {
-    console.error("ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
+    log("error", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
     return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
   }
   // The estimate counts the output schema too, which the API sends with the prompt (design
@@ -127,7 +128,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY is not set. The AI call was not made.");
+    log("error", "ANTHROPIC_API_KEY is not set. The AI call was not made.");
     return refused("failed", "ANTHROPIC_API_KEY is not set");
   }
 
@@ -165,7 +166,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
     else {
       // A stalled body read throws the abort itself, not an SDK error; the signal says why.
       const detail = controller.signal.aborted ? TIMEOUT_DETAIL : describe(error);
-      console.error(`The AI call failed: ${detail}.`);
+      log("error", "The AI call failed.", { purpose: input.purpose, detail });
       failure = refused("failed", detail);
     }
   } finally {
@@ -177,14 +178,14 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   try {
     row = await aiRuns.create(input.ws, { projectId: input.projectId, purpose: input.purpose, model, tokensIn, tokensOut, costEurCents: costEurCents(model, tokensIn, tokensOut), durationMs });
   } catch (error) {
-    console.error(`The AI run could not be logged: ${error instanceof Error ? error.constructor.name : "unknown error"}.`);
+    log("error", "The AI run could not be logged.", { purpose: input.purpose, error: error instanceof Error ? error.constructor.name : "unknown error" });
     return refused("failed", "the run could not be logged");
   }
   if (failure || !message) return failure ?? refused("failed", "no answer");
   const run: Run = { id: row.id, model, tokensIn, tokensOut, costEurCents: row.costEurCents, durationMs };
   // The estimate next to the actual, counts only, so a real run shows how close the estimate
   // came (E9-3, acceptance 3; the tests have no real usage to compare with).
-  console.info(`AI run ${input.purpose}: estimate ${estimate} cents, actual ${row.costEurCents} cents (${tokensIn} in, ${tokensOut} out).`);
+  log("info", "AI run.", { purpose: input.purpose, estimateCents: estimate, costCents: row.costEurCents, tokensIn, tokensOut });
 
   // A refusal or a cut-off answer: the model answered, but not with something usable.
   if (message.stop_reason !== "end_turn") return refused("invalid", `stop_reason ${message.stop_reason}`);

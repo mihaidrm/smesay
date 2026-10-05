@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { FIXED_HEADERS } from "./src/lib/security-headers";
 
 const nextConfig: NextConfig = {
   // The logo upload (stories/E2-5, 1 MB) and the list upload (stories/E3-2, 5 MB) send a
@@ -11,7 +12,16 @@ const nextConfig: NextConfig = {
   // The PDF summary reads its fonts from src/lib/export/fonts at run time (stories/E10-3), which
   // output tracing does not see; outputFileTracingIncludes carries them with the export route
   // (node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md).
-  outputFileTracingIncludes: { "/api/projects/[projectId]/export/[file]": ["./src/lib/export/fonts/**/*"] },
+  // The legal pages read docs/legal/*.md per request since E11-5 (src/lib/legal.ts), so the
+  // files travel with that route the same way.
+  outputFileTracingIncludes: { "/api/projects/[projectId]/export/[file]": ["./src/lib/export/fonts/**/*"], "/legal/[page]": ["./docs/legal/**/*"] },
+  // The fixed security headers on every response, static files included (stories/E11-5;
+  // src/lib/security-headers.ts; headers.md). The content security policy is set per request
+  // by src/proxy.ts, with its nonce. No X-Powered-By (poweredByHeader.md).
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: FIXED_HEADERS }];
+  },
 };
 
 export default nextConfig;

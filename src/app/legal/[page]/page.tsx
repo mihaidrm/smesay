@@ -1,9 +1,11 @@
 // The legal pages (stories/E11-3): /legal/privacy, /legal/terms, /legal/dpa and
 // /legal/subprocessors, each rendered from its file in docs/legal/ (src/lib/legal.ts) with
 // "Version [N], [DATE]" at the top and the lawyer's markers shown in the sun tint until Mihai
-// says they are confirmed (acceptance 4). Built once, at build time (generateStaticParams,
-// dynamicParams false: any other name is the 404 page; node_modules/next/dist/docs/01-app/
-// 03-api-reference/04-functions/generate-static-params.md). Every page links to the other three.
+// says they are confirmed (acceptance 4). generateStaticParams with dynamicParams false: any
+// other name is the 404 page (node_modules/next/dist/docs/01-app/03-api-reference/04-functions/
+// generate-static-params.md). Rendered per request since E11-5, for the content security
+// policy's nonce (src/app/layout.tsx); the files travel with the route (next.config.ts,
+// outputFileTracingIncludes). Every page links to the other three.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Lockup } from "@/components/brand/mark";

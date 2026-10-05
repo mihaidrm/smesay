@@ -21,6 +21,7 @@ import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
 import { FIELDS_MAX, OPTIONS_MAX, OPTIONS_MIN } from "@/lib/respondent-fields";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
+import { log } from "@/lib/log";
 
 export const PROJECT_FORMAT = "smesay.project";
 export const PROJECT_VERSION = 1;
@@ -238,7 +239,7 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
     return { projectId: await projectTransfer.writeProject(actor.ws, input, actor.userId, now) };
   } catch (err) {
     const code = String((err as { cause?: { code?: unknown } })?.cause?.code ?? "");
-    console.error(`project import: the database refused the file (SQLSTATE ${code || "none"})`);
+    log("error", "Project import: the database refused the file.", { sqlstate: code || "none" });
     if (code.startsWith("23") || code.startsWith("22")) return { error: E.damaged("the file") };
     throw new Error("project import: the write did not finish");
   }

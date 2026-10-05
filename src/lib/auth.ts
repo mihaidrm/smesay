@@ -45,6 +45,7 @@ import { sendMail } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/sign-in-email";
 import { addressOf, LOCAL, minutesOf, signInLimit } from "@/lib/ratelimit";
 import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
+import { log } from "@/lib/log";
 
 const DAY = 60 * 60 * 24;
 export const SESSION_DAYS = 30;
@@ -70,12 +71,12 @@ export function readAuthEnv(env: EnvLike = process.env): AuthEnv {
 }
 
 // Both Google variables, or neither: a half-filled pair is treated as missing and named once.
-export function readGoogleEnv(env: EnvLike = process.env, log: (line: string) => void = (line) => console.warn(line)): AuthEnv["google"] {
+export function readGoogleEnv(env: EnvLike = process.env, warn: (line: string) => void = (line) => log("warn", line)): AuthEnv["google"] {
   const clientId = env.GOOGLE_CLIENT_ID;
   const clientSecret = env.GOOGLE_CLIENT_SECRET;
   if (clientId && clientSecret) return { clientId, clientSecret };
   const missing = [!clientId && "GOOGLE_CLIENT_ID", !clientSecret && "GOOGLE_CLIENT_SECRET"].filter(Boolean).join(" and ");
-  log(`${missing} not set: the Google sign-in button is hidden (docs/accounts.md step 6).`);
+  warn(`${missing} not set: the Google sign-in button is hidden (docs/accounts.md step 6).`);
   return null;
 }
 
