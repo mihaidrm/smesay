@@ -33,7 +33,9 @@ on main (decision 0023). The next request starts from main.
 
 A change is not done until everything it touches says the same thing: every canvas board, every
 file in docs/, stories/, the schema and INTERFACES.md. Grep for the old wording before reporting
-(decision 0017).
+(decision 0017). When Mihai points at one thing to change, find every place in the app
+with the same thing (every screen, both sides, light and dark, every board) before fixing,
+and fix them all in the same pull request (decision 0056).
 
 Status lives in one place: the Phase tables in docs/plan-steps.md (decision 0022). The Roadmap
 board, the Stories board and docs/context.md are written from it and from the Status line of

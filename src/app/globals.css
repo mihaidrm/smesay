@@ -420,3 +420,67 @@ fieldset:disabled [data-download] {
   opacity: 0.4;
   pointer-events: none;
 }
+
+/* Every native dropdown in the app (Mihai, 2026-10-05: the browser's arrow "looks a bit weird
+   ... not from the same set like the box, or maybe its a bit too close to the border", and the
+   open list was square under a rounded box). Unlayered, so it wins over the utilities' padding
+   (developer.mozilla.org/docs/Web/CSS/@layer: styles outside a layer take precedence).
+   - The closed box: the browser's arrow is turned off (appearance: none,
+     developer.mozilla.org/docs/Web/CSS/appearance) and Lucide's chevron-down, the icon set of
+     the rest of the app, is drawn 16 px from the right edge, with room kept for it.
+   - The open list: where the browser supports a customizable select (appearance: base-select,
+     Chromium 135 and later: developer.mozilla.org/docs/Learn_web_development/Extensions/Forms/
+     Customizable_select), the list is a rounded card with the app's surface, hairline and
+     shadow, and rounded options (docs/design-system.md: menus take the 12 radius and the card
+     shadow). Elsewhere (Safari, Firefox, and phones, whose own pickers fit
+     the hand better) the system list stays. */
+select:not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235e5a72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px 16px;
+  padding-inline-end: 44px;
+}
+.dark select:not([multiple]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a4be' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+@supports (appearance: base-select) {
+  select:not([multiple]),
+  select:not([multiple])::picker(select) {
+    appearance: base-select;
+  }
+  /* The customizable select lays its value out as a box of its own; centre it as the system
+     one is. */
+  select:not([multiple]) {
+    display: flex;
+    align-items: center;
+  }
+  select:not([multiple])::picker-icon {
+    display: none;
+  }
+  select:not([multiple])::picker(select) {
+    margin-block: 6px;
+    padding: 4px;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+  }
+  select:not([multiple]) option {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  select:not([multiple]) option:hover,
+  select:not([multiple]) option:focus-visible {
+    background: var(--violet-soft);
+    outline: none;
+  }
+  select:not([multiple]) option:checked {
+    font-weight: 600;
+  }
+  select:not([multiple]) option::checkmark {
+    display: none;
+  }
+}
