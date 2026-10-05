@@ -216,7 +216,8 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 Three column widths on the respondent side, decided 2026-10-01 after Mihai's review of the
 desktop board; the short pages changed on 2026-10-05 (decision 0051). About you, done, nothing
 to rate and the link pages (unknown, not yet open, closed, inactive, the passcode): on a
-desktop a centered card 720 px wide, 48 px from the top, content at 32 px from its sides, the
+desktop a centered card 720 px wide, 48 px from the top and at least 16 px from the window's
+sides, content at 32 px from its sides, the
 fields filling it, About you's Start at 320 px centered in the card's footer with its hint
 under it, and "Powered by" under the card as the last line of the page; on a phone the same
 parts full width, "Powered by" under the action. Wrap up: 760 px. Chapters: 1000 px with two card columns, because density is the point

@@ -14,7 +14,7 @@ import { PoweredBy } from "./powered-by";
 
 export function LinkPage({ workspaceName, accent, logoUrl = null, title, line, children, poweredBy = true }: { workspaceName: string | null; accent: string; logoUrl?: string | null; title: string; line: string; children?: ReactNode; poweredBy?: boolean }) {
   return (
-    <div className={cn(FRAME_OUTER, "mx-auto w-full max-w-[720px]")} data-testid="link-page">
+    <div className={cn(FRAME_OUTER, "mx-auto w-full max-w-[752px]")} data-testid="link-page">
       <div className={FRAME_CARD}>
       {workspaceName ? (
         <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} className={FRAME_HEADER} />

@@ -427,7 +427,7 @@ export function RespondentApp(props: RespondentAppProps) {
   };
   // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
   // ("No items to review.", E5-5).
-  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[720px]";
+  const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1000px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[760px]" : "max-w-[752px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (

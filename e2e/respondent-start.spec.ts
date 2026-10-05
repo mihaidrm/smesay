@@ -94,7 +94,7 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   const deskPage = await desk.newPage();
   await deskPage.goto(url);
   await deskPage.locator("[data-ready]").waitFor();
-  const box = (await deskPage.getByTestId("about-you").boundingBox())!;
+  const box = (await deskPage.getByTestId("about-you-start").locator("xpath=ancestor::div[contains(@class,'@xl:rounded-[20px]')][1]").boundingBox())!;
   expect(box.width).toBe(720);
   expect(Math.abs(box.x + box.width / 2 - 720)).toBeLessThanOrEqual(1);
   const start = (await deskPage.getByTestId("about-you-start").boundingBox())!;
