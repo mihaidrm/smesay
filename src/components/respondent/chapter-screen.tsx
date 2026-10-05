@@ -11,7 +11,7 @@
 // Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
 // later." or "All [M] rated in this chapter."
 import { cn } from "cn";
-import { PoweredBy } from "./powered-by";
+import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
@@ -33,6 +33,8 @@ export type ChapterScreenProps = {
   showProposed: boolean;
   drafts: Record<string, CardDraft>;
   saved: Record<string, boolean>;
+  // What a saved card says, when not "Saved" (the visitors' sample: "Saved on this device").
+  savedLabel?: string;
   errors?: Record<string, string>;
   // Answers cannot reach the server (E7-3): complete cards not yet saved say so.
   unsaved?: boolean;
@@ -46,7 +48,7 @@ export type ChapterScreenProps = {
   continueLabel: string;
   footerNote: string;
   onContinue: () => void;
-  poweredBy?: boolean;
+  poweredBy?: PoweredByShow;
 };
 
 const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
@@ -54,10 +56,10 @@ const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 
 const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
+  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
   const chapter = chapters[index];
   const card = (it: RespondentItem) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));

@@ -47,7 +47,7 @@ import { answerOfDraft, EMPTY_DRAFT, type CardDraft } from "@/components/respond
 import { WrapUp, type WrapSection } from "@/components/respondent/wrap-up";
 import { useWrapSaver } from "./wrap-saver";
 import { signOffFor } from "@/lib/closing";
-import { PoweredBy } from "@/components/respondent/powered-by";
+import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
 import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
@@ -58,6 +58,8 @@ import { areasOf, chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, t
 import { useAnswerSaver } from "./answer-saver";
 import type { PreviewRing } from "@/lib/preview";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
+import { keepSample } from "@/lib/sample-drafts";
+import { SAMPLE_COPY } from "@/lib/sample-copy";
 
 export type RespondentAppProps = {
   token: string;
@@ -89,9 +91,13 @@ export type RespondentAppProps = {
   // The Wrap up as the server holds it and its version (E7-5), empty before a save.
   wrap: WrapValue;
   wrapSync: WrapSync;
-  poweredBy: boolean;
-  // The builder's preview (stories/E5-6): what its step rings; nothing is saved.
-  preview?: { rings: PreviewRing[] } | null;
+  poweredBy: PoweredByShow;
+  // The visitors' sample (stories/E12-4): the cards as the tab kept them (src/app/sample/).
+  initialDrafts?: Record<string, CardDraft>;
+  // The builder's preview (stories/E5-6): what its step rings; nothing is saved. sample: the
+  // visitors' sample at /sample (stories/E12-4): the answers stay in the tab's session storage,
+  // Submit shows Done without sending, and the band says nothing is saved.
+  preview?: { rings: PreviewRing[]; sample?: boolean } | null;
 };
 
 // The page has hydrated (false in the server render and while hydrating, then true:
@@ -105,6 +111,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const ready = useSyncExternalStore(noSubscribe, () => true, () => false);
   const preview = props.preview ?? null;
   const rings = new Set(preview?.rings ?? []);
+  const sample = preview?.sample === true;
   const [started, setStarted] = useState(props.started);
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
   const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
@@ -113,7 +120,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
-  const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
+  const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => props.initialDrafts ?? Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
   const [item, setItem] = useState(props.initialItem);
   const [storageNoticeDone, setStorageNoticeDone] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
@@ -160,7 +167,7 @@ export function RespondentApp(props: RespondentAppProps) {
   });
   const wrapNow = useRef(wrap);
   useEffect(() => { wrapNow.current = wrap; }, [wrap]);
-  const setWrap = (next: WrapValue) => { setWrapState(next); setSubmitError(null); if (!preview) wrapSaver.queue(next); };
+  const setWrap = (next: WrapValue) => { setWrapState(next); setSubmitError(null); if (sample) keepSample({ wrap: next }); else if (!preview) wrapSaver.queue(next); };
   // Whether a Start in this visit has been followed by a save the server took: a "not
   // started" before that means the browser did not keep the device cookie.
   const startedHere = useRef(false);
@@ -188,8 +195,13 @@ export function RespondentApp(props: RespondentAppProps) {
     setStartError(startedHere.current && !savedSinceStart.current ? RESPONDENT_ERRORS.cookiesBlocked : RESPONDENT_ERRORS.notStarted);
     if (screenRef.current.kind !== "about") go({ kind: "about" }, 0, null, true);
   };
+  // The sample keeps every change in the tab (src/lib/sample-drafts.ts); when the browser keeps
+  // nothing the cards say so instead of "Saved on this device".
+  const [sampleKept, setSampleKept] = useState(true);
   const change = (itemId: string, draft: CardDraft) => {
     setDrafts((d) => ({ ...d, [itemId]: draft }));
+    // One change per event, so the page's cards plus this one are what the tab should keep.
+    if (sample) setSampleKept(keepSample({ drafts: { ...drafts, [itemId]: draft } }));
     if (!preview) saver.queue(itemId, draft);
   };
 
@@ -226,9 +238,10 @@ export function RespondentApp(props: RespondentAppProps) {
     setItem(itemIndex);
     // The screen already showing (its own pill tapped) adds no history entry.
     // In the builder's preview a screen replaces the entry and keeps the preview's query, so
-    // Back leaves the step page and a reload keeps the step and its rings.
+    // Back leaves the step page and a reload keeps the step and its rings. The visitors' sample
+    // moves like a live link: Back goes to the screen before.
     if (screenParam(next) !== screenParam(screen)) {
-      if (preview) { const url = new URL(window.location.href); url.searchParams.set("at", screenParam(next)); window.history.replaceState(null, "", url); }
+      if (preview && !sample) { const url = new URL(window.location.href); url.searchParams.set("at", screenParam(next)); window.history.replaceState(null, "", url); }
       else window.history.pushState(null, "", `?at=${screenParam(next)}`);
     }
     window.scrollTo(0, 0);
@@ -254,6 +267,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const start = async (values: ResponseFields, chosen: string[]) => {
     // The preview keeps the details in memory and moves on (stories/E5-6, acceptance 4).
     if (preview) {
+      if (sample) keepSample({ fields: values, picks: chosen, started: true });
       setPicks(chosen);
       setSavedPicks(chosen);
       setFields(values);
@@ -327,6 +341,13 @@ export function RespondentApp(props: RespondentAppProps) {
     return { bucket, itemId: id, reference: it.reference, title: it.title, value: a?.kind === "unclear" ? null : (a?.value ?? null), text: a?.reason ?? null, chapter: chapterOf.get(id) ?? 0 };
   }));
   const fieldsMissing = missingMandatory(instrument.fields, { ...fields, ...(prefilled ?? {}) }).length > 0;
+  // The sample's Submit (stories/E12-4, acceptance 1): Done, with nothing sent or stored.
+  const sampleSubmit = () => {
+    const at = new Date().toISOString();
+    setSubmitted({ at, name: firstName(fields), returning: false });
+    keepSample({ submittedAt: at });
+    go({ kind: "done" });
+  };
   const submit = async () => {
     setSubmitting(true);
     posting.current = true;
@@ -369,7 +390,8 @@ export function RespondentApp(props: RespondentAppProps) {
     }
   };
   const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} ring={rings.has("nav")} />;
-  const previewStrip = preview ? <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text" data-testid="preview-note">{ABOUT_YOU_COPY.previewNote}</div> : null;
+  // The visitors' sample has its own band above the header (src/app/sample/page.tsx).
+  const previewStrip = preview && !sample ? <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text" data-testid="preview-note">{ABOUT_YOU_COPY.previewNote}</div> : null;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
     <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
@@ -394,7 +416,7 @@ export function RespondentApp(props: RespondentAppProps) {
     const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={preview ? {} : saver.saved} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
@@ -408,7 +430,7 @@ export function RespondentApp(props: RespondentAppProps) {
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview)} ring={rings.has("fields") ? "fields" : undefined} />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("fields") ? "fields" : undefined} />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (
         chapterScreen(screen.index)
       ) : screen.kind === "done" && submitted ? (
@@ -416,10 +438,11 @@ export function RespondentApp(props: RespondentAppProps) {
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />
           <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8">
             <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={-1} data-screen-heading data-testid="done-thanks">{submitted.returning ? RESPONDENT_COPY.welcomeSubmitted(submitted.name) : RESPONDENT_COPY.thanks(submitted.name)}</h1>
-            <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
+            <p className="text-[17px] leading-[26px] text-ink-muted" data-testid="done-when">{sample ? SAMPLE_COPY.notSent : submitted.returning ? RESPONDENT_COPY.submittedOn(formatUtc(new Date(submitted.at)), props.closesAt ? formatUtc(new Date(props.closesAt)) : null) : RESPONDENT_COPY.submittedAt(formatUtc(new Date(submitted.at)))}</p>
             {changedSince && <p className="rounded-xl bg-sun-soft px-4 py-3 text-sm font-semibold text-sun-text" role="status" data-testid="changed-since">{RESPONDENT_COPY.changedSince}</p>}
             <p className="text-[15px] leading-[23px]" data-testid="done-summary">{RESPONDENT_COPY.summary({ agreed: tally.agreed, changed: tally.higher + tally.lower, notNeeded: tally.notNeeded, unclear: tally.unclear, rated: tally.rated, added: wrap.missing.text.trim() ? 1 : 0 }, !instrument.showProposed)}</p>
             <button type="button" onClick={() => { setWrapState((w) => ({ ...w, signed: false })); go({ kind: "wrap" }); }} className="h-12 self-start rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="done-change">{RESPONDENT_COPY.changeMine}</button>
+            {sample && <a href={SAMPLE_COPY.startHref} className="flex h-12 items-center self-start rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground" data-testid="sample-start-free">{SAMPLE_COPY.startFree}</a>}
             <PoweredBy show={props.poweredBy} privacy className="mt-auto" />
           </main>
         </div>
@@ -429,7 +452,7 @@ export function RespondentApp(props: RespondentAppProps) {
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
           onBack={() => go(page ? { kind: "chapter", index: 0 } : { kind: "chapter", index: chapters.length - 1 })}
-          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={wrapSaver.notice ?? wrapSaver.error} onSubmit={preview ? undefined : submit} poweredBy={props.poweredBy} preview={Boolean(preview)} ring={rings.has("closing")} />
+          tally={tally} sections={sections} value={wrap} onValue={setWrap} fieldsMissing={fieldsMissing} submitting={submitting} submitError={submitError} saveNote={sample ? null : wrapSaver.notice ?? wrapSaver.error} onSubmit={sample ? sampleSubmit : preview ? undefined : submit} poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("closing")} />
       ) : (
         <div className="flex min-h-screen flex-col" data-testid="nothing-to-rate">
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} />

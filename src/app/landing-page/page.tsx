@@ -122,7 +122,7 @@ export default function LandingPage() {
             <p className="mt-[26px] max-w-[520px] text-[17px] leading-[26px] text-[#C9C4E0] md:text-[19px] md:leading-[30px]">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</p>
             <div className="mt-[34px] flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center">
               <Link href="/sign-in" className={primary}>Start free<span aria-hidden="true" className="ml-2 transition-transform duration-150 group-hover/button:translate-x-[3px]">→</span></Link>
-              <Link href="/app" className={ghost}>See the sample</Link>
+              <Link href="/sample" className={ghost}>Try the sample as a respondent</Link>
             </div>
             <div className="mt-[26px] flex items-center gap-3.5 text-[13px] text-[#C9C4E0]">
               <div className="flex" aria-hidden="true">
@@ -236,7 +236,7 @@ export default function LandingPage() {
           <Reveal className="max-w-[560px]">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Free while we build it with the first users.</h2>
             <p className="mt-[18px] text-[17px] leading-[26px] text-[#C9C4E0]">Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you build now is lost or locked.</p>
-            <div className="mt-[30px] flex flex-col gap-3.5 sm:flex-row"><Link href="/sign-in" className={primary}>Start free</Link><Link href="/app" className={ghost}>See the sample</Link></div>
+            <div className="mt-[30px] flex flex-col gap-3.5 sm:flex-row"><Link href="/sign-in" className={primary}>Start free</Link><Link href="/sample" className={ghost}>Try the sample as a respondent</Link></div>
           </Reveal>
           <Reveal delay={120} className="flex w-full max-w-[440px] flex-col gap-3.5 rounded-[20px] border border-[#343252] bg-[#1E1D33] p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
             <div className="flex items-baseline justify-between"><span className="text-[20px] font-bold">Free</span><span className="rounded-full bg-[#2E2B55] px-2.5 py-1 text-xs font-semibold text-[#B8A8FF]">While we build it</span></div>

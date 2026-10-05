@@ -44,8 +44,8 @@ against the way the visitor picks, with Compare in the nav. Acceptance 1, 6 and 
    (src/db/seed/sample.ts). They are static markup until the dashboard components exist (E8
    to E10); then they render the real components with the seed data (decision 0004) and this
    criterion is re-accepted.
-5. Buttons: "Start free" to the sign-in page; "See the sample" to the app, where the sample
-   project is (E12-4's sample instrument replaces that target when it exists).
+5. Buttons: "Start free" to the sign-in page; "Try the sample as a respondent" to /sample,
+   E12-4's sample instrument (until E12-4 it was "See the sample" to the app).
 6. Playwright: the page loads with the headline, the two buttons point where they should, and
    a 390 px viewport has no horizontal scroll; the third step names no phone; the Shape
    switch and the results switch change what they show; the seed's tiles are on the results

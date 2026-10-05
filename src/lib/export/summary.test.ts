@@ -30,7 +30,7 @@ let project: { id: string; name: string; isSample: boolean };
 let instrument: Instrument;
 let ctx: FilterContext;
 const NOW = new Date("2026-10-21T08:00:00Z");
-// The seed's counts (src/db/seed/sample.ts expected; the lint rule keeps the seed out of src/lib).
+// The seed's counts (src/db/seed/sample.ts expected).
 const expected = { items: 6, submitted: 5, agree: 19, change: 7, disagree: 2, unclear: 2, insights: 4 };
 
 async function signIn(label: string) {

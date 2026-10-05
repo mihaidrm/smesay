@@ -23,7 +23,7 @@
 // buttons keep their pill and take a 48 px hit area.
 import { useId, useRef, useState } from "react";
 import { cn } from "cn";
-import { PoweredBy } from "./powered-by";
+import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
@@ -65,7 +65,7 @@ export type WrapUpProps = {
   submitError?: string | null;
   saveNote?: string | null;
   onSubmit?: () => void;
-  poweredBy?: boolean;
+  poweredBy?: PoweredByShow;
 };
 
 export type WrapSection = { bucket: "higher" | "lower" | "notNeeded" | "unclear"; itemId: string; reference: string | null; title: string; value: string | null; text: string | null; chapter: number };
