@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0033_view_as).
+v1, 2026-10-05 (the date of the latest migration, 0034_guide_state).
 
-Generated from the snapshot of the 34 migrations in drizzle/ (0033_snapshot.json) by
+Generated from the snapshot of the 35 migrations in drizzle/ (0034_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -472,6 +472,7 @@ better-auth: the signed-in person.
 | created_at | timestamp | not null, default now() |
 | updated_at | timestamp | not null, default now() |
 | last_sign_in_at | timestamp |  |
+| guide_state | jsonb | not null, default {"tipsOff": false, "dismissed": []} |
 | results_prefs | jsonb | not null, default {} |
 
 Unique: user_email_unique on email.

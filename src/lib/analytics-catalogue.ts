@@ -2,9 +2,10 @@
 // names the properties it may carry and what each may hold: a count (a whole number from 0), a
 // value from a fixed list or an id (a uuid).
 // Nothing else fits, so an email, a name or typed text cannot be stored (acceptance 3). A tip
-// is one of GUIDE_TIPS, empty until E15 names the tips, so no guide event fits before. Pure, so
+// is one of GUIDE_TIPS, the ids of docs/copy/guide.md (src/lib/guide-lines.ts, E15-1). Pure, so
 // the unit test reads it and the admin page (E13-2) names its funnel from it.
 import type { Layout, ScoringMethod } from "@/db/types";
+import { TIP_IDS } from "@/lib/guide-lines";
 
 // The schema's values (src/db/types.ts); the two checks below fail the build if one is missed.
 const METHODS = ["moscow", "fit", "kcd"] as const satisfies readonly ScoringMethod[];
@@ -15,8 +16,8 @@ void allMethods; void allLayouts;
 
 export type PropSpec = "count" | "id" | readonly string[];
 
-// The guide's tip ids (stories/E15-3, E15-4); E15-5 fills this list when the tips exist.
-export const GUIDE_TIPS: readonly string[] = [];
+// The guide's tip ids (docs/copy/guide.md, src/lib/guide-lines.ts; E15-1 filled the list).
+export const GUIDE_TIPS: readonly string[] = TIP_IDS;
 
 export const EVENTS = {
   signed_up: {},
@@ -26,7 +27,8 @@ export const EVENTS = {
   import_committed: { source: ["upload", "paste"], rows: "count" },
   shape_run: { items: "count", costCents: "count" },
   instrument_published: { method: METHODS, layout: LAYOUTS },
-  invite_sent: { kind: ["personal", "public"] },
+  // project (E15-2): the first-project path ticks Share from it.
+  invite_sent: { kind: ["personal", "public"], project: "id" },
   link_opened: { kind: ["personal", "public"], instrument: "id" },
   response_started: { instrument: "id" },
   response_submitted: { instrument: "id", items: "count", minutes: "count" },

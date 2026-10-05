@@ -1,7 +1,7 @@
 # E15-2 The first project path: four steps ticked from the data
 
 User: a PM who signed up today and has not published anything yet
-Status: ready
+Status: built
 Outcome: on Projects, the robot shows the four steps to a published link, ticks each from
 the data, and points to the next one, until the first link is published.
 
@@ -17,7 +17,9 @@ the data, and points to the next one, until the first link is published.
    robot's line from docs/copy/guide.md.
 3. The card disappears for good once a link is published in the workspace, or on Dismiss
    (E15-1); it never shows in a workspace that already has a published link, so a member
-   joining a live workspace is not onboarded as if the workspace were empty.
+   joining a live workspace is not onboarded as if the workspace were empty. The one
+   exception is docs/copy/guide.md's path.done, "Your link is live", shown to the person who
+   published for 24 hours after the workspace's first link (amended 2026-10-05).
 4. The sample does not count: its set, run and link are the seed's. "Try it on the sample
    first" is the card's secondary link while no project of the person's own exists; it opens
    the sample's Results (E8-8).
@@ -33,6 +35,8 @@ the data, and points to the next one, until the first link is published.
 - None. The place (above the table) is decided (decision 0044, item 1; docs/review-list.md).
 
 ## Technical notes
-One query, src/db/queries/guide.ts `firstProjectState(workspaceId, userId)`, from the
-existing tables (project, item_set, instrument, invite); no new column. The step rule lives
-in src/lib/guide.ts so the unit test runs without the database.
+One query, src/db/queries/guide.ts `firstProjectFacts(workspaceId, userId)`, from the
+existing tables (project, item_set, item, instrument) and the invite_sent events of E13-1,
+which now carry the project (so an imported project file, whose instruments keep their old
+publish dates, does not count); no new column. The step rule lives in src/lib/guide.ts so the
+unit test runs without the database (amended 2026-10-05, design note 89).

@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, uuid, jsonb } from "drizzle-orm/pg-core";
-import type { ResultsPrefs } from "./types";
+import type { GuideState, ResultsPrefs } from "./types";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -17,6 +17,8 @@ export const user = pgTable("user", {
   // E14-3: when the person last signed in, set by the session hook in src/lib/auth.ts; better-auth
   // deletes a session on sign-out, so the sessions alone cannot say it.
   lastSignInAt: timestamp("last_sign_in_at"),
+  // E15-1: the guide's state for the person, every workspace (INTERFACES.md GuideState).
+  guideState: jsonb("guide_state").$type<GuideState>().notNull().default(sql`'{"tipsOff": false, "dismissed": []}'::jsonb`),
   // E8-1: the person's choices on Results, per instrument (INTERFACES.md ResultsPrefs).
   resultsPrefs: jsonb("results_prefs").$type<ResultsPrefs>().notNull().default(sql`'{}'::jsonb`),
 });

@@ -397,7 +397,7 @@ export async function publishAction(_previous: ProjectFormState, formData: FormD
     const who = { workspaceId: current.ws, userId: session.user.id };
     await track("instrument_published", { method: result.instrument.method, layout: result.instrument.layout }, who);
     if (plausibleConfig() && await wasFirst("instrument_published", current.ws)) sendGoal(GOALS.firstPublished, await goalRequest(`/app/projects/${projectId}/share`));
-    await track("invite_sent", { kind: "public" }, who);
+    await track("invite_sent", { kind: "public", project: projectId }, who);
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -434,7 +434,7 @@ export async function sendInvitesAction(_previous: InvitesFormState, formData: F
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
     const failed = result.outcomes.filter((o) => !o.sent);
-    for (const o of result.outcomes) if (o.sent) await track("invite_sent", { kind: "personal" }, { workspaceId: current.ws, userId: session.user.id });
+    for (const o of result.outcomes) if (o.sent) await track("invite_sent", { kind: "personal", project: projectId }, { workspaceId: current.ws, userId: session.user.id });
     return { ...NONE, saved: true, sent: result.outcomes.length - failed.length, failed: failed.map((o) => o.error ?? ""), again: failed.map((o) => o.line) };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
@@ -523,7 +523,7 @@ export async function renewInviteAction(_previous: InvitesFormState, formData: F
     revalidatePath(`/app/projects/${projectId}/share`);
     if ("error" in result) return { ...NONE, error: result.error, sent: 0, failed: [], again: [] };
     const o = result.outcome;
-    if (o.sent) await track("invite_sent", { kind: "personal" }, { workspaceId: current.ws, userId: session.user.id });
+    if (o.sent) await track("invite_sent", { kind: "personal", project: projectId }, { workspaceId: current.ws, userId: session.user.id });
     return { ...NONE, saved: true, sent: o.sent ? 1 : 0, failed: o.error ? [o.error] : [], again: o.sent ? [] : [o.line] };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

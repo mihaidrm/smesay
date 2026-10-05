@@ -23,7 +23,14 @@ test("create a project and keep its context", async ({ page, request }) => {
   await expect(page.getByTestId("quickstart")).toBeVisible();
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
+  // A new workspace: the first-project path says where to start (stories/E15-2), in place of
+  // the "No projects yet" empty state, which shows with tips off.
+  await expect(page.getByTestId("guide-card")).toHaveAttribute("data-tip", "path.start");
+  await expect(page.getByText("No projects yet")).toHaveCount(0);
+  await page.getByTestId("show-tips").click();
   await expect(page.getByText("No projects yet")).toBeVisible();
+  await page.getByTestId("show-tips").click();
+  await expect(page.getByTestId("guide-card")).toBeVisible();
   await expect(page.getByTestId("project-row")).toHaveCount(1);
 
   await page.getByRole("link", { name: "New project" }).first().click();

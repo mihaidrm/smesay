@@ -13,7 +13,9 @@ import { EmptyState } from "@/components/ui/banner";
 import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import { redirect } from "next/navigation";
-import { members, projects } from "@/db/queries";
+import { firstProjectFacts, guide, members, projects } from "@/db/queries";
+import { pathHidden, pathView } from "@/lib/guide";
+import { FirstProjectPath } from "./first-project-path";
 import { usage } from "@/db/queries/usage";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { projectStatus, type ProjectStatus } from "@/lib/project-status";
@@ -36,7 +38,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   if (!viewing && (await members.get(current.ws, session.user.id))?.quickstartSeenAt === null) redirect("/app/quickstart");
   const { archived } = await searchParams;
   const showArchived = archived === "1";
-  const [rows, used] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws)]);
+  const [rows, used, guideState] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws), guide.state(session.user.id)]);
+  // The first-project path (stories/E15-2): the person's, from the data, unless tips are off or
+  // any of its lines was dismissed (src/lib/guide.ts pathHidden); not on the archived list and
+  // not during an admin's view (E14-4), where the person is the admin.
+  const path = !showArchived && !viewing && !pathHidden(guideState) ? pathView(await firstProjectFacts(current.ws, session.user.id)) : null;
+  const sampleId = rows.find((p) => p.isSample)?.id ?? null;
   // "No projects yet" is for a workspace with no project of its own at all, archived ones
   // included; "All your projects are archived" when the list is empty only because every
   // project (the sample deleted) is archived (Mihai, 2026-10-03: "not seeing the robot here").
@@ -63,6 +70,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           <StatTile value={used.aiRunsThisMonth} label={used.aiRunsThisMonth === 1 ? "AI run this month" : "AI runs this month"} tone="sun" />
         </div>
       )}
+      {path && <FirstProjectPath view={path} sampleId={sampleId} />}
       {rows.length > 0 && (
         <div className="card overflow-hidden">
           <div className="flex items-center gap-4 px-[18px] py-3 text-xs font-semibold text-ink-muted">
@@ -98,7 +106,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           })}
         </div>
       )}
-      {!showArchived && own.length === 0 && (
+      {/* With the first-project path showing, it says the same with the robot: one robot a screen. */}
+      {!showArchived && own.length === 0 && !path && (
         <EmptyState title="No projects yet" mascot="idea">
           <span className="flex flex-col items-center gap-3">
             <span>Start one and import your list.</span>

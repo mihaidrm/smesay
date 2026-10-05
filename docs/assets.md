@@ -65,5 +65,8 @@ plan about EUR 20 a month before the first external user; the rest on free tiers
 3. The licence file is listed in docs/accounts.md under step 12, so the paper trail is in one
    place.
 
-Placeholders today: none for the mascot (placed); the
+Placeholders today: the mascot's fifth pose, "help", for the rescue tips (E15-4): the pack's
+"Robot Help" or "Robot Question", recoloured like the others, to be placed as
+public/assets/mascot/help.svg; until then the "idea" robot stands in, in the same frame
+(src/components/app/mascot.tsx). The
 spot illustrations are dashed frames with a one-line caption; icons are Lucide.

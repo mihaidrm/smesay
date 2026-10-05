@@ -17,4 +17,5 @@ export { missingItems } from "./missingItems";
 export { insights } from "./insights";
 export { aiRuns } from "./aiRuns";
 export { exportLogs } from "./exportLogs";
+export { guide, firstProjectFacts, type FirstProjectFacts } from "./guide";
 export * as projectTransfer from "./projectTransfer";

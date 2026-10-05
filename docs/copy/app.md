@@ -391,6 +391,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Sidebar footer link (E12-2) | Help (opens the quickstart, docs/copy/quickstart.md) |
 | Sidebar footer button | Sign out |
 | Sidebar, sample card title, line and button (design v2) | Try the sample / [SAMPLE NAME]: every screen has data, nothing to set up. / Open the sample |
+| Sidebar, Show tips switch above the mode toggle (E15-1; docs/copy/guide.md) | Show tips (the switch's name); on by default |
 | Sidebar, mode toggle label and state (design v2) | Dark mode (the switch's name); Light / Dark |
 | Projects page, stat tiles (design v2) | [N] project(s) of your own / [N] response(s) this month / [N] AI run(s) this month |
 | Projects page, archive buttons | Show archived / Back to projects |

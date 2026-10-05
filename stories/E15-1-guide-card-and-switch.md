@@ -1,7 +1,7 @@
 # E15-1 The guide card, its off switch and what it remembers
 
 User: a new PM on their first screens
-Status: ready
+Status: built
 Outcome: one card where the robot speaks, one line at a time, that the person can dismiss
 or switch off, and that stays off.
 
@@ -31,6 +31,6 @@ or switch off, and that stays off.
 
 ## Technical notes
 user.guide_state jsonb, default { "tipsOff": false, "dismissed": [] }, one migration. The
-card is src/components/app/guide-card.tsx with the lines from src/lib/guide-copy.ts, which
-is checked against docs/copy/guide.md by scripts/scan-copy.mjs or a unit test (the same way
-docs/copy/app.md rows are checked today: by hand in the audit; a test here is new).
+card is src/components/app/guide-card.tsx with the lines from src/lib/guide-lines.ts, which a
+unit test (src/lib/guide-lines.test.ts) checks against docs/copy/guide.md row for row (amended
+2026-10-05 to the file names as built).
