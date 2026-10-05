@@ -431,3 +431,28 @@ fieldset:disabled [data-download] {
     scroll-behavior: smooth;
   }
 }
+
+/* The slide between respondent screens (design note 98; Mihai, 2026-10-05: "nothing too
+   obnoxious"). The new chapter's content comes 24 px from the side it is on and fades in over
+   240 ms; the header, the chapter row and the footer stay still. Not under reduced motion
+   (developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion). */
+@keyframes respondent-slide-next {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes respondent-slide-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-slide="next"] {
+    animation: respondent-slide-next 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  [data-slide="prev"] {
+    animation: respondent-slide-prev 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}

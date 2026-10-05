@@ -24,6 +24,8 @@ import { RespondentHeader } from "./respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 
 export type ChapterScreenProps = {
+  // The way the respondent arrived, for the slide in (design note 98); null on the first screen.
+  slide?: "next" | "prev" | null;
   workspaceName: string;
   accent: string;
   logoUrl: string | null;
@@ -61,7 +63,7 @@ const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 
 const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
+  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
   const chapter = chapters[index];
   const noteId = useId();
   const card = (it: RespondentItem) => (
@@ -75,7 +77,10 @@ export function ChapterScreen(props: ChapterScreenProps) {
       <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} className={FRAME_HEADER} />
       {nav}
       {banner}
-      <main className="flex grow flex-col gap-4 bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
+      <main className="flex grow flex-col gap-4 overflow-x-clip bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
+        {/* A new chapter, or a new item on the one-item layout, mounts its content afresh, so the
+            slide plays on it and on nothing else (design note 98). */}
+        <div key={layout === "page" ? "page" : `${index}-${layout === "item" ? at : 0}`} className="flex grow flex-col gap-4" data-slide={slide ?? undefined}>
         {layout === "page" ? (
           <>
             <h1 className="sr-only" tabIndex={-1} data-screen-heading>{title}</h1>
@@ -110,6 +115,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
             )}
           </>
         )}
+        </div>
       </main>
       <footer className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">

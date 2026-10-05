@@ -124,6 +124,16 @@ export function RespondentApp(props: RespondentAppProps) {
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
   const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => props.initialDrafts ?? Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
   const [item, setItem] = useState(props.initialItem);
+  // The slide between screens (design note 98; Mihai: "a swipe animation or something similar
+  // when moving through chapters, nothing too obnoxious"): the screens in their order (About
+  // you, each chapter and its items, the Wrap up and Done) give the way the respondent moved,
+  // whether by Continue, Back, a chapter pill or the browser's Back. The last place is kept in
+  // state and compared while rendering (react.dev/reference/react/useState, "Storing
+  // information from previous renders"); the first screen does not slide.
+  const place = screen.kind === "about" ? 0 : screen.kind === "chapter" ? 1 + screen.index + item / 10000 : 1e6;
+  const [lastPlace, setLastPlace] = useState(place);
+  const [slide, setSlide] = useState<"next" | "prev" | null>(null);
+  if (place !== lastPlace) { setLastPlace(place); setSlide(place > lastPlace ? "next" : "prev"); }
   const [storageNoticeDone, setStorageNoticeDone] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -418,7 +428,7 @@ export function RespondentApp(props: RespondentAppProps) {
     const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen slide={slide} workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
@@ -455,7 +465,7 @@ export function RespondentApp(props: RespondentAppProps) {
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
-        <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}

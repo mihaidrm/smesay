@@ -26,15 +26,21 @@ export const RESPONDENT_COPY = {
   aboutYou: "About you",
   // The card (E7-2; docs/copy/app.md, Respondent card; errors.md, Respondent answering).
   notRated: "Not rated yet",
-  sayWhy: "Say why.",
-  writeQuestion: "Write your question.",
+  // The Wrap up's Still to finish rows name what is missing (E7-5); the card shows no note for
+  // it, since the box's own question already asks (Mihai, 2026-10-05, design note 98).
+  sayWhy: "Reason not written yet",
+  writeQuestion: "Question not written yet",
   saved: "Saved",
-  details: "Details",
-  hideDetails: "Hide details",
+  // The line above the summary (design note 98): the item's reference, named.
+  reference: (ref: string) => `Requirement ${ref}`,
+  viewMore: "View more",
+  viewLess: "View less",
   addComment: "+ comment",
   hideComment: "Hide comment",
   commentLabel: "Comment, optional",
-  changePrompt: (value: string, proposed: string) => `Why ${value} and not ${proposed}? The team reads every reason.`,
+  // A value other than the proposal (Mihai, 2026-10-05: "something more generic like - Could
+  // you tell us why you think the priority should be different?"), worded for the method.
+  changePrompt: (method: ScoringMethod) => `Could you tell us why you think ${method === "moscow" ? "the priority" : method === "fit" ? "the fit" : "it"} should be different?`,
   disagreePrompt: "Why is it not needed, or what should it say instead?",
   unclearPrompt: "What would you need to know to rate it?",
   previousItem: "Previous item",
@@ -272,7 +278,7 @@ export function progressOf(chapters: Chapter[], done: Record<string, boolean>): 
 
 // The Wrap up's "Still to finish" (E7-4, acceptance 3): every item without a complete
 // answer on the server, in chapter order, with what is missing from the card as the
-// respondent left it ("Not rated yet", "Say why.", "Write your question."), or "Not saved
+// respondent left it ("Not rated yet", "Reason not written yet", "Question not written yet"), or "Not saved
 // yet" when the card is complete and its answer has not reached the server.
 export type Gap = { itemId: string; reference: string | null; title: string; chapter: number; note: Exclude<CardNote, null> | "notSaved" };
 export function gapsOf(chapters: Chapter[], done: Record<string, boolean>, card: (itemId: string) => AnswerState | null): Gap[] {

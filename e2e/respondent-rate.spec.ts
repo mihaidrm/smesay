@@ -1,8 +1,8 @@
 // The main path of E7-2: a published project with three items in two areas, opened on a
 // 375 by 667 phone. Chapters: the document does not scroll sideways and the smallest pill
-// is 38 px; a card answered with another value than the proposal asks "Why [VALUE] and
-// not [PROPOSED]?", says "Say why." until the reason is written, then "Saved"; Unclear
-// without a question says "Write your question."; the typed reason is kept when the answer
+// is 38 px; a card answered with another value than the proposal asks "Could you tell us why
+// you think the priority should be different?" and has no note until the reason is written,
+// then "Saved"; Unclear without a question has no note either (design note 98); the typed reason is kept when the answer
 // changes and comes back after a reload; the selected pill takes the workspace accent.
 // The PM then switches the layout on Build: one item per screen ("Item 1 of 2 in
 // Submitting", Next item) and the single page ("All 3 on one page"), each with the same
@@ -68,12 +68,14 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await noSideScroll(link); await pillsTall(link);
 
-  // Change with a reason: the prompt names both values, the note asks, then says Saved.
+  // Change with a reason: the box asks, the note stays empty until the reason is written, then
+  // says Saved.
   const receipts = link.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
   await expect(receipts.getByTestId("item-card-note")).toHaveText("Not rated yet");
   await receipts.getByRole("radio", { name: "Should" }).click();
-  await expect(receipts.getByText("Why Should and not Must? The team reads every reason.")).toBeVisible();
-  await expect(receipts.getByTestId("item-card-note")).toHaveText("Say why.");
+  await expect(receipts.getByText("Could you tell us why you think the priority should be different?")).toBeVisible();
+  await expect(receipts.getByTestId("item-card-note")).toHaveText("");
+  await expect(receipts).toHaveAttribute("data-note", "sayWhy");
   // A change made while the card's save is in flight goes out after that save returns: the
   // first request is held 1.5 s on its way (page.route: playwright.dev/docs/api/class-page#page-route),
   // the newer text waits for it, and the reload below finds the newer text on the server.
@@ -101,7 +103,8 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   const splitSaved = link.waitForResponse((r) => r.url().endsWith("/answers") && r.request().method() === "PUT" && (r.request().postData() ?? "").includes('"picked":"unclear"'));
   await split.getByRole("radio", { name: "Unclear" }).click();
   await expect(split.getByText("What would you need to know to rate it?")).toBeVisible();
-  await expect(split.getByTestId("item-card-note")).toHaveText("Write your question.");
+  await expect(split.getByTestId("item-card-note")).toHaveText("");
+  await expect(split).toHaveAttribute("data-note", "writeQuestion");
   expect((await splitSaved).status()).toBe(200);
 
   // A reload shows what the server has (the page sends a change 400 ms after it is made;
@@ -110,7 +113,7 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   await link.locator("[data-ready]").waitFor();
   await expect(receipts.getByTestId("item-card-note")).toHaveText("Saved");
   await expect(receipts.getByTestId("card-reason")).toHaveValue("Most receipts arrive by email.");
-  await expect(split.getByTestId("item-card-note")).toHaveText("Write your question.");
+  await expect(split).toHaveAttribute("data-note", "writeQuestion");
 
   // One item per screen.
   const layout = async (name: string) => {

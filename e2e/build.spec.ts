@@ -154,8 +154,10 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.keyboard.press("ArrowRight");
   await expect(row.getByRole("radio", { name: "Should" })).toBeFocused();
   await expect(row.getByRole("radio", { name: "Should" })).toHaveAttribute("aria-checked", "true");
-  // The preview mirrors the respondent card: a value other than the proposal asks why.
-  await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Say why.");
+  // The preview mirrors the respondent card: a value other than the proposal asks why, in the
+  // box (design note 98).
+  await expect(chapter.getByTestId("item-card").first()).toHaveAttribute("data-note", "sayWhy");
+  await expect(chapter.getByTestId("card-reason").first()).toBeVisible();
   // The proposed pill names its value and "proposed" (E7-7: the caption is in the name).
   await expect(row.getByRole("radio", { name: "Must" })).toHaveAccessibleName("Must, proposed");
   // The radio is visually hidden under its card; the card label takes the click.
