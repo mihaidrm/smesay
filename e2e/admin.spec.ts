@@ -51,6 +51,62 @@ test("only an admin email sees the admin page", async ({ page, request }) => {
   await expect(page.getByTestId("admin-funnel").locator("tbody tr")).toHaveCount(12);
   await expect(page.getByTestId("admin-metric")).toContainText("Workspaces with a response submitted this month");
   await expect(page.getByTestId("admin-metric")).toContainText("No threshold set yet: paid plans stay off.");
+  // The guide's measurement (stories/E15-5): the first-project funnel with the benchmark, and a
+  // row per tip.
+  await expect(page.getByTestId("admin-first-project").locator("tbody tr")).toHaveCount(12);
+  await expect(page.getByTestId("admin-benchmark")).toContainText("Userpilot, SaaS Product Metrics Benchmark Report 2025");
+  await expect(page.getByTestId("admin-guide-row")).toHaveCount(19);
+});
+
+// The guide's measurement, main path (stories/E15-5, acceptance 5): a new PM sees the
+// first-project path, presses its action and later dismisses it; the Overview's row for that tip
+// counts the show, the action and the dismissal. Other specs may add to the same row, so the
+// counts are compared with the row before.
+test("a card shown, used and dismissed is counted on the Overview", async ({ browser, page, request }) => {
+  test.setTimeout(90_000);
+  const signIn = async (p: typeof page, email: string) => {
+    await p.goto("/sign-in");
+    await p.getByLabel("Email").fill(email);
+    await p.getByRole("button", { name: "Send me a link" }).click();
+    await expect(p.getByRole("status")).toBeVisible();
+    await p.goto(await latestLink(request, email));
+  };
+  const counts = async () => {
+    await page.goto("/admin");
+    const cells = page.locator('[data-testid="admin-guide-row"][data-tip="path.start"] td');
+    await expect(cells).toHaveCount(6);
+    // A row whose shows so far had no action reads "no action" in that cell: 0 before.
+    const n = async (i: number) => Number(await cells.nth(i).innerText()) || 0;
+    return { shown: await n(1), dismissed: await n(2), acted: await n(3) };
+  };
+  await signIn(page, "e2e-admin@marlow.example");
+  await expect(page).toHaveURL(/\/app(\/new|\/quickstart)?$/);
+  await page.waitForLoadState("networkidle");
+  const before = await counts();
+
+  const pm = await browser.newContext({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.75" } });
+  const pmPage = await pm.newPage();
+  await signIn(pmPage, `e2e-guide-count-${Date.now()}@marlow.example`);
+  await pmPage.getByLabel("Workspace name").fill("Marlow Group");
+  await pmPage.getByRole("button", { name: "Create workspace" }).click();
+  await expect(pmPage).toHaveURL(/\/app\/quickstart$/, { timeout: 15_000 });
+  await pmPage.goto("/app");
+  const card = pmPage.getByTestId("guide-card");
+  await expect(card).toHaveAttribute("data-tip", "path.start");
+  await card.getByTestId("guide-action").click();
+  await expect(pmPage).toHaveURL(/\/app\/projects\/new$/);
+  await pmPage.goto("/app");
+  await card.getByTestId("guide-dismiss").click();
+  await expect(card).toHaveCount(0);
+  await pmPage.waitForLoadState("networkidle");
+  await pmPage.reload();
+  await expect(pmPage.getByTestId("guide-card")).toHaveCount(0);
+  await pm.close();
+
+  const after = await counts();
+  expect(after.shown).toBeGreaterThanOrEqual(before.shown + 1);
+  expect(after.acted).toBeGreaterThanOrEqual(before.acted + 1);
+  expect(after.dismissed).toBeGreaterThanOrEqual(before.dismissed + 1);
 });
 
 // The admin shell and the audit log (stories/E14-1, acceptance 5).

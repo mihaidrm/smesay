@@ -7,13 +7,14 @@
 // visible for the person (src/lib/guide.ts tipVisible, pathHidden) and renders the card only
 // then, on the server, so a dismissed tip never flashes. Dismiss hides it at once, moves the
 // focus to the page's title and stores the dismissal (./guide-actions.ts); if the store fails
-// the card comes back with a line saying so. New to the design system: design note 89.
+// the card comes back with a line saying so. Pressing the action, or the start's "Try it on the
+// sample first", is counted as guide_acted (stories/E15-5); the link goes on at once. New to the design system: design note 89.
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { Mascot } from "@/components/app/mascot";
 import { buttonVariants } from "@/components/ui/button";
 import { GUIDE_COPY, GUIDE_LINES, type TipId } from "@/lib/guide-lines";
-import { dismissTipAction } from "@/app/app/(shell)/guide-actions";
+import { actedTipAction, dismissTipAction } from "@/app/app/(shell)/guide-actions";
 import { cn } from "cn";
 
 export type GuideAction = { label: string; href: string };
@@ -34,6 +35,7 @@ export function GuideCard({ id, action, secondary, children, className }: { id: 
       try { await dismissTipAction(id); setFailed(false); } catch { setHidden(false); setFailed(true); }
     });
   };
+  const acted = () => { void actedTipAction(id).catch(() => undefined); };
   return (
     <section ref={card} aria-label={GUIDE_COPY.cardName} data-testid="guide-card" data-tip={id}
       className={cn("flex items-start gap-4 rounded-2xl border border-hairline bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-4 text-sm text-ink shadow-card", className)}>
@@ -42,8 +44,8 @@ export function GuideCard({ id, action, secondary, children, className }: { id: 
         {children}
         <p className="text-[15px] leading-[22px]" data-testid="guide-line">{tip.line}</p>
         <div className="flex flex-wrap items-center gap-2">
-          {action && <Link href={action.href} className={buttonVariants({ size: "small" })} data-testid="guide-action">{action.label}</Link>}
-          {secondary && id === "path.start" && <Link href={secondary.href} className={buttonVariants({ variant: "secondary", size: "small" })}>{secondary.label}</Link>}
+          {action && <Link href={action.href} onClick={acted} className={buttonVariants({ size: "small" })} data-testid="guide-action">{action.label}</Link>}
+          {secondary && id === "path.start" && <Link href={secondary.href} onClick={acted} className={buttonVariants({ variant: "secondary", size: "small" })}>{secondary.label}</Link>}
           <button type="button" className={buttonVariants({ variant: "tertiary", size: "small" })} data-testid="guide-dismiss" onClick={dismiss}>{GUIDE_COPY.dismiss}</button>
         </div>
         {failed && <p role="alert" className="text-sm text-danger">{GUIDE_COPY.notSaved}</p>}

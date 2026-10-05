@@ -217,3 +217,20 @@ export const PEOPLE_ADMIN_COPY = {
   self: "An admin cannot delete their own account. Ask another admin to delete it.",
   soleOwner: (names: string[]) => `This person is the only owner of ${names.join(", ")}. Ask them to make another member an owner, or to delete the workspace, then delete the account.`,
 };
+
+// The guide on the Overview (stories/E15-5, acceptances 2 and 3).
+export const GUIDE_ADMIN_COPY = {
+  firstTitle: "First project, per sign-up week",
+  firstNote: "Of the people who signed up that week: how many have a project of their own with a list, shaped, built and shared (the first-project path's rule, over any of their projects), and the median hours from sign-up to the first link published or invite sent for one of them.",
+  firstColumns: { week: "Week of", signups: "Sign-ups", imported: "Import", shaped: "Shape", built: "Build", shared: "Share", median: "Median hours to the first link" },
+  noMedian: "none yet",
+  benchmark: "For comparison: the average SaaS activation rate is 37.5 percent and the average onboarding checklist completion rate 19.2 percent (Userpilot, SaaS Product Metrics Benchmark Report 2025, userpilot.com/saas-product-metrics). The first ten real sign-ups set SMEsay's own baseline.",
+  guideTitle: "Guide, last 30 days",
+  guideNote: "Each tip's shows, dismissals and presses of its action, each counted once a day per person. A tip shown with an action is to review when it was dismissed more often than acted on; one shown without one when more than half of its shows were dismissed.",
+  guideColumns: { tip: "Tip", shown: "Shown", dismissed: "Dismissed", acted: "Acted on", rate: "Acted on of shown" },
+  noAction: "no action",
+  toReview: "to review",
+};
+
+// Acted on over shown, as a percentage; an empty cell when nothing was shown.
+export const actedRate = (acted: number, shown: number): string => (shown === 0 ? "" : `${Math.round((acted / shown) * 100)}%`);

@@ -665,8 +665,8 @@ instrument_published { method: moscow | fit | kcd, layout: chapters | item | pag
 invite_sent { kind: personal | public, project (E15-2) }, link_opened { kind, instrument }, response_started
 { instrument }, response_submitted { instrument, items, minutes }, reminder_sent, insight_run
 { actions, costCents }, export_downloaded { format: csv | json | pdf | zip }, sample_opened,
-sample_deleted, quickstart_seen, workspace_deleted, guide_shown, guide_dismissed and
-guide_acted { tip: one of GUIDE_TIPS, the ids of docs/copy/guide.md (E15-1) }. rows, items, minutes, actions and
+sample_deleted, quickstart_seen, workspace_deleted, guide_shown { tip, action: yes | no },
+guide_dismissed and guide_acted { tip } (tip: one of GUIDE_TIPS, the ids of docs/copy/guide.md, E15-1). rows, items, minutes, actions and
 costCents are whole numbers from 0 to COUNT_MAX (1,000,000,000); instrument is a uuid. track(name,
 properties, { workspaceId: WorkspaceId or null, userId: string or null }): Promise<boolean> in
 src/lib/analytics.ts is the only writer (events.record in src/db/queries/events.ts); it returns
@@ -785,4 +785,14 @@ projects/[projectId]/step-tip.tsx. events.lastWith(ws, name, key, value): the ne
 row's { createdAt, properties } or null, in src/db/queries/events.ts, and lastEventWith(name,
 ws, key, value): { at, properties } or null, in src/lib/analytics.ts;
 responses.countForInstrument(ws, instrumentId).
+
+Guide measurement (E15-5): events.recordOncePerDay(ws, { userId, name, properties }, key) in
+src/db/queries/events.ts; trackOncePerDay(name, props, who, key) and guideShown(tip, withAction, who) in
+src/lib/analytics.ts; actedTipAction(tipId) in src/app/app/(shell)/guide-actions.ts
+(guide_acted), dismissTipAction also writes guide_dismissed; all three once a day per tip and
+person.
+In src/db/queries/admin.ts: GUIDE_DAYS 30; guideStats(proof, now): GuideTipRow[] { tip,
+hasAction, shown, dismissed, acted, toReview }; firstProjectFunnel(proof, now):
+FirstProjectWeek[] { week, signups, imported, shaped, built, shared, medianHoursToLink } newest
+first, FUNNEL_WEEKS weeks. GUIDE_ADMIN_COPY and actedRate(acted, shown) in src/lib/admin-copy.ts.
 

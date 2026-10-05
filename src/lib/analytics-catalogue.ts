@@ -41,8 +41,8 @@ export const EVENTS = {
   sample_deleted: {},
   quickstart_seen: {},
   workspace_deleted: {},
-  // E15-5, written once the guide card is built.
-  guide_shown: { tip: GUIDE_TIPS },
+  // E15-5: a card shown (once a day per tip and person), dismissed, its action pressed.
+  guide_shown: { tip: GUIDE_TIPS, action: ["yes", "no"] },
   guide_dismissed: { tip: GUIDE_TIPS },
   guide_acted: { tip: GUIDE_TIPS },
 } as const satisfies Record<string, Record<string, PropSpec>>;

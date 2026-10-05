@@ -11,6 +11,8 @@ import { account, adminAudit, adminNote, event, instrument, invite, itemSet, pro
 import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FunnelStep, type WorkspaceId } from "@/db/types";
 import { alias } from "drizzle-orm/pg-core";
 import { log } from "@/lib/log";
+import { GUIDE_LINES, TIP_IDS, type TipId } from "@/lib/guide-lines";
+import { DEFAULT_FIELDS } from "@/lib/respondent-fields";
 import { internal } from "./internal";
 import { unsafeWorkspaceId } from "./scoped";
 import { usageByWorkspace } from "./usage";
@@ -378,4 +380,77 @@ export async function forgetEmail(proof: AdminProof, email: string): Promise<{ i
   }).map((v) => v.id);
   if (ids.length) await db.delete(verification).where(inArray(verification.id, ids));
   return { invites, links: ids.length };
+}
+
+export const GUIDE_DAYS = 30;
+export type GuideTipRow = { tip: TipId; hasAction: boolean; shown: number; dismissed: number; acted: number; toReview: boolean };
+
+// The guide table (stories/E15-5, acceptance 2): each tip's shows, dismissals and actions in the
+// last 30 days, from the guide_* events (each at most once a day per tip and person), deleted
+// workspaces left out. A tip drawn with an action is to review when it was dismissed more often
+// than acted on (E15-4 acceptance 3); one never drawn with an action (the step tips whose button
+// is on the page already, the Shape rescue after a refusal "Try again" cannot pass) when more
+// than half of its shows were dismissed.
+export async function guideStats(proof: AdminProof, now = new Date()): Promise<GuideTipRow[]> {
+  checked(proof);
+  const since = new Date(now.getTime() - GUIDE_DAYS * 86_400_000);
+  const tip = sql<string>`${event.properties}->>'tip'`;
+  const withAction = sql<boolean>`coalesce(${event.properties}->>'action', '') = 'yes'`;
+  const rows = await db.select({ tip, name: event.name, withAction, n: count() }).from(event).innerJoin(workspace, eq(workspace.id, event.workspaceId))
+    .where(and(gte(event.createdAt, since), inArray(event.name, ["guide_shown", "guide_dismissed", "guide_acted"]), isNull(workspace.deletedAt))).groupBy(tip, event.name, withAction);
+  return TIP_IDS.map((id) => {
+    const of = (name: string, f: (r: { withAction: boolean }) => boolean = () => true) => rows.filter((r) => r.tip === id && r.name === name && f(r)).reduce((t, r) => t + r.n, 0);
+    const shown = of("guide_shown"), dismissed = of("guide_dismissed"), acted = of("guide_acted");
+    // Nothing shown yet: the line's own action says which rule will apply.
+    const hasAction = shown > 0 ? of("guide_shown", (r) => r.withAction) > 0 : GUIDE_LINES[id].action !== null;
+    return { tip: id, hasAction, shown, dismissed, acted, toReview: hasAction ? dismissed > acted : dismissed * 2 > shown };
+  });
+}
+
+export type FirstProjectWeek = { week: Date; signups: number; imported: number; shaped: number; built: number; shared: number; medianHoursToLink: number | null };
+
+// The first-project funnel per sign-up week (stories/E15-5, acceptance 3), for the last
+// FUNNEL_WEEKS weeks, in SQL: of the people who signed up that week, how many have a project of
+// their own (not the sample) with a list, a shaped list (or one with areas and an instrument),
+// an instrument with an intro and fields other than the defaults, and an invite_sent event for
+// one of those projects, sent by anyone in its workspace (E15-2's rules, over any of their
+// projects); and the median hours from sign-up to the first such invite_sent.
+export async function firstProjectFunnel(proof: AdminProof, now = new Date()): Promise<FirstProjectWeek[]> {
+  checked(proof);
+  const first = weekStart(now);
+  first.setUTCDate(first.getUTCDate() - 7 * (FUNNEL_WEEKS - 1));
+  const defaults = JSON.stringify(DEFAULT_FIELDS);
+  const rows = await db.execute<{ week: string; signups: number; imported: number; shaped: number; built: number; shared: number; median: number | null }>(sql`
+    with people as (
+      select u.id, u.created_at, to_char(date_trunc('week', u.created_at), 'YYYY-MM-DD') as week
+      from "user" u where u.created_at >= ${first.toISOString()}
+    ), own as (
+      select p.id, p.workspace_id, p.created_by from project p where p.is_sample = false and p.created_by in (select id from people)
+    ), links as (
+      select o.created_by as id, min(e.created_at) as first_link from own o
+      join event e on e.workspace_id = o.workspace_id and e.name = 'invite_sent' and e.properties->>'project' = o.id::text
+      group by o.created_by
+    ), steps as (
+      select pe.id, pe.week, pe.created_at,
+        exists (select 1 from own o join item_set s on s.project_id = o.id where o.created_by = pe.id) as imported,
+        exists (select 1 from own o join item_set s on s.project_id = o.id where o.created_by = pe.id and (s.shape_runs > 0 or s.shaped_at is not null
+          or (exists (select 1 from item i where i.item_set_id = s.id and i.area is not null) and exists (select 1 from instrument ins where ins.project_id = o.id)))) as shaped,
+        exists (select 1 from own o join instrument ins on ins.project_id = o.id where o.created_by = pe.id and coalesce(btrim(ins.intro), '') <> '' and ins.respondent_fields <> ${defaults}::jsonb) as built,
+        l.first_link
+      from people pe left join links l on l.id = pe.id
+    )
+    select week, count(*)::int as signups, count(*) filter (where imported)::int as imported, count(*) filter (where shaped)::int as shaped,
+      count(*) filter (where built)::int as built, count(first_link)::int as shared,
+      percentile_cont(0.5) within group (order by extract(epoch from (first_link - (created_at at time zone 'UTC'))) / 3600) filter (where first_link is not null) as median
+    from steps group by week`);
+  const weeks: FirstProjectWeek[] = Array.from({ length: FUNNEL_WEEKS }, (_, i) => {
+    const w = new Date(first);
+    w.setUTCDate(first.getUTCDate() + 7 * i);
+    return { week: w, signups: 0, imported: 0, shaped: 0, built: 0, shared: 0, medianHoursToLink: null };
+  });
+  for (const r of rows) {
+    const target = weeks.find((w) => w.week.toISOString().slice(0, 10) === r.week);
+    if (target) Object.assign(target, { signups: r.signups, imported: r.imported, shaped: r.shaped, built: r.built, shared: r.shared, medianHoursToLink: r.median === null ? null : Math.round(Number(r.median) * 10) / 10 });
+  }
+  return weeks.reverse();
 }
