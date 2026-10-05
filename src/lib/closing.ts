@@ -23,16 +23,16 @@ export const CLOSING_ERRORS = {
 // Respondent Wrap up; E7-5 draws the real screen).
 export const CLOSING_COPY = {
   card: "Closing",
-  line: "How the journey ends. Respondents review what they said, add what is missing, say how sure they are and sign off.",
+  line: "This card sets how the journey ends. Respondents review what they said, add what is missing, say how sure they are and sign off.",
   questionLabel: "Closing question, optional",
-  questionHint: `One open question at the end, up to ${CLOSING_QUESTION_MAX} characters. Leave empty to ask none.`,
+  questionHint: `Respondents answer one open question at the end, up to ${CLOSING_QUESTION_MAX} characters. Leave it empty to ask none.`,
   missingTitle: "Ask for missing items",
   missingLine: "On: respondents can name an item the list lacks, with an area and a proposed value.",
   confidenceTitle: "Ask how confident they are",
-  confidenceLine: "Always asked, 1 to 5. The dashboard shows the spread.",
+  confidenceLine: "Respondents always answer it, from 1 to 5. The dashboard shows the spread.",
   always: "Always on",
   signOffLabel: "Sign-off text",
-  signOffHint: `What respondents tick before they submit, up to ${SIGN_OFF_MAX} characters.`,
+  signOffHint: `Respondents tick this before they submit. It can be up to ${SIGN_OFF_MAX} characters.`,
   questionLocked: "Published instruments keep their closing question. Build a new instrument to change it.",
 } as const;
 
@@ -45,9 +45,9 @@ export const WRAP_UP_COPY = {
   noItems: "No items to review.",
   previewSubmit: "Submit is off in the preview.",
   missingTitle: "Is anything missing from the list? Optional.",
-  missingText: "What is missing",
-  missingArea: "Where it belongs",
-  missingValue: "How important it is",
+  missingText: "What is missing?",
+  missingArea: "Where does it belong?",
+  missingValue: "How important is it?",
   choose: "Choose one",
   confidenceTitle: "How confident are you in these answers?",
   guessing: "Guessing",

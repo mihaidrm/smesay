@@ -69,7 +69,7 @@ beforeAll(async () => {
 
 // A fake answer from the refs: areas as given, readers echoing the ref.
 function answer(areas: { name: string; items: string[] }[], refs: string[], duplicateOf: Record<string, string> = {}): ShapeOutput {
-  return { areas: areas.map((ar, i) => ({ ...ar, rationale: `${i === 0 ? "First" : "Then"}, because ${ar.name.toLowerCase()}.` })), items: refs.map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "2" ? "Which email." : null, duplicateOf: duplicateOf[r] ?? null } })) };
+  return { areas: areas.map((ar, i) => ({ ...ar, rationale: i === 0 ? `This comes first, because ${ar.name.toLowerCase()} starts it.` : `This comes next, because ${ar.name.toLowerCase()} follows.` })), items: refs.map((r) => ({ ref: r, reader: `Reader ${r}`, flags: { ambiguity: r === "2" ? "Which email." : null, duplicateOf: duplicateOf[r] ?? null } })) };
 }
 function transport(out: unknown) {
   const calls: unknown[] = [];
@@ -123,7 +123,7 @@ describe("shapeSet", () => {
     const result = await shapeSet(a, withAreas, { fetch });
     if ("error" in result) throw new Error(result.error);
     expect(result).toMatchObject({ items: 5, areas: 3 });
-    expect(result.set.areas).toEqual([{ name: "Approving", rationale: "First, because approving." }, { name: "Submitting", rationale: "Then, because submitting." }, { name: "Paying", rationale: "Then, because paying." }]);
+    expect(result.set.areas).toEqual([{ name: "Approving", rationale: "This comes first, because approving starts it." }, { name: "Submitting", rationale: "This comes next, because submitting follows." }, { name: "Paying", rationale: "This comes next, because paying follows." }]);
     expect(result.set.shapeRuns).toBe(1);
     expect(result.set.shapedAt).not.toBeNull();
     expect(calls).toHaveLength(1);
@@ -134,14 +134,14 @@ describe("shapeSet", () => {
     const rows = await items.forSet(a.ws, result.set.id);
     expect(hadImportedAreas(rows)).toBe(true);
     expect(rows.map((r) => [r.position, r.area, r.flags?.areaBy ?? null, r.readerStatus])).toEqual([[1, "Submitting", null, "suggested"], [2, "Approving", null, "suggested"], [3, "Paying", null, "suggested"], [4, "Submitting", "ai", "suggested"], [5, "Submitting", "ai", "suggested"]]);
-    expect(rows[0].areaRationale).toBe("Then, because submitting.");
+    expect(rows[0].areaRationale).toBe("This comes next, because submitting follows.");
     expect(rows[1].flags).toEqual({ ambiguity: "Which email.", importedArea: "Approving" });
     // duplicateOf: "4" names an unknown ref and is dropped; "5" names the earlier 4 and stays.
     expect(rows[3].flags).toEqual({ areaBy: "ai" });
     expect(rows[4].flags).toEqual({ areaBy: "ai", duplicateOf: "4" });
     expect(rows[3].readerText).toBe("Reader 4");
     const groups = groupByArea(result.set, rows);
-    expect(groups.map((g) => [g.name, g.rationale, g.items.length])).toEqual([["Approving", "First, because approving.", 1], ["Submitting", "Then, because submitting.", 3], ["Paying", "Then, because paying.", 1]]);
+    expect(groups.map((g) => [g.name, g.rationale, g.items.length])).toEqual([["Approving", "This comes first, because approving starts it.", 1], ["Submitting", "This comes next, because submitting follows.", 3], ["Paying", "This comes next, because paying follows.", 1]]);
   });
 
   it("refuses an answer that renames an imported area or moves an imported item, and nothing changes", async () => {
@@ -167,7 +167,7 @@ describe("shapeSet", () => {
     expect("item" in same && same.item.flags).toEqual({ areaBy: "ai" });
     const moved = await moveItemTo(a, withAreas, travel.id, " Paying ");
     if ("error" in moved) throw new Error(moved.error);
-    expect(moved.item).toMatchObject({ area: "Paying", areaRationale: "Then, because paying.", flags: { areaBy: "pm" } });
+    expect(moved.item).toMatchObject({ area: "Paying", areaRationale: "This comes next, because paying follows.", flags: { areaBy: "pm" } });
     await expect(moveItemTo(b, withAreas, travel.id, "Paying")).rejects.toBeInstanceOf(NotFoundError);
     // The re-run sends the moved item with its area and the other placed item without one.
     const { fetch, calls } = transport(answer([{ name: "Submitting", items: ["1", "5"] }, { name: "Approving", items: ["2"] }, { name: "Paying", items: ["3", "4"] }], ["1", "2", "3", "4", "5"]));
@@ -189,7 +189,7 @@ describe("shapeSet", () => {
     // An emptied area keeps its rationale on the set, so a later move back finds it.
     const perDiem = after.find((r) => r.position === 5)!;
     const back = await moveItemTo(a, withAreas, perDiem.id, "Approving");
-    expect("item" in back && back.item.areaRationale).toBe("Then, because approving.");
+    expect("item" in back && back.item.areaRationale).toBe("This comes next, because approving follows.");
   });
 
   it("proposes areas for a list without them, refuses fewer than three, and a re-run can change them", async () => {

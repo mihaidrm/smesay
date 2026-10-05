@@ -17,7 +17,7 @@ are mapped once, and the next file with the same headers maps itself.
    [DATE]" above the card.
 4. Proposed value accepts MoSCoW words and letters (Must, M, Should, S, Could, C, Won't, W,
    Not needed), 1 to 5, and keep, change, drop; anything else is kept as text and shown in the
-   check report (E3-5) as "[N] proposed values not recognised, kept as written". The mapping
+   check report (E3-5) as "[N] proposed values were not recognised and are kept as written". The mapping
    from words to the scale is a unit test.
 5. Playwright: map the Marlow fixture, import, open the project again with a second copy of
    the file, see the mapping remembered.

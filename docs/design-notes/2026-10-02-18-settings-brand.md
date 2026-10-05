@@ -13,11 +13,11 @@ cards on the right (320 px). Each card: hairline, radius 6, a 44 px title row.
 
 Brand on the respondent side, for an owner: the "Workspace name" field (36 px); the logo row
 with the current logo at 40 px (or the name's initial on an ink square), the "Logo" label, the
-line "PNG or SVG, up to 1 MB. Shown at 24 px in the respondent header in place of the mark.",
+line "Use a PNG or SVG up to 1 MB. It shows at 24 px in the respondent header in place of the mark.",
 the file input and, once a logo exists, a "Remove logo" checkbox; the accent row with a 40 px
 swatch that follows the field, the "Accent colour" field (mono, 160 px) and the contrast line
-under it, which reads "Contrast on white [RATIO]:1. Used on the selected answer, the active
-chapter and the progress bar. Buttons stay ink." in muted ink, turns
+under it, which reads "The contrast on white is [RATIO]:1. The accent colours the selected answer,
+the active chapter and the progress bar. Buttons stay ink." in muted ink, turns
 danger red under 4.5:1, and "No accent set. The respondent page uses teal." when empty; the
 primary "Save" on the right. After a save the green line "Saved. Your instruments carry the new
 name, logo and accent." appears at the top, or the banner from errors.md when the accent is too

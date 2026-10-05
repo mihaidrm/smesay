@@ -43,9 +43,9 @@ export const NOT_FOUND_SCENE = {
   idle: "The robot looked everywhere and found nothing to read.",
   reactions: {
     agree: "Agreed, it is a must. It still does not exist. Your projects do.",
-    change: "A lower priority. Fair: it can wait, and your projects cannot.",
-    disagree: "Not needed. Then nothing is missing.",
-    unclear: "Unclear to the robot too. Check the address for a typo.",
+    change: "So it is a lower priority. Fair enough: it can wait, and your projects cannot.",
+    disagree: "Then nothing is missing.",
+    unclear: "It is unclear to the robot too. Check the address for a typo.",
   },
   notSaved: "Nothing you rate on this page is saved.",
   goBack: "Go back",

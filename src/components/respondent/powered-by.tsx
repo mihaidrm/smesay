@@ -2,7 +2,7 @@
 // Identity): shown while the workspace is on the Free plan, gone on a paid one. One component,
 // so the respondent screens (About you, the chapters, the Wrap up, Done, nothing to rate), the
 // link pages and the Build preview cannot drift. With privacy (stories/E11-3, acceptance 3: About
-// you and Done) the line carries "How your answers are used", a link to the privacy notice that
+// you and Done) the line carries "How are your answers used?", a link to the privacy notice that
 // opens in a new tab so the respondent's screen stays; it shows on every plan. Both links send
 // no referrer, so a respondent's link token never reaches the page they open, or its visit
 // counts (stories/E13-3; rel=noreferrer: developer.mozilla.org/docs/Web/HTML/Attributes/rel/noreferrer).

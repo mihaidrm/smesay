@@ -43,12 +43,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 
 <sc-if value="{{isOffline}}" hint-placeholder-val="{{false}}">
-<div style="flex-shrink: 0; padding: 10px 20px; background: #FBF1DC; color: #7A5210; font-size: 14px"><div class="col">Not saved. Your connection dropped; this page keeps trying. Your answers stay on this device until it reconnects.</div></div>
+<div style="flex-shrink: 0; padding: 10px 20px; background: #FBF1DC; color: #7A5210; font-size: 14px"><div class="col">Your latest answers are not saved. Your connection dropped; this page keeps trying. They stay on this device until it reconnects.</div></div>
 </sc-if>
 
 <sc-if value="{{isAbout}}" hint-placeholder-val="{{true}}">
 <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 20px"><div class="col-narrow" style="display: flex; flex-direction: column; gap: 20px"><h1 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 30px; letter-spacing: -0.02em">New expense tool</h1>
-<div style="color: #454A52">We are replacing the expense tool for all 400 staff. Six things the new tool should do, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
+<div style="color: #454A52">We are replacing the expense tool for all 400 staff. The new tool should do six things, in three chapters. Tell us where you agree and where you do not. It takes about five minutes.</div>
 <sc-if value="{{isReturning}}" hint-placeholder-val="{{false}}">
 <div style="background: #E3F1EF; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px"><div style="font-weight: 500">Welcome back{{returnName}}</div><div style="font-size: 15px; color: #454A52">You answered {{answeredCount}} of 6 last time. Your answers are saved on this device.</div><button type="button" onClick="{{resumeGo}}" class="hov" style="min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; font-size: 17px; align-self: flex-start; min-height: 44px; font-size: 15px">Carry on</button></div>
 </sc-if>
@@ -217,9 +217,9 @@ state = { details: {}, comments: {}, screen: 'about', area: 'Submitting', name: 
 items() {
 return [
 { id: 'i1', ref: 'CL-01', area: 'Submitting', proposed: 'M', text: 'Photograph a receipt and the amount, date and merchant are filled in automatically.', detail: 'From the spreadsheet: OCR receipt capture via mobile (auto-fill amt/date/vendor). Covers paper receipts and PDFs. Out of scope: receipts in a language the OCR does not read.' },
-{ id: 'i2', ref: 'CL-02', area: 'Submitting', proposed: 'S', text: 'Split one receipt across two projects or cost centres.', detail: 'From the spreadsheet: Multi-allocation of single expense line to 2+ cost centres/projects. Split by amount or by percentage. Each part follows its own approval chain.' },
+{ id: 'i2', ref: 'CL-02', area: 'Submitting', proposed: 'S', text: 'Split one receipt across two projects or cost centres.', detail: 'From the spreadsheet: Multi-allocation of single expense line to 2+ cost centres/projects. The split can be by amount or by percentage. Each part follows its own approval chain.' },
 { id: 'i3', ref: 'CL-03', area: 'Approving', proposed: 'M', text: 'Managers approve or reject from the email, without logging in.', detail: 'From the spreadsheet: Approval actionable from notification email (no login). The email shows the amount, the category and the receipt thumbnail. Links expire after seven days.' },
-{ id: 'i4', ref: 'CL-04', area: 'Approving', proposed: 'S', text: 'Expenses over the policy limit are flagged before they reach the approver.', detail: 'From the spreadsheet: Policy engine: auto-flag out-of-policy claims pre-approval. Limits per category and per role. A flagged claim still reaches the approver, with the flag.' },
+{ id: 'i4', ref: 'CL-04', area: 'Approving', proposed: 'S', text: 'Expenses over the policy limit are flagged before they reach the approver.', detail: 'From the spreadsheet: Policy engine: auto-flag out-of-policy claims pre-approval. Limits are set per category and per role. A flagged claim still reaches the approver, with the flag.' },
 { id: 'i5', ref: 'CL-05', area: 'Paying', proposed: 'M', text: 'Approved expenses are paid with the next salary run.', detail: 'From the spreadsheet: Reimbursement via payroll integration, next cycle. Cut-off is the 20th of the month. Claims approved after the cut-off go into the following run.' },
 { id: 'i6', ref: 'CL-06', area: 'Paying', proposed: 'C', text: 'Employees can request a cash advance before a trip.', detail: 'From the spreadsheet: Travel advance request workflow (pre-trip). Advance is reconciled against the trip claims. The spreadsheet does not say who repays an advance if the trip is cancelled.' }
 ];

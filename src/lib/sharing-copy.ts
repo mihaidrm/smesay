@@ -5,7 +5,7 @@ import { PASSCODE_MAX, PASSCODE_MIN } from "@/lib/passcode-rules";
 
 export const SHARE_COPY = {
   title: "Share the list",
-  line: "One link anyone can open between the dates.",
+  line: "Anyone can open this link between the dates.",
   noInstrument: "Build the instrument first. Share sends what Build made.",
   noInstrumentLink: "Go to Build",
   card: "Public link",
@@ -25,7 +25,7 @@ export const SHARE_COPY = {
   opensLabel: "Opens",
   opensHint: "Leave empty to open as soon as you publish.",
   closesLabel: "Closes",
-  zone: (zone: string) => `Times in ${zone}, your browser's time zone.`,
+  zone: (zone: string) => `Times are in ${zone}, your browser's time zone.`,
   passcodeLabel: "Passcode, optional",
   passcodeHint: `At least ${PASSCODE_MIN} characters. Respondents type it once per device.`,
   passcodeSet: "A passcode is set. Type a new one to change it.",
@@ -67,7 +67,7 @@ export const LINK_PAGE_COPY = {
   unknownTitle: "This link does not match any project.",
   unknownLine: "Check that you copied the whole link, or ask the person who sent it for a new one.",
   notOpenTitle: (when: string) => `This link opens on ${when}.`,
-  notOpenLine: "Come back then; nothing to do now.",
+  notOpenLine: "Come back then; there is nothing to do now.",
   closedTitle: "Link closed.",
   closedLine: (workspace: string, project: string, when: string) => `The project team at ${workspace} stopped collecting answers for ${project} on ${when}. Nothing you sent is lost.`,
   revokedTitle: "Link inactive.",
@@ -82,6 +82,6 @@ export const LINK_PAGE_COPY = {
   busy: "Too many people are entering passcodes right now. Wait a few minutes and try again.",
   closes: (when: string) => `Closes ${when}`,
   errorTitle: "This page could not be loaded.",
-  errorLine: "Something went wrong on our side. Try again in a moment.",
+  errorLine: "Our server could not open this link. Try again in a moment.",
   tryAgain: "Try again",
 } as const;

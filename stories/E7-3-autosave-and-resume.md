@@ -13,8 +13,8 @@ loses nothing.
    cookie scoped to /r/[token], and the response is keyed by it; reopening on the same device
    restores every answer, the chapter and the fields. Personal link: the response is keyed by
    the invite and resumes on any device.
-3. Connection lost: the banner "Not saved. Your connection dropped; this page keeps trying.
-   Your answers stay on this device until it reconnects." and the header note "Not saved";
+3. Connection lost: the banner "Your latest answers are not saved. Your connection dropped; this
+   page keeps trying. They stay on this device until it reconnects." and the header note "Not saved";
    answers queue in memory and in localStorage and are sent when the state route (E6-4)
    answers again. A test cuts the network in Playwright, answers two cards, restores it and
    sees both saved.

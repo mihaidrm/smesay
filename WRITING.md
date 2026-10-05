@@ -15,5 +15,10 @@ Apply to UI copy, emails, docs, error messages, commit messages and comments.
 - Do not narrate ("I'll push back", "let me explain"). Just do it.
 - UI copy: verbs on buttons ("Publish", not "OK"), one idea per sentence, error messages say
   what happened and what to do next, never "something went wrong".
+- Running text is written in full sentences with a subject and a verb, in normal word order:
+  "The new tool should do six things", not "Six things the new tool should do". A question to
+  the reader is written as a question ("How are your answers used?"), not as a clause.
+  Exceptions: headings, labels, buttons, table cells, short statuses, empty states, toasts and
+  limit hints (decision 0053).
 
 The scan script (`npm run scan:copy`) fails a build on em dashes and the banned words above.

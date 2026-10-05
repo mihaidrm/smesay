@@ -28,7 +28,7 @@ beforeAll(async () => {
 function perfect(expected: Expected, tweak: (ref: string, reader: string) => string = (_r, s) => s): ShapeOutput {
   const position = (ref: string) => String(expected.items.findIndex((i) => i.ref === ref) + 1);
   return {
-    areas: expected.areas.map((a, i) => ({ name: a.name, rationale: i === 0 ? "First, because it starts here." : "Then this.", items: a.items.map(position) })),
+    areas: expected.areas.map((a, i) => ({ name: a.name, rationale: i === 0 ? "This comes first, because it starts here." : "This comes next.", items: a.items.map(position) })),
     items: expected.items.map((it) => ({ ref: position(it.ref), reader: tweak(it.ref, `${it.row} (in plain words)`), flags: { ambiguity: it.ambiguous ? "What the item does not say." : null, duplicateOf: it.duplicate_of ? position(it.duplicate_of) : null } })),
   };
 }
@@ -137,7 +137,7 @@ describe("the golden set runner", () => {
     // Six areas for three expected: the first area's items spread over three more.
     const spread = split.areas[0].items;
     split.areas[0].items = [spread[0]];
-    split.areas.push({ name: "Monday deadline", rationale: "Then this.", items: [spread[1]] }, { name: "Missed rehearsals", rationale: "Then this.", items: [spread[2]] }, { name: "Extra", rationale: "Last, this.", items: [] });
+    split.areas.push({ name: "Monday deadline", rationale: "This comes next.", items: [spread[1]] }, { name: "Missed rehearsals", rationale: "This comes next.", items: [spread[2]] }, { name: "Extra", rationale: "This comes last.", items: [] });
     split.areas[5].items = split.areas[1].items.splice(0, 1);
     const run = await runSpec(choir, ws, projectId, { fetch: transport(split).fetch });
     expect(run.score).toMatchObject({ pass: false, areasGiven: 6, areasWithinTolerance: false, failures: ["6 areas for 3 expected"] });

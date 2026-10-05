@@ -13,7 +13,7 @@ export const UPLOAD_COPY = {
   pasteTooManyRows: (rows: number) => `This list has ${rows.toLocaleString("en-GB")} lines. The limit is ${ROWS_MAX.toLocaleString("en-GB")}. Split it and paste the first part.`,
   unreadable: "The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it.",
   sample: "The sample project cannot be edited.",
-  noHeader: "No header row found. Pick the row that holds the column names, or tell us which column is the requirement.",
+  noHeader: "We found no header row. Pick the row that holds the column names, or tell us which column is the requirement.",
   summary: (filename: string, rows: number, headerRow: number | null) =>
-    `${filename}, ${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"} read, ${headerRow ? `header found on row ${headerRow}` : "no header row found"}.`,
+    `We read ${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"} from ${filename} and found ${headerRow ? `the header on row ${headerRow}` : "no header row"}.`,
 };

@@ -22,7 +22,7 @@ export const IMPORT_COPY = {
   logTitle: "Versions",
   diff: (text: string, from: number, to: number) => `Version ${from} to ${to}: ${text}.`,
   button: (n: number) => `Import ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}`,
-  nothing: "Nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file.",
+  nothing: "There is nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file.",
   already: (version: number) => `This file is already imported as version ${version}. Upload or paste the next version to import again.`,
   noCheck: "Pick the column that holds the item text above, and the check appears here.",
   newVersion: "Import a new version",
@@ -30,10 +30,10 @@ export const IMPORT_COPY = {
   published: "This list is published. Importing a new version does not change the published instrument; you build a new one on the new version.",
   imported: (n: number, version: number, date: string) => `Imported ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"} as version ${version} on ${date}.`,
   counts: (r: { emptyRows: number; exactDuplicates: number; overLimit: number; unrecognisedValues: number }) => ({
-    empty: `${r.emptyRows.toLocaleString("en-GB")} empty ${r.emptyRows === 1 ? "row" : "rows"}, skipped.`,
-    duplicates: `${r.exactDuplicates.toLocaleString("en-GB")} exact ${r.exactDuplicates === 1 ? "duplicate" : "duplicates"}, imported once.`,
-    long: `${r.overLimit.toLocaleString("en-GB")} ${r.overLimit === 1 ? "item" : "items"} over 1,000 characters, imported whole; consider splitting them in Shape.`,
-    values: `${r.unrecognisedValues.toLocaleString("en-GB")} proposed ${r.unrecognisedValues === 1 ? "value" : "values"} not recognised, kept as written.`,
+    empty: `${r.emptyRows.toLocaleString("en-GB")} empty ${r.emptyRows === 1 ? "row was" : "rows were"} skipped.`,
+    duplicates: `${r.exactDuplicates.toLocaleString("en-GB")} exact ${r.exactDuplicates === 1 ? "duplicate was" : "duplicates were"} imported once.`,
+    long: `${r.overLimit.toLocaleString("en-GB")} ${r.overLimit === 1 ? "item is over 1,000 characters and was imported whole; consider splitting it" : "items are over 1,000 characters and were imported whole; consider splitting them"} in Shape.`,
+    values: `${r.unrecognisedValues.toLocaleString("en-GB")} proposed ${r.unrecognisedValues === 1 ? "value was not recognised and is" : "values were not recognised and are"} kept as written.`,
   }),
 };
 

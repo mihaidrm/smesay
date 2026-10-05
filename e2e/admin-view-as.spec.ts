@@ -44,7 +44,7 @@ test("an admin views a workspace read-only and stops", async ({ browser, page, r
   await start.getByRole("button", { name: "Confirm" }).click();
   await expect(page).toHaveURL(/\/app$/);
   const banner = page.getByTestId("view-as-banner");
-  await expect(banner).toContainText(`Viewing ${name} as its owner sees it. Changes are off.`);
+  await expect(banner).toContainText(`You are viewing ${name} as its owner sees it. Changes are off.`);
   await expect(page.getByTestId("sidebar")).toContainText(name);
   // The owner's Projects drew no guide card for the admin, and wrote no guide event for them
   // into the workspace (stories/E15-5; design note 91).

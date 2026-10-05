@@ -38,7 +38,7 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
 
   await page.getByLabel("Your file").setInputFiles("e2e/fixtures/expense-requirements.xlsx");
   await page.getByRole("button", { name: "Upload", exact: true }).click();
-  await expect(page.getByTestId("upload-summary")).toHaveText("expense-requirements.xlsx, 12 rows read, header found on row 1.");
+  await expect(page.getByTestId("upload-summary")).toHaveText("We read 12 rows from expense-requirements.xlsx and found the header on row 1.");
   const headers = page.getByTestId("preview-table").getByRole("columnheader");
   await expect(headers).toHaveText(["ARef", "BRequirement", "CModule", "DPriority"]);
   await expect(page.getByTestId("preview-row")).toHaveCount(10);
@@ -49,11 +49,11 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   // The header row picker rebuilds the preview from the stored file.
   await page.getByLabel("Header row").selectOption("0");
   await page.getByRole("button", { name: "Use this row" }).click();
-  await expect(page.getByTestId("upload-summary")).toHaveText("expense-requirements.xlsx, 13 rows read, no header row found.");
-  await expect(page.locator("#preview-error")).toContainText("No header row found.");
+  await expect(page.getByTestId("upload-summary")).toHaveText("We read 13 rows from expense-requirements.xlsx and found no header row.");
+  await expect(page.locator("#preview-error")).toContainText("We found no header row.");
   await page.getByLabel("Header row").selectOption("1");
   await page.getByRole("button", { name: "Use this row" }).click();
-  await expect(page.getByTestId("upload-summary")).toHaveText("expense-requirements.xlsx, 12 rows read, header found on row 1.");
+  await expect(page.getByTestId("upload-summary")).toHaveText("We read 12 rows from expense-requirements.xlsx and found the header on row 1.");
   await page.reload();
   await expect(page.getByTestId("preview-row")).toHaveCount(10);
 
@@ -68,8 +68,8 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.locator("#mapping-error")).toHaveCount(0);
 
   // E3-5: the check card and the import.
-  await expect(page.getByTestId("check-card").getByText("0 empty rows, skipped.", { exact: true })).toBeVisible();
-  await expect(page.getByTestId("check-card").getByText("0 exact duplicates, imported once.", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("check-card").getByText("0 empty rows were skipped.", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("check-card").getByText("0 exact duplicates were imported once.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Import 12 items" }).click();
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
   await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();

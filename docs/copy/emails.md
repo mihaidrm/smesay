@@ -22,7 +22,7 @@ invites from Settings, Members (E2-4). Nothing else is sent to a PM.
 
 From: SMEsay <sign-in@[DOMAIN]>
 Subject: Your sign-in link for SMEsay
-Preheader: Works once, for [N] minutes.
+Preheader: The link works once, for [N] minutes.
 
 Body:
 Hi,
@@ -46,7 +46,7 @@ person. The link resumes on any device.
 From: [PM NAME] via SMEsay <[EMAIL_FROM address]> (one sender address for the app, docs/review-list.md; [PM NAME] is the PM's name, or their email when no name is set)
 Reply-to: [PM EMAIL]
 Subject: [PM NAME] asks for your view on [PROJECT NAME]
-Preheader: [ITEM COUNT] items, about [MINUTES] minutes, on your phone or laptop. (1 item when the list has one)
+Preheader: The list has [ITEM COUNT] items and takes about [MINUTES] minutes, on your phone or laptop. (1 item when the list has one)
 
 Body:
 Hi [RESPONDENT NAME], (Hi, when the invite has no name)
@@ -79,7 +79,7 @@ every three days per person (PM app board, Share step). Never sent automatically
 From: [PM NAME] via SMEsay <[EMAIL_FROM address]> (as email 2)
 Reply-to: [PM EMAIL]
 Subject: Reminder: [PROJECT NAME] closes on [CLOSE DATE]
-Preheader: [ANSWERED] of [ITEM COUNT] answered so far.
+Preheader: You have answered [ANSWERED] of [ITEM COUNT] so far.
 
 Body:
 Hi [RESPONDENT NAME], (Hi, when the invite has no name)
@@ -109,7 +109,7 @@ reply; one that fails to send does not undo the Submit.
 
 From: SMEsay <[EMAIL_FROM address]> (the app's one sender address, as email 2)
 Subject: Your answers on [PROJECT NAME] were submitted
-Preheader: [ITEM COUNT] items, submitted [DATE AND TIME].
+Preheader: You submitted [ITEM COUNT] items on [DATE AND TIME].
 
 Body:
 Hi [RESPONDENT NAME],
@@ -117,10 +117,11 @@ Hi [RESPONDENT NAME],
 Your answers on [PROJECT NAME] for [WORKSPACE NAME] were submitted on
 [DATE AND TIME, with time zone].
 
-[ITEM COUNT] items answered. [PUSHED BACK] with a different priority, [DISAGREED] not needed,
-[UNCLEAR] marked unclear, [MISSING] missing items suggested. Confidence [CONFIDENCE] of 5.
-(A list that does not show the proposed priority, rate-blind: [RATED] rated in place of
-"[PUSHED BACK] with a different priority", since there was nothing to differ from.)
+You answered [ITEM COUNT] items. You gave [PUSHED BACK] a different priority, marked
+[DISAGREED] not needed and [UNCLEAR] unclear, and suggested [MISSING] missing items. Your
+confidence was [CONFIDENCE] of 5. (A list that does not show the proposed priority,
+rate-blind: "You rated [RATED]" in place of "You gave [PUSHED BACK] a different priority",
+since there was nothing to differ from.)
 
 You can change your answers until the link closes on [CLOSE DATE AND TIME]. Open the same link
 and press Change my answers. (A link with no close date: You can change your answers while the
@@ -146,7 +147,7 @@ Subject: Question from the landing page: [VISITOR EMAIL]
 Body:
 [THE QUESTION, as written]
 
-Sent from [PAGE ADDRESS] on [DATE AND TIME UTC]. Reply to this email to answer.
+The visitor sent this from [PAGE ADDRESS] on [DATE AND TIME UTC]. Reply to this email to answer.
 
 ## 6. Workspace deleted (E11-2; to the owner who deleted it, once the removal job has run)
 

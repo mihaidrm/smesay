@@ -15,7 +15,7 @@ export const BRAND_COPY = {
   badHex: "Enter the colour as six hex digits, like #1F4F7A.",
   tooLight: "This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours.",
   saved: "Saved. Your instruments carry the new name, logo and accent.",
-  accentUse: "Used on the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink.",
+  accentUse: "The accent colours the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink.",
   noAccent: "No accent set. The respondent page uses violet.",
 };
 

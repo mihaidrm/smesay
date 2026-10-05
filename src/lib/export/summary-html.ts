@@ -43,7 +43,7 @@ export const SUMMARY_COPY = {
   noConfidence: "Not given",
   actions: "Actions",
   noActions: "No actions written.",
-  more: (n: number, file: string) => `And ${n} more in the ${file} CSV on the Export tab.`,
+  more: (n: number, file: string) => `The ${file} CSV on the Export tab has ${n} more.`,
   page: "Page",
   of: "of",
   countsInWords: (c: SummaryCounts) => [c.agree && `${c.agree} agree`, c.change && `${c.change} different priority`, c.disagree && `${c.disagree} disagree`, c.unclear && `${c.unclear} unclear`, c.pick && `${c.pick} rated`, c.notAnswered && `${c.notAnswered} not answered`].filter(Boolean).join(" · ") || "No answers",

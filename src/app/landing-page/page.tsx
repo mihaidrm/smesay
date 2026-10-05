@@ -96,7 +96,7 @@ const QUESTIONS: [string, string][] = [
   ["Can I see who said what?", "You choose the fields the link asks for, such as name, role or department. Answers carry those fields and nothing more about the person; a personal invite also carries the email you sent it to, and the name and role when you gave them."],
   ["Can the link carry our logo and colour?", "Yes. Your experts see your logo and your colour on the link."],
   ["What happens to my list and the answers?", "They stay in your workspace. Export them as CSV whenever you like. Archive a project when it is done; delete the workspace and the app removes its data within 24 hours."],
-  ["How much does it cost?", "Nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
+  ["How much does it cost?", "It costs nothing while we build it with the first users. Paid plans come later, and nothing you build now is lost or locked."],
 ];
 
 export default async function LandingPage({ searchParams }: { searchParams: Promise<{ utm_source?: string | string[] }> }) {
@@ -135,7 +135,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <div className="flex" aria-hidden="true">
                 {["#FF8A78", "#5FD3B3", "#FFD36E", "#9B86FF"].map((c, i) => <span key={c} className="size-[26px] rounded-full border-2" style={{ background: c, borderColor: NAVY, marginLeft: i ? -8 : 0 }} />)}
               </div>
-              <span>No account for the experts. Nothing to install. Free while we build it.</span>
+              <span>Your experts need no account and install nothing. It is free while we build it.</span>
             </div>
           </div>
           <div className="landing-rise relative w-full max-w-[600px] pt-6 pb-16 lg:py-10 lg:pl-5 [animation-delay:150ms]">
@@ -158,7 +158,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
           <div className="mt-10 grid gap-6 md:mt-12 lg:grid-cols-3">
             <Reveal className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">1</span><span className="text-[18px] font-bold">Import the list</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">xlsx, csv or a pasted list. Columns are matched once and remembered.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Upload an xlsx or csv file, or paste a list. Columns are matched once and remembered.</p>
               <div className="mt-auto flex h-[120px] items-center justify-center rounded-[14px] border-[1.5px] border-dashed border-[#CFCBE0] bg-white text-sm text-[#5E5A72]"><span className="rounded-full bg-[#EEEAFF] px-3 py-1.5 font-semibold text-[#5A3BE0]">expense-requirements.xlsx</span></div>
             </Reveal>
             <Reveal delay={120} className="flex flex-col gap-3.5 rounded-[20px] border border-[#6D4CF5] bg-white p-[26px] shadow-[0_16px_40px_rgba(109,76,245,0.22)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] motion-reduce:hover:translate-y-0">
@@ -179,13 +179,13 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">What you get back</h2>
-            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Not a pile of replies. A picture of where your experts agree, where they do not and why, and what to decide next.</p>
+            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Instead of a pile of replies, you get a picture of where your experts agree, where they do not and why, and what to decide next.</p>
           </Reveal>
           <div className="mt-8 grid gap-6 md:mt-10 lg:grid-cols-[1.35fr_1fr]">
             <Reveal className="flex flex-col gap-4 rounded-[20px] border border-[#E6E3F0] bg-[#F7F6FB] p-5 md:p-6">
               <div className="flex flex-col gap-1">
                 <h3 className="text-xs font-bold text-[#5A3BE0]">See where the list is weak</h3>
-                <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item, every area, as answers arrive.</span>
+                <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item and every area updates as answers arrive.</span>
                 <span className="text-[14px] leading-[21px] text-[#5E5A72]">Pick the numbers you watch, filter by role or by who left a reason, and switch the chart to the view your meeting needs.</span>
               </div>
               <ResultsDemo />
@@ -242,7 +242,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-5 md:px-8 lg:flex-row lg:items-center lg:justify-between">
           <Reveal className="max-w-[560px]">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Free while we build it with the first users.</h2>
-            <p className="mt-[18px] text-[17px] leading-[26px] text-[#C9C4E0]">Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you build now is lost or locked.</p>
+            <p className="mt-[18px] text-[17px] leading-[26px] text-[#C9C4E0]">Projects and experts are unlimited, and the AI is included. Paid plans come later and nothing you build now is lost or locked.</p>
             <div className="mt-[30px] flex flex-col gap-3.5 sm:flex-row"><GoalLink goal={GOALS.startFree} href={start} className={primary}>Start free</GoalLink><GoalLink goal={GOALS.trySample} href="/sample" className={ghost}>Try the sample as a respondent</GoalLink></div>
           </Reveal>
           <Reveal delay={120} className="flex w-full max-w-[440px] flex-col gap-3.5 rounded-[20px] border border-[#343252] bg-[#1E1D33] p-7 shadow-[0_16px_48px_rgba(0,0,0,0.5)]">

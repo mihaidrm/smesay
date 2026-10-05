@@ -75,14 +75,14 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   await expect(link.getByTestId("wrap-up-note")).toHaveText("Still needed: how confident you are, the confirmation.");
   // The Wrap up's answers save to the server as they are written, within a second.
   const wrapSaved = link.waitForResponse((r) => r.url().endsWith("/wrap") && r.request().method() === "PUT" && r.ok());
-  await link.getByLabel("What is missing").fill("Mileage from a start and end address");
-  await link.getByLabel("Where it belongs").selectOption("Submitting");
+  await link.getByLabel("What is missing?").fill("Mileage from a start and end address");
+  await link.getByLabel("Where does it belong?").selectOption("Submitting");
   await wrapSaved;
   // They survive a reload before Submit.
   await link.reload();
   await link.locator("[data-ready]").waitFor();
-  await expect(link.getByLabel("What is missing")).toHaveValue("Mileage from a start and end address");
-  await expect(link.getByLabel("Where it belongs")).toHaveValue("Submitting");
+  await expect(link.getByLabel("What is missing?")).toHaveValue("Mileage from a start and end address");
+  await expect(link.getByLabel("Where does it belong?")).toHaveValue("Submitting");
   await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
   await link.getByTestId("wrap-up-signoff").click();
   await expect(link.getByTestId("wrap-up-note")).toHaveText("Everything is in. Submit when you are ready.");
@@ -92,11 +92,11 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   const firstWhen = await link.getByTestId("done-when").innerText();
   // The receipt goes after the reply: wait for it to replace the invitation as the newest.
   await expect.poll(async () => (await latestInvite(request, ana)).subject, { timeout: 15_000 }).toBe("Your answers on Expense tool were submitted");
-  expect((await latestInvite(request, ana)).text).toContain("2 items answered.");
+  expect((await latestInvite(request, ana)).text).toContain("You answered 2 items.");
   // Back from Done shows the Wrap up with the sign-off to tick again, the rest as submitted.
   await link.goBack();
   await expect(link.getByTestId("wrap-up-signoff").locator("input")).not.toBeChecked();
-  await expect(link.getByLabel("What is missing")).toHaveValue("Mileage from a start and end address");
+  await expect(link.getByLabel("What is missing?")).toHaveValue("Mileage from a start and end address");
   await link.goForward();
   await expect(link.getByTestId("done-thanks")).toHaveText("Thank you, Ana.");
 

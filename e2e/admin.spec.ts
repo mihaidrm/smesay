@@ -50,7 +50,7 @@ test("only an admin email sees the admin page", async ({ page, request }) => {
   await expect(page.getByTestId("admin-totals").getByTestId("stat-tile")).toHaveCount(4);
   await expect(page.getByTestId("admin-funnel").locator("tbody tr")).toHaveCount(12);
   await expect(page.getByTestId("admin-metric")).toContainText("Workspaces with a response submitted this month");
-  await expect(page.getByTestId("admin-metric")).toContainText("No threshold set yet: paid plans stay off.");
+  await expect(page.getByTestId("admin-metric")).toContainText("No threshold is set yet, so paid plans stay off.");
   // The guide's measurement (stories/E15-5): the first-project funnel with the benchmark, and a
   // row per tip.
   await expect(page.getByTestId("admin-first-project").locator("tbody tr")).toHaveCount(12);

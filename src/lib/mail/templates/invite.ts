@@ -16,7 +16,7 @@ export function inviteEmail(input: InviteEmailInput): Email {
   return renderEmail({
     origin: url,
     subject: `${pmName} asks for your view on ${projectName}`,
-    preheader: `${itemCount} ${itemCount === 1 ? "item" : "items"}, about ${minutes} minutes, on your phone or laptop.`,
+    preheader: `The list has ${itemCount} ${itemCount === 1 ? "item" : "items"} and takes about ${minutes} minutes, on your phone or laptop.`,
     before: [
       { text: input.respondentName ? `Hi ${input.respondentName},` : "Hi," },
       { text: `${pmName} at ${workspaceName} is checking ${list} for ${projectName} and wants your view.` },

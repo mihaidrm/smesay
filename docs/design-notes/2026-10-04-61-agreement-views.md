@@ -23,7 +23,7 @@ Design note 40 decided the three views; this note records how they are drawn.
   per group per area; Share one donut per group for the whole list (a donut per group per
   area would be too many). A group with fewer than 3 answers on an item is drawn faded with
   no figure, and the banner says why; a group summed over items needs 3 answers and 3 people
-  who answered one item ("Not compared, so one person cannot be singled out" otherwise; the count of people is a
+  who answered one item ("This group is not compared, so one person cannot be singled out" otherwise; the count of people is a
   lower bound, so the line does not state a number).
 - Sort within an area: ties fall back to the list's order in the same direction, so sorting
   by disagree, most first, puts the later of two tied items first.

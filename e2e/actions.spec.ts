@@ -66,7 +66,7 @@ test("write actions from the answers, each citing the answers behind it", async 
   await link.getByTestId("chapter-continue").click();
   await expect(link).toHaveURL(/\?at=wrap$/);
   const wrapSaved = link.waitForResponse((r) => r.url().endsWith("/wrap") && r.request().method() === "PUT" && r.ok());
-  await link.getByLabel("What is missing").fill("Mileage from a start and end address");
+  await link.getByLabel("What is missing?").fill("Mileage from a start and end address");
   await wrapSaved;
   await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
   await link.getByTestId("wrap-up-signoff").click();

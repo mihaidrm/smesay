@@ -19,15 +19,15 @@ export type ReceiptEmailInput = {
 export function receiptEmail(input: ReceiptEmailInput): Email {
   const { projectName, workspaceName, submittedAt, closesAt, counts, url } = input;
   const when = formatUtc(submittedAt);
-  const split = input.rateBlind ? `${counts.rated} rated` : `${counts.changed} with a different priority`;
+  const split = input.rateBlind ? `You rated ${counts.rated}` : `You gave ${counts.changed} a different priority`;
   return renderEmail({
     origin: url,
     subject: `Your answers on ${projectName} were submitted`,
-    preheader: `${counts.items} ${counts.items === 1 ? "item" : "items"}, submitted ${when}.`,
+    preheader: `You submitted ${counts.items} ${counts.items === 1 ? "item" : "items"} on ${when}.`,
     before: [
       { text: input.respondentName ? `Hi ${input.respondentName},` : "Hi," },
       { text: `Your answers on ${projectName} for ${workspaceName} were submitted on ${when}.` },
-      { text: `${counts.items} ${counts.items === 1 ? "item" : "items"} answered. ${split}, ${counts.notNeeded} not needed, ${counts.unclear} marked unclear, ${counts.missing} missing ${counts.missing === 1 ? "item" : "items"} suggested. Confidence ${counts.confidence} of 5.` },
+      { text: `You answered ${counts.items} ${counts.items === 1 ? "item" : "items"}. ${split}, marked ${counts.notNeeded} not needed and ${counts.unclear} unclear, and suggested ${counts.missing} missing ${counts.missing === 1 ? "item" : "items"}. Your confidence was ${counts.confidence} of 5.` },
       { text: closesAt ? `You can change your answers until the link closes on ${formatUtc(closesAt)}. Open the same link and press Change my answers.` : "You can change your answers while the link is open. Open the same link and press Change my answers." },
     ],
     button: { label: "See your answers", url },

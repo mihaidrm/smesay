@@ -32,7 +32,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         <Lockup />
         <div className="flex flex-col gap-2">
           <h1 className="text-[30px] font-extrabold leading-9 tracking-[-0.03em]">Sign in</h1>
-          <p className="text-ink-muted">Enter your email and we send you a link. No password to remember.</p>
+          <p className="text-ink-muted">Enter your email and we send you a link. There is no password to remember.</p>
         </div>
         <SignInForm next={target} />
         {readGoogleEnv(process.env, () => undefined) && (

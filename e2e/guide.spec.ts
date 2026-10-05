@@ -28,7 +28,7 @@ test("the first-project path, the switch and Dismiss", async ({ page, request })
   await expect(card.getByRole("heading", { name: "Your first validation" })).toBeVisible();
   await expect(card.getByTestId("path-step")).toHaveCount(4);
   await expect(card.locator('[data-testid="path-step"][data-done="true"]')).toHaveCount(0);
-  await expect(card.getByTestId("guide-line")).toHaveText("Four steps to your first link. Start with the list you were about to email round.");
+  await expect(card.getByTestId("guide-line")).toHaveText("Your first link is four steps away. Start with the list you were about to email round.");
   await expect(card.getByRole("link", { name: "Try it on the sample first" })).toBeVisible();
   // One robot on the screen: the empty state is left out while the path says the same.
   await expect(page.getByTestId("mascot")).toHaveCount(1);

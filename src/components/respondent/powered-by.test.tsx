@@ -13,8 +13,8 @@ describe("Powered by SMEsay", () => {
   it("carries the privacy notice link on every plan when asked (E11-3, acceptance 3)", () => {
     const paid = renderToStaticMarkup(<PoweredBy show={false} privacy />);
     expect(paid).toContain('href="/legal/privacy"');
-    expect(paid).toContain("How your answers are used");
+    expect(paid).toContain("How are your answers used?");
     expect(paid).not.toContain("Powered by");
-    expect(renderToStaticMarkup(<PoweredBy show privacy />)).toMatch(/Powered by[\s\S]*How your answers are used/);
+    expect(renderToStaticMarkup(<PoweredBy show privacy />)).toMatch(/Powered by[\s\S]*How are your answers used\?/);
   });
 });

@@ -98,7 +98,7 @@ describe("saveUpload", () => {
     expect(upload.preview.columns.map((c) => `${c.letter} ${c.name}`)).toEqual(["A Ref", "B Requirement", "C Module", "D Priority"]);
     expect(upload.preview.rows).toHaveLength(6);
     expect(upload.preview.rowsRead).toBe(6);
-    expect(UPLOAD_COPY.summary(upload.filename, upload.preview.rowsRead, upload.headerRow)).toBe("expense-requirements.xlsx, 6 rows read, header found on row 3.");
+    expect(UPLOAD_COPY.summary(upload.filename, upload.preview.rowsRead, upload.headerRow)).toBe("We read 6 rows from expense-requirements.xlsx and found the header on row 3.");
     expect((await uploads.latestForProject(a.ws, projectA))?.id).toBe(upload.id);
     expect(await uploads.get(b.ws, upload.id)).toBeNull();
     expect(await uploads.latestForProject(b.ws, projectA)).toBeNull();

@@ -57,7 +57,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         <div className="flex flex-col gap-1">
           <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}</div>
           <h1 className="text-[30px] font-extrabold leading-9 tracking-[-0.03em]">{showArchived ? "Archived projects" : "Projects"}</h1>
-          <p className="text-ink-muted">One project per validation.</p>
+          <p className="text-ink-muted">Each project holds one validation.</p>
         </div>
         <div className="flex shrink-0 gap-2.5">
           <Link href={showArchived ? "/app" : "/app?archived=1"} className={buttonVariants({ variant: "secondary" })}>{showArchived ? "Back to projects" : "Show archived"}</Link>
