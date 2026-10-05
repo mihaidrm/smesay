@@ -28,9 +28,10 @@ function subscribe(onChange: () => void) {
 const read = () => document.documentElement.classList.contains("dark");
 const serverRead = () => false;
 
-export function ModeToggle() {
+// The mode and the press that flips it, shared by this toggle and the respondent header's
+// button (src/components/respondent/mode-button.tsx, design note 97).
+export function useDarkMode() {
   const dark = useSyncExternalStore(subscribe, read, serverRead);
-  const labelId = useId();
   const flip = () => {
     const next = !dark;
     const apply = () => {
@@ -50,6 +51,12 @@ export function ModeToggle() {
     root.classList.toggle("mode-sweep-to-dark", next);
     document.startViewTransition(apply).finished.finally(() => root.classList.remove("mode-sweep", "mode-sweep-to-dark"));
   };
+  return { dark, flip };
+}
+
+export function ModeToggle() {
+  const { dark, flip } = useDarkMode();
+  const labelId = useId();
   return (
     <div className="flex items-center justify-between gap-3 px-2.5 text-xs text-ink-muted">
       <span id={labelId}>Dark mode</span>

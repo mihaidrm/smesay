@@ -27,6 +27,12 @@ text passes AA, and the PM's logo and accent apply within the theming rules.
    request leaves the page to a font host (design system, Type). (Amended 2026-10-04 after
    the audit; the criterion named Geist, the type before design v2.)
 6. `prefers-reduced-motion` turns off the 150 and 250 ms transitions (design system, Motion).
+7. (Added 2026-10-05, design note 97; Mihai: "should add the dark mode toggle on the sample
+   respondent flow from the landing page as well".) The mode follows the phone's setting until
+   the respondent presses the switch at the right end of the header, "Dark mode", on every
+   respondent screen with a header, the visitors' sample and the Build preview included. The
+   choice is kept in the browser (smesay-mode, the PM app's key) and applied before the first
+   paint. A Playwright test turns the sample dark, reloads and turns it back.
 
 ## Out of scope
 - Right-to-left languages, translations: not in R1.

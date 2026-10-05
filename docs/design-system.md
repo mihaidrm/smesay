@@ -96,7 +96,9 @@ dark ground) on the violet 6.17. Hairline-strong is never text (1.58).
 Modes: the PM app and the admin area follow the system setting with a toggle at the bottom of
 the sidebar (src/components/app/mode-toggle.tsx; the choice is kept in the browser). The
 landing page has a dark hero and pricing with light sections between. The respondent side
-follows the phone's setting; the PM's accent still marks the selected answer, the active
+follows the phone's setting until the respondent presses the switch at the right end of its
+header (a 36 px round button with the moon, or the sun on dark, in a 48 px tap target; the
+same stored choice; design note 97); the PM's accent still marks the selected answer, the active
 chapter and the progress bar (decision 0016), and from E7-7 the confidence picked and the
 header's initials, lifted two steps on dark. With no accent set the
 respondent side uses violet 600 (src/lib/brand-rules.ts).
@@ -291,7 +293,8 @@ answer, the active chapter and the progress bar (decision 0016), and from E7-7 o
 confidence picked on the Wrap up and the header's initials when there is no logo (the focus
 ring and links stay violet). Buttons stay ink. Neutrals and type never change. An accent under 4.5:1 on white
 falls back to ink and settings says why; with none set the accent is violet 600. The
-respondent side follows the phone's setting for the mode, with the PM's accent lifted two
+respondent side follows the phone's setting for the mode (until the header's switch is
+pressed, design note 97), with the PM's accent lifted two
 steps on dark (OKLCH lightness 0.72 with the hue kept: design note 57), drawn with the dark
 ink; violet 600 and ink take violet 400 on dark, and so would a lifted accent that read
 under 4.5:1 on the dark surface or under the dark ink (note 33).

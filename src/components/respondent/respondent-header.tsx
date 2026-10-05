@@ -1,11 +1,13 @@
 // The respondent pages' header (stories/E7-1, acceptance 1; E7-7, acceptance 5; the
 // respondent board, note 12): the PM's logo at 24 px when the workspace has one, else the
 // workspace's initials on its accent, the workspace's name, and a note on the right (the
-// close date, the progress, the save state). The logo comes from the workspace row through
+// close date, the progress, the save state), then the light and dark switch (design note 97).
+// The logo comes from the workspace row through
 // the link (/brand/[workspaceId]/logo, E2-5), never from the URL. Server and client safe.
 import { cn } from "cn";
 import { initials } from "@/components/app/tiles";
 import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
+import { ModeButton } from "./mode-button";
 
 export function RespondentHeader({ workspaceName, accent, logoUrl = null, note = null, noteTestId = "respondent-note", children, className }: { workspaceName: string; accent: string; logoUrl?: string | null; note?: React.ReactNode; noteTestId?: string; children?: React.ReactNode; className?: string }) {
   return (
@@ -20,6 +22,7 @@ export function RespondentHeader({ workspaceName, accent, logoUrl = null, note =
       <span className="grow text-[15px] font-bold">{workspaceName}</span>
       {note && <span className="font-mono text-xs text-ink-muted" data-testid={noteTestId}>{note}</span>}
       {children}
+      <ModeButton />
     </header>
   );
 }

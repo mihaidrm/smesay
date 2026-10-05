@@ -29,13 +29,16 @@ export const metadata: Metadata = {
 // preventing-flash-before-hydration.md, "Themes"); the html element may then differ from the
 // server's markup, which suppressHydrationWarning allows for that one element (same guide;
 // react.dev/reference/react-dom/client/hydrateRoot). With no stored choice the page also
-// follows a system change while open. The script is a fixed string and compares the stored
+// follows a system change while open. A choice made in another page of the same site (another
+// tab, or the Build preview's frame, whose header has the switch too: design note 97) is
+// applied here at once through the storage event, which fires in every other document of the
+// origin (developer.mozilla.org/docs/Web/API/Window/storage_event). The script is a fixed string and compares the stored
 // value with one word. The content security policy (E11-5, src/proxy.ts) lets it run with the
 // request's nonce, read from the x-nonce header the proxy sets (node_modules/next/dist/docs/
 // 01-app/02-guides/content-security-policy.md, "Reading the nonce"). Reading a request header
 // renders every page per request, which the nonce needs anyway (same guide, "Dynamic Rendering
 // Requirement").
-const MODE_SCRIPT = `(function(){try{var s=localStorage.getItem("smesay-mode");var m=window.matchMedia("(prefers-color-scheme: dark)");var c=document.documentElement.classList;c.toggle("dark",s?s==="dark":m.matches);if(!s&&m.addEventListener)m.addEventListener("change",function(e){if(!localStorage.getItem("smesay-mode"))c.toggle("dark",e.matches);});}catch(e){}})();`;
+const MODE_SCRIPT = `(function(){try{var s=localStorage.getItem("smesay-mode");var m=window.matchMedia("(prefers-color-scheme: dark)");var c=document.documentElement.classList;c.toggle("dark",s?s==="dark":m.matches);if(!s&&m.addEventListener)m.addEventListener("change",function(e){if(!localStorage.getItem("smesay-mode"))c.toggle("dark",e.matches);});window.addEventListener("storage",function(e){if(e.key==="smesay-mode")c.toggle("dark",e.newValue?e.newValue==="dark":m.matches);});}catch(e){}})();`;
 
 export default async function RootLayout({
   children,

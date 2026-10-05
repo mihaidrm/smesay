@@ -14,8 +14,30 @@
 // Each store is capped at CAP keys: expired keys go first, then the oldest, so memory stays
 // bounded whatever the traffic. Pure apart from the Maps: `now` comes from the caller, so a
 // test drives the clock. No database import.
+//
+// A sweep every SWEEP_MS removes the keys that are done (a window's that has ended, a backoff's
+// that is neither blocked nor recent), so an address or email is held for at most its window
+// (or the backoff's quiet time) plus SWEEP_MS, whatever the traffic (docs/legal/privacy.md,
+// decision 0054). The timer is unref'd, so it never keeps the process alive
+// (nodejs.org/api/timers.html, timeout.unref()); a test calls sweepAll(now).
 
 export const CAP = 50_000;
+export const SWEEP_MS = 10 * 60_000;
+
+const sweepers: ((now: number) => void)[] = [];
+let timer: ReturnType<typeof setInterval> | null = null;
+
+// Registers a store's sweep; the first one starts the shared timer.
+export function onSweep(sweep: (now: number) => void): void {
+  sweepers.push(sweep);
+  if (timer || typeof setInterval !== "function") return;
+  timer = setInterval(() => sweepAll(Date.now()), SWEEP_MS);
+  (timer as { unref?: () => void }).unref?.();
+}
+
+export function sweepAll(now: number): void {
+  for (const sweep of sweepers) sweep(now);
+}
 
 export type Verdict = { allowed: true } | { allowed: false; retryAfterMs: number };
 
@@ -38,6 +60,7 @@ function trim<T>(map: Map<string, T>, expired: (v: T) => boolean): void {
 
 export function windowLimiter({ max, windowMs }: { max: number; windowMs: number }) {
   const slots = new Map<string, Slot>();
+  onSweep((now) => { for (const [k, v] of slots) if (v.until <= now) slots.delete(k); });
   return {
     // Counts one request for the key; refused once the window holds `max`.
     hit(key: string, now: number): Verdict {
@@ -78,6 +101,7 @@ function trimTracks(map: Map<string, Track>, now: number, quietMs: number): void
 
 export function backoffLimiter({ max, windowMs, baseMs, quietMs, capMs }: { max: number; windowMs: number; baseMs: number; quietMs: number; capMs: number }) {
   const tracks = new Map<string, Track>();
+  onSweep((now) => { for (const [k, v] of tracks) if (v.blockedUntil <= now && now - v.lastAt >= quietMs) tracks.delete(k); });
   const fresh = (now: number): Track => ({ count: 0, windowUntil: now + windowMs, blockedUntil: 0, strikes: 0, lastAt: now });
   return {
     // Whether the key may try now, without counting.
