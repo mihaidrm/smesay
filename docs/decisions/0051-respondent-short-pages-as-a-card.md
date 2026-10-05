@@ -12,7 +12,8 @@ Decision: on a phone nothing moves but "Powered by", which is now the last line,
 action. From a 576 px column (a container query) the page is a centered card 720 px wide,
 48 px from the top: the header, the content with 32 px sides, and on About you a footer with
 Start at 320 px, centered, and its hint centered under it. The fields fill the card. "Powered
-by" and the privacy link sit under the card as the last thing on the page. Chapters (1000 px)
+by" and the privacy link sit under the card as the last thing on the page. Amended the same
+day: the card keeps 16 px from the window's sides when the window is under 752 px wide. Chapters (1000 px)
 and the Wrap up (760 px) are unchanged.
 
 Consequences: src/components/respondent/frame.ts holds the frame's classes; about-you.tsx,
