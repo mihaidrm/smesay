@@ -18,6 +18,7 @@ import type { Link } from "@/db/queries/links";
 import { readAuthEnv } from "@/lib/auth";
 import { verifyPasscode } from "@/lib/passcode";
 import { linkState, type LinkState } from "@/lib/sharing";
+import { onSweep } from "@/lib/ratelimit";
 
 export const PASSCODE_COOKIE = "smesay-passcode";
 // A year: the passcode is typed once per device (stories/E6-1, acceptance 4).
@@ -97,6 +98,9 @@ export async function linkStatus(token: string, cookie: string | undefined, now 
 type Window = { count: number; until: number };
 const perLink = new Map<string, Window>();
 const perAddress = new Map<string, Window>();
+// The shared sweep (src/lib/ratelimit.ts onSweep) removes ended windows, so an address is held
+// for at most the window plus ten minutes.
+onSweep((now) => { sweep(perLink, now); sweep(perAddress, now); });
 const TOKEN_SHAPE = /^[0-9a-f]{32,128}$/i;
 // The entry the post counted on, or null when it is over the limit or the Map is full.
 function take(map: Map<string, Window>, key: string, limit: number, now: number): Window | null {

@@ -8,7 +8,7 @@ test("the legal pages from the landing footer", async ({ page, request }) => {
     await page.goto("/landing-page");
     await page.getByRole("navigation", { name: "Legal" }).getByRole("link", { name, exact: true }).click();
     await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
-    await expect(page.getByTestId("legal-version")).toHaveText("Version 1, 4 October 2026");
+    await expect(page.getByTestId("legal-version")).toHaveText("Version 2, 5 October 2026");
     expect(await page.getByTestId("lawyer-marker").count()).toBeGreaterThan(0);
   }
   expect((await request.get("/legal/cookies")).status()).toBe(404);

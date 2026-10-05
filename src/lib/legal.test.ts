@@ -11,7 +11,7 @@ describe("legal pages", () => {
   it("parse with a version, a date, a title and at least one marker each", () => {
     for (const page of LEGAL_PAGES) {
       const doc = readLegal(page);
-      expect([doc.version, doc.date]).toEqual([1, "2026-10-04"]);
+      expect([doc.version, doc.date]).toEqual([2, "2026-10-05"]);
       expect(doc.blocks[0].kind).toBe("h1");
       expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBeGreaterThan(0);
       expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(true);
