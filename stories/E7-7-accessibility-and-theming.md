@@ -21,7 +21,8 @@ text passes AA, and the PM's logo and accent apply within the theming rules.
    to ink when the PM's accent fails (E2-5). The status tints and text colours are the design
    system's.
 5. Theming: the PM's logo replaces the mark in the header at 24 px, the workspace name beside
-   it, "Powered by SMEsay" in the footer on the Free plan (design system, Identity). The
+   it, "Powered by SMEsay" at the bottom of the page on the Free plan (under the card on a
+   desktop, decision 0052) (design system, Identity). The
    fonts, Plus Jakarta Sans with Geist Mono for numbers (design note 33), are self-hosted; no
    request leaves the page to a font host (design system, Type). (Amended 2026-10-04 after
    the audit; the criterion named Geist, the type before design v2.)

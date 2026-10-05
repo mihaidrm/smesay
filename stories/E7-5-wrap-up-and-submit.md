@@ -58,7 +58,9 @@ Built 2026-10-04 (design note 55, decision 0044):
   higher and lower by the scale's order), the gaps box and list (E7-4), the sections higher,
   lower, not needed and their questions with Change per row (agreed items are not listed),
   the missing-item form when on, the closing question when set, confidence 1 to 5 and the
-  sign-off label.
+  sign-off label. On a desktop (decision 0052) it is a centered 760 px card, Back and Submit
+  centered as a pair in its bottom band with Submit at 320 px and the line under them, and
+  "Powered by" under the card.
 - Acceptance 2: Submit is off until every visible item is complete on the server, the
   mandatory fields are filled, confidence is picked and the sign-off ticked; the line says
   what is still needed, and "Pick how sure you are, 1 to 5, before you submit." when only

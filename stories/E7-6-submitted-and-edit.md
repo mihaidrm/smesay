@@ -42,7 +42,8 @@ Built 2026-10-04 (design note 56, decision 0044):
   agreed, [N] changed, [N] not needed, [N] unclear, [N] items added", with ", [N] rated"
   after "changed" when items without a proposal were rated, and "[N] rated, ..." on a
   rate-blind list) and Change my answers, which reopens the Wrap up with the sign-off
-  cleared.
+  cleared. Change my answers (and the sample's Start free) sit in the card's bottom band,
+  centered on a desktop (decision 0052).
 - Acceptance 2: a submitted personal link opened again lands on "Welcome back, [FIRST NAME].
   You submitted on [DATE]. You can change your answers until [CLOSE DATE]." with the summary
   and Change; after the close date the link page says "Your answers were submitted on

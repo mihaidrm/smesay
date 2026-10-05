@@ -1,7 +1,8 @@
 // The main path of E6-1: sign in, create a project, paste a list, see Share's empty state
 // point to Build, open Build (the draft), publish with a close date and a passcode, see the
 // link and Published; open the link in a fresh context, see the passcode page, get a wrong
-// one refused, enter the right one, see About you; an unknown token gets its page; set the
+// one refused, enter the right one, see About you; at 1440 the passcode page is a centered
+// card with Continue centered (decision 0052); an unknown token gets its page; set the
 // close date to the past, reload the link, see the closed page; the Import banner says the
 // list is published.
 import { expect, test } from "@playwright/test";
@@ -76,6 +77,18 @@ test("publish a public link, open it with the passcode, close it", async ({ page
   const link = await respondent.newPage();
   await link.goto(url);
   await expect(link.getByRole("heading", { name: "This link needs a passcode." })).toBeVisible();
+  // On a desktop the passcode page is a centered card with Continue centered under the field,
+  // at least 320 px (decision 0052).
+  const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const widePage = await wide.newPage();
+  await widePage.goto(url);
+  const passCard = (await widePage.getByTestId("passcode-form").locator("xpath=ancestor::div[contains(@class,'@xl:rounded-[20px]')][1]").boundingBox())!;
+  expect(passCard.width).toBe(720);
+  expect(Math.abs(passCard.x + passCard.width / 2 - 720)).toBeLessThanOrEqual(1);
+  const passGo = (await widePage.getByTestId("passcode-continue").boundingBox())!;
+  expect(passGo.width).toBeGreaterThanOrEqual(320);
+  expect(Math.abs(passGo.x + passGo.width / 2 - 720)).toBeLessThanOrEqual(1);
+  await wide.close();
   await link.getByLabel("Passcode").fill("wrong1");
   await link.getByRole("button", { name: "Continue" }).click();
   await expect(link.getByTestId("passcode-form").getByRole("alert")).toHaveText("That passcode is not right. Ask the person who sent you the link.");

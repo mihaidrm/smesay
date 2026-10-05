@@ -144,7 +144,7 @@
     "Respondent.dc.html": {
       "h": 844,
       "is_interactive": true,
-      "title": "Respondent on a phone, current (click through)",
+      "title": "Respondent on a phone, first prototype, superseded by Respondent as built (click through)",
       "w": 390,
       "x": 1520,
       "y": 2100
@@ -152,7 +152,7 @@
     "RespondentDesktop.dc.html": {
       "h": 900,
       "is_interactive": true,
-      "title": "Respondent on a desktop, current (click through)",
+      "title": "Respondent on a desktop, first prototype, superseded by Respondent as built (click through)",
       "w": 1440,
       "x": 2010,
       "y": 2100
@@ -180,7 +180,7 @@
     },
     "RespondentBuilt.dc.html": {
       "h": 3000,
-      "title": "Respondent as built, E7 merged 4 October 2026 (product screenshots, note 59)",
+      "title": "Respondent as built, E7 merged 4 October 2026, every step in the card 5 October (product screenshots, notes 59 and 93)",
       "w": 3152,
       "x": 0,
       "y": 15900

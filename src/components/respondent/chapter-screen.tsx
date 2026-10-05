@@ -9,7 +9,11 @@
 // heading and "All [N] on one page". Phone first. E7-4: the chapter row and the bar under
 // the header (`nav`), and the footer with Back, "Continue to [NEXT AREA]" or "Continue to
 // Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
-// later." or "All [M] rated in this chapter."
+// later." or "All [M] rated in this chapter." The frame of ./frame.ts (decisions 0051 and 0052): from a
+// 576 px column the screen is a centered card, its cards on the ground inside it, the
+// footer's buttons centered with the note under them (under them on a phone too, as Start's
+// hint, and Continue is described by it), and "Powered by" under the card.
+import { useId } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
@@ -17,6 +21,7 @@ import { BUILD_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
 import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
 import { RespondentHeader } from "./respondent-header";
+import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 
 export type ChapterScreenProps = {
   workspaceName: string;
@@ -58,17 +63,19 @@ const ON_GROUND = "focus-visible:ring-offset-ground";
 export function ChapterScreen(props: ChapterScreenProps) {
   const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
   const chapter = chapters[index];
+  const noteId = useId();
   const card = (it: RespondentItem) => (
     <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));
   return (
-    <div className="flex min-h-screen flex-col bg-ground text-ink" data-testid="chapter-screen" data-layout={layout}>
-      <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} />
+    <div className={FRAME_OUTER} data-testid="chapter-screen" data-layout={layout}>
+      <div className={FRAME_CARD}>
+      <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} className={FRAME_HEADER} />
       {nav}
       {banner}
-      <main className="flex grow flex-col gap-4 px-5 pt-4 pb-5">
+      <main className="flex grow flex-col gap-4 bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
         {layout === "page" ? (
           <>
             <h1 className="sr-only" tabIndex={-1} data-screen-heading>{title}</h1>
@@ -103,15 +110,16 @@ export function ChapterScreen(props: ChapterScreenProps) {
             )}
           </>
         )}
-        <PoweredBy show={poweredBy} />
       </main>
-      <footer className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
-        <p className="text-sm text-ink-muted" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
-        <div className="flex items-center gap-3">
+      <footer className={FRAME_ACTIONS}>
+        <div className="flex items-center gap-3 @xl:justify-center">
           <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
-          <button type="button" onClick={onContinue} className="h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface md:grow-0" data-testid="chapter-continue">{continueLabel}</button>
+          <button type="button" onClick={onContinue} aria-describedby={noteId} className={cn("h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
         </div>
+        <p id={noteId} className="text-sm text-ink-muted @xl:text-center" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
       </footer>
+      </div>
+      <PoweredBy show={poweredBy} className={FRAME_POWERED} />
     </div>
   );
 }
