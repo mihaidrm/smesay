@@ -401,3 +401,16 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Error state button | Try again |
 | 404 page title and line (errors.md) | This page does not exist. Check the address, or go to your projects. |
 | 404 page button | Go to your projects |
+
+## Admin Overview (E13-2, /admin; Mihai only)
+
+| Where | Text |
+|---|---|
+| Crumb, title and line | SMEsay admin / Overview / Every workspace, its usage, and the steps from sign-up to submission. The sample projects are left out. |
+| Totals | [N] workspaces / [N] projects / [N] instruments published / [N] responses submitted |
+| Paid-plan metric | the metric's label from src/lib/plans.ts (now: Workspaces with a response submitted this month), and under it: [N]. No threshold set yet: paid plans stay off. (with a threshold: [N] of [THRESHOLD] to switch paid plans on.; reached: [N] of [THRESHOLD]: the threshold is reached, paid plans can switch on.) |
+| Funnel title and note | Funnel per week / Each step's count, and under it the share of the step before in the same week; a step can count more than the one before (one publish, many invites). Weeks start on Monday, UTC. |
+| Tab title | the app's (SMEsay): the page has no title of its own, so its 404 is like any other |
+| Funnel columns | Week of, Sign-ups, Workspaces, Projects, Imports, Published, Invites, Links opened, Started, Submitted, Exports |
+| Workspaces | Workspaces; columns Name, Created, Members, Projects, Published, Responses this month, AI cost this month, Last activity; empty: No workspaces yet. |
+| Loading | Loading the overview |

@@ -1,7 +1,7 @@
 # E13-2 Admin page for Mihai: funnel and usage per workspace
 
 User: Mihai, deciding when paid plans switch on (decision 0008)
-Status: ready
+Status: built
 Outcome: one page, visible only to Mihai, with the sign-up to submission funnel per week and
 the usage of every workspace.
 
@@ -35,3 +35,22 @@ Queries in src/db/queries/admin.ts, the one place that reads across workspaces, 
 the admin check and never imported by the app's own pages (lint rule as in E1-3). This page
 is the Overview of the admin shell E14-1 builds (decision 0035); the access rule and the
 module are shared.
+
+Built 2026-10-05 (design note 83, decision 0044):
+- Acceptance 1: src/lib/admin.ts requireAdmin() before anything is sent, so anyone not in
+  ADMIN_EMAILS (and everyone when it is empty) gets the 404 status and page; the counts then
+  stream in behind a loading line (src/app/admin/page.tsx).
+- Acceptance 2: src/db/queries/admin.ts funnel(): 12 ISO weeks (Monday, UTC) of the ten
+  steps, counted per week and step in SQL; the page shows each count and its share of the
+  step before.
+- Acceptance 3: workspaceUsage(): name, created, members, projects, published instruments,
+  responses this month, AI cost this month, last activity (the newest event, else created),
+  by last activity; projects, responses and AI cost are usage() (src/db/queries/usage.ts,
+  E2-6). Deleted workspaces are left out.
+- Acceptance 4: totals() (all time, the sample projects left out) and the paid-plan metric
+  PAID_PLAN_SWITCH in src/lib/plans.ts: workspaces with a response submitted this month,
+  Claude's recommendation; the threshold is null until Mihai sets it (docs/review-list.md).
+- Acceptance 5: workspace names and counts only.
+- Acceptance 6: e2e/admin.spec.ts (signed out and another email: 404; the admin email: the
+  page); unit tests in src/db/queries/admin.test.ts. The lint rule refuses
+  src/db/queries/admin.ts outside src/app/admin/ (src/db/queries/lint-rule.test.ts).

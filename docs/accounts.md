@@ -236,6 +236,12 @@ is billed per use.
 1. Go to https://plausible.io and start the trial. It has no free plan; about EUR 9 per month.
 2. Add the site with the domain from step 2. Set `PLAUSIBLE_DOMAIN=` to that domain.
 
+## Step 11b. Your admin address (any time)
+
+Set `ADMIN_EMAILS=` in .env.local to the email you sign in with (several are comma separated),
+and at the launch gate in the host's settings. /admin then shows you the Overview (E13-2);
+everyone else, and everyone while it is empty, gets the 404 page.
+
 ## Step 12. Legal (before launch)
 
 Claude drafts the privacy policy, terms, DPA and subprocessor list, and marks every place a

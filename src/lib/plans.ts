@@ -22,6 +22,22 @@ export const PLANS: Record<PlanKey, Plan> = {
   enterprise: { key: "enterprise", name: "Enterprise", priceEurPerMonth: null, priceEurPerYear: 6000, limits: { projects: null, responsesPerMonth: null, aiRunsPerMonth: null, seats: null } },
 };
 
+// When paid plans switch on (decision 0008: "a usage metric reaches a value Mihai sets later";
+// stories/E13-2, acceptance 4). The metric is Claude's recommendation under decision 0044
+// (docs/review-list.md); the threshold stays null until Mihai sets it. The admin page reads
+// both from here.
+// Each metric is computed from the admin page's workspace rows, whose usage figures are
+// usage()'s (E2-6), so changing `metric` changes the number with the label.
+export type PlanMetricRow = { projects: number; responsesThisMonth: number; aiCostCentsThisMonth: number };
+export const PLAN_METRICS = {
+  workspacesWithSubmissionsThisMonth: { label: "Workspaces with a response submitted this month", value: (rows: PlanMetricRow[]) => rows.filter((r) => r.responsesThisMonth > 0).length },
+  responsesThisMonth: { label: "Responses submitted this month, all workspaces", value: (rows: PlanMetricRow[]) => rows.reduce((n, r) => n + r.responsesThisMonth, 0) },
+} as const;
+export const PAID_PLAN_SWITCH: { metric: keyof typeof PLAN_METRICS; threshold: number | null } = {
+  metric: "workspacesWithSubmissionsThisMonth",
+  threshold: null,
+};
+
 // The business plan's free limits, not in force (decision 0008).
 export const validatedFree: Limits = { projects: 1, responsesPerMonth: 25, aiRunsPerMonth: 3, seats: 1 };
 
