@@ -479,3 +479,17 @@ export const adminAudit = pgTable("admin_audit", {
   check("admin_audit_outcome_check", sql`${t.outcome} is null or ${oneOf("outcome", AUDIT_OUTCOMES)}`),
   check("admin_audit_target_check", sql`${t.targetWorkspaceId} is not null or ${t.targetUserId} is not null`),
 ]);
+
+// Support notes (stories/E14-2, acceptance 3): free text an admin writes on a workspace, shown
+// only on its admin page. Goes with the workspace (the cascade, E11-2). The admin is a plain
+// column, like admin_audit's, so a note outlives its writer.
+export const adminNote = pgTable("admin_note", {
+  id: id(),
+  workspaceId: wsRef(),
+  adminUserId: text("admin_user_id").notNull(),
+  text: text("text").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("admin_note_workspace_idx").on(t.workspaceId),
+  check("admin_note_text_check", sql`char_length(${t.text}) between 1 and 2000`),
+]);

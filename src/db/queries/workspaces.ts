@@ -58,6 +58,10 @@ export const workspaces = {
   // Who deleted it is kept for the deleted page and the removal job's email.
   markDeleted: async (workspaceId: WorkspaceId, deletedBy: string, now = new Date()): Promise<Workspace | null> =>
     (await db.update(workspace).set({ deletedAt: now, deletedBy }).where(and(eq(workspace.id, workspaceId), live())).returning())[0] ?? null,
+  // An admin restores a workspace marked deleted (stories/E14-2, acceptance 3): only while the
+  // row is still there, which is until the removal job runs (E11-2, within 24 hours).
+  restoreDeleted: async (workspaceId: WorkspaceId): Promise<Workspace | null> =>
+    (await db.update(workspace).set({ deletedAt: null, deletedBy: null }).where(and(eq(workspace.id, workspaceId), isNotNull(workspace.deletedAt))).returning())[0] ?? null,
   // Leaves a deleted workspace (stories/E11-2): the person's membership goes, so the deleted page
   // does not show again; a live workspace's membership is never touched here.
   leaveDeleted: async (userId: string, workspaceId: string): Promise<boolean> => {

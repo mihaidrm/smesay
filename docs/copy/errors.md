@@ -26,6 +26,7 @@ of the content; page means it replaces the screen.
 | Inline, invite field | More than [N] invites in [MINUTES] minutes from one workspace | Up to [N] invites every [MINUTES] minutes. Try again in [MINUTES] minutes. |
 | Inline, invite field | The invite email could not be sent | The invite to [EMAIL] was not sent. Check the address and try again. |
 | Inline, member row | Removing or changing someone who was removed in the meantime | This person is no longer a member of this workspace. |
+| Inline, admin invitation row (E14-2) | Sending again an invitation accepted or replaced in the meantime | This invitation is no longer open. Reload the page to see the current ones. |
 | Inline, member row | Removing or demoting the last owner | This workspace needs at least one owner. Make someone else an owner first. |
 | Inline, member row or invite field | A member tries an owner action (the server answers 403) | Only an owner of this workspace can do this. |
 | Banner, settings | Accent colour under 4.5:1 on white | This colour is too light on white, so the respondent page uses the default. Pick a darker one to use yours. |
@@ -291,3 +292,20 @@ of the content; page means it replaces the screen.
 - One sentence for what happened, one for what to do. A button when the next step is one click.
 - Counts and dates come from the app, never typed into copy.
 - Scan with `node scripts/scan-copy.mjs docs/copy` before adding a message.
+
+## Admin (E14-2, the workspace page's actions)
+
+| Where | When | Text |
+|---|---|---|
+| Under the form | The workspace was removed since the page loaded | This workspace no longer exists. Go back to the list. |
+| Under the form | The thing acted on changed in the meantime | This changed in the meantime. Reload the page and try again. |
+| Under the form | The action threw (logged) | That did not work, and it has been logged. Try again in a minute. |
+| Plan | No plan or an unknown one | Pick a plan from the list. |
+| Plan | The plan it is on | The workspace is already on this plan. |
+| Plan | The workspace is marked deleted | This workspace is marked deleted. Restore it first. |
+| AI budget | Not a whole number from 0 to 10000 | Enter a whole number of euro from 0 to 10000. |
+| AI budget | The amount it has | The budget is already this amount. |
+| Restore | Not marked deleted, or already removed | This workspace is not marked deleted, or the removal job has already removed it. |
+| Note | Empty | Write the note first. |
+| Note | Over 2,000 characters | Notes are up to 2,000 characters. Shorten it and add it again. |
+| Invitation | Accepted or replaced since | This invitation is no longer open. Reload the page to see the current ones. |

@@ -9,6 +9,8 @@ export const MEMBERS_COPY = {
   tooMany: `Up to ${INVITE_LIMIT} invites every ${INVITE_LIMIT_MINUTES} minutes. Try again in ${INVITE_LIMIT_MINUTES} minutes.`,
   notSent: (email: string) => `The invite to ${email} was not sent. Check the address and try again.`,
   gone: "This person is no longer a member of this workspace.",
+  // The admin's resend (stories/E14-2) of an invitation accepted or replaced in the meantime.
+  inviteGone: "This invitation is no longer open. Reload the page to see the current ones.",
   lastOwner: "This workspace needs at least one owner. Make someone else an owner first.",
   sent: `Invite sent. They get a sign-in link that works once and expires in ${INVITE_VALID_MINUTES} minutes.`,
 };
