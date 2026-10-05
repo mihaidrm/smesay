@@ -87,3 +87,9 @@ Built 2026-10-04 (design note 54, decision 0044):
   a pill's count in words for a screen reader, the singular lines, a first visit back with
   nothing complete, a modifier click on a pill, Welcome back going on Next item, the motion
   timings. Recorded: the board's pill and count (docs/review-list.md).
+
+Built 2026-10-05 (design note 99, acceptance 7): data-slide on the content of ChapterScreen and
+of the Wrap up, the direction from the screens' order in respondent-app.tsx, the keyframes in
+src/app/globals.css under prefers-reduced-motion: no-preference. e2e/sample-instrument.spec.ts
+reads "next" after Continue and "prev" after Back. Acceptance 3's notes now read "Reason not
+written yet" and "Question not written yet".

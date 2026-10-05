@@ -12,6 +12,10 @@ import { latestLink } from "./mailpit";
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.22" } });
 
 async function noSeriousViolations(page: Page, where: string) {
+  // The slide between screens (design note 99) fades the content in over 240 ms; axe reads
+  // colours with their opacity, so it runs once every animation on the page has finished
+  // (developer.mozilla.org/docs/Web/API/Document/getAnimations).
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"));
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   const serious = result.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   // Each violation names its elements and axe's message, so a failure says what to fix.

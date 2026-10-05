@@ -21,8 +21,8 @@ r.visible[1].p3Pick(); r = c.renderVals(); ok(c.state.answers.i2.kind === 'diff'
 r.next(); r = c.renderVals(); ok(r.areaName === 'Approving', 'continue goes to the next chapter');
 r.visible[0].p4Pick(); r = c.renderVals(); ok(c.state.answers.i3.kind === 'disagree' && r.visible[0].commentOpen, 'not needed opens a required comment'); r.visible[0].setText(ev('Not needed.')); r = c.renderVals(); ok(r.visible[0].note === 'Saved', 'not needed with a reason saves');
 ok(r.visible[0].p1Cap === 'proposed' && r.visible[0].p1BdStyle === 'dashed' && r.visible[0].p2Cap === '', 'proposed pill is marked');
-r.visible[1].toggleDetails(); r = c.renderVals(); ok(r.visible[1].detailsOpen && !r.visible[1].commentOpen && r.visible[1].detail.includes('From the spreadsheet'), 'details take the slot, comment hidden meanwhile');
-r.visible[1].p2Pick(); r = c.renderVals(); ok(r.visible[1].showCommentToggle && !r.visible[1].commentOpen, 'agree: comment optional and closed'); r.visible[1].toggleComment(); r = c.renderVals(); ok(r.visible[1].commentOpen && !r.visible[1].detailsOpen && r.visible[1].commentLabel === 'Comment, optional', 'optional comment opens and closes details');
+r.visible[1].toggleDetails(); r = c.renderVals(); ok(r.visible[1].detailsOpen && r.visible[1].detail.includes('From the spreadsheet'), 'View more opens the details above the rating row');
+r.visible[1].p2Pick(); r = c.renderVals(); ok(r.visible[1].showCommentToggle && !r.visible[1].commentOpen, 'agree: comment optional and closed'); r.visible[1].toggleComment(); r = c.renderVals(); ok(r.visible[1].commentOpen && r.visible[1].detailsOpen && r.visible[1].commentLabel === 'Comment, optional', 'optional comment opens beside the open details');
 r.next(); r = c.renderVals(); r.next(); r = c.renderVals(); ok(r.isWrap, 'continue past Paying reaches Wrap up');
 ok(r.hasGaps && r.gapLine === '2 items still unrated.' && r.gapChapter === 'Paying', 'wrap up names the gap and the chapter');
 ok(r.submitDisabled && r.submitNote.includes('2 unrated items') && r.submitNote.includes('confidence'), 'submit lists what is missing');

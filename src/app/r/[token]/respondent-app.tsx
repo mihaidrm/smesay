@@ -130,7 +130,10 @@ export function RespondentApp(props: RespondentAppProps) {
   // whether by Continue, Back, a chapter pill or the browser's Back. The last place is kept in
   // state and compared while rendering (react.dev/reference/react/useState, "Storing
   // information from previous renders"); the first screen does not slide.
-  const place = screen.kind === "about" ? 0 : screen.kind === "chapter" ? 1 + screen.index + item / 10000 : 1e6;
+  // An item adds a fraction under 1 (the import keeps a list under 2,000 rows, E3-2, so 1/10000
+  // per item never reaches the next chapter); Done sits after the Wrap up, so Change my answers
+  // slides back.
+  const place = screen.kind === "about" ? 0 : screen.kind === "chapter" ? 1 + screen.index + item / 10000 : screen.kind === "done" ? 1e6 + 1 : 1e6;
   const [lastPlace, setLastPlace] = useState(place);
   const [slide, setSlide] = useState<"next" | "prev" | null>(null);
   if (place !== lastPlace) { setLastPlace(place); setSlide(place > lastPlace ? "next" : "prev"); }
@@ -228,7 +231,8 @@ export function RespondentApp(props: RespondentAppProps) {
     const card = itemId ? document.querySelector<HTMLElement>(`[data-item="${CSS.escape(itemId)}"]`) : null;
     if (card) {
       card.scrollIntoView({ block: "start" });
-      card.querySelector<HTMLElement>("[tabindex='0'], input:not([tabindex='-1']), textarea, button")?.focus({ preventScroll: true });
+      // The rating row first, then the box (View more comes before both in the card, design note 99).
+      (card.querySelector<HTMLElement>("[role='radiogroup'] [tabindex='0'], [role='radiogroup'] input:not([tabindex='-1'])") ?? card.querySelector<HTMLElement>("textarea, [tabindex='0'], input:not([tabindex='-1']), button"))?.focus({ preventScroll: true });
       return;
     }
     document.querySelector<HTMLElement>("[data-screen-heading]")?.focus({ preventScroll: true });

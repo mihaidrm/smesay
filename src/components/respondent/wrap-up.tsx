@@ -117,7 +117,9 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
         </header>
       )}
-      <Body className="flex grow flex-col gap-4 overflow-x-clip bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8" data-slide={slide ?? undefined}>
+      <Body className="flex grow flex-col overflow-x-clip bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
+        {/* The slide moves this inner block, so the Body's clip holds it (design note 99). */}
+        <div className="flex grow flex-col gap-4" data-slide={slide ?? undefined}>
         <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{WRAP_UP_COPY.title}</Heading>
         <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
           {tileKeys.map((key) => (
@@ -232,6 +234,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span>{signOffFor(closing)}</span>
         </label>
         </fieldset>
+        </div>
       </Body>
       <div className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">

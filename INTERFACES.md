@@ -291,7 +291,8 @@ sample: true } and poweredBy "landing" (PoweredByShow = boolean or "landing", a 
 parseSample/readSample/keepSample in src/lib/sample-drafts.ts keep SampleKept { drafts, fields,
 picks, wrap, started, submittedAt } in session storage under smesay-sample; SAMPLE_TOKEN
 "sample" (src/lib/sample-copy.ts) makes the savers call nothing. RespondentApp takes
-initialDrafts; ItemCard and ChapterScreen take savedLabel.
+initialDrafts; ItemCard and ChapterScreen take savedLabel. ChapterScreen and WrapUp take
+slide: "next" | "prev" | null, the way the respondent arrived (design note 99).
 The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
 closedSubmitted (E7-6: a closed personal link with a submitted response, its submitted and

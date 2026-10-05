@@ -299,7 +299,8 @@ export function gapsOf(chapters: Chapter[], done: Record<string, boolean>, card:
   return chapters.flatMap((c, chapter) => c.items.filter((it) => !done[it.id]).map((it) => ({ itemId: it.id, reference: it.reference, title: it.title, chapter, note: noteFor(card(it.id), rule) ?? "notSaved" })));
 }
 
-// What the card's note says (E7-2, acceptance 3): the missing part, or null when complete
+// What an answer lacks (E7-2, acceptance 3): the missing part, or null when complete; the card
+// shows only notRated, the Wrap up and a screen-reader line name the rest (design note 99)
 // under the rule (an agreeing answer or a rating without its required comment: sayWhy).
 export type CardNote = "notRated" | "sayWhy" | "writeQuestion" | null;
 export function noteFor(answer: AnswerState | null | undefined, rule: ReasonRule): CardNote {

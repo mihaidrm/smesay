@@ -288,7 +288,7 @@ v.commentOpen = required || !!s.comments[it.id];
 v.commentLabel = a.kind === 'diff' ? 'Could you tell us why you think the priority should be different?' : (a.kind === 'disagree' ? 'Why is it not needed, or what should it say instead?' : (a.kind === 'unclear' ? 'What would you need to know to rate it?' : 'Comment, optional'));
 v.showCommentToggle = !required;
 v.commentToggleLabel = s.comments[it.id] ? 'Hide comment' : '+ comment';
-v.toggleComment = () => { const c = Object.assign({}, s.comments); c[it.id] = !c[it.id]; const d = Object.assign({}, s.details); d[it.id] = false; this.setState({ comments: c, details: d }); };
+v.toggleComment = () => { const c = Object.assign({}, s.comments); c[it.id] = !c[it.id]; this.setState({ comments: c }); };
 v.detailsLabel = s.details[it.id] ? 'View less' : 'View more';
 v.toggleDetails = () => { const d = Object.assign({}, s.details); d[it.id] = !d[it.id]; this.setState({ details: d }); };
 v.answerText = a.text || '';

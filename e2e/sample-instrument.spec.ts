@@ -98,14 +98,14 @@ test("the sample's cards: reference line, View more, equal heights, the slide", 
   // The details are closed, above the rating row, and open in place.
   await expect(first.getByTestId("card-details")).toBeHidden();
   const more = first.getByTestId("card-more");
-  await expect(more).toHaveText("View more");
+  await expect(more).toHaveText(/^View more/);
   await expect(more).toHaveAttribute("aria-expanded", "false");
   const heights = async () => [Math.round((await cards.nth(0).boundingBox())!.height), Math.round((await cards.nth(1).boundingBox())!.height)];
   const [a0, b0] = await heights();
   expect(a0).toBe(b0);
   await more.click();
   await expect(first.getByTestId("card-details")).toBeVisible();
-  await expect(more).toHaveText("View less");
+  await expect(more).toHaveText(/^View less/);
   expect((await first.getByTestId("card-details").boundingBox())!.y).toBeLessThan((await first.getByRole("radiogroup").boundingBox())!.y);
   const [a1, b1] = await heights();
   expect(a1).toBe(b1);
@@ -113,8 +113,9 @@ test("the sample's cards: reference line, View more, equal heights, the slide", 
   const proposed = await first.locator("[data-proposed]").textContent();
   await first.getByRole("radio", { name: proposed === "Should" ? "Must" : "Should" }).click();
   await expect(first.getByText("Could you tell us why you think the priority should be different?")).toBeVisible();
-  await expect(first.getByTestId("card-comment")).toHaveCount(0);
   await expect(first.getByTestId("item-card-note")).toHaveText("");
+  await expect(first.getByTestId("item-card-missing")).toHaveText("Reason not written yet");
+  await expect(first.getByTestId("card-reason")).toHaveAttribute("aria-required", "true");
   const [a2, b2] = await heights();
   expect(a2).toBe(b2);
   // Continue slides the next chapter in from the right; Back from the left.
@@ -124,4 +125,7 @@ test("the sample's cards: reference line, View more, equal heights, the slide", 
   await page.getByTestId("chapter-back").click();
   await expect(page.getByTestId("chapter-title")).toHaveText("Submitting");
   await expect(page.locator("[data-slide]")).toHaveAttribute("data-slide", "prev");
+  // The Wrap up names what the card left unsaid.
+  await page.getByTestId("row-wrap").click();
+  await expect(page.getByTestId("wrap-up")).toContainText("Reason not written yet");
 });

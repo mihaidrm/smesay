@@ -577,3 +577,11 @@ describe("the PM's reason rule on the server", () => {
     expect(await answers.countForResponse(a.ws, begun.response.id)).toBe(2);
   }, 60_000);
 });
+
+describe("the reason question (design note 99)", () => {
+  it("names the priority, the fit or the item, by method", () => {
+    expect(RESPONDENT_COPY.changePrompt("moscow")).toBe("Could you tell us why you think the priority should be different?");
+    expect(RESPONDENT_COPY.changePrompt("fit")).toBe("Could you tell us why you think the fit should be different?");
+    expect(RESPONDENT_COPY.changePrompt("kcd")).toBe("Could you tell us why you think it should be different?");
+  });
+});

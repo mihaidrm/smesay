@@ -9,9 +9,10 @@ sets when text is required on Build, stories/E5-2 acceptance 6).
 ## Acceptance criteria
 1. The chapter screen (respondent board, note 12, decision 0018): title, one-line intro,
    compact cards two columns wide on desktop, one on the phone. A card is a fieldset: the
-   reference and item text as legend, the rating row of pills (the scale from E5-2, Unclear
-   last; proposed value dashed and captioned when shown), a Details toggle when the import
-   carried more text, "+ comment" when a comment is optional. (Amended 2026-10-05, design
+   reference ("Requirement [REF]") and item text as legend, View more when the import carried
+   more text (the details open above the rating row), the rating row of pills (the scale from
+   E5-2, Unclear last; proposed value dashed and captioned when shown), "+ comment" when a
+   comment is optional. (Amended 2026-10-05, design
    note 99, Mihai: "Comment and details share the same box - its maybe a bit confusing" and
    "add it as a title above the summary of each card and say something like requirement
    CL-01": the legend is "Requirement [REF]" over the summary; the details open with View
@@ -90,3 +91,16 @@ every answer the card opens the comment box on its own for an agreeing answer or
 labelled "Comment, required", and shows no "+ comment" toggle; under Never the boxes show as
 before and an empty one leaves the card complete. The prompts and the layout of the card are
 unchanged.
+
+Built 2026-10-05 (design note 99, amendments to acceptance 1, 2, 3 and 6): item-card.tsx puts
+"Requirement [REF]" over the summary and View more (named with the item for screen readers)
+above the rating row; the fixed 260 px frame is gone and the two cards of a row stretch to one
+height. The reason question is RESPONDENT_COPY.changePrompt(method), unit tested for the three
+methods. While a reason or a question is missing the visible note is empty; a screen-reader
+line says what is missing and the box carries aria-required. e2e/sample-instrument.spec.ts,
+"the sample's cards", checks the reference line, View more above the rating row, equal heights
+before and after a box opens, the generic question, the empty note, and the Wrap up's "Reason
+not written yet"; respondent-rate checks the empty note and data-note on a live link. The
+audit of the same day found the one-item layout dropping focus on Next item (the new button
+of the same name now takes it) and the Wrap up's slide widening a phone (the slide now moves
+an inner block inside the clip).

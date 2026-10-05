@@ -64,9 +64,9 @@ export function answerOfDraft(draft: CardDraft, method: ScoringMethod, showPropo
 const BOX = "min-h-[52px] w-full resize-none rounded-xl border border-hairline-strong bg-surface px-2.5 py-1.5 text-sm leading-5 text-ink focus:outline-hidden focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 // The footer's toggle keeps its text size and takes a 48 px tall hit area (docs/design-system.md,
 // Respondent tap targets), as the Wrap up's Go to and Change pills do: 12 px above the text,
-// which reaches the box above and no further, and 20 px below it, into the card's padding and
-// 4 px past it (the cards are 12 px apart). The box sits over the row (relative z-10), so a
-// tap on its edge stays the box's.
+// which reaches the box or the rating row above when the footer is right under it and no
+// further, and 20 px below it, into the card's padding and 4 px past it (the cards are 12 px
+// apart). The box sits over the row (relative z-10), so a tap on its edge stays the box's.
 const TOGGLE = "relative rounded-sm text-xs font-semibold after:absolute after:-inset-x-1.5 after:-top-3 after:-bottom-5 after:content-[''] text-ink-muted underline-offset-2 focus:outline-hidden hover:text-ink hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 // View more is 32 px tall and reaches 8 px above and below, into the card's 8 px gaps, for the
 // 48 px target without covering the summary or the rating row.
@@ -85,6 +85,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   // The PM's rule on every answer (E5-2, acceptance 6): the comment is required, so its box opens on its own.
   const commentRequired = answer !== null && !reasonNeeded && textRequired(answer.kind, reasonRule);
   const slot: "reason" | "comment" | null = reasonNeeded ? "reason" : commentAllowed && (commentOpen || commentRequired) ? "comment" : null;
+  const reasonRequired = reasonNeeded && textRequired(answer.kind, reasonRule);
   const note = noteFor(answer, reasonRule);
   const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note !== null ? "" : onChange ? (saved ? savedLabel : unsaved ? RESPONDENT_COPY.notSavedYet : "") : (labelFor(method, labels, draft.picked) ?? "");
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(method);
@@ -92,12 +93,12 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
     <fieldset className={cn("card flex h-full min-w-0 flex-col gap-2 p-3", ringCard && "ring-2 ring-violet ring-offset-4 ring-offset-ground")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>
       <legend className={cn("float-left flex w-full flex-col gap-0.5", ringWording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
         {reference && <span className="text-xs leading-4 font-semibold text-ink-muted" data-testid="card-reference">{RESPONDENT_COPY.reference(reference)}</span>}
-        <span className={cn("text-base leading-[23px] font-semibold", !detailsOpen && "line-clamp-2")}>{title}</span>
+        <span className={cn("text-base leading-[23px] font-semibold wrap-break-word", !detailsOpen && "line-clamp-2")}>{title}</span>
       </legend>
       <div className="clear-both" />
       {details && (
         <>
-          <button type="button" aria-expanded={detailsOpen} aria-controls={`${prefix}-details`} onClick={() => setDetailsOpen((v) => !v)} className={MORE} data-testid="card-more">{detailsOpen ? RESPONDENT_COPY.viewLess : RESPONDENT_COPY.viewMore}</button>
+          <button type="button" aria-expanded={detailsOpen} aria-controls={`${prefix}-details`} onClick={() => setDetailsOpen((v) => !v)} className={MORE} data-testid="card-more">{detailsOpen ? RESPONDENT_COPY.viewLess : RESPONDENT_COPY.viewMore}<span className="sr-only">: {title}</span></button>
           <div id={`${prefix}-details`} hidden={!detailsOpen} className="rounded-lg bg-ground px-2.5 py-1.5 text-[13px] leading-[18px] wrap-anywhere text-ink-muted" data-testid="card-details">{details}</div>
         </>
       )}
@@ -105,12 +106,12 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
       {slot === "reason" ? (
         <div className="relative z-10 flex flex-col gap-1">
           <label htmlFor={`${prefix}-reason`} className="text-xs leading-4 text-ink-muted">{prompt}</label>
-          <textarea id={`${prefix}-reason`} value={draft.reason} maxLength={2000} onChange={(e) => set({ ...draft, reason: e.target.value })} className={BOX} data-testid="card-reason" />
+          <textarea id={`${prefix}-reason`} aria-required={reasonRequired || undefined} value={draft.reason} maxLength={2000} onChange={(e) => set({ ...draft, reason: e.target.value })} className={BOX} data-testid="card-reason" />
         </div>
       ) : slot === "comment" ? (
         <div className="relative z-10 flex flex-col gap-1">
           <label htmlFor={`${prefix}-comment`} className="text-xs leading-4 text-ink-muted">{commentRequired ? RESPONDENT_COPY.commentRequired : RESPONDENT_COPY.commentLabel}</label>
-          <textarea id={`${prefix}-comment`} value={draft.comment} maxLength={2000} onChange={(e) => set({ ...draft, comment: e.target.value })} className={BOX} data-testid="card-comment" />
+          <textarea id={`${prefix}-comment`} aria-required={commentRequired || undefined} value={draft.comment} maxLength={2000} onChange={(e) => set({ ...draft, comment: e.target.value })} className={BOX} data-testid="card-comment" />
         </div>
       ) : null}
       <div className="mt-auto flex min-h-6 shrink-0 items-center gap-3 text-xs">
@@ -118,6 +119,10 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
           <button type="button" aria-expanded={slot === "comment"} onClick={() => setCommentOpen(slot !== "comment")} className={TOGGLE}>{slot === "comment" ? RESPONDENT_COPY.hideComment : RESPONDENT_COPY.addComment}</button>
         )}
         <span aria-live="polite" className={cn("ml-auto text-right font-semibold", error ? "text-danger" : note === null ? (saved ? "text-agree-text" : "text-ink") : "font-normal text-ink-muted")} data-testid="item-card-note">{noteText}</span>
+        {/* No visible note while the text is missing (Mihai: "Say why." read as condescending);
+            a screen reader still hears what the answer lacks, as the Wrap up words it, and the
+            box is marked required (WCAG 3.3.2, design note 99). */}
+        <span aria-live="polite" className="sr-only" data-testid="item-card-missing">{note === "sayWhy" ? RESPONDENT_COPY.sayWhy : note === "writeQuestion" ? RESPONDENT_COPY.writeQuestion : ""}</span>
       </div>
     </fieldset>
   );

@@ -52,6 +52,15 @@ reason is required) answers the eighth point of the same message.
   slide. Nothing moves under reduced motion. The content is clipped sideways so a phone never
   shows a sideways scrollbar during the 240 ms.
 
+- From the audit of the same day: with no visible note, a screen reader still hears what the
+  answer lacks ("Reason not written yet", the Wrap up's words, in a line only it reads) and the
+  box carries aria-required; View more is named with its item for screen readers; on the
+  one-item layout the new Previous or Next item button takes the focus after a move, since the
+  pressed one is remounted for the slide; the Wrap up's slide moves an inner block, so the clip
+  holds it; long words in a chapter's title and intro and in a summary wrap, so the clip never
+  hides text; Go to from the Wrap up focuses the rating row, not View more; axe in the
+  accessibility test waits for the slide to end.
+
 ## Where
 
 src/components/respondent/item-card.tsx, chapter-screen.tsx and wrap-up.tsx (data-slide),
