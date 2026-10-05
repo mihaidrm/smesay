@@ -1,8 +1,9 @@
 // The mascot (decision 0041; docs/assets.md row 1, placed 2026-10-03): one bought character,
 // the round-headed robot of the Robot Vector Collection (Craftwork, commercial licence in
-// public/assets/mascot/LICENCE.txt), in four poses: "hi" greets (sign-in, the landing hero,
+// public/assets/mascot/LICENCE.txt), in five poses: "hi" greets (sign-in, the landing hero,
 // the respondent thank-you), "idea" gives a tip (the Projects empty state), "reading" reads
-// the list (Import), "analysis" shows a chart (Results). The 404 uses all four, one per rating
+// the list (Import), "analysis" shows a chart (Results), "help" (the pack's "Medical Bot",
+// coat and clipboard) offers help in the rescue tips (stories/E15-4). The 404 uses all four, one per rating
 // of the missing page (stories/E11-7). The yellows of the pack are
 // recoloured to the brand violet in the files. It sits on a light disc in both modes, so its
 // dark outlines read on the dark surface too. Decorative: the alt is empty and the page
@@ -11,10 +12,7 @@ import { cn } from "cn";
 
 export type MascotPose = "hi" | "idea" | "reading" | "analysis" | "help";
 
-// "help" (the rescue tips, stories/E15-4) is a pose of the pack not placed yet (docs/assets.md
-// row 1): until Mihai places its file, the "idea" robot stands in, in the same frame (decision
-// 0041). data-pose keeps the pose asked for.
-const FILE: Record<MascotPose, string> = { hi: "hi", idea: "idea", reading: "reading", analysis: "analysis", help: "idea" };
+const FILE: Record<MascotPose, string> = { hi: "hi", idea: "idea", reading: "reading", analysis: "analysis", help: "help" };
 
 export function Mascot({ pose, size = 88, className }: { pose: MascotPose; size?: number; className?: string }) {
   return (

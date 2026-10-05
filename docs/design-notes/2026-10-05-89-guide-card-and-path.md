@@ -36,8 +36,8 @@ decision 0044. Builds on design note 39.
   admin's view (E14-4) the path is not shown.
 - Dismiss moves the focus to the page's title; a Dismiss or a switch that fails to store
   comes back with "That was not saved. Check the connection and try again." under it.
-- The rescue tips' "help" pose is not placed yet (docs/assets.md): the "idea" robot stands in,
-  in the same frame, with data-pose still "help".
+- The rescue tips' "help" pose was not placed when this note was written; the "idea" robot
+  stood in. Since 2026-10-05 it is the pack's "Medical Bot" (docs/assets.md, design note 37).
 
 ## Why
 

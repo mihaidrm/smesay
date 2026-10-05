@@ -16,6 +16,11 @@ map onto the slots the design has, which no other character in the pack does.
   (Mihai expected the robot there; the page was blank under the tiles).
 - reading ("Robot Reading"): an open book. The Import empty state when Import has one.
 - analysis ("Robot Analysis"): a chart on a screen at a desk. The Results empty state (E6).
+- help ("Medical Bot"), added 2026-10-05: the same robot in a coat with a stethoscope and a
+  clipboard. The rescue tips (E15-4). The pack has no help or question pose; Mihai checked
+  his download and approved this one. The other drawings of this robot were left out:
+  "Robot Translator" has a yellow head and a language bubble, "Playing Piano" and "Mood
+  Swings" read as play and confusion.
 
 Left out: the square-headed family ("Robot Waving", "Robot", "Robot Translator") reads well
 but has two poses of use; "Bot" (both arms up) and "Cute Robot" are single poses.

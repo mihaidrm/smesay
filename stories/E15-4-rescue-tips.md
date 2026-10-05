@@ -39,4 +39,5 @@ events, E13-1 amended); the newest row is read by events.lastWith. The Share res
 responses with responses.countForInstrument and needs the link open (linkState "open"), so a
 withdrawn, closed or not yet open link shows none. The Playwright test moves the upload's
 created_at back eleven minutes instead of moving a clock. The "help" pose is a fifth
-file under public/assets/mascot/ from the same pack, recoloured as the four others (note 37).
+file under public/assets/mascot/ from the same pack, recoloured as the four others (note 37):
+the pack's "Medical Bot", placed 2026-10-05 (docs/assets.md).
