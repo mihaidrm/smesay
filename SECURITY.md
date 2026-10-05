@@ -37,6 +37,9 @@ Public links and respondents
   take JSON only (the media type exactly application/json) up to 16 KB, so a plain
   cross-site form or a no-preflight request cannot post to them. The sample project's links
   collect nothing. In a rate-blind instrument the proposed value never reaches the page.
+- The visitors' sample at /sample (E12-4) calls no server route and writes no database row;
+  what a visitor enters stays in the tab's session storage under smesay-sample (details,
+  cards, Wrap up, whether it was submitted) and is gone when the tab closes.
 - The respondent page keeps answers the server has not confirmed in the browser's
   localStorage under smesay-answers:[link token] (E7-3): the response id, and per item the
   pick, the reason, the comment, the answer's version the change was made on, and the

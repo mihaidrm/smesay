@@ -356,3 +356,7 @@ a change.
 | 2026-10-05 | The event table is the one application table whose workspace_id can be null (sign-ups and workspace deletions belong to none); a schema test pins it as the only exception | src/db/schema.ts, src/db/schema.test.ts | |
 | 2026-10-05 | Export everything (E11-2) leaves out the workspace's product events, as it leaves out its export log: they are SMEsay's usage record, not the workspace's content | src/lib/workspace-data.ts | |
 | 2026-10-05 | link_opened also counts mail scanners and link previews that fetch a personal link, so opens read higher than people | docs/analytics.md | Filter known scanners later? |
+| 2026-10-05 | The visitors' sample is built in memory from the seed's facts, with no sample workspace in the database and no preview token (E12-4's technical note expected both) | src/lib/sample-instrument.ts, design note 80 | |
+| 2026-10-05 | "Sample: nothing you enter here is saved" is the watermark band directly above the header, not a line inside the header | src/app/sample/page.tsx | Inside the header instead? |
+| 2026-10-05 | The landing's sample buttons now read "Try the sample as a respondent" (the E12-4 user line); a long label for the hero's ghost button | src/app/landing-page/page.tsx | A shorter label, such as "Try the sample"? |
+| 2026-10-05 | On /sample the band says "Sample: nothing you enter here is saved" while each answered card says "Saved on this device" (both from E12-4's acceptances): saved means kept in the tab, not sent | stories/E12-4, src/lib/sample-copy.ts | Reword one of them? |

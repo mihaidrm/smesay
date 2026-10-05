@@ -15,7 +15,7 @@
 // query: tailwindcss.com/docs/responsive-design, container queries; @lg is 32rem).
 import { useId, useState } from "react";
 import { cn } from "cn";
-import { PoweredBy } from "./powered-by";
+import { PoweredBy, type PoweredByShow } from "./powered-by";
 import { RespondentHeader } from "./respondent-header";
 import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
@@ -61,7 +61,7 @@ export type AboutYouProps = {
   nav?: React.ReactNode;
   className?: string;
   // "Powered by SMEsay" on the Free plan only (E7-7, acceptance 5).
-  poweredBy?: boolean;
+  poweredBy?: PoweredByShow;
 };
 
 const FIELD = "h-12 w-full @lg:w-[360px] rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";

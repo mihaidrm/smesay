@@ -14,7 +14,7 @@
 // (same guide, "Layouts and auth checks"). getSessionCookie reads the cookie by name, with or
 // without the __Secure- prefix: node_modules/better-auth/dist/cookies/index.mjs.
 //
-// /r and /brand (stories/E11-1, acceptances 1 and 5): 100 requests a minute per address
+// /r, /brand and /sample (stories/E11-1, acceptances 1 and 5; E12-4): 100 requests a minute per address
 // (src/lib/ratelimit.ts). Over it, 429 with Retry-After (developer.mozilla.org/docs/Web/HTTP/
 // Reference/Headers/Retry-After): a page in plain HTML for a page request, JSON for the
 // respondent app's own calls, which keep the answer queued and retry (src/lib/answer-queue.ts
@@ -65,7 +65,8 @@ function next(request: NextRequest, csp: string): NextResponse {
 
 function route(request: NextRequest, csp: string): NextResponse {
   const path = request.nextUrl.pathname;
-  if (path.startsWith("/r/") || path.startsWith("/brand/")) {
+  // The visitors' sample is limited as a respondent route (stories/E12-4, acceptance 3).
+  if (path.startsWith("/r/") || path.startsWith("/brand/") || path === "/sample") {
     const address = addressOf(request.headers);
     // A server action (the passcode form, the only one on /r) has its own limit
     // (src/lib/link-access.ts), and a 429 here would reach Next's client as an unexpected reply.

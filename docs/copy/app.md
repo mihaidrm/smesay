@@ -358,6 +358,16 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Done (E7-5 and E7-6) | Thank you, [FIRST NAME]. (Thank you. without a name) Submitted [DATE], [HH:MM] UTC. Then the summary line: [N] agreed, [N] changed, [N] not needed, [N] unclear, [N] items added (with ", [N] rated" after "changed" when items without a proposal were rated; rate-blind: [N] rated, [N] not needed, [N] unclear, [N] items added). After a change not submitted again (E7-6), on Done and over the Wrap up: You changed answers after submitting. Submit again to send them. [Button: Change my answers] (reopens the Wrap up with the sign-off cleared) |
 | Preview strip | Preview: nothing you enter here is saved (Submit stays disabled in the preview; once everything is picked the line under it says "Submit is off in the preview.") |
 
+## The visitors' sample (E12-4, /sample)
+
+| Element | Copy |
+|---|---|
+| Band above the header, the watermark's dashed outline | Sample: nothing you enter here is saved |
+| A card's saved note | Saved on this device (Kept until you leave this page, when the browser keeps nothing) |
+| Powered by | Powered by SMEsay, a link to the landing page |
+| Done | as Done above, with "Nothing was sent: this is the sample." in place of the submitted time, then [Button: Start free] (to sign-in) |
+| Tab title | Sample instrument · SMEsay |
+
 ## Import, column mapping (E3-3)
 
 | Where | Text |

@@ -56,6 +56,7 @@ import { isPreviewToken } from "@/lib/preview-prefix";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CardDraft } from "@/components/respondent/item-card";
 import { delayFor, doneFrom, nextEntry, settleState, queueKey, rebased, replyStep, restorable, RETRY_MS, SAVE_TIMEOUT_MS, withEntries, withEntry, withoutEntry, withoutResponse, type QueueEntry, type ReplyBody } from "@/lib/answer-queue";
+import { SAMPLE_TOKEN } from "@/lib/sample-copy";
 import { RESPONDENT_ERRORS, type AnswerState, type SinceReply } from "@/lib/respondent-rules";
 
 export type SaverEvents = {
@@ -88,6 +89,7 @@ function deviceStorage(): Storage | null {
 // useSyncExternalStore with a server snapshot (react.dev/reference/react/useSyncExternalStore).
 const noSubscribe = () => () => {};
 const storageMissing = () => deviceStorage() === null;
+const noStorageProbe = () => false;
 export const newPageId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`);
 
 
@@ -98,7 +100,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [offline, setOffline] = useState(false);
   const [failing, setFailing] = useState(false);
-  const storageOff = useSyncExternalStore(noSubscribe, storageMissing, () => false);
+  // The sample keeps its answers in session storage and probes nothing here (stories/E12-4).
+  const storageOff = useSyncExternalStore(noSubscribe, token === SAMPLE_TOKEN ? noStorageProbe : storageMissing, () => false);
   const page = useRef<string>("");
   const seq = useRef(0);
   const pending = useRef(new Map<string, QueueEntry>());
@@ -342,7 +345,8 @@ export function useAnswerSaver(token: string, responseId: string | null, enabled
     };
     const onFocusOut = () => flush();
     // The builder's preview (src/lib/preview-prefix.ts) has no state to check.
-    const onOnline = () => { if (!isPreviewToken(token)) void check(); };
+    // Nor has the visitors' sample (stories/E12-4): it never calls the server.
+    const onOnline = () => { if (!isPreviewToken(token) && token !== SAMPLE_TOKEN) void check(); };
     window.addEventListener("pagehide", onHide);
     document.addEventListener("visibilitychange", onVisibility);
     document.addEventListener("focusout", onFocusOut);

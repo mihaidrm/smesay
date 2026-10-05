@@ -30,7 +30,7 @@ let a: { ws: WorkspaceId; userId: string }; let b: { ws: WorkspaceId; userId: st
 let sampleId: string;
 const NONE: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
 const E = EXPORT_COPY.importErrors;
-// The seed's counts (src/db/seed/sample.ts expected; the lint rule keeps the seed out of src/lib).
+// The seed's counts (src/db/seed/sample.ts expected).
 const expected = { items: 6, invites: 7, responses: 6, answers: 34, missing: 1, insights: 4 };
 
 async function signIn(label: string) {
