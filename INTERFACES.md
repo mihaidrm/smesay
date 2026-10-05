@@ -270,6 +270,14 @@ renders the respondent app with preview { rings }; PUT /r/[token]/answers, POST 
 PUT wrap and POST submit answer 403 { error } to a preview token. itemsFor(ws, instrument) in
 src/lib/respondent.ts reads an instrument's items as the respondent sees them (itemsOf(link)
 calls it).
+The visitors' sample (E12-4): /sample renders the respondent app with preview { rings: [],
+sample: true } and poweredBy "landing" (PoweredByShow = boolean or "landing", a link to
+/landing-page); sampleInstrument() in src/lib/sample-instrument.ts builds the instrument, items
+(id = reference) and areas from src/db/seed/sample.ts with no database read;
+parseSample/readSample/keepSample in src/lib/sample-drafts.ts keep SampleKept { drafts, fields,
+picks, wrap, started, submittedAt } in session storage under smesay-sample; SAMPLE_TOKEN
+"sample" (src/lib/sample-copy.ts) makes the savers call nothing. RespondentApp takes
+initialDrafts; ItemCard and ChapterScreen take savedLabel.
 The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
 closedSubmitted (E7-6: a closed personal link with a submitted response, its submitted and

@@ -1,5 +1,5 @@
 // The respondent routes' limit in the proxy (stories/E11-1, acceptances 1 and 5): 100 requests a
-// minute per address on /r and /brand, then 429 as a page for a page request and as JSON for the
+// minute per address on /r, /brand and /sample (E12-4), then 429 as a page for a page request and as JSON for the
 // respondent app's calls; /app keeps its sign-in redirect.
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
@@ -29,6 +29,12 @@ describe("proxy", () => {
       expect(proxy(new NextRequest(`${BASE}${path}`, { method, headers: { "x-forwarded-for": "10.9.0.1", "next-action": "abc" } })).status).toBe(429);
     }
     expect(proxy(req("/r/abc", "10.9.0.2")).status).toBe(200);
+  });
+  it("counts the visitors' sample as a respondent route (stories/E12-4, acceptance 3)", () => {
+    respondentLimit.clear();
+    for (let i = 0; i < 100; i++) expect(proxy(req("/sample", "10.9.0.4")).status).toBe(200);
+    expect(proxy(req("/sample", "10.9.0.4")).status).toBe(429);
+    expect(proxy(req("/sample", "10.9.0.5")).headers.get("set-cookie")).toBeNull();
   });
   it("does not count a request without X-Forwarded-For", () => {
     respondentLimit.clear();

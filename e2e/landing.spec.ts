@@ -10,9 +10,9 @@ test("the landing page loads with the headline and fits a phone", async ({ page 
   const starts = page.getByRole("link", { name: /^Start free/ });
   await expect(starts).toHaveCount(3);
   for (const i of [0, 1, 2]) await expect(starts.nth(i)).toHaveAttribute("href", "/sign-in");
-  const samples = page.getByRole("link", { name: "See the sample" });
+  const samples = page.getByRole("link", { name: "Try the sample as a respondent" });
   await expect(samples).toHaveCount(2);
-  for (const i of [0, 1]) await expect(samples.nth(i)).toHaveAttribute("href", "/app");
+  for (const i of [0, 1]) await expect(samples.nth(i)).toHaveAttribute("href", "/sample");
   await expect(page.getByTestId("live-card")).toBeVisible();
   const widths = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, body: document.body.scrollWidth, view: window.innerWidth }));
   expect(widths.doc).toBeLessThanOrEqual(widths.view);

@@ -22,7 +22,7 @@ Instead of emailing a spreadsheet around, your experts go through it item by ite
 push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI,
 and the CSV.
 
-Buttons: Start free. See the sample.
+Buttons: Start free. Try the sample as a respondent (to /sample, stories/E12-4).
 
 Under the buttons: No account for the experts. Nothing to install. Free while we build it.
 
@@ -145,7 +145,7 @@ Title: Free while we build it with the first users.
 Unlimited projects, unlimited experts, the AI included. Paid plans come later and nothing you
 build now is lost or locked.
 
-Buttons: Start free. See the sample.
+Buttons: Start free. Try the sample as a respondent (to /sample, stories/E12-4).
 
 Card: Free. While we build it. EUR 0 / month. Projects, experts and answers without limits.
 AI shaping and the to-do list. Live dashboard and CSV export. Your logo and colour on the

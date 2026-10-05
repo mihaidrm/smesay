@@ -7,13 +7,20 @@
 import { cn } from "cn";
 import { Mark } from "@/components/brand/mark";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
+import { LANDING_PATH } from "@/lib/sample-copy";
 
-export function PoweredBy({ show = true, privacy = false, className }: { show?: boolean; privacy?: boolean; className?: string }) {
+// "landing": the lockup links to the landing page (the visitors' sample, stories/E12-4,
+// acceptance 2); on a workspace's link it is text.
+export type PoweredByShow = boolean | "landing";
+
+export function PoweredBy({ show = true, privacy = false, className }: { show?: PoweredByShow; privacy?: boolean; className?: string }) {
   if (!show && !privacy) return null;
   const link = privacy ? <a href="/legal/privacy" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-ink" data-testid="privacy-link">{ABOUT_YOU_COPY.privacy}<span className="sr-only"> {ABOUT_YOU_COPY.newTab}</span></a> : null;
   return (
     <div className={cn("flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2 text-[13px] text-ink-muted", className)}>
-      {show && <span className="flex items-center gap-1.5" data-testid="powered-by">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></span>}
+      {show === "landing" ? (
+        <a href={LANDING_PATH} className="flex items-center gap-1.5 hover:text-ink" data-testid="powered-by">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink underline underline-offset-4">SMEsay</span></a>
+      ) : show && <span className="flex items-center gap-1.5" data-testid="powered-by">{ABOUT_YOU_COPY.poweredBy} <Mark size={16} /> <span className="font-bold text-ink">SMEsay</span></span>}
       {show && link && <span aria-hidden="true">·</span>}
       {link}
     </div>

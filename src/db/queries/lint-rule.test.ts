@@ -1,6 +1,7 @@
 // The lint rules that keep data access inside src/db/queries/ (stories/E1-3, acceptance 1;
 // eslint-rules/db-access.mjs). ESLint's Node API: new ESLint(options) and
 // eslint.lintText(code, { filePath }) (eslint.org/docs/latest/integrate/nodejs-api).
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ESLint } from "eslint";
 
@@ -67,10 +68,16 @@ describe("db-access", () => {
     ['import { internal } from "@/db/queries/internal";', "src/lib/ai/client.test.ts"],
     ['import { internal } from "@/db/queries/internal";', "src/lib/insights.test.ts"],
     ['import { prepareTestDatabase } from "@/db/test-db";', "src/lib/thing.test.ts"],
+    ['import * as seed from "@/db/seed/sample";', "src/lib/sample-instrument.ts"],
     ['import type { WorkspaceId } from "@/db/types"; export const ws = "abc" as WorkspaceId;', "src/db/queries/x.test.ts"],
   ];
   it.each(allowed)("allows %s in %s", async (code, filePath) => {
     expect(await access(code + "\nexport const keep = 1;\n", filePath)).toBe(0);
+  });
+  // The rule lets anyone import src/db/seed/sample.ts because it is constants only; it must stay
+  // that way (src/db/** is not linted itself).
+  it("keeps the seed's facts free of imports", () => {
+    expect(readFileSync("src/db/seed/sample.ts", "utf8")).not.toMatch(/^\s*import\b|\brequire\(|\bimport\(/m);
   });
 });
 
