@@ -1,7 +1,7 @@
 // The limiters of E11-1 (acceptance 5): each driven past its threshold and across its window with
 // a test clock; the stores stay under their cap.
 import { describe, expect, it } from "vitest";
-import { addressOf, backoffLimiter, CAP, minutesOf, windowLimiter } from "./ratelimit";
+import { addressOf, backoffLimiter, CAP, minutesOf, sweepAll, windowLimiter } from "./ratelimit";
 
 describe("windowLimiter", () => {
   it("takes max requests per key in a window, then refuses until the window ends", () => {
@@ -61,6 +61,25 @@ describe("backoffLimiter", () => {
     const l = backoffLimiter({ max: 5, windowMs: 15 * MIN, baseMs: MIN, quietMs: 24 * 60 * MIN, capMs: 60 * MIN });
     for (let i = 0; i < 5; i++) l.attempt("k", i * MIN);
     expect(l.attempt("k", 16 * MIN).allowed).toBe(true);
+  });
+});
+
+describe("the sweep", () => {
+  // docs/legal/privacy.md (decision 0054): a key is held for its window, or the backoff's quiet
+  // time, and goes at the next sweep.
+  it("drops ended windows and quiet backoffs, and keeps the rest", () => {
+    const now = 1_000_000;
+    const w = windowLimiter({ max: 5, windowMs: 60_000 });
+    w.hit("ended", now - 61_000);
+    w.hit("live", now - 1_000);
+    const b = backoffLimiter({ max: 1, windowMs: 60_000, baseMs: 60_000, quietMs: 3_600_000, capMs: 3_600_000 });
+    b.attempt("quiet", now - 3_600_001);
+    b.attempt("recent", now - 60_000);
+    b.attempt("blocked", now - 10_000); b.attempt("blocked", now - 9_000);
+    sweepAll(now);
+    expect(w.size()).toBe(1);
+    expect(b.size()).toBe(2);
+    expect(b.check("blocked", now).allowed).toBe(false);
   });
 });
 

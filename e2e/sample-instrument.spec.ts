@@ -56,3 +56,25 @@ test("a visitor answers the sample and reaches Done, with nothing saved", async 
   expect(writes).toEqual([]);
   expect(await context.cookies()).toEqual([]);
 });
+
+// The light and dark switch in the respondent header (design note 97): a phone set to light
+// opens the sample in light; the switch turns it dark, keeps the choice in the browser for the
+// next visit, and turns it back.
+test("the header's switch turns the sample dark and keeps the choice", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/sample");
+  const html = page.locator("html");
+  const mode = page.getByRole("switch", { name: "Dark mode" });
+  await expect(mode).toHaveAttribute("aria-checked", "false");
+  await expect(html).not.toHaveClass(/\bdark\b/);
+  await mode.click();
+  await expect(mode).toHaveAttribute("aria-checked", "true");
+  await expect(html).toHaveClass(/\bdark\b/);
+  expect(await page.evaluate(() => localStorage.getItem("smesay-mode"))).toBe("dark");
+  await page.reload();
+  await expect(html).toHaveClass(/\bdark\b/);
+  await expect(mode).toHaveAttribute("aria-checked", "true");
+  await mode.click();
+  await expect(html).not.toHaveClass(/\bdark\b/);
+  expect(await page.evaluate(() => localStorage.getItem("smesay-mode"))).toBe("light");
+});

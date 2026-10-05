@@ -103,6 +103,9 @@ Purpose: the domain, its DNS records, and later file storage, all in one account
 4. On the dashboard click "Connect". Choose the `dev` branch. Copy the connection string (it
    starts with `postgresql://`).
 5. Paste it in `.env.local` after `DATABASE_URL=`. The production string goes into Vercel in step 4.
+6. At the launch gate, on a paid plan: "Settings", then the history window (restore window), set
+   to 7 days. The privacy page and the DPA promise 7 days of backups (docs/legal/lawyer-review.md,
+   L14; neon.com/docs/introduction/history-window).
 
 Local development uses a Postgres in Docker, so this step is only needed for the deployed app.
 
@@ -114,7 +117,10 @@ Local development uses a Postgres in Docker, so this step is only needed for the
    (about EUR 20 per month) before the first external user. This is a decision for you.
 3. Click "Add New", then "Project", and import the GitHub repository from step 1. Vercel asks
    for access to the repository; approve it for that one repository only.
-4. Claude sets the region (Frankfurt, `fra1`) in the code. You do not need to change it.
+4. The region (Frankfurt, `fra1`) is set in the code: `vercel.json` has `"regions": ["fra1"]`
+   (vercel.com/docs/functions/configuring-functions/region; functions run in Washington D.C.
+   by default). You do not need to change it. Added 2026-10-05; this step said so before the
+   file existed.
 5. Open the project, then "Settings", then "Environment Variables". Paste each production value
    here as it becomes available (Claude gives you the list of names, never the values).
 6. After step 2: "Settings", then "Domains", add the domain, and copy the DNS records Vercel
@@ -126,7 +132,9 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
 
 1. Go to https://resend.com and sign up.
 2. Open "Domains", click "Add Domain". Enter a mail subdomain, for example `mail.yourdomain`.
-   Region: EU (Ireland).
+   Region: EU (Ireland). This is where mail is sent from; Resend keeps the account's records
+   (addresses, subjects, delivery logs) in the United States
+   (resend.com/docs/dashboard/domains/regions), as the privacy page says.
 3. Resend shows DNS records (SPF, DKIM, and a suggested DMARC record). In Cloudflare open the
    domain, then "DNS", and add each record exactly as shown. Set the proxy switch to "DNS only".
 4. Back in Resend click "Verify". It can take up to an hour.
