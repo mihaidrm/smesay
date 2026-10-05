@@ -67,7 +67,7 @@ export type AboutYouProps = {
   poweredBy?: PoweredByShow;
 };
 
-const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
+const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground @xl:focus-visible:ring-offset-surface";
 
 export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, nav, className, poweredBy = true }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
@@ -95,7 +95,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
           <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{title}</Heading>
           {intro && <p className="text-sm leading-5 text-ink-muted" data-testid="about-you-intro">{intro}</p>}
         </div>
-        <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground")} data-testid="about-you-fields">
+        <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground @xl:ring-offset-surface")} data-testid="about-you-fields">
           {filled.length > 0 && (
             <div className="flex flex-col gap-0.5 text-sm" data-testid="answering-as">
               <span className="font-semibold">{ABOUT_YOU_COPY.answeringAs(filled.join(", "))}</span>
@@ -129,7 +129,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
               // The id from the position: a name's characters (any script) do not make one.
               const id = `${prefix}-p-${i}`;
               return (
-                <label key={name} htmlFor={id} className="flex min-h-12 items-center gap-3 rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground">
+                <label key={name} htmlFor={id} className="flex min-h-12 items-center gap-3 rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground @xl:has-[:focus-visible]:ring-offset-surface">
                   <input id={id} type="checkbox" checked={picks.includes(name)} onChange={() => togglePick(name)} className="size-5 shrink-0 accent-[var(--violet)] focus:outline-hidden" />
                   <span>{name}</span>
                 </label>

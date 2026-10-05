@@ -20,7 +20,7 @@
 // what the Wrap up's own save says (`saveNote`: changed elsewhere, or refused) shows above
 // the form whatever Submit's state. Phone first. Tap targets on the
 // live link are 48 px (docs/design-system.md, Respondent tap targets): the Go to and Change
-// buttons keep their pill and take a 48 px hit area. The frame of ./frame.ts (decision 0051):
+// buttons keep their pill and take a 48 px hit area. The frame of ./frame.ts (decisions 0051 and 0052):
 // from a 576 px column a centered card, Back and Submit centered in its bottom band with the
 // line under them, and "Powered by" under the card.
 import { useId, useRef, useState } from "react";

@@ -9,9 +9,11 @@
 // heading and "All [N] on one page". Phone first. E7-4: the chapter row and the bar under
 // the header (`nav`), and the footer with Back, "Continue to [NEXT AREA]" or "Continue to
 // Wrap up" (never blocked) and the note "[N] of [M] still to rate here. You can come back
-// later." or "All [M] rated in this chapter." The frame of ./frame.ts (decision 0051): from a
+// later." or "All [M] rated in this chapter." The frame of ./frame.ts (decisions 0051 and 0052): from a
 // 576 px column the screen is a centered card, its cards on the ground inside it, the
-// footer's buttons centered with the note under them, and "Powered by" under the card.
+// footer's buttons centered with the note under them (under them on a phone too, as Start's
+// hint, and Continue is described by it), and "Powered by" under the card.
+import { useId } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { Layout, ScaleLabels, ScoringMethod } from "@/db/types";
@@ -19,7 +21,7 @@ import { BUILD_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
 import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
 import { RespondentHeader } from "./respondent-header";
-import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
+import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 
 export type ChapterScreenProps = {
   workspaceName: string;
@@ -61,6 +63,7 @@ const ON_GROUND = "focus-visible:ring-offset-ground";
 export function ChapterScreen(props: ChapterScreenProps) {
   const { workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
   const chapter = chapters[index];
+  const noteId = useId();
   const card = (it: RespondentItem) => (
     <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
@@ -109,11 +112,11 @@ export function ChapterScreen(props: ChapterScreenProps) {
         )}
       </main>
       <footer className={FRAME_ACTIONS}>
-        <p className={cn("text-sm text-ink-muted @xl:order-last", FRAME_LINE)} aria-live="polite" data-testid="chapter-note">{footerNote}</p>
         <div className="flex items-center gap-3 @xl:justify-center">
           <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
-          <button type="button" onClick={onContinue} className={cn("h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
+          <button type="button" onClick={onContinue} aria-describedby={noteId} className={cn("h-12 min-w-0 grow truncate rounded-full bg-ink px-6 text-base font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
         </div>
+        <p id={noteId} className="text-sm text-ink-muted @xl:text-center" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
       </footer>
       </div>
       <PoweredBy show={poweredBy} className={FRAME_POWERED} />

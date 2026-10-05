@@ -23,7 +23,8 @@ stores a response (decision 0021).
    memory only, shows "Preview: nothing you enter here is saved" in its header, and the
    submit button is disabled. A test calls the autosave route with a preview token and gets
    403.
-5. The desktop preview is the 1000 px column at 42 percent; the phone preview is 390 px at
+5. The desktop preview is the 1000 px column at 42 percent (since decision 0052 the 1032 px
+   column, a 1000 px card with its 16 px sides, at 40.7 percent); the phone preview is 390 px at
    true size, scrolling inside the panel.
 6. Playwright: on Build, switch the method, see the pills change in the preview.
 
@@ -72,7 +73,7 @@ Built 2026-10-04 (design note 65, decision 0044; docs/review-list.md):
   off and every screen says "Preview: nothing you enter here is saved"; the write routes
   answer 403 to a preview token (src/app/r/[token]/preview-writes.test.ts; e2e/preview.spec.ts
   calls the answers and start routes with the preview's token).
-- Acceptance 5: desktop is the 1000 px column scaled to 42 percent in a 420 by 560 frame;
+- Acceptance 5: desktop is the 1032 px column (decision 0052) scaled to 40.7 percent in a 420 by 560 frame;
   phone is 390 px at true size in a 720 px frame that scrolls.
 - Acceptance 6: e2e/build.spec.ts switches the method on Build and sees the pills change in
   the preview, with the layouts, the perspectives after Start and the Wrap up.

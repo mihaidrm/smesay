@@ -217,9 +217,10 @@ Three column widths on the respondent side, decided 2026-10-01 after Mihai's rev
 desktop board; on 2026-10-05 every step became a card (decisions 0051 and 0052). On a desktop
 each step is a centered card, 48 px from the top and at least 16 px from the window's sides,
 content at 32 px from its sides, its actions centered in the card's bottom band (the dark one
-320 px wide, with its line under it), and "Powered by" under the card as the last line of the
-page. The widths: About you, done, nothing to rate and the link pages (unknown, not yet open,
-closed, inactive, the passcode) 720 px, the fields filling it; the Wrap up 760 px; a chapter
+at least 320 px wide, with its line under it; the passcode's Continue centered under its
+field instead), focus rings offset on the card's white, and "Powered by" under the card as the
+last line of the page. The widths: About you, done, nothing to rate and the link pages (unknown, not yet open,
+closed, inactive, the passcode) and the link's error and 404 pages 720 px, the fields filling it; the Wrap up 760 px; a chapter
 1000 px with two card columns, because density is the point there. In the chapter and the
 Wrap up the content keeps the ground colour inside the card, so the item cards and tiles do
 not sit white on white. On a phone the same parts are full width, the actions in the bottom

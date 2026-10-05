@@ -63,9 +63,10 @@ Built 2026-10-04 (design note 50, decision 0044):
   did not submit shows the respondent's own count.
 - Acceptance 4: Playwright runs Chromium at 390 by 844 and 1440 by 900
   (e2e/respondent-start.spec.ts); Mihai checks iOS and Android on his devices.
-- Acceptance 5: About you sits in a 560 px column on the desktop; a chapter in 1000 px with
-  two card columns. Since 2026-10-05 (decision 0051) the short pages are a centered 720 px card
-  (src/components/respondent/frame.ts) with Start centered in its footer and "Powered by" last.
+- Acceptance 5: every step is a centered card on the desktop (src/components/respondent/frame.ts):
+  720 px for the short pages since decision 0051, 1000 px with two card columns for a chapter
+  and 760 px for the Wrap up since decision 0052; the actions centered in the bottom band and
+  "Powered by" last.
 - Acceptance 6: e2e/respondent-start.spec.ts opens a published project's link (the sample's
   link collects nothing, docs/review-list.md), fills Name and Role, starts, sees the first
   chapter with its cards, reloads onto the same chapter, and sees the sample link's page.

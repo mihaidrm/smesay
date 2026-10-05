@@ -15,20 +15,31 @@ Decision: every respondent step uses the frame of decision 0051
   row and the progress bar sit in the card. The item cards stay on the ground colour inside
   it, so a white card never sits on a white card.
 - The footer is the card's bottom band. Back and Continue, or Back and Submit, are centered
-  as a pair, and the dark button is 320 px wide. The note ("[N] of [M] still to rate here.",
-  "Still needed: ...") sits centered under the buttons, as Start's hint does.
-- Done and nothing to rate move their buttons into the same bottom band, centered.
-- The passcode page's Continue is 320 px and centered.
+  as a pair, and the dark button is at least 320 px wide (wider when "Continue to [AREA]"
+  needs it; area names take up to 60 characters). The note ("[N] of [M] still to rate
+  here.", "Still needed: ...") sits centered under the buttons, as Start's hint does, and
+  describes the dark button for screen readers.
+- Done and nothing to rate move their buttons into the same bottom band, centered; the
+  sample's dark Start free is at least 320 px too.
+- The passcode page's Continue stays under its field, centered and at least 320 px wide.
+- The link's error page and its 404 are the same 720 px card; Try again sits in the band.
+- Controls inside the card offset their focus ring on the card's white from 576 px and on
+  the ground below it.
+- The Build preview's desktop frame shows the 1032 px column, so it draws the same 1000 px
+  card a respondent sees.
 - "Powered by" is under the card, the last thing on the page, on every step.
 
-On a phone the steps keep their layout. The two changes there are that "Powered by" is now
-the last line, under the footer, and that Done's buttons are in a band at the bottom.
+On a phone the steps keep their layout. The changes there: "Powered by" is now the last line,
+under the footer; a chapter's count sits under Back and Continue, as on About you and the
+Wrap up; Done's buttons are in a band at the bottom.
 
 Consequences:
-- frame.ts gains FRAME_ACTIONS, FRAME_PRIMARY and FRAME_LINE, used by about-you.tsx,
-  chapter-screen.tsx, wrap-up.tsx, passcode-form.tsx and respondent-app.tsx.
+- frame.ts gains FRAME_ACTIONS, FRAME_PRIMARY, FRAME_LINE and FRAME_RING_OFFSET, used by
+  about-you.tsx, chapter-screen.tsx, wrap-up.tsx, passcode-form.tsx, respondent-app.tsx and
+  the link's error.tsx and not-found.tsx; preview-frame.tsx shows the 1032 px column.
 - The chapter row and the banners line up with the card's 32 px sides.
-- docs/design-system.md (Respondent columns), decision 0051 and stories/E7-1, E7-4, E7-5 and
-  E7-6 are amended.
-- e2e/respondent-start.spec.ts measures the chapter card and the Wrap up card on a desktop.
+- docs/design-system.md (Respondent columns), decision 0051 and stories/E5-6, E7-1, E7-4,
+  E7-5, E7-6 and E7-7 are amended.
+- e2e/respondent-start.spec.ts measures the chapter card and the Wrap up card on a desktop
+  and the chapter's footer on a phone; e2e/share.spec.ts measures the passcode page.
 - The "Respondent as built" board's screenshots are retaken.
