@@ -26,3 +26,12 @@ Format: date, agent, what was invented or assumed, what caught it, what changed.
 | 2026-10-03 | main session (decision 0036) | Added a required environment variable to runModel and ran only the two test files the change touched. src/lib/shaping.test.ts also reaches runModel and had no cap set, so 10 of its tests failed. | CI run 37102822327, src/lib/shaping.test.ts | The variable is set in that file too; before pushing a change to runModel, grep src/ for every test that reaches it (`grep -rl "runModel\|shapeSet(" src --include=*.test.ts`), not only the files edited. |
 | 2026-10-03 | main session (E4-6) | Kept the tender numbering ("3.1.1") in the rows of golden spec 09 and assumed the model would use the [n] refs. It used 3.1.1 as the ref for all 13 rows and checkShape refused the answer. | The first real Evals run, CI run 37105430695, spec 09 "13 unknown ref(s) in areas" | The rows carry no numbering, as the rule in evals/README.md says; a leading number in an item text is now a known way to confuse the ref. |
 | 2026-10-05 | main session (E11-5) | Made every page render per request (the nonce) and kept relying on dynamicParams false to turn an unknown legal page into 404; rendered per request, /legal/cookies reached the page, which read a missing file and answered 500. | CI run 37247310344, e2e/legal.spec.ts line 14 | The page checks the name against the four pages and calls notFound() (src/app/legal/[page]/page.tsx). |
+
+## 2026-10-05: tests pinned to "today" broke at noon UTC
+
+src/lib/respondent.test.ts and respondent-submit.test.ts passed a fixed now of
+2026-10-05T12:00Z while the response row took its created_at and updated_at from the
+database's clock, and later writes keep the greatest of the two. Once the real clock passed
+noon on that date, three tests failed on main and on every pull request. Caught by CI on PR
+133. Fixed: startResponse stamps the new row with its own now; the answers test runs an hour
+ahead of the real clock, as its route calls use the real time.
