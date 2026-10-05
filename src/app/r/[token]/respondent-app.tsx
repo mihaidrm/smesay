@@ -51,7 +51,7 @@ import { signOffFor } from "@/lib/closing";
 import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "@/components/respondent/frame";
-import type { ClosingSpec, Layout, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { ClosingSpec, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
@@ -69,7 +69,7 @@ export type RespondentAppProps = {
   accent: string;
   logoUrl: string | null;
   headerNote: string | null;
-  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout };
+  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout; reasonRule: ReasonRule };
   prefilled: ResponseFields | undefined;
   items: RespondentItem[];
   areas: AreaMeta[];
@@ -124,6 +124,19 @@ export function RespondentApp(props: RespondentAppProps) {
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
   const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => props.initialDrafts ?? Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
   const [item, setItem] = useState(props.initialItem);
+  // The slide between screens (design note 99; Mihai: "a swipe animation or something similar
+  // when moving through chapters, nothing too obnoxious"): the screens in their order (About
+  // you, each chapter and its items, the Wrap up and Done) give the way the respondent moved,
+  // whether by Continue, Back, a chapter pill or the browser's Back. The last place is kept in
+  // state and compared while rendering (react.dev/reference/react/useState, "Storing
+  // information from previous renders"); the first screen does not slide.
+  // An item adds a fraction under 1 (the import keeps a list under 2,000 rows, E3-2, so 1/10000
+  // per item never reaches the next chapter); Done sits after the Wrap up, so Change my answers
+  // slides back.
+  const place = screen.kind === "about" ? 0 : screen.kind === "chapter" ? 1 + screen.index + item / 10000 : screen.kind === "done" ? 1e6 + 1 : 1e6;
+  const [lastPlace, setLastPlace] = useState(place);
+  const [slide, setSlide] = useState<"next" | "prev" | null>(null);
+  if (place !== lastPlace) { setLastPlace(place); setSlide(place > lastPlace ? "next" : "prev"); }
   const [storageNoticeDone, setStorageNoticeDone] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -178,7 +191,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // once however many saves were refused; Start then sends the cards' drafts again, so the
   // answers on the page are kept with the new details. Straight after a Start it is the
   // browser refusing the cookie, and the sentence says so instead.
-  const saver = useAnswerSaver(token, responseId, started && !preview, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a)])), {
+  const saver = useAnswerSaver(token, responseId, started && !preview, itemIds, props.versions, props.answers, Object.fromEntries(Object.keys(props.answers).map((id) => [id, true])), Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, isComplete(a, props.instrument.reasonRule)])), {
     onRestore: (found) => setDrafts((d) => ({ ...d, ...found })),
     onStale: (itemId, answer) => setDrafts((d) => ({ ...d, [itemId]: { picked: pickedOf(answer), reason: answer.reason ?? "", comment: answer.comment ?? "" } })),
     onSaved: (reply) => { savedSinceStart.current = true; heard(reply); },
@@ -218,7 +231,8 @@ export function RespondentApp(props: RespondentAppProps) {
     const card = itemId ? document.querySelector<HTMLElement>(`[data-item="${CSS.escape(itemId)}"]`) : null;
     if (card) {
       card.scrollIntoView({ block: "start" });
-      card.querySelector<HTMLElement>("[tabindex='0'], input:not([tabindex='-1']), textarea, button")?.focus({ preventScroll: true });
+      // The rating row first, then the box (View more comes before both in the card, design note 99).
+      (card.querySelector<HTMLElement>("[role='radiogroup'] [tabindex='0'], [role='radiogroup'] input:not([tabindex='-1'])") ?? card.querySelector<HTMLElement>("textarea, [tabindex='0'], input:not([tabindex='-1']), button"))?.focus({ preventScroll: true });
       return;
     }
     document.querySelector<HTMLElement>("[data-screen-heading]")?.focus({ preventScroll: true });
@@ -330,13 +344,13 @@ export function RespondentApp(props: RespondentAppProps) {
   const names = chapters.map((c) => c.name ?? instrument.title);
   // What counts as answered: what the server holds complete, or in the preview the cards as
   // they stand (nothing is saved there).
-  const done = preview ? Object.fromEntries(items.map((it) => [it.id, isComplete(answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed))])) : saver.done;
+  const done = preview ? Object.fromEntries(items.map((it) => [it.id, isComplete(answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed), instrument.reasonRule)])) : saver.done;
   const progress = progressOf(chapters, done);
   const byId = new Map(items.map((it) => [it.id, it]));
-  const gaps = gapsOf(chapters, done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null));
+  const gaps = gapsOf(chapters, done, (id) => answerOfDraft(drafts[id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, byId.get(id)?.proposed ?? null), instrument.reasonRule);
   // The Wrap up's tally and sections, from the cards as the respondent left them.
   const answersNow = Object.fromEntries(chapters.flatMap((c) => c.items).map((it) => [it.id, answerOfDraft(drafts[it.id] ?? EMPTY_DRAFT, instrument.method, instrument.showProposed, it.proposed)]));
-  const buckets = tallyOf(instrument.method, chapters.flatMap((c) => c.items), answersNow);
+  const buckets = tallyOf(instrument.method, chapters.flatMap((c) => c.items), answersNow, instrument.reasonRule);
   const tally = Object.fromEntries(Object.entries(buckets).map(([k, ids]) => [k, ids.length])) as Record<Bucket, number>;
   const chapterOf = new Map(chapters.flatMap((c, i) => c.items.map((it) => [it.id, i] as const)));
   const sections: WrapSection[] = (["higher", "lower", "notNeeded", "unclear"] as const).flatMap((bucket) => buckets[bucket].map((id) => {
@@ -420,7 +434,7 @@ export function RespondentApp(props: RespondentAppProps) {
     const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen slide={slide} workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} reasonRule={instrument.reasonRule} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(index + 2, names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
@@ -457,7 +471,7 @@ export function RespondentApp(props: RespondentAppProps) {
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
-        <WrapUp workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}

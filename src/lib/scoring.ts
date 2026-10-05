@@ -6,7 +6,7 @@
 // A value picked that equals the proposal is agree; the lowest value (Not needed, Drop, 1
 // no fit) is disagree; any other value is change; without a proposal every value is pick
 // (decision 0014; docs/review-list.md for the fit rule). Unclear is its own answer.
-import type { AnswerKind, Layout, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { AnswerKind, Layout, ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
 import { normaliseValue } from "@/lib/import/values";
 
 export const LABEL_MAX = 20;
@@ -48,6 +48,17 @@ export const LAYOUTS_META: { key: Layout; label: string; hint: string }[] = [
   { key: "page", label: "Single long page", hint: "Every area in order, no chapter row" },
 ];
 export const isLayout = (value: unknown): value is Layout => value === "chapters" || value === "item" || value === "page";
+
+// When an answer needs its reason, question or comment written to count as complete
+// (stories/E5-2, acceptance 6; INTERFACES.md ReasonRule; design note 98), the default first.
+// The rule itself is textRequired() in src/lib/respondent-rules.ts.
+export const DEFAULT_REASON_RULE: ReasonRule = "differs";
+export const REASON_RULES_META: { key: ReasonRule; label: string; hint: string }[] = [
+  { key: "differs", label: "When the answer differs", hint: "A value other than the proposal, Not needed and Unclear need one. The default." },
+  { key: "never", label: "Never", hint: "Reasons and questions are optional. The boxes still show." },
+  { key: "always", label: "On every answer", hint: "An agreeing answer or a rating needs a comment too." },
+];
+export const isReasonRule = (value: unknown): value is ReasonRule => value === "differs" || value === "never" || value === "always";
 
 // The code that means "not needed" per method: the disagree answer (decision 0014).
 export const DISAGREE_CODE: Record<ScoringMethod, string> = { moscow: "W", fit: "1", kcd: "D" };
@@ -104,10 +115,11 @@ export function classify(input: { method: ScoringMethod; showProposed: boolean; 
 export const SCORING_ERRORS = {
   badMethod: "Pick one of the three methods: MoSCoW, 1 to 5 fit, or keep, change, drop.",
   badLayout: "Pick one of the three layouts: chapters, one item per screen, or a single long page.",
+  badReasonRule: "Pick when a reason is required: when the answer differs, never, or on every answer.",
   badLabel: `Each label is 1 to ${LABEL_MAX} characters. Leave one empty to keep the default.`,
   sameLabel: "Each value needs its own label, and Unclear is taken.",
   badShape: "The labels did not reach the server as a list. Reload the page and try again.",
-  locked: "Published instruments keep their method. Build a new instrument to change it.",
+  locked: "Published instruments keep their method and when a reason is required. Build a new instrument to change them.",
 } as const;
 
 export const isMethod = (value: unknown): value is ScoringMethod => value === "moscow" || value === "fit" || value === "kcd";

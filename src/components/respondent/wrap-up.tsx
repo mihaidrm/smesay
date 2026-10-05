@@ -12,7 +12,7 @@
 // header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
 // finish." with "Go to section [N]: [CHAPTER]" to the first one's item ("Go to [CHAPTER]" on
 // the single long page, decision 0055), and the list "Still to finish" naming each item
-// and what is missing (Not rated yet, Say why., Write your question.), each a button to its
+// and what is missing (Not rated yet, Reason not written yet, Question not written yet), each a button to its
 // own item, and Back. E7-5: the tally from the respondent's answers, the sections of what
 // they suggested (higher, lower, not needed, their questions; agreed items are not listed)
 // with Change per row, the missing item, the closing answer, confidence and the sign-off held
@@ -36,6 +36,8 @@ import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS
 import { labelFor, scaleFor } from "@/lib/scoring";
 
 export type WrapUpProps = {
+  // The way the respondent arrived, for the slide in (design note 99); null on the first screen.
+  slide?: "next" | "prev" | null;
   workspaceName: string;
   accent: string;
   closing: ClosingSpec;
@@ -84,7 +86,7 @@ const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRat
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = "main";
   const firstGap = gaps?.[0];
@@ -119,7 +121,9 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span className="font-mono text-xs text-ink-muted">{BUILD_COPY.previewProgress(0, total)}</span>
         </header>
       )}
-      <Body className="flex grow flex-col gap-4 bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
+      <Body className="flex grow flex-col overflow-x-clip bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
+        {/* The slide moves this inner block, so the Body's clip holds it (design note 99). */}
+        <div className="flex grow flex-col gap-4" data-slide={slide ?? undefined}>
         <Heading className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] focus:outline-hidden" tabIndex={Heading === "h1" ? -1 : undefined} data-screen-heading={Heading === "h1" || undefined}>{WRAP_UP_COPY.title}</Heading>
         <div className={cn("grid gap-1.5", tileKeys.length === 6 ? "grid-cols-3 sm:grid-cols-6" : tileKeys.length === 5 ? "grid-cols-5" : "grid-cols-3")} data-testid="wrap-up-tally">
           {tileKeys.map((key) => (
@@ -234,6 +238,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <span>{signOffFor(closing)}</span>
         </label>
         </fieldset>
+        </div>
       </Body>
       <div className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">

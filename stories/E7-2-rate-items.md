@@ -3,23 +3,34 @@
 User: an expert going through the chapters
 Status: built
 Outcome: each card takes one of the four answers through the rating row, and a card does not
-count as answered until its reason or question is written.
+count as answered until its reason or question is written (by default; from 2026-10-05 the PM
+sets when text is required on Build, stories/E5-2 acceptance 6).
 
 ## Acceptance criteria
 1. The chapter screen (respondent board, note 12, decision 0018): title, one-line intro,
    compact cards two columns wide on desktop, one on the phone. A card is a fieldset: the
-   reference and item text as legend, the rating row of pills (the scale from E5-2, Unclear
-   last; proposed value dashed and captioned when shown), a Details toggle when the import
-   carried more text, "+ comment" when a comment is optional.
+   reference ("Requirement [REF]") and item text as legend, View more when the import carried
+   more text (the details open above the rating row), the rating row of pills (the scale from
+   E5-2, Unclear last; proposed value dashed and captioned when shown), "+ comment" when a
+   comment is optional. (Amended 2026-10-05, design
+   note 99, Mihai: "Comment and details share the same box - its maybe a bit confusing" and
+   "add it as a title above the summary of each card and say something like requirement
+   CL-01": the legend is "Requirement [REF]" over the summary; the details open with View
+   more above the rating row; the two cards of a row are the same height.)
 2. The four answers (decision 0014) through the values (decision 0018): the proposed value is
-   Agree; another value is Change with the box "Why [VALUE] and not [PROPOSED]? The team
-   reads every reason."; Not needed is Disagree with "Why is it not needed, or what should it
+   Agree; another value is Change with the box "Could you tell us why you think the priority
+   should be different?" (amended 2026-10-05, design note 99; the fit or "it" for the other
+   methods; was "Why [VALUE] and not [PROPOSED]? The team reads every reason."); Not needed is Disagree with "Why is it not needed, or what should it
    say instead?"; Unclear with "What would you need to know to rate it?". Rate-blind: the
    value is `pick`, comment optional. Keep, change, drop and 1 to 5 follow the same rule:
    a value equal to the proposal (when shown) is agree, anything else needs a reason.
-3. The note under the card says exactly what is missing ("Not rated yet", "Say why.", "Write
-   your question.") or "Saved" (docs/copy/errors.md, Respondent answering). A card counts as
-   answered only when complete (the respondent board's `complete()` rule).
+3. The note under the card says "Not rated yet" or "Saved" (docs/copy/errors.md, Respondent
+   answering); while a reason or a question is missing it says nothing, since the box asks
+   (amended 2026-10-05, design note 99; Mihai: the "Say why." note "seems like its
+   condescening"; it said "Say why." and "Write your question." before). A card counts as
+   answered only when complete (the respondent board's `complete()` rule, under the PM's
+   reason rule from 2026-10-05: when the answer differs, the default; never; or on every
+   answer, where an agreeing answer or a rating needs a comment; E5-2, acceptance 6).
 4. The three layouts (E5-3) render here: chapters, one item per screen with "Item 1 of 2 in
    [AREA]", single page with every area and no chapter row. A Playwright test at 375 by 667
    opens each layout on the sample instrument and checks the document width and the
@@ -27,7 +38,8 @@ count as answered until its reason or question is written.
 5. Typed text is kept when the respondent switches between answers on the same card (note 12,
    finding 4).
 6. Playwright: on the sample link, answer one card with Change and a reason, see Saved;
-   answer another with Unclear and no question, see "Write your question."
+   answer another with Unclear and no question, see no note and the card still incomplete
+   (amended 2026-10-05, design note 99).
 
 7. The selected answer pill takes `effectiveAccent()` from the workspace (E2-5, acceptance 3);
    ink when the accent fails (E7-7).
@@ -72,3 +84,23 @@ Built 2026-10-04 (design note 51, decision 0044):
   violet. The ink fallback for a failing accent is E7-7's.
 - Saving: a change waits 400 ms for the next, then goes out; focus leaving any control and
   the page being hidden send what waits. E7-3 adds the offline queue and its banner.
+
+Changed 2026-10-05 (E5-2, acceptance 6; design note 98): isComplete and noteFor take the
+instrument's reason rule; needsReason still picks the box the text is stored in. Under On
+every answer the card opens the comment box on its own for an agreeing answer or a rating,
+labelled "Comment, required", and shows no "+ comment" toggle; under Never the boxes show as
+before and an empty one leaves the card complete. The prompts and the layout of the card are
+unchanged.
+
+Built 2026-10-05 (design note 99, amendments to acceptance 1, 2, 3 and 6): item-card.tsx puts
+"Requirement [REF]" over the summary and View more (named with the item for screen readers)
+above the rating row; the fixed 260 px frame is gone and the two cards of a row stretch to one
+height. The reason question is RESPONDENT_COPY.changePrompt(method), unit tested for the three
+methods. While a reason or a question is missing the visible note is empty; a screen-reader
+line says what is missing and the box carries aria-required. e2e/sample-instrument.spec.ts,
+"the sample's cards", checks the reference line, View more above the rating row, equal heights
+before and after a box opens, the generic question, the empty note, and the Wrap up's "Reason
+not written yet"; respondent-rate checks the empty note and data-note on a live link. The
+audit of the same day found the one-item layout dropping focus on Next item (the new button
+of the same name now takes it) and the Wrap up's slide widening a phone (the slide now moves
+an inner block inside the clip).

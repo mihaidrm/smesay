@@ -21,6 +21,7 @@ export * from "./auth-schema";
 export const ANSWER_KINDS = ["agree", "change", "disagree", "unclear", "pick"] as const;
 export const SCORING_METHODS = ["moscow", "fit", "kcd"] as const;
 export const LAYOUTS = ["chapters", "item", "page"] as const;
+export const REASON_RULES = ["differs", "never", "always"] as const;
 export const INVITE_KINDS = ["public", "personal"] as const;
 export const READER_STATUSES = ["suggested", "accepted", "rejected"] as const;
 export { INSIGHT_STATES };
@@ -219,6 +220,9 @@ export const instrument = pgTable("instrument", {
   method: text("method", { enum: SCORING_METHODS }).notNull().default("moscow"),
   showProposed: boolean("show_proposed").notNull().default(true),
   layout: text("layout", { enum: LAYOUTS }).notNull().default("chapters"),
+  // E5-2 (2026-10-05, design note 98): when an answer needs its reason, question or comment
+  // written to count as complete (INTERFACES.md ReasonRule); existing rows take "differs".
+  reasonRule: text("reason_rule", { enum: REASON_RULES }).notNull().default("differs"),
   respondentFields: jsonb("respondent_fields").$type<RespondentFieldSpec[]>().notNull().default(sql`'[]'::jsonb`),
   // E5-2: the PM's labels for the scale's values, by code; null means the defaults.
   scaleLabels: jsonb("scale_labels").$type<ScaleLabels>(),
@@ -239,6 +243,7 @@ export const instrument = pgTable("instrument", {
   unique("instrument_id_item_set_uq").on(t.id, t.itemSetId),
   check("instrument_method_check", oneOf("method", SCORING_METHODS)),
   check("instrument_layout_check", oneOf("layout", LAYOUTS)),
+  check("instrument_reason_rule_check", oneOf("reason_rule", REASON_RULES)),
 ]);
 
 export const invite = pgTable("invite", {

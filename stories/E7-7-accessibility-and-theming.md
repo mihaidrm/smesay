@@ -26,7 +26,8 @@ text passes AA, and the PM's logo and accent apply within the theming rules.
    fonts, Plus Jakarta Sans with Geist Mono for numbers (design note 33), are self-hosted; no
    request leaves the page to a font host (design system, Type). (Amended 2026-10-04 after
    the audit; the criterion named Geist, the type before design v2.)
-6. `prefers-reduced-motion` turns off the 150 and 250 ms transitions (design system, Motion).
+6. `prefers-reduced-motion` turns off the 150 and 250 ms transitions (design system, Motion),
+   and the 240 ms slide between chapters (E7-4, acceptance 7; added 2026-10-05).
 7. (Added 2026-10-05, design note 97; Mihai: "should add the dark mode toggle on the sample
    respondent flow from the landing page as well".) The mode follows the phone's setting until
    the respondent presses the switch at the right end of the header, "Dark mode", on every

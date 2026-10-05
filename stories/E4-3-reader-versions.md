@@ -13,7 +13,7 @@ PM presses Accept.
    preview use reader_text only where reader_status is accepted, the original everywhere else
    (decision 0009 item 2). A test proves a suggested item renders its original.
 3. original_text is never changed (E1-2 trigger). The item detail on Results and the respondent
-   card's Details toggle show the original (decision 0018 item 3).
+   card's View more show the original (decision 0018 item 3).
 4. A reader version identical to the original shows "The readable version is the same as the
    original, so there is nothing to accept." and no buttons.
 5. The counter "[N] of [M] reader versions accepted." sits under the row of buttons. Shape can

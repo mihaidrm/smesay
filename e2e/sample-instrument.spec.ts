@@ -78,3 +78,54 @@ test("the header's switch turns the sample dark and keeps the choice", async ({ 
   await expect(html).not.toHaveClass(/\bdark\b/);
   expect(await page.evaluate(() => localStorage.getItem("smesay-mode"))).toBe("light");
 });
+
+// The card and the moves between chapters (design note 99; Mihai, 2026-10-05): "Requirement
+// CL-01" over the summary, the details behind View more above the rating, the reason box the
+// only box under it, the two cards of a row the same height whatever opens in one of them, the
+// generic reason question, no "Say why." note, and the content sliding in from the side the
+// respondent moved to.
+test("the sample's cards: reference line, View more, equal heights, the slide", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/sample");
+  await page.locator("[data-ready]").waitFor();
+  await page.getByLabel("Name", { exact: true }).fill("Dana");
+  await page.getByLabel("Role", { exact: true }).selectOption("Finance");
+  await page.getByTestId("about-you-start").click();
+  await expect(page.locator("[data-slide]")).toHaveAttribute("data-slide", "next");
+  const cards = page.getByTestId("item-card");
+  const first = cards.nth(0);
+  await expect(first.getByTestId("card-reference")).toHaveText("Requirement CL-01");
+  // The details are closed, above the rating row, and open in place.
+  await expect(first.getByTestId("card-details")).toBeHidden();
+  const more = first.getByTestId("card-more");
+  await expect(more).toHaveText(/^View more/);
+  await expect(more).toHaveAttribute("aria-expanded", "false");
+  const heights = async () => [Math.round((await cards.nth(0).boundingBox())!.height), Math.round((await cards.nth(1).boundingBox())!.height)];
+  const [a0, b0] = await heights();
+  expect(a0).toBe(b0);
+  await more.click();
+  await expect(first.getByTestId("card-details")).toBeVisible();
+  await expect(more).toHaveText(/^View less/);
+  expect((await first.getByTestId("card-details").boundingBox())!.y).toBeLessThan((await first.getByRole("radiogroup").boundingBox())!.y);
+  const [a1, b1] = await heights();
+  expect(a1).toBe(b1);
+  // A value other than the proposal: the generic question in the reason box, no note.
+  const proposed = await first.locator("[data-proposed]").textContent();
+  await first.getByRole("radio", { name: proposed === "Should" ? "Must" : "Should" }).click();
+  await expect(first.getByText("Could you tell us why you think the priority should be different?")).toBeVisible();
+  await expect(first.getByTestId("item-card-note")).toHaveText("");
+  await expect(first.getByTestId("item-card-missing")).toHaveText("Reason not written yet");
+  await expect(first.getByTestId("card-reason")).toHaveAttribute("aria-required", "true");
+  const [a2, b2] = await heights();
+  expect(a2).toBe(b2);
+  // Continue slides the next chapter in from the right; Back from the left.
+  await page.getByTestId("chapter-continue").click();
+  await expect(page.getByTestId("chapter-title")).toHaveText("Approving");
+  await expect(page.locator("[data-slide]")).toHaveAttribute("data-slide", "next");
+  await page.getByTestId("chapter-back").click();
+  await expect(page.getByTestId("chapter-title")).toHaveText("Submitting");
+  await expect(page.locator("[data-slide]")).toHaveAttribute("data-slide", "prev");
+  // The Wrap up names what the card left unsaid.
+  await page.getByTestId("row-wrap").click();
+  await expect(page.getByTestId("wrap-up")).toContainText("Reason not written yet");
+});

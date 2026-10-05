@@ -13,6 +13,18 @@ the check constraints use them). Change this file first.
   rate-blind answer: a value with no proposal to agree with.
 - ScoringMethod: moscow, fit, kcd.
 - Layout: chapters, item, page (decision 0016).
+- ReasonRule (E5-2, 2026-10-05; instrument.reason_rule, text, not null, default `differs`,
+  migration 0035; design note 98): when an answer counts as complete only with its text
+  written. `differs`: a value other than the proposal (change, disagree) needs its reason and
+  Unclear its question; agree and pick need nothing (the rule before 2026-10-05, which every
+  existing row takes). `never`: the boxes still show, and an empty reason or question still
+  counts as complete. `always`: every answer needs its text: change, disagree and unclear
+  their reason or question, agree and pick their comment (the card opens the comment box on
+  its own and labels it required). The text sits where it always did: answer.reason for
+  change, disagree and unclear, answer.comment for agree and pick (needsReason(kind) in
+  src/lib/respondent-rules.ts picks the box; textRequired(kind, rule) says whether that
+  box must be filled). Locked once the instrument is published, like the method. The SQL
+  twin, for the counts over 500 rows, is completeSql(rule) in src/db/queries/complete.ts.
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
@@ -233,7 +245,8 @@ Reminders (E6-3): invites.claimReminder(ws, id, now, minHours) (one statement: r
 + 1 and last_reminder_at = now on a sent, unrevoked personal invite whose last reminder is
 minHours old or none, and the newest response not submitted; null when refused),
 invites.unclaimReminder(ws, id, claimedAt, previous) (only while claimedAt is on the row);
-responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, responseId);
+responses.forInvite(ws, inviteId) (the newest); answers.countForResponse(ws, responseId)
+(complete answers under the instrument's ReasonRule, completeSql);
 remindInvitee(ws, projectId, instrumentId, inviteId, sender, baseUrl, now, send) and
 remindAll(...) in src/lib/reminders.ts (outcomes: email, sent, error); canRemind(row, now)
 and REMIND_AFTER_HOURS in src/lib/reminders-rules.ts; reminderEmail(input) in
@@ -278,7 +291,8 @@ sample: true } and poweredBy "landing" (PoweredByShow = boolean or "landing", a 
 parseSample/readSample/keepSample in src/lib/sample-drafts.ts keep SampleKept { drafts, fields,
 picks, wrap, started, submittedAt } in session storage under smesay-sample; SAMPLE_TOKEN
 "sample" (src/lib/sample-copy.ts) makes the savers call nothing. RespondentApp takes
-initialDrafts; ItemCard and ChapterScreen take savedLabel.
+initialDrafts; ItemCard and ChapterScreen take savedLabel. ChapterScreen and WrapUp take
+slide: "next" | "prev" | null, the way the respondent arrived (design note 99).
 The respondent journey (E7-1): loadRespondent(token, { passcode, device }, now) in
 src/lib/respondent.ts (the link's page kind: unknown, sample, notOpen, closed, closedOwn,
 closedSubmitted (E7-6: a closed personal link with a submitted response, its submitted and
@@ -320,14 +334,19 @@ update lock on the response, so writes for one response run in order). Client-sa
 src/lib/respondent-rules.ts: parseFieldValues, parsePicks, carriedFields, chaptersFor
 (RespondentItem, AreaMeta, Chapter), isComplete, answeredCount, parseScreen, from E7-2
 answerFor, noteFor, parseAnswerInput, pickedOf, screenCount, from E7-3 resumeAt, and from
-E7-4 landingOf(chapters, answers, layout, at, started) (where a visit lands: the screen, the
+E7-4 landingOf(chapters, answers, rule, layout, at, started) (where a visit lands: the screen, the
 item in the one-item layout, and the Welcome back counts or null), progressOf(chapters,
-done) ({ done, count } per chapter) and gapsOf(chapters, done, card) (each item not
+done) ({ done, count } per chapter) and gapsOf(chapters, done, card, rule) (each item not
 complete on the server: itemId, reference, title, chapter, and what is missing: notRated,
 sayWhy, writeQuestion or notSaved); Screen is about, chapter (index) or, from E7-4, wrap,
 in the address as ?at=about, ?at=[chapter number] and ?at=wrap. The device queue's rules
 in src/lib/answer-queue.ts, with doneFrom from E7-4 (whether a reply's `complete` replaces
-the page's, by version).
+the page's, by version). From 2026-10-05 (E5-2, acceptance 6) the completeness rules take the
+instrument's ReasonRule: isComplete(answer, rule), noteFor(answer, rule),
+answeredCount(items, answers, rule), resumeAt(chapters, answers, rule), tallyOf(method,
+items, answers, rule), and textRequired(kind, rule); needsReason(kind) still picks the box
+the text is stored in. RespondentApp's instrument, ChapterScreen and ItemCard take
+reasonRule; PreviewSpec carries it; sampleInstrument() gives the default.
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand (name, accent, logo key and, from E7-7,
 plan, for "Powered by SMEsay" on the Free plan), with the workspace id as a WorkspaceId
@@ -417,9 +436,9 @@ version, writer and save number and the response id added the same day after the
   and updated_at moves; a new answer starts at version 1; no clock decides): kind and value from classify (src/lib/scoring.ts) over the method,
   the switch and the item's proposal, never the client's word; value is the picked code,
   null for unclear; reason only for change, disagree and unclear, comment only for agree
-  and pick (null otherwise). An answer is complete when it needs no reason or carries one
-  (isComplete, src/lib/respondent-rules.ts); an incomplete answer is stored and does not
-  count as answered.
+  and pick (null otherwise). An answer is complete when the instrument's ReasonRule needs no
+  text for its kind or the text is written (isComplete, src/lib/respondent-rules.ts; from
+  2026-10-05); an incomplete answer is stored and does not count as answered.
 - The response (table response): fields (the PM's keys only), perspectives, confidence,
   signed_off and submitted_at (E7-5), updated_at moving on every answer that changes. From
   E7-6 (version 3, 2026-10-04, no migration) signed_off is true from a Submit until the next
@@ -601,8 +620,9 @@ sample, else null), project { name, contextGoal, contextTerms, createdAt }, item
 version, source, sourceFilename, importReport, importedAt, areas, shapeRuns, shapedAt,
 contextUsed, items [{ id, position, sourceRef, originalText, readerText, readerStatus, area,
 areaRationale, proposedValue, custom, flags, perspectives }] }], instruments [{ id, itemSetId,
-title, intro, method, showProposed, layout, respondentFields, scaleLabels, perspectives,
-closing, publishedAt, createdAt }], invites [{ id, instrumentId, kind, email, name, roleHint,
+title, intro, method, showProposed, layout, reasonRule (from 2026-10-05; optional on
+import, a file without it reads `differs`, so version 1 files from before still import),
+respondentFields, scaleLabels, perspectives, closing, publishedAt, createdAt }], invites [{ id, instrumentId, kind, email, name, roleHint,
 opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt, createdAt }],
 responses [{ id, instrumentId, itemSetId, inviteId, fields, perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,

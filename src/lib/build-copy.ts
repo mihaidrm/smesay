@@ -42,6 +42,9 @@ export const BUILD_COPY = {
   labelsTitle: "Labels, optional",
   labelsLine: "Rename a value for your respondents. The dashboard and the exports use the same word. Up to 20 characters.",
   labelFor: "Label for",
+  // When a reason is required (stories/E5-2, acceptance 6; design note 98).
+  reasonRuleLabel: "When a reason is required",
+  reasonRuleLine: "An answer counts as finished only once its reason, question or comment is written. Unclear follows the same rule.",
   // Perspectives (stories/E5-4).
   perspectivesCard: "Perspectives",
   perspectivesLine: "Perspectives are groups of respondents who see different items. An item with no perspective goes to everyone. Leave empty to show every item to everyone.",
@@ -58,7 +61,7 @@ export const BUILD_COPY = {
   previewProgress: (answered: number, total: number) => `${answered} of ${total}`,
   on: "On",
   off: "Off",
-  locked: "Published instruments keep their method. Build a new instrument to change it.",
+  locked: "Published instruments keep their method and when a reason is required. Build a new instrument to change them.",
   // The sample is read-only (stories/E8-8, acceptance 2).
   sample: "The sample project cannot be edited.",
   lastField: FIELDS_COPY.lastField,

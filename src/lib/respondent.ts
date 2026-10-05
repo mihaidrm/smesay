@@ -91,7 +91,7 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
       const { items: all } = await itemsOf(link);
       const rows = answerMap(await answers.forResponse(link.ws, response.id));
       const visible = all.filter((it) => isVisible(it, response.perspectives));
-      const answered = answeredCount(visible, rows);
+      const answered = answeredCount(visible, rows, link.instrument.reasonRule);
       if (answered > 0) return { kind: "closedOwn", link, closedAt: view.closedAt, response, answered, total: visible.length };
     }
   }
@@ -216,9 +216,9 @@ export async function saveAnswer(token: string, cookies: RespondentCookies, body
   if ("refused" in written) return refusalOf(written.refused, token, now);
   if ("stale" in written) {
     const stored = answerMap([written.stale])[row.id];
-    return { stale: { answer: stored, complete: isComplete(stored), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null } };
+    return { stale: { answer: stored, complete: isComplete(stored, link.instrument.reasonRule), version: written.stale.version, writer: written.stale.writer, writerSeq: written.stale.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null } };
   }
-  return { answer: mapped.answer, complete: isComplete(mapped.answer), version: written.version, writer: written.writer, writerSeq: written.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null };
+  return { answer: mapped.answer, complete: isComplete(mapped.answer, link.instrument.reasonRule), version: written.version, writer: written.writer, writerSeq: written.writerSeq, changedSince: written.changedSince, submittedAt: written.submittedAt?.toISOString() ?? null };
 }
 
 // The Wrap up's answers as the respondent writes them (E7-5; PUT /r/[token]/wrap): the link
@@ -304,7 +304,7 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   const check = (stored: Answer[], perspectives: string[]) => {
     rows = answerMap(stored);
     visible = chaptersFor(areas, all, perspectives).flatMap((c) => c.items);
-    const openItems = visible.filter((it) => !isComplete(rows[it.id])).length;
+    const openItems = visible.filter((it) => !isComplete(rows[it.id], link.instrument.reasonRule)).length;
     return openItems > 0 ? RESPONDENT_ERRORS.itemsOpen(openItems) : null;
   };
   const { response: _named, ...write } = parsed.input;
@@ -323,7 +323,7 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   const to = link.invite.kind === "personal" && first ? link.invite.email : null;
   const receipt = to
     ? async () => {
-        const tally = tallyOf(link.instrument.method, visible, rows);
+        const tally = tallyOf(link.instrument.method, visible, rows, link.instrument.reasonRule);
         const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: saved.submittedAt ?? now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
         try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
       }

@@ -114,7 +114,8 @@ of the content; page means it replaces the screen.
 | Inline, scoring (E5-2) | A label over 20 characters | Each label is 1 to 20 characters. Leave one empty to keep the default. |
 | Inline, scoring (E5-2) | Two values with the same label, or a label "Unclear" | Each value needs its own label, and Unclear is taken. |
 | Inline, scoring (E5-2) | The posted labels are not JSON or not an object | The labels did not reach the server as a list. Reload the page and try again. |
-| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch or label then and saves the layout only (E5-3) | Published instruments keep their method. Build a new instrument to change it. |
+| Inline, scoring (E5-2) | Shown under the locked controls of a published instrument (a link or an invite exists); the server ignores a posted method, switch, label or reason rule then and saves the layout only (E5-3) | Published instruments keep their method and when a reason is required. Build a new instrument to change them. |
+| Inline, scoring (E5-2, acceptance 6) | A reason rule that is not one of the three, through the server | Pick when a reason is required: when the answer differs, never, or on every answer. |
 | Inline, scoring (E5-3) | A layout that is not one of the three, through the server | Pick one of the three layouts: chapters, one item per screen, or a single long page. |
 | Inline, perspectives (E5-4) | An eleventh perspective | Up to 10 perspectives. Remove one to add another. |
 | Inline, perspectives (E5-4) | A name over 30 characters | Each perspective is 1 to 30 characters, one per line. |
@@ -209,8 +210,9 @@ of the content; page means it replaces the screen.
 | Note under the Start button (E7-1), from the server | A field over 200 characters | Keep [LABEL] to 200 characters. |
 | Note under the Start button (E7-1), from the server | The form did not arrive as JSON, or a perspective not on the list (a stale page) | Your details did not reach the server as a form. Reload the page and try again. / Pick the perspectives from the list on the page. Reload the page and try again. |
 | Card note (E7-2) | Not rated | Not rated yet |
-| Card note (E7-2) | Different priority or Not needed, no reason | Say why. |
-| Card note (E7-2) | Unclear, no question | Write your question. |
+| Card note (E7-2) | Different priority or Not needed, no reason (under the default rule and On every answer; never under Never, E5-2 acceptance 6) | (none: the box asks, design note 99); the Wrap up's list says Reason not written yet |
+| Card note (E7-2) | Unclear, no question (under the default rule and On every answer; never under Never) | (none: the box asks, design note 99); the Wrap up's list says Question not written yet |
+| Card note (E5-2, acceptance 6) | On every answer: an agreeing answer or a rating with no comment | (none: the box, "Comment, required", asks); the Wrap up's list says Reason not written yet |
 | Card note (E7-2) | Saved: the server has the complete answer | Saved |
 | Card note (E7-2), from the server | The answer is not one of the card's values, or did not arrive as JSON (a stale page) | The answer did not reach the server as one of the card's values. Reload the page and try again. |
 | Card note (E7-2), from the server | A reason or comment over 2,000 characters | Keep the reason and the comment to 2000 characters each. |
@@ -222,7 +224,7 @@ of the content; page means it replaces the screen.
 | Card note (E7-3), from the server | Another window or device saved the item's answer after this page's change was made on it (also for a change the device kept unsent and sent on opening); the card shows the stored answer | This answer was changed in another window or on another device. The card shows the saved one; change it again if yours should stand. |
 | Note under the Start button (E7-3) | Start worked but the first save found no response: the browser did not keep the device cookie | This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser. |
 | Page | Saved answers on this device belong to a newer version of the list (not built in R1: publishing a newer version closes the older link, so the respondent sees the closed page and the device's unsent answers are removed; docs/review-list.md) | The list changed since you last answered. [N] of your answers still apply and are kept; [N] items are new or changed and are marked. |
-| Wrap up, box and list (E7-4) | Still to finish | [N] still to finish. [Button: Go to section [N]: [CHAPTER OF THE FIRST]] (Go to [CHAPTER] on the single long page; decision 0055); then "Still to finish", each item with its reference and what is missing: Not rated yet, Say why., Write your question., or Not saved yet (complete on the card, not yet on the server); each row opens its own item |
+| Wrap up, box and list (E7-4) | Still to finish | [N] still to finish. [Button: Go to section [N]: [CHAPTER OF THE FIRST]] (Go to [CHAPTER] on the single long page; decision 0055); then "Still to finish", each item with its reference and what is missing: Not rated yet, Reason not written yet, Question not written yet, or Not saved yet (complete on the card, not yet on the server); each row opens its own item |
 | Wrap up, from the server (E7-5) | Confidence not given | Pick how sure you are, 1 to 5, before you submit. |
 | Wrap up, from the server (E7-5) | Sign-off not ticked | Tick the confirmation to submit. |
 | Wrap up (E7-5) | While Submit waited for the cards, one was refused or changed in another window | One of your answers was not saved as you left it. Check the cards with a red note, then submit again. |

@@ -154,8 +154,10 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.keyboard.press("ArrowRight");
   await expect(row.getByRole("radio", { name: "Should" })).toBeFocused();
   await expect(row.getByRole("radio", { name: "Should" })).toHaveAttribute("aria-checked", "true");
-  // The preview mirrors the respondent card: a value other than the proposal asks why.
-  await expect(chapter.getByTestId("item-card-note").first()).toHaveText("Say why.");
+  // The preview mirrors the respondent card: a value other than the proposal asks why, in the
+  // box (design note 99).
+  await expect(chapter.getByTestId("item-card").first()).toHaveAttribute("data-note", "sayWhy");
+  await expect(chapter.getByTestId("card-reason").first()).toBeVisible();
   // The proposed pill names its value and "proposed" (E7-7: the caption is in the name).
   await expect(row.getByRole("radio", { name: "Must" })).toHaveAccessibleName("Must, proposed");
   // The radio is visually hidden under its card; the card label takes the click.
@@ -182,6 +184,33 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
   await ready();
   await expect(row.locator("[data-proposed]")).toHaveText("Essential");
+
+  // When a reason is required (stories/E5-2, acceptance 6; design note 98): On every answer
+  // makes an agreeing answer ask for a comment, its box open on its own and named as required,
+  // with no "+ comment" toggle; back to the default, it closes.
+  await page.getByText("On every answer", { exact: true }).click();
+  await expect(page.getByRole("radio", { name: /On every answer/ })).toBeChecked();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(page.getByRole("radio", { name: /On every answer/ })).toBeChecked();
+  const ruled = chapter.getByTestId("item-card").first();
+  // The save reloads the preview a moment later, so the pick is tried again until it holds.
+  await expect(async () => {
+    await ready();
+    await row.getByRole("radio", { name: "Essential, proposed" }).click({ timeout: 2_000 });
+    await expect(ruled.getByLabel("Comment, required")).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  await expect(ruled).toHaveAttribute("data-note", "sayWhy");
+  await expect(ruled.getByRole("button", { name: "+ comment" })).toHaveCount(0);
+  await page.getByText("When the answer differs", { exact: true }).click();
+  await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(async () => {
+    await ready();
+    await row.getByRole("radio", { name: "Essential, proposed" }).click({ timeout: 2_000 });
+    await expect(ruled).toHaveAttribute("data-note", "pending", { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  await expect(ruled.getByTestId("card-comment")).toHaveCount(0);
 
   // Layouts (stories/E5-3): one item per screen, the single page, back to chapters; none
   // scrolls sideways in the 390 px phone preview and every pill keeps its 38 px height.

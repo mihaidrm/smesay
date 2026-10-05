@@ -14,14 +14,14 @@ import type { Instrument } from "@/db/queries/instruments";
 import type { Item } from "@/db/queries/items";
 import type { ItemSet } from "@/db/queries/itemSets";
 import type { Project } from "@/db/queries/projects";
-import type { ScaleLabels, ScoringMethod, WorkspaceId } from "@/db/types";
+import type { ReasonRule, ScaleLabels, ScoringMethod, WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { CLOSING_COPY, parseClosing } from "@/lib/closing";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
 import { parsePerspectives, parseTags, PERSPECTIVES_COPY } from "@/lib/perspectives";
-import { isLayout, isMethod, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
+import { isLayout, isMethod, isReasonRule, parseScaleLabels, SCORING_ERRORS } from "@/lib/scoring";
 
 export { BUILD_COPY };
 
@@ -97,7 +97,7 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
   if (!latest || latest.id === previous.itemSetId) return { error: BUILD_COPY.alreadyLatest };
   const instrument = await instruments.createOnSet(ws, {
     projectId: project.id, itemSetId: latest.id, title: previous.title, intro: previous.intro, method: previous.method,
-    showProposed: previous.showProposed, layout: previous.layout, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
+    showProposed: previous.showProposed, layout: previous.layout, reasonRule: previous.reasonRule, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
     perspectives: previous.perspectives,
   });
   if (!instrument) throw new NotFoundError();
@@ -105,27 +105,32 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
 }
 
 // An instrument is published once it has a link or an invite (E6-1 creates them); the
-// sample's come from the seed. Its method, proposal switch and labels are then locked
-// (stories/E5-2, acceptance 4): answers are not kept across a method change.
+// sample's come from the seed. Its method, proposal switch, labels and reason rule are then
+// locked (stories/E5-2, acceptance 4 and 6): answers are not kept across a method change, and
+// a rule changed mid-run would make answers already given complete or not after the fact.
 export async function isPublished(ws: WorkspaceId, instrumentId: string): Promise<boolean> {
   return invites.anyForInstrument(ws, instrumentId);
 }
 
 // The scoring card (stories/E5-2 and E5-3): the method, whether the proposed value is
-// shown, the PM's labels for the method's values, and the layout, validated here. Once
-// published the method, the switch and the labels are locked (answers depend on them) and
-// whatever is posted for them is ignored; the layout still changes, since it only shapes
+// shown, the PM's labels for the method's values, when a reason is required (the
+// ReasonRule, E5-2 acceptance 6; a form that posts none keeps the stored one) and the
+// layout, validated here. Once published the method, the switch, the labels and the rule
+// are locked (answers depend on them) and whatever is posted for them is ignored; the
+// layout still changes, since it only shapes
 // the screens. Whether it is published is read under the instrument row's lock
 // (instruments.updateLocked), the lock publishing takes (E6-1, acceptance 5), so a save
 // that waited on a publish in flight writes the layout only.
-export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown, rawLayout: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+export async function saveScoring(ws: WorkspaceId, projectId: string, instrumentId: string, rawMethod: unknown, rawShowProposed: unknown, rawLabels: unknown, rawLayout: unknown, rawReasonRule?: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   if (!isLayout(rawLayout)) return { error: SCORING_ERRORS.badLayout };
+  const posted = rawReasonRule !== null && rawReasonRule !== undefined;
+  if (posted && !isReasonRule(rawReasonRule)) return { error: SCORING_ERRORS.badReasonRule };
   // The locked form posts nothing for the method (a disabled fieldset is left out of the
   // form data): a missing method is only valid once published. A posted one is checked
   // here and applied only on a draft.
-  let full: { method: ScoringMethod; showProposed: boolean; scaleLabels: ScaleLabels | null } | null = null;
+  let full: { method: ScoringMethod; showProposed: boolean; scaleLabels: ScaleLabels | null; reasonRule?: ReasonRule } | null = null;
   if (rawMethod !== null && rawMethod !== undefined) {
     if (!isMethod(rawMethod)) return { error: SCORING_ERRORS.badMethod };
     const showProposed = rawShowProposed === true || rawShowProposed === "true" || rawShowProposed === "on" || rawShowProposed === "1";
@@ -133,7 +138,7 @@ export async function saveScoring(ws: WorkspaceId, projectId: string, instrument
     try { parsedJson = typeof rawLabels === "string" ? JSON.parse(rawLabels) : rawLabels; } catch { return { error: SCORING_ERRORS.badShape }; }
     const labels = parseScaleLabels(rawMethod, parsedJson);
     if ("error" in labels) return { error: labels.error };
-    full = { method: rawMethod, showProposed, scaleLabels: labels.labels };
+    full = { method: rawMethod, showProposed, scaleLabels: labels.labels, ...(isReasonRule(rawReasonRule) ? { reasonRule: rawReasonRule } : {}) };
   }
   const result = await instruments.updateLocked(ws, instrumentId, (published) => (published ? { layout: rawLayout } : full ? { ...full, layout: rawLayout } : null));
   if (!result) throw new NotFoundError();

@@ -15,7 +15,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { fieldSummary } from "@/lib/respondent-fields";
-import { labelFor, LAYOUTS_META, METHODS, scaleFor } from "@/lib/scoring";
+import { labelFor, LAYOUTS_META, METHODS, REASON_RULES_META, scaleFor } from "@/lib/scoring";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
 import { FieldsForm } from "./fields-form";
@@ -80,11 +80,12 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               <ul className="flex flex-col text-sm" data-testid="scoring-list">
                 <li className="flex justify-between gap-4 py-2.5"><span>{BUILD_COPY.methodLabel}</span><span className="text-ink-muted">{methodLabel}: {scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label).join(", ")}, {labelFor(instrument.method, null, "unclear")}</span></li>
                 <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.showProposedTitle}</span><span className="text-ink-muted">{instrument.showProposed ? BUILD_COPY.on : BUILD_COPY.off}</span></li>
+                <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.reasonRuleLabel}</span><span className="text-ink-muted">{REASON_RULES_META.find((r) => r.key === instrument.reasonRule)?.label ?? instrument.reasonRule}</span></li>
                 <li className="flex justify-between gap-4 border-t border-hairline py-2.5"><span>{BUILD_COPY.layoutLabel}</span><span className="text-ink-muted">{LAYOUTS_META.find((l) => l.key === instrument.layout)?.label ?? instrument.layout}</span></li>
                 <li className="py-2.5 text-[13px] text-ink-muted">{BUILD_COPY.sample}</li>
               </ul>
             ) : (
-              <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} layout={instrument.layout} locked={locked} />
+              <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} reasonRule={instrument.reasonRule} layout={instrument.layout} locked={locked} />
             )}
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-perspectives-title">

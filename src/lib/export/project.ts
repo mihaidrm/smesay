@@ -18,6 +18,7 @@ import { monthStart } from "@/db/queries/usage";
 import { roomInPlan, withinPlan } from "@/lib/plans";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
+import { DEFAULT_REASON_RULE } from "@/lib/scoring";
 import { FIELDS_MAX, OPTIONS_MAX, OPTIONS_MIN } from "@/lib/respondent-fields";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
@@ -36,6 +37,7 @@ export const FILE_ENUMS = {
   readerStatus: ["suggested", "accepted", "rejected"],
   method: ["moscow", "fit", "kcd"],
   layout: ["chapters", "item", "page"],
+  reasonRule: ["differs", "never", "always"],
   inviteKind: ["public", "personal"],
   answerKind: ["agree", "change", "disagree", "unclear", "pick"],
   insightKind: ["rewrite", "conflict", "followUp", "coverage"],
@@ -91,6 +93,8 @@ const ProjectFile = z.strictObject({
   })),
   instruments: z.array(z.strictObject({
     id, itemSetId: id, title: text(200).refine((s) => s.trim() !== ""), intro: text(5000).nullable(), method: z.enum(FILE_ENUMS.method), showProposed: z.boolean(), layout: z.enum(FILE_ENUMS.layout),
+    // From 2026-10-05 (design note 98): a file written before has none and reads the default.
+    reasonRule: z.enum(FILE_ENUMS.reasonRule).optional(),
     respondentFields, scaleLabels, perspectives: z.array(text(100)), closing, publishedAt: date.nullable(), createdAt: date,
   })).max(100),
   invites: z.array(z.strictObject({
@@ -124,7 +128,7 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
       areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: iso(s.shapedAt), contextUsed: s.contextUsed,
       items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, flags: it.flags, perspectives: it.perspectives })),
     })),
-    instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
+    instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, reasonRule: i.reasonRule, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
     invites: rows.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),
     responses: rows.responses.map((r) => ({
       id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
@@ -222,7 +226,7 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
     project: { name: name.data, contextGoal: f.project.contextGoal, contextTerms: f.project.contextTerms },
     itemSets: f.itemSets.map((s) => ({ id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport as TransferInput["itemSets"][number]["importReport"], importedAt: new Date(s.importedAt), areas: s.areas as TransferInput["itemSets"][number]["areas"], shapeRuns: s.shapeRuns, shapedAt: D(s.shapedAt), contextUsed: s.contextUsed as TransferInput["itemSets"][number]["contextUsed"] })),
     items: f.itemSets.flatMap((s) => s.items.map((it) => ({ ...it, itemSetId: s.id, flags: it.flags as TransferInput["items"][number]["flags"] }))),
-    instruments: f.instruments.map((i) => ({ ...i, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),
+    instruments: f.instruments.map((i) => ({ ...i, reasonRule: i.reasonRule ?? DEFAULT_REASON_RULE, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),
     invites: f.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: D(v.opensAt), closesAt: D(v.closesAt), revokedAt: D(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: D(v.lastReminderAt), sentAt: D(v.sentAt), createdAt: new Date(v.createdAt) })),
     responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: fieldsOf(r), perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
     answers: f.responses.flatMap((r) => r.answers.map((a) => ({ id: a.id, responseId: r.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: new Date(a.updatedAt) }))),

@@ -2,7 +2,8 @@
 // first; see scoped.ts for the rule. Specific queries for later epics are added here, never in
 // routes or pages. countForResponse (E6-3): how many items a response has answered completely
 // (E7-2 stores an incomplete answer too, a Change with no reason yet; complete is the rule of
-// isComplete in src/lib/respondent-rules.ts: agree and pick, or any other kind with a reason).
+// isComplete in src/lib/respondent-rules.ts under the instrument's reason rule, read through
+// the response in the same statement: completeSql in ./complete.ts, design note 98).
 // forResponse (E7-1): a response's answers, for the respondent page and its counts.
 // upsert (E7-2): one answer per response and item (the unique index
 // answer_response_item_idx; onConflictDoUpdate: orm.drizzle.team/docs/insert#upserts-and-conflicts),
@@ -21,11 +22,12 @@
 // WHERE); the version then counts up. Anything else, a late request, another window or a
 // device's old queue, returns { stale } with the stored answer and changes nothing. No clock
 // decides (src/lib/answer-queue.ts).
-import { and, count, eq, inArray, isNotNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, count, eq, lt, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { answer, invite, response } from "@/db/schema";
+import { answer, instrument, invite, response } from "@/db/schema";
 import { DATES, type InviteDates } from "./responses";
 import type { WorkspaceId } from "@/db/types";
+import { completeSql } from "./complete";
 import { isUuid, scoped } from "./scoped";
 
 export type Answer = typeof answer.$inferSelect;
@@ -35,7 +37,10 @@ export const answers = {
   ...scoped(answer),
   countForResponse: async (workspaceId: WorkspaceId, responseId: string): Promise<number> => {
     if (!isUuid(responseId)) return 0;
-    return (await db.select({ n: count() }).from(answer).where(and(eq(answer.workspaceId, workspaceId), eq(answer.responseId, responseId), or(inArray(answer.kind, ["agree", "pick"]), isNotNull(answer.reason)))))[0].n;
+    return (await db.select({ n: count() }).from(answer)
+      .innerJoin(response, and(eq(response.id, answer.responseId), eq(response.workspaceId, workspaceId)))
+      .innerJoin(instrument, and(eq(instrument.id, response.instrumentId), eq(instrument.workspaceId, workspaceId)))
+      .where(and(eq(answer.workspaceId, workspaceId), eq(answer.responseId, responseId), completeSql(instrument.reasonRule, answer))))[0].n;
   },
   upsert: async (workspaceId: WorkspaceId, inviteId: string, data: { responseId: string; itemSetId: string; itemId: string; kind: Answer["kind"]; value: string | null; reason: string | null; comment: string | null; base: number; page: string; seq: number; after: { page: string; seq: number }[] }, stillOpen: (dates: InviteDates) => boolean, now: Date): Promise<(Answer & Since) | { refused: InviteDates } | ({ stale: Answer } & Since) | null> => {
     if (!isUuid(inviteId) || !isUuid(data.responseId)) return null;
