@@ -316,8 +316,7 @@ of the content; page means it replaces the screen.
 |---|---|---|
 | Under the form | The account was deleted since the page loaded | This account no longer exists. Go back to the list. |
 | Under the form | The action threw (logged) | That did not work, and it has been logged. Try again in a minute. |
-| Sign-in link | The email could not be sent | The sign-in link was not sent. Try again in a minute. |
-| Remove | The workspace no longer exists | This person is not a member of that workspace. |
+| Remove | The workspace no longer exists | That workspace no longer exists. Reload the page to see the person's workspaces now. |
 | Remove | Not a member, or the last owner | the Members messages above: This person is no longer a member of this workspace. / This workspace needs at least one owner. Make someone else an owner first. |
-| Delete | The admin's own account | You cannot delete your own account from here. |
-| Delete | The only owner of a workspace | This person is the only owner of [WORKSPACES]. Make someone else an owner there first, or delete the workspace. |
+| Delete | The admin's own account | An admin cannot delete their own account. Ask another admin to delete it. |
+| Delete | The only owner of a workspace, deleted ones waiting for removal included | This person is the only owner of [WORKSPACES]. Ask them to make another member an owner, or to delete the workspace, then delete the account. |

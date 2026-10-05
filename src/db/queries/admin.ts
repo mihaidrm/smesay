@@ -7,7 +7,7 @@
 // (postgresql.org/docs/current/functions-datetime.html, date_trunc).
 import { and, count, desc, eq, exists, gte, ilike, inArray, isNotNull, isNull, max, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { account, adminAudit, adminNote, event, instrument, invite, itemSet, project, response, session, upload, user, workspace, workspaceInvite, workspaceMember } from "@/db/schema";
+import { account, adminAudit, adminNote, event, instrument, invite, itemSet, project, response, session, upload, user, verification, workspace, workspaceInvite, workspaceMember } from "@/db/schema";
 import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FunnelStep, type WorkspaceId } from "@/db/types";
 import { alias } from "drizzle-orm/pg-core";
 import { log } from "@/lib/log";
@@ -19,6 +19,9 @@ import type { Workspace } from "./workspaces";
 export const FUNNEL_WEEKS = 12;
 
 // The proof checked at run time too, for a caller that cast its way past the type.
+export function assertAdmin(proof: AdminProof): void {
+  checked(proof);
+}
 function checked(proof: AdminProof): void {
   if (proof?.checked !== "admin") throw new Error("The admin check did not run.");
 }
@@ -288,34 +291,34 @@ export async function projectVersions(proof: AdminProof, ws: WorkspaceId): Promi
   return new Map(rows.map((r) => [r.id, r.v ?? 0]));
 }
 
-export type SignInMethod = "link" | "google" | "microsoft";
+// Microsoft sign-in comes after launch (decision 0034); when it does, it joins here.
+export type SignInMethod = "link" | "google";
 export type AdminPerson = { id: string; email: string; name: string; emailVerified: boolean; createdAt: Date; methods: SignInMethod[]; workspaces: { id: string; name: string; role: "owner" | "member" }[]; lastSignIn: Date | null; openSessions: number };
 
 // The People pages (stories/E14-3, acceptance 1): every user with how they can sign in (the
-// sign-in link always, which needs no account row; Google or Microsoft when an account row of
-// that provider exists), their live workspaces with role, the newest session's start as the
-// last sign-in, and the sessions not yet expired. q matches the email or the name, in any case,
+// sign-in link always, which needs no account row; Google when an account row of that provider
+// exists), their live workspaces with role, the last sign-in (user.last_sign_in_at, set when a
+// session is made: src/lib/auth.ts) and the sessions not yet expired. q matches the email or the name, in any case,
 // as typed. Newest sign-in first. One query per figure for all the rows.
 export async function peopleDirectory(proof: AdminProof, opts: { q?: string | null; id?: string } = {}, now = new Date()): Promise<AdminPerson[]> {
   checked(proof);
   const q = (opts.q ?? "").trim().slice(0, 200);
   const like = `%${q.replace(/[\\%_]/g, (c) => "\\" + c)}%`;
   const where = opts.id !== undefined ? eq(user.id, opts.id) : q ? or(ilike(user.email, like), ilike(user.name, like)) : undefined;
-  const people = await db.select({ id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified, createdAt: user.createdAt }).from(user).where(where);
+  const people = await db.select({ id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified, createdAt: user.createdAt, lastSignIn: user.lastSignInAt }).from(user).where(where);
   if (people.length === 0) return [];
   const ids = people.map((p) => p.id);
   const [accounts, memberships, sessions] = await Promise.all([
     db.selectDistinct({ id: account.userId, provider: account.providerId }).from(account).where(inArray(account.userId, ids)),
     db.select({ id: workspaceMember.userId, workspaceId: workspace.id, name: workspace.name, role: workspaceMember.role }).from(workspaceMember)
       .innerJoin(workspace, eq(workspace.id, workspaceMember.workspaceId)).where(and(inArray(workspaceMember.userId, ids), isNull(workspace.deletedAt))).orderBy(workspace.name),
-    db.select({ id: session.userId, last: max(session.createdAt), open: sql<number>`count(*) filter (where ${session.expiresAt} > ${now.toISOString()})::int` }).from(session).where(inArray(session.userId, ids)).groupBy(session.userId),
+    db.select({ id: session.userId, open: sql<number>`count(*) filter (where ${session.expiresAt} > ${now.toISOString()})::int` }).from(session).where(inArray(session.userId, ids)).groupBy(session.userId),
   ]);
   const s = new Map(sessions.map((r) => [r.id, r]));
   return people.map((p) => ({
     ...p,
-    methods: ["link" as const, ...(["google", "microsoft"] as const).filter((m) => accounts.some((a) => a.id === p.id && a.provider === m))],
+    methods: ["link" as const, ...(["google"] as const).filter((m) => accounts.some((a) => a.id === p.id && a.provider === m))],
     workspaces: memberships.filter((m) => m.id === p.id).map((m) => ({ id: m.workspaceId, name: m.name, role: m.role })),
-    lastSignIn: s.get(p.id)?.last ?? null,
     openSessions: s.get(p.id)?.open ?? 0,
   })).sort((a, b) => (b.lastSignIn?.getTime() ?? 0) - (a.lastSignIn?.getTime() ?? 0) || b.createdAt.getTime() - a.createdAt.getTime());
 }
@@ -348,4 +351,31 @@ export async function invitesFor(proof: AdminProof, email: string, validMinutes:
   return db.select({ id: workspaceInvite.id, workspaceId: workspace.id, workspaceName: workspace.name, invitedAt: workspaceInvite.invitedAt, open: sql<boolean>`${workspaceInvite.invitedAt} > now() - make_interval(mins => ${validMinutes})` }).from(workspaceInvite)
     .innerJoin(workspace, eq(workspace.id, workspaceInvite.workspaceId))
     .where(and(eq(workspaceInvite.email, email.toLowerCase()), isNull(workspaceInvite.acceptedAt), isNull(workspace.deletedAt))).orderBy(desc(workspaceInvite.invitedAt));
+}
+
+// The workspaces where the user is the only owner, deleted ones waiting for removal included
+// (stories/E14-3: an account that would leave a workspace without an owner is not deleted).
+export async function soleOwnedBy(proof: AdminProof, userId: string): Promise<{ id: string; name: string }[]> {
+  checked(proof);
+  const owners = db.select({ id: workspaceMember.workspaceId }).from(workspaceMember).where(eq(workspaceMember.role, "owner")).groupBy(workspaceMember.workspaceId).having(sql`count(*) = 1`);
+  return db.select({ id: workspace.id, name: workspace.name }).from(workspace).innerJoin(workspaceMember, eq(workspaceMember.workspaceId, workspace.id))
+    .where(and(eq(workspaceMember.userId, userId), eq(workspaceMember.role, "owner"), inArray(workspace.id, owners))).orderBy(workspace.name);
+}
+
+// Forgets an address where it has no foreign key (stories/E14-3, acceptance 3, before the
+// account is deleted): every workspace invitation to it, accepted or not, so no open one turns
+// a new account into a member again, and the sign-in links not yet used, whose value is
+// better-auth's JSON with the email (node_modules/better-auth/dist/plugins/magic-link/
+// index.mjs, createVerificationValue). Returns how many of each went.
+export async function forgetEmail(proof: AdminProof, email: string): Promise<{ invites: number; links: number }> {
+  checked(proof);
+  const address = email.toLowerCase();
+  const invites = (await db.delete(workspaceInvite).where(eq(workspaceInvite.email, address)).returning({ id: workspaceInvite.id })).length;
+  const like = `%${address.replace(/[\\%_]/g, (c) => "\\" + c)}%`;
+  const candidates = await db.select({ id: verification.id, value: verification.value }).from(verification).where(ilike(verification.value, like));
+  const ids = candidates.filter((v) => {
+    try { return String((JSON.parse(v.value) as { email?: unknown }).email ?? "").toLowerCase() === address; } catch { return false; }
+  }).map((v) => v.id);
+  if (ids.length) await db.delete(verification).where(inArray(verification.id, ids));
+  return { invites, links: ids.length };
 }

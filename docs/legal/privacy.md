@@ -66,7 +66,7 @@ SMEsay is not hosted yet. The plan for launch is below; the subprocessor list (/
 
 ## How long it is kept
 
-- Your account (your name, email, Google sign-in details and sessions) is kept until you ask for it to be deleted; SMEsay has no button for that yet, so write to hello@smesay.app. [LAWYER: confirm the account retention and the deletion process.]
+- Your account (your name, email, Google sign-in details and sessions) is kept until you ask for it to be deleted; SMEsay has no button for that yet, so write to hello@smesay.app. An administrator then deletes the account: your sessions, sign-in details and memberships go, invitations to your address and unused sign-in links go, and what you made in workspaces stays there without your name. If you are the only owner of a workspace, another member is made owner or the workspace is deleted first. [LAWYER: confirm the account retention and the deletion process.]
 - Everything in a workspace is kept while the workspace exists. Archiving a project hides it; it does not delete it.
 - An owner can delete a workspace in Settings. Every member loses access at once. The removal job then deletes every row and file in it and sends the owner who deleted it one email. [LAWYER: the removal job runs every hour from launch, so removal takes under 24 hours; until then it is started by hand. Confirm the period to promise.]
 - Backups: [LAWYER: confirm the backup retention period once it is set for the host.]

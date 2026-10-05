@@ -9,7 +9,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "@/db/test-db";
-import { adminPerson, invitesFor, peopleDirectory, personSessions } from "@/db/queries/admin";
+import { adminPerson, invitesFor, peopleDirectory, personEvents, personSessions } from "@/db/queries/admin";
 import { internal } from "@/db/queries/internal";
 import { workspaces } from "@/db/queries/workspaces";
 import type { AdminProof } from "@/db/types";
@@ -61,6 +61,7 @@ beforeAll(async () => {
   made.push(w.id);
   await sql`insert into workspace_member (workspace_id, user_id, role) values (${wsId}, ${memberId}, 'member')`;
   await sql`insert into account (id, account_id, provider_id, user_id, access_token, created_at, updated_at) values (${"acc-" + stamp}, 'g-1', 'google', ${memberId}, 'secret-access-token', now(), now())`;
+  await sql`update "user" set last_sign_in_at = now() - interval '1 hour' where id = ${memberId}`;
   await sql`insert into session (id, token, user_id, user_agent, ip_address, expires_at, created_at, updated_at) values
     (${"s1-" + stamp}, ${"tok1-" + stamp}, ${memberId}, ${CHROME_WIN}, '203.0.113.9', now() + interval '1 day', now() - interval '1 hour', now()),
     (${"s2-" + stamp}, ${"tok2-" + stamp}, ${memberId}, null, null, now() - interval '1 day', now() - interval '3 days', now())`;
@@ -80,6 +81,11 @@ describe("the reads", () => {
     const member = (await peopleDirectory(proof)).find((p) => p.id === memberId)!;
     expect(member).toMatchObject({ name: "Mark Member", emailVerified: true, methods: ["link", "google"], workspaces: [{ id: wsId, name: `Osprey ${stamp}`, role: "member" }], openSessions: 1 });
     expect(member.lastSignIn).not.toBeNull();
+    // The person as the page reads them, and their events: nothing secret in either.
+    const one = (await adminPerson(proof, memberId))!;
+    expect(one.email).toBe(`member-${stamp}@marlow.example`);
+    expect(JSON.stringify(one) + JSON.stringify(await personSessions(proof, memberId))).not.toMatch(/secret-access-token|tok1-|203\.0\.113\.9/);
+    expect((await personEvents(proof, memberId, 20)).map((e) => [e.name, e.workspaceName])).toEqual([["project_created", `Osprey ${stamp}`]]);
     expect((await peopleDirectory(proof, { q: `MEMBER-${stamp}@` })).map((p) => p.id)).toEqual([memberId]);
     expect((await peopleDirectory(proof, { q: "odile owner" })).map((p) => p.id)).toEqual([ownerId]);
     expect(await peopleDirectory(proof, { q: "%" })).toEqual([]);
@@ -112,6 +118,8 @@ describe("the actions", () => {
       await expect(actions.sendLinkAction(blank, form({ userId: memberId }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
       await expect(actions.signOutAction(blank, form({ userId: memberId }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
       await expect(actions.deleteAccountAction(blank, form({ userId: memberId }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+      await expect(actions.removeAction(blank, form({ userId: memberId, workspaceId: wsId }))).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+      expect(await sql`select 1 from workspace_member where workspace_id = ${wsId} and user_id = ${memberId}`).toHaveLength(1);
       expect(memoryOutbox.length).toBe(sent);
       expect(await rowsFor(memberId)).toHaveLength(0);
       expect(await sql`select id from session where user_id = ${memberId}`).toHaveLength(2);
@@ -131,7 +139,8 @@ describe("the actions", () => {
   });
 
   it("sign the person out everywhere", async () => {
-    expect(await actions.signOutAction(blank, form({ userId: memberId }))).toEqual({ error: null, done: "2 sessions ended." });
+    // One open, one expired: the done line counts the open one, as the page and the row do.
+    expect(await actions.signOutAction(blank, form({ userId: memberId }))).toEqual({ error: null, done: "1 session ended." });
     expect(await sql`select id from session where user_id = ${memberId}`).toHaveLength(0);
     expect((await rowsFor(memberId)).at(-1)).toMatchObject({ action: "signed_out_everywhere", changes: { open: 1 }, outcome: "done" });
   });
@@ -139,21 +148,40 @@ describe("the actions", () => {
   it("remove from a workspace, keeping the last owner", async () => {
     expect((await actions.removeAction(blank, form({ userId: ownerId, workspaceId: wsId }))).error).toBe(MEMBERS_COPY.lastOwner);
     expect((await rowsFor(ownerId)).at(-1)).toMatchObject({ action: "member_removed", target_workspace_id: wsId, outcome: "refused" });
-    expect((await actions.removeAction(blank, form({ userId: memberId, workspaceId: "00000000-0000-4000-8000-000000000000" }))).error).toBe(C.notMember);
+    expect((await actions.removeAction(blank, form({ userId: memberId, workspaceId: "00000000-0000-4000-8000-000000000000" }))).error).toBe(C.workspaceGone);
     // The admin's own account is a member nowhere: refused inside the action, as a row.
     expect((await actions.removeAction(blank, form({ userId: adminId, workspaceId: wsId }))).error).toBe(MEMBERS_COPY.gone);
     expect((await rowsFor(adminId)).at(-1)).toMatchObject({ action: "member_removed", outcome: "refused" });
     expect(await actions.removeAction(blank, form({ userId: memberId, workspaceId: wsId }))).toEqual({ error: null, done: C.removed(`Osprey ${stamp}`) });
     expect(await sql`select 1 from workspace_member where workspace_id = ${wsId} and user_id = ${memberId}`).toHaveLength(0);
+    expect((await rowsFor(memberId)).at(-1)).toMatchObject({ action: "member_removed", target_workspace_id: wsId, changes: { role: "member" }, outcome: "done" });
   });
 
   it("delete an account through better-auth, refused for a sole owner and for oneself", async () => {
     expect((await actions.deleteAccountAction(blank, form({ userId: ownerId }))).error).toBe(C.soleOwner([`Osprey ${stamp}`]));
+    // A deleted workspace waiting for removal counts too: a restore must not bring it back with
+    // no owner.
+    const gone = await workspaces.create({ name: `Gone ${stamp}`, slug: `gone-pp-${stamp}` }, memberId);
+    await sql`update workspace set deleted_at = now() where id = ${gone.id}`;
+    expect((await actions.deleteAccountAction(blank, form({ userId: memberId }))).error).toBe(C.soleOwner([`Gone ${stamp}`]));
+    await internal.hardDeleteWorkspace(gone.id);
     expect((await rowsFor(ownerId)).at(-1)).toMatchObject({ action: "account_deleted", outcome: "refused" });
     expect((await actions.deleteAccountAction(blank, form({ userId: adminId }))).error).toBe(C.self);
 
     await sql`insert into workspace_member (workspace_id, user_id, role) values (${wsId}, ${memberId}, 'member')`;
+    // Invitations to the address (an accepted one and an open one elsewhere) and an unused
+    // sign-in link: all forgotten with the account.
+    const address = `member-${stamp}@marlow.example`;
+    const other = await workspaces.create({ name: `Other ${stamp}`, slug: `other-pp-${stamp}` }, ownerId);
+    made.push(other.id);
+    await sql`insert into workspace_invite (workspace_id, email, role, accepted_at) values (${wsId}, ${address}, 'member', now())`;
+    await sql`insert into workspace_invite (workspace_id, email, role) values (${other.id}, ${address}, 'member')`;
+    await sql`insert into verification (id, identifier, value, expires_at, created_at, updated_at) values (${"v-" + stamp}, ${"magic-link-x" + stamp}, ${JSON.stringify({ type: "magic-link", email: address, name: "" })}, now() + interval '10 minutes', now(), now())`;
+    await sql`insert into verification (id, identifier, value, expires_at, created_at, updated_at) values (${"w-" + stamp}, ${"other-" + stamp}, ${JSON.stringify({ email: `not-${address}` })}, now() + interval '10 minutes', now(), now())`;
     expect(await actions.deleteAccountAction(blank, form({ userId: memberId }))).toEqual({ error: null, done: C.deleted });
+    expect(await sql`select 1 from workspace_invite where email = ${address}`).toHaveLength(0);
+    expect(await sql`select id from verification where id in (${"v-" + stamp}, ${"w-" + stamp})`).toEqual([{ id: "w-" + stamp }]);
+    await sql`delete from verification where id = ${"w-" + stamp}`;
     expect(await sql`select 1 from "user" where id = ${memberId}`).toHaveLength(0);
     expect(await sql`select 1 from account where user_id = ${memberId}`).toHaveLength(0);
     expect(await sql`select 1 from workspace_member where user_id = ${memberId}`).toHaveLength(0);

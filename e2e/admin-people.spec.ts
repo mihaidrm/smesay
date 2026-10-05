@@ -38,6 +38,8 @@ test("an admin finds a person and sends them a sign-in link", async ({ browser, 
   await page.getByRole("button", { name: "Search" }).click();
   await expect(page.getByTestId("person-row")).toHaveCount(1);
   await expect(page.getByTestId("person-row")).toContainText("Sign-in link");
+  // The PM's sign-in was recorded (the session hook), so the row does not read "never".
+  await expect(page.getByTestId("person-row")).not.toContainText("never");
   await page.getByRole("link", { name: pmEmail }).click();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(pmEmail);

@@ -34,6 +34,7 @@
 // GOOGLE_ERROR_PATH: the first two through errorCallbackURL (dist/oauth2/errors.mjs,
 // redirectOnError), the state errors through onAPIError.errorURL (dist/api/routes/
 // callback.mjs, defaultErrorURL). The ?error code is not shown.
+import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink } from "better-auth/plugins";
@@ -143,6 +144,20 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
           // create.after until its transaction ends (node_modules/better-auth/dist/db/
           // with-hooks.mjs, queueAfterTransactionHook).
           after: async (user) => { await track("signed_up", {}, { workspaceId: null, userId: user.id }); },
+        },
+      },
+      // The last sign-in the admin People pages show (stories/E14-3): every new session is a
+      // sign-in. A failed write is logged and never stops the sign-in
+      // (node_modules/@better-auth/core/dist/types/init-options.d.mts, session.create.after).
+      session: {
+        create: {
+          after: async (session) => {
+            try {
+              await db.update(schema.user).set({ lastSignInAt: new Date(session.createdAt ?? Date.now()) }).where(eq(schema.user.id, session.userId));
+            } catch (error) {
+              log("error", "auth:last sign-in not recorded.", { error: error instanceof Error ? error.message : String(error) });
+            }
+          },
         },
       },
     },

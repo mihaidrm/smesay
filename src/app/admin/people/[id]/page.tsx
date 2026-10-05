@@ -1,6 +1,7 @@
 // A person's admin page (stories/E14-3, acceptance 2): the account with its sign-in methods,
 // the workspaces with role (each with Remove), the sessions with start, expiry and the browser
-// and system family (never the token, the address or the raw user agent, acceptance 4), the
+// and system family (the token and the address are never read; the raw user agent is read on
+// the server for its family and never sent to the browser, acceptance 4), the
 // invitations waiting for the email, the last 20 product events (respondent events carry no
 // user, so none show), and the actions behind a confirm line (./actions.ts). Copy:
 // docs/copy/app.md, Admin person page.
@@ -25,7 +26,10 @@ const TD = "border-t border-hairline px-3 py-2 align-top";
 
 export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
   const { proof } = await requireAdmin();
-  const person = await adminPerson(proof, decodeURIComponent((await params).id));
+  // A malformed escape in the address is a person that does not exist.
+  let id: string;
+  try { id = decodeURIComponent((await params).id); } catch { notFound(); }
+  const person = await adminPerson(proof, id);
   if (!person) notFound();
   return (
     <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-8 py-6" data-testid="admin-person">

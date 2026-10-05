@@ -474,7 +474,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Crumb, title and line | SMEsay admin / People / Everyone with an account, by last sign-in. Respondents have no account and are not here. |
 | Search | placeholder and label: Email or name; Search; Clear |
-| Columns | Email, Name, Email verified (yes, no), Signs in with (Sign-in link, Google, Microsoft), Workspaces ([NAME] (owner or member)), Created, Last sign-in (never), Open sessions |
+| Columns | Email, Name, Email verified (yes, no), Signs in with (Sign-in link, Google), Workspaces ([NAME] (owner or member)), Created, Last sign-in (never), Open sessions |
 | Empty | No accounts yet. (search: Nobody matches "[QUERY]".) |
 | Loading | Loading the people |
 

@@ -10,12 +10,11 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { adminPerson, adminWorkspace, audited } from "@/db/queries/admin";
-import { deleteAccount, signOutEverywhere } from "@/lib/accounts";
+import { deleteAccount, removeMemberAsAdmin, signOutEverywhere } from "@/lib/accounts";
 import { requireAdmin } from "@/lib/admin";
 import { PEOPLE_ADMIN_COPY as C } from "@/lib/admin-copy";
 import { auth } from "@/lib/auth";
 import { log } from "@/lib/log";
-import { removeMemberAsAdmin } from "@/lib/members";
 import type { AdminActionState } from "../../confirm-form";
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
@@ -44,15 +43,10 @@ export async function sendLinkAction(_previous: AdminActionState, formData: Form
   if (!person) return { error: C.missing, done: null };
   const requestHeaders = await headers();
   return attempt(person.id, async () => {
-    const result = await audited(proof, { action: "magic_link_sent", targetUserId: person.id }, async (): Promise<{ error: string } | { ok: true }> => {
-      try {
-        await auth.api.signInMagicLink({ headers: requestHeaders, body: { email: person.email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } });
-        return { ok: true };
-      } catch {
-        return { error: C.notSent };
-      }
-    });
-    return "error" in result ? { error: result.error, done: null } : { error: null, done: C.linkSent(person.email) };
+    // A send that fails throws: the row reads failed and attempt() logs it.
+    await audited(proof, { action: "magic_link_sent", targetUserId: person.id }, () =>
+      auth.api.signInMagicLink({ headers: requestHeaders, body: { email: person.email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } }));
+    return { error: null, done: C.linkSent(person.email) };
   });
 }
 
@@ -60,7 +54,7 @@ export async function signOutAction(_previous: AdminActionState, formData: FormD
   const { proof, person } = await target(formData);
   if (!person) return { error: C.missing, done: null };
   return attempt(person.id, async () => {
-    const n = await audited(proof, { action: "signed_out_everywhere", targetUserId: person.id, changes: { open: person.openSessions } }, () => signOutEverywhere(person.id));
+    const n = await audited(proof, { action: "signed_out_everywhere", targetUserId: person.id, changes: { open: person.openSessions } }, () => signOutEverywhere(proof, person.id));
     return { error: null, done: C.signedOut(n) };
   });
 }
@@ -69,12 +63,12 @@ export async function removeAction(_previous: AdminActionState, formData: FormDa
   const { proof, person } = await target(formData);
   if (!person) return { error: C.missing, done: null };
   const found = await adminWorkspace(proof, text(formData, "workspaceId"));
-  if (!found) return { error: C.notMember, done: null };
+  if (!found) return { error: C.workspaceGone, done: null };
   const role = person.workspaces.find((w) => w.id === found.workspace.id)?.role ?? null;
   // Whether the person is a member is the workspace's state, so it is decided inside the action
   // (removeMemberAsAdmin refuses a non-member) and recorded as refused.
   return attempt(person.id, async () => {
-    const result = await audited(proof, { action: "member_removed", targetUserId: person.id, targetWorkspaceId: found.workspace.id, changes: { role } }, () => removeMemberAsAdmin(found.ws, person.id));
+    const result = await audited(proof, { action: "member_removed", targetUserId: person.id, targetWorkspaceId: found.workspace.id, changes: { role } }, () => removeMemberAsAdmin(proof, found.ws, person.id));
     return "error" in result ? { error: result.error, done: null } : { error: null, done: C.removed(found.workspace.name) };
   });
 }
@@ -84,7 +78,7 @@ export async function deleteAccountAction(_previous: AdminActionState, formData:
   if (!person) return { error: C.missing, done: null };
   if (person.id === proof.userId) return { error: C.self, done: null };
   return attempt(person.id, async () => {
-    const result = await audited(proof, { action: "account_deleted", targetUserId: person.id, changes: { workspaces: person.workspaces.length } }, () => deleteAccount(person.id));
+    const result = await audited(proof, { action: "account_deleted", targetUserId: person.id, changes: { workspaces: person.workspaces.length } }, () => deleteAccount(proof, person.id, person.email));
     return "error" in result ? { error: result.error, done: null } : { error: null, done: C.deleted };
   }, false);
 }
