@@ -432,7 +432,7 @@ fieldset:disabled [data-download] {
   }
 }
 
-/* The slide between respondent screens (design note 98; Mihai, 2026-10-05: "nothing too
+/* The slide between respondent screens (design note 99; Mihai, 2026-10-05: "nothing too
    obnoxious"). The new chapter's content comes 24 px from the side it is on and fades in over
    240 ms; the header, the chapter row and the footer stay still. Not under reduced motion
    (developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion). */

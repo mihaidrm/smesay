@@ -27,11 +27,11 @@ export const RESPONDENT_COPY = {
   // The card (E7-2; docs/copy/app.md, Respondent card; errors.md, Respondent answering).
   notRated: "Not rated yet",
   // The Wrap up's Still to finish rows name what is missing (E7-5); the card shows no note for
-  // it, since the box's own question already asks (Mihai, 2026-10-05, design note 98).
+  // it, since the box's own question already asks (Mihai, 2026-10-05, design note 99).
   sayWhy: "Reason not written yet",
   writeQuestion: "Question not written yet",
   saved: "Saved",
-  // The line above the summary (design note 98): the item's reference, named.
+  // The line above the summary (design note 99): the item's reference, named.
   reference: (ref: string) => `Requirement ${ref}`,
   viewMore: "View more",
   viewLess: "View less",

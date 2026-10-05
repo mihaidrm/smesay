@@ -297,18 +297,18 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
+| Line above the summary (design note 99; none when the item has no reference) | Requirement [REFERENCE] |
 | Rating row label | Your rating |
 | Pills, MoSCoW | Must, Should, Could, Not needed, Unclear (or the PM's labels) |
 | Pills, 1 to 5 fit | 1, 2, 3, 4, 5, Unclear, with "no fit" under 1 and "fits fully" under 5 |
 | Pills, keep change drop | Keep, Change, Drop, Unclear |
 | Caption under the proposed pill | proposed (the pill is named "[VALUE], proposed" for screen readers, E7-7) |
-| Footer note | Not rated yet; Say why.; Write your question.; Saved (the respondent page, E7-2); Not saved yet while the page cannot reach the server (E7-3). The Build preview shows the picked label once complete (it saves nothing) |
-| Reason box over a value other than the proposal (E7-2) | Why [VALUE] and not [PROPOSED]? The team reads every reason. |
+| Footer note | Not rated yet; nothing while a reason or a question is missing (the box asks; design note 99); Saved (the respondent page, E7-2); Not saved yet while the page cannot reach the server (E7-3). The Build preview shows the picked label once complete (it saves nothing) |
+| Reason box over a value other than the proposal (E7-2; design note 99) | MoSCoW: Could you tell us why you think the priority should be different? 1 to 5 fit: Could you tell us why you think the fit should be different? Keep, change, drop: Could you tell us why you think it should be different? |
 | Reason box over Not needed (E7-2) | Why is it not needed, or what should it say instead? |
 | Question box over Unclear (E7-2) | What would you need to know to rate it? |
 | Comment (E7-2; an answer that needs no reason) | [Toggle: + comment / Hide comment], box label: Comment, optional |
-| Details (E7-2; when the import carried more text and a box is open) | [Toggle: Details / Hide details] |
-| Details that scroll (E7-7; the name a screen reader reads for the details when they are longer than their slot) | Details: [ITEM] |
+| Details (E7-2; when the import carried more text; above the rating row, design note 99) | [Toggle: View more / View less], then the details text |
 | One item per screen (E7-2) | Item [N] of [M] in [AREA] over one card; [Button: Previous item] [Button: Next item] |
 | Single long page (E7-2) | All [N] on one page, every area as a heading over its cards |
 
@@ -344,7 +344,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Tally tiles (decision 0018 item 5) | Agreed, Higher priority, Lower priority, Not needed, Unclear; rate-blind: Rated, Not needed, Unclear |
 | Gaps box | [N] still to finish. [Button: Go to [CHAPTER OF THE FIRST ITEM STILL TO FINISH]] (Build preview: the first chapter) |
 | Live link, nothing left to finish (E7-4) | All [M] items are answered. (one item: The item is answered.) |
-| Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Say why., Write your question., Not saved yet), each opening its own item |
+| Live link, the list (E7-4) | Still to finish, then each item: [REFERENCE] [TITLE] and what is missing (Not rated yet, Reason not written yet, Question not written yet, Not saved yet), each opening its own item |
 | Live link, footer (E7-4, E7-5) | [Button: Back] [Button: Submit] (Submitting while it posts; Back, the chapter row and the Wrap up's Go to, Change and Still to finish rows are disabled until it answers, E7-6) and the line under them: Still needed: ..., or Pick how sure you are, 1 to 5, before you submit. when only the confidence is left, or Everything is in. Submit when you are ready. |
 | When nothing is left to review (E7-5) | You agreed with every proposed value. Nothing to review here. |
 | When the respondent can see no item (E5-5 preview; every item hidden by the picks or an empty list) | No items to review. |

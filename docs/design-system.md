@@ -147,7 +147,8 @@ Mail (decision 0004).
   390 with 20 px gutters; email 600. Table header 36, rows 40 (the project list 52). Respondent
   tap targets 48 for buttons, inputs and the chapter pills; the rating pills are 38 (decision
   0018 item 4 said 36 and left Mihai free to change it; the design system took 38 on
-  2026-10-01 so five or six fit the 260 px card with their captions and the details slot).
+  2026-10-01 so five or six fit the card's width with their captions; design note 99 dropped
+  the fixed 260 px height).
 
 ## Motion
 
@@ -233,21 +234,26 @@ recorded here unverified.
 
 ## Rating row (respondent cards)
 
-Decision 0018, kept in v2 (RespondentV2). Every card has the same size on screen: a 260 px
-frame (phone and desktop) with four fixed parts, on the surface with the card shadow. Reference
-in mono 11 and the title at 16/23 weight 600, clamped to two lines (the full title is in
-Details). The label "Your rating" over one row of pills, the method's values then Unclear
-(MoSCoW: Must, Should, Could, Not needed, Unclear; 1 to 5 fit: six pills with "no fit" and
-"fits fully" captioned under the ends; keep, change, drop: four), 38 px high, 10 px text at
-600, radius 999, 2 px apart, always one row, a long label on two lines inside its pill. One
-slot that shows either the details text (the ground on light, the raised surface on dark,
-13/18, scrolls) or the comment box, never both. A 24 px footer with Details, the comment
-toggle and the status note. The proposed value has a dashed muted border. The selected pill
-fills with the PM's accent and white text, and on dark with the lifted accent and the dark
-ink. The comment box (radius 12, 14/20) takes the slot
-when required; "+ comment" opens it otherwise and closes Details. The status note: Saved in
-mint text, what is missing in sun text inside the card, Not rated yet in muted. Cards sit in
-one column on a phone and two on desktop, 12 px apart.
+Decision 0018, kept in v2 (RespondentV2), reworked on 2026-10-05 (design note 99). A card on
+the surface with the card shadow, 12 px padding, parts 8 px apart. "Requirement [REF]" at 12/16
+weight 600 in muted (no line when the item has no reference), then the summary at 16/23 weight
+600, clamped to two lines. When the item has details, View more (12 px, underlined, a 48 px
+tap area) opens them in place, above the rating row, on the ground (the raised surface on
+dark), 13/18; the summary is then shown whole too, and the button reads View less. One row of
+pills, the method's values then Unclear (MoSCoW: Must, Should, Could, Not needed, Unclear; 1 to
+5 fit: six pills with "no fit" and "fits fully" captioned under the ends; keep, change, drop:
+four), 38 px high, 10 px text at 600, radius 999, 2 px apart, always one row, a long label on
+two lines inside its pill. Under it one box at most: the reason box when the answer needs one,
+its question as the label ("Could you tell us why you think the priority should be
+different?", the fit or "it" for the other methods), or the comment box when "+ comment" is
+open (radius 12, 14/20, two lines high). The footer sits at the bottom of the card: "+ comment"
+and the status note (Saved in mint text, Not rated yet in muted; nothing while a reason or a
+question is missing, since the box asks). The proposed value has a dashed muted border. The
+selected pill fills with the PM's accent and white text, and on dark with the lifted accent
+and the dark ink. Cards sit in one column on a phone and two on desktop, 12 px apart; the two
+cards of a row are always the same height, the shorter one stretched with its footer at the
+bottom. Moving to another chapter (or item, on the one-item layout) slides the new content in
+24 px from the side the respondent moved to, fading in over 240 ms; not under reduced motion.
 
 ## Data
 

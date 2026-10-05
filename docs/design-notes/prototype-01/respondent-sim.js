@@ -14,7 +14,7 @@ r.chapters[2].go(); r = c.renderVals(); ok(r.isArea && r.areaName === 'Approving
 r.chapters[0].go(); r = c.renderVals(); r.setName(ev('Dana Okafor')); r.setRole(ev('Finance')); r = c.renderVals(); ok(!r.startDisabled, 'start enabled'); r.start(); r = c.renderVals();
 ok(r.areaName === 'Submitting' && r.nextLabel === 'Continue to Approving', 'start lands on Submitting');
 r.visible[0].p1Pick(); r = c.renderVals(); ok(r.visible[0].p1On && r.visible[0].note === 'Saved' && c.state.answers.i1.kind === 'agree', 'picking the proposed value is agree');
-r.visible[1].p1Pick(); r = c.renderVals(); ok(c.state.answers.i2.kind === 'diff' && r.visible[1].commentOpen && r.visible[1].note === 'Say why.' && r.visible[1].commentLabel.startsWith('Why Must and not Should'), 'another value opens a required comment');
+r.visible[1].p1Pick(); r = c.renderVals(); ok(c.state.answers.i2.kind === 'diff' && r.visible[1].commentOpen && r.visible[1].note === '' && r.visible[1].commentLabel === 'Could you tell us why you think the priority should be different?', 'another value opens a required comment');
 r.visible[1].setText(ev('Two projects per trip.')); r = c.renderVals(); ok(r.visible[1].note === 'Saved' && r.chapterNote.startsWith('All 2'), 'reason completes the chapter');
 r.visible[1].unPick(); r = c.renderVals(); ok(r.visible[1].unOn && r.visible[1].answerText === 'Two projects per trip.', 'switching to unclear keeps the typed text');
 r.visible[1].p3Pick(); r = c.renderVals(); ok(c.state.answers.i2.kind === 'diff' && c.state.answers.i2.value === 'C', 'switching back to a value');

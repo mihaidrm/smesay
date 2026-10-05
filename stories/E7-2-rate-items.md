@@ -10,15 +10,22 @@ count as answered until its reason or question is written.
    compact cards two columns wide on desktop, one on the phone. A card is a fieldset: the
    reference and item text as legend, the rating row of pills (the scale from E5-2, Unclear
    last; proposed value dashed and captioned when shown), a Details toggle when the import
-   carried more text, "+ comment" when a comment is optional.
+   carried more text, "+ comment" when a comment is optional. (Amended 2026-10-05, design
+   note 99, Mihai: "Comment and details share the same box - its maybe a bit confusing" and
+   "add it as a title above the summary of each card and say something like requirement
+   CL-01": the legend is "Requirement [REF]" over the summary; the details open with View
+   more above the rating row; the two cards of a row are the same height.)
 2. The four answers (decision 0014) through the values (decision 0018): the proposed value is
-   Agree; another value is Change with the box "Why [VALUE] and not [PROPOSED]? The team
-   reads every reason."; Not needed is Disagree with "Why is it not needed, or what should it
+   Agree; another value is Change with the box "Could you tell us why you think the priority
+   should be different?" (amended 2026-10-05, design note 99; the fit or "it" for the other
+   methods; was "Why [VALUE] and not [PROPOSED]? The team reads every reason."); Not needed is Disagree with "Why is it not needed, or what should it
    say instead?"; Unclear with "What would you need to know to rate it?". Rate-blind: the
    value is `pick`, comment optional. Keep, change, drop and 1 to 5 follow the same rule:
    a value equal to the proposal (when shown) is agree, anything else needs a reason.
-3. The note under the card says exactly what is missing ("Not rated yet", "Say why.", "Write
-   your question.") or "Saved" (docs/copy/errors.md, Respondent answering). A card counts as
+3. The note under the card says "Not rated yet" or "Saved" (docs/copy/errors.md, Respondent
+   answering); while a reason or a question is missing it says nothing, since the box asks
+   (amended 2026-10-05, design note 99; Mihai: the "Say why." note "seems like its
+   condescening"; it said "Say why." and "Write your question." before). A card counts as
    answered only when complete (the respondent board's `complete()` rule).
 4. The three layouts (E5-3) render here: chapters, one item per screen with "Item 1 of 2 in
    [AREA]", single page with every area and no chapter row. A Playwright test at 375 by 667
@@ -27,7 +34,8 @@ count as answered until its reason or question is written.
 5. Typed text is kept when the respondent switches between answers on the same card (note 12,
    finding 4).
 6. Playwright: on the sample link, answer one card with Change and a reason, see Saved;
-   answer another with Unclear and no question, see "Write your question."
+   answer another with Unclear and no question, see no note and the card still incomplete
+   (amended 2026-10-05, design note 99).
 
 7. The selected answer pill takes `effectiveAccent()` from the workspace (E2-5, acceptance 3);
    ink when the accent fails (E7-7).

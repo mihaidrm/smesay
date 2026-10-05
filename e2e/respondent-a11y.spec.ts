@@ -41,7 +41,7 @@ test("accessible journey: axe, keyboard, names, fonts, motion, dark accent", asy
   await page.getByRole("button", { name: "Create project" }).click();
   await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/import$/);
   const projectUrl = page.url().replace(/\/import$/, "");
-  // A file with a Notes column, so every card carries details and axe sees the details slot:
+  // A file with a Notes column, so every card carries details and axe sees them open:
   // long enough to scroll on a phone, with a long link that must wrap.
   const notes = [
     "Staff photograph the receipt in the app; the amount, date and merchant are read from the photo and can be corrected before sending.",
@@ -88,12 +88,16 @@ test("accessible journey: axe, keyboard, names, fonts, motion, dark accent", asy
   await link.keyboard.press("Enter");
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await expect(link.getByTestId("chapter-title")).toBeFocused();
-  // Details longer than their slot scroll and take a tab stop, named for the item; the long
-  // link wraps, so they never scroll sideways. Checked before axe runs, so axe reads the
-  // details once their size has been measured.
-  const details = link.getByRole("region", { name: "Details: Receipts captured by phone" });
-  await expect(details).toHaveAttribute("tabindex", "0");
-  expect(await details.evaluate((e) => [e.scrollHeight > e.clientHeight + 1, e.scrollWidth <= e.clientWidth])).toEqual([true, true]);
+  // The details open from View more by the keyboard, above the rating row, and the long link
+  // wraps, so they never scroll sideways (design note 99). Checked before axe runs, so axe
+  // reads the card with its details open.
+  const receiptsCard = link.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
+  await tabTo(receiptsCard.getByTestId("card-more"));
+  await link.keyboard.press("Enter");
+  const details = receiptsCard.getByTestId("card-details");
+  await expect(details).toBeVisible();
+  await expect(receiptsCard.getByTestId("card-more")).toHaveAttribute("aria-expanded", "true");
+  expect(await details.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
   await noSeriousViolations(link, "Chapter");
 
   // The keyboard alone: Tab to the rating row, an arrow picks the next value, Tab to the box.

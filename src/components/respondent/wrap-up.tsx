@@ -35,7 +35,7 @@ import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS
 import { labelFor, scaleFor } from "@/lib/scoring";
 
 export type WrapUpProps = {
-  // The way the respondent arrived, for the slide in (design note 98); null on the first screen.
+  // The way the respondent arrived, for the slide in (design note 99); null on the first screen.
   slide?: "next" | "prev" | null;
   workspaceName: string;
   accent: string;

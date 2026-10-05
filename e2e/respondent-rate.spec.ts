@@ -2,7 +2,7 @@
 // 375 by 667 phone. Chapters: the document does not scroll sideways and the smallest pill
 // is 38 px; a card answered with another value than the proposal asks "Could you tell us why
 // you think the priority should be different?" and has no note until the reason is written,
-// then "Saved"; Unclear without a question has no note either (design note 98); the typed reason is kept when the answer
+// then "Saved"; Unclear without a question has no note either (design note 99); the typed reason is kept when the answer
 // changes and comes back after a reload; the selected pill takes the workspace accent.
 // The PM then switches the layout on Build: one item per screen ("Item 1 of 2 in
 // Submitting", Next item) and the single page ("All 3 on one page"), each with the same

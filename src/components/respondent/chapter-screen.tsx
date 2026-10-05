@@ -24,7 +24,7 @@ import { RespondentHeader } from "./respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 
 export type ChapterScreenProps = {
-  // The way the respondent arrived, for the slide in (design note 98); null on the first screen.
+  // The way the respondent arrived, for the slide in (design note 99); null on the first screen.
   slide?: "next" | "prev" | null;
   workspaceName: string;
   accent: string;
@@ -79,7 +79,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
       {banner}
       <main className="flex grow flex-col gap-4 overflow-x-clip bg-ground px-5 pt-4 pb-5 @xl:px-8 @xl:pt-6 @xl:pb-8">
         {/* A new chapter, or a new item on the one-item layout, mounts its content afresh, so the
-            slide plays on it and on nothing else (design note 98). */}
+            slide plays on it and on nothing else (design note 99). */}
         <div key={layout === "page" ? "page" : `${index}-${layout === "item" ? at : 0}`} className="flex grow flex-col gap-4" data-slide={slide ?? undefined}>
         {layout === "page" ? (
           <>

@@ -14,7 +14,8 @@ Wrap up tells unrated from skipped.
    [M] rated in this chapter."
 3. An item never touched shows "Not rated yet" and is listed in the Wrap up under "Still to
    finish" with "Not rated yet"; an item where the respondent started an answer and did not
-   finish is listed with what is missing ("Say why."). A skipped-on-purpose state does not
+   finish is listed with what is missing ("Reason not written yet"; "Say why." until
+   2026-10-05, design note 99). A skipped-on-purpose state does not
    exist in R1: the Wrap up lists both as still to finish, with different notes, which is the
    distinction the business plan asks for.
 4. A returning respondent lands on the first chapter with an unfinished item (note 12,
@@ -26,6 +27,13 @@ Wrap up tells unrated from skipped.
 6. The chapter row and the progress bar take `effectiveAccent()` from the workspace (E2-5,
    acceptance 3); Playwright: with a workspace accent set, the active chapter and the bar show
    that colour (the check E2-5 deferred here).
+7. (Added 2026-10-05, design note 99; Mihai: "Would be super cool to have like a swipe
+   animation or something similar when moving through chapters, nothing too obnoxious".) A move
+   to another chapter, to another item on the one-item layout, or to the Wrap up slides the new
+   content in 24 px from the side the respondent moved to (Continue from the right, Back from
+   the left, a pill or the browser's Back by the screens' order) and fades it in over 240 ms;
+   the header, the chapter row and the footer stay still; nothing moves under reduced motion. A
+   Playwright test reads the direction after Continue and after Back.
 
 ## Out of scope
 - A "skip this item" button: not in R1. Recorded as a candidate in stories/backlog.md.

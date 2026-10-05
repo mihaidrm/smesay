@@ -124,7 +124,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
   const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => props.initialDrafts ?? Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
   const [item, setItem] = useState(props.initialItem);
-  // The slide between screens (design note 98; Mihai: "a swipe animation or something similar
+  // The slide between screens (design note 99; Mihai: "a swipe animation or something similar
   // when moving through chapters, nothing too obnoxious"): the screens in their order (About
   // you, each chapter and its items, the Wrap up and Done) give the way the respondent moved,
   // whether by Continue, Back, a chapter pill or the browser's Back. The last place is kept in

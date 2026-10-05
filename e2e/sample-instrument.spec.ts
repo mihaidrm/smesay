@@ -79,7 +79,7 @@ test("the header's switch turns the sample dark and keeps the choice", async ({ 
   expect(await page.evaluate(() => localStorage.getItem("smesay-mode"))).toBe("light");
 });
 
-// The card and the moves between chapters (design note 98; Mihai, 2026-10-05): "Requirement
+// The card and the moves between chapters (design note 99; Mihai, 2026-10-05): "Requirement
 // CL-01" over the summary, the details behind View more above the rating, the reason box the
 // only box under it, the two cards of a row the same height whatever opens in one of them, the
 // generic reason question, no "Say why." note, and the content sliding in from the side the
