@@ -19,8 +19,8 @@ export function RespondentHeader({ workspaceName, accent, logoUrl = null, note =
       ) : (
         <span aria-hidden="true" className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-extrabold", ACCENT_FILL)} style={accentVars(accent) as React.CSSProperties}>{initials(workspaceName)}</span>
       )}
-      <span className="grow text-[15px] font-bold">{workspaceName}</span>
-      {note && <span className="font-mono text-xs text-ink-muted" data-testid={noteTestId}>{note}</span>}
+      <span className="min-w-0 grow text-[15px] font-bold wrap-break-word hyphens-auto">{workspaceName}</span>
+      {note && <span className="max-w-[40%] shrink-0 text-right font-mono text-xs text-ink-muted" data-testid={noteTestId}>{note}</span>}
       {children}
       <ModeButton />
     </header>

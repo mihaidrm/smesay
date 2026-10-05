@@ -7,6 +7,7 @@
 // a page, never data (SECURITY.md).
 import type { ReactNode } from "react";
 import { Mark } from "@/components/brand/mark";
+import { ModeButton } from "./mode-button";
 import { RespondentHeader } from "./respondent-header";
 import { cn } from "cn";
 import { FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED } from "./frame";
@@ -19,7 +20,7 @@ export function LinkPage({ workspaceName, accent, logoUrl = null, title, line, c
       {workspaceName ? (
         <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} className={FRAME_HEADER} />
       ) : (
-        <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", FRAME_HEADER)}><span className="inline-flex items-center gap-2 text-[15px] font-bold"><Mark size={22} /> SMEsay</span></header>
+        <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", FRAME_HEADER)}><span className="inline-flex grow items-center gap-2 text-[15px] font-bold"><Mark size={22} /> SMEsay</span><ModeButton /></header>
       )}
       <main className="flex w-full grow flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
         <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em]">{title}</h1>
