@@ -2,14 +2,17 @@
 
 The four emails the product sends (docs/design-system.md, Email: sign-in, invite, reminder,
 submission receipt). Layout rules are in the design system: 600 px, one column, the mark at
-22 px, one violet button, footer with the company name, the registered address placeholder and the
-privacy policy link. Every email also carries the link as plain text under the button, for
+22 px, one violet button, footer with the company name, the registered address and the
+privacy policy link. Built in src/lib/mail/templates/ on one frame (layout.ts, stories/E12-3);
+filled samples: `npm run email:samples` writes docs/design-notes/prototype-01/email-*.html. Every email also carries the link as plain text under the button, for
 clients that strip buttons. Mihai tests them in Gmail, Outlook and Apple Mail (E12).
 
 Placeholders in [CAPS] are filled by the app.
 
 Footer, all four emails:
-SMEsay, by Alerty S.R.L. [REGISTERED ADDRESS, lawyer confirms in E11]
+SMEsay, by Alerty S.R.L.
+[REGISTERED ADDRESS] (COMPANY_ADDRESS, set at the launch gate once the lawyer confirms it; the
+line is left out while it is unset)
 [Privacy policy]
 
 ## 1. Sign-in link
@@ -122,7 +125,7 @@ Your answers on [PROJECT NAME] for [WORKSPACE NAME] were submitted on
 You can change your answers until the link closes on [CLOSE DATE AND TIME]. Open the same link
 and press Change my answers. (A link with no close date: You can change your answers while the
 link is open. Open the same link and press Change my answers.) (Built in E7-5:
-src/lib/mail/receipt-email.ts; the subject, the preheader and the counts as here; the date and
+src/lib/mail/templates/receipt.ts; the subject, the preheader and the counts as here; the date and
 time in UTC.)
 
 Button: See your answers
@@ -148,7 +151,7 @@ Sent from [PAGE ADDRESS] on [DATE AND TIME UTC]. Reply to this email to answer.
 ## 6. Workspace deleted (E11-2; to the owner who deleted it, once the removal job has run)
 
 Sent by `npm run jobs:purge` after every row and file of the workspace is gone
-(src/lib/mail/deletion-email.ts). No button: there is nothing to do.
+(src/lib/mail/templates/deletion.ts). No button: there is nothing to do.
 
 Subject: [WORKSPACE] was deleted
 

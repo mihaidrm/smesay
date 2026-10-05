@@ -288,12 +288,13 @@ under 4.5:1 on the dark surface or under the dark ink (note 33).
 
 ## Email
 
-600 px, white on the lavender ground, one column, system stack, the wordmark in text (the
-mark as an inline image at 22 px once E12-3 hosts it), one violet button (#6D4CF5, white
+600 px, white on the lavender ground, one column, system stack, the mark as a 22 px PNG
+(public/assets/brand/mark-44.png, served by the app) beside the wordmark in text, one violet button (#6D4CF5, white
 text, radius 999), hairlines, 32 px padding, radius 16. Transactional only: sign-in, invite,
 reminder, submission receipt. The landing page's questions reach SMEsay's own inbox as plain
-text (E12-5). Footer: company name, registered address placeholder until the
-lawyer confirms (E11), privacy policy link in violet text.
+text (E12-5). Footer: company name, the registered address from COMPANY_ADDRESS (left out until the lawyer
+confirms it, E11), privacy policy link in violet text. One frame for all of them:
+src/lib/mail/templates/layout.ts (E12-3).
 
 ## Voice
 

@@ -44,7 +44,7 @@ Built 2026-10-03 (design note 47, decision 0044):
   line sends nothing (docs/review-list.md). The box is off until the public link is
   published: the personal links take its open and close instants.
 - Acceptance 2: one invite row of kind personal per address with its own 32-hex token
-  (src/lib/sharing.ts newToken), no passcode, and email 2 (src/lib/mail/invite-email.ts)
+  (src/lib/sharing.ts newToken), no passcode, and email 2 (src/lib/mail/templates/invite.ts)
   sent as "[PM NAME] via SMEsay" with reply-to the PM's address (src/lib/mail.ts fromName,
   replyTo); the minutes are 20 seconds per item rounded up to five (minutesFor); the intro's
   first three lines; the close instant in UTC. Locally the email lands in Mailpit.

@@ -22,7 +22,7 @@ import { commitUpload } from "@/lib/imports";
 import { openDraft, saveClosing, saveFields, savePerspectives } from "@/lib/instruments";
 import { listInvitees, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
-import { receiptEmail } from "@/lib/mail/receipt-email";
+import { receiptEmail } from "@/lib/mail/templates/receipt";
 import { DEVICE_COOKIE, loadRespondent, saveAnswer, saveWrap, startResponse, submitResponse, type RespondentCookies } from "@/lib/respondent";
 import { areasOf, bucketOf, changedAfterSubmit, changedSinceSubmit, heardSubmit, landingOf, NO_SUBMIT, showsChanged, startSubmit, parseScreen, parseSubmitInput, parseWrapInput, RESPONDENT_COPY, RESPONDENT_ERRORS, tallyOf, wrapTakes, type Chapter } from "@/lib/respondent-rules";
 import { publishLink, revokeLink } from "@/lib/sharing";

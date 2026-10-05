@@ -29,6 +29,7 @@
     "restore": "node --env-file-if-exists=.env.local --import tsx scripts/restore.ts",
     "backup:check": "node --env-file-if-exists=.env.local --import tsx scripts/backup-check.ts",
     "jobs:purge": "node --env-file-if-exists=.env.local --import tsx scripts/jobs-purge.ts",
+    "email:samples": "node --env-file-if-exists=.env.local --import tsx scripts/email-samples.ts",
     "db:studio": "drizzle-kit studio",
     "hooks": "git config core.hooksPath scripts/githooks"
   },
