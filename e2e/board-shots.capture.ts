@@ -31,6 +31,8 @@ test("respondent screens for the board", async ({ page, request, browser }) => {
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   await page.getByRole("link", { name: "New project" }).first().click();
   await page.getByLabel("Project name").fill("Expense tool");

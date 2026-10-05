@@ -162,6 +162,7 @@ describe("every scoped helper, called with A's id", () => {
     expect(await members.get(A.ws, B.userId)).toBeNull();
     expect(await members.setRole(A.ws, B.userId, "member")).toBeNull();
     expect(await members.remove(A.ws, B.userId)).toBeNull();
+    expect(await members.markQuickstartSeen(A.ws, B.userId, new Date())).toBe(false);
     expect((await members.list(A.ws)).map((m) => m.userId)).toEqual([A.userId]);
   });
 

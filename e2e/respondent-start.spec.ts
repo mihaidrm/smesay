@@ -22,6 +22,9 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   // The sample opens on Results (E8-8); its project address is taken from the link.
   const sampleId = (await page.getByTestId("sample-card").getByRole("link", { name: "Open the sample" }).getAttribute("href"))!.match(/projects\/([0-9a-f-]{36})/)![1];

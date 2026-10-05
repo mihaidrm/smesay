@@ -19,6 +19,9 @@ test("publish a public link, open it with the passcode, close it", async ({ page
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   await page.getByRole("link", { name: "New project" }).first().click();
   await page.getByLabel("Project name").fill("New expense tool");

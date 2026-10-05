@@ -20,6 +20,9 @@ async function sampleResults(page: Page, request: APIRequestContext, tag: string
   await page.goto(await latestLink(request, email));
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   const href = await page.getByRole("link", { name: /Sample project/ }).first().getAttribute("href");
   return href!.match(/projects\/([0-9a-f-]{36})/)![1];

@@ -8,7 +8,7 @@ a second workspace appears in the switcher.
 ## Acceptance criteria
 1. On the first sign-in with no membership, the app asks for a workspace name (the field
    starts empty, decision 0047) and creates the workspace with the person as owner. The
-   quickstart (E12-2) follows.
+   quickstart (E12-2) follows (built 2026-10-05).
 2. The new workspace holds the sample project "Sample project" with the Marlow Group rows
    from the seed (E1-4, decision 0027), marked is_sample, watermarked (E8-8). The project list
    shows it with the status "Sample" and "Created with the workspace" as its updated line (PM
@@ -50,7 +50,7 @@ Built 2026-10-02.
   one transaction, then the workspace's own copy of the sample through `seedSampleInto()`
   (src/db/seed/sample-seed.ts), named "Sample project", with fresh tokens; a failure removes the
   workspace again. The slug comes from the name; a taken one (SQLSTATE 23505) gets a 4 character
-  suffix. The quickstart (E12-2) follows this step when it is built.
+  suffix. The quickstart (E12-2) follows this step: Projects sends there until it is seen.
 - The seed's fixed workspace id (E1-4) is now the test fixture only: `npm run db:seed` still
   creates "Marlow Group" with "New expense tool" for the tests and for a look at known rows, and
   every workspace made in the app gets its own copy. E1-4's acceptance 4 is amended accordingly.

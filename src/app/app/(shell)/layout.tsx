@@ -2,7 +2,8 @@
 // board, design v2, decision 0041): a 248 px sidebar on the surface with the lockup, the
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
 // one, the member count), the nav (Projects, Settings), the project list,
-// then at the bottom the sample card, the mode toggle and the signed-in email with Sign out.
+// then at the bottom the sample card, Help (the quickstart, stories/E12-2), the mode toggle and
+// the signed-in email with Sign out.
 // The sample opens on Results from the list and the card (stories/E8-8, acceptance 1).
 // The sidebar is pinned to the viewport (sticky, the viewport's height) so the whole menu
 // stays in view however long the page is; only its project list scrolls, inside the
@@ -10,7 +11,7 @@
 // Route group, so /app/new and /app/switch render without it (node_modules/next/dist/docs/
 // 01-app/03-api-reference/03-file-conventions/route-groups.md). Copy: docs/copy/app.md.
 import Link from "next/link";
-import { LayoutGrid, Settings } from "lucide-react";
+import { CircleHelp, LayoutGrid, Settings } from "lucide-react";
 import { ModeToggle } from "@/components/app/mode-toggle";
 import { NavLink } from "@/components/app/nav-link";
 import { WorkspaceTile } from "@/components/app/tiles";
@@ -19,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { members, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
 import { SignOutButton } from "../sign-out-button";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
@@ -62,6 +64,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Link href={`/app/projects/${sample.id}/results`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
             </div>
           )}
+          <NavLink href="/app/quickstart" icon={<CircleHelp aria-hidden="true" />}>{QUICKSTART_COPY.help}</NavLink>
           <ModeToggle />
           <div className="flex flex-col gap-2 px-2.5 text-ink-muted">
             <div className="truncate text-xs" title={session.user.email}>{session.user.email}</div>

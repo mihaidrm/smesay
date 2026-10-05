@@ -4,7 +4,7 @@
 // table card of name with its tile, items, responses ("5 of 7"), status, updated; New
 // project; the sample's pill and Delete sample (stories/E8-8, acceptance 3), the sample
 // opening on Results (E8-8, acceptance 1), every other project on Import; archived
-// projects behind "Show archived". Copy: docs/copy/app.md, errors.md. Status:
+// projects behind "Show archived"; the quickstart first, once (stories/E12-2). Copy: docs/copy/app.md, errors.md. Status:
 // src/lib/project-status.ts.
 import { EXPORT_COPY } from "@/lib/export/copy";
 import Link from "next/link";
@@ -12,7 +12,8 @@ import { ProjectTile, StatTile } from "@/components/app/tiles";
 import { EmptyState } from "@/components/ui/banner";
 import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
-import { projects } from "@/db/queries";
+import { redirect } from "next/navigation";
+import { members, projects } from "@/db/queries";
 import { usage } from "@/db/queries/usage";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { projectStatus, type ProjectStatus } from "@/lib/project-status";
@@ -27,7 +28,11 @@ function Status({ status }: { status: ProjectStatus }) {
 }
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ archived?: string }> }) {
-  const { current } = await requireCurrentWorkspace("/app");
+  const { session, current } = await requireCurrentWorkspace("/app");
+  // The quickstart once per person per workspace (stories/E12-2, acceptance 1): until the
+  // quickstart page stamps quickstart_seen_at, Projects sends there first. After naming a
+  // workspace that is the first page; an invited member sees it on first reaching Projects.
+  if ((await members.get(current.ws, session.user.id))?.quickstartSeenAt === null) redirect("/app/quickstart");
   const { archived } = await searchParams;
   const showArchived = archived === "1";
   const [rows, used] = await Promise.all([projects.summaries(current.ws, { archived: showArchived }), usage(current.ws)]);

@@ -30,6 +30,9 @@ test("name the workspace on the first sign-in and see the sample project", async
 
   await page.getByLabel("Workspace name").fill("Marlow Group");
   await page.getByRole("button", { name: "Create workspace" }).click();
+  // Naming the first workspace opens the quickstart once (stories/E12-2).
+  await expect(page).toHaveURL(/\/app\/quickstart$/);
+  await page.goto("/app");
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Projects");
   const sidebar = page.getByRole("complementary");

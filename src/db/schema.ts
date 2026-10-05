@@ -56,6 +56,9 @@ export const workspaceMember = pgTable("workspace_member", {
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   role: text("role", { enum: MEMBER_ROLES }).notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
+  // When this person was first shown the quickstart in this workspace (stories/E12-2): null
+  // until then, so it is shown once per person per workspace.
+  quickstartSeenAt: ts("quickstart_seen_at"),
 }, (t) => [
   primaryKey({ columns: [t.workspaceId, t.userId] }),
   index("workspace_member_user_idx").on(t.userId),
