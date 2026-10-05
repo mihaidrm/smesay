@@ -1,7 +1,7 @@
 # E12-5 A question bubble on the landing page that emails Mihai
 
 User: a visitor with a question before signing up
-Status: ready (decision 0049 answered the open questions)
+Status: built
 Outcome: a visitor asks a question from the landing page without leaving it, and the
 question reaches Mihai's inbox with the visitor's address to reply to.
 
@@ -53,3 +53,31 @@ comes from lucide-react, already a dependency (decision 0041 allows free-license
 NEXT_PUBLIC_SUPPORT_EMAIL is named in E11-6 for the error pages and is already in
 .env.example; this story uses the same variable and names it in docs/accounts.md. No table: a table would need a workspace_id
 (CLAUDE.md, data rules), and an email is enough to answer.
+
+Built 2026-10-05 (design note 94, decision 0044):
+- Acceptance 1: src/app/landing-page/question-bubble.tsx, rendered by the landing page only
+  when NEXT_PUBLIC_SUPPORT_EMAIL is set. 56 px, 16 px from the edges under 768 px and 24 px
+  from it, z-index above the page. The footer keeps 96 px under its last line on a phone so the
+  bubble covers none of its links. e2e/question-bubble.spec.ts checks every visible link and
+  button against the bubble at the top and the bottom of the page, at 390 by 844 and 1440 by
+  900: none is covered.
+- Acceptance 2: a non-modal dialog, 360 px from 768 px and the full width on a phone,
+  anchored to the bottom; focus to "Your email" on opening and back to the button on closing;
+  Escape and Close close it; the panel stays mounted while hidden, so the text is kept.
+- Acceptance 3: POST /api/support (src/app/api/support/route.ts) reads JSON with readJson;
+  src/lib/support.ts checks the address (the app's own address check), the question (1 to
+  2000 characters after trimming) and the hidden "website" field. Limits: 5 an hour per
+  address and, added here, 20 an hour per connection, so typing new addresses cannot fill the
+  inbox (docs/review-list.md).
+- Acceptance 4: one text-only email 5 to NEXT_PUBLIC_SUPPORT_EMAIL with Reply-To the visitor,
+  through sendMail (Mail.html is now optional); nothing stored, nothing logged.
+- Acceptance 5: the words are SUPPORT_COPY (src/lib/support-copy.ts) from docs/copy/landing.md;
+  the length line reads "2,000" as the app writes numbers.
+- Acceptance 6: no model call and no "AI" in the bubble (a unit test checks the words).
+- Acceptance 7: docs/legal/privacy.md, "Questions sent from the landing page", with a LAWYER
+  marker.
+- Acceptance 8: src/lib/support.test.ts (7 tests: fields, hidden field, the page path, both
+  limits, email 5 with Reply-To and no HTML, the words); e2e/question-bubble.spec.ts at both
+  sizes (Mailpit holds the email; its Reply-To header names the visitor). CI and the
+  Playwright server set NEXT_PUBLIC_SUPPORT_EMAIL to hello@smesay.app, the error pages' own
+  default, so nothing else changes. docs/accounts.md step 11c names the variable.

@@ -252,6 +252,15 @@ Set `ADMIN_EMAILS=` in .env.local to the email you sign in with (several are com
 and at the launch gate in the host's settings. /admin then shows you the Overview (E13-2);
 everyone else, and everyone while it is empty, gets the 404 page.
 
+## Step 11c. Your support address (any time)
+
+Set `NEXT_PUBLIC_SUPPORT_EMAIL=` in .env.local to the inbox that should get visitors'
+questions (decision 0049: your own address until the launch gate, then hello@smesay.app). The
+landing page's "Ask us a question" bubble (E12-5) only shows when it is set, and the error
+pages name it. Restart `npm run dev` after changing it: Next.js puts the value into the page
+when it builds it (node_modules/next/dist/docs/01-app/02-guides/environment-variables.md,
+"Bundling Environment Variables for the Browser").
+
 ## Step 12. Legal (before launch)
 
 Claude drafts the privacy policy, terms, DPA and subprocessor list, and marks every place a

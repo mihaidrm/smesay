@@ -11,7 +11,8 @@ import { createTransport, type Transporter } from "nodemailer";
 // "[PM NAME] via SMEsay" on the EMAIL_FROM address and replies go to the PM (nodemailer's
 // from as { name, address } and replyTo: node_modules/nodemailer/dist/esm/mime-node/index.d.ts
 // MimeNodeAddressInput, dist/esm/mail-composer/index.d.ts replyTo).
-export type Mail = { to: string; subject: string; text: string; html: string; fromName?: string; replyTo?: string };
+// html is left out for a text-only message (email 5, stories/E12-5).
+export type Mail = { to: string; subject: string; text: string; html?: string; fromName?: string; replyTo?: string };
 export const memoryOutbox: Mail[] = [];
 
 let transporter: Transporter | null = null;
