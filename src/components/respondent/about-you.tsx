@@ -134,7 +134,7 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
           </fieldset>
         )}
         <p className="text-sm text-ink-muted">{ABOUT_YOU_COPY.footer(workspaceName)}</p>
-        <PoweredBy show={poweredBy} />
+        <PoweredBy show={poweredBy} privacy />
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t border-hairline bg-surface px-5 pt-3 pb-4">
         <button type="button" disabled={disabled || starting} aria-busy={starting || undefined} aria-describedby={`${prefix}-hint`} onClick={() => { if (!disabled && !starting) onStart?.(values, picks); }} className="h-12 rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity disabled:opacity-40 @lg:w-[280px] @lg:self-start focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface" data-testid="about-you-start">
