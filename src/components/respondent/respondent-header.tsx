@@ -7,9 +7,9 @@ import { cn } from "cn";
 import { initials } from "@/components/app/tiles";
 import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 
-export function RespondentHeader({ workspaceName, accent, logoUrl = null, note = null, noteTestId = "respondent-note", children }: { workspaceName: string; accent: string; logoUrl?: string | null; note?: React.ReactNode; noteTestId?: string; children?: React.ReactNode }) {
+export function RespondentHeader({ workspaceName, accent, logoUrl = null, note = null, noteTestId = "respondent-note", children, className }: { workspaceName: string; accent: string; logoUrl?: string | null; note?: React.ReactNode; noteTestId?: string; children?: React.ReactNode; className?: string }) {
   return (
-    <header className="flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3" data-testid="respondent-header">
+    <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", className)} data-testid="respondent-header">
       {logoUrl ? (
         // A plain img: the logo is the workspace's own file, served by its route with its size.
         // eslint-disable-next-line @next/next/no-img-element

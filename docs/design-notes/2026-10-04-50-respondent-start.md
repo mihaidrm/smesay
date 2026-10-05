@@ -46,7 +46,8 @@ respondent-app.tsx, src/components/respondent/respondent-header.tsx and chapter-
 - About you on desktop: the fields 360 px and Start 280 px, left-aligned, by a container
   query on the component's own width, so the Build preview's 390 px frame keeps the phone
   layout (docs/design-system.md, Respondent columns). The link pages put their header in
-  the same 560 px column.
+  the same 560 px column. Replaced on 2026-10-05 by a centered 720 px card with Start
+  centered and "Powered by" under it (decision 0051).
 - The closed own state appears only when the respondent answered at least one item and did
   not submit; a submitted response's closed page is E7-6's.
 - A rate-blind instrument sends no proposed value to the page.

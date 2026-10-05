@@ -23,8 +23,9 @@ fields the PM asked for, and Start lands on the first chapter.
 4. Works without an account on iOS Safari, Android Chrome, desktop Chrome, Edge and Firefox:
    Mihai checks iOS and Android on his devices (decision 0004); Playwright runs Chromium at
    390 by 844 and 1440 by 900.
-5. The desktop layout is the same flow in a 560 px column for About you, done, closed and
-   inactive (docs/design-system.md, Respondent columns).
+5. The desktop layout is the same flow in a centered 720 px card for About you, done, closed
+   and inactive, with "Powered by" under the card (decision 0051, amended 2026-10-05;
+   docs/design-system.md, Respondent columns).
 6. Playwright: open the sample link, fill name and role, start, see the first chapter.
 
 ## Out of scope
@@ -62,7 +63,8 @@ Built 2026-10-04 (design note 50, decision 0044):
 - Acceptance 4: Playwright runs Chromium at 390 by 844 and 1440 by 900
   (e2e/respondent-start.spec.ts); Mihai checks iOS and Android on his devices.
 - Acceptance 5: About you sits in a 560 px column on the desktop; a chapter in 1000 px with
-  two card columns.
+  two card columns. Since 2026-10-05 (decision 0051) the short pages are a centered 720 px card
+  (src/components/respondent/frame.ts) with Start centered in its footer and "Powered by" last.
 - Acceptance 6: e2e/respondent-start.spec.ts opens a published project's link (the sample's
   link collects nothing, docs/review-list.md), fills Name and Role, starts, sees the first
   chapter with its cards, reloads onto the same chapter, and sees the sample link's page.

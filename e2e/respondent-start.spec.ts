@@ -4,7 +4,8 @@
 // are filled, Start, the first chapter with its cards; the browser's Back returns to About
 // you with the saved values and Forward to the chapter; the chapter's Back the same without
 // a reload; a reload lands on the same chapter (the device cookie); at 1440 by 900 the
-// About you column is 560 px with the name field at 360 px and Start at 280 px; the sample
+// About you is a centered 720 px card with Start at 320 px centered in it and "Powered by"
+// under the card (decision 0051); the sample
 // project's link shows its own page and collects nothing.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -88,15 +89,21 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await expect(link.getByTestId("chapter-title")).toHaveText("Submitting");
   await phone.close();
 
-  // The desktop: About you in a 560 px column.
+  // The desktop: About you a centered 720 px card, Start centered, "Powered by" last.
   const desk = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const deskPage = await desk.newPage();
   await deskPage.goto(url);
   await deskPage.locator("[data-ready]").waitFor();
-  const box = await deskPage.getByTestId("about-you").boundingBox();
-  expect(box?.width).toBeLessThanOrEqual(560);
-  expect((await deskPage.getByLabel("Name").boundingBox())?.width).toBe(360);
-  expect((await deskPage.getByTestId("about-you-start").boundingBox())?.width).toBe(280);
+  const box = (await deskPage.getByTestId("about-you").boundingBox())!;
+  expect(box.width).toBe(720);
+  expect(Math.abs(box.x + box.width / 2 - 720)).toBeLessThanOrEqual(1);
+  const start = (await deskPage.getByTestId("about-you-start").boundingBox())!;
+  expect(start.width).toBe(320);
+  expect(Math.abs(start.x + start.width / 2 - 720)).toBeLessThanOrEqual(1);
+  const name = (await deskPage.getByLabel("Name").boundingBox())!;
+  expect(name.width).toBeGreaterThan(600);
+  const privacy = (await deskPage.getByTestId("privacy-link").boundingBox())!;
+  expect(privacy.y).toBeGreaterThan(start.y + start.height);
   await deskPage.getByLabel("Name").fill("Bo");
   await deskPage.getByLabel("Role").fill("Sales");
   await deskPage.getByTestId("about-you-start").click();
