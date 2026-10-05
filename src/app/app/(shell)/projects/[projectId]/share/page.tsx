@@ -70,7 +70,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
       <LinkCard projectId={project.id} isSample={project.isSample} instrument={instrument} invite={live} />
       <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} linkState={linkState(live)} />
       {newerDraft && newerSet && builtOn && (
-        <section className="card flex max-w-[720px] flex-col gap-4" aria-labelledby="share-draft-title" data-testid="draft-card">
+        <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-draft-title" data-testid="draft-card">
           <div className="flex items-center justify-between gap-3">
             <h3 id="share-draft-title" className="text-[15px] font-bold">{SHARE_COPY.newerDraftCard(newerSet.version)}</h3>
             <NeutralPill>{SHARE_COPY.states.draft}</NeutralPill>
@@ -88,7 +88,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
   const url = invite ? `${readAuthEnv().baseURL}/r/${invite.token}` : null;
   const note = state === "draft" ? SHARE_COPY.notes.draft : state === "revoked" ? SHARE_COPY.notes.revoked : state === "closed" ? SHARE_COPY.closedNow : state === "notOpen" ? SHARE_COPY.notOpenNote(formatUtc(invite!.opensAt!)) : SHARE_COPY.notes.published;
   return (
-    <section className="card flex max-w-[720px] flex-col gap-4" aria-labelledby="share-link-title" data-testid="link-card" data-state={state}>
+    <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-link-title" data-testid="link-card" data-state={state}>
       <div className="flex items-center justify-between gap-3">
         <h3 id="share-link-title" className="text-[15px] font-bold">{SHARE_COPY.card}</h3>
         {state === "draft" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.draft}</NeutralPill> : state === "revoked" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.revoked}</NeutralPill> : <StatusPill status="agree" data-testid="link-state">{SHARE_COPY.states.published}</StatusPill>}
