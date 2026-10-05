@@ -38,6 +38,7 @@ import { PanelSkeleton } from "./skeletons";
 import { ActionsTab } from "./actions-tab";
 import { ExportTab } from "./export-tab";
 import { TileChooser } from "./tile-chooser";
+import { track } from "@/lib/analytics";
 import { UnsubmittedSwitch } from "./unsubmitted-switch";
 
 const TABS = ["agreement", "pushed", "questions", "responses", "actions", "export"] as const;
@@ -63,7 +64,12 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   // bar reads the same for whoever opens it: a first open without it goes to the full URL
   // (redirect: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md).
   const item = itemParam(query.item);
-  if (query.unsubmitted === undefined) redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
+  if (query.unsubmitted === undefined) {
+    // sample_opened (stories/E13-1): opening the sample arrives without the full address and
+    // is sent to it once; a tab, a filter or a reload keeps the address and is not counted.
+    if (project.isSample) await track("sample_opened", {}, { workspaceId: current.ws, userId: session.user.id });
+    redirect(`/app/projects/${project.id}/results?${filterQuery(filter, ctx, { ...(tab === "agreement" ? {} : { tab }), ...(item ? { item } : {}) })}`);
+  }
   // Live updates (E8-7) whenever the project has an instrument, whatever the state of its
   // links: a link that opens later, personal links after the public one is revoked. Not on the
   // sample, whose link collects nothing. Outside the boundary, so a failed read keeps the

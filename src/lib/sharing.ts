@@ -79,7 +79,7 @@ export async function own(ws: WorkspaceId, projectId: string, instrumentId: stri
 
 // Publish (acceptance 1, 2 and 5): the public link, created under the instrument's lock. A
 // second press, or another tab, finds the link already there and gets a message.
-export async function publishLink(ws: WorkspaceId, projectId: string, instrumentId: string, rawOpens: unknown, rawCloses: unknown, rawPasscode: unknown, now = new Date()): Promise<{ error: string } | { invite: Invite }> {
+export async function publishLink(ws: WorkspaceId, projectId: string, instrumentId: string, rawOpens: unknown, rawCloses: unknown, rawPasscode: unknown, now = new Date()): Promise<{ error: string } | { invite: Invite; instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   const parsed = parseLinkInput(rawOpens, rawCloses, rawPasscode, now, false);
@@ -88,7 +88,7 @@ export async function publishLink(ws: WorkspaceId, projectId: string, instrument
   const result = await invites.publish(ws, instrumentId, { token: newToken(), opensAt, closesAt, passcodeHash: passcode ? await hashPasscode(passcode) : null }, now);
   if (!result) throw new NotFoundError();
   if (!result.created) return { error: LINK_ERRORS.alreadyPublished };
-  return { invite: result.invite };
+  return { invite: result.invite, instrument: owned.instrument };
 }
 
 // The dates and the passcode of a published link (acceptance 5: dates change after

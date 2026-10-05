@@ -1,5 +1,6 @@
 // Schema v1 (stories/E1-2-schema-v1.md, docs/schema.md). Every application table carries
-// workspace_id with a foreign key to workspace; child rows reference their parent on
+// workspace_id with a foreign key to workspace, not null except on event (E13-1: sign-ups and
+// deletions belong to no workspace; docs/review-list.md); child rows reference their parent on
 // (parent_id, workspace_id) (unique constraints on the parents), so a row can never point at
 // another workspace's parent. Item text
 // is never overwritten (a trigger in drizzle/0001 refuses the update); a response is pinned to
@@ -430,3 +431,25 @@ export const exportLog = pgTable("export_log", {
   index("export_log_made_by_idx").on(t.madeBy),
   check("export_log_file_check", oneOf("file", EXPORT_FILES)),
 ]);
+
+// Product events (stories/E13-1): one row per step that matters, named from the catalogue in
+// src/lib/analytics-catalogue.ts and written only by track() (src/lib/analytics.ts). No personal
+// data: the properties are counts, ids and fixed values. workspace_id is null for an event before
+// any workspace exists (signed_up); a deleted workspace's events go with it (the cascade, E11-2).
+// user_id is null for respondent events and goes null when the user row is removed.
+export const event = pgTable("event", {
+  id: id(),
+  workspaceId: uuid("workspace_id").references(() => workspace.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  properties: jsonb("properties").$type<Record<string, string | number>>().notNull().default({}),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("event_name_created_idx").on(t.name, t.createdAt),
+  index("event_workspace_idx").on(t.workspaceId),
+  index("event_user_idx").on(t.userId),
+  // Respondent events never carry a user (stories/E13-1, acceptance 2), held in the database
+  // too: src/lib/analytics-catalogue.ts RESPONDENT_EVENTS.
+  check("event_respondent_no_user_check", sql`${t.name} not in ('link_opened', 'response_started', 'response_submitted') or ${t.userId} is null`),
+]);
+

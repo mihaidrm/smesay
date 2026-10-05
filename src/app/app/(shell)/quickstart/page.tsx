@@ -9,12 +9,13 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { members, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { track } from "@/lib/analytics";
 import { QUICKSTART_COPY as Q } from "@/lib/quickstart-copy";
 
 export default async function QuickstartPage() {
   const { session, current } = await requireCurrentWorkspace("/app/quickstart");
   const list = await projects.list(current.ws);
-  await members.markQuickstartSeen(current.ws, session.user.id, new Date());
+  if (await members.markQuickstartSeen(current.ws, session.user.id, new Date())) await track("quickstart_seen", {}, { workspaceId: current.ws, userId: session.user.id });
   const sample = list.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
     <main className="flex max-w-[880px] flex-col gap-6 px-8 py-6" data-testid="quickstart">

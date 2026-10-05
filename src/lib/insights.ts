@@ -21,6 +21,7 @@ import { requireRole, type Actor } from "@/lib/members";
 import { itemsFor } from "@/lib/respondent";
 import type { ResultsFilter } from "@/lib/results-filter";
 import { labelFor, scaleFor } from "@/lib/scoring";
+import { track } from "@/lib/analytics";
 import { log } from "@/lib/log";
 
 
@@ -93,12 +94,14 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
     return { error: cost + ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
   }
   const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
+  const ran = () => track("insight_run", { actions: kept.length, costCents: result.run.costEurCents }, { workspaceId: actor.ws, userId: actor.userId });
   // A run that keeps nothing leaves the open actions as they are (the tab says so).
-  if (kept.length === 0) return { written: [] };
+  if (kept.length === 0) { await ran(); return { written: [] }; }
   const tokensIn = share(result.run.tokensIn, kept.length);
   const tokensOut = share(result.run.tokensOut, kept.length);
   const cost = share(result.run.costEurCents, kept.length);
   const written = await insights.replaceOpen(actor.ws, project.id, kept.map((a, i) => ({ ...a, model: result.run.model, tokensIn: tokensIn[i], tokensOut: tokensOut[i], costEurCents: cost[i] })));
+  await ran();
   return { written };
 }
 

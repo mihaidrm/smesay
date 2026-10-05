@@ -197,6 +197,13 @@
       "when": 1791174671294,
       "tag": "0027_quickstart",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791180590874,
+      "tag": "0028_events",
+      "breakpoints": true
     }
   ]
 }

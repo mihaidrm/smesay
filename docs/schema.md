@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0027_quickstart).
+v1, 2026-10-05 (the date of the latest migration, 0028_events).
 
-Generated from the snapshot of the 28 migrations in drizzle/ (0027_snapshot.json) by
+Generated from the snapshot of the 29 migrations in drizzle/ (0028_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -366,6 +366,22 @@ Foreign keys: export_log_project_fk (project_id, workspace_id) references projec
 
 Indexes: export_log_workspace_idx on workspace_id; export_log_project_idx on project_id; export_log_made_by_idx on made_by.
 Checks: export_log_file_check: file in ('answers', 'items', 'people', 'missing', 'project', 'summary', 'workspace').
+
+## event
+
+one row per product step from the catalogue: name, counts and fixed values, no personal data beyond the user id; no workspace for sign-ups and deletions (E13-1, docs/analytics.md).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade |
+| user_id | text | fk user.id, on delete set null |
+| name | text | not null |
+| properties | jsonb | not null, default {} |
+| created_at | timestamp with time zone | not null, default now() |
+
+Indexes: event_name_created_idx on name, created_at; event_workspace_idx on workspace_id; event_user_idx on user_id.
+Checks: event_respondent_no_user_check: event.name not in ('link_opened', 'response_started', 'response_submitted') or event.user_id is null.
 
 ## upload
 

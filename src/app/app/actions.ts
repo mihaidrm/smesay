@@ -15,6 +15,7 @@ import { NotFoundError } from "@/lib/errors";
 import { setCurrentWorkspace } from "@/lib/current-workspace";
 import { requireSession } from "@/lib/session";
 import { requireWorkspace } from "@/lib/workspace";
+import { track } from "@/lib/analytics";
 import { slugFromName, workspaceNameSchema, WORKSPACE_NAME_ERROR } from "@/lib/workspace-name";
 
 export type CreateWorkspaceState = { error: string | null };
@@ -28,6 +29,7 @@ export async function createWorkspace(_previous: CreateWorkspaceState, formData:
   const created = await createWorkspaceWithSample({ name, slug: slugFromName(name) }, session.user.id);
   const ws = await requireWorkspace(await headers(), created.id);
   await setCurrentWorkspace(session, ws);
+  await track("workspace_created", {}, { workspaceId: ws, userId: session.user.id });
   redirect("/app");
 }
 

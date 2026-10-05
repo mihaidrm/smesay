@@ -5,6 +5,7 @@
 import { exportLogs } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { ForbiddenError } from "@/lib/errors";
+import { track } from "@/lib/analytics";
 import { exportWorkspace } from "@/lib/workspace-data";
 
 export async function GET(request: Request) {
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
     throw error;
   }
   await exportLogs.create(current.ws, { projectId: null, madeBy: session.user.id, file: "workspace", filter: null, rows: out.projects });
+  await track("export_downloaded", { format: "zip" }, { workspaceId: current.ws, userId: session.user.id });
   return new Response(new Uint8Array(out.zip), {
     headers: {
       "content-type": "application/zip",

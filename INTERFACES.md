@@ -658,3 +658,20 @@ AppContext.deleted. internal.deletedWorkspaces() and purgeWorkspace(id) for
 purgeDeletedWorkspaces(send) in src/lib/workspace-removal.ts (`npm run jobs:purge`). A deleted
 workspace's link from links.byToken carries revokedAt = deleted_at.
 
+Product events (E13-1): EventName, the keys of EVENTS in src/lib/analytics-catalogue.ts, with
+their properties: signed_up, workspace_created, member_joined, project_created { from: new |
+import }, import_committed { source: upload | paste, rows }, shape_run { items, costCents },
+instrument_published { method: moscow | fit | kcd, layout: chapters | item | page },
+invite_sent { kind: personal | public }, link_opened { kind, instrument }, response_started
+{ instrument }, response_submitted { instrument, items, minutes }, reminder_sent, insight_run
+{ actions, costCents }, export_downloaded { format: csv | json | pdf | zip }, sample_opened,
+sample_deleted, quickstart_seen, workspace_deleted, guide_shown, guide_dismissed and
+guide_acted { tip: one of GUIDE_TIPS, empty until E15 }. rows, items, minutes, actions and
+costCents are whole numbers from 0 to COUNT_MAX (1,000,000,000); instrument is a uuid. track(name,
+properties, { workspaceId: WorkspaceId or null, userId: string or null }): Promise<boolean> in
+src/lib/analytics.ts is the only writer (events.record in src/db/queries/events.ts); it returns
+false and logs on a refusal or a failed write, never throws. RESPONDENT_EVENTS carry no user;
+NO_WORKSPACE_EVENTS (signed_up, workspace_deleted) carry no workspace. publishLink now also
+returns the instrument; acceptPendingInvites takes an optional joined: string[] that receives
+the workspaces joined.
+

@@ -40,7 +40,8 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await owner.getByLabel("Workspace name").fill("Marlow Group");
   await owner.getByRole("button", { name: "Create workspace" }).click();
   // Naming the first workspace opens the quickstart once (stories/E12-2).
-  await expect(owner).toHaveURL(/\/app\/quickstart$/);
+  // Naming it seeds the sample project, which can take more than the default 5 seconds on CI.
+  await expect(owner).toHaveURL(/\/app\/quickstart$/, { timeout: 15_000 });
   // The page stamps quickstart_seen_at while it renders; leaving before it shows can cut that off.
   await expect(owner.getByTestId("quickstart")).toBeVisible();
   await owner.goto("/app");

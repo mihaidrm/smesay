@@ -45,6 +45,8 @@ export function forbiddenTarget(spec, fromFile) {
   // The Marlow Group facts (src/db/seed/sample.ts) are constants with no import: the visitors'
   // sample (E12-4) and the email samples (E12-3) read them, never the database.
   if (name === "seed/sample") return null;
+  // track() is the only writer of events (stories/E13-1, acceptance 3).
+  if (name === "queries/events") return fromFile === path.join(SRC, "lib", "analytics.ts") || /\.test\.(m|c)?tsx?$/.test(fromFile) ? null : "the database";
   if (name.startsWith("queries/") && name !== "queries/scoped" && name !== "queries/internal") return null;
   return "the database";
 }

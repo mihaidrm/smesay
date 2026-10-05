@@ -17,7 +17,7 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 
 // Every table with a workspace_id (src/db/schema.test.ts APP_TABLES without workspace itself).
-const TABLES = ["workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log"];
+const TABLES = ["workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event"];
 let sql: ReturnType<typeof postgres>;
 
 beforeAll(async () => { sql = postgres(await prepareTestDatabase(), { max: 1 }); }, 60_000);
@@ -37,13 +37,15 @@ describe("purgeDeletedWorkspaces", () => {
     const kept = unsafeWorkspaceId((await createWorkspaceWithSample({ name: "Kept Ltd", slug: `kept-${randomUUID()}` }, ownerId)).id);
     const own = await projects.create(gone, { name: "Own project", createdBy: ownerId });
     // A row in every table the sample does not fill: an upload with its object, an AI run, an
-    // invitation, a mapping, a project export and a whole-workspace export.
+    // invitation, a mapping, a project export, a whole-workspace export and an event.
     await uploads.create(gone, { projectId: own.id, objectKey: `uploads/${gone}/list.csv`, filename: "list.csv", kind: "csv", byteSize: 1, preview: { sheets: ["csv"], sheet: "csv", headerRow: 1, columns: [], rows: [], rowsRead: 0 } });
     await aiRuns.create(gone, { projectId: own.id, purpose: "shape", model: "test" });
     await workspaceInvites.create(gone, { email: `invitee-${randomUUID()}@example.com`, invitedBy: ownerId });
     await workspaceMappings.create(gone, { headersKey: "Ref\u001fRequirement", mapping: { Ref: "ref", Requirement: "text" } });
     await exportLogs.create(gone, { projectId: own.id, madeBy: ownerId, file: "answers", rows: 1 });
     await exportLogs.create(gone, { projectId: null, madeBy: ownerId, file: "workspace", rows: 2 });
+    // A product event of the workspace (E13-1); written as track() would, through SQL here.
+    await sql`insert into event (workspace_id, user_id, name) values (${gone}, ${ownerId}, 'project_created')`;
     await putObject(`uploads/${gone}/list.csv`, new Uint8Array([1]), "text/csv");
     await putObject(`logos/${gone}/logo.png`, new Uint8Array([2]), "image/png");
     await putObject(`uploads/${kept}/list.csv`, new Uint8Array([3]), "text/csv");
