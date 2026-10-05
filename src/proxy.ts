@@ -31,6 +31,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { addressOf, LOCAL, minutesOf, respondentLimit } from "@/lib/ratelimit";
 import { RATE_LIMIT_COPY, limitedPage } from "@/lib/ratelimit-copy";
 import { contentSecurityPolicy } from "@/lib/security-headers";
+import { ERROR_PAGE_COPY, maintenanceMinutes, maintenancePage } from "@/lib/error-pages-copy";
 
 const CSP = "content-security-policy";
 const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
@@ -38,9 +39,20 @@ const nonceOf = (csp: string) => csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
 export function proxy(request: NextRequest) {
   const nonce = randomBytes(16).toString("base64");
   const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https: request.nextUrl.protocol === "https:" });
-  const response = route(request, csp);
+  const response = process.env.MAINTENANCE === "1" ? maintenance(request) : route(request, csp);
   response.headers.set(CSP, csp);
   return response;
+}
+
+// MAINTENANCE=1 (stories/E11-6, acceptance 1): every request gets 503 with Retry-After
+// (developer.mozilla.org/docs/Web/HTTP/Reference/Status/503): a page for a page request, JSON for
+// the respondent app's calls, whose answer queue keeps the answers and retries (src/lib/
+// answer-queue.ts reads any other status as "retry"). MAINTENANCE_MINUTES sets the minutes shown.
+function maintenance(request: NextRequest): NextResponse {
+  const minutes = maintenanceMinutes(process.env.MAINTENANCE_MINUTES);
+  const headers = { "retry-after": String(minutes * 60), "cache-control": "no-store" };
+  if (request.method === "GET" && (request.headers.get("accept") ?? "").includes("text/html")) return new NextResponse(maintenancePage(minutes), { status: 503, headers: { ...headers, "content-type": "text/html; charset=utf-8" } });
+  return NextResponse.json({ error: ERROR_PAGE_COPY.maintenanceLine(minutes), code: "maintenance" }, { status: 503, headers });
 }
 
 // The request goes on with the policy on its headers, for Next to read the nonce.
@@ -71,6 +83,14 @@ function route(request: NextRequest, csp: string): NextResponse {
     return NextResponse.json({ error: RATE_LIMIT_COPY.respondent, code: "rateLimited", waitMinutes: minutesOf(verdict.retryAfterMs) }, { status: 429, headers });
   }
   if (!/^\/app(\/|$)/.test(path) || getSessionCookie(request)) return next(request, csp);
+  // A server action under /app without a session cookie goes on to the action, which answers
+  // "signed out" so the form keeps its text (stories/E11-6, acceptance 3; src/lib/session.ts
+  // signedIn). A redirect here would reach Next's client as a reply it cannot read and replace
+  // the page with the error page. A fetch action is a POST with the next-action header
+  // (node_modules/next/dist/server/lib/server-action-request-meta.js, isFetchAction); a form
+  // posted before hydration (multipart, no header) still goes to sign-in, as before. Every
+  // action checks the session itself (SECURITY.md, Auth and sessions).
+  if (request.method === "POST" && request.headers.has("next-action")) return next(request, csp);
   const wanted = path + request.nextUrl.search;
   const signIn = new URL("/sign-in", request.url);
   signIn.searchParams.set("next", wanted);

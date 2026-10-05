@@ -277,10 +277,12 @@ of the content; page means it replaces the screen.
 | Where | When | Message |
 |---|---|---|
 | Page, respondent routes and logo (E11-1) | Over 100 requests a minute from one address (429) | Too many requests from your connection. Wait a minute and try again. (Title: Too many requests) |
-| Page | 404 | This page does not exist. Check the address, or go to your projects. |
-| Page | 500 | The server could not finish this request. It has been logged. Try again in a minute; if it keeps failing, email [SUPPORT EMAIL]. |
-| Page | Maintenance | SMEsay is being updated and is back within [MINUTES] minutes. Respondent links keep their saved answers. |
-| Banner, any form | Session expired | You were signed out after [HOURS] hours. Sign in again; what you typed on this page is kept. |
+| Page | 404 | This page does not exist. Check the address, or go to your projects. [Button: Go to your projects] |
+| Page, respondent link (E11-6) | 404 below a link | This page does not exist. Check the link you were sent, or ask the person who sent it for a new one. |
+| Page | 500 | The server could not finish this request. It has been logged. Try again in a minute; if it keeps failing, email [SUPPORT EMAIL]. [Button: Try again] |
+| Page | Maintenance (MAINTENANCE=1) | SMEsay is being updated and is back within [MINUTES] minutes. Respondent links keep their saved answers. (Title: SMEsay is being updated) |
+| Banner, any form | Session expired | You were signed out. Sign in again; what you typed on this page is kept. [Link: Sign in again] (E11-6: the hours are left out; the app does not know how long ago the session ended) |
+| Inline, a form after signing in again | Draft restored | What you typed before you were signed out is back. Save to keep it. |
 | Inline, any form | Server validation | [FIELD] [what is wrong]. [What to enter.] Never "invalid input". |
 
 ## Rules for new messages

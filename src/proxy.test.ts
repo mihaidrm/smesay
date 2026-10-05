@@ -55,4 +55,29 @@ describe("proxy", () => {
     expect(proxy(new NextRequest(`${BASE}/apple`)).status).toBe(200);
     expect(proxy(new NextRequest("https://smesay.app/")).headers.get("content-security-policy")).toContain("upgrade-insecure-requests");
   });
+  it("answers every request with 503 while MAINTENANCE=1", async () => {
+    process.env.MAINTENANCE = "1";
+    process.env.MAINTENANCE_MINUTES = "20";
+    try {
+      const page = proxy(req("/app/projects", "10.9.0.5"));
+      expect(page.status).toBe(503);
+      expect(page.headers.get("retry-after")).toBe("1200");
+      expect(await page.text()).toContain("is back within 20 minutes");
+      const call = proxy(req("/r/abc/answers", "10.9.0.5", { method: "PUT", accept: "application/json" }));
+      expect(call.status).toBe(503);
+      expect(await call.json()).toMatchObject({ code: "maintenance" });
+      expect(call.headers.get("content-security-policy")).toMatch(/nonce-/);
+    } finally {
+      delete process.env.MAINTENANCE;
+      delete process.env.MAINTENANCE_MINUTES;
+    }
+    expect(proxy(req("/r/abc", "10.9.0.6")).status).toBe(200);
+  });
+  it("lets a signed-out server action under /app reach the action, and nothing else", () => {
+    const action = (method: string, headers: Record<string, string>) => proxy(new NextRequest(`${BASE}/app/projects/p1/import`, { method, headers: { "x-forwarded-for": "10.9.0.7", ...headers } }));
+    expect(action("POST", { "next-action": "abc" }).status).toBe(200);
+    expect(action("GET", { "next-action": "abc" }).status).toBe(307);
+    expect(action("POST", {}).status).toBe(307);
+    expect(action("PUT", { "next-action": "abc" }).status).toBe(307);
+  });
 });

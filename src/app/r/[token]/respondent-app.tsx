@@ -269,7 +269,7 @@ export function RespondentApp(props: RespondentAppProps) {
       if (!response.ok || !body.ok) {
         // A link that changed (closed, revoked) since the page opened: the page shows its state.
         if (response.status === 410 || response.status === 404 || response.status === 403 || response.status === 409) { window.location.reload(); return; }
-        setStartError((response.status === 422 || response.status === 429) && body.error ? body.error : RESPONDENT_COPY.startFailed);
+        setStartError((response.status === 422 || response.status === 429 || response.status === 503) && body.error ? body.error : RESPONDENT_COPY.startFailed);
         return;
       }
       setPicks(chosen);

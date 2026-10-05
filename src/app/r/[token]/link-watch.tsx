@@ -18,8 +18,9 @@ export function LinkWatch({ token }: { token: string }) {
     const tick = async () => {
       try {
         const response = await fetch(`/r/${encodeURIComponent(token)}/state`, { cache: "no-store" });
-        // Too many requests from this connection (E11-1): the page stays, the next tick asks again.
-        if (response.status === 429) return;
+        // Too many requests from this connection (E11-1) or maintenance (E11-6, 503): the page
+        // stays with the answers on it, the next tick asks again.
+        if (response.status === 429 || response.status === 503) return;
         const body = (await response.json()) as { state?: string };
         if (!stopped && (!response.ok || body.state !== "open")) router.refresh();
       } catch {
