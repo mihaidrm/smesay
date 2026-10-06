@@ -29,7 +29,7 @@ export const EXPORT_COPY = {
       missing: { title: "Missing items", line: "Each row is one suggested missing item, with who suggested it." },
     } satisfies Record<CsvFile, { title: string; line: string }>,
     // E10-2: the whole project as one JSON file.
-    project: { title: "Whole project", line: "This JSON file holds every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, reload the page and export again." },
+    project: { title: "Whole project", line: "This JSON file holds every version of the list, the validations, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.", download: "Download JSON", failed: "The JSON export did not finish. Try again; if it fails again, reload the page and export again." },
     // E10-3: the PDF summary (design note 71). Over SUMMARY_PAGE_LIMIT pages the file still downloads and the
     // note says so and how to shorten it (docs/copy/errors.md, PDF over the page limit).
     summary: {
@@ -48,7 +48,7 @@ export const EXPORT_COPY = {
   // E10-2: the import page.
   importPage: {
     title: "Import a project",
-    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, instruments, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.",
+    line: "Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, validations, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.",
     field: "Project file (.json)",
     submit: "Import project",
     link: "Import a project",

@@ -20,7 +20,7 @@ export const GUIDE_LINES = {
   "shape.pending": { pose: "idea", line: "Accept the reader versions you like. Respondents read the accepted version; you keep the original.", action: null },
   "build.intro": { pose: "idea", line: "Write one or two lines so respondents know what the list is for. They see this first.", action: null },
   "build.fields": { pose: "idea", line: "A dropdown Role lets Results split answers by group. Pick Dropdown and type the roles.", action: null },
-  "share.draft": { pose: "idea", line: "Publish when the instrument is ready. You can withdraw the link at any time; answers already given are kept.", action: null },
+  "share.draft": { pose: "idea", line: "Publish when the validation is ready. You can withdraw the link at any time; answers already given are kept.", action: null },
   "sample.strip": { pose: "analysis", line: "The numbers at the top count answers; the table shows each item with who agreed, who chose a different priority and who disagreed.", action: "Next" },
   "sample.registers": { pose: "analysis", line: "Every different priority and every disagree comes with a reason. This is what you read before the meeting.", action: "Next" },
   "sample.detail": { pose: "analysis", line: "This page shows every answer to one item. The AI's to-do list cites these rows.", action: "Start a project" },
@@ -35,7 +35,7 @@ export const TIP_IDS = Object.keys(GUIDE_LINES) as TipId[];
 // The rest of the guide's words (docs/copy/guide.md: the path card and the sidebar).
 export const GUIDE_COPY = {
   pathTitle: "Your first validation",
-  steps: { import: "Import the list", shape: "Shape it", build: "Build the instrument", share: "Share one link" },
+  steps: { import: "Import the list", shape: "Shape it", build: "Build the validation", share: "Share one link" },
   then: "Then: read the results",
   showTips: "Show tips",
   dismiss: "Dismiss",

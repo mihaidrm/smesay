@@ -87,7 +87,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-if>
 <sc-if value="{{isSettings}}" hint-placeholder-val="{{false}}">
 <div style="display: flex; flex-direction: column; gap: 20px">
-<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Workspace settings</h2><div style="color: #5B6069">Name, logo and accent appear on every instrument created after you save.</div></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 24px; font-weight: 400">Workspace settings</h2><div style="color: #5B6069">Name, logo and accent appear on every validation created after you save.</div></div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="padding: 12px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Brand on the respondent side</div>
@@ -253,7 +253,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div style="display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; flex-direction: column; gap: 4px">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
-<h2 style="margin: 0; font-size: 24px; font-weight: 400">Build the instrument</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 400">Build the validation</h2>
 <button type="button" onClick="{{goShare}}" style="min-height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: #16181C; color: #FFFFFF; font-weight: 500; white-space: nowrap; flex-shrink: 0">Continue</button>
 </div>
 <div style="color: #5B6069">This is what respondents see, built from version 1 of the list. The preview on the right follows every change.</div>
@@ -1030,7 +1030,7 @@ const exportDefs = [
 { id: 'x2', title: 'Items with totals', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one item: the counts of each answer, not answered, and the agreement.', note: 'The Agreement tab\'s counts are these rows.', size: '2 KB' },
 { id: 'x5', title: 'People', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one person: the Responses tab\'s columns and the minutes to submit.', note: '7 rows for this project.', size: '1 KB' },
 { id: 'x6', title: 'Missing items', format: 'CSV, UTF-8', button: 'Download CSV', what: 'Each row is one suggested missing item, with who suggested it.', note: '1 row for this project.', size: '1 KB' },
-{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'This JSON file holds every version of the list, the instruments, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
+{ id: 'x3', title: 'Whole project', format: 'JSON', button: 'Download JSON', what: 'This JSON file holds every version of the list, the validations, the invites without their links, every response with its answers, the missing items and the actions. Import it into another workspace from the project list.', note: '', size: '20 KB' },
 { id: 'x4', title: 'Summary for the deck', format: 'PDF', button: 'Download PDF', what: 'The PDF holds what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.', note: '', size: '' }
 ];
 const exports = exportDefs.map((x) => Object.assign({}, x, { done: !!s.exported[x.id], download: () => patch('exported', x.id, true) }));

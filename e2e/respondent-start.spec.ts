@@ -45,7 +45,7 @@ test("open a link, fill the fields, start, see the first chapter", async ({ page
   await page.getByRole("button", { name: "Import 3 items" }).click();
   await expect(page.getByTestId("imported-line")).toBeVisible();
   await page.goto(`${projectUrl}/build`);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await page.goto(`${projectUrl}/share`);
   await expect(page.getByTestId("share-zone")).not.toBeEmpty();
   await page.getByLabel("Closes").fill("2027-01-20T18:00");

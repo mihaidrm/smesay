@@ -40,9 +40,9 @@ test("publish a public link, open it with the passcode, close it", async ({ page
 
   // Share before Build points to Build; Build makes the draft; Share shows the draft card.
   await page.goto(`${projectUrl}/share`);
-  await expect(page.getByTestId("share-empty")).toContainText("Build the instrument first.");
+  await expect(page.getByTestId("share-empty")).toContainText("Build the validation first.");
   await page.getByRole("link", { name: "Go to Build" }).click();
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Share/ }).click();
   await expect(page.getByTestId("link-state")).toHaveText("Draft");
   await expect(page.getByTestId("link-note")).toHaveText("Not published yet. Nobody can open the link.");

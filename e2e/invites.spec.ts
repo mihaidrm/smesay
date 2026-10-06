@@ -37,7 +37,7 @@ test("send two personal invites, read the emails, open one link", async ({ page,
   await page.getByRole("button", { name: "Import 2 items" }).click();
   await expect(page.getByTestId("imported-line")).toBeVisible();
   await page.goto(`${projectUrl}/build`);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   await page.goto(`${projectUrl}/share`);
 
   // Before the public link: the box is off and says why; nobody invited yet.

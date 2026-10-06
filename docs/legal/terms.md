@@ -7,7 +7,7 @@ These terms are the agreement between Alerty S.R.L. and the business that uses S
 
 ## The service
 
-SMEsay turns a list of requirements into a short instrument that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L. [LAWYER: add the registered address and the registration number.]
+SMEsay turns a list of requirements into a short validation that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L. [LAWYER: add the registered address and the registration number.]
 
 ## Accounts and workspaces
 

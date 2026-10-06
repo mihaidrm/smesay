@@ -31,7 +31,7 @@ export function plausibleConfig(env: Record<string, string | undefined> = proces
 }
 
 // The goals' names, as they are set up in Plausible.
-export const GOALS = { startFree: "Start free", trySample: "Try the sample", signUp: "Sign up", firstProject: "First project", firstPublished: "First instrument published" } as const;
+export const GOALS = { startFree: "Start free", trySample: "Try the sample", signUp: "Sign up", firstProject: "First project", firstPublished: "First validation published" } as const;
 export type Goal = (typeof GOALS)[keyof typeof GOALS];
 // Sign up counts on the workspace step only within this long of the account's creation.
 export const SIGN_UP_WINDOW_MS = 30 * 60_000;

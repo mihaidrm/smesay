@@ -54,7 +54,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   // Build opens a draft on version 1 (acceptance 1): the stepper pill, the title, the fields.
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
   await expect(page).toHaveURL(/\/build$/);
-  await expect(page.getByRole("heading", { name: "Build the instrument" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
   // The stepper says Build on the first open, while the draft is being created, and after.
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
   await expect(page.getByTestId("build-line")).toHaveText("This is what respondents see, built from version 1 of the list. The preview on the right follows every save.");

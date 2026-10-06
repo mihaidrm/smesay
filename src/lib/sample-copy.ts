@@ -13,5 +13,5 @@ export const SAMPLE_COPY = {
   notSent: "Nothing was sent: this is the sample.",
   startFree: "Start free",
   startHref: "/sign-in",
-  title: "Sample instrument",
+  title: "Sample validation",
 };

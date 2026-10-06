@@ -162,9 +162,9 @@ function missingReference(f: ProjectExport): string | null {
   const missing = new Set(f.missingItems.map((m) => m.id));
   const all = [...sets, ...items, ...instruments, ...invites, ...responses, ...answers, ...missing];
   if (new Set(all).size !== all.length) return "an id that appears twice";
-  if (f.instruments.some((i) => !sets.has(i.itemSetId))) return "an instrument's list";
-  if (f.invites.some((v) => !instruments.has(v.instrumentId))) return "an invite's instrument";
-  if (f.responses.some((r) => !instruments.has(r.instrumentId) || !sets.has(r.itemSetId) || !invites.has(r.inviteId))) return "a response's instrument, list or invite";
+  if (f.instruments.some((i) => !sets.has(i.itemSetId))) return "a validation's list";
+  if (f.invites.some((v) => !instruments.has(v.instrumentId))) return "an invite's validation";
+  if (f.responses.some((r) => !instruments.has(r.instrumentId) || !sets.has(r.itemSetId) || !invites.has(r.inviteId))) return "a response's validation, list or invite";
   if (f.responses.some((r) => r.answers.some((a) => !items.has(a.itemId)))) return "an answer's item";
   if (f.missingItems.some((m) => !responses.has(m.responseId))) return "a missing item's response";
   if (f.insights.some((s) => s.citedAnswerIds.some((x) => !answers.has(x)) || s.citedMissingItemIds.some((x) => !missing.has(x)))) return "an action's citation";

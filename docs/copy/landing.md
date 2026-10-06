@@ -248,7 +248,7 @@ screen:
   answers saved as they go, carrying on later on the same device or anywhere with a
   personal link (E7-3 acceptance 2); a reason asked before the answer counts when the PM
   shows the proposal and the expert does not agree, and a question for Unclear under every
-  method (E5-2 show proposed, E7-2; a rate-blind instrument asks no reason for a rating);
+  method (E5-2 show proposed, E7-2; a rate-blind validation asks no reason for a rating);
   personal links by email, who has submitted, a reminder button for the others (E6-2, E6-3,
   E8-2; personal links only, at most one reminder per person every three days); everyone
   answering on their own, the answers in one place counted per item and area, the group
