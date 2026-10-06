@@ -10,7 +10,11 @@ priority", as everywhere on screen. Amended the same day (decision 0044, docs/re
 the detail opens in place of the tabs, as the board draws it, and Back returns to the tab.
 
 Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous every row reads
-"Anonymous [N]" with no role under it, and no invitee who has not started has a row.
+"Anonymous [N]" with no role under it, and no invitee who has not started has a row. Amended
+again after the audit: the list follows no field or perspective filter (a line says why)
+while the counts do; an item fewer than 3 counted respondents could see lists nobody and its
+counts read "Fewer than 3 answers"; under Names hidden no row says not submitted or in
+progress.
 
 ## Acceptance criteria
 1. The detail (PM app board, item detail panel): reference, area, reader text, original text

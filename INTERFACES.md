@@ -37,10 +37,16 @@ the check constraints use them). Change this file first.
   the text and email fields; saveFields and saveAnonymity refuse them under the instrument
   row's lock), a personal invite carries no name or role into the response (carriedFields),
   and a dropdown value picked by fewer than MIN_GROUP (3) counted respondents is not offered
-  as a filter and is folded into one group in a split. Locked once the instrument is
-  published, like the method; Build on version N copies it; the sample is `named`. The SQL
-  enforces the names, fields and times (src/db/queries/results.ts head and
-  src/db/queries/insights.ts people read instrument.anonymity), so no caller can show them.
+  as a filter. Locked once the instrument is published, like the method; Build on version N
+  copies it; the sample is `named`. The SQL enforces the names, fields and times
+  (src/db/queries/results.ts head and src/db/queries/insights.ts people read
+  instrument.anonymity), so no caller can show them. Amended 2026-10-06 after the audit
+  (design note 100): under `hidden` and `anonymous` a field or perspective filter narrows the
+  aggregate views only (ReadMode below); a filter that keeps fewer than MIN_GROUP counted
+  people draws no number and no chart; a split or gaps group under MIN_GROUP people is folded
+  into one group when the folded people reach MIN_GROUP, else left out; an item fewer than
+  MIN_GROUP counted people could see counts nowhere; under `hidden` there is no status filter
+  and no list says who has submitted; `anonymous` refuses reminders as it refuses invites.
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
@@ -138,7 +144,10 @@ the check constraints use them). Change this file first.
   `anonymous`, where a value needs MIN_GROUP counted respondents; fields then holds the
   dropdown fields only). resultsContext(ws, instrument, query, stored) in
   src/lib/results-context.ts builds the context and the filter for the Results page and the
-  export route.
+  export route. Amended 2026-10-06: under `hidden` parseResultsFilter keeps no status;
+  identityFiltered(filter, anonymity) says whether a field or perspective filter is on under
+  the two levels, and personFilter(filter, anonymity) is the filter a list of people follows
+  (no field or perspective filter, and under `hidden` no status), for a file's first lines.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
   includeUnsubmitted?: boolean (decision 0030's switch, kept per PM), view?: "table" |
@@ -163,10 +172,11 @@ keep only the table's columns, never `id` or `workspaceId`, and refuse a non-uui
 with 404. Workspaces: listForUser(userId), getForUser(userId, workspaceId), create(data,
 ownerUserId), update(ws, patch) (name, slug, accent, logo only; the AI budget is
 internal.setAiBudgetEur, decision 0036), markDeleted(ws).
-Results (E8-1): results.numbers(ws, instrumentId, filter) gives ResultsNumbers
+Results (E8-1): results.numbers(ws, instrumentId, filter, mode = "aggregate") gives ResultsNumbers
 (src/lib/results-tiles.ts: invited, submitted, inProgress, shown, total, agree, change,
 disagree, unclear, pick, answered, withComment, missing, unansweredItems, fullyAgreed,
-pushedBackItems, medianMinutes, anyAnswer, actions) from one SQL query, or null for an
+pushedBackItems, medianMinutes, anyAnswer, actions, tooFew? (E5-7: the filter kept fewer
+than MIN_GROUP counted people under the two levels, so every count is 0)) from one SQL query, or null for an
 instrument outside the workspace; results.rows(ws, instrumentId, filter) the answers the
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
 submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
@@ -182,7 +192,9 @@ anon, submitted, changedSince } and MissingRegisterRow { id, text, area, value, 
 anon, submitted, changedSince } (who and anon as PersonRow's), sorted from the register's
 list of columns, the value columns in the method's scale order; agreement.byItem(ws, instrumentId, filter, split)
 (E8-3) the counts per item (and per group of the split field) as ItemCounts { itemId, group,
-agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
+folded (E5-7: the people of the values under MIN_GROUP, summed; group null), few (E5-7: seen
+by fewer than MIN_GROUP counted people under the two levels; every count 0, couldSee 0,
+percent null), agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
 answered, rounded half up in SQL; the tab sums with the same rule, src/lib/results-agreement.ts
 percentOf, and shows no percentage where no proposal was shown, figureOf's "[N] rated", as
 E10-1's items CSV will) }; tracker.people(ws, instrumentId, filter,
@@ -204,14 +216,16 @@ session's workspace, and answers HEAD with 405; gaps.byField(ws, instrumentId, f
 every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
 share between two groups with 3 answers or more, in percentage points; null when fewer than
 two are compared), groups: GapGroup { group ('' for the people with no value, Not given on
-screen), agree, answered, compared }[] }, largest gap first, then the item's position (the
+screen), folded (E5-7: the values under MIN_GROUP people, summed; group ''), agree, answered, compared }[] }, largest gap first, then the item's position (the
 view orders ties as the Agreement table lists the items, src/lib/results-gaps.ts); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
 item of the instrument as DetailItem { id, reference, area, originalText, readerText,
 readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
 notYet } counted in SQL and a DetailRow { personId, invited, submitted, fields, who,
 anon, kind, value, reason, comment } per person the filter keeps who sees the item or
 answered it before a change of perspective (kind null: no answer that counts under the
-switch), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
+switch), with few and countsFew (E5-7: under the two levels the rows are read in person
+mode and the counts in aggregate mode; an item fewer than MIN_GROUP counted people could see
+has no row, few, and counts 0, countsFew), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Anonymity on Results (E5-7, 2026-10-06): under `hidden` and `anonymous` the people of every
@@ -224,6 +238,14 @@ value, n } for every field value of the instrument's counted responses (submitte
 when the switch is off), the source of FilterContext.offered; results.perspectiveCounts(ws,
 instrumentId, includeUnsubmitted) gives { value, n } per perspective picked, and under Names
 hidden and Anonymous FilterContext.perspectives keeps only those picked by MIN_GROUP or more.
+ReadMode (E5-7, amended 2026-10-06; src/db/queries/results.ts): "aggregate" for numbers,
+agreement.byItem, gaps.byField and the detail's counts, which take the whole filter and,
+under the two levels, keep nobody when it narrows the counted people below MIN_GROUP;
+"person" for rows, people, missing, signOffs (its default; mode "aggregate" for the PDF's
+confidence chart), tracker.people, registers and the detail's rows, which under the two
+levels ignore the field and perspective filters, and under `hidden` the status filter and
+the status and progress sorts. In both modes, under the two levels, the answers on an item
+seen by fewer than MIN_GROUP counted people are in no count and no row.
 Projects (E8-8): projects.update refuses a patch that carries isSample and projects.create
 refuses isSample true (SampleFlagError); the flag is set only when the sample is seeded
 (createSampleProject, imported from src/db/queries/projects.ts by src/db/seed/sample-seed.ts
@@ -384,7 +406,7 @@ reasonRule; PreviewSpec carries it; sampleInstrument() gives the default. From 2
 says above the fields how the team sees the answers; sampleInstrument() gives `named`.
 saveAnonymity(ws, projectId, instrumentId, raw) in src/lib/instruments.ts (under
 instruments.updateLocked: refused once published and while a text or email field exists);
-sendInvites and renewInvitee refuse an `anonymous` instrument (INVITEES_ERRORS.anonymous);
+sendInvites, renewInvitee, and (amended 2026-10-06) remindInvitee and remindAll refuse an `anonymous` instrument (INVITEES_ERRORS.anonymous);
 InviteEmailInput gains namesHidden (the instrument is `hidden`).
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand (name, accent, logo key and, from E7-7,
@@ -611,7 +633,7 @@ Version 1, 2026-10-04. The zod schema is InsightOutput in src/lib/ai/insights-sc
 object strict. Refs are the ones the prompt gives (src/lib/ai/prompts/insights.ts
 buildActionsPrompt): I[n] items, R[n] respondents (their dropdown fields only, the name field
 left out even as a dropdown; from E5-7 no field at all under `hidden` and `anonymous`, the
-groups empty, the prompt's text and shape unchanged), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
+groups empty, the prompt's text and shape unchanged; amended 2026-10-06: no answer on an item agreement.byItem marks few), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
 { actions: [{ kind: "rewrite" | "conflict" | "followUp" | "coverage", title: string (1 to 140
 chars), why: string (1 to 400 chars), answers: string[] (A refs), missing: string[] (M refs) }]
 (up to 8) }
@@ -643,7 +665,10 @@ src/lib/export/files.ts returns { preamble, header, rows } from results.rows (ea
 now carries who, anon, fields, perspectives, source, submittedAt, changedSince; from E5-7,
 under `hidden` and `anonymous`, the answers, people and missing files have no field columns,
 no Submitted at, no Source, no Reminders and no Perspectives, every respondent "Anonymous
-[N]"),
+[N]"; amended 2026-10-06: those three files follow personFilter and say so in their first
+lines, the items file writes no row when the filter keeps fewer than MIN_GROUP counted
+people and "Fewer than 3 answers" for an item seen by few, and under `hidden` no file has
+Status, Since submitting, Answered, Items seen or Minutes to submit),
 agreement.byItem,
 tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
 header, rows), line, field (a text cell starting like a formula gets a single quote, safeText),
@@ -671,7 +696,11 @@ opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt
 responses [{ id, instrumentId, itemSetId, inviteId (null, with fields {}, for a response
 of a `hidden` or `anonymous` instrument, from E5-7: the file does not tie it to a personal
 invite; the import puts it on its instrument's public invite and refuses a null on a
-`named` one), fields, perspectives, confidence,
+`named` one; amended 2026-10-06: such a response also has perspectives [] and createdAt,
+updatedAt, submittedAt and firstSubmittedAt equal to exportedAt (null kept), as have its
+answers' updatedAt and its missing items' createdAt; the file has no personal invite of
+such an instrument, and the import refuses one, or a field that is not a dropdown's value,
+as damaged), fields, perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
 answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
 responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
@@ -693,10 +722,16 @@ returns application/pdf with x-summary-pages: [N]. summaryView({ ws, workspace, 
 instrument, filter, ctx, tiles, now }) in src/lib/export/summary.ts returns SummaryView or null
 (another workspace's instrument); summaryHtml(view), summaryHeader(view) and summaryFooter() in
 summary-html.ts; renderPdf(html, { header, footer }) and pageCount(bytes) in pdf.ts.
-results.signOffs(ws, instrumentId, filter) returns SignOff { id, who, anon, submittedAt,
+results.signOffs(ws, instrumentId, filter, mode = "person") returns SignOff { id, who, anon, submittedAt,
 confidence, signedOff } for every submitted response the filter keeps, oldest first (from
 E5-7, under `hidden` and `anonymous`: submittedAt null, in the order of anon); the
 people CTE carries r.confidence. SUMMARY_PAGE_LIMIT = 30 in src/lib/export/copy.ts.
+From E5-7 (amended 2026-10-06) SummaryView.tables' rows carry few? (counts left blank),
+SummaryView gains signOffHidden? (under `hidden` the record lists no one), and when the
+filter keeps fewer than MIN_GROUP counted people tiles, areas and tables are empty and lines
+says why; buildAgreement(items, areaNames, counts, split, sort, noGroup, { totals?, small? })
+reads an item's bar from `totals` when given, and Row and GroupRow carry few, GroupRow and
+GroupTotal key and folded (src/lib/results-agreement.ts; foldSmallGroups is gone).
 EXPORT_FILES gains "summary" (migration 0025); the export log keeps the page count as rows.
 
 ## Rate limits (E11-1)

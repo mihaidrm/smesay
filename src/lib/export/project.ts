@@ -10,7 +10,13 @@
 // far, so there is nothing older to migrate. A response of a validation set to Names hidden
 // or Anonymous (stories/E5-7, acceptance 5) is written with no invite id and no fields, so
 // the file cannot tie it to a personal invite; the import puts it on its validation's public
-// invite. The sample's file is refused: its invented data
+// invite. Amended 2026-10-06 after the audit: under those levels every time of a response (its
+// start, its last save, its submits), of its answers and of its missing items is written as
+// the export's own time (null stays null for a response not submitted), its perspectives as
+// none, and no personal invite of the validation is written, so the imported project carries
+// the public link only and no reminder can reach a person who already answered. The import
+// refuses a personal invite on such a validation, and a response whose fields are not its
+// dropdowns' values, as a damaged file. The sample's file is refused: its invented data
 // would show without the watermark (CLAUDE.md, dashboard).
 import { z } from "zod";
 import { projectTransfer } from "@/db/queries";
@@ -128,6 +134,11 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
   const hides = new Set(rows.instruments.filter((i) => !namesShown(i.anonymity)).map((i) => i.id));
   const answersOf = new Map<string, TransferRows["answers"]>();
   for (const a of rows.answers) answersOf.set(a.responseId, [...(answersOf.get(a.responseId) ?? []), a]);
+  // E5-7: one time for every row of a response of a validation that hides names.
+  const at = now.toISOString();
+  const hiddenResponses = new Set(rows.responses.filter((r) => hides.has(r.instrumentId)).map((r) => r.id));
+  const when = (hidden: boolean, d: Date) => (hidden ? at : d.toISOString());
+  const whenOrNull = (hidden: boolean, d: Date | null) => (d === null ? null : hidden ? at : d.toISOString());
   return {
     format: PROJECT_FORMAT, version: PROJECT_VERSION, exportedAt: now.toISOString(), sample: rows.project.isSample,
     note: rows.project.isSample ? EXPORT_COPY.watermark : null,
@@ -138,13 +149,16 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
       items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, flags: it.flags, perspectives: it.perspectives })),
     })),
     instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, reasonRule: i.reasonRule, anonymity: i.anonymity, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
-    invites: rows.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),
-    responses: rows.responses.map((r) => ({
-      id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: hides.has(r.instrumentId) ? null : r.inviteId, fields: hides.has(r.instrumentId) ? {} : r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
-      submittedAt: iso(r.submittedAt), firstSubmittedAt: iso(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString(),
-      answers: (answersOf.get(r.id) ?? []).map((a) => ({ id: a.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: a.updatedAt.toISOString() })),
-    })),
-    missingItems: rows.missingItems.map((m) => ({ id: m.id, responseId: m.responseId, text: m.text, suggestedArea: m.suggestedArea, suggestedValue: m.suggestedValue, createdAt: m.createdAt.toISOString() })),
+    invites: rows.invites.filter((v) => v.kind === "public" || !hides.has(v.instrumentId)).map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),
+    responses: rows.responses.map((r) => {
+      const h = hides.has(r.instrumentId);
+      return {
+        id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: h ? null : r.inviteId, fields: h ? {} : r.fields, perspectives: h ? [] : r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
+        submittedAt: whenOrNull(h, r.submittedAt), firstSubmittedAt: whenOrNull(h, r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: when(h, r.createdAt), updatedAt: when(h, r.updatedAt),
+        answers: (answersOf.get(r.id) ?? []).map((a) => ({ id: a.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: when(h, a.updatedAt) })),
+      };
+    }),
+    missingItems: rows.missingItems.map((m) => ({ id: m.id, responseId: m.responseId, text: m.text, suggestedArea: m.suggestedArea, suggestedValue: m.suggestedValue, createdAt: when(hiddenResponses.has(m.responseId), m.createdAt) })),
     insights: rows.insights.map((s) => ({ kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds, citedMissingItemIds: s.citedMissingItemIds, state: s.state, closedAt: iso(s.closedAt), closedBy: s.closedByEmail, model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: s.createdAt.toISOString() })),
   };
 }
@@ -176,8 +190,12 @@ function missingReference(f: ProjectExport): string | null {
   if (f.instruments.some((i) => fieldsBlocking(i.respondentFields, i.anonymity ?? DEFAULT_ANONYMITY).length > 0)) return "a validation's fields";
   if (f.invites.some((v) => !instruments.has(v.instrumentId))) return "an invite's validation";
   // A response with no invite (E5-7) only on a validation that hides names, which then needs
-  // a public invite to carry it.
+  // a public invite to carry it. Such a validation has no personal invite in the file, and its
+  // responses carry no field but its dropdowns' values (amended 2026-10-06).
   const hiding = new Set(f.instruments.filter((i) => !namesShown(i.anonymity ?? DEFAULT_ANONYMITY)).map((i) => i.id));
+  if (f.invites.some((v) => v.kind === "personal" && hiding.has(v.instrumentId))) return "a personal invite on a validation that hides names";
+  const dropdowns = new Map(f.instruments.map((i) => [i.id, new Map(i.respondentFields.filter((x) => x.type === "dropdown").map((x) => [x.key, x.options ?? []]))]));
+  if (f.responses.some((r) => hiding.has(r.instrumentId) && Object.entries(r.fields).some(([k, v]) => !(dropdowns.get(r.instrumentId)?.get(k) ?? []).includes(v)))) return "a response's fields";
   const publicOf = new Set(f.invites.filter((v) => v.kind === "public").map((v) => v.instrumentId));
   if (f.responses.some((r) => !instruments.has(r.instrumentId) || !sets.has(r.itemSetId) || (r.inviteId === null ? !hiding.has(r.instrumentId) || !publicOf.has(r.instrumentId) : !invites.has(r.inviteId)))) return "a response's validation, list or invite";
   if (f.responses.some((r) => r.answers.some((a) => !items.has(a.itemId)))) return "an answer's item";

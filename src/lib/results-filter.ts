@@ -24,7 +24,9 @@
 // context holds the dropdown fields only, and `offered` the values a filter may pick, each
 // given by MIN_GROUP counted respondents or more (src/lib/results-context.ts), so a filter
 // cannot single one person out; a value not offered is dropped from the URL like an unknown
-// one.
+// one. Amended 2026-10-06 after the audit: under those levels a field or perspective filter
+// narrows the charts only (src/db/queries/results.ts, aggregate and person modes), and under
+// Names hidden there is no status filter, since Share names who has finished.
 import type { Anonymity, RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
@@ -105,7 +107,7 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     kinds: RESULTS_KINDS.filter((k) => kinds.includes(k)),
     withComment: first(params.comment) === "1",
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
-    status: RESULTS_STATUSES.filter((s) => status.includes(s)),
+    status: ctx.anonymity === "hidden" ? [] : RESULTS_STATUSES.filter((s) => status.includes(s)),
     includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
     split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
@@ -150,6 +152,18 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   if (f.split) q.append("split", f.split);
   if (f.gaps && f.gaps !== defaultGapField(ctx)) q.append("gaps", f.gaps);
   return q.toString();
+}
+
+// Under Names hidden and Anonymous (E5-7, amended 2026-10-06): whether a field or perspective
+// filter is on, which the person-level views (the Responses tab, the registers, the item
+// detail's list, the CSV rows, the PDF's registers) do not follow; they say so.
+export const identityFiltered = (f: ResultsFilter, anonymity: Anonymity): boolean => anonymity !== "named" && (Object.keys(f.fields).length > 0 || f.perspective !== null);
+// The filter a person-level view follows: under the two levels without the field and
+// perspective filters, and under Names hidden without the status filter too. The queries
+// apply the same rule themselves (person mode); this describes it in a file's first lines.
+export function personFilter(f: ResultsFilter, anonymity: Anonymity): ResultsFilter {
+  if (anonymity === "named") return f;
+  return { ...f, fields: {}, perspective: null, status: anonymity === "hidden" ? [] : f.status };
 }
 
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).

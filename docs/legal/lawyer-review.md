@@ -86,8 +86,15 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   (GDPR Recital 26, gdpr-info.eu/recitals/no-26). Under Anonymous no name or email is asked,
   but the device cookie, the save times and free text remain, so the data may still not be
   anonymous in Recital 26's sense; "anonymous" is the product's word for what the team sees.
+  Amended 2026-10-06 after an audit: About you now reads "Your answers are anonymous. No name
+  or email is asked, and the team sees your answers without a name." (no longer "Nothing here
+  asks who you are"); the policy now also says what neither level hides: the same number
+  follows one person across items, so a reason that names its author shows that person's
+  other answers; free text goes as written; a dropdown that asks for a name shows it. Results
+  draw no chart, group or item for fewer than 3 people and no list follows a field or
+  perspective filter, and the project file dates every response at the export.
   Proposal: as written. Judgement: whether About you's "Your answers are anonymous" needs a
-  qualifier, and whether the DPA should say the customer, not Alerty, decides the level.
+  further qualifier, and whether the DPA should say the customer, not Alerty, decides the level.
 
 ## Terms of service
 

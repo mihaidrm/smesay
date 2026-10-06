@@ -3,7 +3,7 @@
 // counters (acceptance 3), no reminder to a submitted person or a Not sent row, "Remind
 // everyone" with per-row outcomes, a failed email giving the claim back, the other
 // workspace reading nothing, and nothing automatic (acceptance 4: the only sends are the
-// calls below).
+// calls below); an Anonymous validation refused on every path (E5-7).
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomBytes } from "node:crypto";
 import { answers, invites, projects, responses } from "@/db/queries";
@@ -12,8 +12,8 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
-import { openDraft } from "@/lib/instruments";
-import { listInvitees, sendInvites } from "@/lib/invitees";
+import { openDraft, saveAnonymity, saveFields } from "@/lib/instruments";
+import { INVITEES_ERRORS, listInvitees, renewInvitee, sendInvites } from "@/lib/invitees";
 import { memoryOutbox, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
 import { remindAll, remindInvitee, REMINDERS_COPY } from "@/lib/reminders";
@@ -176,5 +176,37 @@ describe("remindInvitee and remindAll", () => {
     expect(await answers.countForResponse(a.ws, boResponse.id)).toBe(2);
     expect(sent.length).toBe(sentBefore);
     expect((await listInvitees(a.ws, instrument.id))[0].remindersSent).toBe(3);
+  }, 60_000);
+
+  // E5-7 (amended 2026-10-06 after the audit): an Anonymous validation takes no reminder and
+  // no new link, even for a personal invite a crafted write left on it (Share sends none), and
+  // no invite: every server path answers the invites' message and sends nothing.
+  it("refuses a reminder, a new link and an invite on an Anonymous validation", async () => {
+    const project = await projects.create(a.ws, { name: "Anonymous survey", createdBy: a.userId });
+    const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One", "Two"].join("\n"));
+    if (!("upload" in pasted)) throw new Error(pasted.error);
+    await commitUpload(a.ws, pasted.upload.id, a.userId);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]));
+    const saved = await saveAnonymity(a.ws, project.id, instrument.id, "anonymous");
+    if (!("instrument" in saved)) throw new Error(saved.error);
+    const t0 = new Date("2026-10-03T12:00:00Z");
+    const published = await publishLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", t0);
+    if (!("invite" in published)) throw new Error(published.error);
+    const made = await invites.createPersonal(a.ws, instrument.id, [{ email: "ana@x.example", name: null, role: null, token: randomBytes(16).toString("hex") }], t0);
+    if (!made || !("created" in made)) throw new Error("no invite");
+    const [ana] = made.created;
+    await invites.update(a.ws, ana.id, { sentAt: t0 });
+    const sender = { name: "Dana PM", email: "dana@marlow.example" };
+    const sent: Mail[] = [];
+    const keep = async (mail: Mail) => { sent.push(mail); };
+    const later = new Date("2026-10-08T12:00:00Z");
+    expect(await remindInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, later, keep)).toEqual({ error: INVITEES_ERRORS.anonymous });
+    expect(await remindAll(a.ws, project.id, instrument.id, sender, BASE, later, keep)).toEqual({ error: INVITEES_ERRORS.anonymous });
+    await invites.update(a.ws, ana.id, { revokedAt: later });
+    expect(await renewInvitee(a.ws, project.id, instrument.id, ana.id, sender, BASE, later, keep)).toEqual({ error: INVITEES_ERRORS.anonymous });
+    expect(await sendInvites(a.ws, project.id, instrument.id, "bo@x.example", sender, BASE, later, keep)).toEqual({ error: INVITEES_ERRORS.anonymous });
+    expect(sent).toEqual([]);
+    expect((await listInvitees(a.ws, instrument.id)).map((r) => [r.email, r.remindersSent])).toEqual([["ana@x.example", 0]]);
   }, 60_000);
 });

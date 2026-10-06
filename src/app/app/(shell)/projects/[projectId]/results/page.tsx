@@ -6,8 +6,11 @@
 // the first answer the page is the empty state; a filter that keeps no answer says so with
 // Clear filters. The numbers and each tab fail on their own (results-boundary.tsx) and load
 // with a skeleton (loading.tsx, skeletons.tsx). Each tab's content comes with its story
-// (E8-2 to E8-6, E9-1, E10-1). The filter and the tab are in the URL. Copy: docs/copy/app.md
-// and docs/copy/errors.md, Results.
+// (E8-2 to E8-6, E9-1, E10-1). The filter and the tab are in the URL. Under Names hidden and
+// Anonymous (stories/E5-7, amended 2026-10-06) a filter that keeps fewer than 3 counted people
+// draws no number and no chart (tooFew), the tabs that list people follow no field or
+// perspective filter and say so, and their counts are read the same way. Copy:
+// docs/copy/app.md and docs/copy/errors.md, Results.
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -25,7 +28,8 @@ import { results, resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { DETAIL_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { itemParam } from "@/lib/results-detail";
-import { describeFilter, filterActive, filterQuery, RESULTS_KINDS, type FilterContext, type ResultsFilter, type SearchParams } from "@/lib/results-filter";
+import { describeFilter, filterActive, filterQuery, identityFiltered, RESULTS_KINDS, type FilterContext, type ResultsFilter, type SearchParams } from "@/lib/results-filter";
+import { namesShown } from "@/lib/anonymity";
 import { resultsContext } from "@/lib/results-context";
 import { DEFAULT_TILES, storedTiles, tabCounts, tileView, type ResultsNumbers, type TileId } from "@/lib/results-tiles";
 import { formatUtc, linkState } from "@/lib/sharing";
@@ -98,6 +102,8 @@ type BodyProps = { projectId: string; isSample: boolean; sampleId: string | null
 async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filter, ctx, tab, item, tiles, view }: BodyProps) {
   const n = await results.numbers(ws, instrument.id, filter);
   if (!n) notFound();
+  // The tabs that list people count as they list (E5-7: person mode under the two levels).
+  const listed = namesShown(ctx.anonymity) ? n : (await results.numbers(ws, instrument.id, filter, "person")) ?? n;
   if (!n.anyAnswer) return <NoAnswers projectId={projectId} sampleId={sampleId} link={await linkPhrase(ws, projectId)} />;
   const path = `/app/projects/${projectId}/results`;
   const href = (next: ResultsFilter, t: Tab, open: string | null = null) => { const q = filterQuery(next, ctx, { ...(t === "agreement" ? {} : { tab: t }), ...(open ? { item: open } : {}) }); return q ? `${path}?${q}` : path; };
@@ -110,7 +116,7 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
   const cleared = { ...filter, fields: {}, kinds: [], withComment: false, perspective: null, status: [] };
   // Nobody kept (acceptance 4): the people a filter keeps without a counted answer (an invite
   // not opened, an answer not submitted with the switch off) still show, in the Responses tab.
-  const none = active && n.invited === 0;
+  const none = active && !n.tooFew && n.invited === 0;
   return (
     <div className="flex flex-col gap-5" data-testid="results">
       {isSample && <SampleWalkthrough ws={ws} projectId={projectId} instrument={instrument} screen={item ? "detail" : tab === "pushed" ? "registers" : tab === "agreement" ? "strip" : null}
@@ -119,7 +125,7 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
         <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />
         <TileChooser projectId={projectId} tiles={tiles} />
       </div>
-      {!none && <Strip n={n} tiles={tiles} />}
+      {n.tooFew ? <p role="status" className="card p-4 text-sm text-ink-muted" data-testid="too-few">{RESULTS_COPY.tooFew}</p> : !none && <Strip n={n} tiles={tiles} />}
       {/* The filter bar and the line under the strip (acceptance 3). */}
       <FilterBar filter={filter} ctx={ctx} tab={tab === "agreement" ? null : tab} item={item} kinds={kinds} />
       <p role="status" className={cn("text-sm text-ink-muted", !active && "sr-only")} data-testid={active ? "showing-line" : undefined}>{active ? RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx)) : ""}</p>
@@ -137,14 +143,15 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
         </ResultsBoundary>
       ) : (
         <>
-          <TabRow n={n} tab={tab} href={(t) => href(filter, t)} />
+          <TabRow n={listed} tab={tab} href={(t) => href(filter, t)} />
           {/* catchError clears its error only on a new pathname, so each tab gets a boundary
               of its own (node_modules/next/dist/client/components/catch-error.js); the page's
               own boundary is not keyed, so a filter change keeps the focus and the status
               line, and a failed page clears with Try again. */}
           {/* The tab panel's heading, for the outline under the project's h1. */}
-          <h2 className="sr-only">{tabName(tab, n)}</h2>
-          <ResultsBoundary key={tab} what={tabName(tab, n)}>
+          <h2 className="sr-only">{tabName(tab, listed)}</h2>
+          {identityFiltered(filter, ctx.anonymity) && (tab === "responses" || tab === "pushed" || tab === "questions") && <p className="text-sm text-ink-muted" data-testid="person-level-line">{RESULTS_COPY.personLevel}</p>}
+          <ResultsBoundary key={tab} what={tabName(tab, listed)}>
             <Suspense fallback={<PanelSkeleton />}>
               <TabPanel tab={tab} n={n} ws={ws} projectId={projectId} isSample={isSample} instrument={instrument} filter={filter} ctx={ctx} view={view} href={(f) => href(f, tab)} itemHref={itemHref} />
               <ReturnFocus />
@@ -185,13 +192,13 @@ function TabRow({ n, tab, href }: { n: ResultsNumbers; tab: Tab; href: (t: Tab) 
 }
 
 // Each tab's content (E8-2 to E8-4, E9-1, E10-1).
-async function TabPanel({ tab, ws, projectId, isSample, instrument, filter, ctx, view, href, itemHref }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; isSample: boolean; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string; itemHref: (id: string) => string }) {
+async function TabPanel({ tab, n, ws, projectId, isSample, instrument, filter, ctx, view, href, itemHref }: { tab: Tab; n: ResultsNumbers; ws: BodyProps["ws"]; projectId: string; isSample: boolean; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; href: (f: ResultsFilter) => string; itemHref: (id: string) => string }) {
   if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={href} />;
   if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
-  if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} namesHidden={ctx.anonymity !== "named"} />;
+  if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} anonymity={ctx.anonymity} />;
   if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} itemHref={itemHref} />;
-  return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
+  return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} tooFew={n.tooFew === true} />;
 }
 
 async function linkPhrase(ws: BodyProps["ws"], projectId: string): Promise<string> {

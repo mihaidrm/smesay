@@ -78,7 +78,11 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const groups = namesShown(instrument.anonymity) ? instrument.respondentFields.filter((f) => f.type === "dropdown" && f.key !== "name") : [];
   const respondents = new Map<string, Record<string, string>>();
   for (const r of [...input.answers, ...input.missing]) if (!respondents.has(r.responseId)) respondents.set(r.responseId, Object.fromEntries(groups.map((g) => [g.label, r.fields[g.key] ?? ""])));
-  const answers: ActionsAnswer[] = input.answers.flatMap((a) => (a.kind === "change" || a.kind === "disagree" || a.kind === "unclear" ? [{ id: a.id, itemId: a.itemId, respondent: a.responseId, kind: a.kind, value: a.value, text: a.reason ?? a.comment }] : []));
+  // E5-7 (amended 2026-10-06): under the two levels an item fewer than 3 counted people could
+  // see is read as "Fewer than 3 answers" everywhere (agreement.byItem few), so the model reads
+  // none of its answers and no action can cite them.
+  const few = new Set([...counts.values()].filter((c) => c.few).map((c) => c.itemId));
+  const answers: ActionsAnswer[] = input.answers.flatMap((a) => (!few.has(a.itemId) && (a.kind === "change" || a.kind === "disagree" || a.kind === "unclear") ? [{ id: a.id, itemId: a.itemId, respondent: a.responseId, kind: a.kind, value: a.value, text: a.reason ?? a.comment }] : []));
   const prompt = buildActionsPrompt({
     items: items.map((it) => { const c = counts.get(it.id); return { id: it.id, reference: it.reference, area: it.area, text: it.title, proposed: it.proposed, counts: { agree: c?.agree ?? 0, change: c?.change ?? 0, disagree: c?.disagree ?? 0, unclear: c?.unclear ?? 0, rated: c?.pick ?? 0, couldSee: c?.couldSee ?? 0 } }; }),
     answers,

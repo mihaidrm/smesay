@@ -24,6 +24,8 @@ import { exportTable } from "@/lib/export/files";
 import { perItem } from "@/lib/export/per-item";
 import { insights } from "@/db/queries/insights";
 import { resultsContext } from "@/lib/results-context";
+import { RESULTS_COPY } from "@/lib/results-copy";
+import { EXPORT_COPY } from "@/lib/export/copy";
 
 let sql: ReturnType<typeof postgres>;
 const userId = `results-${Date.now()}`;
@@ -59,7 +61,10 @@ async function reconcileStrip(ws: WorkspaceId, instrumentId: string, f: ResultsF
   const rows = await results.rows(ws, instrumentId, f);
   const who = await results.people(ws, instrumentId, f);
   const missing = await results.missing(ws, instrumentId, f);
-  const itemIds = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws}`).map((r) => r.id as string);
+  // An item fewer than 3 counted people could see under Names hidden and Anonymous is none of
+  // the strip's items (E5-7, D).
+  const few = new Set((await agreement.byItem(ws, instrumentId, f)).filter((c) => c.few).map((c) => c.itemId));
+  const itemIds = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentId} and it.workspace_id = ${ws}`).map((r) => r.id as string).filter((id) => !few.has(id));
   expect(tally(rows)).toEqual({ agree: n.agree, change: n.change, disagree: n.disagree, unclear: n.unclear, pick: n.pick, answered: n.answered, withComment: n.withComment });
   expect([who.length, who.filter((p) => p.submitted).length, who.filter((p) => !p.invited && !p.submitted).length, who.filter((p) => p.counted).length, missing.length])
     .toEqual([n.invited, n.submitted, n.inProgress, n.shown, n.missing]);
@@ -687,15 +692,15 @@ describe("where groups disagree", () => {
     const out = await gaps.byField(wsF, instrumentF, NONE, "team");
     expect(out.map((g) => [refs.get(g.itemId), g.gap])).toEqual([["CL-02", 100], ["CL-05", 67], ["CL-01", 0], ["CL-03", null], ["CL-04", null], ["CL-06", null]]);
     expect(out.find((g) => refs.get(g.itemId) === "CL-05")!.groups).toEqual([
-      { group: "", agree: 3, answered: 3, compared: true },
-      { group: "A", agree: 1, answered: 3, compared: true },
-      { group: "B", agree: 2, answered: 3, compared: true },
+      { group: "", folded: false, agree: 3, answered: 3, compared: true },
+      { group: "A", folded: false, agree: 1, answered: 3, compared: true },
+      { group: "B", folded: false, agree: 2, answered: 3, compared: true },
     ]);
     const cl01 = out.find((g) => refs.get(g.itemId) === "CL-01")!;
     expect(cl01.groups).toEqual([
-      { group: "A", agree: 3, answered: 3, compared: true },
-      { group: "B", agree: 3, answered: 3, compared: true },
-      { group: "C", agree: 0, answered: 2, compared: false },
+      { group: "A", folded: false, agree: 3, answered: 3, compared: true },
+      { group: "B", folded: false, agree: 3, answered: 3, compared: true },
+      { group: "C", folded: false, agree: 0, answered: 2, compared: false },
     ]);
     // The filter narrows the people first: team A alone leaves nothing to compare.
     expect((await gaps.byField(wsF, instrumentF, { ...NONE, fields: { team: "A" } }, "team")).every((g) => g.gap === null)).toBe(true);
@@ -747,7 +752,8 @@ describe("Names hidden and Anonymous on Results", () => {
     // respondent column, by number, in the direction asked.
     const byNumberDesc = (await tracker.people(wsH, instrumentH, { ...on, sort: { key: "name", dir: "desc" } }, [])).map((p) => p.anon);
     expect(byNumberDesc).toEqual(people.map((p) => p.anon).reverse());
-    for (const key of ["field.role", "submitted", "source", "reminders"]) expect((await tracker.people(wsH, instrumentH, { ...on, sort: { key, dir: "desc" } }, ["role"])).map((p) => p.anon)).toEqual(byNumberDesc);
+    // E5-7, amended 2026-10-06: by the status or the progress too, under Names hidden.
+    for (const key of ["field.role", "submitted", "source", "reminders", "status", "progress"]) expect((await tracker.people(wsH, instrumentH, { ...on, sort: { key, dir: "desc" } }, ["role"])).map((p) => p.anon)).toEqual(byNumberDesc);
     const n = (await results.numbers(wsH, instrumentH, on))!;
     expect([n.invited, n.submitted, n.inProgress]).toEqual([6, 5, 1]);
     const rows = await results.rows(wsH, instrumentH, on);
@@ -762,32 +768,94 @@ describe("Names hidden and Anonymous on Results", () => {
     const item = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.source_ref = 'CL-04'`)[0].id as string;
     const one = (await detail.item(wsH, instrumentH, item, on))!;
     expect(one.rows.every((r) => !r.invited && r.who === null && r.anon !== null && Object.keys(r.fields).length === 0)).toBe(true);
-    // The text filter on the name finds nobody: there is no name to match.
-    expect(await tracker.people(wsH, instrumentH, { ...on, fields: { name: "Ioana" } }, [])).toEqual([]);
-    // The split and the gaps still read the stored values, aggregated.
+    // A list of people follows no field filter (amended 2026-10-06), so a name filter neither
+    // finds a name nor narrows the list; the strip's numbers keep nobody for it (B).
+    expect((await tracker.people(wsH, instrumentH, { ...on, fields: { name: "Ioana" } }, [])).map((p) => p.id)).toEqual(people.map((p) => p.id));
+    expect((await results.numbers(wsH, instrumentH, { ...on, fields: { name: "Ioana" } }))!.tooFew).toBe(true);
+    // The split still reads the stored values, aggregated: every value has fewer than 3 people
+    // here, so all of them are one folded group (C, amended 2026-10-06).
     const split = await agreement.byItem(wsH, instrumentH, on, "role");
-    expect(split.some((c) => c.group === "Sales")).toBe(true);
+    expect(split.length > 0 && split.every((c) => c.folded && c.group === null)).toBe(true);
     // The Actions tab's citations (E9-1) name nobody either.
     const cited = await insights.listWithCitations(wsH, (await instruments.get(wsH, instrumentH))!.projectId);
     expect(cited.length).toBeGreaterThan(0);
     expect(cited.flatMap((a) => [...a.answers, ...a.missing]).every((c) => c.who === null && c.anon !== null)).toBe(true);
   });
 
-  it("writes the CSVs without names, fields, times, sources, reminders or perspectives", async () => {
+  // E5-7, amended 2026-10-06 (E): under Names hidden no file says who has submitted; under
+  // Anonymous the status columns stay.
+  it("writes the CSVs without names, fields, times, sources, reminders, perspectives or, under Names hidden, statuses", async () => {
     const inst = (await instruments.get(wsH, instrumentH))!;
     const f = { ...NONE, includeUnsubmitted: true };
     const ctxH = { fields: inst.respondentFields.filter((s) => s.type === "dropdown"), perspectives: inst.perspectives, anonymity: inst.anonymity };
     const answers = await exportTable(wsH, inst, "answers", f, ctxH, false);
-    expect(answers.header).toEqual(["Respondent", "Reference", "Area", "Item", "Proposed value", "Proposed label", "Answer", "Their value", "Their label", "Reason or question", "Comment", "Since submitting"]);
+    expect(answers.header).toEqual(["Respondent", "Reference", "Area", "Item", "Proposed value", "Proposed label", "Answer", "Their value", "Their label", "Reason or question", "Comment"]);
     expect(answers.rows.every((r) => /^Anonymous \d+$/.test(String(r[0])))).toBe(true);
     const people = await exportTable(wsH, inst, "people", f, ctxH, false);
-    expect(people.header).toEqual(["Respondent", "Status", "Since submitting", "Answered", "Items seen", "Minutes to submit", "Answers with a reason or comment"]);
-    expect(people.rows).toHaveLength(6);
+    expect(people.header).toEqual(["Respondent", "Answers with a reason or comment"]);
+    expect(people.rows.map((r) => r[0])).toEqual(["Anonymous 1", "Anonymous 2", "Anonymous 3", "Anonymous 4", "Anonymous 5", "Anonymous 6"]);
     const missing = await exportTable(wsH, inst, "missing", f, ctxH, false);
-    expect(missing.header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent", "Status", "Since submitting"]);
+    expect(missing.header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent"]);
+    const anonymous = { ...inst, anonymity: "anonymous" as const };
+    expect((await exportTable(wsH, anonymous, "people", f, { ...ctxH, anonymity: "anonymous" }, false)).header).toEqual(["Respondent", "Status", "Since submitting", "Answered", "Items seen", "Minutes to submit", "Answers with a reason or comment"]);
+    expect((await exportTable(wsH, anonymous, "missing", f, { ...ctxH, anonymity: "anonymous" }, false)).header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent", "Status", "Since submitting"]);
     // The strip still adds up from the rows.
     await reconcileStrip(wsH, instrumentH, f);
     await reconcileStrip(wsH, instrumentH, NONE);
+  });
+
+  // A (person-level views) and B (MIN_GROUP on aggregates), amended 2026-10-06 after the
+  // audit: Sales has 2 people. Every list of people (the Responses tab, the registers, the
+  // detail's rows, the answer rows, the sign-offs, the people and missing files) ignores the
+  // field and perspective filters, and the status filter under Names hidden; the strip, the
+  // Agreement counts, the gaps, the detail's counts and the items file keep nobody.
+  it("keeps every list of people whole under a field or perspective filter, and draws nothing for fewer than 3 people", async () => {
+    const on = { ...NONE, includeUnsubmitted: true };
+    const inst = (await instruments.get(wsH, instrumentH))!;
+    const ctxH = { fields: inst.respondentFields.filter((s) => s.type === "dropdown"), perspectives: inst.perspectives, anonymity: inst.anonymity };
+    const item = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.source_ref = 'CL-04'`)[0].id as string;
+    const lists = async (f: ResultsFilter) => ({
+      people: (await tracker.people(wsH, instrumentH, f, [])).map((p) => p.id),
+      registers: (await registers.answers(wsH, instrumentH, f, ["change", "disagree", "unclear"], [], "moscow")).map((r) => r.id),
+      missing: (await registers.missing(wsH, instrumentH, f, [], "moscow")).map((r) => r.id),
+      rows: (await results.rows(wsH, instrumentH, f)).map((r) => r.id),
+      who: (await results.people(wsH, instrumentH, f)).map((r) => r.id),
+      signOffs: (await results.signOffs(wsH, instrumentH, f)).map((r) => r.id),
+      detail: (await detail.item(wsH, instrumentH, item, f))!.rows.map((r) => r.personId),
+      counts: (await results.numbers(wsH, instrumentH, f, "person"))!,
+    });
+    const whole = await lists(on);
+    for (const f of [{ ...on, fields: { role: ["Sales"] } }, { ...on, perspective: "Approver" }, { ...on, status: ["submitted" as const] }]) {
+      expect(await lists(f)).toEqual(whole);
+      const n = (await results.numbers(wsH, instrumentH, f))!;
+      expect([n.tooFew, n.shown, n.invited, n.agree, n.answered, n.missing]).toEqual([f.status.length > 0 ? false : true, f.status.length > 0 ? 5 : 0, f.status.length > 0 ? 5 : 0, ...(f.status.length > 0 ? [n.agree, n.answered, n.missing] : [0, 0, 0])]);
+    }
+    const sales = { ...on, fields: { role: ["Sales"] } };
+    expect((await agreement.byItem(wsH, instrumentH, sales)).every((c) => c.few && c.agree + c.change + c.disagree + c.unclear + c.pick === 0 && c.couldSee === 0)).toBe(true);
+    expect((await gaps.byField(wsH, instrumentH, sales, "role")).every((g) => g.groups.length === 0)).toBe(true);
+    const one = (await detail.item(wsH, instrumentH, item, sales))!;
+    expect([one.countsFew, one.few, one.counts.agree, one.rows.length]).toEqual([true, false, 0, whole.detail.length]);
+    // The files: the items file has no row and says why; the answers file is whole and says so.
+    const items = await exportTable(wsH, inst, "items", sales, ctxH, false);
+    expect([items.preamble, items.rows]).toEqual([[["Filtered: Role: Sales"], [EXPORT_COPY.withUnsubmitted], [RESULTS_COPY.tooFew]], []]);
+    const answers = await exportTable(wsH, inst, "answers", sales, ctxH, false);
+    expect(answers.preamble).toEqual([[RESULTS_COPY.personLevel], [EXPORT_COPY.withUnsubmitted]]);
+    expect(answers.rows).toEqual((await exportTable(wsH, inst, "answers", on, ctxH, false)).rows);
+    // Under Anonymous the status filter still narrows a list (Share names nobody there).
+    await sql`update instrument set anonymity = 'anonymous' where id = ${instrumentH}`;
+    expect(await tracker.people(wsH, instrumentH, { ...on, status: ["submitted"] }, [])).toHaveLength(5);
+    expect((await tracker.people(wsH, instrumentH, { ...on, fields: { role: ["Sales"] } }, [])).map((p) => p.id)).toEqual(whole.people);
+    await sql`update instrument set anonymity = 'hidden' where id = ${instrumentH}`;
+    // Another workspace reads nothing in either mode.
+    expect(await results.numbers(wsA, instrumentH, sales, "person")).toBeNull();
+    expect(await results.numbers(wsA, instrumentH, sales)).toBeNull();
+    expect(await results.signOffs(wsA, instrumentH, sales, "aggregate")).toEqual([]);
+    expect(await detail.item(wsA, instrumentH, item, sales)).toBeNull();
+    expect(await agreement.byItem(wsA, instrumentH, sales, "role")).toEqual([]);
+    // Named is unchanged: the filter narrows the lists, with no floor.
+    const named = (await tracker.people(wsA, instrumentA, { ...on, fields: { role: ["Sales"] } }, [])).filter((p) => p.status !== "invited");
+    expect(named).toHaveLength(2);
+    expect((await results.numbers(wsA, instrumentA, { ...on, fields: { role: ["Sales"] } }))!.tooFew).toBe(false);
   });
 
   it("offers a dropdown value as a filter only with 3 counted respondents, and reads nothing of another workspace", async () => {
@@ -818,5 +886,59 @@ describe("Names hidden and Anonymous on Results", () => {
     // Under Named the context is the instrument's, every option offered.
     const named = await resultsContext(wsA, (await instruments.get(wsA, instrumentA))!, { "f.role": "HR", unsubmitted: "1" }, null);
     expect([named.ctx.offered, named.filter.fields]).toEqual([undefined, { role: ["HR"] }]);
+    // No status filter under Names hidden (E).
+    expect((await resultsContext(wsH, inst, { status: "submitted", unsubmitted: "1" }, null)).filter.status).toEqual([]);
+  });
+
+  // C, amended 2026-10-06 after the audit: with the switch on, Sales has 3 people (the response
+  // added above) and Finance, Engineering manager, HR and Office manager one each. The four
+  // are one group, folded, keyed apart from any value; once two of them become Sales, the two
+  // left (2 people) are no group at all, in the split and in the gaps, and the items' totals
+  // still count them.
+  it("draws no split group under 3 people: folds them when they reach 3 together, else leaves them out", async () => {
+    const on = { ...NONE, includeUnsubmitted: true };
+    const groups = async () => new Set((await agreement.byItem(wsH, instrumentH, on, "role")).map((c) => `${c.folded ? "folded" : c.group}`));
+    expect(await groups()).toEqual(new Set(["Sales", "folded"]));
+    expect((await agreement.byItem(wsH, instrumentH, on, "role")).filter((c) => c.folded).every((c) => c.group === null)).toBe(true);
+    const gapNames = async () => new Set((await gaps.byField(wsH, instrumentH, on, "role")).flatMap((g) => g.groups.map((x) => (x.folded ? "folded" : x.group))));
+    expect(await gapNames()).toEqual(new Set(["Sales", "folded"]));
+    await sql`update response set fields = jsonb_set(fields, '{role}', '"Sales"') where workspace_id = ${wsH} and instrument_id = ${instrumentH} and fields ->> 'role' in ('Finance', 'Engineering manager')`;
+    expect(await groups()).toEqual(new Set(["Sales"]));
+    expect(await gapNames()).toEqual(new Set(["Sales"]));
+    const split = await agreement.byItem(wsH, instrumentH, on, "role");
+    const totals = await agreement.byItem(wsH, instrumentH, on);
+    const sum = (c: ItemCounts) => c.agree + c.change + c.disagree + c.unclear + c.pick;
+    expect(totals.reduce((n, c) => n + sum(c), 0)).toBeGreaterThan(split.reduce((n, c) => n + sum(c), 0));
+    // Under Named every value is its own group, whatever its size.
+    const namedSplit = new Set((await agreement.byItem(wsA, instrumentA, on, "role")).map((c) => c.group));
+    expect(namedSplit).toEqual(new Set(["Sales", "Finance", "Engineering manager", "HR", "Office manager"]));
+  });
+
+  // D, amended 2026-10-06 after the audit: an item 2 counted people could see (a perspective)
+  // has no count in the Agreement table, no row in the item detail, the registers or the
+  // answers file, and counts in no tile; the strip still adds up from the rows.
+  it("counts nothing on an item fewer than 3 counted people could see", async () => {
+    const on = { ...NONE, includeUnsubmitted: true };
+    const [cl02] = await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.source_ref = 'CL-02'`;
+    const item = cl02.id as string;
+    const before = (await results.numbers(wsH, instrumentH, on))!;
+    const onItem = (await results.rows(wsH, instrumentH, on)).filter((r) => r.itemId === item);
+    expect(onItem.length).toBeGreaterThan(0);
+    const viewers = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by created_at, id limit 2`).map((r) => r.id as string);
+    await sql`update item set perspectives = '{Approver}' where id = ${item}`;
+    await sql`update response set perspectives = '{Approver}' where id in ${sql(viewers)}`;
+    const row = (await agreement.byItem(wsH, instrumentH, on)).find((c) => c.itemId === item)!;
+    expect([row.few, row.agree, row.change, row.disagree, row.unclear, row.couldSee, row.percent]).toEqual([true, 0, 0, 0, 0, 0, null]);
+    const one = (await detail.item(wsH, instrumentH, item, on))!;
+    expect([one.few, one.countsFew, one.rows]).toEqual([true, true, []]);
+    expect((await registers.answers(wsH, instrumentH, on, ["change", "disagree", "unclear"], [], "moscow")).some((r) => r.itemId === item)).toBe(false);
+    expect((await results.rows(wsH, instrumentH, on)).some((r) => r.itemId === item)).toBe(false);
+    const after = (await results.numbers(wsH, instrumentH, on))!;
+    // Every answer on the item leaves the strip: the two viewers' and any given before.
+    expect(after.agree + after.change + after.disagree + after.unclear + after.pick).toBe(before.agree + before.change + before.disagree + before.unclear + before.pick - onItem.length);
+    await reconcileStrip(wsH, instrumentH, on);
+    await reconcileStrip(wsH, instrumentH, NONE);
+    await sql`update item set perspectives = '{}' where id = ${item}`;
+    await sql`update response set perspectives = '{}' where id in ${sql(viewers)}`;
   });
 });

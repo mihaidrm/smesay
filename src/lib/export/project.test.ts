@@ -124,37 +124,64 @@ describe("importProject", () => {
     expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, reasonRule: "sometimes" })) }))).toEqual({ error: E.damaged("instruments.0.reasonRule") });
   });
 
-  // E5-7, acceptance 5: a validation set to Names hidden goes out with no invite id and no
-  // fields on its responses, comes back with the level and its responses on the public
-  // invite, and counts the same; a file written before the level existed reads Named; a
-  // response with no invite on a Named validation, or a text field under Names hidden, is a
-  // damaged file.
-  it("keeps who sees whose answers on a round trip, and the file ties no response to a personal invite", async () => {
+  // E5-7, acceptance 5 (amended 2026-10-06 after the audit): a validation set to Names hidden
+  // goes out with no invite id, no fields and no perspectives on its responses, no personal
+  // invite, and one time (the export's) on every response, answer and missing item, null kept
+  // for what was not submitted; it comes back with the level and its responses on the public
+  // invite, and counts the same. A file written before the level existed reads Named; a
+  // response with no invite on a Named validation, a text field, a personal invite or a
+  // response field that is not a dropdown's value under Names hidden or Anonymous is a damaged
+  // file.
+  it("keeps who sees whose answers on a round trip, and the file ties no response to a person or a time", async () => {
     const file = await exportProject(a, sampleId);
     expect(file.instruments.map((i) => i.anonymity)).toEqual(file.instruments.map(() => "named"));
     const asPm = { ...file, sample: false, note: null };
-    const hiddenFile = { ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "hidden" as const, respondentFields: i.respondentFields.filter((f) => f.type === "dropdown") })) };
+    const hiding = (level: "hidden" | "anonymous") => ({
+      ...asPm,
+      instruments: asPm.instruments.map((i) => ({ ...i, anonymity: level, respondentFields: i.respondentFields.filter((f) => f.type === "dropdown") })),
+      invites: asPm.invites.filter((v) => v.kind === "public"),
+      responses: asPm.responses.map((r) => ({ ...r, inviteId: null, fields: {} })),
+    });
+    const hiddenFile = hiding("hidden");
     expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "hidden" })) }))).toEqual({ error: E.damaged("a validation's fields") });
+    // A personal invite, or a field that is not a dropdown's value, on either level.
+    for (const level of ["hidden", "anonymous"] as const) {
+      const one = hiding(level);
+      expect(await importProject(b, JSON.stringify({ ...one, invites: asPm.invites }))).toEqual({ error: E.damaged("a personal invite on a validation that hides names") });
+      expect(await importProject(b, JSON.stringify({ ...one, responses: one.responses.map((r, i) => (i === 0 ? { ...r, fields: { name: "Ioana Marin" } } : r)) }))).toEqual({ error: E.damaged("a response's fields") });
+      expect(await importProject(b, JSON.stringify({ ...one, responses: one.responses.map((r, i) => (i === 0 ? { ...r, fields: { role: "Ioana Marin" } } : r)) }))).toEqual({ error: E.damaged("a response's fields") });
+    }
     const hidden = await importProject(b, JSON.stringify(hiddenFile));
     if (!("projectId" in hidden)) throw new Error(hidden.error);
     const first = (await instruments.latestForProject(b.ws, hidden.projectId))!;
     expect(first.anonymity).toBe("hidden");
-    const out = await exportProject(b, hidden.projectId);
+    const at = new Date("2026-10-30T09:00:00Z");
+    const out = await exportProject(b, hidden.projectId, at);
     expect(out.instruments.map((i) => i.anonymity)).toEqual(["hidden"]);
     expect(out.responses.length).toBe(expected.responses);
-    expect(out.responses.every((r) => r.inviteId === null && Object.keys(r.fields).length === 0)).toBe(true);
-    const back = await importProject(b, JSON.stringify(out));
+    expect(out.invites.every((v) => v.kind === "public")).toBe(true);
+    expect(out.responses.every((r) => r.inviteId === null && Object.keys(r.fields).length === 0 && r.perspectives.length === 0)).toBe(true);
+    // One shared time: the export's; null stays null.
+    const iso = at.toISOString();
+    expect(out.responses.every((r) => r.createdAt === iso && r.updatedAt === iso && [iso, null].includes(r.submittedAt) && [iso, null].includes(r.firstSubmittedAt))).toBe(true);
+    expect(out.responses.filter((r) => r.submittedAt === null)).toHaveLength(1);
+    expect(out.responses.flatMap((r) => r.answers).every((x) => x.updatedAt === iso)).toBe(true);
+    expect(out.missingItems.every((m) => m.createdAt === iso)).toBe(true);
+    const back = await importProject(b, JSON.stringify(out), at);
     if (!("projectId" in back)) throw new Error(back.error);
     const second = (await instruments.latestForProject(b.ws, back.projectId))!;
     expect(second.anonymity).toBe("hidden");
     const publicInvite = (await invites.list(b.ws)).find((v) => v.instrumentId === second.id && v.kind === "public")!;
+    expect((await invites.list(b.ws)).filter((v) => v.instrumentId === second.id && v.kind === "personal")).toEqual([]);
     const responsesBack = (await responsesQ.list(b.ws)).filter((r) => r.instrumentId === second.id);
     expect(responsesBack.length).toBe(expected.responses);
     expect(responsesBack.every((r) => r.inviteId === publicInvite.id)).toBe(true);
+    // The same counts; the minutes to submit are 0 now that every time is the export's.
     for (const f of [NONE, { ...NONE, includeUnsubmitted: true }]) {
       const before = (await results.numbers(b.ws, first.id, f))!;
       const after = (await results.numbers(b.ws, second.id, f))!;
-      expect({ ...after, actions: 0 }).toEqual({ ...before, actions: 0 });
+      expect({ ...after, actions: 0, medianMinutes: null }).toEqual({ ...before, actions: 0, medianMinutes: null });
+      expect(after.medianMinutes).toBe(0);
     }
     const older = await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map(({ anonymity: _dropped, ...i }) => (void _dropped, i)) }));
     if (!("projectId" in older)) throw new Error(older.error);

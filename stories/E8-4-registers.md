@@ -13,7 +13,10 @@ sorts; the landing page no longer quotes the sentence. The disagree register sit
 different-priority register, not beside it, so both keep their columns at 1440.
 
 Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous every respondent
-reads "Anonymous [N]" and the registers have no Role column and no sort by a field.
+reads "Anonymous [N]" and the registers have no Role column and no sort by a field. Amended
+again after the audit: the registers follow no field or perspective filter (a line says
+why), have no row on an item fewer than 3 counted respondents could see, and under Names
+hidden mark no row not submitted or changed.
 
 ## Acceptance criteria
 1. "Different priority and Disagree" tab: the different-priority register (item, respondent,

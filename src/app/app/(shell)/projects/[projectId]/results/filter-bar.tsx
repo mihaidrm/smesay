@@ -6,7 +6,8 @@
 // (src/lib/results-filter.ts filterQuery), so the server renders the filtered page and a view
 // can be shared; the tab stays. Under Names hidden and Anonymous (stories/E5-7, acceptance 4)
 // a dropdown shows only the values offered (optionsFor: given by 3 counted people or more), a
-// field with none left is not shown, and a line says why. data-ready marks the bar once it has hydrated (a
+// field with none left is not shown, and a line says why; under Names hidden there is no
+// status filter (amended 2026-10-06). data-ready marks the bar once it has hydrated (a
 // client-only snapshot, react.dev/reference/react/useSyncExternalStore), for the tests.
 // Copy: docs/copy/app.md, Results.
 import { usePathname, useRouter } from "next/navigation";
@@ -64,10 +65,13 @@ export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFi
           {kinds.map((k) => <Chip key={k} on={filter.kinds.includes(k)} onClick={() => go({ ...filter, kinds: toggle(filter.kinds, k) })} testId={`filter-kind-${k}`}>{KIND_LABELS[k]}</Chip>)}
           <Chip on={filter.withComment} onClick={() => go({ ...filter, withComment: !filter.withComment })} testId="filter-comment">{RESULTS_COPY.withComment}</Chip>
         </div>
-        <div role="group" aria-label={RESULTS_COPY.status} className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold text-ink-muted">{RESULTS_COPY.status}</span>
-          {RESULTS_STATUSES.map((s) => <Chip key={s} on={filter.status.includes(s)} onClick={() => go({ ...filter, status: toggle(filter.status, s) })} testId={`filter-status-${s}`}>{STATUS_LABELS[s]}</Chip>)}
-        </div>
+        {/* E5-7 (amended 2026-10-06): no status filter under Names hidden. */}
+        {ctx.anonymity !== "hidden" && (
+          <div role="group" aria-label={RESULTS_COPY.status} className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-ink-muted">{RESULTS_COPY.status}</span>
+            {RESULTS_STATUSES.map((s) => <Chip key={s} on={filter.status.includes(s)} onClick={() => go({ ...filter, status: toggle(filter.status, s) })} testId={`filter-status-${s}`}>{STATUS_LABELS[s]}</Chip>)}
+          </div>
+        )}
         {ctx.perspectives.length > 0 && (
           <label className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
             {RESULTS_COPY.perspective}

@@ -34,6 +34,9 @@ export type ResultsNumbers = {
   anyAnswer: boolean;
   // Open actions of the project (E9; not filtered).
   actions: number;
+  // E5-7 (amended 2026-10-06): under Names hidden and Anonymous a filter keeps fewer than
+  // MIN_GROUP counted people, so the query kept nobody and the page draws no number.
+  tooFew?: boolean;
 };
 
 export const TILE_IDS = ["submitted", "agreement", "change", "disagree", "unclear", "missing", "withComment", "unansweredItems", "fullyAgreed", "pushedBackItems", "medianMinutes", "inProgress"] as const;

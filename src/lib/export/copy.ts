@@ -23,7 +23,9 @@ export const EXPORT_COPY = {
   tab: {
     line: "Each CSV file and the summary hold what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
     // E5-7: under the line when the validation is set to Names hidden or Anonymous.
-    namesHidden: "This validation hides names: the files and the summary call each respondent Anonymous [N], with no fields, submitted times, sources, reminders or perspectives. Whole project leaves out the fields and the invite of every response.",
+    namesHidden: "This validation hides names: the files and the summary call each respondent Anonymous [N], with no fields, submitted times, sources, reminders or perspectives, and their lists of people follow no field or perspective filter. Whole project writes no personal invite and no fields or perspectives on a response, and dates every response at the time of the export, so the imported project has the public link only.",
+    // E5-7, amended 2026-10-06: added under Names hidden, where Share names who has finished.
+    namesHiddenStatus: "Under Names hidden no file says who has submitted.",
     files: {
       answers: { title: "Answers", line: "Each row is one answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment." },
       items: { title: "Items with totals", line: "Each row is one item: the counts of each answer, not answered, and the agreement." },

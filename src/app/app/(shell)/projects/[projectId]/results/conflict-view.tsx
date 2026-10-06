@@ -6,7 +6,10 @@
 // items with a proposal shown are in the view, ties in the list's order
 // (src/lib/results-gaps.ts). A group with fewer than 3 answers on an item is shown with no
 // numbers and is not compared (decision 0031), with the banner; the people who left the field
-// empty are the group Not given. Copy: docs/copy/app.md, Results.
+// empty are the group Not given. Under Names hidden and Anonymous (stories/E5-7, amended
+// 2026-10-06) no group is under 3 people: the values under 3 are one group, "Groups under 3
+// people", when they reach 3 together, else left out (src/db/queries/results.ts gaps.byField),
+// so the view names no value the filter does not offer. Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { Banner } from "@/components/ui/banner";
 import { gaps as gapsQuery, type GapItem } from "@/db/queries/results";
@@ -53,8 +56,8 @@ export async function ConflictView({ ws, instrumentId, filter, ctx, items, order
 }
 
 function GapRow({ row, item, href }: { row: GapItem; item: { reference: string | null; title: string } | undefined; href: string }) {
-  const name = (g: string) => (g === "" ? AGREEMENT_COPY.groupNone : g);
-  const line = row.groups.length === 0 ? CONFLICT_COPY.noGroups : row.groups.map((g) => (g.compared ? CONFLICT_COPY.groupLine(name(g.group), g.agree, g.answered) : CONFLICT_COPY.smallLine(name(g.group)))).join(" ");
+  const name = (g: { group: string; folded: boolean }) => (g.folded ? AGREEMENT_COPY.groupSmall : g.group === "" ? AGREEMENT_COPY.groupNone : g.group);
+  const line = row.groups.length === 0 ? CONFLICT_COPY.noGroups : row.groups.map((g) => (g.compared ? CONFLICT_COPY.groupLine(name(g), g.agree, g.answered) : CONFLICT_COPY.smallLine(name(g)))).join(" ");
   return (
     <li className="flex flex-col gap-2 py-3" data-testid="gap-row">
       <div className="flex items-start justify-between gap-3">
@@ -68,8 +71,8 @@ function GapRow({ row, item, href }: { row: GapItem; item: { reference: string |
       {row.groups.length > 0 && (
         <div className="flex flex-col gap-1.5" aria-hidden="true">
           {row.groups.map((g) => (
-            <div key={g.group} className="flex items-center gap-2 text-xs" data-testid="gap-group" data-group={name(g.group)}>
-              <span className="w-28 shrink-0 truncate text-ink-muted">{name(g.group)}</span>
+            <div key={`${g.folded}:${g.group}`} className="flex items-center gap-2 text-xs" data-testid="gap-group" data-group={name(g)}>
+              <span className="w-28 shrink-0 truncate text-ink-muted">{name(g)}</span>
               {g.compared ? (
                 <div className="h-2 grow rounded-full bg-tint">
                   <div className="h-2 rounded-full bg-agree" style={{ width: `${Math.round((100 * g.agree) / g.answered)}%` }} />

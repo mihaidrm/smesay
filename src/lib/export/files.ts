@@ -10,14 +10,21 @@
 // acceptance 5) every respondent is "Anonymous [N]" and the answers, people and missing files
 // have no field column, no Submitted at, no Source, no Reminders and no Perspectives; the
 // People file keeps Minutes to submit (a duration), so the median tile still adds up.
+// Amended 2026-10-06 after the audit: under those levels the answers, people and missing
+// files list people, so they follow no field or perspective filter (and, under Names hidden,
+// no status filter); their first lines say so. The items file follows the whole filter and,
+// when it keeps fewer than 3 counted people, has no row but the line saying so; an item fewer
+// than 3 counted people could see has no count, its agreement cell "Fewer than 3 answers".
+// Under Names hidden no file says who has submitted: no Status, Since submitting, Answered,
+// Items seen or Minutes to submit, since Share names who has finished.
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results, tracker } from "@/db/queries/results";
 import type { CsvFile, WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
 import { namesShown } from "@/lib/anonymity";
-import { describeFilter, filterActive, KIND_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
-import { RESPONSES_COPY } from "@/lib/results-copy";
+import { describeFilter, filterActive, identityFiltered, KIND_LABELS, personFilter, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
+import { AGREEMENT_COPY, RESPONSES_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { type Cell, isoUtc } from "./csv";
 import { EXPORT_COPY } from "./copy";
@@ -31,12 +38,17 @@ const since = (p: { changedSince: boolean; submittedAgain?: boolean }) => (p.cha
 export async function exportTable(ws: WorkspaceId, instrument: Instrument, file: CsvFile, f: ResultsFilter, ctx: FilterContext, sample: boolean): Promise<ExportTable> {
   const preamble: Cell[][] = [];
   if (sample) preamble.push([EXPORT_COPY.watermark]);
-  if (filterActive(f)) preamble.push([EXPORT_COPY.filtered(describeFilter(f, ctx))]);
+  // A file of people reads the filter a list of people follows (E5-7, amended 2026-10-06).
+  const listed = file === "items" ? f : personFilter(f, instrument.anonymity);
+  if (filterActive(listed)) preamble.push([EXPORT_COPY.filtered(describeFilter(listed, ctx))]);
+  if (file !== "items" && identityFiltered(f, instrument.anonymity)) preamble.push([RESULTS_COPY.personLevel]);
   if (f.includeUnsubmitted) preamble.push([EXPORT_COPY.withUnsubmitted]);
   const named = namesShown(instrument.anonymity);
   const fields = named ? instrument.respondentFields : [];
   // A column kept only under Named (E5-7).
   const only = <T,>(cells: T[]): T[] => (named ? cells : []);
+  // A column that says who has submitted: not under Names hidden (E5-7, amended 2026-10-06).
+  const stated = <T,>(cells: T[]): T[] => (instrument.anonymity === "hidden" ? [] : cells);
   const method = instrument.method;
   const label = (code: string | null) => (code === null ? "" : labelFor(method, instrument.scaleLabels, code) ?? "");
   const setItems = await items.forSet(ws, instrument.itemSetId);
@@ -49,26 +61,31 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const rows = await results.rows(ws, instrument.id, f);
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, ...only([C.submittedAt]), C.sinceSubmit, ...only([C.source, C.perspectives])],
+      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, ...only([C.submittedAt]), ...stated([C.sinceSubmit]), ...only([C.source, C.perspectives])],
       rows: rows.map((r) => {
         const it = byId.get(r.itemId);
         const p = it ? proposed(it) : null;
         return [name(r), ...fields.map((s) => r.fields[s.key] ?? ""), it?.sourceRef ?? "", it?.area ?? "", it ? text(it) : "", p ?? "", label(p),
-          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", ...only([isoUtc(r.submittedAt)]), since(r), ...only([EXPORT_COPY.sources[r.source], r.perspectives.join(", ")])];
+          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", ...only([isoUtc(r.submittedAt)]), ...stated([since(r)]), ...only([EXPORT_COPY.sources[r.source], r.perspectives.join(", ")])];
       }),
     };
   }
 
   if (file === "items") {
+    const header = [C.reference, C.item, C.original, C.area, C.proposedValue, C.proposedLabel, KIND_LABELS.agree, KIND_LABELS.change, KIND_LABELS.disagree, KIND_LABELS.unclear, KIND_LABELS.pick, C.notAnswered, C.agreement];
+    // Under the two levels a filter that keeps fewer than 3 counted people: no row (E5-7, B).
+    if (!named && (await results.numbers(ws, instrument.id, f))?.tooFew) return { preamble: [...preamble, [RESULTS_COPY.tooFew]], header, rows: [] };
     const counts = new Map((await agreement.byItem(ws, instrument.id, f)).map((c) => [c.itemId, c]));
     return {
       preamble,
-      header: [C.reference, C.item, C.original, C.area, C.proposedValue, C.proposedLabel, KIND_LABELS.agree, KIND_LABELS.change, KIND_LABELS.disagree, KIND_LABELS.unclear, KIND_LABELS.pick, C.notAnswered, C.agreement],
+      header,
       rows: setItems.map((it) => {
         const c = counts.get(it.id);
         const p = proposed(it);
+        const head = [it.sourceRef ?? "", text(it), it.originalText, it.area ?? "", p ?? "", label(p)];
+        if (c?.few) return [...head, "", "", "", "", "", "", AGREEMENT_COPY.fewAnswers];
         const answered = c ? c.agree + c.change + c.disagree + c.unclear + c.pick : 0;
-        return [it.sourceRef ?? "", text(it), it.originalText, it.area ?? "", p ?? "", label(p), c?.agree ?? 0, c?.change ?? 0, c?.disagree ?? 0, c?.unclear ?? 0, c?.pick ?? 0, Math.max(0, (c?.couldSee ?? 0) - answered), c?.percent ?? ""];
+        return [...head, c?.agree ?? 0, c?.change ?? 0, c?.disagree ?? 0, c?.unclear ?? 0, c?.pick ?? 0, Math.max(0, (c?.couldSee ?? 0) - answered), c?.percent ?? ""];
       }),
     };
   }
@@ -79,10 +96,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const minutes = new Map((await results.people(ws, instrument.id, f)).map((p) => [p.id, p.minutesToSubmit]));
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit, C.answered, C.visible, ...only([C.submittedAt]), C.minutes, ...only([C.source, C.reminders]), C.withComment],
+      header: [C.respondent, ...fields.map((s) => s.label), ...stated([C.status, C.sinceSubmit, C.answered, C.visible]), ...only([C.submittedAt]), ...stated([C.minutes]), ...only([C.source, C.reminders]), C.withComment],
       rows: people.map((p) => {
         const m = minutes.get(p.id);
-        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible, ...only([isoUtc(p.submittedAt)]), m ?? "", ...only<string | number>([EXPORT_COPY.sources[p.source], p.reminders ?? ""]), p.withComment];
+        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), ...stated<string | number>([EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible]), ...only([isoUtc(p.submittedAt)]), ...stated<string | number>([m ?? ""]), ...only<string | number>([EXPORT_COPY.sources[p.source], p.reminders ?? ""]), p.withComment];
       }),
     };
   }
@@ -91,7 +108,7 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
   const missing = await registers.missing(ws, instrument.id, { ...f, sort: null }, keys, method);
   return {
     preamble,
-    header: [C.suggested, C.suggestedArea, C.suggestedValue, C.suggestedLabel, C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit],
-    rows: missing.map((m) => [m.text, m.area ?? "", m.value ?? "", label(m.value), name(m), ...keys.map((k) => m.fields[k] ?? ""), m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress, since(m)]),
+    header: [C.suggested, C.suggestedArea, C.suggestedValue, C.suggestedLabel, C.respondent, ...fields.map((s) => s.label), ...stated([C.status, C.sinceSubmit])],
+    rows: missing.map((m) => [m.text, m.area ?? "", m.value ?? "", label(m.value), name(m), ...keys.map((k) => m.fields[k] ?? ""), ...stated([m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress, since(m)])]),
   };
 }

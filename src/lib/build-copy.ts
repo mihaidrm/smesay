@@ -92,7 +92,7 @@ export const ABOUT_YOU_COPY = {
   answeringAs: (who: string) => `Answering as ${who}.`,
   answeringAsNote: "The person who invited you filled this in. Tell them if it is wrong.",
   // Who sees whose answers (stories/E5-7, acceptance 3), above the fields; nothing under Named.
-  anonymous: "Your answers are anonymous. Nothing here asks who you are, and the team sees your answers without a name.",
+  anonymous: "Your answers are anonymous. No name or email is asked, and the team sees your answers without a name.",
   namesHidden: "The team sees your answers without your name. They can see that you have finished.",
   // Perspectives (stories/E5-4): the question on About you, shown only when some exist.
   perspectivesQuestion: "Which of these describe you?",

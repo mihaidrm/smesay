@@ -17,6 +17,7 @@ import { auth } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
 import { DEFAULT_TILES, tileView } from "@/lib/results-tiles";
+import { RESULTS_COPY } from "@/lib/results-copy";
 import { requireWorkspace } from "@/lib/workspace";
 import { pageCount } from "./pdf";
 import { register, REGISTER_ROWS_MAX, summaryView } from "./summary";
@@ -75,17 +76,36 @@ describe("summaryView", () => {
     expect(states).toEqual([...states].sort());
     expect(v.actions.every((a) => a.cites.startsWith("From: "))).toBe(true);
   });
-  // E5-7, acceptance 5: under Names hidden the PDF names nobody and its sign-off record has
-  // no time.
-  it("names nobody under Names hidden, and the sign-off record reads Submitted with no time", async () => {
+  // E5-7, acceptance 5 (amended 2026-10-06 after the audit): the PDF names nobody under either
+  // level; under Anonymous the sign-off record reads Submitted with no time, under Names hidden
+  // it lists no one and no register row is marked; a filter that keeps fewer than 3 counted
+  // people draws no number, area or item, while the registers keep the whole validation.
+  it("names nobody under Names hidden and Anonymous, and draws nothing for fewer than 3 people", async () => {
     const [projectB] = (await projects.list(wsB)).filter((p) => p.isSample);
     const instB = (await instruments.latestForProject(wsB, projectB.id))!;
-    const hidden = (await instruments.update(wsB, instB.id, { anonymity: "hidden" }))!;
-    const v = (await summaryView({ ws: wsB, workspace: "Summary B", project: projectB, instrument: hidden, filter: NONE, ctx: { fields: [], perspectives: [], anonymity: "hidden" }, tiles: DEFAULT_TILES, now: NOW }))!;
-    expect(v.signOffs).toHaveLength(expected.submitted);
-    expect(v.signOffs.every((s) => /^Anonymous \d+$/.test(s.who) && /^Submitted(, changes not submitted again)?$/.test(s.when))).toBe(true);
-    const text = JSON.stringify(v);
-    for (const name of ["Ioana", "Tom Reyes", "Dana Okafor", "Lukas", "Priya", "Sam Hill"]) expect(text).not.toContain(name);
+    const view = async (level: "hidden" | "anonymous", filter: ResultsFilter) => {
+      const inst = (await instruments.update(wsB, instB.id, { anonymity: level }))!;
+      return (await summaryView({ ws: wsB, workspace: "Summary B", project: projectB, instrument: inst, filter, ctx: { fields: inst.respondentFields.filter((f) => f.type === "dropdown"), perspectives: [], anonymity: level }, tiles: DEFAULT_TILES, now: NOW }))!;
+    };
+    const anonymous = await view("anonymous", NONE);
+    expect(anonymous.signOffs).toHaveLength(expected.submitted);
+    expect(anonymous.signOffs.every((s) => /^Anonymous \d+$/.test(s.who) && /^Submitted(, changes not submitted again)?$/.test(s.when))).toBe(true);
+    const hidden = await view("hidden", NONE);
+    expect([hidden.signOffs, hidden.signOffHidden]).toEqual([[], true]);
+    expect(hidden.registers.flatMap((r) => r.rows.flat()).some((c) => /not submitted/i.test(c))).toBe(false);
+    expect(summaryHtml(hidden)).toContain(SUMMARY_COPY.signOffHidden);
+    expect(hidden.confidence).toEqual(anonymous.confidence);
+    for (const v of [anonymous, hidden]) {
+      const text = JSON.stringify(v);
+      for (const name of ["Ioana", "Tom Reyes", "Dana Okafor", "Lukas", "Priya", "Sam Hill"]) expect(text).not.toContain(name);
+    }
+    // Sales: 2 submitted people. The headline numbers, the areas and the items are not drawn;
+    // the registers follow no field filter and say so.
+    const sales = await view("anonymous", { ...NONE, fields: { role: ["Sales"] } });
+    expect([sales.tiles, sales.areas, sales.tables, sales.confidence]).toEqual([[], [], [], [0, 0, 0, 0, 0]]);
+    expect(sales.lines).toEqual(["Filtered: Role: Sales", RESULTS_COPY.personLevel, RESULTS_COPY.tooFew]);
+    expect(sales.registers.map((r) => r.total)).toEqual(anonymous.registers.map((r) => r.total));
+    expect(sales.signOffs).toEqual(anonymous.signOffs);
     await instruments.update(wsB, instB.id, { anonymity: "named" });
   });
   it("follows the filter and names it", async () => {

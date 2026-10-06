@@ -15,9 +15,13 @@ direct labels are its counts in words under it, since no number in a status colo
 contrast; the percentage is summed into areas and groups in the model with the SQL's rule,
 tested to agree.
 
-Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous a split sums
-the values fewer than 3 counted respondents gave into one group, "Groups under 3 people"
-(foldSmallGroups in src/lib/results-agreement.ts); the gaps view keeps its rule.
+Amended 2026-10-06 (E5-7, design note 100, after the audit): under Names hidden and Anonymous
+a split draws no group of fewer than 3 respondents within the filter: those values (and Not
+given) are one group, "Groups under 3 people", only when together they reach 3, else they
+are left out, and the items' bars still count them (src/db/queries/results.ts
+agreement.byItem); the gaps view follows the same rule and names no value the filter does
+not offer. An item or a group fewer than 3 counted respondents could see reads "Fewer than 3
+answers" with no count; a filter that keeps fewer than 3 draws no view.
 
 ## Acceptance criteria
 1. Agreement tab (PM app board): areas in order, each with its items: reference, text,

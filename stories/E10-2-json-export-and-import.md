@@ -8,7 +8,12 @@ workspace recreates it.
 Amended 2026-10-06 (E5-7, design note 100): each validation carries its anonymity (absent
 reads Named); a response of a validation set to Names hidden or Anonymous goes out with no
 invite id and no fields, and comes back on its validation's public invite. A null invite on
-a Named validation, or a text field under the other two, is a damaged file.
+a Named validation, or a text field under the other two, is a damaged file. Amended again
+after the audit: such a response also goes out with no perspectives and with the export's
+time for its start, last save and submits (null kept), its answers and its missing items;
+no personal invite of such a validation is written (Export everything alike), so the
+imported project has the public link only; a personal invite or a response field that is not
+a dropdown's value under those levels is a damaged file.
 
 ## Acceptance criteria
 1. "Whole project" export: items in every set version, the instrument(s), invites (tokens

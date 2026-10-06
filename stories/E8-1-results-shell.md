@@ -12,7 +12,12 @@ Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the
 holds the dropdown fields only, each with the values 3 counted respondents or more gave
 (resultsContext, src/lib/results-context.ts), with a line saying why the others are not
 offered; Submitted of invited counts the people who started, since no invitee who has not
-started is a row.
+started is a row. Amended again 2026-10-06 after the audit: a field or perspective filter
+narrows the tiles and the Agreement view only, and when the whole filter keeps fewer than 3
+counted respondents they read "Fewer than 3 people match these filters. Widen them to see
+the results."; the tabs that list people show the whole validation with a line saying why,
+and their counts in the tab row are counted the same way; under Names hidden there is no
+status filter.
 
 ## Acceptance criteria
 1. Results (PM app board): the headline strip holds up to six tiles chosen by the PM from

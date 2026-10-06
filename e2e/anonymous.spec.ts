@@ -1,9 +1,11 @@
 // The main path of E5-7 (acceptance 9): sign in, create a project, paste a list, open Build;
 // Anonymous is refused while the default Name and Role are text fields, naming both; remove
 // Name, make Role a dropdown, save, pick Anonymous and save; publish on Share, where the
-// personal invites card says the validation uses the public link only; open the link on a
-// phone, see the About you line, pick a role, start and answer one item; then Results'
-// Responses tab lists "Anonymous 1" with no field column and no submitted time.
+// personal invites card says the validation uses the public link only; open the link on four
+// phones, see the About you line, pick a role (Sales three times, Finance once), start and
+// answer one item; then Results' Responses tab lists "Anonymous 1" to "Anonymous 4" with no
+// field column and no submitted time, offers Sales (3 people) and not Finance (1) as a filter,
+// and a Sales filter leaves the tab whole with the line saying why (amended 2026-10-06).
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
@@ -11,7 +13,7 @@ import { latestLink } from "./mailpit";
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.82" } });
 
 test("set Anonymous on Build, answer through the public link, see Anonymous 1 on Results", async ({ page, request, browser }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   const email = `e2e-anonymous-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
@@ -74,32 +76,42 @@ test("set Anonymous on Build, answer through the public link, see Anonymous 1 on
   await expect(page.getByTestId("link-state")).toHaveText("Published");
   const url = await page.getByTestId("share-link").inputValue();
 
-  // The phone: the About you line above the fields, Role only, Start, one answer.
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  const link = await phone.newPage();
-  await link.goto(url);
-  await link.locator("[data-ready]").waitFor();
-  await expect(link.getByTestId("about-you-anonymity")).toHaveText("Your answers are anonymous. Nothing here asks who you are, and the team sees your answers without a name.");
-  await expect(link.getByLabel("Name")).toHaveCount(0);
-  await link.getByLabel("Role").selectOption("Sales");
-  await link.getByTestId("about-you-start").click();
-  await expect(link.getByTestId("chapter-screen")).toBeVisible();
-  const receipts = link.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
-  await receipts.getByRole("radio", { name: "Must" }).click();
-  await expect(receipts.getByTestId("item-card-note")).toHaveText("Saved");
-  await phone.close();
+  // Four phones (a new context each, so a new device): the About you line above the fields,
+  // Role only, Start, one answer.
+  for (const role of ["Sales", "Sales", "Sales", "Finance"]) {
+    const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const link = await phone.newPage();
+    await link.goto(url);
+    await link.locator("[data-ready]").waitFor();
+    await expect(link.getByTestId("about-you-anonymity")).toHaveText("Your answers are anonymous. No name or email is asked, and the team sees your answers without a name.");
+    await expect(link.getByLabel("Name")).toHaveCount(0);
+    await link.getByLabel("Role").selectOption(role);
+    await link.getByTestId("about-you-start").click();
+    await expect(link.getByTestId("chapter-screen")).toBeVisible();
+    const receipts = link.getByTestId("item-card").filter({ hasText: "Receipts captured by phone" });
+    await receipts.getByRole("radio", { name: "Must" }).click();
+    await expect(receipts.getByTestId("item-card-note")).toHaveText("Saved");
+    await phone.close();
+  }
 
-  // Results, Responses: Anonymous 1, no field column, no submitted time.
+  // Results, Responses: Anonymous 1 to 4, no field column, no submitted time.
   await page.goto(`${projectUrl}/results?tab=responses`);
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
   const rows = page.getByTestId("response-row");
-  await expect(rows).toHaveCount(1);
+  await expect(rows).toHaveCount(4);
   await expect(rows.first().getByRole("rowheader")).toHaveText("Anonymous 1");
   await expect(page.getByTestId("sort-name")).toContainText("Respondent");
   await expect(page.getByTestId("sort-field.role")).toHaveCount(0);
   await expect(page.getByTestId("sort-submitted")).toHaveCount(0);
   await expect(page.getByTestId("submitted-cell")).toHaveCount(0);
-  // One Sales respondent is under 3: Sales is not offered as a filter, and the bar says why.
-  await expect(page.getByTestId("filter-role")).toHaveCount(0);
+  // Finance (one respondent) is under 3: only Sales is offered as a filter, and the bar says why.
+  await expect(page.getByTestId("filter-role")).toHaveCount(1);
+  await expect(page.getByTestId("filter-role")).toHaveText("Sales");
   await expect(page.getByTestId("filter-small-values")).toBeVisible();
+  await expect(page.getByTestId("person-level-line")).toHaveCount(0);
+  // A field filter changes the charts only: the tab still lists all four, and says why.
+  await page.getByTestId("filter-role").click();
+  await expect(page).toHaveURL(/f\.role=Sales/);
+  await expect(page.getByTestId("person-level-line")).toHaveText("Filters by a field or perspective change the charts only, so no list can be narrowed to a few people.");
+  await expect(rows).toHaveCount(4);
 });

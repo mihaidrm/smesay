@@ -12,8 +12,8 @@ export const DEFAULT_ANONYMITY: Anonymity = "named";
 
 export const ANONYMITY_META: { key: Anonymity; label: string; hint: string }[] = [
   { key: "named", label: "Named", hint: "Results show each person's name and fields. The default." },
-  { key: "hidden", label: "Names hidden", hint: "Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, the finishing times on Share can still point to someone." },
-  { key: "anonymous", label: "Anonymous", hint: "The public link only: no personal invites, and no name or email fields." },
+  { key: "hidden", label: "Names hidden", hint: "Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, the finishing times on Share can still point to someone. Do not ask for a name in a dropdown or in the closing question." },
+  { key: "anonymous", label: "Anonymous", hint: "The public link only: no personal invites, and no name or email fields. Do not ask for a name in a dropdown or in the closing question." },
 ];
 
 export const isAnonymity = (value: unknown): value is Anonymity => value === "named" || value === "hidden" || value === "anonymous";

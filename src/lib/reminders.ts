@@ -6,11 +6,13 @@
 // both send; a reminder whose email fails gives the claim back. Email 3
 // (src/lib/mail/templates/reminder.ts) carries "You have not started yet." or "You answered
 // [N] of [M] items." from the invite's newest response and its answers. The link in force
-// must be open or opening later (the same checks as sending an invite).
+// must be open or opening later (the same checks as sending an invite). An Anonymous
+// validation takes no reminder (stories/E5-7, amended 2026-10-06): it has no personal invite
+// to remind, and a crafted request is refused with the invites' message.
 import { answers, invites, items, projects, responses, workspaces } from "@/db/queries";
 import type { InviteeRow } from "@/db/queries/invites";
 import type { WorkspaceId } from "@/db/types";
-import { INVITEES_COPY, listInvitees, reasonOf, type Sender } from "@/lib/invitees";
+import { INVITEES_COPY, INVITEES_ERRORS, listInvitees, reasonOf, type Sender } from "@/lib/invitees";
 import { reminderEmail } from "@/lib/mail/templates/reminder";
 import { sendMail, type Mail } from "@/lib/mail";
 import { NotFoundError } from "@/lib/errors";
@@ -26,6 +28,7 @@ type Ready = { error: string } | { pmName: string; projectName: string; itemCoun
 async function ready(ws: WorkspaceId, projectId: string, instrumentId: string, sender: Sender, now: Date): Promise<Ready> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
+  if (owned.instrument.anonymity === "anonymous") return { error: INVITEES_ERRORS.anonymous };
   const link = await invites.publicForInstrument(ws, instrumentId);
   if (!link) return { error: INVITEES_COPY.needLink };
   const state = linkState(link, now);

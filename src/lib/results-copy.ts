@@ -27,6 +27,11 @@ export const RESULTS_COPY = {
   contains: (label: string) => `${label} contains`,
   // E5-7, acceptance 4: under the bar when the validation hides names and a value was left out.
   smallValues: "A value fewer than 3 people gave is not offered as a filter, so one person cannot be singled out.",
+  // E5-7, amended 2026-10-06: under Names hidden and Anonymous, in place of the numbers and the
+  // Agreement view when a filter keeps fewer than 3 counted people (B).
+  tooFew: "Fewer than 3 people match these filters. Widen them to see the results.",
+  // Above every list of people under a field or perspective filter, at the two levels (A).
+  personLevel: "Filters by a field or perspective change the charts only, so no list can be narrowed to a few people.",
   clearFilters: "Clear filters",
   showing: (n: number, m: number, filters: string) => `Showing ${n} of ${m} responses: ${filters}.`,
   noAnswersTitle: "No answers yet.",
@@ -123,6 +128,8 @@ export const AGREEMENT_COPY = {
   groupNone: "Not given",
   // E5-7, acceptance 4: the values fewer than 3 people gave, together, under Names hidden and Anonymous.
   groupSmall: "Groups under 3 people",
+  // E5-7, amended 2026-10-06 (D): an item or a group fewer than 3 counted people could see.
+  fewAnswers: "Fewer than 3 answers",
   valuesLegend: "Values picked, where no proposal was shown",
   smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",
   chartTitle: (what: string) => `Answers on ${what}`,
@@ -162,5 +169,7 @@ export const DETAIL_COPY = {
   notSubmitted: "Not submitted",
   noAnswer: "No answer yet.",
   noRows: "No one the filter keeps sees this item. Change the filter to see their answers.",
+  // E5-7, amended 2026-10-06 (D): under Names hidden and Anonymous.
+  fewRows: "Fewer than 3 people could see this item, so its answers are not listed.",
   notFound: "This item is not in the list's current version. Go back and open an item from the list.",
 };

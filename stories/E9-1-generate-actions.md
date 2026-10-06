@@ -7,7 +7,8 @@ it comes from; an action without a citation is never shown.
 
 Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous no respondent
 field is sent to the model (each respondent a bare R ref; the prompt's text and shape do not
-change), and the citations read "Anonymous [N]".
+change), and the citations read "Anonymous [N]". Amended again after the audit: no answer on
+an item fewer than 3 counted respondents could see is sent, so no action cites one.
 
 ## Acceptance criteria
 1. Actions tab (PM app board): "Write actions" (and "Write again"); each action has a title,

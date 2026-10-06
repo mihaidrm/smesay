@@ -24,12 +24,22 @@
 // (pub_submitted_at) and no reminders. The filters, the split and the gaps still read the
 // stored dropdown values (fields), which only dropdowns can hold under those levels. The rule
 // is here, in the SQL, so no page, file or prompt can show what the level hides.
+//
+// Amended 2026-10-06 after the audit (design note 100): every query reads in one of two
+// modes. "aggregate" (numbers, agreement.byItem, gaps.byField, the detail's counts) takes the
+// whole filter; under the two levels, when a filter narrows the people to fewer than MIN_GROUP
+// counted respondents, nobody is kept (sel is empty, numbers says tooFew), so no chart can be
+// drawn for one or two people. "person" (the Responses tab, the registers, the detail's list,
+// rows, people, missing, signOffs) ignores the field and perspective filters under the two
+// levels, and the status filter under Names hidden, so no list can be narrowed to a few
+// people. In both modes, under the two levels, the answers on an item seen by fewer than
+// MIN_GROUP of the people counted (few) count nowhere, and the item reads few.
 import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import type { ScoringMethod, WorkspaceId } from "@/db/types";
 import { MIN_GROUP } from "@/lib/results-agreement";
-import type { ResultsFilter } from "@/lib/results-filter";
+import { filterActive, type ResultsFilter } from "@/lib/results-filter";
 import { proposedCode, SCALES } from "@/lib/scoring";
 import type { ResultsNumbers } from "@/lib/results-tiles";
 import type { DetailCounts } from "@/lib/results-detail";
@@ -38,18 +48,25 @@ import { isUuid } from "./scoped";
 
 const list = (values: string[]) => sql.join(values.map((v) => sql`${v}`), sql`, `);
 
-// The conditions on one person (the alias p of the people below).
-function personConditions(ws: WorkspaceId, f: ResultsFilter): SQL[] {
+// How a query reads the filter (E5-7, amended 2026-10-06): see the head of this file.
+export type ReadMode = "aggregate" | "person";
+
+// The conditions on one person (the alias p of the people below). In person mode, under Names
+// hidden and Anonymous, a field or perspective condition holds for everyone, and under Names
+// hidden a status condition too (E5-7, amended 2026-10-06).
+function personConditions(ws: WorkspaceId, f: ResultsFilter, mode: ReadMode): SQL[] {
   const conds: SQL[] = [];
+  const identity = (cond: SQL) => (mode === "person" ? sql`(not (select named from inst) or ${cond})` : cond);
+  const status = (cond: SQL) => (mode === "person" ? sql`((select anonymity from inst) = 'hidden' or ${cond})` : cond);
   for (const [key, v] of Object.entries(f.fields)) {
     // A text filter on the name reads the name shown (E8-2: a personal invite's name or email
     // when the field is empty), so what the filter finds is what the tab shows.
     const text = key === "name" ? sql`p.who` : sql`(p.fields ->> ${key})`;
-    conds.push(Array.isArray(v) ? sql`(p.fields ->> ${key}) in (${list(v)})` : sql`strpos(lower(coalesce(${text}, '')), lower(${v})) > 0`);
+    conds.push(identity(Array.isArray(v) ? sql`(p.fields ->> ${key}) in (${list(v)})` : sql`strpos(lower(coalesce(${text}, '')), lower(${v})) > 0`));
   }
-  if (f.perspective !== null) conds.push(sql`${f.perspective} = any(p.perspectives)`);
-  if (f.status.length === 1) conds.push(f.status[0] === "submitted" ? sql`p.src = 'r' and p.submitted_at is not null` : sql`p.src = 'r' and p.submitted_at is null`);
-  if (f.status.length === 2) conds.push(sql`p.src = 'r'`);
+  if (f.perspective !== null) conds.push(identity(sql`${f.perspective} = any(p.perspectives)`));
+  if (f.status.length === 1) conds.push(status(f.status[0] === "submitted" ? sql`p.src = 'r' and p.submitted_at is not null` : sql`p.src = 'r' and p.submitted_at is null`));
+  if (f.status.length === 2) conds.push(status(sql`p.src = 'r'`));
   const answered = (kinds: string[] | null) => sql`exists (select 1 from answer a where a.workspace_id = ${ws} and a.response_id = p.id${kinds ? sql` and a.kind in (${list(kinds)})` : sql``}${f.withComment ? sql` and (a.reason is not null or a.comment is not null)` : sql``})`;
   const real = f.kinds.filter((k) => k !== "none");
   if (f.kinds.length === 0 && f.withComment) conds.push(answered(null));
@@ -70,11 +87,16 @@ function personConditions(ws: WorkspaceId, f: ResultsFilter): SQL[] {
 // `once`: for a query that reads counted only once, which Postgres would inline; the planner,
 // misjudging fresh rows, then re-ran the people per answer (minutes on 600 responses), so
 // counted is materialized there (postgresql.org/docs/current/queries-with.html, MATERIALIZED).
-function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = false): SQL {
-  const conds = personConditions(ws, f);
+// `mode`: aggregate or person (the head of this file). Under the two levels, in aggregate mode,
+// sel keeps nobody when a filter narrows the counted people below MIN_GROUP (B); in both modes
+// few holds the items seen by fewer than MIN_GROUP of the counted people, whose answers ans
+// leaves out (D).
+function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = false, mode: ReadMode = "aggregate"): SQL {
+  const conds = personConditions(ws, f, mode);
   const where = conds.length > 0 ? sql`where ${sql.join(conds, sql` and `)}` : sql``;
+  const narrowed = mode === "aggregate" && filterActive(f);
   return sql`with inst as (
-      select id, item_set_id, project_id, reason_rule, anonymity = 'named' as named from instrument where workspace_id = ${ws} and id = ${instrumentId}
+      select id, item_set_id, project_id, reason_rule, anonymity, anonymity = 'named' as named from instrument where workspace_id = ${ws} and id = ${instrumentId}
     ),
     its as (
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
@@ -114,13 +136,29 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
         where i.workspace_id = ${ws} and inst.named and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
     ),
-    sel as (select * from people p ${where}),
+    -- E5-7 (B): under the two levels a filter that keeps fewer than MIN_GROUP counted people
+    -- keeps nobody in aggregate mode. Written only when a filter narrows, so the people of an
+    -- unfiltered read are not materialized twice (the 500 ms budget of the tests).
+    ${narrowed ? sql`sel0 as (select * from people p ${where}),
+    guard as (
+      select (select named from inst)
+          or (select count(*) from sel0 where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)) >= ${MIN_GROUP} as ok
+    ),
+    sel as (select * from sel0 where (select ok from guard)),` : sql`guard as (select true as ok),
+    sel as (select * from people p ${where}),`}
     counted as ${once ? sql`materialized ` : sql``}(select * from sel where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)),
-    ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment, c.fields as rfields from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws}),
-    -- Per item, in one pass over the answers (not a scan of them per item).
+    -- E5-7 (D): under the two levels, the items fewer than MIN_GROUP counted people can see.
+    few as (
+      select its.id from its
+        where not (select named from inst)
+          and (select count(*) from counted c where cardinality(its.perspectives) = 0 or its.perspectives && c.perspectives) < ${MIN_GROUP}
+    ),
+    ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment, c.fields as rfields from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws} and a.item_id not in (select id from few)),
+    -- Per item, in one pass over the answers (not a scan of them per item); an item seen by
+    -- few is none of the strip's items.
     per_item as (
       select its.id, count(ans.id) as n, count(ans.id) filter (where ans.kind <> 'agree') as other, count(ans.id) filter (where ans.kind in ('change', 'disagree')) as pushed
-        from its left join ans on ans.item_id = its.id group by its.id
+        from its left join ans on ans.item_id = its.id where its.id not in (select id from few) group by its.id
     )`;
 }
 
@@ -128,7 +166,7 @@ type NumbersRow = {
   invited: number; submitted: number; in_progress: number; shown: number; total: number;
   agree: number; change: number; disagree: number; unclear: number; pick: number; answered: number;
   with_comment: number; missing: number; unanswered_items: number; fully_agreed: number; pushed_back_items: number;
-  median_minutes: number | null; any_answer: boolean; actions: number;
+  median_minutes: number | null; any_answer: boolean; actions: number; too_few: boolean;
 };
 
 // One person and one missing item as the filter keeps them, for the tiles that count people
@@ -153,10 +191,12 @@ export type ResultRow = {
 };
 
 export const results = {
-  numbers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultsNumbers | null> => {
+  // `mode` person: the counts the person-level tabs show (their headings), under the two levels.
+  numbers: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, mode: ReadMode = "aggregate"): Promise<ResultsNumbers | null> => {
     if (!isUuid(instrumentId)) return null;
-    const [row] = await db.execute<NumbersRow>(sql`${head(ws, instrumentId, f)}
+    const [row] = await db.execute<NumbersRow>(sql`${head(ws, instrumentId, f, false, mode)}
       select
+        not (select ok from guard) as too_few,
         (select count(*) from sel)::int as invited,
         (select count(*) from sel where src = 'r' and submitted_at is not null)::int as submitted,
         (select count(*) from sel where src = 'r' and submitted_at is null)::int as in_progress,
@@ -185,12 +225,12 @@ export const results = {
       invited: row.invited, submitted: row.submitted, inProgress: row.in_progress, shown: row.shown, total: row.total,
       agree: row.agree, change: row.change, disagree: row.disagree, unclear: row.unclear, pick: row.pick, answered: row.answered,
       withComment: row.with_comment, missing: row.missing, unansweredItems: row.unanswered_items, fullyAgreed: row.fully_agreed,
-      pushedBackItems: row.pushed_back_items, medianMinutes: row.median_minutes, anyAnswer: row.any_answer, actions: row.actions,
+      pushedBackItems: row.pushed_back_items, medianMinutes: row.median_minutes, anyAnswer: row.any_answer, actions: row.actions, tooFew: row.too_few,
     };
   },
   rows: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean; who: string | null; anon: string | number | null; fields: Record<string, string> | null; perspectives: string[] | null; source: string; submitted_at: string | Date | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean; who: string | null; anon: string | number | null; fields: Record<string, string> | null; perspectives: string[] | null; source: string; submitted_at: string | Date | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f, false, "person")}
       select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted,
           c.who, c.anon, c.pub_fields as fields, c.perspectives, c.source, c.pub_submitted_at as submitted_at, c.signed_off
         from ans join counted c on c.id = ans.response_id order by ans.response_id, ans.item_id`);
@@ -202,7 +242,7 @@ export const results = {
   },
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<PersonOfRows[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; src: string; submitted: boolean; counted: boolean; minutes: number | null }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; src: string; submitted: boolean; counted: boolean; minutes: number | null }>(sql`${head(ws, instrumentId, f, false, "person")}
       select sel.id, sel.src, (sel.submitted_at is not null) as submitted, exists (select 1 from counted c where c.id = sel.id) as counted,
           case when sel.first_submitted_at is not null then ${WHOLE_MINUTES} end as minutes
         from sel order by sel.id`);
@@ -232,15 +272,16 @@ export const results = {
   },
   missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<MissingRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; response_id: string; text: string }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; response_id: string; text: string }>(sql`${head(ws, instrumentId, f, false, "person")}
       select m.id, m.response_id, m.text from missing_item m join counted c on c.id = m.response_id where m.workspace_id = ${ws} order by m.created_at, m.id`);
     return rows.map((r) => ({ id: r.id, responseId: r.response_id, text: r.text }));
   },
   // The sign-off record (E10-3): every submitted response the filter keeps, named as the
-  // Responses tab names it, when it was submitted and how confident, oldest first.
-  signOffs: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<SignOff[]> => {
+  // Responses tab names it, when it was submitted and how confident, oldest first. A list, so
+  // person mode by default; aggregate for the confidence histogram (E5-7, amended 2026-10-06).
+  signOffs: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, mode: ReadMode = "person"): Promise<SignOff[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; who: string | null; anon: string | number | null; submitted_at: string | Date | null; confidence: number | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+    const rows = await db.execute<{ id: string; who: string | null; anon: string | number | null; submitted_at: string | Date | null; confidence: number | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f, false, mode)}
       select c.id, c.who, c.anon, c.pub_submitted_at as submitted_at, c.confidence, c.signed_off from counted c where c.submitted_at is not null order by c.pub_submitted_at, c.anon, c.id`);
     return rows.map((r) => ({ id: r.id, who: r.who, anon: r.anon === null ? null : Number(r.anon), submittedAt: r.submitted_at === null ? null : new Date(r.submitted_at), confidence: r.confidence, signedOff: r.signed_off }));
   },
@@ -284,8 +325,10 @@ function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
   const name = sql`lower(p.who) ${dir} nulls last, p.anon ${dir} nulls last`;
   const by: Record<string, SQL> = {
     name,
-    status: sql`(case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) ${dir}`,
-    progress: sql`coalesce(given.answered, 0) ${dir}`,
+    // E5-7 (amended 2026-10-06): no status and no progress to sort by under Names hidden, where
+    // Share names who has finished; the rows then stay in the order of their numbers.
+    status: sql`(case when (select anonymity from inst) <> 'hidden' then (case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) end) ${dir}`,
+    progress: sql`(case when (select anonymity from inst) <> 'hidden' then coalesce(given.answered, 0) end) ${dir}`,
     // E5-7: no submitted time and no source to sort by under Names hidden and Anonymous.
     submitted: sql`p.pub_submitted_at ${dir} nulls last`,
     source: sql`(case when (select named from inst) then p.source end) ${dir}`,
@@ -300,7 +343,7 @@ function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
 export const tracker = {
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<PersonRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; who: string | null; anon: string | number | null; src: string; submitted: boolean; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; who: string | null; anon: string | number | null; src: string; submitted: boolean; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f, false, "person")},
       -- One pass each over the items and the answers, grouped by person (a subquery per person
       -- was too slow at 500 people).
       shown as (
@@ -355,9 +398,21 @@ export const tracker = {
 // src/lib/results-agreement.ts percentOf, and a test checks the two agree on every item. With `split` (a dropdown field's
 // key, checked by the caller against the instrument), one row per item and group value
 // (null: the field left empty). Aggregates in SQL (group by item, kind, value, group).
+//
+// E5-7 (amended 2026-10-06 after the audit), under Names hidden and Anonymous: a row whose
+// counted people who could see it number fewer than MIN_GROUP is `few`, with every count 0
+// (D: "Fewer than 3 answers"). In a split, a value given by fewer than MIN_GROUP counted
+// people (within the filter) is no group: those people are summed into one row marked
+// `folded` (group null) when they reach MIN_GROUP together, and are left out of every group
+// otherwise; the people who left the field empty follow the same rule (C). The item's totals
+// then come from the same call without a split, since a group left out is still counted.
 export type ItemCounts = {
   itemId: string;
   group: string | null;
+  // The people of the values under MIN_GROUP, summed (E5-7); group is then null.
+  folded: boolean;
+  // Seen by fewer than MIN_GROUP counted people under the two levels (E5-7): counts are 0.
+  few: boolean;
   agree: number;
   change: number;
   disagree: number;
@@ -372,42 +427,67 @@ export type ItemCounts = {
 export const agreement = {
   byItem: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, split: string | null = null): Promise<ItemCounts[]> => {
     if (!isUuid(instrumentId)) return [];
-    const group = split === null ? sql`null::text` : sql`(c.fields ->> ${split})`;
-    const answerGroup = split === null ? sql`null::text` : sql`(ans.rfields ->> ${split})`;
-    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number> | null; could_see: number; percent: number | null }>(sql`${head(ws, instrumentId, f)},
+    // The group of a row whose respondent's fields are `fields`: under Named the value; under
+    // the two levels the value of a group of MIN_GROUP or more, the folded group, or no row
+    // (the condition `keep`). gmap holds one row per value given, so the join is small.
+    const gmapCte = split === null ? sql`` : sql`
+      gsize as (select nullif(c.fields ->> ${split}, '') as g, count(*)::int as n from counted c group by 1),
+      gmap as (
+        select g, n, (select named from inst) as named,
+            (select coalesce(sum(n), 0) >= ${MIN_GROUP} from gsize where n < ${MIN_GROUP}) as fold_ok
+          from gsize
+      ),`;
+    const grouping = (fields: SQL) => split === null
+      ? { cols: sql`null::text as grp, false as folded`, join: sql``, keep: sql`true` }
+      : {
+          cols: sql`case when gm.named then ${fields} ->> ${split} when gm.n >= ${MIN_GROUP} then gm.g end as grp, (not gm.named and gm.n < ${MIN_GROUP}) as folded`,
+          join: sql`join gmap gm on gm.g is not distinct from nullif(${fields} ->> ${split}, '')`,
+          keep: sql`(gm.named or gm.n >= ${MIN_GROUP} or gm.fold_ok)`,
+        };
+    const byPerson = grouping(sql`c.fields`);
+    const byAnswer = grouping(sql`ans.rfields`);
+    const rows = await db.execute<{ item_id: string; grp: string | null; folded: boolean; few: boolean; agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number> | null; could_see: number; percent: number | null }>(sql`${head(ws, instrumentId, f)},${gmapCte}
       seen as (
-        select its.id as item_id, ${group} as grp, c.id as response_id
+        select its.id as item_id, ${byPerson.cols}, c.id as response_id
           from its join counted c on cardinality(its.perspectives) = 0 or its.perspectives && c.perspectives
+            ${byPerson.join}
+          where ${byPerson.keep}
       ),
       byval as (
-        select ans.item_id, ${answerGroup} as grp, ans.value, count(*)::int as n
-          from ans where ans.value is not null group by 1, 2, 3
+        select ans.item_id, ${byAnswer.cols}, ans.value, count(*)::int as n
+          from ans ${byAnswer.join} where ans.value is not null and ${byAnswer.keep} group by 1, 2, 3, 4
       ),
-      vals as (select item_id, grp, jsonb_object_agg(value, n) as vals from byval group by 1, 2),
+      vals as (select item_id, grp, folded, jsonb_object_agg(value, n) as vals from byval group by 1, 2, 3),
       bykind as (
-        select ans.item_id, ${answerGroup} as grp,
+        select ans.item_id, ${byAnswer.cols},
             count(*) filter (where ans.kind = 'agree')::int as agree,
             count(*) filter (where ans.kind = 'change')::int as change,
             count(*) filter (where ans.kind = 'disagree')::int as disagree,
             count(*) filter (where ans.kind = 'unclear')::int as unclear,
             count(*) filter (where ans.kind = 'pick')::int as pick
-          from ans group by 1, 2
+          from ans ${byAnswer.join} where ${byAnswer.keep} group by 1, 2, 3
       ),
       cells as (
-        select item_id, grp, count(*)::int as could_see from seen group by 1, 2
+        select item_id, grp, folded, count(*)::int as could_see from seen group by 1, 2, 3
         union
-        select item_id, grp, 0 from bykind
+        select item_id, grp, folded, 0 from bykind
       ),
-      keys as (select item_id, grp, max(could_see)::int as could_see from cells group by 1, 2)
-      select k.item_id, k.grp, coalesce(b.agree, 0) as agree, coalesce(b.change, 0) as change, coalesce(b.disagree, 0) as disagree,
-          coalesce(b.unclear, 0) as unclear, coalesce(b.pick, 0) as pick,
-          v.vals as values,
-          k.could_see,
-          round(100.0 * coalesce(b.agree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as percent
-        from keys k left join bykind b on b.item_id = k.item_id and b.grp is not distinct from k.grp
-          left join vals v on v.item_id = k.item_id and v.grp is not distinct from k.grp
-        order by k.item_id, k.grp nulls last`);
-    return rows.map((r) => ({ itemId: r.item_id, group: r.grp, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent }));
+      keys as (
+        select item_id, grp, folded, max(could_see)::int as could_see,
+            not (select named from inst) and max(could_see) < ${MIN_GROUP} as few
+          from cells group by 1, 2, 3
+      )
+      select k.item_id, k.grp, k.folded, k.few,
+          case when k.few then 0 else coalesce(b.agree, 0) end as agree, case when k.few then 0 else coalesce(b.change, 0) end as change,
+          case when k.few then 0 else coalesce(b.disagree, 0) end as disagree, case when k.few then 0 else coalesce(b.unclear, 0) end as unclear,
+          case when k.few then 0 else coalesce(b.pick, 0) end as pick,
+          case when k.few then null else v.vals end as values,
+          case when k.few then 0 else k.could_see end as could_see,
+          case when k.few then null else round(100.0 * coalesce(b.agree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int end as percent
+        from keys k left join bykind b on b.item_id = k.item_id and b.grp is not distinct from k.grp and b.folded = k.folded
+          left join vals v on v.item_id = k.item_id and v.grp is not distinct from k.grp and v.folded = k.folded
+        order by k.item_id, k.folded, k.grp nulls last`);
+    return rows.map((r) => ({ itemId: r.item_id, group: r.grp, folded: r.folded, few: r.few, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent }));
   },
 };
 
@@ -468,9 +548,9 @@ export const registers = {
       item: sql`it.position ${dir}`,
       respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
       reason: sql`lower(x.reason) ${dir} nulls last`,
-      status: sql`(c.submitted_at is not null) ${dir}`,
+      status: sql`(case when (select anonymity from inst) <> 'hidden' then c.submitted_at is not null end) ${dir}`,
     };
-    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
+    const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true, "person")}
       select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.pub_fields as fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from ans x join counted c on c.id = x.response_id join item it on it.id = x.item_id and it.workspace_id = ${ws}
         where x.kind in (${list(kinds)})
@@ -489,9 +569,9 @@ export const registers = {
       text: sql`lower(x.text) ${dir}`,
       area: sql`x.suggested_area ${dir} nulls last`,
       respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
-      status: sql`(c.submitted_at is not null) ${dir}`,
+      status: sql`(case when (select anonymity from inst) <> 'hidden' then c.submitted_at is not null end) ${dir}`,
     };
-    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
+    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true, "person")}
       select x.id, x.text, x.suggested_area, x.suggested_value, c.pub_fields as fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
         order by ${registerOrder(f.sort, fieldKeys, columns)}`);
@@ -503,40 +583,56 @@ export const registers = {
 // One item's detail (E8-5): the item, and a row for every person the page's filter keeps who
 // sees the item (E5-4), with their answer when it counts (the include-unsubmitted switch), so
 // the counts (computed here) are the Agreement tab's for that item. A person started without a
-// counted answer on it, or invited and not started, has a row with no answer.
+// counted answer on it, or invited and not started, has a row with no answer. E5-7 (amended
+// 2026-10-06), under Names hidden and Anonymous: the rows are read in person mode (no field,
+// perspective or, under Names hidden, status filter) and the counts in aggregate mode (the
+// whole filter, nothing under MIN_GROUP people); an item seen by fewer than MIN_GROUP counted
+// people has no row (`few`), and its counts are 0 (`countsFew`).
 export type DetailItem = { id: string; reference: string | null; area: string | null; originalText: string; readerText: string | null; readerStatus: string | null; proposedValue: string | null };
 export type DetailRow = { personId: string; invited: boolean; submitted: boolean; fields: Record<string, string>; who: string | null; anon: number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null };
+export type DetailResult = { item: DetailItem; counts: DetailCounts; rows: DetailRow[]; few: boolean; countsFew: boolean };
+
+async function detailRead(ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter, mode: ReadMode): Promise<(DetailResult & { named: boolean }) | null> {
+  const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; named: boolean; few: boolean; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true, mode)},
+    one as (select its.id, its.perspectives, exists (select 1 from few where few.id = its.id) as few from its where its.id = ${itemId})
+    select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value, (select named from inst) as named, one.few,
+        p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.pub_fields as fields, p.who, p.anon,
+        x.kind, x.value, x.reason, x.comment,
+        -- The counts in SQL, over the rows (aggregate FILTER with OVER:
+        -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).
+        (count(*) filter (where x.kind = 'agree') over ())::int as n_agree,
+        (count(*) filter (where x.kind = 'change') over ())::int as n_change,
+        (count(*) filter (where x.kind = 'disagree') over ())::int as n_disagree,
+        (count(*) filter (where x.kind = 'unclear') over ())::int as n_unclear,
+        (count(*) filter (where x.kind = 'pick') over ())::int as n_pick,
+        (count(p.id) filter (where x.kind is null) over ())::int as n_not_yet
+      from one join item it on it.id = one.id and it.workspace_id = ${ws}
+        -- A person who sees the item, or who answered it before a Start again changed their
+        -- perspectives (responses.restart keeps the answers), as agreement.byItem counts them;
+        -- nobody on an item seen by few (E5-7).
+        left join sel p on not one.few and (cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
+          or exists (select 1 from ans a2 where a2.item_id = one.id and a2.response_id = p.id))
+        left join ans x on x.item_id = one.id and x.response_id = p.id
+      order by (x.kind is null), lower(p.who) nulls last, p.anon nulls last, p.id`);
+  if (rows.length === 0) return null;
+  const r0 = rows[0];
+  return {
+    named: r0.named, few: r0.few, countsFew: r0.few,
+    item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
+    counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
+    rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
+  };
+}
 
 export const detail = {
-  item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<{ item: DetailItem; counts: DetailCounts; rows: DetailRow[] } | null> => {
+  item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<DetailResult | null> => {
     if (!isUuid(instrumentId) || !isUuid(itemId)) return null;
-    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true)},
-      one as (select its.id, its.perspectives from its where its.id = ${itemId})
-      select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value,
-          p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.pub_fields as fields, p.who, p.anon,
-          x.kind, x.value, x.reason, x.comment,
-          -- The counts in SQL, over the rows (aggregate FILTER with OVER:
-          -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).
-          (count(*) filter (where x.kind = 'agree') over ())::int as n_agree,
-          (count(*) filter (where x.kind = 'change') over ())::int as n_change,
-          (count(*) filter (where x.kind = 'disagree') over ())::int as n_disagree,
-          (count(*) filter (where x.kind = 'unclear') over ())::int as n_unclear,
-          (count(*) filter (where x.kind = 'pick') over ())::int as n_pick,
-          (count(p.id) filter (where x.kind is null) over ())::int as n_not_yet
-        from one join item it on it.id = one.id and it.workspace_id = ${ws}
-          -- A person who sees the item, or who answered it before a Start again changed their
-          -- perspectives (responses.restart keeps the answers), as agreement.byItem counts them.
-          left join sel p on cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
-            or exists (select 1 from ans a2 where a2.item_id = one.id and a2.response_id = p.id)
-          left join ans x on x.item_id = one.id and x.response_id = p.id
-        order by (x.kind is null), lower(p.who) nulls last, p.anon nulls last, p.id`);
-    if (rows.length === 0) return null;
-    const r0 = rows[0];
-    return {
-      item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
-      counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
-      rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
-    };
+    const list = await detailRead(ws, instrumentId, itemId, f, "person");
+    if (!list) return null;
+    const { named, ...shown } = list;
+    if (named) return shown;
+    const counted = (await detailRead(ws, instrumentId, itemId, f, "aggregate"))!;
+    return { ...shown, counts: counted.counts, countsFew: counted.few };
   },
 };
 
@@ -547,38 +643,47 @@ export const detail = {
 // smaller groups are shown, not compared), in percentage points rounded half up; null when
 // fewer than two groups are compared. Items in order of the gap, largest first (the caller
 // orders ties by the list, src/lib/results-gaps.ts). People without a value on the field are
-// the group '' (Not given on screen).
-export type GapGroup = { group: string; agree: number; answered: number; compared: boolean };
+// the group '' (Not given on screen). E5-7: `folded` is the group of the values under
+// MIN_GROUP people under the two levels (group ''), never a value's name.
+export type GapGroup = { group: string; folded: boolean; agree: number; answered: number; compared: boolean };
 export type GapItem = { itemId: string; gap: number | null; groups: GapGroup[] };
 
 export const gaps = {
   byField: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKey: string): Promise<GapItem[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
+    const rows = await db.execute<{ item_id: string; grp: string | null; folded: boolean | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
+      -- E5-7 (amended 2026-10-06): under the two levels the groups follow the split's rule
+      -- (agreement.byItem): a value under MIN_GROUP counted people is folded into one group
+      -- when those people reach MIN_GROUP together, else left out, Not given alike.
+      gsize as (select nullif(c.fields ->> ${fieldKey}, '') as g, count(*)::int as n from counted c group by 1),
+      gfold as (select coalesce(sum(n), 0) >= ${MIN_GROUP} as ok from gsize where n < ${MIN_GROUP}),
       g as (
         -- The people who left the field empty are a group of their own, '' (Not given on
         -- screen), as in the Agreement tab's split.
-        select ans.item_id, coalesce(nullif(ans.rfields ->> ${fieldKey}, ''), '') as grp,
+        select ans.item_id,
+            case when (select named from inst) or gs.n >= ${MIN_GROUP} then coalesce(nullif(ans.rfields ->> ${fieldKey}, ''), '') else '' end as grp,
+            (not (select named from inst) and gs.n < ${MIN_GROUP}) as folded,
             count(*) filter (where ans.kind = 'agree')::int as agree,
             count(*) filter (where ans.kind in ('agree', 'change', 'disagree', 'unclear'))::int as answered
-          from ans
-          group by 1, 2
+          from ans left join gsize gs on gs.g is not distinct from nullif(ans.rfields ->> ${fieldKey}, '')
+          where (select named from inst) or gs.n >= ${MIN_GROUP} or (select ok from gfold)
+          group by 1, 2, 3
       ),
       shares as (select g.*, case when g.answered >= ${MIN_GROUP} then g.agree::numeric / g.answered end as share from g),
       gap as (
         select item_id, case when count(share) >= 2 then round(100 * (max(share) - min(share)))::int end as gap
           from shares group by item_id
       )
-      select its.id as item_id, s.grp, s.agree, s.answered, gap.gap
+      select its.id as item_id, s.grp, s.folded, s.agree, s.answered, gap.gap
         from its join item it on it.id = its.id and it.workspace_id = ${ws}
           left join shares s on s.item_id = its.id
           left join gap on gap.item_id = its.id
-        order by gap.gap desc nulls last, it.position, its.id, s.grp`);
+        order by gap.gap desc nulls last, it.position, its.id, s.folded, s.grp`);
     const out: GapItem[] = [];
     for (const r of rows) {
       let last = out.at(-1);
       if (!last || last.itemId !== r.item_id) out.push((last = { itemId: r.item_id, gap: r.gap, groups: [] }));
-      if (r.grp !== null) last.groups.push({ group: r.grp, agree: r.agree ?? 0, answered: r.answered ?? 0, compared: (r.answered ?? 0) >= MIN_GROUP });
+      if (r.grp !== null) last.groups.push({ group: r.grp, folded: r.folded === true, agree: r.agree ?? 0, answered: r.answered ?? 0, compared: (r.answered ?? 0) >= MIN_GROUP });
     }
     return out;
   },

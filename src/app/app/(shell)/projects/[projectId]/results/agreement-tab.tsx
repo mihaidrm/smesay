@@ -8,9 +8,12 @@
 // a percentage. A group with fewer than 3 answers on an item, or summed over items with fewer
 // than 3 people, is drawn but not compared (decision 0031), with the banner once. An item's
 // title opens its detail (E8-5). Under the views, where groups disagree (E8-6,
-// conflict-view.tsx). Under Names hidden and Anonymous (stories/E5-7, acceptance 4) a split
-// sums the values fewer than 3 people gave into one group (foldSmallGroups). Copy:
-// docs/copy/app.md, Results.
+// conflict-view.tsx). Under Names hidden and Anonymous (stories/E5-7, amended 2026-10-06) a
+// filter that keeps fewer than 3 counted people draws nothing but the line (tooFew); a split
+// draws no group under 3 people (the values under 3 summed into one group when they reach 3
+// together, else left out, src/db/queries/results.ts agreement.byItem), and the items' bars
+// come from the counts without the split; an item or a group fewer than 3 counted people could
+// see reads "Fewer than 3 answers" with no count. Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { AlignedBars, Donut, Legend, StackedBar, type Series } from "@/components/app/charts";
 import { FadeOnChange } from "@/components/app/fade-on-change";
@@ -20,24 +23,34 @@ import type { Instrument } from "@/db/queries/instruments";
 import { agreement } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
-import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, foldSmallGroups, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
-import { AGREEMENT_COPY } from "@/lib/results-copy";
+import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
+import { namesShown } from "@/lib/anonymity";
+import { AGREEMENT_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { AgreementControls, type AgreementView } from "./agreement-controls";
 import { ConflictView } from "./conflict-view";
 
-type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; itemHref: (id: string) => string };
+type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filter: ResultsFilter; ctx: FilterContext; view: AgreementView; itemHref: (id: string) => string; tooFew?: boolean };
 type SeriesOf = (c: Counts) => Series[];
 
-export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view, itemHref }: Props) {
-  const [set, rows, byItem] = await Promise.all([itemSets.get(ws, instrument.itemSetId), itemsQuery.forSet(ws, instrument.itemSetId), agreement.byItem(ws, instrument.id, filter, filter.split)]);
-  const counts = filter.split !== null && ctx.offered ? foldSmallGroups(byItem, ctx.offered[filter.split] ?? [], AGREEMENT_COPY.groupSmall) : byItem;
+export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view, itemHref, tooFew = false }: Props) {
+  if (tooFew) {
+    return (
+      <div className="flex flex-col gap-4" data-testid="agreement-tab">
+        <AgreementControls projectId={projectId} view={view} filter={filter} ctx={ctx} sort={agreementSortOf(filter.sort)} />
+        <p role="status" className="card p-4 text-sm text-ink-muted" data-testid="agreement-too-few">{RESULTS_COPY.tooFew}</p>
+      </div>
+    );
+  }
+  // Under the two levels a split leaves groups out, so the items' bars read the counts with no split.
+  const whole = filter.split !== null && !namesShown(ctx.anonymity);
+  const [set, rows, counts, totals] = await Promise.all([itemSets.get(ws, instrument.itemSetId), itemsQuery.forSet(ws, instrument.itemSetId), agreement.byItem(ws, instrument.id, filter, filter.split), whole ? agreement.byItem(ws, instrument.id, filter) : Promise.resolve(undefined)]);
   const method = instrument.method;
   const listItems = rows.map((it) => ({ id: it.id, reference: it.sourceRef, title: textFor(it), area: it.area, proposed: instrument.showProposed ? proposedCode(method, it.proposedValue) : null, position: it.position }));
   const sort = agreementSortOf(filter.sort);
   const split = filter.split !== null;
-  const areas = buildAgreement(listItems, (set?.areas ?? []).map((a) => a.name), counts, split, sort, AGREEMENT_COPY.groupNone);
+  const areas = buildAgreement(listItems, (set?.areas ?? []).map((a) => a.name), counts, split, sort, AGREEMENT_COPY.groupNone, { totals, small: AGREEMENT_COPY.groupSmall });
   const blind = !instrument.showProposed;
   const series: SeriesOf = (c) => (blind ? valueSeries(c, method, instrument.scaleLabels) : kindSeries(c));
   const list = areas.reduce<Counts>((a, b) => addCounts(a, b.totals), EMPTY_COUNTS);
@@ -129,21 +142,32 @@ function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { r
           </Link>
         </th>
         {!blind && <td className="px-2 text-xs whitespace-nowrap text-ink-muted">{proposedLabel(row.proposed)}</td>}
-        <td className="w-[260px] px-2 py-2">
-          <StackedBar title={AGREEMENT_COPY.chartTitle(what)} series={series(row.counts)} />
-          <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="row-counts">{countsText(series(row.counts))}</p>
-        </td>
-        <td className="w-[88px] px-4 text-right font-mono font-bold"><FadeOnChange value={figureText(row.counts, rated)} className="inline-block rounded-md">{figureText(row.counts, rated)}</FadeOnChange></td>
-        {coverage && <td className="px-4 text-right font-mono text-xs whitespace-nowrap text-ink-muted" data-testid="row-coverage">{`${answeredOf(row.counts) + row.counts.pick} of ${row.counts.couldSee}`}</td>}
+        {row.few ? (
+          // E5-7 (D): seen by fewer than 3 counted people under the two levels; no count at all.
+          <td colSpan={coverage ? 3 : 2} className="px-2 py-2 text-xs text-ink-muted" data-testid="row-few">{AGREEMENT_COPY.fewAnswers}</td>
+        ) : (
+          <>
+            <td className="w-[260px] px-2 py-2">
+              <StackedBar title={AGREEMENT_COPY.chartTitle(what)} series={series(row.counts)} />
+              <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="row-counts">{countsText(series(row.counts))}</p>
+            </td>
+            <td className="w-[88px] px-4 text-right font-mono font-bold"><FadeOnChange value={figureText(row.counts, rated)} className="inline-block rounded-md">{figureText(row.counts, rated)}</FadeOnChange></td>
+            {coverage && <td className="px-4 text-right font-mono text-xs whitespace-nowrap text-ink-muted" data-testid="row-coverage">{`${answeredOf(row.counts) + row.counts.pick} of ${row.counts.couldSee}`}</td>}
+          </>
+        )}
       </tr>
-      {row.groups.map((g) => (
-        <tr key={`${g.empty}:${g.group}`} className={g.compared ? "" : "opacity-60"} data-testid="agreement-group" data-group={g.group}>
+      {!row.few && row.groups.map((g) => (
+        <tr key={g.key} className={g.compared ? "" : "opacity-60"} data-testid="agreement-group" data-group={g.group}>
           <th scope="row" colSpan={blind ? 1 : 2} className="px-4 py-1.5 pl-10 text-xs font-semibold text-ink-muted">{g.group}</th>
-          <td className="px-2 py-1">
-            <StackedBar title={AGREEMENT_COPY.chartTitle(`${what}, ${g.group}`)} series={series(g.counts)} className="h-3" />
-            <p className="mt-0.5 font-mono text-[11px] text-ink-muted" data-testid="group-counts">{countsText(series(g.counts))}</p>
-          </td>
-          <td className="px-4 text-right font-mono text-xs">{g.compared ? figureText(g.counts, rated) : ""}</td>
+          {g.few ? <td colSpan={2} className="px-2 py-1 text-xs text-ink-muted" data-testid="group-few">{AGREEMENT_COPY.fewAnswers}</td> : (
+            <>
+              <td className="px-2 py-1">
+                <StackedBar title={AGREEMENT_COPY.chartTitle(`${what}, ${g.group}`)} series={series(g.counts)} className="h-3" />
+                <p className="mt-0.5 font-mono text-[11px] text-ink-muted" data-testid="group-counts">{countsText(series(g.counts))}</p>
+              </td>
+              <td className="px-4 text-right font-mono text-xs">{g.compared ? figureText(g.counts, rated) : ""}</td>
+            </>
+          )}
           {coverage && <td />}
         </tr>
       ))}
@@ -162,7 +186,7 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
           <section key={a.name ?? ""} className="card flex flex-col gap-3 p-4" aria-label={areaName(a)} data-testid="columns-area" data-area={areaName(a)}>
             <h3 className="text-[15px] font-bold">{areaName(a)} <span className="font-mono text-sm text-ink-muted">{figureText(a.totals, a.rated)}</span></h3>
             {!split ? <AlignedBars title={AGREEMENT_COPY.chartTitle(areaName(a))} series={series(a.totals)} /> : groups.map((g) => (
-              <div key={`${g.empty}:${g.group}`} className={g.compared ? "" : "opacity-60"} data-testid="columns-group" data-group={g.group}>
+              <div key={g.key} className={g.compared ? "" : "opacity-60"} data-testid="columns-group" data-group={g.group}>
                 <p className="text-xs font-semibold text-ink-muted">{g.group}{g.compared ? "" : `, ${shortText(g)}`}</p>
                 <AlignedBars title={AGREEMENT_COPY.chartTitle(`${areaName(a)}, ${g.group}`)} series={series(g.counts)} max={max} className="h-24" />
               </div>
@@ -191,7 +215,7 @@ function ShareView({ areas, list, series, rated, split, none }: { areas: AreaBlo
         <Donut title={AGREEMENT_COPY.chartTitle(AGREEMENT_COPY.wholeList)} series={series(list)} line={line(list)} />
       </section>
       {split ? groups.map((g) => (
-        <section key={`${g.empty}:${g.group}`} className={g.compared ? "card p-4" : "card p-4 opacity-60"} aria-label={g.group} data-testid="share-group">
+        <section key={g.key} className={g.compared ? "card p-4" : "card p-4 opacity-60"} aria-label={g.group} data-testid="share-group">
           <h3 className="mb-3 text-[15px] font-bold">{g.group}</h3>
           <Donut title={AGREEMENT_COPY.chartTitle(g.group)} series={series(g.counts)} line={g.compared ? line(g.counts) : shortText(g)} />
         </section>

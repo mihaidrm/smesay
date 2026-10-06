@@ -9,7 +9,12 @@ dashboard's numbers.
 Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the answers,
 people and missing files name each respondent "Anonymous [N]" and carry no field column, no
 Submitted at, no Source, no Reminders and no Perspectives; the People file keeps Minutes to
-submit, so the median tile still adds up. The Export tab says so in a line.
+submit, so the median tile still adds up. The Export tab says so in a line. Amended again
+after the audit: those three files follow no field or perspective filter and say so in their
+first lines; the items file has no row when the filter keeps fewer than 3 counted
+respondents and "Fewer than 3 answers" for an item seen by fewer; under Names hidden no file
+has Status, Since submitting, Answered, Items seen or Minutes to submit, so the median tile
+is not added up from the People file there.
 
 ## Acceptance criteria
 1. Export tab (PM app board): "Answers" (one row per answer: respondent, every respondent
