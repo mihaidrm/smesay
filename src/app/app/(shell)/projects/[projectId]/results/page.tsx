@@ -122,7 +122,7 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
       {isSample && <SampleWalkthrough ws={ws} projectId={projectId} instrument={instrument} screen={item ? "detail" : tab === "pushed" ? "registers" : tab === "agreement" ? "strip" : null}
         next={{ strip: href(filter, "pushed"), registers: null, detail: "/app/projects/new" }} itemHref={itemHref} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />
+        {instrument.anonymity !== "hidden" && <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />}
         <TileChooser projectId={projectId} tiles={tiles} />
       </div>
       {n.tooFew ? <p role="status" className="card p-4 text-sm text-ink-muted" data-testid="too-few">{RESULTS_COPY.tooFew}</p> : !none && <Strip n={n} tiles={tiles} />}

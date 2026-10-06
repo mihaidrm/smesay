@@ -147,3 +147,9 @@ reconciled; fieldValueCounts and resultsContext, with another workspace reading 
 PDF; the project file's round trip; Write actions on the fake transport; a refused invite and
 the Names hidden email; a hidden personal Start storing no name. e2e/anonymous.spec.ts is
 written and not run in this session; the main session runs e2e.
+
+Closed after the second build (2026-10-06): the two leaks the rework left. Under Names hidden
+the include-unsubmitted switch stays on and is not shown, so no list holds only those who
+submitted (whom Share names) and the counts still reconcile with the lists and the files.
+Under Anonymous the Responses tab and the people file show no Progress, Answered or Items seen,
+since "of N" counts the items a person could see, which differ by perspective.

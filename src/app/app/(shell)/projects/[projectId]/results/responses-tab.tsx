@@ -36,7 +36,10 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
   const columns: { key: string; label: string }[] = [
     { key: "name", label: named ? RESPONSES_COPY.name : RESPONSES_COPY.respondent },
     ...fields.map((f) => ({ key: `field.${f.key}`, label: f.label })),
-    ...(stated ? [{ key: "status", label: RESPONSES_COPY.status }, { key: "progress", label: RESPONSES_COPY.progress }] : []),
+    ...(stated ? [{ key: "status", label: RESPONSES_COPY.status }] : []),
+    // Progress "of N" counts the items a person could see, which differ by perspective, so it
+    // shows under Named only (E5-7).
+    ...(named ? [{ key: "progress", label: RESPONSES_COPY.progress }] : []),
     ...(named ? [
       { key: "submitted", label: RESPONSES_COPY.submitted },
       { key: "source", label: RESPONSES_COPY.source },
@@ -71,7 +74,7 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
               <th scope="row" className="px-4 font-semibold whitespace-nowrap">{nameOf(p)}</th>
               {fields.map((f) => <td key={f.key} className="px-4 whitespace-nowrap">{p.fields[f.key] ?? ""}</td>)}
               {stated && <td className="px-4 whitespace-nowrap">{named ? <FadeOnChange value={`${p.status} ${p.changedSince} ${p.submittedAgain}`} className="inline-flex rounded-md"><Status p={p} /></FadeOnChange> : <Status p={p} />}</td>}
-              {stated && <td className="px-4 font-mono whitespace-nowrap">{named ? <FadeOnChange value={`${p.answered} ${p.visible}`} className="inline-block rounded-md">{RESPONSES_COPY.progressOf(p.answered, p.visible)}</FadeOnChange> : RESPONSES_COPY.progressOf(p.answered, p.visible)}</td>}
+              {named && <td className="px-4 font-mono whitespace-nowrap">{named ? <FadeOnChange value={`${p.answered} ${p.visible}`} className="inline-block rounded-md">{RESPONSES_COPY.progressOf(p.answered, p.visible)}</FadeOnChange> : RESPONSES_COPY.progressOf(p.answered, p.visible)}</td>}
               {named && <td className="px-4 whitespace-nowrap" data-testid="submitted-cell">{p.submittedAt ? formatUtc(p.submittedAt) : RESPONSES_COPY.notYet}</td>}
               {named && <td className="px-4 whitespace-nowrap">{p.source === "public" ? RESPONSES_COPY.publicLink : RESPONSES_COPY.personalInvite}</td>}
               {named && <td className="px-4 font-mono">{p.reminders ?? RESPONSES_COPY.none}</td>}

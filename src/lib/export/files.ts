@@ -16,7 +16,8 @@
 // when it keeps fewer than 3 counted people, has no row but the line saying so; an item fewer
 // than 3 counted people could see has no count, its agreement cell "Fewer than 3 answers".
 // Under Names hidden no file says who has submitted: no Status, Since submitting, Answered,
-// Items seen or Minutes to submit, since Share names who has finished.
+// Items seen or Minutes to submit, since Share names who has finished; under Anonymous no
+// Answered or Items seen either, since the items a person could see differ by perspective.
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results, tracker } from "@/db/queries/results";
@@ -96,10 +97,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const minutes = new Map((await results.people(ws, instrument.id, f)).map((p) => [p.id, p.minutesToSubmit]));
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), ...stated([C.status, C.sinceSubmit, C.answered, C.visible]), ...only([C.submittedAt]), ...stated([C.minutes]), ...only([C.source, C.reminders]), C.withComment],
+      header: [C.respondent, ...fields.map((s) => s.label), ...stated([C.status, C.sinceSubmit]), ...only([C.answered, C.visible, C.submittedAt]), ...stated([C.minutes]), ...only([C.source, C.reminders]), C.withComment],
       rows: people.map((p) => {
         const m = minutes.get(p.id);
-        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), ...stated<string | number>([EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible]), ...only([isoUtc(p.submittedAt)]), ...stated<string | number>([m ?? ""]), ...only<string | number>([EXPORT_COPY.sources[p.source], p.reminders ?? ""]), p.withComment];
+        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), ...stated<string | number>([EXPORT_COPY.statuses[p.status], since(p)]), ...only<string | number>([p.answered, p.visible, isoUtc(p.submittedAt)]), ...stated<string | number>([m ?? ""]), ...only<string | number>([EXPORT_COPY.sources[p.source], p.reminders ?? ""]), p.withComment];
       }),
     };
   }

@@ -108,7 +108,9 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     withComment: first(params.comment) === "1",
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
     status: ctx.anonymity === "hidden" ? [] : RESULTS_STATUSES.filter((s) => status.includes(s)),
-    includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
+    // Under Names hidden the switch stays on (E5-7): with it off the lists would hold only those
+    // who submitted, whom Share names, and the counts must still match the lists.
+    includeUnsubmitted: ctx.anonymity === "hidden" ? true : unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
     split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
     gaps: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.gaps)) ? first(params.gaps)! : defaultGapField(ctx),

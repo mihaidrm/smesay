@@ -150,7 +150,8 @@ the check constraints use them). Change this file first.
   (no field or perspective filter, and under `hidden` no status), for a file's first lines.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
-  includeUnsubmitted?: boolean (decision 0030's switch, kept per PM), view?: "table" |
+  includeUnsubmitted?: boolean (decision 0030's switch, kept per PM; under `hidden`
+  parseResultsFilter always gives true, E5-7), view?: "table" |
   "columns" | "share" (E8-3) } }.
 - GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
   story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
@@ -668,7 +669,8 @@ no Submitted at, no Source, no Reminders and no Perspectives, every respondent "
 [N]"; amended 2026-10-06: those three files follow personFilter and say so in their first
 lines, the items file writes no row when the filter keeps fewer than MIN_GROUP counted
 people and "Fewer than 3 answers" for an item seen by few, and under `hidden` no file has
-Status, Since submitting, Answered, Items seen or Minutes to submit),
+Status, Since submitting, Answered, Items seen or Minutes to submit, and under `anonymous` no
+Answered or Items seen),
 agreement.byItem,
 tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
 header, rows), line, field (a text cell starting like a formula gets a single quote, safeText),

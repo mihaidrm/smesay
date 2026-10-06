@@ -129,4 +129,9 @@ describe("the filter under Names hidden and Anonymous", () => {
     expect(q("f.role=HR").fields).toEqual({});
     expect(optionsFor(hidden.fields[1], { ...hidden, offered: {} })).toEqual([]);
   });
+  it("keeps the include-unsubmitted switch on under Names hidden, whatever the URL or the stored choice", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: {} };
+    expect(parseResultsFilter({ unsubmitted: "0" }, hidden, false).includeUnsubmitted).toBe(true);
+    expect(parseResultsFilter({ unsubmitted: "0" }, { ...hidden, anonymity: "anonymous" }, false).includeUnsubmitted).toBe(false);
+  });
 });

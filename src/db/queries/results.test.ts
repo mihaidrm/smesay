@@ -797,7 +797,7 @@ describe("Names hidden and Anonymous on Results", () => {
     const missing = await exportTable(wsH, inst, "missing", f, ctxH, false);
     expect(missing.header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent"]);
     const anonymous = { ...inst, anonymity: "anonymous" as const };
-    expect((await exportTable(wsH, anonymous, "people", f, { ...ctxH, anonymity: "anonymous" }, false)).header).toEqual(["Respondent", "Status", "Since submitting", "Answered", "Items seen", "Minutes to submit", "Answers with a reason or comment"]);
+    expect((await exportTable(wsH, anonymous, "people", f, { ...ctxH, anonymity: "anonymous" }, false)).header).toEqual(["Respondent", "Status", "Since submitting", "Minutes to submit", "Answers with a reason or comment"]);
     expect((await exportTable(wsH, anonymous, "missing", f, { ...ctxH, anonymity: "anonymous" }, false)).header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent", "Status", "Since submitting"]);
     // The strip still adds up from the rows.
     await reconcileStrip(wsH, instrumentH, f);

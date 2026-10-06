@@ -65,7 +65,10 @@ criteria below are the stricter model (design note 100, docs/review-list.md rows
    - Under Names hidden the Responses tab lists Anonymous [N] and "With a reason or comment"
      only, in the order of the numbers, with no Status, Progress or status filter (Share
      already shows each invitee's state); no register row, detail row, file or the PDF says who
-     has submitted. Under both levels no row fades on a live update.
+     has submitted, and the include-unsubmitted switch stays on and is not shown (with it off
+     the lists would hold only those who submitted, whom Share names). Under Anonymous the
+     Responses tab and the people file show no Progress, Answered or Items seen, since the items
+     a person could see differ by perspective. Under both levels no row fades on a live update.
 5. Exports under Names hidden and Anonymous: the answers, people and missing-item CSVs use
    "Anonymous [N]" and carry no field columns and no times; under Names hidden the people file
    has no Status, Since submitting, Answered, Items seen or Minutes to submit. The PDF summary
