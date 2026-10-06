@@ -19,6 +19,19 @@ the results."; the tabs that list people show the whole validation with a line s
 and their counts in the tab row are counted the same way; under Names hidden there is no
 status filter.
 
+Amended 2026-10-06, decision 0058 ("Breakdowns, risk disclosed"): under Names hidden and
+Anonymous the filters and splits by dropdown fields and perspectives stay, and the line under
+the filter bar says that comparing views can still point to someone in a small group; it
+shows when a value is left out, while a split is on and while the gaps view compares groups.
+The floor's sentence takes the place of "Showing [N] of [M]" and shows once. Under Names
+hidden the include-unsubmitted switch is off and not shown ("This validation hides names, so
+Results count submitted answers only." in its place): every number, tab and file counts the
+submitted responses only, so Submitted of invited reads N of N there. With a field or
+perspective filter the tiles count the people the filter keeps while the lists and the
+person files list everyone: an exception to acceptance 6's reconciliation, recorded in
+docs/review-list.md and waiting on Mihai (two requirements in conflict); the Items with
+totals file still adds up to the answer and item tiles under any filter.
+
 ## Acceptance criteria
 1. Results (PM app board): the headline strip holds up to six tiles chosen by the PM from
    the catalogue below, six on by default; then the tabs Agreement, Different priority and

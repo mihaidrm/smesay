@@ -50,8 +50,14 @@ the check constraints use them). Change this file first.
   and no list says who has submitted; `anonymous` refuses reminders as it refuses invites.
   Amended 2026-10-06, decision 0058 ("Breakdowns, risk disclosed"): the breakdowns stay and
   the risk of comparing views is disclosed; under `hidden` the "Not answered" kind is not
-  parsed and a person-mode read ignores it, and no list of people has a row without an
-  answer; under both levels there is no progress sort.
+  parsed and a person-mode read ignores it, and the item detail lists no one without an
+  answer on the item (its notYet count still counts them; the Responses tab, the People file
+  and the sign-off record list people whatever they answered); under both levels there is no
+  progress sort. Amended 2026-10-06 after the fourth audit: under `hidden` only submitted
+  responses are people. The SQL leaves out every response not submitted (results.ts head
+  people, insights.ts people, results.fieldValueCounts and perspectiveCounts), so no list,
+  file, detail, count, citation or the PDF holds one, and parseResultsFilter gives
+  includeUnsubmitted false whatever the URL or the stored choice (the switch is not shown).
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
@@ -158,7 +164,7 @@ the check constraints use them). Change this file first.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
   includeUnsubmitted?: boolean (decision 0030's switch, kept per PM; under `hidden`
-  parseResultsFilter always gives true, E5-7), view?: "table" |
+  parseResultsFilter always gives false, E5-7), view?: "table" |
   "columns" | "share" (E8-3) } }.
 - GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
   story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
@@ -240,12 +246,13 @@ person's ResultsPrefs entry (the caller checks the instrument is in the current 
 Anonymity on Results (E5-7, 2026-10-06): under `hidden` and `anonymous` the people of every
 query above have who null and anon numbered over all the instrument's responses by
 md5(response id || instrument id) under the "C" collation (decision 0058; before it, by
-start), no invite rows, and the rows each query returns carry fields {},
+start), no invite rows (under `hidden` no response that is not submitted either, so the
+numbers run over the submitted responses), and the rows each query returns carry fields {},
 submittedAt null (ResultRow, PersonRow, SignOff; SignOff.submittedAt is Date or null) and
 reminders null; the filters, the split and the gaps still read the stored dropdown values.
 results.fieldValueCounts(ws, instrumentId, includeUnsubmitted) gives FieldValueCount { key,
 value, n } for every field value of the instrument's counted responses (submitted ones only
-when the switch is off), the source of FilterContext.offered; results.perspectiveCounts(ws,
+when the switch is off, and always under `hidden`), the source of FilterContext.offered; results.perspectiveCounts(ws,
 instrumentId, includeUnsubmitted) gives { value, n } per perspective picked, and under Names
 hidden and Anonymous FilterContext.perspectives keeps only those picked by MIN_GROUP or more.
 ReadMode (E5-7, amended 2026-10-06; src/db/queries/results.ts): "aggregate" for numbers,
@@ -708,19 +715,26 @@ opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt
 responses [{ id, instrumentId, itemSetId, inviteId (null, with fields {}, for a response
 of a `hidden` or `anonymous` instrument, from E5-7: the file does not tie it to a personal
 invite; the import puts it on its instrument's public invite and refuses a null on a
-`named` one; amended 2026-10-06: such a response also has perspectives [] and createdAt,
-updatedAt, submittedAt and firstSubmittedAt equal to exportedAt (null kept), as have its
-answers' updatedAt and its missing items' createdAt; the file has no personal invite of
-such an instrument, and the import refuses one, or a field that is not a dropdown's value,
-as damaged; from decision 0058 such an instrument's responses are written in the order of
-their anon numbers, under `hidden` only the submitted ones, with no answer on an item fewer
-than MIN_GROUP of the responses written could see, and an action keeps only the citations
-left in the file, and is left out when it had some and none is left), fields, perspectives, confidence,
+`named` one; amended 2026-10-06: such a response also has createdAt, updatedAt,
+submittedAt and firstSubmittedAt equal to exportedAt (null kept), as have its answers'
+updatedAt and its missing items' createdAt, and keeps its perspectives, so an imported
+project shows each item to the same people (perspective breakdowns stay under decision
+0058); the file has no personal invite of such an instrument, and the import refuses one,
+or a field that is not a dropdown's value, as damaged; from decision 0058 such an
+instrument's responses are written in the order of their anon numbers, under `hidden` only
+the submitted ones, with no answer on an item fewer than MIN_GROUP of the responses written
+could see, and its missing items in the same order of their responses, then by id), fields,
+perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
 answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
 responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
 citedAnswerIds, citedMissingItemIds, state, closedAt, closedBy (an email), model, tokensIn,
-tokensOut, costEurCents, createdAt }] }. Dates are ISO 8601 with an offset. Ids are keys inside
+tokensOut, costEurCents, createdAt }] } (hiddenSelection in project.ts, for every project,
+Named ones too: an action keeps only the citations whose answer or missing item is in the
+file, so a citation of a row deleted since is dropped, and an action that had citations and
+has none left is not written; from 2026-10-06 an action that lost a citation because the
+file leaves that answer or missing item out, under `hidden` or `anonymous`, is not written
+at all, since its words could quote what was left out). Dates are ISO 8601 with an offset. Ids are keys inside
 the file; the import makes new ones. No token, passcode hash or device token is in the file.
 The JSON columns (importReport, areas, contextUsed, custom, flags, respondentFields,
 scaleLabels, closing) have the shapes listed at the top of this file. The file is one line of

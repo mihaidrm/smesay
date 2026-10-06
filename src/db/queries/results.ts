@@ -35,7 +35,9 @@
 // levels, and the status filter and the "Not answered" kind under Names hidden, so no list
 // can be narrowed by who someone is or by who has not finished (decision 0058: comparing a
 // list with the charts can still point to someone in a small group, which the app says
-// rather than prevents). In both modes, under the two levels, the answers on an item seen by fewer than
+// rather than prevents). Amended 2026-10-06 after the fourth audit: under Names hidden the
+// people are the submitted responses only, whatever the switch (people below), so no list,
+// file, count or detail holds a response not submitted. In both modes, under the two levels, the answers on an item seen by fewer than
 // MIN_GROUP of the people counted (few) count nowhere, and the item reads few.
 import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
@@ -130,7 +132,9 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
           case when inst.named then r.submitted_at end as pub_submitted_at
         from response r join inst on r.instrument_id = inst.id
           join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
-        where r.workspace_id = ${ws}
+        -- E5-7 (amended 2026-10-06): under Names hidden a response not submitted is no one's
+        -- row, in every query and mode, so nothing says who has not finished (Share names them).
+        where r.workspace_id = ${ws} and (inst.anonymity <> 'hidden' or r.submitted_at is not null)
       union all
       select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
           false, i.created_at, i.kind, i.reminders_sent, null::int, coalesce(nullif(i.name, ''), i.email), null::bigint,
@@ -259,6 +263,7 @@ export const results = {
         from response r join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws}
           cross join lateral jsonb_each_text(r.fields) as kv(key, value)
         where r.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and (${includeUnsubmitted} or r.submitted_at is not null)
+          and (ins.anonymity <> 'hidden' or r.submitted_at is not null)
         group by 1, 2 order by 1, 2`);
     return rows.map((r) => ({ key: r.key, value: r.value, n: Number(r.n) }));
   },
@@ -271,6 +276,7 @@ export const results = {
         from response r join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws}
           cross join lateral unnest(r.perspectives) as p(value)
         where r.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and (${includeUnsubmitted} or r.submitted_at is not null)
+          and (ins.anonymity <> 'hidden' or r.submitted_at is not null)
         group by 1 order by 1`);
     return rows.map((r) => ({ value: r.value, n: Number(r.n) }));
   },
@@ -295,8 +301,8 @@ export const results = {
 export type SignOff = { id: string; who: string | null; anon: number | null; submittedAt: Date | null; confidence: number | null; signedOff: boolean };
 
 // How many counted respondents gave each value of each field (E5-7, acceptance 4): the
-// instrument's started responses, the submitted ones only when the switch is off, as the
-// page counts them. Under Names hidden and Anonymous a dropdown value under MIN_GROUP is
+// instrument's started responses, the submitted ones only when the switch is off or under
+// Names hidden, as the page counts them. Under Names hidden and Anonymous a dropdown value under MIN_GROUP is
 // not offered as a filter (src/lib/results-context.ts). jsonb_each_text:
 // postgresql.org/docs/current/functions-json.html.
 export type FieldValueCount = { key: string; value: string; n: number };

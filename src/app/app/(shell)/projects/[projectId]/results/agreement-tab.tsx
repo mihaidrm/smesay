@@ -9,11 +9,12 @@
 // than 3 people, is drawn but not compared (decision 0031), with the banner once. An item's
 // title opens its detail (E8-5). Under the views, where groups disagree (E8-6,
 // conflict-view.tsx). Under Names hidden and Anonymous (stories/E5-7, amended 2026-10-06) a
-// filter that keeps fewer than 3 counted people draws nothing but the line (tooFew); a split
-// draws no group under 3 people (the values under 3 summed into one group when they reach 3
-// together, else left out, src/db/queries/results.ts agreement.byItem), and the items' bars
-// come from the counts without the split; an item or a group fewer than 3 counted people could
-// see reads "Fewer than 3 answers" with no count. Copy: docs/copy/app.md, Results.
+// filter that keeps fewer than 3 counted people draws nothing but its controls (tooFew; the
+// page's line says why); a split draws no group under 3 people (the values under 3 summed
+// into one group when they reach 3 together, else left out, src/db/queries/results.ts
+// agreement.byItem), and the items' bars come from the counts without the split; an item or
+// a group fewer than 3 counted people could see reads "Fewer than 3 answers" with no count.
+// Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { AlignedBars, Donut, Legend, StackedBar, type Series } from "@/components/app/charts";
 import { FadeOnChange } from "@/components/app/fade-on-change";
@@ -25,7 +26,7 @@ import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
 import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
 import { namesShown } from "@/lib/anonymity";
-import { AGREEMENT_COPY, RESULTS_COPY } from "@/lib/results-copy";
+import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { AgreementControls, type AgreementView } from "./agreement-controls";
@@ -35,11 +36,12 @@ type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filte
 type SeriesOf = (c: Counts) => Series[];
 
 export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view, itemHref, tooFew = false }: Props) {
+  // Under the floor the page's line under the filter bar says why (results/page.tsx), once:
+  // the tab keeps its controls and draws nothing.
   if (tooFew) {
     return (
       <div className="flex flex-col gap-4" data-testid="agreement-tab">
         <AgreementControls projectId={projectId} view={view} filter={filter} ctx={ctx} sort={agreementSortOf(filter.sort)} />
-        <p role="status" className="card p-4 text-sm text-ink-muted" data-testid="agreement-too-few">{RESULTS_COPY.tooFew}</p>
       </div>
     );
   }

@@ -13,6 +13,10 @@ says why); a filter that keeps fewer than 3 counted respondents draws no number,
 item; an item seen by fewer reads "Fewer than 3 answers"; under Names hidden no register row
 is marked and the record lists no one.
 
+Amended 2026-10-06, decision 0058: the numbers follow a fixed order that is not the start;
+under the floor the PDF draws no confidence chart; under Names hidden the summary counts the
+submitted responses only and has no line "Includes answers not submitted yet".
+
 ## Acceptance criteria
 1. "Summary for the deck" export: page 1 the headline numbers, the agreement by area chart and
    the confidence histogram; page 2 onward the per-item table per area, the pushed back and

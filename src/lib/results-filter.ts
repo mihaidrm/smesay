@@ -111,9 +111,10 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
     withComment: first(params.comment) === "1",
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
     status: ctx.anonymity === "hidden" ? [] : RESULTS_STATUSES.filter((s) => status.includes(s)),
-    // Under Names hidden the switch stays on (E5-7): with it off the lists would hold only those
-    // who submitted, whom Share names, and the counts must still match the lists.
-    includeUnsubmitted: ctx.anonymity === "hidden" ? true : unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
+    // Under Names hidden the switch is off and not shown (E5-7, amended 2026-10-06): a response
+    // not submitted is in no view, so no list, file or detail says who has not finished, which
+    // Share would match to a name. The SQL leaves those responses out too (results.ts head).
+    includeUnsubmitted: ctx.anonymity === "hidden" ? false : unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
     split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
     gaps: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.gaps)) ? first(params.gaps)! : defaultGapField(ctx),
@@ -171,6 +172,16 @@ export function personFilter(f: ResultsFilter, anonymity: Anonymity): ResultsFil
   if (anonymity === "named") return f;
   const hidden = anonymity === "hidden";
   return { ...f, fields: {}, perspective: null, status: hidden ? [] : f.status, kinds: hidden ? f.kinds.filter((k) => k !== "none") : f.kinds };
+}
+
+// The line under the filter bar (RESULTS_COPY.smallValues; E5-7, acceptance 4; decision
+// 0058), under Names hidden and Anonymous only: when a dropdown value is left out of the
+// filter, and whenever a view breaks the results down by group (a split, or the gaps view of
+// the Agreement tab), since comparing groups can still point to someone in a small group.
+export function riskLineShown(f: ResultsFilter, ctx: FilterContext, agreementTab: boolean): boolean {
+  if (ctx.anonymity === "named") return false;
+  const leftOut = ctx.fields.some((spec) => spec.type === "dropdown" && optionsFor(spec, ctx).length < (spec.options ?? []).length);
+  return leftOut || f.split !== null || (agreementTab && f.gaps !== null);
 }
 
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).

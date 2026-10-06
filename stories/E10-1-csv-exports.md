@@ -16,6 +16,15 @@ respondents and "Fewer than 3 answers" for an item seen by fewer; under Names hi
 has Status, Since submitting, Answered, Items seen or Minutes to submit, so the median tile
 is not added up from the People file there.
 
+Amended 2026-10-06, decision 0058: under Names hidden and Anonymous, with a field or
+perspective filter, the Items with totals file adds up to the answer tiles (Agreement,
+Different priority, Disagree, Unclear) and the three item tiles, while the Answers, People and
+Missing items files list everyone, so the people, minutes, missing items and with-a-reason
+tiles add up from them only with no such filter: an exception to acceptance 3, recorded in
+docs/review-list.md and waiting on Mihai (two requirements in conflict); the Export tab's
+first line says which tiles each file covers. Under Names hidden every file counts the
+submitted responses only and none carries the line "Includes answers not submitted yet".
+
 ## Acceptance criteria
 1. Export tab (PM app board): "Answers" (one row per answer: respondent, every respondent
    field, item reference, area, item text, proposed value, answer kind, their value, reason or

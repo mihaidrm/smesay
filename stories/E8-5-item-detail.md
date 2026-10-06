@@ -16,6 +16,11 @@ while the counts do; an item fewer than 3 counted respondents could see lists no
 counts read "Fewer than 3 answers"; under Names hidden no row says not submitted or in
 progress.
 
+Amended 2026-10-06, decision 0058: under Names hidden the list has no row without an answer
+on the item (Not yet answered still counts them) and no row for a response not submitted;
+its list and its counts are read in one query (src/db/queries/results.ts detail.item); the
+numbers follow a fixed order that is not the start.
+
 ## Acceptance criteria
 1. The detail (PM app board, item detail panel): reference, area, reader text, original text
    under it, proposed value, the four counts and "[N] not yet answered"; a row per respondent

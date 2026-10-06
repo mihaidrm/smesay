@@ -119,4 +119,8 @@ test("set Anonymous on Build, answer through the public link, see Anonymous 1 on
   await expect(page).toHaveURL(/kind=unclear/);
   await expect(page.getByTestId("too-few")).toHaveText("Fewer than 3 people match these filters. Widen them to see the results.");
   await expect(page.getByTestId("showing-line")).toHaveCount(0);
+  // On the Agreement tab the sentence shows once (amended 2026-10-06): the tab draws no box.
+  await page.getByTestId("tab-agreement").click();
+  await expect(page.getByTestId("agreement-tab")).toBeVisible();
+  await expect(page.getByText("Fewer than 3 people match these filters. Widen them to see the results.")).toHaveCount(1);
 });

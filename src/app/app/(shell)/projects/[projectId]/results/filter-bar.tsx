@@ -6,8 +6,9 @@
 // (src/lib/results-filter.ts filterQuery), so the server renders the filtered page and a view
 // can be shared; the tab stays. Under Names hidden and Anonymous (stories/E5-7, acceptance 4)
 // a dropdown shows only the values offered (optionsFor: given by 3 counted people or more), a
-// field with none left is not shown, and a line says why; under Names hidden there is no
-// status filter (amended 2026-10-06). data-ready marks the bar once it has hydrated (a
+// field with none left is not shown, and a line says why and what risk is left, also while a
+// split or the gaps view breaks the results down by group (riskLineShown); under Names
+// hidden there is no status filter (amended 2026-10-06). data-ready marks the bar once it has hydrated (a
 // client-only snapshot, react.dev/reference/react/useSyncExternalStore), for the tests.
 // Copy: docs/copy/app.md, Results.
 import { usePathname, useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { RESULTS_COPY } from "@/lib/results-copy";
-import { clearedFilter, filterActive, filterQuery, KIND_LABELS, optionsFor, RESULTS_STATUSES, STATUS_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
+import { clearedFilter, filterActive, filterQuery, KIND_LABELS, optionsFor, RESULTS_STATUSES, riskLineShown, STATUS_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
 
 const CHIP = "inline-flex h-6 items-center rounded-full border px-2.5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-pressed:border-transparent aria-pressed:bg-violet-soft aria-pressed:text-violet-text border-hairline-strong text-ink-muted hover:text-ink";
 
@@ -83,7 +84,7 @@ export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFi
         )}
         {filterActive(filter) && <Button type="button" variant="secondary" size="small" onClick={() => go(clearedFilter(filter))} data-testid="clear-filters">{RESULTS_COPY.clearFilters}</Button>}
       </div>
-      {ctx.fields.some((spec) => spec.type === "dropdown" && optionsFor(spec, ctx).length < (spec.options ?? []).length) && <p className="text-[13px] text-ink-muted" data-testid="filter-small-values">{RESULTS_COPY.smallValues}</p>}
+      {riskLineShown(filter, ctx, tab === null) && <p className="text-[13px] text-ink-muted" data-testid="filter-small-values">{RESULTS_COPY.smallValues}</p>}
     </section>
   );
 }

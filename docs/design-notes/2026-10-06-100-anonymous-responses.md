@@ -98,7 +98,8 @@ times and personal invites. The stricter model, under Names hidden and Anonymous
   update.
 - The project file (and Export everything, which writes it per project): every time of a
   response, of its answers and of its missing items is the export's (null kept), perspectives
-  are none, and no personal invite of such a validation is written. The import refuses a
+  are none (kept as they are since the fourth audit, below), and no personal invite of such a
+  validation is written. The import refuses a
   personal invite there and a response field that is not a dropdown's value. An imported
   project numbers its responses by the fixed order of decision 0058 (below), on its new ids.
 - Reminders refuse an Anonymous validation on the server, as invites and New link do.
@@ -135,7 +136,8 @@ changed with it:
 - The project file: under Names hidden the submitted responses only, so the file does not say
   who has not finished; under both levels no answer on an item fewer than 3 of the responses
   written could see, and an action keeps the citations left (one left with none goes, since
-  its words could quote what went).
+  its words could quote what went; since the fourth audit, below, an action that lost any
+  citation that way goes).
 - No progress sort under Anonymous either: there is no Progress column there.
 - The words. The line under the filter bar, the line above the lists, the Build hints, the
   privacy policy (L43) and SECURITY.md say that values under 3 are not offered and lists do
@@ -144,17 +146,18 @@ changed with it:
 - The reconciliation. With a field or perspective filter the tiles count the filter's people
   and the person files everyone; the Items with totals file adds up to the tiles under any
   filter (results.test.ts reconcileItemsFile), the Export tab's first line says so under the
-  two levels (EXPORT_COPY.tab.lineHidden), and the exception is a review-list row.
+  two levels (EXPORT_COPY.tab.lineHidden), and the exception is a review-list row (the answer
+  and item tiles only, and waiting on Mihai since the fourth audit, below).
 - The item detail reads its list and its counts in one query: the person-mode people, each
   marked when the whole filter keeps them (person mode keeps everyone aggregate mode keeps,
   since every person-mode condition is the aggregate one or more), with the floor and the
   items seen by few worked out again on the marked people. Under Names hidden on 600
   responses it took 615 to 638 ms in two reads before and 140 to 317 ms in one read after on
-  tables never analyzed; the test now runs ANALYZE after its bulk insert, as autovacuum would
-  on a live database, and the detail then takes 21 to 25 ms and every main query under Names
-  hidden 262 ms or less (registers.answers the slowest).
+  tables never analyzed. (An ANALYZE after the test's bulk insert was tried and taken out
+  after the fourth audit, since it changed the Named timing loop too.)
 - Under the floor the sentence takes the place of "Showing [N] of [M]" and the box above the
-  bar goes, so it shows once; the PDF draws no confidence chart under the floor.
+  bar goes; the PDF draws no confidence chart under the floor. (The Agreement tab still drew
+  a box of its own with the same sentence until the fourth audit, below.)
 
 ## Rejected
 
@@ -193,7 +196,41 @@ the Names hidden email; a hidden personal Start storing no name. e2e/anonymous.s
 written and not run in this session; the main session runs e2e.
 
 Closed after the second build (2026-10-06): the two leaks the rework left. Under Names hidden
-the include-unsubmitted switch stays on and is not shown, so no list holds only those who
-submitted (whom Share names) and the counts still reconcile with the lists and the files.
-Under Anonymous the Responses tab and the people file show no Progress, Answered or Items seen,
+the include-unsubmitted switch was kept on and not shown (replaced after the fourth audit,
+below: it is off). Under Anonymous the Responses tab and the people file show no Progress, Answered or Items seen,
 since "of N" counts the items a person could see, which differ by perspective.
+
+## Fourth audit
+
+A fourth audit the same day found that, with the switch kept on under Names hidden, a list
+still said who had not finished: a response not submitted had fewer rows in the Answers file
+and no row in an item's detail, and when one invitee had not finished, Share named them. The
+fixes, decision 0058 unchanged:
+
+- Under Names hidden only submitted responses are in any view. parseResultsFilter fixes the
+  switch off and the page shows "This validation hides names, so Results count submitted
+  answers only." in its place; the SQL leaves out a response not submitted in results.ts
+  head, insights.ts and the value counts whatever a query is given, so the files, the PDF,
+  the citations, the MIN_GROUP rules and the project file count the same set. Keeping the
+  switch on and hiding the unfinished rows only was weighed and left: the counts would then
+  differ from the lists by exactly the unfinished people. The numbers run over the submitted
+  responses, so a number can shift when someone submits, as it can when someone starts under
+  Anonymous.
+- The project file under the two levels writes each response's perspectives as they are: the
+  perspective breakdowns stay under decision 0058, and with none an imported project showed
+  every item to everyone. It writes the missing items in the order of their responses'
+  numbers, then by id, since the order they were written in follows the times Share shows;
+  and it leaves out an action that cites any answer or missing item the file leaves out.
+- The line under the filter bar shows while a split is on, and on the Agreement tab while the
+  gaps view compares groups, not only when a value is left out (riskLineShown).
+- The floor's sentence shows once: the Agreement tab keeps its controls and draws no box.
+- The Export tab's line names the tiles the Items with totals file adds up to (the answer and
+  item tiles) and says the others add up from the person files only with no field or
+  perspective filter. The reconciliation exception stays a review-list row, now waiting on
+  Mihai: decision 0058 and the CLAUDE.md rule that every number reconciles with the export
+  are two requirements in conflict.
+- The privacy policy no longer says that nothing under 3 people is drawn: the floor applies to
+  a filter, a group and an item, and with no filter on the count of people, their confidence
+  and their missing items show however few answered.
+- The timing test runs no ANALYZE: on tables never analyzed, the slowest Names hidden query of
+  three filters took 217 ms (the split), the item detail 180 ms.

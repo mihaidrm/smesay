@@ -122,7 +122,9 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
       {isSample && <SampleWalkthrough ws={ws} projectId={projectId} instrument={instrument} screen={item ? "detail" : tab === "pushed" ? "registers" : tab === "agreement" ? "strip" : null}
         next={{ strip: href(filter, "pushed"), registers: null, detail: "/app/projects/new" }} itemHref={itemHref} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {instrument.anonymity !== "hidden" && <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />}
+        {/* E5-7 (amended 2026-10-06): under Names hidden the switch is off and not shown, and a
+            line says so in its place. */}
+        {instrument.anonymity === "hidden" ? <p className="text-sm text-ink-muted" data-testid="submitted-only">{RESULTS_COPY.submittedOnly}</p> : <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />}
         <TileChooser projectId={projectId} tiles={tiles} />
       </div>
       {!n.tooFew && !none && <Strip n={n} tiles={tiles} />}

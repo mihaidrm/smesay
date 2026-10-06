@@ -91,7 +91,8 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   asks who you are"); the policy now also says what neither level hides: the same number
   follows one person across items, so a reason that names its author shows that person's
   other answers; free text goes as written; a dropdown that asks for a name shows it. Results
-  draw no chart, group or item for fewer than 3 people and no list follows a field or
+  draw no chart for a filter that keeps fewer than 3 people, no group of a breakdown under 3
+  and no answers on an item fewer than 3 could see, and no list follows a field or
   perspective filter, and the project file dates every response at the export.
   Amended again 2026-10-06 (decision 0058, Mihai's choice "Breakdowns, risk disclosed"):
   Results keep filters and splits by choice fields and perspectives under both levels, and
@@ -100,6 +101,11 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   group, as can, under Names hidden, the finishing and last-save times on the sharing page
   and the AI's actions citing only people who submitted. The numbers no longer follow the
   start order, and the project file under Names hidden holds only submitted responses.
+  Amended again 2026-10-06 (the fourth audit): under Names hidden Results, the files and the
+  AI hold only submitted responses, so nothing there says who has not finished; the policy
+  says that with no filter on the count of people, their confidence and their suggested
+  missing items show however few answered; the project file keeps each response's
+  perspectives.
   Proposal: as written. Judgement: whether About you's "Your answers are anonymous" needs a
   further qualifier given the disclosed comparison risk, and whether the DPA should say the
   customer, not Alerty, decides the level.

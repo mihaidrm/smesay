@@ -39,7 +39,9 @@ const ids = (list: string[]) => sql.join(list.map((id) => sql`${id}`), sql`, `);
 // instrument, as on Results). Under Names hidden and Anonymous (stories/E5-7, acceptance 6)
 // nobody is named and every response has its number across all the instrument's links, in
 // the fixed order of md5(response id || instrument id) that does not follow the start
-// (decision 0058), as on Results (src/db/queries/results.ts head).
+// (decision 0058), as on Results (src/db/queries/results.ts head); under Names hidden over the
+// submitted responses only, as Results numbers them (a citation of a response not submitted
+// then names no one and is not shown).
 const people = (ws: WorkspaceId, projectId: string) => sql`
   people as (
     select r.id, r.instrument_id,
@@ -49,7 +51,7 @@ const people = (ws: WorkspaceId, projectId: string) => sql`
           then row_number() over (partition by r.instrument_id, iv.kind order by r.created_at, r.id) end as anon
       from response r join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
         join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws} and ins.project_id = ${projectId}
-      where r.workspace_id = ${ws}
+      where r.workspace_id = ${ws} and (ins.anonymity <> 'hidden' or r.submitted_at is not null)
   )`;
 
 export const insights = {

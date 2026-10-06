@@ -16,7 +16,8 @@
 // when it keeps fewer than 3 counted people, has no row but the line saying so; an item fewer
 // than 3 counted people could see has no count, its agreement cell "Fewer than 3 answers".
 // Under Names hidden no file says who has submitted: no Status, Since submitting, Answered,
-// Items seen or Minutes to submit, since Share names who has finished; under Anonymous no
+// Items seen or Minutes to submit, since Share names who has finished, and (amended
+// 2026-10-06) no file holds a response not submitted (results.ts head); under Anonymous no
 // Answered or Items seen either, since the items a person could see differ by perspective.
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
@@ -43,7 +44,8 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
   const listed = file === "items" ? f : personFilter(f, instrument.anonymity);
   if (filterActive(listed)) preamble.push([EXPORT_COPY.filtered(describeFilter(listed, ctx))]);
   if (file !== "items" && identityFiltered(f, instrument.anonymity)) preamble.push([RESULTS_COPY.personLevel]);
-  if (f.includeUnsubmitted) preamble.push([EXPORT_COPY.withUnsubmitted]);
+  // Under Names hidden no response not submitted is in any file (E5-7, amended 2026-10-06).
+  if (f.includeUnsubmitted && instrument.anonymity !== "hidden") preamble.push([EXPORT_COPY.withUnsubmitted]);
   const named = namesShown(instrument.anonymity);
   const fields = named ? instrument.respondentFields : [];
   // A column kept only under Named (E5-7).

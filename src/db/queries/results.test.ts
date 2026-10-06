@@ -26,6 +26,7 @@ import { insights } from "@/db/queries/insights";
 import { resultsContext } from "@/lib/results-context";
 import { AGREEMENT_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { EXPORT_COPY } from "@/lib/export/copy";
+import { summaryView } from "@/lib/export/summary";
 
 let sql: ReturnType<typeof postgres>;
 const userId = `results-${Date.now()}`;
@@ -400,11 +401,6 @@ describe("the Agreement tab's numbers", () => {
       from response r join item it on it.item_set_id = r.item_set_id
         cross join lateral (select (array['agree', 'agree', 'change', 'disagree', 'unclear'])[1 + abs(hashtext(r.id::text || it.id::text)) % 5] as kind) k
       where r.workspace_id = ${wsC} and r.instrument_id = ${instrumentC} and r.fields ? 'role' and r.fields ->> 'name' like 'Person %' and abs(hashtext(r.id::text || it.id::text)) % 7 <> 0`;
-    // The planner's statistics after a bulk load, as autovacuum would gather them on a live
-    // database (postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-STATISTICS):
-    // without them it takes 600 fresh responses for a handful and joins them row by row.
-    await sql`analyze response`;
-    await sql`analyze answer`;
     for (const f of [NONE, { ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, fields: { role: ["Sales"] }, includeUnsubmitted: true }]) {
       for (const split of [null, "role"]) {
         const started = performance.now();
@@ -430,9 +426,11 @@ describe("the Agreement tab's numbers", () => {
       expect(performance.now() - startedGaps).toBeLessThan(500);
       expect(byRole).toHaveLength(6);
     }
-    // E5-7 (decision 0058): the main Results queries under Names hidden, where the switch stays
-    // on, with no filter and with a field filter (the lists then read person mode and the
-    // charts aggregate mode), each within the same budget.
+    // E5-7 (decision 0058): the main Results queries under Names hidden, where only the 455
+    // submitted responses are people (amended 2026-10-06: the switch is off there, and the SQL
+    // leaves the others out even when a query is given it on), with no filter and with a field
+    // filter (the lists then read person mode and the charts aggregate mode), each within the
+    // same budget, on tables never analyzed.
     await sql`update instrument set anonymity = 'hidden' where id = ${instrumentC}`;
     const cl04 = (await sql`select it.id from item it where it.workspace_id = ${wsC} and it.item_set_id = ${item_set_id} and it.source_ref = 'CL-04'`)[0].id as string;
     const timings: Record<string, number> = {};
@@ -442,10 +440,10 @@ describe("the Agreement tab's numbers", () => {
       timings[name] = Math.max(timings[name] ?? 0, Math.round(performance.now() - started));
       return out;
     };
-    for (const f of [{ ...NONE, includeUnsubmitted: true }, { ...NONE, fields: { role: ["Sales"] }, includeUnsubmitted: true }]) {
+    for (const f of [NONE, { ...NONE, fields: { role: ["Sales"] } }, { ...NONE, fields: { role: ["Sales"] }, includeUnsubmitted: true }]) {
       const n = (await timed("numbers", () => results.numbers(wsC, instrumentC, f)))!;
-      expect(n.tooFew).toBe(false);
-      expect((await timed("tracker.people", () => tracker.people(wsC, instrumentC, f, ["role"]))).length).toBe(606);
+      expect([n.tooFew, n.inProgress]).toEqual([false, 0]);
+      expect((await timed("tracker.people", () => tracker.people(wsC, instrumentC, f, ["role"]))).length).toBe(455);
       await timed("agreement.byItem", () => agreement.byItem(wsC, instrumentC, f));
       await timed("agreement.byItem split", () => agreement.byItem(wsC, instrumentC, f, "role"));
       await timed("gaps.byField", () => gaps.byField(wsC, instrumentC, f, "role"));
@@ -455,14 +453,15 @@ describe("the Agreement tab's numbers", () => {
       const c = (await agreement.byItem(wsC, instrumentC, f, null)).find((x) => x.itemId === cl04)!;
       expect([one.counts.agree, one.counts.change, one.counts.disagree, one.counts.unclear]).toEqual([c.agree, c.change, c.disagree, c.unclear]);
       // S4: the items file adds up to the tiles under the field filter too, while the people
-      // file lists all 606 (decision 0058: lists follow no field filter, the tiles do).
+      // file lists all 455 submitted (decision 0058: lists follow no field filter, the tiles
+      // do): 90 generated Sales responses submitted and the sample's 2.
       const { n: tiles } = await reconcileItemsFile(wsC, instrumentC, f);
       const hiddenInst = (await instruments.get(wsC, instrumentC))!;
       const peopleFile = await exportTable(wsC, hiddenInst, "people", f, { fields: hiddenInst.respondentFields, perspectives: hiddenInst.perspectives, anonymity: hiddenInst.anonymity }, false);
-      expect(peopleFile.rows).toHaveLength(606);
-      expect(tiles.shown).toBe(f.fields.role ? 122 : 606);
+      expect(peopleFile.rows).toHaveLength(455);
+      expect(tiles.shown).toBe(f.fields.role ? 92 : 455);
     }
-    console.log(`Names hidden on 600 responses, slowest of two filters (ms): ${JSON.stringify(timings)}`);
+    console.log(`Names hidden on 600 responses, slowest of three filters (ms): ${JSON.stringify(timings)}`);
     for (const [name, ms] of Object.entries(timings)) expect(ms, name).toBeLessThan(500);
   }, 120_000);
 
@@ -802,9 +801,10 @@ describe("Names hidden and Anonymous on Results", () => {
     await sql`update instrument set anonymity = 'hidden' where id = ${instrumentH}`;
   }, 60_000);
 
-  it("names nobody, numbers every response in a fixed order, and keeps no invitee who has not started", async () => {
+  it("names nobody, numbers every submitted response in a fixed order, and keeps no invitee who has not started", async () => {
+    // The switch on in the query: under Names hidden the SQL still keeps the submitted only.
     const on = { ...NONE, includeUnsubmitted: true };
-    const order = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by md5(id::text || instrument_id::text) collate "C", created_at, id`).map((r) => r.id as string);
+    const order = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} and submitted_at is not null order by md5(id::text || instrument_id::text) collate "C", created_at, id`).map((r) => r.id as string);
     const people = await tracker.people(wsH, instrumentH, on, ["name", "role"]);
     expect(people).toHaveLength(order.length);
     expect(people.every((p) => p.who === null && p.status !== "invited" && Object.keys(p.fields).length === 0 && p.submittedAt === null && p.reminders === null)).toBe(true);
@@ -817,7 +817,7 @@ describe("Names hidden and Anonymous on Results", () => {
     // E5-7, amended 2026-10-06: by the status or the progress too, under Names hidden.
     for (const key of ["field.role", "submitted", "source", "reminders", "status", "progress"]) expect((await tracker.people(wsH, instrumentH, { ...on, sort: { key, dir: "desc" } }, ["role"])).map((p) => p.anon)).toEqual(byNumberDesc);
     const n = (await results.numbers(wsH, instrumentH, on))!;
-    expect([n.invited, n.submitted, n.inProgress]).toEqual([6, 5, 1]);
+    expect([n.invited, n.submitted, n.inProgress]).toEqual([5, 5, 0]);
     const rows = await results.rows(wsH, instrumentH, on);
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every((r) => r.who === null && r.anon !== null && Object.keys(r.fields).length === 0 && r.submittedAt === null)).toBe(true);
@@ -844,6 +844,72 @@ describe("Names hidden and Anonymous on Results", () => {
     expect(cited.flatMap((a) => [...a.answers, ...a.missing]).every((c) => c.who === null && c.anon !== null)).toBe(true);
   });
 
+  // E5-7, amended 2026-10-06 after the fourth audit (B1): a list with fewer answer rows, an
+  // item detail without a row or Share's only unfinished person could tell who has not
+  // finished. Under Names hidden the switch is off and not shown (parseResultsFilter), and the
+  // SQL leaves out every response not submitted, whatever the switch a query is given. The
+  // sample's personal invitee in progress (Sam Hill, the Office manager), here with an Unclear
+  // answer and a missing item, is in no list, file, detail, count, citation or the PDF.
+  it("leaves the invitee who has not submitted out of every list, file, detail and count under Names hidden", async () => {
+    const [{ id: open }] = await sql`select r.id from response r join invite iv on iv.id = r.invite_id where r.workspace_id = ${wsH} and r.instrument_id = ${instrumentH} and r.submitted_at is null and iv.kind = 'personal'`;
+    const theirs = (await sql`select id from answer where response_id = ${open as string} order by item_id`).map((r) => r.id as string);
+    expect(theirs.length).toBeGreaterThan(0);
+    await sql`update answer set kind = 'unclear', reason = 'Only Sam asks this.' where id = ${theirs[0]}`;
+    const [{ id: missingId }] = await sql`insert into missing_item (workspace_id, response_id, text) values (${wsH}, ${open as string}, 'Only Sam misses this.') returning id`;
+    const theirIds = new Set([open as string, missingId as string, ...theirs]);
+    const inst = (await instruments.get(wsH, instrumentH))!;
+    const { ctx, filter } = await resultsContext(wsH, inst, { unsubmitted: "1" }, true);
+    expect(filter.includeUnsubmitted).toBe(false);
+    const itemIds = (await sql`select it.id from item it where it.workspace_id = ${wsH} and it.item_set_id = ${inst.itemSetId}`).map((r) => r.id as string);
+    for (const f of [filter, { ...filter, includeUnsubmitted: true }, { ...filter, includeUnsubmitted: true, kinds: ["unclear" as const] }]) {
+      const ids = [
+        ...(await tracker.people(wsH, instrumentH, f, [])).map((p) => p.id),
+        ...(await results.people(wsH, instrumentH, f)).map((p) => p.id),
+        ...(await results.rows(wsH, instrumentH, f)).flatMap((r) => [r.id, r.responseId]),
+        ...(await results.missing(wsH, instrumentH, f)).flatMap((m) => [m.id, m.responseId]),
+        ...(await results.signOffs(wsH, instrumentH, f)).map((x) => x.id),
+        ...(await results.signOffs(wsH, instrumentH, f, "aggregate")).map((x) => x.id),
+        ...(await registers.answers(wsH, instrumentH, f, ["change", "disagree", "unclear"], [], "moscow")).map((r) => r.id),
+        ...(await registers.missing(wsH, instrumentH, f, [], "moscow")).map((r) => r.id),
+      ];
+      for (const item of itemIds) ids.push(...(await detail.item(wsH, instrumentH, item, f))!.rows.map((r) => r.personId));
+      expect(ids.length).toBeGreaterThan(0);
+      expect(ids.filter((id) => theirIds.has(id))).toEqual([]);
+      // The counts with no kind chosen (Unclear keeps 2 submitted people: under the floor).
+      if (f.kinds.length === 0) {
+        for (const mode of ["aggregate", "person"] as const) {
+          const n = (await results.numbers(wsH, instrumentH, f, mode))!;
+          expect([n.invited, n.submitted, n.inProgress, n.shown, n.total]).toEqual([5, 5, 0, 5, 5]);
+        }
+        expect(Math.max(...(await agreement.byItem(wsH, instrumentH, f)).map((c) => c.couldSee))).toBe(5);
+      } else expect((await results.numbers(wsH, instrumentH, f))!.tooFew).toBe(true);
+      // The files: no row and no line for answers not submitted; the PDF names none of theirs.
+      for (const file of ["answers", "people", "missing", "items"] as const) {
+        const table = await exportTable(wsH, inst, file, f, ctx, false);
+        expect(table.preamble.flat()).not.toContain(EXPORT_COPY.withUnsubmitted);
+        expect(table.rows.flat().some((c) => /Only Sam/.test(String(c)))).toBe(false);
+        if (file === "people") expect(table.rows).toHaveLength(f.kinds.length === 0 ? 5 : 2);
+      }
+      const pdf = (await summaryView({ ws: wsH, workspace: "Results H", project: { id: inst.projectId, name: "Results H", isSample: false }, instrument: inst, filter: f, ctx, tiles: ["submitted", "inProgress", "unclear", "missing"], now: new Date() }))!;
+      expect(JSON.stringify(pdf)).not.toMatch(/Only Sam|not submitted yet/);
+      if (f.kinds.length === 0) await reconcileStrip(wsH, instrumentH, f);
+    }
+    // Write actions reads submitted answers only, and no citation is theirs.
+    expect((await insights.inputFor(wsH, instrumentH)).answers.some((a) => theirIds.has(a.id))).toBe(false);
+    const cited = await insights.listWithCitations(wsH, inst.projectId);
+    expect(cited.flatMap((a) => [...a.answers, ...a.missing]).some((c) => theirIds.has(c.id))).toBe(false);
+    // Their Office manager role is offered and counted nowhere.
+    expect((await results.fieldValueCounts(wsH, instrumentH, true)).some((c) => c.value === "Office manager")).toBe(false);
+    // Under Anonymous, with the switch on, the same response is a person: the rule is Names hidden's.
+    await sql`update instrument set anonymity = 'anonymous' where id = ${instrumentH}`;
+    const on = { ...NONE, includeUnsubmitted: true };
+    expect((await tracker.people(wsH, instrumentH, on, [])).some((p) => p.id === open)).toBe(true);
+    expect((await registers.missing(wsH, instrumentH, on, [], "moscow")).some((m) => m.id === missingId)).toBe(true);
+    await sql`update instrument set anonymity = 'hidden' where id = ${instrumentH}`;
+    await sql`update answer set kind = 'agree', reason = null where id = ${theirs[0]}`;
+    await sql`delete from missing_item where id = ${missingId as string}`;
+  });
+
   // Decision 0058 (B5): Share shows who started when, so the number is not the start. With the
   // starts set in the reverse of the fixed order (md5 of the response id and the instrument id),
   // every place a number shows (the Responses tab, the answer rows of the files, the sign-off
@@ -852,9 +918,10 @@ describe("Names hidden and Anonymous on Results", () => {
   it("numbers the responses in an order that does not follow their start, the same in every list, file and citation", async () => {
     const on = { ...NONE, includeUnsubmitted: true };
     const saved = await sql`select id, created_at from response where workspace_id = ${wsH} and instrument_id = ${instrumentH}`;
-    const fixed = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by md5(id::text || instrument_id::text) collate "C"`).map((r) => r.id as string);
+    // Under Names hidden the submitted responses only are numbered (amended 2026-10-06).
+    const fixed = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} and submitted_at is not null order by md5(id::text || instrument_id::text) collate "C"`).map((r) => r.id as string);
     for (const [i, id] of fixed.entries()) await sql`update response set created_at = now() - make_interval(days => ${i}) where id = ${id}`;
-    const byStart = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by created_at, id`).map((r) => r.id as string);
+    const byStart = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} and submitted_at is not null order by created_at, id`).map((r) => r.id as string);
     expect(byStart).toEqual([...fixed].reverse());
     const number = new Map(fixed.map((id, i) => [id, i + 1]));
     const people = await tracker.people(wsH, instrumentH, on, []);
@@ -879,14 +946,18 @@ describe("Names hidden and Anonymous on Results", () => {
   // the "Not answered" kind (parseResultsFilter); a query given it anyway keeps every list whole,
   // the item detail lists only the people with an answer (the count of the others stays), and
   // the answers file is the unfiltered one. Under Anonymous the kind still narrows the lists.
+  // Under Names hidden only submitted responses are people (amended 2026-10-06), so the item
+  // left unanswered here is a submitted respondent's: one answer is removed for the test and
+  // put back after.
   it("lets Not answered narrow no list under Names hidden, and lists no one without an answer in the detail", async () => {
     const on = { ...NONE, includeUnsubmitted: true };
     const inst = (await instruments.get(wsH, instrumentH))!;
     const ctxH = { fields: inst.respondentFields.filter((s) => s.type === "dropdown"), perspectives: inst.perspectives, anonymity: inst.anonymity };
-    // An item a started response has not answered (the sample's respondent in progress).
-    const [gap] = await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.workspace_id = ${wsH}
-      and exists (select 1 from response r where r.instrument_id = ins.id and not exists (select 1 from answer a where a.response_id = r.id and a.item_id = it.id)) order by it.position limit 1`;
+    const [gap] = await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.workspace_id = ${wsH} and it.source_ref = 'CL-01'`;
+    const [removed] = await sql`delete from answer where id = (select a.id from answer a join response r on r.id = a.response_id
+      where r.workspace_id = ${wsH} and r.instrument_id = ${instrumentH} and r.submitted_at is not null and a.item_id = ${gap.id as string} order by r.created_at, r.id limit 1) returning *`;
     const whole = (await tracker.people(wsH, instrumentH, on, [])).map((p) => p.id);
+    expect(whole).toHaveLength(5);
     for (const kinds of [["none" as const], ["change" as const, "none" as const]]) {
       expect((await tracker.people(wsH, instrumentH, { ...on, kinds }, [])).map((p) => p.id)).toEqual(whole);
       expect((await results.numbers(wsH, instrumentH, { ...on, kinds }, "person"))!.invited).toBe(whole.length);
@@ -895,14 +966,16 @@ describe("Names hidden and Anonymous on Results", () => {
     const one = (await detail.item(wsH, instrumentH, gap.id as string, on))!;
     expect(one.rows.length).toBeGreaterThan(0);
     expect(one.rows.every((r) => r.kind !== null)).toBe(true);
-    expect(one.counts.notYet).toBeGreaterThan(0);
+    expect(one.counts.notYet).toBe(1);
+    // No line says answers not submitted are in: under Names hidden none are.
     const file = await exportTable(wsH, inst, "answers", { ...on, kinds: ["none"] }, ctxH, false);
-    expect([file.preamble, file.rows]).toEqual([[[EXPORT_COPY.withUnsubmitted]], (await exportTable(wsH, inst, "answers", on, ctxH, false)).rows]);
+    expect([file.preamble, file.rows]).toEqual([[], (await exportTable(wsH, inst, "answers", on, ctxH, false)).rows]);
     await sql`update instrument set anonymity = 'anonymous' where id = ${instrumentH}`;
     const narrowed = await tracker.people(wsH, instrumentH, { ...on, kinds: ["none"] }, []);
     expect(narrowed.length > 0 && narrowed.length < whole.length).toBe(true);
     expect((await detail.item(wsH, instrumentH, gap.id as string, on))!.rows.some((r) => r.kind === null)).toBe(true);
     await sql`update instrument set anonymity = 'hidden' where id = ${instrumentH}`;
+    await sql`insert into answer ${sql(removed)}`;
   });
 
   // E5-7, amended 2026-10-06 (E): under Names hidden no file says who has submitted; under
@@ -916,7 +989,7 @@ describe("Names hidden and Anonymous on Results", () => {
     expect(answers.rows.every((r) => /^Anonymous \d+$/.test(String(r[0])))).toBe(true);
     const people = await exportTable(wsH, inst, "people", f, ctxH, false);
     expect(people.header).toEqual(["Respondent", "Answers with a reason or comment"]);
-    expect(people.rows.map((r) => r[0])).toEqual(["Anonymous 1", "Anonymous 2", "Anonymous 3", "Anonymous 4", "Anonymous 5", "Anonymous 6"]);
+    expect(people.rows.map((r) => r[0])).toEqual(["Anonymous 1", "Anonymous 2", "Anonymous 3", "Anonymous 4", "Anonymous 5"]);
     const missing = await exportTable(wsH, inst, "missing", f, ctxH, false);
     expect(missing.header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent"]);
     const anonymous = { ...inst, anonymity: "anonymous" as const };
@@ -960,14 +1033,17 @@ describe("Names hidden and Anonymous on Results", () => {
     expect([one.countsFew, one.few, one.counts.agree, one.rows.length]).toEqual([true, false, 0, whole.detail.length]);
     // The files: the items file has no row and says why; the answers file is whole and says so.
     const items = await exportTable(wsH, inst, "items", sales, ctxH, false);
-    expect([items.preamble, items.rows]).toEqual([[["Filtered: Role: Sales"], [EXPORT_COPY.withUnsubmitted], [RESULTS_COPY.tooFew]], []]);
+    expect([items.preamble, items.rows]).toEqual([[["Filtered: Role: Sales"], [RESULTS_COPY.tooFew]], []]);
     const answers = await exportTable(wsH, inst, "answers", sales, ctxH, false);
-    expect(answers.preamble).toEqual([[RESULTS_COPY.personLevel], [EXPORT_COPY.withUnsubmitted]]);
+    expect(answers.preamble).toEqual([[RESULTS_COPY.personLevel]]);
     expect(answers.rows).toEqual((await exportTable(wsH, inst, "answers", on, ctxH, false)).rows);
     // Under Anonymous the status filter still narrows a list (Share names nobody there).
     await sql`update instrument set anonymity = 'anonymous' where id = ${instrumentH}`;
     expect(await tracker.people(wsH, instrumentH, { ...on, status: ["submitted"] }, [])).toHaveLength(5);
-    expect((await tracker.people(wsH, instrumentH, { ...on, fields: { role: ["Sales"] } }, [])).map((p) => p.id)).toEqual(whole.people);
+    // With the switch on the respondent in progress is a person under Anonymous.
+    const everyone = (await tracker.people(wsH, instrumentH, on, [])).map((p) => p.id);
+    expect(everyone).toHaveLength(6);
+    expect((await tracker.people(wsH, instrumentH, { ...on, fields: { role: ["Sales"] } }, [])).map((p) => p.id)).toEqual(everyone);
     // Decision 0058 (S1): no progress to sort by under Anonymous either (no Progress column
     // there), so ?sort=progress falls back to the numbers, in the direction asked.
     const byNumberDesc = (await tracker.people(wsH, instrumentH, { ...on, sort: { key: "name", dir: "desc" } }, [])).map((p) => p.anon);
@@ -987,10 +1063,12 @@ describe("Names hidden and Anonymous on Results", () => {
   });
 
   it("offers a dropdown value as a filter only with 3 counted respondents, and reads nothing of another workspace", async () => {
+    // Under Names hidden the respondent in progress (Office manager) counts nowhere, even with
+    // the switch on in the call (amended 2026-10-06).
     const counts = await results.fieldValueCounts(wsH, instrumentH, true);
     expect(counts.filter((c) => c.key === "role")).toEqual([
       { key: "role", value: "Engineering manager", n: 1 }, { key: "role", value: "Finance", n: 1 }, { key: "role", value: "HR", n: 1 },
-      { key: "role", value: "Office manager", n: 1 }, { key: "role", value: "Sales", n: 2 },
+      { key: "role", value: "Sales", n: 2 },
     ]);
     expect((await results.fieldValueCounts(wsH, instrumentH, false)).find((c) => c.key === "role" && c.value === "Office manager")).toBeUndefined();
     expect(await results.fieldValueCounts(wsA, instrumentH, true)).toEqual([]);
@@ -1005,9 +1083,12 @@ describe("Names hidden and Anonymous on Results", () => {
     expect(ctx.offered).toEqual({ role: [] });
     expect(ctx.perspectives.every((p) => (picked.find((c) => c.value === p)?.n ?? 0) >= 3)).toBe(true);
     expect(filter.fields).toEqual({});
-    // A third Sales respondent makes Sales a value the filter offers.
+    // A third Sales respondent who has not submitted is no one under Names hidden; once they
+    // submit, Sales is a value the filter offers.
     const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentH} and i.kind = 'public'`;
-    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields) values (${wsH}, ${instrumentH}, ${item_set_id}, ${public_invite}, ${"d".repeat(32)}, '{"role": "Sales"}'::jsonb)`;
+    const [third] = await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields) values (${wsH}, ${instrumentH}, ${item_set_id}, ${public_invite}, ${"d".repeat(32)}, '{"role": "Sales"}'::jsonb) returning id`;
+    expect((await resultsContext(wsH, inst, { "f.role": "Sales", unsubmitted: "1" }, null)).ctx.offered).toEqual({ role: [] });
+    await sql`update response set submitted_at = now(), first_submitted_at = now(), signed_off = true where id = ${third.id as string}`;
     const again = await resultsContext(wsH, inst, { "f.role": "Sales", unsubmitted: "1" }, null);
     expect(again.ctx.offered).toEqual({ role: ["Sales"] });
     expect(again.filter.fields).toEqual({ role: ["Sales"] });
@@ -1018,11 +1099,11 @@ describe("Names hidden and Anonymous on Results", () => {
     expect((await resultsContext(wsH, inst, { status: "submitted", unsubmitted: "1" }, null)).filter.status).toEqual([]);
   });
 
-  // C, amended 2026-10-06 after the audit: with the switch on, Sales has 3 people (the response
-  // added above) and Finance, Engineering manager, HR and Office manager one each. The four
-  // are one group, folded, keyed apart from any value; once two of them become Sales, the two
-  // left (2 people) are no group at all, in the split and in the gaps, and the items' totals
-  // still count them.
+  // C, amended 2026-10-06 after the audit: Sales has 3 submitted people (the response added
+  // above) and Finance, Engineering manager and HR one each (the Office manager has not
+  // submitted, so is no one under Names hidden). The three are one group, folded, keyed apart
+  // from any value; once two of them become Sales, the one left is no group at all, in the
+  // split and in the gaps, and the items' totals still count them.
   it("draws no split group under 3 people: folds them when they reach 3 together, else leaves them out", async () => {
     const on = { ...NONE, includeUnsubmitted: true };
     const groups = async () => new Set((await agreement.byItem(wsH, instrumentH, on, "role")).map((c) => `${c.folded ? "folded" : c.group}`));
@@ -1052,7 +1133,7 @@ describe("Names hidden and Anonymous on Results", () => {
     const before = (await results.numbers(wsH, instrumentH, on))!;
     const onItem = (await results.rows(wsH, instrumentH, on)).filter((r) => r.itemId === item);
     expect(onItem.length).toBeGreaterThan(0);
-    const viewers = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by created_at, id limit 2`).map((r) => r.id as string);
+    const viewers = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} and submitted_at is not null order by created_at, id limit 2`).map((r) => r.id as string);
     await sql`update item set perspectives = '{Approver}' where id = ${item}`;
     await sql`update response set perspectives = '{Approver}' where id in ${sql(viewers)}`;
     const row = (await agreement.byItem(wsH, instrumentH, on)).find((c) => c.itemId === item)!;

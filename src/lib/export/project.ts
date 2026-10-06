@@ -13,12 +13,14 @@
 // invite. Amended 2026-10-06 after the audit: under those levels every time of a response (its
 // start, its last save, its submits), of its answers and of its missing items is written as
 // the export's own time (null stays null for a response not submitted), its perspectives as
-// none, and no personal invite of the validation is written, so the imported project carries
-// the public link only and no reminder can reach a person who already answered. The import
-// refuses a personal invite on such a validation, and a response whose fields are not its
-// dropdowns' values, as a damaged file. Decision 0058: under those levels the responses go in
-// the fixed order of their "Anonymous [N]" numbers, under Names hidden only the submitted ones,
-// and no answer on an item fewer than MIN_GROUP of them could see (hiddenSelection). The
+// they are (perspective breakdowns stay under decision 0058, so an imported project shows each
+// item to the same people), and no personal invite of the validation is written, so the
+// imported project carries the public link only and no reminder can reach a person who
+// already answered. The import refuses a personal invite on such a validation, and a response
+// whose fields are not its dropdowns' values, as a damaged file. Decision 0058: under those
+// levels the responses go in the fixed order of their "Anonymous [N]" numbers (their missing
+// items too), under Names hidden only the submitted ones, and no answer on an item fewer than
+// MIN_GROUP of them could see (hiddenSelection). The
 // sample's file is refused: its invented data would show without the watermark (CLAUDE.md,
 // dashboard).
 import { createHash } from "node:crypto";
@@ -143,12 +145,17 @@ const fixedKey = (r: { id: string; instrumentId: string }) => createHash("md5").
 // Decision 0058: under Names hidden and Anonymous the responses written are, per validation,
 // in the fixed order of their numbers (not their start, which Share shows); under Names hidden
 // only the submitted ones (Share names who has finished, so a response not submitted would say
-// who has not); and no answer on an item fewer than MIN_GROUP of the responses written could
-// see (its perspectives), as on Results. A missing item follows its response, and an action
-// keeps the citations still in the file (one left with none is not written: its words could
-// quote an answer left out).
+// who has not; Results count the same set, src/db/queries/results.ts head); and no answer on
+// an item fewer than MIN_GROUP of the responses written could see (its perspectives), as on
+// Results. A missing item follows its response: under those levels in the same fixed order of
+// the responses, then by its id, never by when it was written. For every project, Named ones
+// too, an action keeps only the citations still in the file (a citation of a row deleted
+// since goes) and is not written when it had some and none is left; under those levels an
+// action that cites an answer or a missing item the file leaves out is not written at all,
+// since its words could quote what was left out.
 function hiddenSelection(rows: TransferRows, hides: Set<string>) {
-  const written = rows.responses.filter((r) => !hides.has(r.instrumentId) || rows.instruments.find((i) => i.id === r.instrumentId)?.anonymity !== "hidden" || r.submittedAt !== null);
+  const level = new Map(rows.instruments.map((i) => [i.id, i.anonymity]));
+  const written = rows.responses.filter((r) => !hides.has(r.instrumentId) || level.get(r.instrumentId) !== "hidden" || r.submittedAt !== null);
   const sees = (itemPerspectives: string[], r: { perspectives: string[] }) => itemPerspectives.length === 0 || itemPerspectives.some((p) => r.perspectives.includes(p));
   const setOf = new Map(rows.instruments.map((i) => [i.id, i.itemSetId]));
   const few = new Set<string>();
@@ -160,15 +167,28 @@ function hiddenSelection(rows: TransferRows, hides: Set<string>) {
   const instrumentOf = new Map(written.map((r) => [r.id, r.instrumentId]));
   const answers = rows.answers.filter((a) => responseIds.has(a.responseId) && !few.has(`${instrumentOf.get(a.responseId)} ${a.itemId}`));
   const answerIds = new Set(answers.map((a) => a.id));
-  const missingItems = rows.missingItems.filter((m) => responseIds.has(m.responseId));
-  const missingIds = new Set(missingItems.map((m) => m.id));
+  const kept = rows.missingItems.filter((m) => responseIds.has(m.responseId));
+  const missingIds = new Set(kept.map((m) => m.id));
+  // Rows of the project the file leaves out (only under the two levels), as against rows
+  // deleted since an action cited them, which are in neither list.
+  const leftOut = new Set([...rows.answers.filter((a) => !answerIds.has(a.id)), ...rows.missingItems.filter((m) => !missingIds.has(m.id))].map((x) => x.id));
   const insights = rows.insights.flatMap((s) => {
+    if ([...s.citedAnswerIds, ...s.citedMissingItemIds].some((x) => leftOut.has(x))) return [];
     const cited = { citedAnswerIds: s.citedAnswerIds.filter((x) => answerIds.has(x)), citedMissingItemIds: s.citedMissingItemIds.filter((x) => missingIds.has(x)) };
     const had = s.citedAnswerIds.length + s.citedMissingItemIds.length;
     return had > 0 && cited.citedAnswerIds.length + cited.citedMissingItemIds.length === 0 ? [] : [{ ...s, ...cited }];
   });
-  const keyed = written.map((r) => ({ r, key: hides.has(r.instrumentId) ? fixedKey(r) : "" }));
-  const ordered = [...keyed.filter((x) => !hides.has(x.r.instrumentId)), ...[...hides].flatMap((id) => keyed.filter((x) => x.r.instrumentId === id).sort((p, q) => (p.key < q.key ? -1 : p.key > q.key ? 1 : 0)))].map((x) => x.r);
+  const byKey = <T,>(key: (x: T) => string) => (p: T, q: T) => (key(p) < key(q) ? -1 : key(p) > key(q) ? 1 : 0);
+  const ordered = [
+    ...written.filter((r) => !hides.has(r.instrumentId)),
+    ...[...hides].flatMap((id) => written.filter((r) => r.instrumentId === id).sort(byKey(fixedKey))),
+  ];
+  const position = new Map(ordered.map((r, i) => [r.id, i]));
+  const hidden = (m: { responseId: string }) => hides.has(instrumentOf.get(m.responseId)!);
+  const missingItems = [
+    ...kept.filter((m) => !hidden(m)),
+    ...kept.filter(hidden).sort((p, q) => position.get(p.responseId)! - position.get(q.responseId)! || byKey<{ id: string }>((x) => x.id)(p, q)),
+  ];
   return { responses: ordered, answers, missingItems, insights };
 }
 
@@ -196,7 +216,7 @@ export function toFile(all: TransferRows, now = new Date()): ProjectExport {
     responses: rows.responses.map((r) => {
       const h = hides.has(r.instrumentId);
       return {
-        id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: h ? null : r.inviteId, fields: h ? {} : r.fields, perspectives: h ? [] : r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
+        id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: h ? null : r.inviteId, fields: h ? {} : r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
         submittedAt: whenOrNull(h, r.submittedAt), firstSubmittedAt: whenOrNull(h, r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: when(h, r.createdAt), updatedAt: when(h, r.updatedAt),
         answers: (answersOf.get(r.id) ?? []).map((a) => ({ id: a.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: when(h, a.updatedAt) })),
       };

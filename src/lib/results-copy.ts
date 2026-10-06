@@ -3,6 +3,9 @@
 // TILE_NAMES (src/lib/results-tiles.ts). No database here, so the client parts use it.
 export const RESULTS_COPY = {
   includeUnsubmitted: "Include unsubmitted answers",
+  // E5-7 (amended 2026-10-06): in place of the switch under Names hidden, where a response not
+  // submitted is in no view, so nothing on Results says who has not finished.
+  submittedOnly: "This validation hides names, so Results count submitted answers only.",
   chooseTiles: "Choose tiles",
   chooserTitle: "Choose the tiles",
   chooserLine: "Up to six, shown in this order. Only you see your choice.",

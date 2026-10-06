@@ -81,7 +81,7 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
   if (filterActive(filter)) lines.push(EXPORT_COPY.filtered(describeFilter(filter, ctx)));
   if (identityFiltered(filter, instrument.anonymity)) lines.push(RESULTS_COPY.personLevel);
   if (tooFew) lines.push(RESULTS_COPY.tooFew);
-  if (filter.includeUnsubmitted) lines.push(EXPORT_COPY.withUnsubmitted);
+  if (filter.includeUnsubmitted && instrument.anonymity !== "hidden") lines.push(EXPORT_COPY.withUnsubmitted);
   // No confidence chart under the floor (decision 0058): it is a chart of the people kept.
   const confidence = tooFew ? null : [1, 2, 3, 4, 5].map((v) => (confidenceOf ?? signOffs).filter((s) => s.confidence === v).length);
   const order = { open: 0, done: 1, dismissed: 2 } as const;
