@@ -8,6 +8,30 @@ honours, the tabs the prototype shows, and an empty state before the first answe
 Amended 2026-10-03 (design note 40; Mihai: the tallies at the top configurable, filter by
 department, by those who pushed back, by those who left comments; the pushed back split).
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the filter bar
+holds the dropdown fields only, each with the values 3 counted respondents or more gave
+(resultsContext, src/lib/results-context.ts), with a line saying why the others are not
+offered; Submitted of invited counts the people who started, since no invitee who has not
+started is a row. Amended again 2026-10-06 after the audit: a field or perspective filter
+narrows the tiles and the Agreement view only, and when the whole filter keeps fewer than 3
+counted respondents they read "Fewer than 3 people match these filters. Widen them to see
+the results."; the tabs that list people show the whole validation with a line saying why,
+and their counts in the tab row are counted the same way; under Names hidden there is no
+status filter.
+
+Amended 2026-10-06, decision 0058 ("Breakdowns, risk disclosed"): under Names hidden and
+Anonymous the filters and splits by dropdown fields and perspectives stay, and the line under
+the filter bar says that comparing views can still point to someone in a small group; it
+shows when a value is left out, while a split is on and while the gaps view compares groups.
+The floor's sentence takes the place of "Showing [N] of [M]" and shows once. Under Names
+hidden the include-unsubmitted switch is off and not shown ("This validation hides names, so
+Results count submitted answers only." in its place): every number, tab and file counts the
+submitted responses only, so Submitted of invited reads N of N there. With a field or
+perspective filter the tiles count the people the filter keeps while the lists and the
+person files list everyone: an exception to acceptance 6's reconciliation, recorded in
+docs/review-list.md and waiting on Mihai (two requirements in conflict); the Items with
+totals file still adds up to the answer and item tiles under any filter.
+
 ## Acceptance criteria
 1. Results (PM app board): the headline strip holds up to six tiles chosen by the PM from
    the catalogue below, six on by default; then the tabs Agreement, Different priority and

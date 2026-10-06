@@ -68,6 +68,14 @@ This link is yours. Do not forward it; answers sent through it are recorded unde
 It opens on [OPEN DATE AND TIME, with time zone]. (only when the link opens after the send)
 It closes on [CLOSE DATE AND TIME, with time zone].
 
+On a validation set to Names hidden (stories/E5-7, acceptance 3) the first line of that last
+paragraph says what About you says instead:
+
+This link is yours. Do not forward it. The team sees your answers without your name. They can
+see that you have finished.
+
+An Anonymous validation sends no personal invite; a Named one reads as above.
+
 Reply-to is the PM's own address, so questions go to the person who knows, and the sender
 name is the PM's (decision 0031).
 

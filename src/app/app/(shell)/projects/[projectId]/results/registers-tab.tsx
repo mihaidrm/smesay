@@ -7,13 +7,19 @@
 // ways with the sort in the URL (the value columns in the scale's order); values use the
 // instrument's labels (E5-2); a respondent who has not submitted, or changed answers after
 // Submit, is marked as on the Responses tab (decision 0030, E7-6). A row reads across its
-// columns: the respondent, then what they say and why. Copy: docs/copy/app.md, Results.
+// columns: the respondent, then what they say and why. Under Names hidden and Anonymous
+// (stories/E5-7, acceptance 4) the respondent is Anonymous [N] and there is no role column;
+// amended 2026-10-06: the rows follow no field or perspective filter (the page says so), an
+// item fewer than 3 counted people could see has no row (src/db/queries/results.ts), and
+// under Names hidden no row is marked not submitted or changed, since Share names who has
+// finished. Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { NeutralPill } from "@/components/ui/status-pill";
 import type { Instrument } from "@/db/queries/instruments";
 import { registers, type MissingRegisterRow, type RegisterRow } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
+import { namesShown } from "@/lib/anonymity";
 import { REGISTERS_COPY, RESPONSES_COPY } from "@/lib/results-copy";
 import { filterActive, nextSort, registerShownSort, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -60,12 +66,13 @@ function Register({ title, count, columns, queryKeys, aliases, filter, href, tes
   );
 }
 
-function Respondent({ who, anon, submitted, changedSince }: { who: string | null; anon: number | null; submitted: boolean; changedSince: boolean }) {
+// `marks`: whether the row may say not submitted or changed (not under Names hidden, E5-7).
+function Respondent({ who, anon, submitted, changedSince, marks }: { who: string | null; anon: number | null; submitted: boolean; changedSince: boolean; marks: boolean }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
       <span className="font-semibold">{nameOf(who, anon)}</span>
-      {!submitted && <NeutralPill>{REGISTERS_COPY.notSubmitted}</NeutralPill>}
-      {changedSince && <span className="text-xs font-semibold text-sun-text" data-testid="changed-since">{RESPONSES_COPY.changedSince}</span>}
+      {marks && !submitted && <NeutralPill>{REGISTERS_COPY.notSubmitted}</NeutralPill>}
+      {marks && changedSince && <span className="text-xs font-semibold text-sun-text" data-testid="changed-since">{RESPONSES_COPY.changedSince}</span>}
     </span>
   );
 }
@@ -83,9 +90,11 @@ function Item({ row, itemHref }: { row: RegisterRow; itemHref: Props["itemHref"]
 const CELL = "px-4 py-2.5 align-top";
 
 export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
-  const keys = ctx.fields.map((f) => f.key);
+  // E5-7: no field column, and no sort by field, under Names hidden and Anonymous.
+  const keys = namesShown(ctx.anonymity) ? ctx.fields.map((f) => f.key) : [];
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
-  const role = ctx.fields.find((f) => f.key === "role") ?? null;
+  const role = namesShown(ctx.anonymity) ? (ctx.fields.find((f) => f.key === "role") ?? null) : null;
+  const marks = ctx.anonymity !== "hidden";
   const rows = await registers.answers(ws, instrument.id, filter, ["change", "disagree"], keys, instrument.method);
   const label = (code: string | null) => (code ? (labelFor(instrument.method, instrument.scaleLabels, code) ?? code) : "");
   const proposed = (r: RegisterRow) => label(instrument.showProposed ? proposedCode(instrument.method, r.proposedValue) : null);
@@ -99,7 +108,7 @@ export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }:
         {change.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
             <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
-            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
+            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} marks={marks} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={`${CELL} whitespace-nowrap text-ink-muted`}>{proposed(r)}</td>
             <td className={`${CELL} font-semibold whitespace-nowrap`}>{label(r.value)}</td>
@@ -112,7 +121,7 @@ export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }:
         {disagree.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
             <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
-            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
+            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} marks={marks} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={CELL}>{r.reason}</td>
           </tr>
@@ -123,10 +132,12 @@ export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }:
 }
 
 export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
-  const keys = ctx.fields.map((f) => f.key);
+  // E5-7: no field column, and no sort by field, under Names hidden and Anonymous.
+  const keys = namesShown(ctx.anonymity) ? ctx.fields.map((f) => f.key) : [];
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
   const missingKeys = [...MISSING_KEYS, ...keys.map((k) => `field.${k}`)];
-  const role = ctx.fields.find((f) => f.key === "role") ?? null;
+  const role = namesShown(ctx.anonymity) ? (ctx.fields.find((f) => f.key === "role") ?? null) : null;
+  const marks = ctx.anonymity !== "hidden";
   const [unclear, missing] = await Promise.all([registers.answers(ws, instrument.id, filter, ["unclear"], keys, instrument.method), registers.missing(ws, instrument.id, filter, keys, instrument.method)]);
   const label = (code: string | null) => (code ? (labelFor(instrument.method, instrument.scaleLabels, code) ?? code) : "");
   const who: Column[] = [{ key: "respondent", label: REGISTERS_COPY.respondent }, ...(role ? [{ key: "field.role", label: role.label }] : [])];
@@ -137,7 +148,7 @@ export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref
         {unclear.map((r) => (
           <tr key={r.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
             <td className={CELL}><Item row={r} itemHref={itemHref} /></td>
-            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} /></td>
+            <td className={CELL}><Respondent who={r.who} anon={r.anon} submitted={r.submitted} changedSince={r.changedSince} marks={marks} /></td>
             {role && <td className={CELL}>{r.fields.role ?? ""}</td>}
             <td className={CELL}>{r.reason}</td>
           </tr>
@@ -150,7 +161,7 @@ export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref
             <td className={CELL}>{m.text}</td>
             <td className={CELL}>{m.area ?? ""}</td>
             <td className={`${CELL} whitespace-nowrap`}>{label(m.value)}</td>
-            <td className={CELL}><Respondent who={m.who} anon={m.anon} submitted={m.submitted} changedSince={m.changedSince} /></td>
+            <td className={CELL}><Respondent who={m.who} anon={m.anon} submitted={m.submitted} changedSince={m.changedSince} marks={marks} /></td>
             {role && <td className={CELL}>{m.fields.role ?? ""}</td>}
           </tr>
         ))}

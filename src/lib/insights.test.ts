@@ -7,7 +7,7 @@
 // another workspace cannot write or read them. Pure parts: keptActions, share, citationLines.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { aiRuns, answers, invites, items, missingItems, projects, responses, workspaces } from "@/db/queries";
+import { aiRuns, answers, instruments, invites, items, missingItems, projects, responses, workspaces } from "@/db/queries";
 import { results } from "@/db/queries/results";
 import { insights } from "@/db/queries/insights";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
@@ -181,6 +181,30 @@ describe("after the audit", () => {
     await writeActions(a, p.project.id, { fetch });
     expect(calls[0].data).toContain("[R1] Team: Sales");
     expect(calls[0].data).not.toMatch(/Ana Pop|Bo Lind|Name:/);
+  });
+
+  // E5-7, acceptance 6: under Names hidden no field reaches the model, no answer on an item
+  // fewer than 3 people could see, and the citations read Anonymous [N]. The fake transport
+  // only; no real model call (decision 0039).
+  it("sends no respondent field under Names hidden, and the citations name nobody", async () => {
+    const p = await answeredProject();
+    await instruments.update(a.ws, p.instrument.id, { anonymity: "hidden" });
+    const { fetch, calls } = transport(fourAndABadOne);
+    const written = await writeActions(a, p.project.id, { fetch });
+    if (!("written" in written)) throw new Error(written.error);
+    expect(calls[0].data).toMatch(/\[R1\]\n\[R2\]\n/);
+    expect(calls[0].data).not.toMatch(/Team:|Name:|Ana Pop|Bo Lind/);
+    const listed = await insights.listWithCitations(a.ws, p.project.id);
+    const lines = listed.flatMap((x) => citationLines(x.answers, x.missing, (n) => `Anonymous ${n}`).map((c) => c.text));
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.every((l) => /^Anonymous \d/.test(l))).toBe(true);
+    // E5-7, amended 2026-10-06 (D): the project has 2 submitted respondents, so every item is
+    // seen by fewer than 3 and the model reads no answer; under Named it reads them.
+    expect(calls[0].data).not.toMatch(/\[A1\]/);
+    await instruments.update(a.ws, p.instrument.id, { anonymity: "named" });
+    const again = transport(fourAndABadOne);
+    await writeActions(a, p.project.id, { fetch: again.fetch });
+    expect(again.calls[0].data).toMatch(/\[A1\]/);
   });
 
   it("reads and writes nothing across workspaces at the query layer", async () => {

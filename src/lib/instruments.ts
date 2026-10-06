@@ -17,6 +17,7 @@ import type { Project } from "@/db/queries/projects";
 import type { ReasonRule, ScaleLabels, ScoringMethod, WorkspaceId } from "@/db/types";
 import { BUILD_COPY, INTRO_MAX, TITLE_MAX } from "@/lib/build-copy";
 import { CLOSING_COPY, parseClosing } from "@/lib/closing";
+import { ANONYMITY_ERRORS, fieldsBlocking, isAnonymity, labelOf } from "@/lib/anonymity";
 import { NotFoundError } from "@/lib/errors";
 import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS, parseFields } from "@/lib/respondent-fields";
@@ -70,7 +71,10 @@ export async function saveIntro(ws: WorkspaceId, projectId: string, instrumentId
 }
 
 // rawFields is the form's JSON (one object per row, see FieldInput); parseFields applies
-// the rule and writes the keys.
+// the rule and writes the keys. Under Names hidden and Anonymous (stories/E5-7, acceptance 2)
+// a text or email field is refused, the level read under the instrument row's lock, the lock
+// saveAnonymity takes, so a field save and a level save at once cannot leave a text field
+// under a level that hides names. The fields are not locked once published (E5-1).
 export async function saveFields(ws: WorkspaceId, projectId: string, instrumentId: string, rawFields: unknown): Promise<{ error: string } | { instrument: Instrument }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
@@ -78,13 +82,42 @@ export async function saveFields(ws: WorkspaceId, projectId: string, instrumentI
   try { parsedJson = typeof rawFields === "string" ? JSON.parse(rawFields) : rawFields; } catch { parsedJson = null; }
   const parsed = parseFields(parsedJson);
   if ("error" in parsed) return { error: parsed.error };
-  const instrument = await instruments.update(ws, instrumentId, { respondentFields: parsed.fields });
-  if (!instrument) throw new NotFoundError();
-  return { instrument };
+  let refusal: string | null = null;
+  const result = await instruments.updateLocked(ws, instrumentId, (_published, current) => {
+    const blocking = fieldsBlocking(parsed.fields, current.anonymity);
+    if (blocking.length > 0) { refusal = ANONYMITY_ERRORS.fieldsNeedDropdowns(labelOf(current.anonymity), blocking); return null; }
+    return { respondentFields: parsed.fields };
+  });
+  if (!result) throw new NotFoundError();
+  if (refusal) return { error: refusal };
+  return { instrument: result.instrument };
+}
+
+// The "Who sees whose answers" card (stories/E5-7, acceptance 1 and 2): Named, Names hidden
+// or Anonymous, checked here, refused while a text or email field exists under a level that
+// hides names (the message names them), and locked once published like the method (E5-2):
+// a level changed mid-run would show names a respondent was told were hidden. Read under the
+// instrument row's lock, the one publishing and saveFields take; the level already stored,
+// posted again on a published validation, changes nothing and is not refused.
+export async function saveAnonymity(ws: WorkspaceId, projectId: string, instrumentId: string, raw: unknown): Promise<{ error: string } | { instrument: Instrument }> {
+  const owned = await own(ws, projectId, instrumentId);
+  if ("error" in owned) return owned;
+  if (!isAnonymity(raw)) return { error: ANONYMITY_ERRORS.badLevel };
+  let refusal: string | null = null;
+  const result = await instruments.updateLocked(ws, instrumentId, (published, current) => {
+    if (current.anonymity === raw) return null;
+    if (published) { refusal = ANONYMITY_ERRORS.locked; return null; }
+    const blocking = fieldsBlocking(current.respondentFields, raw);
+    if (blocking.length > 0) { refusal = ANONYMITY_ERRORS.levelNeedsDropdowns(labelOf(raw), blocking); return null; }
+    return { anonymity: raw };
+  });
+  if (!result) throw new NotFoundError();
+  if (refusal) return { error: refusal };
+  return { instrument: result.instrument };
 }
 
 // A new draft on the latest set, carrying the old one's title, intro, fields, method, labels,
-// perspective names and settings (not the tags: the new set's items are new rows, tagged
+// perspective names and settings (who sees whose answers too, E5-7) (not the tags: the new set's items are new rows, tagged
 // again on Shape, docs/review-list.md); the old instrument stays on its version with its
 // responses (E3-6, acceptance 3). Only the
 // newest instrument can be built on (own), and createOnSet returns the existing draft when
@@ -97,7 +130,7 @@ export async function buildOnLatest(ws: WorkspaceId, projectId: string, instrume
   if (!latest || latest.id === previous.itemSetId) return { error: BUILD_COPY.alreadyLatest };
   const instrument = await instruments.createOnSet(ws, {
     projectId: project.id, itemSetId: latest.id, title: previous.title, intro: previous.intro, method: previous.method,
-    showProposed: previous.showProposed, layout: previous.layout, reasonRule: previous.reasonRule, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
+    showProposed: previous.showProposed, layout: previous.layout, reasonRule: previous.reasonRule, anonymity: previous.anonymity, respondentFields: previous.respondentFields, scaleLabels: previous.scaleLabels, closing: previous.closing,
     perspectives: previous.perspectives,
   });
   if (!instrument) throw new NotFoundError();

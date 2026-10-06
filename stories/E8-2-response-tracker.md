@@ -12,6 +12,18 @@ Amended 2026-10-04 (decision 0044, after the audit): acceptance 3 numbers by sta
 response row is made at Start, before the first answer); acceptance 5 times the query, as
 the test does.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous every row reads
+"Anonymous [N]", numbered by start across all the validation's links; the columns are
+Respondent, Status, Progress and With a reason or comment (no field, no Submitted, no Source,
+no Reminders, and no sort by them); an invitee who has not started has no row. Amended again
+2026-10-06 after the audit: the tab follows no field or perspective filter under the two
+levels (a line says why); under Names hidden the columns are Respondent and With a reason or
+comment only, in the order of the numbers, with no status filter; no row fades on a live
+update. Amended 2026-10-06, decision 0058: under the two levels the numbers follow a fixed
+order (md5 of the response id and the instrument id), not the start, since Share shows who
+started when; under Anonymous there is no Progress column and no sort by progress, and under
+Names hidden no "Not answered" filter.
+
 ## Acceptance criteria
 1. Responses tab (PM app board): name, role (and every other respondent field as a column,
    up to the 8 of E5-1), status (Invited, In progress, Submitted, with "changed after

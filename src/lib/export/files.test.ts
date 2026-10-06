@@ -114,7 +114,7 @@ beforeAll(async () => {
   wsB = await requireWorkspace(user.headers, (await createWorkspaceWithSample({ name: "Export B", slug: `export-b-${randomUUID()}` }, user.id)).id);
   const [sample] = (await projects.list(wsA)).filter((p) => p.isSample);
   instrument = (await instruments.latestForProject(wsA, sample.id))!;
-  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
+  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives, anonymity: instrument.anonymity };
 }, 60_000);
 
 describe("the files reconcile with Results", () => {

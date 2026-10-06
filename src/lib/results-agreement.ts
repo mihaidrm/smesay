@@ -12,12 +12,18 @@ export type AgreementItem = { id: string; reference: string | null; title: strin
 export type Counts = { agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number>; couldSee: number };
 // percent is null where no proposal was shown (the item's proposed is null): its answers are
 // values rated, not agreement. A group's empty is the people who left the split field empty.
-export type Row = AgreementItem & { counts: Counts; percent: number | null; notAnswered: number; groups: GroupRow[] };
-export type GroupRow = { group: string; empty: boolean; counts: Counts; percent: number | null; notAnswered: number; compared: boolean };
+// E5-7 (amended 2026-10-06), under Names hidden and Anonymous: `few` is a row or a group seen
+// by fewer than MIN_GROUP counted people, drawn as "Fewer than 3 answers" with no count;
+// `folded` is the group of the values under MIN_GROUP people; `key` tells the groups apart
+// whatever an option's text (v:[value], small or none).
+export type Row = AgreementItem & { counts: Counts; percent: number | null; notAnswered: number; groups: GroupRow[]; few: boolean };
+export type GroupRow = { key: string; group: string; empty: boolean; folded: boolean; few: boolean; counts: Counts; percent: number | null; notAnswered: number; compared: boolean };
 export type AreaBlock = { name: string | null; rows: Row[]; totals: Counts; percent: number | null; notAnswered: number; rated: boolean };
 
 // E8-6 and decision 0031: a group with fewer answers than this on an item is drawn but not
-// compared, so one person cannot be singled out.
+// compared, so one person cannot be singled out. Under Names hidden and Anonymous (E5-7,
+// amended 2026-10-06) the same number keeps a filtered view, a split group and an item from
+// being drawn for fewer people (src/db/queries/results.ts).
 export const MIN_GROUP = 3;
 
 export const EMPTY_COUNTS: Counts = { agree: 0, change: 0, disagree: 0, unclear: 0, pick: 0, values: {}, couldSee: 0 };
@@ -66,28 +72,41 @@ export function sortRows(rows: Row[], sort: { key: AgreementSort; dir: "asc" | "
   return [...rows].sort((a, b) => unrated(a) - unrated(b) || sign * (compare(a, b, sort.key) || compare(a, b, "ref")));
 }
 
-type ByItem = { itemId: string; group: string | null } & Counts;
+// A row of agreement.byItem (src/db/queries/results.ts ItemCounts): folded and few only under
+// Names hidden and Anonymous (E5-7).
+export type ByItem = { itemId: string; group: string | null; folded?: boolean; few?: boolean } & Counts;
 
-// The groups of a split, in name order, with the people who left the field empty last, under
-// `noGroup` ("Not given"), so the group bars always add up to the item's bar.
-const byGroup = (a: { group: string; empty: boolean }, b: { group: string; empty: boolean }) => Number(a.empty) - Number(b.empty) || a.group.localeCompare(b.group);
-function groupsOf(mine: ByItem[], noGroup: string, rated: boolean): GroupRow[] {
+// The groups of a split, in name order, then the folded group (`small`, "Groups under 3
+// people"), then the people who left the field empty, under `noGroup` ("Not given"). Under
+// Named the group bars add up to the item's bar; under the two levels a group left out
+// (src/db/queries/results.ts agreement.byItem) is still in the item's bar.
+const rankOf = (g: { empty: boolean; folded: boolean }) => (g.folded ? 1 : g.empty ? 2 : 0);
+const byGroup = (a: { group: string; empty: boolean; folded: boolean }, b: { group: string; empty: boolean; folded: boolean }) => rankOf(a) - rankOf(b) || a.group.localeCompare(b.group);
+const groupKey = (c: { group: string | null; folded?: boolean }) => (c.folded ? "small" : c.group === null ? "none" : `v:${c.group}`);
+function groupsOf(mine: ByItem[], noGroup: string, small: string, rated: boolean): GroupRow[] {
   return mine
-    .map((c) => ({ group: c.group ?? noGroup, empty: c.group === null, counts: c, percent: rated ? null : percentOf(c), notAnswered: notAnsweredOf(c), compared: answeredOf(c) + c.pick >= MIN_GROUP }))
+    .map((c) => {
+      const folded = c.folded === true;
+      const few = c.few === true;
+      return { key: groupKey(c), group: folded ? small : c.group ?? noGroup, empty: !folded && c.group === null, folded, few, counts: c, percent: rated ? null : percentOf(c), notAnswered: notAnsweredOf(c), compared: !few && answeredOf(c) + c.pick >= MIN_GROUP };
+    })
     .sort(byGroup);
 }
 
 // The areas in the list's order (the shaped areas first, then any other area an item names,
-// then the items with no area), each with its rows, sorted, and its totals.
-export function buildAgreement(items: AgreementItem[], areaNames: string[], counts: ByItem[], split: boolean, sort: { key: AgreementSort; dir: "asc" | "desc" }, noGroup: string): AreaBlock[] {
+// then the items with no area), each with its rows, sorted, and its totals. With `totals` (the
+// same counts without a split, E5-7) an item's bar is read from them, not summed from its
+// groups; `small` names the folded group.
+export function buildAgreement(items: AgreementItem[], areaNames: string[], counts: ByItem[], split: boolean, sort: { key: AgreementSort; dir: "asc" | "desc" }, noGroup: string, more: { totals?: ByItem[]; small?: string } = {}): AreaBlock[] {
   const names = [...areaNames];
   for (const it of items) if (it.area && !names.includes(it.area)) names.push(it.area);
   const rowsOf = (list: AgreementItem[]): Row[] => list.map((it) => {
     const mine = counts.filter((c) => c.itemId === it.id);
-    const total = mine.reduce<Counts>((a, c) => addCounts(a, c), EMPTY_COUNTS);
+    const whole = more.totals ? more.totals.filter((c) => c.itemId === it.id) : mine;
+    const total = whole.reduce<Counts>((a, c) => addCounts(a, c), EMPTY_COUNTS);
     const rated = it.proposed === null;
-    const groups = split ? groupsOf(mine, noGroup, rated) : [];
-    return { ...it, counts: total, percent: rated ? null : percentOf(total), notAnswered: notAnsweredOf(total), groups };
+    const groups = split ? groupsOf(mine, noGroup, more.small ?? noGroup, rated) : [];
+    return { ...it, counts: total, percent: rated ? null : percentOf(total), notAnswered: notAnsweredOf(total), groups, few: whole.some((c) => c.few === true) };
   });
   const blocks: { name: string | null; items: AgreementItem[] }[] = names.map((name) => ({ name, items: items.filter((it) => it.area === name) }));
   const loose = items.filter((it) => !it.area || !names.includes(it.area));
@@ -110,17 +129,16 @@ export const allRated = (areas: AreaBlock[]): boolean => areas.length > 0 && are
 // answered one item of the sum (one answer per person per item), a lower bound, so people who
 // started and answered nothing do not count. `short` says why a group is not compared; for
 // people the copy says only that one person could be singled out, since the count is a bound.
-export type GroupTotal = { group: string; empty: boolean; counts: Counts; compared: boolean; short: "answers" | "people" | null };
+export type GroupTotal = { key: string; group: string; empty: boolean; folded: boolean; counts: Counts; compared: boolean; short: "answers" | "people" | null };
 export function groupTotals(rows: Row[]): GroupTotal[] {
-  const by = new Map<string, { group: string; empty: boolean; counts: Counts; people: number }>();
+  const by = new Map<string, { key: string; group: string; empty: boolean; folded: boolean; counts: Counts; people: number }>();
   for (const r of rows) for (const g of r.groups) {
-    const key = `${g.empty ? 1 : 0}:${g.group}`;
-    const was = by.get(key) ?? { group: g.group, empty: g.empty, counts: EMPTY_COUNTS, people: 0 };
-    by.set(key, { ...was, counts: addCounts(was.counts, g.counts), people: Math.max(was.people, answeredOf(g.counts) + g.counts.pick) });
+    const was = by.get(g.key) ?? { key: g.key, group: g.group, empty: g.empty, folded: g.folded, counts: EMPTY_COUNTS, people: 0 };
+    by.set(g.key, { ...was, counts: addCounts(was.counts, g.counts), people: Math.max(was.people, answeredOf(g.counts) + g.counts.pick) });
   }
-  return [...by.values()].sort(byGroup).map(({ group, empty, counts, people }) => {
+  return [...by.values()].sort(byGroup).map(({ key, group, empty, folded, counts, people }) => {
     const short = answeredOf(counts) + counts.pick < MIN_GROUP ? "answers" : people < MIN_GROUP ? "people" : null;
-    return { group, empty, counts, compared: short === null, short };
+    return { key, group, empty, folded, counts, compared: short === null, short };
   });
 }
 

@@ -10,10 +10,10 @@
 // the project.
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { instruments, invites, projects, responses as responsesQ, workspaces } from "@/db/queries";
+import { instruments, invites, items, projects, projectTransfer, responses as responsesQ, workspaces } from "@/db/queries";
 import { insights } from "@/db/queries/insights";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
-import { agreement, results } from "@/db/queries/results";
+import { agreement, results, tracker } from "@/db/queries/results";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
@@ -23,7 +23,7 @@ import type { ResultsFilter } from "@/lib/results-filter";
 import { requireWorkspace } from "@/lib/workspace";
 import { EXPORT_COPY } from "./copy";
 import { roomInPlan } from "@/lib/plans";
-import { exportProject, importProject, PROJECT_FILE_MAX, PROJECT_VERSION } from "./project";
+import { exportProject, importProject, PROJECT_FILE_MAX, PROJECT_VERSION, toFile } from "./project";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 let a: { ws: WorkspaceId; userId: string }; let b: { ws: WorkspaceId; userId: string };
@@ -122,6 +122,163 @@ describe("importProject", () => {
     if (!("projectId" in older)) throw new Error(older.error);
     expect((await instruments.latestForProject(b.ws, older.projectId))?.reasonRule).toBe("differs");
     expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, reasonRule: "sometimes" })) }))).toEqual({ error: E.damaged("instruments.0.reasonRule") });
+  });
+
+  // E5-7, acceptance 5 (amended 2026-10-06 after the audit): a validation set to Names hidden
+  // goes out with no invite id and no fields on its responses (their perspectives kept, S2), no personal
+  // invite, and one time (the export's) on every response, answer and missing item, null kept
+  // for what was not submitted; it comes back with the level and its responses on the public
+  // invite, and counts the same. A file written before the level existed reads Named; a
+  // response with no invite on a Named validation, a text field, a personal invite or a
+  // response field that is not a dropdown's value under Names hidden or Anonymous is a damaged
+  // file.
+  it("keeps who sees whose answers on a round trip, and the file ties no response to a person or a time", async () => {
+    const file = await exportProject(a, sampleId);
+    expect(file.instruments.map((i) => i.anonymity)).toEqual(file.instruments.map(() => "named"));
+    const asPm = { ...file, sample: false, note: null };
+    // S2 (amended 2026-10-06): CL-03 is for Approvers, three submitted respondents picked
+    // Approver, so the item is seen by enough people to count; their perspectives survive the
+    // round trip and the imported project shows CL-03 to the same three.
+    const cl03 = file.itemSets.flatMap((s) => s.items).find((it) => it.sourceRef === "CL-03")!.id;
+    const approvers = file.responses.filter((r) => r.submittedAt !== null).slice(0, 3).map((r) => r.id);
+    const hiding = (level: "hidden" | "anonymous") => ({
+      ...asPm,
+      itemSets: asPm.itemSets.map((s) => ({ ...s, items: s.items.map((it) => (it.id === cl03 ? { ...it, perspectives: ["Approver"] } : it)) })),
+      instruments: asPm.instruments.map((i) => ({ ...i, anonymity: level, perspectives: ["Approver"], respondentFields: i.respondentFields.filter((f) => f.type === "dropdown") })),
+      invites: asPm.invites.filter((v) => v.kind === "public"),
+      responses: asPm.responses.map((r) => ({ ...r, inviteId: null, fields: {}, perspectives: approvers.includes(r.id) ? ["Approver"] : [] })),
+    });
+    const hiddenFile = hiding("hidden");
+    expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "hidden" })) }))).toEqual({ error: E.damaged("a validation's fields") });
+    // A personal invite, or a field that is not a dropdown's value, on either level.
+    for (const level of ["hidden", "anonymous"] as const) {
+      const one = hiding(level);
+      expect(await importProject(b, JSON.stringify({ ...one, invites: asPm.invites }))).toEqual({ error: E.damaged("a personal invite on a validation that hides names") });
+      expect(await importProject(b, JSON.stringify({ ...one, responses: one.responses.map((r, i) => (i === 0 ? { ...r, fields: { name: "Ioana Marin" } } : r)) }))).toEqual({ error: E.damaged("a response's fields") });
+      expect(await importProject(b, JSON.stringify({ ...one, responses: one.responses.map((r, i) => (i === 0 ? { ...r, fields: { role: "Ioana Marin" } } : r)) }))).toEqual({ error: E.damaged("a response's fields") });
+    }
+    const hidden = await importProject(b, JSON.stringify(hiddenFile));
+    if (!("projectId" in hidden)) throw new Error(hidden.error);
+    const first = (await instruments.latestForProject(b.ws, hidden.projectId))!;
+    expect(first.anonymity).toBe("hidden");
+    const at = new Date("2026-10-30T09:00:00Z");
+    const out = await exportProject(b, hidden.projectId, at);
+    expect(out.instruments.map((i) => i.anonymity)).toEqual(["hidden"]);
+    // Decision 0058: under Names hidden the submitted responses only (the sample's five).
+    expect(out.responses.length).toBe(expected.responses - 1);
+    expect(out.invites.every((v) => v.kind === "public")).toBe(true);
+    expect(out.responses.every((r) => r.inviteId === null && Object.keys(r.fields).length === 0)).toBe(true);
+    // The perspectives as they are: three Approvers, and every answer on CL-03 kept (3 could see it).
+    expect(out.responses.filter((r) => r.perspectives.join() === "Approver")).toHaveLength(3);
+    expect(out.responses.filter((r) => r.perspectives.length === 0)).toHaveLength(expected.responses - 1 - 3);
+    const cl03First = (await items.forSet(b.ws, first.itemSetId)).find((it) => it.sourceRef === "CL-03")!.id;
+    expect(out.responses.flatMap((r) => r.answers).filter((x) => x.itemId === cl03First)).toHaveLength(expected.responses - 1);
+    // One shared time: the export's; null stays null.
+    const iso = at.toISOString();
+    expect(out.responses.every((r) => r.createdAt === iso && r.updatedAt === iso && r.submittedAt === iso && r.firstSubmittedAt === iso)).toBe(true);
+    // Signed off is kept (a submitted response changed since reads so on Results).
+    expect(out.responses.map((r) => r.signedOff)).toEqual(out.responses.map(() => true));
+    expect(out.responses.flatMap((r) => r.answers).every((x) => x.updatedAt === iso)).toBe(true);
+    expect(out.missingItems.every((m) => m.createdAt === iso)).toBe(true);
+    const back = await importProject(b, JSON.stringify(out), at);
+    if (!("projectId" in back)) throw new Error(back.error);
+    const second = (await instruments.latestForProject(b.ws, back.projectId))!;
+    expect(second.anonymity).toBe("hidden");
+    const publicInvite = (await invites.list(b.ws)).find((v) => v.instrumentId === second.id && v.kind === "public")!;
+    expect((await invites.list(b.ws)).filter((v) => v.instrumentId === second.id && v.kind === "personal")).toEqual([]);
+    const responsesBack = (await responsesQ.list(b.ws)).filter((r) => r.instrumentId === second.id);
+    expect(responsesBack.length).toBe(expected.responses - 1);
+    expect(responsesBack.every((r) => r.inviteId === publicInvite.id)).toBe(true);
+    // The imported project shows CL-03 to the same three Approvers, as the first one does.
+    const cl03Of = async (id: string, setId: string) => {
+      const it = (await items.forSet(b.ws, setId)).find((x) => x.sourceRef === "CL-03")!;
+      return (await agreement.byItem(b.ws, id, NONE)).find((c) => c.itemId === it.id)!;
+    };
+    const [was, now] = [await cl03Of(first.id, first.itemSetId), await cl03Of(second.id, second.itemSetId)];
+    expect([now.few, now.couldSee]).toEqual([false, 3]);
+    expect([now.couldSee, now.agree, now.change, now.disagree, now.unclear]).toEqual([was.couldSee, was.agree, was.change, was.disagree, was.unclear]);
+    // The same counts of what was submitted, with or without the switch, since nothing else
+    // came; the minutes to submit are 0 now that every time is the export's.
+    const before = (await results.numbers(b.ws, first.id, NONE))!;
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }]) {
+      const after = (await results.numbers(b.ws, second.id, f))!;
+      expect({ ...after, actions: 0, medianMinutes: null }).toEqual({ ...before, invited: before.submitted, inProgress: 0, actions: 0, medianMinutes: null });
+      expect(after.medianMinutes).toBe(0);
+    }
+    const older = await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map(({ anonymity: _dropped, ...i }) => (void _dropped, i)) }));
+    if (!("projectId" in older)) throw new Error(older.error);
+    expect((await instruments.latestForProject(b.ws, older.projectId))?.anonymity).toBe("named");
+    expect(await importProject(b, JSON.stringify({ ...asPm, responses: asPm.responses.map((r, i) => (i === 0 ? { ...r, inviteId: null } : r)) }))).toEqual({ error: E.damaged("a response's validation, list or invite") });
+    expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "secret" })) }))).toEqual({ error: E.damaged("instruments.0.anonymity") });
+  });
+
+  // Decision 0058 (B6): under both levels the responses go in the order of their "Anonymous [N]"
+  // numbers, not their start; under Names hidden only the submitted ones; and no answer on an
+  // item fewer than 3 of the responses written could see (CL-02, seen by two Approvers here),
+  // while an action keeps the citations still in the file. The file imports again.
+  it("writes a validation that hides names in the order of its numbers, the submitted only under Names hidden, and no answer on an item few could see", async () => {
+    const file = await exportProject(a, sampleId);
+    const asPm = { ...file, sample: false, note: null };
+    const cl02 = file.itemSets.flatMap((s) => s.items).find((it) => it.sourceRef === "CL-02")!.id;
+    const approvers = file.responses.filter((r) => r.submittedAt !== null).slice(0, 2).map((r) => r.id);
+    // B2 (amended 2026-10-06): a missing item on each of four submitted responses, and a second
+    // on the first, written in the order the responses started.
+    const submitted = file.responses.filter((r) => r.submittedAt !== null).slice(0, 4);
+    const extra = [...submitted, submitted[0]].map((r, i) => ({ id: randomUUID(), responseId: r.id, text: `Missing ${i + 1}`, suggestedArea: null, suggestedValue: null, createdAt: new Date(Date.UTC(2026, 9, 10, 9, i)).toISOString() }));
+    const hiding = (level: "hidden" | "anonymous") => ({
+      ...asPm,
+      itemSets: asPm.itemSets.map((s) => ({ ...s, items: s.items.map((it) => (it.id === cl02 ? { ...it, perspectives: ["Approver"] } : it)) })),
+      instruments: asPm.instruments.map((i) => ({ ...i, anonymity: level, perspectives: ["Approver"], respondentFields: i.respondentFields.filter((f) => f.type === "dropdown") })),
+      invites: asPm.invites.filter((v) => v.kind === "public"),
+      responses: asPm.responses.map((r) => ({ ...r, inviteId: null, fields: {}, perspectives: approvers.includes(r.id) ? ["Approver"] : [] })),
+      missingItems: [...asPm.missingItems, ...extra],
+    });
+    // The sample's action "Answer two open questions..." cites an answer on CL-02, which the
+    // file leaves out: S1, the action goes whole. The other three keep every citation.
+    const citesCl02 = file.insights.filter((s) => s.citedAnswerIds.some((x) => file.responses.some((r) => r.answers.some((y) => y.id === x && y.itemId === cl02))));
+    expect(citesCl02).toHaveLength(1);
+    const at = new Date("2026-10-30T09:00:00Z");
+    for (const level of ["hidden", "anonymous"] as const) {
+      const imported = await importProject(b, JSON.stringify(hiding(level)));
+      if (!("projectId" in imported)) throw new Error(imported.error);
+      const inst = (await instruments.latestForProject(b.ws, imported.projectId))!;
+      const itemOf = new Map((await items.forSet(b.ws, inst.itemSetId)).map((it) => [it.sourceRef, it.id]));
+      // B2: the project's rows as readProject reads them (missing items by time), with the
+      // missing items' times set in the reverse of the numbers' order (two on one response a
+      // second apart, the later id first), so their order by time is not the file's.
+      const byNumber = (await tracker.people(b.ws, inst.id, { ...NONE, includeUnsubmitted: true }, [])).map((p) => p.id);
+      const rows = (await projectTransfer.readProject(b.ws, imported.projectId))!;
+      expect(rows.missingItems).toHaveLength(asPm.missingItems.length + extra.length);
+      const ranked = [...rows.missingItems].sort((p, q) => byNumber.indexOf(p.responseId) - byNumber.indexOf(q.responseId) || (p.id < q.id ? -1 : 1));
+      const byTime = ranked.map((m, i) => ({ ...m, createdAt: new Date(Date.UTC(2026, 9, 20) - i * 1000) })).reverse();
+      const written = toFile({ ...rows, missingItems: byTime }, at);
+      expect(written.missingItems.map((m) => m.id)).toEqual(ranked.map((m) => m.id));
+      expect(written.missingItems.map((m) => m.id)).not.toEqual(byTime.map((m) => m.id));
+      expect(new Set(written.missingItems.map((m) => m.responseId)).size).toBeGreaterThanOrEqual(3);
+      const out = await exportProject(b, imported.projectId, at);
+      expect(out.missingItems.map((m) => m.id)).toEqual(ranked.map((m) => m.id));
+      // S1: the action citing CL-02 is not written; the others keep every citation.
+      expect(out.insights.map((s) => s.title).sort()).toEqual(file.insights.filter((s) => s !== citesCl02[0]).map((s) => s.title).sort());
+      for (const s of out.insights) {
+        const was = file.insights.find((x) => x.title === s.title)!;
+        expect([s.citedAnswerIds.length, s.citedMissingItemIds.length]).toEqual([was.citedAnswerIds.length, was.citedMissingItemIds.length]);
+      }
+      // The order of the numbers on Results, the submitted only under Names hidden.
+      const numbered = (await tracker.people(b.ws, inst.id, { ...NONE, includeUnsubmitted: true }, [])).filter((p) => level === "anonymous" || p.status === "submitted");
+      expect(out.responses.map((r) => r.id)).toEqual(numbered.map((p) => p.id));
+      expect(out.responses.length).toBe(level === "hidden" ? expected.responses - 1 : expected.responses);
+      // No answer on CL-02 (two could see it); every other item keeps its answers.
+      const answers = out.responses.flatMap((r) => r.answers);
+      expect(answers.some((x) => x.itemId === itemOf.get("CL-02"))).toBe(false);
+      expect(answers.some((x) => x.itemId === itemOf.get("CL-04"))).toBe(true);
+      const kept = new Set(answers.map((x) => x.id));
+      expect(out.insights.every((s) => s.citedAnswerIds.every((x) => kept.has(x)))).toBe(true);
+      expect(out.missingItems.every((m) => out.responses.some((r) => r.id === m.responseId))).toBe(true);
+      const back = await importProject(b, JSON.stringify(out), at);
+      if (!("projectId" in back)) throw new Error(back.error);
+      const again = (await instruments.latestForProject(b.ws, back.projectId))!;
+      expect([again.anonymity, (await results.numbers(b.ws, again.id, { ...NONE, includeUnsubmitted: true }))!.answered]).toEqual([level, answers.filter((x) => x.kind !== "pick").length]);
+    }
   });
 
   it("refuses what is not a project file of this version, a damaged file and the sample's, and writes nothing", async () => {

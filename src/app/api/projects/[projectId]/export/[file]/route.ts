@@ -1,7 +1,7 @@
 // GET /api/projects/[projectId]/export/[file]?[the Results page's query] (stories/E10-1): one
 // CSV file of the Export tab (answers, items, people, missing) under the page's filter and
 // switch. The project is found through the session's workspace (404 otherwise), the filter is
-// read as the page reads it (parseResultsFilter with the PM's stored switch), the rows come
+// read as the page reads it (resultsContext with the PM's stored switch), the rows come
 // from the same queries (src/lib/export/files.ts), and the file is streamed in chunks of 500
 // lines from a ReadableStream (node_modules/next/dist/docs/01-app/03-api-reference/
 // 03-file-conventions/route.md, Streaming) as an attachment (Content-Disposition:
@@ -28,7 +28,8 @@ import { renderPdf } from "@/lib/export/pdf";
 import { exportProject } from "@/lib/export/project";
 import { summaryView } from "@/lib/export/summary";
 import { summaryFooter, summaryHeader, summaryHtml } from "@/lib/export/summary-html";
-import { describeFilter, filterActive, parseResultsFilter, type FilterContext, type SearchParams } from "@/lib/results-filter";
+import { describeFilter, filterActive, type SearchParams } from "@/lib/results-filter";
+import { resultsContext } from "@/lib/results-context";
 import { track } from "@/lib/analytics";
 import { DEFAULT_TILES, storedTiles } from "@/lib/results-tiles";
 
@@ -57,8 +58,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
     query[k] = had === undefined ? v : Array.isArray(had) ? [...had, v] : [had, v];
   }
   const prefs = await resultsPrefs.get(session.user.id, instrument.id);
-  const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
-  const filter = parseResultsFilter(query, ctx, typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null);
+  const { ctx, filter } = await resultsContext(current.ws, instrument, query, typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null);
   const logFilter = filterActive(filter) ? describeFilter(filter, ctx, true) : null;
   if (file === "summary") {
     const view = await summaryView({ ws: current.ws, workspace: current.workspace.name, project, instrument, filter, ctx, tiles: storedTiles(prefs.tiles) ?? DEFAULT_TILES, now: new Date() });

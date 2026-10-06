@@ -22,6 +22,20 @@ export const EXPORT_COPY = {
   // The Export tab (E10-1, acceptance 1).
   tab: {
     line: "Each CSV file and the summary hold what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
+    // E5-7 (decision 0058): in place of `line` under Names hidden and Anonymous, where a field
+    // or perspective filter narrows the tiles and not the lists of people (docs/review-list.md,
+    // the exception to the reconciliation rule). Amended 2026-10-06: it names the tiles the
+    // Items with totals file covers (results.test.ts reconcileItemsFile) and says the others
+    // add up from the person files only with no field or perspective filter on.
+    lineHidden: "Each CSV file and the summary hold what this page shows, with the same filter; Whole project holds everything, whatever the filter. The Items with totals file adds up to the answer tiles (Agreement, Different priority, Disagree, Unclear) and the three item tiles under any filter. The other tiles (the people, the minutes, the missing items and the answers with a reason or comment) add up from the People, Missing items and Answers files only with no field or perspective filter on: those files list everyone whatever such a filter, as this page's lists do.",
+    // E5-7: under the line when the validation is set to Names hidden or Anonymous.
+    // Amended 2026-10-06: Whole project keeps the perspectives, writes the missing items in the
+    // order of the numbers, and leaves out an action that quotes an answer it leaves out.
+    namesHidden: "This validation hides names: the files and the summary call each respondent Anonymous [N], with no fields, submitted times, sources, reminders or perspectives, and their lists of people follow no field or perspective filter. Whole project writes no personal invite and no fields on a response, dates every response at the time of the export, lists the responses and their missing items in the order of their numbers, and leaves out the answers on an item fewer than 3 people could see and any action that cites them, so the imported project has the public link only.",
+    // E5-7, amended 2026-10-06: added under Names hidden, where Share names who has finished.
+    // Decision 0058: Whole project then holds the submitted responses only; after the fourth
+    // audit every file and the summary count the submitted responses only.
+    namesHiddenStatus: "Under Names hidden the files and the summary count submitted responses only, so none says who has submitted or who has not, and Whole project holds only the responses submitted.",
     files: {
       answers: { title: "Answers", line: "Each row is one answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment." },
       items: { title: "Items with totals", line: "Each row is one item: the counts of each answer, not answered, and the agreement." },

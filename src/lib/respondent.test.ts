@@ -25,7 +25,7 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { AnswerKind, ReasonRule, RespondentFieldSpec, WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
-import { openDraft, saveFields, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { openDraft, saveAnonymity, saveFields, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { listInvitees, sendInvites } from "@/lib/invitees";
 import { checkPasscode, clearAttempts } from "@/lib/link-access";
 import { memoryOutbox, type Mail } from "@/lib/mail";
@@ -80,10 +80,13 @@ describe("the field rules", () => {
     expect(parseFieldValues(FIELDS, { name: "Someone else" }, { name: "Ana Pop", role: "Finance" })).toEqual({ values: { name: "Ana Pop", role: "Finance" } });
   });
   it("carries a personal invite's name and role onto the PM's fields only, a dropdown only with an option", () => {
-    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Finance" }, FIELDS)).toEqual({ name: "Ana", role: "Finance" });
-    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Ops" }, FIELDS)).toEqual({ name: "Ana" });
-    expect(carriedFields({ kind: "public", name: "Ana", roleHint: "Sales" }, FIELDS)).toEqual({});
-    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Sales" }, [FIELDS[2]])).toEqual({});
+    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Finance" }, FIELDS, "named")).toEqual({ name: "Ana", role: "Finance" });
+    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Ops" }, FIELDS, "named")).toEqual({ name: "Ana" });
+    expect(carriedFields({ kind: "public", name: "Ana", roleHint: "Sales" }, FIELDS, "named")).toEqual({});
+    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Sales" }, [FIELDS[2]], "named")).toEqual({});
+    // E5-7: under Names hidden and Anonymous the invite carries nothing into the response.
+    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Finance" }, FIELDS, "hidden")).toEqual({});
+    expect(carriedFields({ kind: "personal", name: "Ana", roleHint: "Finance" }, FIELDS, "anonymous")).toEqual({});
   });
   it("takes the perspectives from the instrument's list only", () => {
     expect(parsePicks(["Finance", "Sales"], ["Sales", "Finance", "Sales"])).toEqual({ picks: ["Finance", "Sales"] });
@@ -211,6 +214,28 @@ describe("Start", () => {
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("SameSite=lax");
     void project;
+  }, 60_000);
+
+  // E5-7: under Names hidden the invite's name and role are not carried: the respondent's own
+  // dropdown pick is stored, and nothing else.
+  it("on a personal link under Names hidden: no name stored, the respondent's own pick kept", async () => {
+    const project = await projects.create(a.ws, { name: "Hidden start", createdBy: a.userId });
+    const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One | Submitting | Must", "Two | Paying | Should"].join("\n"));
+    if (!("upload" in pasted)) throw new Error(pasted.error);
+    await commitUpload(a.ws, pasted.upload.id, a.userId);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]));
+    const level = await saveAnonymity(a.ws, project.id, instrument.id, "hidden");
+    if (!("instrument" in level)) throw new Error(level.error);
+    const published = await publishLink(a.ws, project.id, instrument.id, "", "2027-01-20T15:00:00Z", "", new Date("2026-10-03T12:00:00Z"));
+    if (!("invite" in published)) throw new Error(published.error);
+    const result = await sendInvites(a.ws, project.id, instrument.id, "ana@x.example, Ana Pop, Finance", { name: "Dana", email: "dana@x.example" }, BASE, new Date("2026-10-03T12:00:00Z"), async () => {});
+    if (!("outcomes" in result)) throw new Error(result.error);
+    const [ana] = await listInvitees(a.ws, instrument.id);
+    expect(await startResponse(ana.token, {}, { fields: {} }, now)).toEqual({ status: 422, error: "Fill in the required fields to start." });
+    const started = await startResponse(ana.token, {}, { fields: { role: "Sales", name: "Ana Pop" } }, now);
+    if ("status" in started) throw new Error(started.error);
+    expect(started.response.fields).toEqual({ role: "Sales" });
   }, 60_000);
 
   it("on a personal link: one response even when two Starts race, the carried name and role stored", async () => {

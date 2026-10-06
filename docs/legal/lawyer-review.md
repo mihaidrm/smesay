@@ -78,6 +78,37 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   plausible.io/data-policy) and the question of consent is the lawyer's.
 - L18 Rights: one month, extendable by two (Art. 12(3), gdpr-info.eu/art-12-gdpr). ANSPDCP's
   name, address and email from dataprotection.ro (contact page).
+- L43 Names hidden and Anonymous (stories/E5-7, added 2026-10-06): what each level hides and
+  what it does not. Under Names hidden the database keeps the link from an answer to its
+  invite (for reminders and the sharing page), so the answers stay personal data:
+  pseudonymised data "which could be attributed to a natural person by the use of additional
+  information should be considered to be information on an identifiable natural person"
+  (GDPR Recital 26, gdpr-info.eu/recitals/no-26). Under Anonymous no name or email is asked,
+  but the device cookie, the save times and free text remain, so the data may still not be
+  anonymous in Recital 26's sense; "anonymous" is the product's word for what the team sees.
+  Amended 2026-10-06 after an audit: About you now reads "Your answers are anonymous. No name
+  or email is asked, and the team sees your answers without a name." (no longer "Nothing here
+  asks who you are"); the policy now also says what neither level hides: the same number
+  follows one person across items, so a reason that names its author shows that person's
+  other answers; free text goes as written; a dropdown that asks for a name shows it. Results
+  draw no chart for a filter that keeps fewer than 3 people, no group of a breakdown under 3
+  and no answers on an item fewer than 3 could see, and no list follows a field or
+  perspective filter, and the project file dates every response at the export.
+  Amended again 2026-10-06 (decision 0058, Mihai's choice "Breakdowns, risk disclosed"):
+  Results keep filters and splits by choice fields and perspectives under both levels, and
+  the policy now says that comparing views (a filtered against an unfiltered view, two
+  breakdowns, a group's figures against the list) can still identify someone in a small
+  group, as can, under Names hidden, the finishing and last-save times on the sharing page
+  and the AI's actions citing only people who submitted. The numbers no longer follow the
+  start order, and the project file under Names hidden holds only submitted responses.
+  Amended again 2026-10-06 (the fourth audit): under Names hidden Results, the files and the
+  AI hold only submitted responses, so nothing there says who has not finished; the policy
+  says that with no filter on the count of people, their confidence and their suggested
+  missing items show however few answered; the project file keeps each response's
+  perspectives.
+  Proposal: as written. Judgement: whether About you's "Your answers are anonymous" needs a
+  further qualifier given the disclosed comparison risk, and whether the DPA should say the
+  customer, not Alerty, decides the level.
 
 ## Terms of service
 

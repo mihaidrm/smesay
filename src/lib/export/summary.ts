@@ -2,7 +2,15 @@
 // under the page's filter (results.numbers with tileView for the headline numbers, the
 // Agreement tab's buildAgreement over agreement.byItem, registers.answers and registers.missing,
 // results.signOffs, insights.listWithCitations), so the PDF says what the page says. The
-// HTML is summary-html.ts; the PDF is pdf.ts.
+// HTML is summary-html.ts; the PDF is pdf.ts. Under Names hidden and Anonymous (stories/E5-7,
+// acceptance 5) the queries name nobody ("Anonymous [N]") and the sign-off record has no time.
+// Amended 2026-10-06 after the audit: the headline numbers, the areas, the items and the
+// confidence follow the whole filter and, when it keeps fewer than 3 counted people, are not
+// drawn (a line says why); an item fewer than 3 counted people could see reads "Fewer than 3
+// answers" with no count, and no confidence chart is drawn either (decision 0058); the
+// registers and the record follow no field or perspective filter
+// (a line says so); under Names hidden no row is marked not submitted or changed and the
+// record lists no one, since Share names who has finished.
 import { insights, items as itemsQuery, itemSets } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results } from "@/db/queries/results";
@@ -11,8 +19,9 @@ import { citationLines } from "@/lib/insights";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
 import { textFor, type ReaderFields } from "@/lib/item-text";
 import { agreementSortOf, buildAgreement, notAnsweredOf, type Counts } from "@/lib/results-agreement";
-import { AGREEMENT_COPY, REGISTERS_COPY, RESPONSES_COPY } from "@/lib/results-copy";
-import { describeFilter, filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
+import { namesShown } from "@/lib/anonymity";
+import { AGREEMENT_COPY, REGISTERS_COPY, RESPONSES_COPY, RESULTS_COPY } from "@/lib/results-copy";
+import { describeFilter, filterActive, identityFiltered, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { tileView, type TileId } from "@/lib/results-tiles";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { formatUtc } from "@/lib/sharing-format";
@@ -21,9 +30,9 @@ import { SUMMARY_COPY, type SummaryCounts, type SummaryView } from "./summary-ht
 
 const name = (p: { who: string | null; anon: number | null }) => p.who ?? RESPONSES_COPY.anonymous(p.anon ?? 0);
 // A register row's respondent with the page's marks (registers-tab.tsx): not submitted, or
-// changes not submitted again.
-const marked = (p: { who: string | null; anon: number | null; submitted: boolean; changedSince: boolean }) =>
-  `${name(p)}${!p.submitted ? `, ${REGISTERS_COPY.notSubmitted.toLowerCase()}` : p.changedSince ? `, ${RESPONSES_COPY.changedSince.toLowerCase()}` : ""}`;
+// changes not submitted again; no mark under Names hidden (`marks` false, E5-7).
+const marked = (p: { who: string | null; anon: number | null; submitted: boolean; changedSince: boolean }, marks = true) =>
+  `${name(p)}${!marks ? "" : !p.submitted ? `, ${REGISTERS_COPY.notSubmitted.toLowerCase()}` : p.changedSince ? `, ${RESPONSES_COPY.changedSince.toLowerCase()}` : ""}`;
 const countsOf = (c: Counts): SummaryCounts => ({ agree: c.agree, change: c.change, disagree: c.disagree, unclear: c.unclear, pick: c.pick, notAnswered: notAnsweredOf(c) });
 const figure = (percent: number | null, rated: boolean, c: Counts) => (rated ? AGREEMENT_COPY.ratedLine(c.pick) : percent === null ? AGREEMENT_COPY.noPercent : `${percent}%`);
 
@@ -42,7 +51,8 @@ export type SummaryInput = { ws: WorkspaceId; workspace: string; project: { id: 
 export async function summaryView({ ws, workspace, project, instrument, filter, ctx, tiles, now }: SummaryInput): Promise<SummaryView | null> {
   const keys = instrument.respondentFields.map((s) => s.key);
   const method = instrument.method;
-  const [numbers, set, rows, counts, pushed, unclear, missing, signOffs, actions] = await Promise.all([
+  const named = namesShown(instrument.anonymity);
+  const [numbers, set, rows, counts, pushed, unclear, missing, signOffs, actions, confidenceOf] = await Promise.all([
     results.numbers(ws, instrument.id, filter),
     itemSets.get(ws, instrument.itemSetId),
     itemsQuery.forSet(ws, instrument.itemSetId),
@@ -52,8 +62,13 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
     registers.missing(ws, instrument.id, filter, keys, method),
     results.signOffs(ws, instrument.id, filter),
     insights.listWithCitations(ws, project.id),
+    // The confidence is a chart: the whole filter (E5-7).
+    named ? Promise.resolve(null) : results.signOffs(ws, instrument.id, filter, "aggregate"),
   ]);
   if (!numbers) return null;
+  const tooFew = numbers.tooFew === true;
+  const marks = instrument.anonymity !== "hidden";
+  const m = (p: Parameters<typeof marked>[0]) => marked(p, marks);
   const label = (code: string | null) => (code ? (labelFor(method, instrument.scaleLabels, code) ?? code) : "");
   const listItems = rows.map((it) => ({ id: it.id, reference: it.sourceRef, title: textFor(it), area: it.area, proposed: instrument.showProposed ? proposedCode(method, it.proposedValue) : null, position: it.position }));
   const areas = buildAgreement(listItems, (set?.areas ?? []).map((a) => a.name), counts, false, agreementSortOf(null), AGREEMENT_COPY.groupNone);
@@ -64,25 +79,31 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
   const R = REGISTERS_COPY;
   const lines: string[] = [];
   if (filterActive(filter)) lines.push(EXPORT_COPY.filtered(describeFilter(filter, ctx)));
-  if (filter.includeUnsubmitted) lines.push(EXPORT_COPY.withUnsubmitted);
-  const confidence = [1, 2, 3, 4, 5].map((v) => signOffs.filter((s) => s.confidence === v).length);
+  if (identityFiltered(filter, instrument.anonymity)) lines.push(RESULTS_COPY.personLevel);
+  if (tooFew) lines.push(RESULTS_COPY.tooFew);
+  if (filter.includeUnsubmitted && instrument.anonymity !== "hidden") lines.push(EXPORT_COPY.withUnsubmitted);
+  // No confidence chart under the floor (decision 0058): it is a chart of the people kept.
+  const confidence = tooFew ? null : [1, 2, 3, 4, 5].map((v) => (confidenceOf ?? signOffs).filter((s) => s.confidence === v).length);
   const order = { open: 0, done: 1, dismissed: 2 } as const;
   return {
     workspace, project: project.name, title: instrument.title, generatedAt: formatUtc(now), sample: project.isSample, lines,
-    tiles: tiles.map((id) => tileView(id, numbers)).map((t) => ({ label: t.label, value: t.value })),
-    areas: areas.map((a) => ({ name: areaName(a.name), counts: countsOf(a.totals), percent: figure(a.percent, a.rated, a.totals) })),
+    tiles: tooFew ? [] : tiles.map((id) => tileView(id, numbers)).map((t) => ({ label: t.label, value: t.value })),
+    areas: tooFew ? [] : areas.map((a) => ({ name: areaName(a.name), counts: countsOf(a.totals), percent: figure(a.percent, a.rated, a.totals) })),
     confidence,
-    tables: areas.map((a) => ({
+    tables: tooFew ? [] : areas.map((a) => ({
       area: areaName(a.name),
-      rows: a.rows.map((r) => ({ ref: r.reference ?? "", text: r.title, proposed: label(r.proposed), counts: countsOf(r.counts), percent: figure(r.percent, r.proposed === null, r.counts) })),
+      rows: a.rows.map((r) => ({ ref: r.reference ?? "", text: r.title, proposed: label(r.proposed), counts: countsOf(r.counts), percent: r.few ? AGREEMENT_COPY.fewAnswers : figure(r.percent, r.proposed === null, r.counts), few: r.few })),
     })),
     registers: [
-      register(R.changeTitle, ["", R.item, R.respondent, R.proposed, R.theirValue, R.reason], pushed.filter((r) => r.kind === "change").map((r) => [...itemOf(r), marked(r), proposedOf(r.proposedValue), label(r.value), r.reason ?? ""]), answersFile),
-      register(R.disagreeTitle, ["", R.item, R.respondent, R.reason], pushed.filter((r) => r.kind === "disagree").map((r) => [...itemOf(r), marked(r), r.reason ?? ""]), answersFile),
-      register(R.unclearTitle, ["", R.item, R.respondent, R.question], unclear.map((r) => [...itemOf(r), marked(r), r.reason ?? ""]), answersFile),
-      register(R.missingTitle, [R.missingText, R.area, R.suggestedValue, R.respondent], missing.map((m) => [m.text, m.area ?? "", label(m.value), marked(m)]), missingFile),
+      register(R.changeTitle, ["", R.item, R.respondent, R.proposed, R.theirValue, R.reason], pushed.filter((r) => r.kind === "change").map((r) => [...itemOf(r), m(r), proposedOf(r.proposedValue), label(r.value), r.reason ?? ""]), answersFile),
+      register(R.disagreeTitle, ["", R.item, R.respondent, R.reason], pushed.filter((r) => r.kind === "disagree").map((r) => [...itemOf(r), m(r), r.reason ?? ""]), answersFile),
+      register(R.unclearTitle, ["", R.item, R.respondent, R.question], unclear.map((r) => [...itemOf(r), m(r), r.reason ?? ""]), answersFile),
+      register(R.missingTitle, [R.missingText, R.area, R.suggestedValue, R.respondent], missing.map((x) => [x.text, x.area ?? "", label(x.value), m(x)]), missingFile),
     ],
-    signOffs: signOffs.map((s) => ({ who: name(s), when: s.signedOff ? formatUtc(s.submittedAt) : `${formatUtc(s.submittedAt)}, ${RESPONSES_COPY.changedSince.toLowerCase()}`, confidence: s.confidence === null ? SUMMARY_COPY.noConfidence : String(s.confidence) })),
+    // Under Names hidden and Anonymous (E5-7) the record has no time: "Submitted"; under Names
+    // hidden it lists no one (signOffHidden).
+    signOffHidden: !marks,
+    signOffs: (marks ? signOffs : []).map((s) => { const at = s.submittedAt ? formatUtc(s.submittedAt) : RESPONSES_COPY.submittedStatus; return { who: name(s), when: s.signedOff ? at : `${at}, ${RESPONSES_COPY.changedSince.toLowerCase()}`, confidence: s.confidence === null ? SUMMARY_COPY.noConfidence : String(s.confidence) }; }),
     actions: [...actions].sort((a, b) => order[a.state] - order[b.state]).map((a) => ({
       state: a.state === "open" ? ACTIONS_COPY.states.open : a.closedAt ? ACTIONS_COPY.closedOn(a.state, formatUtc(a.closedAt)) : ACTIONS_COPY.states[a.state],
       kind: a.kind ? ACTIONS_COPY.kinds[a.kind] : "",

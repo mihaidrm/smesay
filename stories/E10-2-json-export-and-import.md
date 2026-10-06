@@ -5,6 +5,24 @@ Status: built
 Outcome: one JSON file holds everything about a project, and importing it into another
 workspace recreates it.
 
+Amended 2026-10-06 (E5-7, design note 100): each validation carries its anonymity (absent
+reads Named); a response of a validation set to Names hidden or Anonymous goes out with no
+invite id and no fields, and comes back on its validation's public invite. A null invite on
+a Named validation, or a text field under the other two, is a damaged file. Amended again
+after the audit: such a response also goes out with no perspectives and with the export's
+time for its start, last save and submits (null kept), its answers and its missing items;
+no personal invite of such a validation is written (Export everything alike), so the
+imported project has the public link only; a personal invite or a response field that is not
+a dropdown's value under those levels is a damaged file.
+
+Amended 2026-10-06, decision 0058: such a validation's responses go out in the fixed order
+of their "Anonymous [N]" numbers, under Names hidden the submitted ones only, with their
+perspectives as they are (no longer none: perspective breakdowns stay, so the imported
+project shows each item to the same people), no answer on an item fewer than 3 of them could
+see, their missing items in the same order then by id, and no action that cites an answer or
+a missing item the file leaves out. For every project an action keeps only the citations
+still in the file and is left out when none is left.
+
 ## Acceptance criteria
 1. "Whole project" export: items in every set version, the instrument(s), invites (tokens
    excluded, emails included), responses with answers, sign-offs, missing items, insights with

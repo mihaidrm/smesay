@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, optionsFor, parseResultsFilter, personFilter, registerShownSort, riskLineShown, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -12,6 +12,7 @@ const ctx: FilterContext = {
     { key: "role", label: "Role", type: "dropdown", mandatory: true, options: ["Sales", "Finance", "HR"] },
   ],
   perspectives: ["Finance", "Sales"],
+  anonymity: "named",
 };
 const read = (q: string, stored: boolean | null = null) => parseResultsFilter(Object.fromEntries([...new URLSearchParams(q).keys()].map((k) => [k, new URLSearchParams(q).getAll(k)])), ctx, stored);
 
@@ -109,9 +110,65 @@ describe("the tiles", () => {
     expect(read("unsubmitted=1&gaps=name").gaps).toBe("role");
     expect(read("unsubmitted=1&gaps=nope").gaps).toBe("role");
     expect(filterQuery(read("unsubmitted=1"), ctx)).toBe("unsubmitted=1");
-    const noRole: FilterContext = { fields: [{ key: "team", label: "Team", type: "dropdown", mandatory: false, options: ["A", "B"] }, { key: "dept", label: "Dept", type: "dropdown", mandatory: false, options: ["X"] }], perspectives: [] };
+    const noRole: FilterContext = { fields: [{ key: "team", label: "Team", type: "dropdown", mandatory: false, options: ["A", "B"] }, { key: "dept", label: "Dept", type: "dropdown", mandatory: false, options: ["X"] }], perspectives: [], anonymity: "named" };
     expect(defaultGapField(noRole)).toBe("team");
     expect(filterQuery({ ...read("unsubmitted=1"), gaps: "dept" }, noRole)).toBe("unsubmitted=1&gaps=dept");
-    expect(defaultGapField({ fields: [ctx.fields[0]], perspectives: [] })).toBeNull();
+    expect(defaultGapField({ fields: [ctx.fields[0]], perspectives: [], anonymity: "named" })).toBeNull();
+  });
+});
+
+// E5-7, acceptance 4: under Names hidden and Anonymous a filter picks only the values
+// offered (given by 3 counted people or more), and no text field is read.
+describe("the filter under Names hidden and Anonymous", () => {
+  it("drops a value not offered and any text field, keeps an offered one", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: { role: ["Sales"] } };
+    const q = (s: string) => parseResultsFilter(Object.fromEntries([...new URLSearchParams(s).keys()].map((k) => [k, new URLSearchParams(s).getAll(k)])), hidden, null);
+    expect(optionsFor(hidden.fields[1], hidden)).toEqual(["Sales"]);
+    expect(optionsFor(ctx.fields[1], ctx)).toEqual(["Sales", "Finance", "HR"]);
+    expect(q("f.role=Sales&f.role=HR&f.name=Ana").fields).toEqual({ role: ["Sales"] });
+    expect(q("f.role=HR").fields).toEqual({});
+    expect(optionsFor(hidden.fields[1], { ...hidden, offered: {} })).toEqual([]);
+  });
+  it("keeps the include-unsubmitted switch off under Names hidden, whatever the URL or the stored choice", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: {} };
+    for (const [params, stored] of [[{ unsubmitted: "1" }, false], [{ unsubmitted: "1" }, true], [{}, true], [{}, null], [{ unsubmitted: "0" }, true]] as const) {
+      expect(parseResultsFilter(params, hidden, stored).includeUnsubmitted).toBe(false);
+    }
+    // The URL always carries it, so a shared view reads the same.
+    expect(filterQuery(parseResultsFilter({ unsubmitted: "1" }, hidden, true), hidden, {})).toContain("unsubmitted=0");
+    // Under Anonymous and Named the switch is the PM's, as before.
+    expect(parseResultsFilter({ unsubmitted: "1" }, { ...hidden, anonymity: "anonymous" }, false).includeUnsubmitted).toBe(true);
+    expect(parseResultsFilter({ unsubmitted: "0" }, { ...hidden, anonymity: "anonymous" }, true).includeUnsubmitted).toBe(false);
+    expect(parseResultsFilter({}, { ...ctx, anonymity: "named" }, null).includeUnsubmitted).toBe(true);
+  });
+  // Decision 0058 (B4): a list of those with an item not answered would say who has not finished.
+  it("drops Not answered under Names hidden, keeps it under Anonymous, and a list of people never follows it under Names hidden", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: {} };
+    expect(parseResultsFilter({ kind: ["none", "change"] }, hidden, null).kinds).toEqual(["change"]);
+    expect(parseResultsFilter({ kind: ["none", "change"] }, { ...hidden, anonymity: "anonymous" }, null).kinds).toEqual(["change", "none"]);
+    const f = read("kind=change&kind=none");
+    expect(personFilter(f, "hidden").kinds).toEqual(["change"]);
+    expect(personFilter(f, "anonymous").kinds).toEqual(["change", "none"]);
+    expect(personFilter(f, "named")).toBe(f);
+  });
+});
+
+// E5-7 (amended 2026-10-06, N3): the risk line under the filter bar shows under the two levels
+// when a value is left out, and while a split or the gaps view breaks the results down by
+// group; never under Named.
+describe("the risk line under the filter bar", () => {
+  const all: FilterContext = { ...ctx, fields: [ctx.fields[1]], anonymity: "anonymous", offered: { role: ["Sales", "Finance", "HR"] } };
+  const plain = { ...parseResultsFilter({}, all, null), gaps: null };
+  it("shows when a value is left out, or a split or the gaps view compares groups", () => {
+    expect(riskLineShown(plain, all, false)).toBe(false);
+    expect(riskLineShown(plain, { ...all, offered: { role: ["Sales"] } }, false)).toBe(true);
+    expect(riskLineShown({ ...plain, split: "role" }, all, false)).toBe(true);
+    expect(riskLineShown({ ...plain, split: "role" }, { ...all, anonymity: "hidden" }, false)).toBe(true);
+    expect(riskLineShown({ ...plain, gaps: "role" }, all, true)).toBe(true);
+    expect(riskLineShown({ ...plain, gaps: "role" }, all, false)).toBe(false);
+  });
+  it("never shows under Named", () => {
+    const named: FilterContext = { ...all, anonymity: "named", offered: undefined };
+    expect(riskLineShown({ ...plain, split: "role", gaps: "role" }, named, true)).toBe(false);
   });
 });

@@ -117,3 +117,40 @@ describe("the Agreement tab's model", () => {
     expect(groupTotals(named).map((g) => [g.group, g.empty])).toEqual([["Not given", false], ["Not given", true]]);
   });
 });
+
+// E5-7, amended 2026-10-06 after the audit: under Names hidden and Anonymous the query folds
+// the values under 3 people into one group (folded, group null) or leaves them out, and marks
+// an item or a group seen by fewer than 3 people (few). The model keys the folded group apart
+// from any option, draws the items' bars from the counts without the split, and marks the row.
+describe("a split under Names hidden and Anonymous", () => {
+  it("keys the folded group apart from an option of the same text, and reads the items' bars from the totals", () => {
+    const split = [
+      { itemId: "i1", group: "Sales", ...c(2, 1) },
+      // An option whose text is the folded group's name stays its own group.
+      { itemId: "i1", group: "Groups under 3 people", ...c(3) },
+      { itemId: "i1", group: null, folded: true, ...c(1, 0, 2) },
+      { itemId: "i1", group: null, ...c(0, 3) },
+      { itemId: "i2", group: "Sales", few: true, ...c(0, 0, 0, 0, 0) },
+    ];
+    // The totals hold the people of a value left out too (one more agree on i1).
+    const totals = [{ itemId: "i1", group: null, ...c(7, 4, 2) }, { itemId: "i2", group: null, ...c(2, 2) }];
+    const rows = buildAgreement(items, ["Submitting"], split, true, { key: "ref", dir: "asc" }, "Not given", { totals, small: "Groups under 3 people" })[0].rows;
+    expect(rows[0].groups.map((g) => [g.key, g.group, g.folded, g.empty])).toEqual([
+      ["v:Groups under 3 people", "Groups under 3 people", false, false],
+      ["v:Sales", "Sales", false, false],
+      ["small", "Groups under 3 people", true, false],
+      ["none", "Not given", false, true],
+    ]);
+    expect([rows[0].counts.agree, rows[0].counts.change, rows[0].few]).toEqual([7, 4, false]);
+    // A group seen by fewer than 3 people is drawn with no count and is not compared.
+    expect(rows[1].groups.map((g) => [g.group, g.few, g.compared])).toEqual([["Sales", true, false]]);
+    expect(groupTotals(rows).map((g) => g.key)).toEqual(["v:Groups under 3 people", "v:Sales", "small", "none"]);
+  });
+
+  it("marks an item seen by fewer than 3 people, with no count in its area", () => {
+    const few = [{ itemId: "i1", group: null, few: true, ...c(0, 0, 0, 0, 0) }, { itemId: "i2", group: null, ...c(1, 2, 1, 1, 6) }];
+    const area = buildAgreement(items, ["Submitting"], few, false, { key: "ref", dir: "asc" }, "Not given")[0];
+    expect(area.rows.map((r) => [r.id, r.few, r.percent])).toEqual([["i1", true, null], ["i2", false, 20]]);
+    expect([area.totals.agree, area.totals.couldSee]).toEqual([1, 6]);
+  });
+});

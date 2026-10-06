@@ -122,6 +122,36 @@ Data
 - Exports and deletion per workspace; deletion removes rows and objects within 24 hours.
 - A project file import (E10-2) reads at most 5 MB, checks every field and JSON column, and
   never logs a refused row's values.
+- Who sees whose answers (E5-7, design note 100): under Names hidden and Anonymous the SQL of
+  Results (src/db/queries/results.ts head, src/db/queries/insights.ts) returns no name, no
+  field, no submitted time and no reminder, every response "Anonymous [N]", numbered by
+  md5(response id || instrument id), not by its start (decision 0058). Under Names hidden
+  the same SQL leaves out every response not submitted, whatever the include-unsubmitted
+  switch (which is off and not shown there), so no list, file, detail, count, citation or the
+  PDF says who has not finished (amended 2026-10-06 after the fourth audit). A list of people
+  (the Responses tab, the registers, the item detail's rows, the CSV rows, the PDF's registers
+  and record, the Actions citations) follows no field or perspective filter (person mode), and
+  under Names hidden no status filter, no status column and no "Not answered" kind, and the
+  item detail lists no one without an answer. A value or a perspective fewer than MIN_GROUP
+  counted people picked is not offered as a filter. A chart whose filter keeps fewer
+  than MIN_GROUP (3, src/lib/results-agreement.ts) counted people is not drawn and its query
+  keeps nobody (aggregate mode; with no filter on, the counts of people, the confidence and
+  the missing items show however few answered); a split or gaps group under MIN_GROUP people is folded into
+  one group when the folded people reach MIN_GROUP, else left out; an item fewer than
+  MIN_GROUP counted people could see counts nowhere and lists nobody. The project file of
+  such a validation writes no personal invite, no invite id or fields on a response (its
+  perspectives stay, so an imported project shows each item to the same people), and the
+  export's time for every response, answer and missing item, its responses and their missing
+  items in the order of their numbers, under Names hidden the submitted ones only, no answer
+  on an item fewer than MIN_GROUP of them could see, and no action that cites an answer or a
+  missing item it leaves out; the import refuses a personal invite or a
+  non-dropdown field there. Anonymous refuses every invite, reminder and new link on the
+  server (src/lib/invitees.ts, src/lib/reminders.ts). What these rules do not stop, disclosed
+  by decision 0058 rather than prevented: with few people, comparing views (a filtered view
+  against an unfiltered one, two splits, a group's figures against the lists) can still point
+  to someone, as can, under Names hidden, the finishing and last-save times on Share (live)
+  and the Actions citations, which name only people who submitted. The Build hints, the lines
+  on Results and the privacy policy (L43) say so.
 - A CSV export writes a text cell that starts with =, +, -, @, a tab or a line break with a
   single quote in front, so a spreadsheet does not run it as a formula (OWASP, CSV Injection).
 - No personal data in logs, Sentry events or analytics (Plausible receives the visitor's

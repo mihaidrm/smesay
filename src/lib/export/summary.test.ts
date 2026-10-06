@@ -17,6 +17,7 @@ import { auth } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
 import { DEFAULT_TILES, tileView } from "@/lib/results-tiles";
+import { RESULTS_COPY } from "@/lib/results-copy";
 import { requireWorkspace } from "@/lib/workspace";
 import { pageCount } from "./pdf";
 import { register, REGISTER_ROWS_MAX, summaryView } from "./summary";
@@ -50,7 +51,7 @@ beforeAll(async () => {
   wsB = await requireWorkspace(user.headers, (await createWorkspaceWithSample({ name: "Summary B", slug: `summary-b-${randomUUID()}` }, user.id)).id);
   [project] = (await projects.list(ws)).filter((p) => p.isSample);
   instrument = (await instruments.latestForProject(ws, project.id))!;
-  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
+  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives, anonymity: instrument.anonymity };
 }, 60_000);
 
 const input = (f: ResultsFilter) => ({ ws, workspace: "Summary A", project, instrument, filter: f, ctx, tiles: DEFAULT_TILES, now: NOW });
@@ -69,11 +70,45 @@ describe("summaryView", () => {
   it("lists the sign-offs with their confidence, and the actions open first", async () => {
     const v = (await summaryView(input(NONE)))!;
     expect(v.signOffs).toHaveLength(expected.submitted);
-    expect(v.confidence.reduce((a, b) => a + b, 0)).toBe(v.signOffs.filter((s) => s.confidence !== SUMMARY_COPY.noConfidence).length);
+    expect(v.confidence!.reduce((a, b) => a + b, 0)).toBe(v.signOffs.filter((s) => s.confidence !== SUMMARY_COPY.noConfidence).length);
     expect(v.actions).toHaveLength(expected.insights);
     const states = v.actions.map((a) => (a.state === "Open" ? 0 : a.state.startsWith("Done") ? 1 : 2));
     expect(states).toEqual([...states].sort());
     expect(v.actions.every((a) => a.cites.startsWith("From: "))).toBe(true);
+  });
+  // E5-7, acceptance 5 (amended 2026-10-06 after the audit): the PDF names nobody under either
+  // level; under Anonymous the sign-off record reads Submitted with no time, under Names hidden
+  // it lists no one and no register row is marked; a filter that keeps fewer than 3 counted
+  // people draws no number, area or item, while the registers keep the whole validation.
+  it("names nobody under Names hidden and Anonymous, and draws nothing for fewer than 3 people", async () => {
+    const [projectB] = (await projects.list(wsB)).filter((p) => p.isSample);
+    const instB = (await instruments.latestForProject(wsB, projectB.id))!;
+    const view = async (level: "hidden" | "anonymous", filter: ResultsFilter) => {
+      const inst = (await instruments.update(wsB, instB.id, { anonymity: level }))!;
+      return (await summaryView({ ws: wsB, workspace: "Summary B", project: projectB, instrument: inst, filter, ctx: { fields: inst.respondentFields.filter((f) => f.type === "dropdown"), perspectives: [], anonymity: level }, tiles: DEFAULT_TILES, now: NOW }))!;
+    };
+    const anonymous = await view("anonymous", NONE);
+    expect(anonymous.signOffs).toHaveLength(expected.submitted);
+    expect(anonymous.signOffs.every((s) => /^Anonymous \d+$/.test(s.who) && /^Submitted(, changes not submitted again)?$/.test(s.when))).toBe(true);
+    const hidden = await view("hidden", NONE);
+    expect([hidden.signOffs, hidden.signOffHidden]).toEqual([[], true]);
+    expect(hidden.registers.flatMap((r) => r.rows.flat()).some((c) => /not submitted/i.test(c))).toBe(false);
+    expect(summaryHtml(hidden)).toContain(SUMMARY_COPY.signOffHidden);
+    expect(hidden.confidence).toEqual(anonymous.confidence);
+    for (const v of [anonymous, hidden]) {
+      const text = JSON.stringify(v);
+      for (const name of ["Ioana", "Tom Reyes", "Dana Okafor", "Lukas", "Priya", "Sam Hill"]) expect(text).not.toContain(name);
+    }
+    // Sales: 2 submitted people. The headline numbers, the areas and the items are not drawn;
+    // the registers follow no field filter and say so.
+    const sales = await view("anonymous", { ...NONE, fields: { role: ["Sales"] } });
+    // Decision 0058 (N3): no confidence chart either.
+    expect([sales.tiles, sales.areas, sales.tables, sales.confidence]).toEqual([[], [], [], null]);
+    expect(summaryHtml(sales)).not.toContain(SUMMARY_COPY.confidence);
+    expect(sales.lines).toEqual(["Filtered: Role: Sales", RESULTS_COPY.personLevel, RESULTS_COPY.tooFew]);
+    expect(sales.registers.map((r) => r.total)).toEqual(anonymous.registers.map((r) => r.total));
+    expect(sales.signOffs).toEqual(anonymous.signOffs);
+    await instruments.update(wsB, instB.id, { anonymity: "named" });
   });
   it("follows the filter and names it", async () => {
     const f = { ...NONE, kinds: ["disagree" as const] };

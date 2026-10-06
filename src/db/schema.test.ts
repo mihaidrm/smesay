@@ -152,6 +152,27 @@ describe("rules in the database", () => {
     expect(old).toBe("differs");
   });
 
+  // E5-7, acceptance 1 (design note 100): every instrument is Named unless the PM picks
+  // another level, and a level outside the three is refused. Migration 0036 run on the table
+  // as it stood before it, holding a row, gives that row "named" (as for 0035 above).
+  it("gives every instrument the level named, a row from before migration 0036 too", async () => {
+    const [row] = await sql`select anonymity from instrument where id = ${instrumentA}`;
+    expect(row.anonymity).toBe("named");
+    await expect(sql`update instrument set anonymity = 'secret' where id = ${instrumentA}`).rejects.toThrow(/instrument_anonymity_check/);
+    const statements = readFileSync("drizzle/0036_anonymity.sql", "utf8").split("--> statement-breakpoint").map((s) => s.trim()).filter(Boolean);
+    const old = await sql.begin(async (tx) => {
+      await tx.unsafe("create schema before_0036");
+      await tx.unsafe("set local search_path to before_0036");
+      await tx.unsafe("create table instrument (id integer primary key)");
+      await tx.unsafe("insert into instrument (id) values (1)");
+      for (const statement of statements) await tx.unsafe(statement);
+      const rows = await tx.unsafe("select anonymity from instrument where id = 1");
+      await tx.unsafe("drop schema before_0036 cascade");
+      return rows[0].anonymity as string;
+    });
+    expect(old).toBe("named");
+  });
+
   it("refuses a child row that points at another workspace's parent", async () => {
     await expect(sql`insert into item_set (workspace_id, project_id, version, source) values (${wsB}, ${projectA}, 9, 'csv')`).rejects.toThrow(/item_set_project_fk/);
     await expect(sql`insert into item (workspace_id, item_set_id, position, original_text) values (${wsA}, ${setB}, 1, 'x')`).rejects.toThrow(/item_item_set_fk/);

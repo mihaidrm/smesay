@@ -18,7 +18,7 @@
 import { createHash } from "node:crypto";
 import { invites, items, projects, workspaces } from "@/db/queries";
 import type { Invite, InviteeRow } from "@/db/queries/invites";
-import type { WorkspaceId } from "@/db/types";
+import type { Anonymity, WorkspaceId } from "@/db/types";
 import { INVITEES_COPY, INVITEES_ERRORS, INVITEES_PER_DAY, inviteeLine, minutesFor, parseInvitees, type Invitee } from "@/lib/invitees-rules";
 import { inviteEmail } from "@/lib/mail/templates/invite";
 import { sendMail, type Mail } from "@/lib/mail";
@@ -86,13 +86,13 @@ async function liveLinkFor(ws: WorkspaceId, instrumentId: string, now: Date): Pr
 }
 
 // Email 2 for a personal invite row, with the sender's name on it.
-async function inviteMailFor(ws: WorkspaceId, projectId: string, instrument: { itemSetId: string; intro: string | null }, invite: Invite, sender: Sender, baseUrl: string, now: Date): Promise<{ mail: Mail; pmName: string }> {
+async function inviteMailFor(ws: WorkspaceId, projectId: string, instrument: { itemSetId: string; intro: string | null; anonymity: Anonymity }, invite: Invite, sender: Sender, baseUrl: string, now: Date): Promise<{ mail: Mail; pmName: string }> {
   const project = await projects.get(ws, projectId);
   const workspace = await workspaces.getById(ws);
   if (!project || !workspace) throw new NotFoundError();
   const itemCount = (await items.forSet(ws, instrument.itemSetId)).length;
   const pmName = sender.name?.trim() || sender.email;
-  const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
+  const mail = inviteEmail({ pmName, workspaceName: workspace.name, projectName: project.name, respondentName: invite.name, itemCount, minutes: minutesFor(itemCount), intro: instrument.intro, url: `${baseUrl}/r/${invite.token}`, namesHidden: instrument.anonymity === "hidden", opensAt: invite.opensAt && invite.opensAt > now ? invite.opensAt : null, closesAt: invite.closesAt });
   return { mail: { ...mail, to: invite.email ?? "", fromName: `${pmName} via SMEsay`, replyTo: sender.email }, pmName };
 }
 
@@ -125,6 +125,7 @@ export async function revokeInvitee(ws: WorkspaceId, projectId: string, instrume
 export async function renewInvitee(ws: WorkspaceId, projectId: string, instrumentId: string, inviteId: string, sender: Sender, baseUrl: string, now = new Date(), send: (mail: Mail) => Promise<void> = sendMail): Promise<{ error: string } | { outcome: SendOutcome }> {
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
+  if (owned.instrument.anonymity === "anonymous") return { error: INVITEES_ERRORS.anonymous };
   const live = await liveLinkFor(ws, instrumentId, now);
   if ("error" in live) return live;
   const row = (await invites.personalWithStatus(ws, instrumentId)).find((r) => r.id === inviteId);
@@ -159,6 +160,9 @@ export async function sendInvites(ws: WorkspaceId, projectId: string, instrument
   const owned = await own(ws, projectId, instrumentId);
   if ("error" in owned) return owned;
   const { instrument } = owned;
+  // E5-7, acceptance 7: the level is locked once the link is published, which a send needs,
+  // so the check outside the lock holds.
+  if (instrument.anonymity === "anonymous") return { error: INVITEES_ERRORS.anonymous };
   const live = await liveLinkFor(ws, instrumentId, now);
   if ("error" in live) return live;
   const parsed = parseInvitees(rawList);

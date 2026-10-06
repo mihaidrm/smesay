@@ -13,7 +13,7 @@ import { createProject, deleteSample, saveContext, setArchived } from "@/lib/pro
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { importProject, PROJECT_FILE_MAX } from "@/lib/export/project";
 import { commitUpload } from "@/lib/imports";
-import { buildOnLatest, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { buildOnLatest, saveAnonymity, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
 import { decideAllReaders, decideReader, dismissFlag, editReader, moveItemTo, shapeSet, type ReaderMove } from "@/lib/shaping";
 import { renewInvitee, revokeInvitee, sendInvites } from "@/lib/invitees";
 import { remindAll, remindInvitee } from "@/lib/reminders";
@@ -331,6 +331,21 @@ export async function saveScoringAction(_previous: ProjectFormState, formData: F
   const projectId = String(formData.get("projectId") ?? "");
   try {
     const result = await saveScoring(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("method"), formData.get("showProposed"), formData.get("labels"), formData.get("layout"), formData.get("reasonRule"));
+    if ("error" in result) return { ...NONE, error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath(`/app/projects/${projectId}/build`);
+  return { ...NONE, saved: true };
+}
+
+// Who sees whose answers (stories/E5-7): the level, checked and locked on the server.
+export async function saveAnonymityAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireWritableWorkspace("/app");
+  const projectId = String(formData.get("projectId") ?? "");
+  try {
+    const result = await saveAnonymity(current.ws, projectId, String(formData.get("instrumentId") ?? ""), formData.get("anonymity"));
     if ("error" in result) return { ...NONE, error: result.error };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();

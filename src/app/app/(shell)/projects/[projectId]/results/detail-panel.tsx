@@ -5,17 +5,21 @@
 // per person the page's filter keeps who sees the item: the pill (src/lib/results-detail.ts),
 // their value where it differs from the proposal, and the reason, question or comment. The
 // item is in the URL (item=[id]) so the detail can be linked within the workspace. Counts
-// honour the page's filter and switch (src/db/queries/results.ts detail.item). Copy:
-// docs/copy/app.md, Results.
+// honour the page's filter and switch (src/db/queries/results.ts detail.item). Under Names
+// hidden and Anonymous (stories/E5-7) the query sends no name, no role and no invitee row.
+// Amended 2026-10-06 after the audit: the list follows no field or perspective filter (a line
+// says so) while the counts do; an item fewer than 3 counted people could see lists nobody and
+// its counts read "Fewer than 3 answers"; under Names hidden no row says not submitted or in
+// progress, since Share names who has finished. Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { NeutralPill, NotAnsweredPill, StatusPill } from "@/components/ui/status-pill";
 import type { Instrument } from "@/db/queries/instruments";
 import { detail, type DetailRow } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
-import { DETAIL_COPY, RESPONSES_COPY } from "@/lib/results-copy";
+import { AGREEMENT_COPY, DETAIL_COPY, RESPONSES_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { detailCountKeys, rowPill, showValue } from "@/lib/results-detail";
-import { type ResultsFilter } from "@/lib/results-filter";
+import { identityFiltered, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
 import { buttonVariants } from "@/components/ui/button";
 import { DetailShell } from "./detail-shell";
@@ -35,7 +39,8 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
       </DetailShell>
     );
   }
-  const { item, counts, rows } = found;
+  const { item, counts, rows, few, countsFew } = found;
+  const marks = instrument.anonymity !== "hidden";
   const method = instrument.method;
   const proposed = instrument.showProposed ? proposedCode(method, item.proposedValue) : null;
   const label = (code: string | null) => (code ? (labelFor(method, instrument.scaleLabels, code) ?? code) : "");
@@ -53,7 +58,10 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
             {title !== item.originalText && <p className="text-sm text-ink-muted" data-testid="detail-original">{DETAIL_COPY.original}: {item.originalText}</p>}
             {proposed && <p className="flex items-center gap-2 text-sm text-ink-muted">{DETAIL_COPY.proposed} <NeutralPill>{label(proposed)}</NeutralPill></p>}
           </div>
-          {rows.length === 0 ? (
+          {identityFiltered(filter, instrument.anonymity) && <p className="text-sm text-ink-muted" data-testid="person-level-line">{RESULTS_COPY.personLevel}</p>}
+          {few ? (
+            <p className="text-sm text-ink-muted" data-testid="detail-few">{DETAIL_COPY.fewRows}</p>
+          ) : rows.length === 0 ? (
             <p className="text-sm text-ink-muted" data-testid="detail-no-rows">{DETAIL_COPY.noRows}</p>
           ) : (
             <div className="overflow-x-auto rounded-md border border-hairline bg-surface">
@@ -67,7 +75,7 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline">
-                  {rows.map((r) => <Row key={r.personId} r={r} proposed={proposed} label={label} />)}
+                  {rows.map((r) => <Row key={r.personId} r={r} proposed={proposed} label={label} marks={marks} />)}
                 </tbody>
               </table>
             </div>
@@ -75,6 +83,7 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
         </div>
         <div className="flex flex-col gap-2.5 rounded-md border border-hairline bg-surface p-4" data-testid="detail-counts">
           <h3 className="text-sm font-semibold">{DETAIL_COPY.onItem}</h3>
+          {countsFew ? <p className="text-sm text-ink-muted" data-testid="detail-counts-few">{AGREEMENT_COPY.fewAnswers}</p> : (
           <dl className="flex flex-col gap-2 text-sm">
             {detailCountKeys(proposed).map((k) => (
               <div key={k} className={k === "notYet" ? "flex justify-between text-ink-muted" : "flex justify-between"}>
@@ -83,16 +92,18 @@ export async function DetailPanel({ ws, instrument, itemId, filter, closeHref, b
               </div>
             ))}
           </dl>
+          )}
         </div>
       </div>
     </DetailShell>
   );
 }
 
-function Row({ r, proposed, label }: { r: DetailRow; proposed: string | null; label: (code: string | null) => string }) {
+// `marks`: whether a row may say not submitted or in progress (not under Names hidden, E5-7).
+function Row({ r, proposed, label, marks }: { r: DetailRow; proposed: string | null; label: (code: string | null) => string; marks: boolean }) {
   const name = r.who ?? RESPONSES_COPY.anonymous(r.anon ?? 0);
   const role = r.fields.role;
-  const p = rowPill(r, DETAIL_COPY);
+  const p = rowPill(marks ? r : { ...r, submitted: true }, DETAIL_COPY);
   const pill = p.type === "status" ? <StatusPill status={p.status}>{p.label}</StatusPill> : p.type === "neutral" ? <NeutralPill>{p.label}</NeutralPill> : <NotAnsweredPill />;
   const text = r.kind === null ? null : r.reason ?? r.comment;
   return (
@@ -106,7 +117,7 @@ function Row({ r, proposed, label }: { r: DetailRow; proposed: string | null; la
       <td className={CELL}>
         <div className="flex flex-wrap items-center gap-2">
           {pill}
-          {r.kind !== null && !r.submitted && <NeutralPill>{DETAIL_COPY.notSubmitted}</NeutralPill>}
+          {marks && r.kind !== null && !r.submitted && <NeutralPill>{DETAIL_COPY.notSubmitted}</NeutralPill>}
           {showValue(r.value, proposed) && <span className="text-xs font-semibold">{label(r.value)}</span>}
         </div>
       </td>

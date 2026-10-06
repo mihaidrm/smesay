@@ -78,7 +78,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
   const response = view.response;
   const picks = response?.perspectives ?? [];
   const chapters = chaptersFor(view.areas, view.items, picks);
-  const prefilled = carriedFields(link.invite, instrument.respondentFields);
+  const prefilled = carriedFields(link.invite, instrument.respondentFields, instrument.anonymity);
   // Where the visit lands, and "Welcome back" when it returns with answers (landingOf: E7-3,
   // acceptance 2; E7-4, acceptance 4); a submitted response lands on Done (E7-5).
   const landing = landingOf(chapters, view.answers, instrument.reasonRule, instrument.layout, at, response !== null, Boolean(response?.submittedAt));
@@ -94,7 +94,7 @@ export default async function LinkRoute({ params, searchParams }: { params: Prom
         accent={accent}
         logoUrl={logoUrl}
         headerNote={link.invite.closesAt ? LINK_PAGE_COPY.closes(formatUtc(link.invite.closesAt)) : null}
-        instrument={{ title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: instrument.perspectives, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed, layout: instrument.layout, reasonRule: instrument.reasonRule }}
+        instrument={{ title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: instrument.perspectives, method: instrument.method, labels: instrument.scaleLabels, showProposed: instrument.showProposed, layout: instrument.layout, reasonRule: instrument.reasonRule, anonymity: instrument.anonymity }}
         prefilled={link.invite.kind === "personal" ? prefilled : undefined}
         items={view.items}
         areas={view.areas}

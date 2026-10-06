@@ -18,6 +18,7 @@ import { latestSet } from "@/lib/imports";
 import { DEFAULT_FIELDS } from "@/lib/respondent-fields";
 import { itemsFor } from "@/lib/respondent";
 import type { AreaMeta, RespondentItem } from "@/lib/respondent-rules";
+import { DEFAULT_ANONYMITY } from "@/lib/anonymity";
 import { DEFAULT_REASON_RULE } from "@/lib/scoring";
 import { linkState } from "@/lib/sharing";
 
@@ -39,7 +40,7 @@ export const STEP_RINGS: Record<PreviewStep, PreviewRing[]> = {
 export const parseRings = (v: string | string[] | undefined): PreviewRing[] =>
   typeof v === "string" ? v.split(",").filter((r): r is PreviewRing => (PREVIEW_RINGS as readonly string[]).includes(r)) : [];
 
-export type PreviewSpec = Pick<Instrument, "title" | "intro" | "respondentFields" | "perspectives" | "method" | "scaleLabels" | "showProposed" | "layout" | "reasonRule" | "closing" | "itemSetId">;
+export type PreviewSpec = Pick<Instrument, "title" | "intro" | "respondentFields" | "perspectives" | "method" | "scaleLabels" | "showProposed" | "layout" | "reasonRule" | "anonymity" | "closing" | "itemSetId">;
 
 export type PreviewView =
   | { kind: "none" }
@@ -56,7 +57,7 @@ export async function loadPreview(ws: WorkspaceId, projectId: string, step: Prev
   const link = newest ? await invites.livePublic(ws, project.id) : null;
   if (step === "share" && linkState(link, now) === "revoked") return { kind: "revoked" };
   const instrument = step === "share" && link && newest && link.instrumentId !== newest.id ? ((await instruments.get(ws, link.instrumentId)) ?? newest) : newest;
-  const base: PreviewSpec = instrument ?? { title: project.name, intro: null, respondentFields: DEFAULT_FIELDS, perspectives: [], method: "moscow", scaleLabels: null, showProposed: true, layout: "chapters", reasonRule: DEFAULT_REASON_RULE, closing: DEFAULT_CLOSING, itemSetId: latest.id };
+  const base: PreviewSpec = instrument ?? { title: project.name, intro: null, respondentFields: DEFAULT_FIELDS, perspectives: [], method: "moscow", scaleLabels: null, showProposed: true, layout: "chapters", reasonRule: DEFAULT_REASON_RULE, anonymity: DEFAULT_ANONYMITY, closing: DEFAULT_CLOSING, itemSetId: latest.id };
   const spec = step === "import" || step === "shape" ? { ...base, itemSetId: latest.id } : base;
   const { items, areas } = await itemsFor(ws, spec);
   return { kind: "ready", spec, items, areas, closesAt: link?.closesAt ?? null };

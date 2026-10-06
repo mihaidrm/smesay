@@ -37,6 +37,9 @@ export type Layout = "chapters" | "item" | "page";
 // When an answer needs its text written to count as complete (INTERFACES.md ReasonRule):
 // when it differs from the proposal (the default), never, or on every answer.
 export type ReasonRule = "differs" | "never" | "always";
+// Who sees whose answers (INTERFACES.md Anonymity; stories/E5-7): names and fields as given,
+// names hidden from Results, the exports and the AI, or anonymous (the public link only).
+export type Anonymity = "named" | "hidden" | "anonymous";
 // The four answers and the rate-blind pick (decisions 0014, 0018; INTERFACES.md AnswerKind).
 export type AnswerKind = "agree" | "change" | "disagree" | "unclear" | "pick";
 export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";

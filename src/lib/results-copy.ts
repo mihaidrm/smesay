@@ -3,6 +3,9 @@
 // TILE_NAMES (src/lib/results-tiles.ts). No database here, so the client parts use it.
 export const RESULTS_COPY = {
   includeUnsubmitted: "Include unsubmitted answers",
+  // E5-7 (amended 2026-10-06): in place of the switch under Names hidden, where a response not
+  // submitted is in no view, so nothing on Results says who has not finished.
+  submittedOnly: "This validation hides names, so Results count submitted answers only.",
   chooseTiles: "Choose tiles",
   chooserTitle: "Choose the tiles",
   chooserLine: "Up to six, shown in this order. Only you see your choice.",
@@ -25,6 +28,15 @@ export const RESULTS_COPY = {
   anyPerspective: "Any perspective",
   status: "Status",
   contains: (label: string) => `${label} contains`,
+  // E5-7, acceptance 4: under the bar when the validation hides names and a value was left out.
+  // Decision 0058: the residual risk is said, not promised away.
+  smallValues: "A value fewer than 3 people gave is not offered as a filter. Comparing a filtered view with an unfiltered one can still point to someone in a small group.",
+  // E5-7, amended 2026-10-06: under Names hidden and Anonymous, in place of the numbers and the
+  // Agreement view when a filter keeps fewer than 3 counted people (B).
+  tooFew: "Fewer than 3 people match these filters. Widen them to see the results.",
+  // Above every list of people under a field or perspective filter, at the two levels (A).
+  // Decision 0058: the lists stay whole, and comparing them with the charts is the risk left.
+  personLevel: "Filters by a field or perspective change the charts only, and lists of people stay whole. Comparing a group's figures with the lists can still point to someone in a small group.",
   clearFilters: "Clear filters",
   showing: (n: number, m: number, filters: string) => `Showing ${n} of ${m} responses: ${filters}.`,
   noAnswersTitle: "No answers yet.",
@@ -68,6 +80,8 @@ export const CONFLICT_COPY = {
 export const RESPONSES_COPY = {
   caption: (n: number) => (n === 1 ? "1 person" : `${n} people`),
   name: "Name",
+  // E5-7: the first column's header under Names hidden and Anonymous, where it holds Anonymous [N].
+  respondent: "Respondent",
   status: "Status",
   progress: "Progress",
   submitted: "Submitted",
@@ -117,6 +131,10 @@ export const AGREEMENT_COPY = {
   notCompared: "Fewer than 3 answers: not compared",
   notComparedPeople: "This group is not compared, so one person cannot be singled out",
   groupNone: "Not given",
+  // E5-7, acceptance 4: the values fewer than 3 people gave, together, under Names hidden and Anonymous.
+  groupSmall: "Groups under 3 people",
+  // E5-7, amended 2026-10-06 (D): an item or a group fewer than 3 counted people could see.
+  fewAnswers: "Fewer than 3 answers",
   valuesLegend: "Values picked, where no proposal was shown",
   smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",
   chartTitle: (what: string) => `Answers on ${what}`,
@@ -156,5 +174,7 @@ export const DETAIL_COPY = {
   notSubmitted: "Not submitted",
   noAnswer: "No answer yet.",
   noRows: "No one the filter keeps sees this item. Change the filter to see their answers.",
+  // E5-7, amended 2026-10-06 (D): under Names hidden and Anonymous.
+  fewRows: "Fewer than 3 people could see this item, so its answers are not listed.",
   notFound: "This item is not in the list's current version. Go back and open an item from the list.",
 };

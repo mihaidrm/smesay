@@ -4,7 +4,11 @@
 // field as a "contains" box applied on Enter or when it loses focus, the perspective as a
 // select, and Clear filters while anything narrows. Every change writes the URL
 // (src/lib/results-filter.ts filterQuery), so the server renders the filtered page and a view
-// can be shared; the tab stays. data-ready marks the bar once it has hydrated (a
+// can be shared; the tab stays. Under Names hidden and Anonymous (stories/E5-7, acceptance 4)
+// a dropdown shows only the values offered (optionsFor: given by 3 counted people or more), a
+// field with none left is not shown, and a line says why and what risk is left, also while a
+// split or the gaps view breaks the results down by group (riskLineShown); under Names
+// hidden there is no status filter (amended 2026-10-06). data-ready marks the bar once it has hydrated (a
 // client-only snapshot, react.dev/reference/react/useSyncExternalStore), for the tests.
 // Copy: docs/copy/app.md, Results.
 import { usePathname, useRouter } from "next/navigation";
@@ -12,7 +16,7 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { RESULTS_COPY } from "@/lib/results-copy";
-import { clearedFilter, filterActive, filterQuery, KIND_LABELS, RESULTS_STATUSES, STATUS_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
+import { clearedFilter, filterActive, filterQuery, KIND_LABELS, optionsFor, RESULTS_STATUSES, riskLineShown, STATUS_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
 
 const CHIP = "inline-flex h-6 items-center rounded-full border px-2.5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface aria-pressed:border-transparent aria-pressed:bg-violet-soft aria-pressed:text-violet-text border-hairline-strong text-ink-muted hover:text-ink";
 
@@ -46,10 +50,12 @@ export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFi
           const v = filter.fields[spec.key];
           if (spec.type === "dropdown") {
             const picked = Array.isArray(v) ? v : [];
+            const options = optionsFor(spec, ctx);
+            if (options.length === 0) return null;
             return (
               <div key={spec.key} role="group" aria-label={spec.label} className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-semibold text-ink-muted">{spec.label}</span>
-                {(spec.options ?? []).map((o) => <Chip key={o} on={picked.includes(o)} onClick={() => setField(spec.key, toggle(picked, o))} testId={`filter-${spec.key}`}>{o}</Chip>)}
+                {options.map((o) => <Chip key={o} on={picked.includes(o)} onClick={() => setField(spec.key, toggle(picked, o))} testId={`filter-${spec.key}`}>{o}</Chip>)}
               </div>
             );
           }
@@ -60,10 +66,13 @@ export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFi
           {kinds.map((k) => <Chip key={k} on={filter.kinds.includes(k)} onClick={() => go({ ...filter, kinds: toggle(filter.kinds, k) })} testId={`filter-kind-${k}`}>{KIND_LABELS[k]}</Chip>)}
           <Chip on={filter.withComment} onClick={() => go({ ...filter, withComment: !filter.withComment })} testId="filter-comment">{RESULTS_COPY.withComment}</Chip>
         </div>
-        <div role="group" aria-label={RESULTS_COPY.status} className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold text-ink-muted">{RESULTS_COPY.status}</span>
-          {RESULTS_STATUSES.map((s) => <Chip key={s} on={filter.status.includes(s)} onClick={() => go({ ...filter, status: toggle(filter.status, s) })} testId={`filter-status-${s}`}>{STATUS_LABELS[s]}</Chip>)}
-        </div>
+        {/* E5-7 (amended 2026-10-06): no status filter under Names hidden. */}
+        {ctx.anonymity !== "hidden" && (
+          <div role="group" aria-label={RESULTS_COPY.status} className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-ink-muted">{RESULTS_COPY.status}</span>
+            {RESULTS_STATUSES.map((s) => <Chip key={s} on={filter.status.includes(s)} onClick={() => go({ ...filter, status: toggle(filter.status, s) })} testId={`filter-status-${s}`}>{STATUS_LABELS[s]}</Chip>)}
+          </div>
+        )}
         {ctx.perspectives.length > 0 && (
           <label className="flex items-center gap-2 text-xs font-semibold text-ink-muted">
             {RESULTS_COPY.perspective}
@@ -75,6 +84,7 @@ export function FilterBar({ filter, ctx, tab, item, kinds }: { filter: ResultsFi
         )}
         {filterActive(filter) && <Button type="button" variant="secondary" size="small" onClick={() => go(clearedFilter(filter))} data-testid="clear-filters">{RESULTS_COPY.clearFilters}</Button>}
       </div>
+      {riskLineShown(filter, ctx, tab === null) && <p className="text-[13px] text-ink-muted" data-testid="filter-small-values">{RESULTS_COPY.smallValues}</p>}
     </section>
   );
 }

@@ -2,11 +2,13 @@
 // the shared frame (layout.ts). The PM's intro from Build is cut to three lines. The close
 // instant is written in UTC (src/lib/sharing-format.ts formatUtc), the zone named. The minutes
 // estimate is minutesFor() in src/lib/invitees-rules.ts, shared with the reminder (E6-3).
+// namesHidden (stories/E5-7, acceptance 3): the validation is set to Names hidden, so the
+// last line says what About you says instead of "recorded under your name".
 import { formatUtc } from "@/lib/sharing-format";
 import { renderEmail, type Email } from "./layout";
 
 // opensAt: only when the link opens later than the send (the line "It opens on ...").
-export type InviteEmailInput = { pmName: string; workspaceName: string; projectName: string; respondentName: string | null; itemCount: number; minutes: number; intro: string | null; url: string; opensAt?: Date | null; closesAt: Date | null };
+export type InviteEmailInput = { pmName: string; workspaceName: string; projectName: string; respondentName: string | null; itemCount: number; minutes: number; intro: string | null; url: string; opensAt?: Date | null; closesAt: Date | null; namesHidden?: boolean };
 
 export function inviteEmail(input: InviteEmailInput): Email {
   const { pmName, workspaceName, projectName, itemCount, minutes, url, closesAt } = input;
@@ -24,6 +26,6 @@ export function inviteEmail(input: InviteEmailInput): Email {
       { text: `For each item you say whether you agree with the proposed priority, or what it should be and why. It takes about ${minutes} minutes. You can stop and come back; your answers are saved as you go. No account is needed.` },
     ],
     button: { label: "Open your link", url },
-    after: [{ text: `This link is yours. Do not forward it; answers sent through it are recorded under your name. ${closes}`.trim() }],
+    after: [{ text: (input.namesHidden ? `This link is yours. Do not forward it. The team sees your answers without your name. They can see that you have finished. ${closes}` : `This link is yours. Do not forward it; answers sent through it are recorded under your name. ${closes}`).trim() }],
   });
 }

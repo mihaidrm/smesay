@@ -45,7 +45,7 @@ export async function PreviewRoute({ token, query }: { token: string; query: Que
         accent={accent}
         logoUrl={page.logoUrl}
         headerNote={view.closesAt ? LINK_PAGE_COPY.closes(formatUtc(view.closesAt)) : null}
-        instrument={{ title: spec.title, intro: spec.intro, fields: spec.respondentFields, perspectives: spec.perspectives, method: spec.method, labels: spec.scaleLabels, showProposed: spec.showProposed, layout: spec.layout, reasonRule: spec.reasonRule }}
+        instrument={{ title: spec.title, intro: spec.intro, fields: spec.respondentFields, perspectives: spec.perspectives, method: spec.method, labels: spec.scaleLabels, showProposed: spec.showProposed, layout: spec.layout, reasonRule: spec.reasonRule, anonymity: spec.anonymity }}
         prefilled={undefined}
         items={view.items}
         areas={view.areas}

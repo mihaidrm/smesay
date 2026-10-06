@@ -19,7 +19,17 @@
 // its own list, so the sort never narrows anything and is no filter), split=[key] (E8-3, a
 // dropdown field of the instrument) and gaps=[key] (E8-6, a dropdown field; written only when
 // it is not the default).
-import type { RespondentFieldSpec } from "@/db/types";
+//
+// Who sees whose answers (stories/E5-7, acceptance 4): under Names hidden and Anonymous the
+// context holds the dropdown fields only, and `offered` the values a filter may pick, each
+// given by MIN_GROUP counted respondents or more (src/lib/results-context.ts), so a filter
+// cannot single one person out; a value not offered is dropped from the URL like an unknown
+// one. Amended 2026-10-06 after the audit: under those levels a field or perspective filter
+// narrows the charts only (src/db/queries/results.ts, aggregate and person modes), and under
+// Names hidden there is no status filter and no "Not answered" kind, since Share names who has
+// finished and a list of those with an item not answered would name who has not (decision
+// 0058).
+import type { Anonymity, RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
 export type ResultsKind = (typeof RESULTS_KINDS)[number];
@@ -59,7 +69,12 @@ export type ResultsFilter = {
 export type ResultsSort = { key: string; dir: "asc" | "desc" };
 const SORT_KEY = /^[a-z][a-zA-Z0-9._-]{0,60}$/;
 
-export type FilterContext = { fields: RespondentFieldSpec[]; perspectives: string[] };
+export type FilterContext = { fields: RespondentFieldSpec[]; perspectives: string[]; anonymity: Anonymity; offered?: Record<string, string[]> };
+
+// The values of a dropdown field a filter may pick: its options, or under Names hidden and
+// Anonymous only those offered, in the options' order.
+export const optionsFor = (spec: RespondentFieldSpec, ctx: FilterContext): string[] =>
+  (spec.options ?? []).filter((o) => ctx.offered === undefined || (ctx.offered[spec.key] ?? []).includes(o));
 export type SearchParams = Record<string, string | string[] | undefined>;
 
 // The longest text a text-field filter keeps (a search, not a value).
@@ -76,9 +91,10 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
   for (const spec of ctx.fields) {
     const raw = params[`f.${spec.key}`];
     if (spec.type === "dropdown") {
-      const picked = unique(all(raw).filter((v) => (spec.options ?? []).includes(v)));
+      const allowed = optionsFor(spec, ctx);
+      const picked = unique(all(raw).filter((v) => allowed.includes(v)));
       if (picked.length > 0) fields[spec.key] = picked;
-    } else {
+    } else if (ctx.anonymity === "named") {
       const text = (first(raw) ?? "").trim().slice(0, FILTER_TEXT_MAX);
       if (text) fields[spec.key] = text;
     }
@@ -89,12 +105,16 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
   const unsubmitted = first(params.unsubmitted);
   return {
     fields,
-    // In the catalogue's order, so a URL written in another order reads the same.
-    kinds: RESULTS_KINDS.filter((k) => kinds.includes(k)),
+    // In the catalogue's order, so a URL written in another order reads the same. No "Not
+    // answered" under Names hidden (decision 0058).
+    kinds: RESULTS_KINDS.filter((k) => kinds.includes(k) && (k !== "none" || ctx.anonymity !== "hidden")),
     withComment: first(params.comment) === "1",
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
-    status: RESULTS_STATUSES.filter((s) => status.includes(s)),
-    includeUnsubmitted: unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
+    status: ctx.anonymity === "hidden" ? [] : RESULTS_STATUSES.filter((s) => status.includes(s)),
+    // Under Names hidden the switch is off and not shown (E5-7, amended 2026-10-06): a response
+    // not submitted is in no view, so no list, file or detail says who has not finished, which
+    // Share would match to a name. The SQL leaves those responses out too (results.ts head).
+    includeUnsubmitted: ctx.anonymity === "hidden" ? false : unsubmitted === "1" ? true : unsubmitted === "0" ? false : (stored ?? true),
     sort: sortOf(first(params.sort), first(params.dir)),
     split: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.split)) ? first(params.split)! : null,
     gaps: ctx.fields.some((f) => f.type === "dropdown" && f.key === first(params.gaps)) ? first(params.gaps)! : defaultGapField(ctx),
@@ -138,6 +158,30 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
   if (f.split) q.append("split", f.split);
   if (f.gaps && f.gaps !== defaultGapField(ctx)) q.append("gaps", f.gaps);
   return q.toString();
+}
+
+// Under Names hidden and Anonymous (E5-7, amended 2026-10-06): whether a field or perspective
+// filter is on, which the person-level views (the Responses tab, the registers, the item
+// detail's list, the CSV rows, the PDF's registers) do not follow; they say so.
+export const identityFiltered = (f: ResultsFilter, anonymity: Anonymity): boolean => anonymity !== "named" && (Object.keys(f.fields).length > 0 || f.perspective !== null);
+// The filter a person-level view follows: under the two levels without the field and
+// perspective filters, and under Names hidden without the status filter and the "Not
+// answered" kind too (decision 0058). The queries apply the same rule themselves (person
+// mode); this describes it in a file's first lines.
+export function personFilter(f: ResultsFilter, anonymity: Anonymity): ResultsFilter {
+  if (anonymity === "named") return f;
+  const hidden = anonymity === "hidden";
+  return { ...f, fields: {}, perspective: null, status: hidden ? [] : f.status, kinds: hidden ? f.kinds.filter((k) => k !== "none") : f.kinds };
+}
+
+// The line under the filter bar (RESULTS_COPY.smallValues; E5-7, acceptance 4; decision
+// 0058), under Names hidden and Anonymous only: when a dropdown value is left out of the
+// filter, and whenever a view breaks the results down by group (a split, or the gaps view of
+// the Agreement tab), since comparing groups can still point to someone in a small group.
+export function riskLineShown(f: ResultsFilter, ctx: FilterContext, agreementTab: boolean): boolean {
+  if (ctx.anonymity === "named") return false;
+  const leftOut = ctx.fields.some((spec) => spec.type === "dropdown" && optionsFor(spec, ctx).length < (spec.options ?? []).length);
+  return leftOut || f.split !== null || (agreementTab && f.gaps !== null);
 }
 
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).

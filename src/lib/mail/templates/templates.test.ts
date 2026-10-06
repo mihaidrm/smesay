@@ -46,8 +46,8 @@ describe("every branch", () => {
   const url = `${ORIGIN}/r/3f9c2a7be41d0c58a6e19f7b2d4c8e05`;
   const at = new Date("2026-10-20T15:00:00Z");
   const cases: [string, Email][] = [];
-  for (const respondentName of ["Sam", null]) for (const intro of ["Two lines.\nOf intro.", null]) for (const opensAt of [at, null]) for (const closesAt of [at, null]) for (const itemCount of [1, 6]) {
-    cases.push([`invite ${respondentName} ${intro} ${opensAt} ${closesAt} ${itemCount}`, inviteEmail({ pmName: "Mara Stan", workspaceName: "Marlow Group", projectName: "New expense tool", respondentName, itemCount, minutes: 5, intro, url, opensAt, closesAt })]);
+  for (const respondentName of ["Sam", null]) for (const intro of ["Two lines.\nOf intro.", null]) for (const opensAt of [at, null]) for (const closesAt of [at, null]) for (const itemCount of [1, 6]) for (const namesHidden of [false, true]) {
+    cases.push([`invite ${respondentName} ${intro} ${opensAt} ${closesAt} ${itemCount} ${namesHidden}`, inviteEmail({ pmName: "Mara Stan", workspaceName: "Marlow Group", projectName: "New expense tool", respondentName, itemCount, minutes: 5, intro, url, opensAt, closesAt, namesHidden })]);
   }
   for (const respondentName of ["Sam", null]) for (const answered of [0, 3]) for (const closesAt of [at, null]) for (const itemCount of [1, 6]) {
     cases.push([`reminder ${respondentName} ${answered} ${closesAt} ${itemCount}`, reminderEmail({ pmName: "Mara Stan", projectName: "New expense tool", respondentName, answered, itemCount, url, closesAt })]);
@@ -58,6 +58,18 @@ describe("every branch", () => {
   cases.push(["deletion without origin", deletionEmail("Marlow Group", at, null)]);
   it.each(cases)("%s", (_, email) => {
     for (const part of [email.subject, email.text, email.html]) expect(part).not.toMatch(/\[|\bundefined\b|\bnull\b|NaN/);
+  });
+});
+
+// E5-7, acceptance 3: under Names hidden the invite says what About you says; Named does not change.
+describe("the invite under Names hidden", () => {
+  it("drops recorded under your name and says the team sees the answers without the name", () => {
+    const input = { pmName: "Mara Stan", workspaceName: "Marlow Group", projectName: "New expense tool", respondentName: "Sam", itemCount: 6, minutes: 5, intro: null, url: `${ORIGIN}/r/3f9c2a7be41d0c58a6e19f7b2d4c8e05`, closesAt: null };
+    const hidden = inviteEmail({ ...input, namesHidden: true });
+    expect(hidden.text).toContain("This link is yours. Do not forward it. The team sees your answers without your name. They can see that you have finished.");
+    expect(hidden.text).not.toContain("recorded under your name");
+    expect(inviteEmail(input).text).toContain("answers sent through it are recorded under your name.");
+    expect(inviteEmail({ ...input, namesHidden: false })).toEqual(inviteEmail(input));
   });
 });
 
