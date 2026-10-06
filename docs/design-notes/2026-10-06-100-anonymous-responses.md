@@ -61,9 +61,9 @@ have this option". Asked whether personal invites stay, he picked "Both, PM pick
 - A free-text search over answers and reasons for the "contains" filter (acceptance 4's last
   line): no such filter exists today, and under the two levels there is no text field, so the
   contains box does not show and a name can match nothing. Recorded in docs/review-list.md.
-- Hiding the perspectives the respondent picked from the filter, as the dropdown values are:
-  the perspective select is unchanged; the per-answer Perspectives column of the CSV goes.
-  Recorded in docs/review-list.md.
+- (Done after the build, 2026-10-06.) The perspective filter follows the dropdown rule: under
+  the two levels a perspective picked by fewer than 3 counted respondents is not offered
+  (results.perspectiveCounts); the per-answer Perspectives column of the CSV goes.
 - Dropping Minutes to submit from the People file: it would break the reconciliation of the
   median tile, and a duration does not match Share's finishing times.
 

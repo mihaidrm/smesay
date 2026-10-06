@@ -35,7 +35,9 @@ picks": two levels besides today's.
    time and no sort by field, and no row for an invitee who has not started; the item detail
    and the registers show "Anonymous [N]" and no field column. A dropdown value picked by fewer
    than 3 respondents (MIN_GROUP) is not offered as a filter or a split, and the gaps view
-   keeps its rule. The text "contains" filter matches answers and reasons only.
+   keeps its rule. A perspective picked by fewer than 3 is not offered as a filter either. No
+   text field exists under these levels, so the text "contains" filter does not show (amended
+   2026-10-06: a search over answers and reasons was not built).
 5. Exports under Names hidden and Anonymous: the answers, people and missing-item CSVs use
    "Anonymous [N]" and carry no field columns and no times; the PDF summary names nobody and its
    sign-off record shows "Anonymous [N]"; the project JSON does not let a reader tie a response

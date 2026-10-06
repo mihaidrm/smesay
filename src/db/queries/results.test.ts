@@ -799,10 +799,15 @@ describe("Names hidden and Anonymous on Results", () => {
     expect((await results.fieldValueCounts(wsH, instrumentH, false)).find((c) => c.key === "role" && c.value === "Office manager")).toBeUndefined();
     expect(await results.fieldValueCounts(wsA, instrumentH, true)).toEqual([]);
     expect(await results.fieldValueCounts(wsH, "not-a-uuid", true)).toEqual([]);
+    // Perspectives follow the same rule: one picked by fewer than 3 is not offered.
+    const picked = await results.perspectiveCounts(wsH, instrumentH, true);
+    expect(await results.perspectiveCounts(wsA, instrumentH, true)).toEqual([]);
+    expect(await results.perspectiveCounts(wsH, "not-a-uuid", true)).toEqual([]);
     const inst = (await instruments.get(wsH, instrumentH))!;
     const { ctx, filter } = await resultsContext(wsH, inst, { "f.role": "Sales", "f.name": "Ioana", unsubmitted: "1" }, null);
     expect(ctx.fields.map((s) => s.key)).toEqual(["role"]);
     expect(ctx.offered).toEqual({ role: [] });
+    expect(ctx.perspectives.every((p) => (picked.find((c) => c.value === p)?.n ?? 0) >= 3)).toBe(true);
     expect(filter.fields).toEqual({});
     // A third Sales respondent makes Sales a value the filter offers.
     const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentH} and i.kind = 'public'`;

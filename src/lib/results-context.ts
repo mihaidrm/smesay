@@ -4,7 +4,8 @@
 // Anonymous it holds the dropdown fields only, and `offered` keeps the values given by
 // MIN_GROUP counted respondents or more (results.fieldValueCounts, counted under the switch
 // the URL or the PM's stored choice sets), so no filter keeps fewer than three people by a
-// value; the URL is read twice, the second time against those values.
+// value; the URL is read twice, the second time against those values. The perspectives a
+// filter may pick follow the same rule (results.perspectiveCounts).
 import type { Instrument } from "@/db/queries/instruments";
 import { results } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
@@ -22,6 +23,8 @@ export async function resultsContext(ws: WorkspaceId, instrument: Pick<Instrumen
   const counts = await results.fieldValueCounts(ws, instrument.id, first.includeUnsubmitted);
   const offered: Record<string, string[]> = {};
   for (const f of fields) offered[f.key] = (f.options ?? []).filter((o) => (counts.find((c) => c.key === f.key && c.value === o)?.n ?? 0) >= MIN_GROUP);
-  const ctx: FilterContext = { fields, perspectives: instrument.perspectives, anonymity: instrument.anonymity, offered };
+  const picked = await results.perspectiveCounts(ws, instrument.id, first.includeUnsubmitted);
+  const perspectives = instrument.perspectives.filter((p) => (picked.find((c) => c.value === p)?.n ?? 0) >= MIN_GROUP);
+  const ctx: FilterContext = { fields, perspectives, anonymity: instrument.anonymity, offered };
   return { ctx, filter: parseResultsFilter(query, ctx, stored) };
 }

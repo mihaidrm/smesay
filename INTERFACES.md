@@ -221,7 +221,9 @@ submittedAt null (ResultRow, PersonRow, SignOff; SignOff.submittedAt is Date or 
 reminders null; the filters, the split and the gaps still read the stored dropdown values.
 results.fieldValueCounts(ws, instrumentId, includeUnsubmitted) gives FieldValueCount { key,
 value, n } for every field value of the instrument's counted responses (submitted ones only
-when the switch is off), the source of FilterContext.offered.
+when the switch is off), the source of FilterContext.offered; results.perspectiveCounts(ws,
+instrumentId, includeUnsubmitted) gives { value, n } per perspective picked, and under Names
+hidden and Anonymous FilterContext.perspectives keeps only those picked by MIN_GROUP or more.
 Projects (E8-8): projects.update refuses a patch that carries isSample and projects.create
 refuses isSample true (SampleFlagError); the flag is set only when the sample is seeded
 (createSampleProject, imported from src/db/queries/projects.ts by src/db/seed/sample-seed.ts

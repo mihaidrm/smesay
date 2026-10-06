@@ -218,6 +218,18 @@ export const results = {
         group by 1, 2 order by 1, 2`);
     return rows.map((r) => ({ key: r.key, value: r.value, n: Number(r.n) }));
   },
+  // How many counted respondents picked each perspective (E5-7, acceptance 4): under Names
+  // hidden and Anonymous a perspective picked by fewer than MIN_GROUP is not offered as a filter.
+  perspectiveCounts: async (ws: WorkspaceId, instrumentId: string, includeUnsubmitted: boolean): Promise<{ value: string; n: number }[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.execute<{ value: string; n: number }>(sql`
+      select p.value, count(*)::int as n
+        from response r join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws}
+          cross join lateral unnest(r.perspectives) as p(value)
+        where r.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and (${includeUnsubmitted} or r.submitted_at is not null)
+        group by 1 order by 1`);
+    return rows.map((r) => ({ value: r.value, n: Number(r.n) }));
+  },
   missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<MissingRow[]> => {
     if (!isUuid(instrumentId)) return [];
     const rows = await db.execute<{ id: string; response_id: string; text: string }>(sql`${head(ws, instrumentId, f)}
