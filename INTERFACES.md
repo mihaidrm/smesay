@@ -25,6 +25,22 @@ the check constraints use them). Change this file first.
   src/lib/respondent-rules.ts picks the box; textRequired(kind, rule) says whether that
   box must be filled). Locked once the instrument is published, like the method. The SQL
   twin, for the counts over 500 rows, is completeSql(rule) in src/db/queries/complete.ts.
+- Anonymity (E5-7, 2026-10-06; instrument.anonymity, text, not null, default `named`,
+  migration 0036; design note 100): who sees whose answers. `named`: Results, the exports and
+  the AI read names and fields as before (every row before 2026-10-06 takes it). `hidden`
+  (Names hidden): personal invites and reminders still work and Share still shows who has
+  finished, but every response reads "Anonymous [N]" (numbered by when it started, across all
+  the instrument's links), with no fields, no submitted time and no reminders on Results, the
+  exports and the AI, and no row for an invitee who has not started. `anonymous`: the public
+  link only (no personal invite is sent), otherwise as `hidden`. Under `hidden` and `anonymous`
+  the respondent fields can only be dropdowns (fieldsBlocking in src/lib/anonymity.ts names
+  the text and email fields; saveFields and saveAnonymity refuse them under the instrument
+  row's lock), a personal invite carries no name or role into the response (carriedFields),
+  and a dropdown value picked by fewer than MIN_GROUP (3) counted respondents is not offered
+  as a filter and is folded into one group in a split. Locked once the instrument is
+  published, like the method; Build on version N copies it; the sample is `named`. The SQL
+  enforces the names, fields and times (src/db/queries/results.ts head and
+  src/db/queries/insights.ts people read instrument.anonymity), so no caller can show them.
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
@@ -116,7 +132,13 @@ the check constraints use them). Change this file first.
   perspective and status match; the numbers count those people's answers. It travels in the
   URL (f.[key], kind, comment=1, perspective, status, unsubmitted=1 or 0, absent for the
   PM's stored choice, sort and dir, split, gaps when it is not the default) and is read and written by parseResultsFilter and filterQuery in
-  src/lib/results-filter.ts, against the instrument's fields and perspectives.
+  src/lib/results-filter.ts, against the instrument's fields and perspectives. From E5-7
+  (2026-10-06) the FilterContext is { fields, perspectives, anonymity, offered? } (offered:
+  { [key]: string[] }, the dropdown values a filter may pick, present only under `hidden` and
+  `anonymous`, where a value needs MIN_GROUP counted respondents; fields then holds the
+  dropdown fields only). resultsContext(ws, instrument, query, stored) in
+  src/lib/results-context.ts builds the context and the filter for the Results page and the
+  export route.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
   includeUnsubmitted?: boolean (decision 0030's switch, kept per PM), view?: "table" |
@@ -192,6 +214,14 @@ answered it before a change of perspective (kind null: no answer that counts und
 switch), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
+Anonymity on Results (E5-7, 2026-10-06): under `hidden` and `anonymous` the people of every
+query above have who null and anon numbered over all the instrument's responses by start
+(created_at, id), no invite rows, and the rows each query returns carry fields {},
+submittedAt null (ResultRow, PersonRow, SignOff; SignOff.submittedAt is Date or null) and
+reminders null; the filters, the split and the gaps still read the stored dropdown values.
+results.fieldValueCounts(ws, instrumentId, includeUnsubmitted) gives FieldValueCount { key,
+value, n } for every field value of the instrument's counted responses (submitted ones only
+when the switch is off), the source of FilterContext.offered.
 Projects (E8-8): projects.update refuses a patch that carries isSample and projects.create
 refuses isSample true (SampleFlagError); the flag is set only when the sample is seeded
 (createSampleProject, imported from src/db/queries/projects.ts by src/db/seed/sample-seed.ts
@@ -346,7 +376,14 @@ instrument's ReasonRule: isComplete(answer, rule), noteFor(answer, rule),
 answeredCount(items, answers, rule), resumeAt(chapters, answers, rule), tallyOf(method,
 items, answers, rule), and textRequired(kind, rule); needsReason(kind) still picks the box
 the text is stored in. RespondentApp's instrument, ChapterScreen and ItemCard take
-reasonRule; PreviewSpec carries it; sampleInstrument() gives the default.
+reasonRule; PreviewSpec carries it; sampleInstrument() gives the default. From 2026-10-06
+(E5-7) carriedFields(invite, spec, anonymity) carries nothing unless the instrument is
+`named`; RespondentApp's instrument and PreviewSpec carry anonymity, AboutYou takes it and
+says above the fields how the team sees the answers; sampleInstrument() gives `named`.
+saveAnonymity(ws, projectId, instrumentId, raw) in src/lib/instruments.ts (under
+instruments.updateLocked: refused once published and while a text or email field exists);
+sendInvites and renewInvitee refuse an `anonymous` instrument (INVITEES_ERRORS.anonymous);
+InviteEmailInput gains namesHidden (the instrument is `hidden`).
 links.byToken(token) in src/db/queries/links.ts is the respondent side's one read: the
 invite, its instrument, project and workspace brand (name, accent, logo key and, from E7-7,
 plan, for "Powered by SMEsay" on the Free plan), with the workspace id as a WorkspaceId
@@ -571,7 +608,8 @@ Owner: E9-1. Consumer: the Actions tab (Results) and E9-2.
 Version 1, 2026-10-04. The zod schema is InsightOutput in src/lib/ai/insights-schema.ts; every
 object strict. Refs are the ones the prompt gives (src/lib/ai/prompts/insights.ts
 buildActionsPrompt): I[n] items, R[n] respondents (their dropdown fields only, the name field
-left out even as a dropdown), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
+left out even as a dropdown; from E5-7 no field at all under `hidden` and `anonymous`, the
+groups empty, the prompt's text and shape unchanged), A[n] answers that carry a reason or a question, M[n] missing items, never database ids.
 { actions: [{ kind: "rewrite" | "conflict" | "followUp" | "coverage", title: string (1 to 140
 chars), why: string (1 to 400 chars), answers: string[] (A refs), missing: string[] (M refs) }]
 (up to 8) }
@@ -600,7 +638,10 @@ query (file: answers, items, people, missing; EXPORT_FILES in src/db/types.ts): 
 through the session's workspace, else 404; the filter by parseResultsFilter with the PM's
 stored switch. exportTable(ws, instrument, file, filter, ctx, sample) in
 src/lib/export/files.ts returns { preamble, header, rows } from results.rows (each ResultRow
-now carries who, anon, fields, perspectives, source, submittedAt, changedSince),
+now carries who, anon, fields, perspectives, source, submittedAt, changedSince; from E5-7,
+under `hidden` and `anonymous`, the answers, people and missing files have no field columns,
+no Submitted at, no Source, no Reminders and no Perspectives, every respondent "Anonymous
+[N]"),
 agreement.byItem,
 tracker.people with results.people (minutes to submit) and registers.missing. csv(preamble,
 header, rows), line, field (a text cell starting like a formula gets a single quote, safeText),
@@ -622,9 +663,13 @@ contextUsed, items [{ id, position, sourceRef, originalText, readerText, readerS
 areaRationale, proposedValue, custom, flags, perspectives }] }], instruments [{ id, itemSetId,
 title, intro, method, showProposed, layout, reasonRule (from 2026-10-05; optional on
 import, a file without it reads `differs`, so version 1 files from before still import),
+anonymity (from 2026-10-06, E5-7; optional on import, absent reads `named`),
 respondentFields, scaleLabels, perspectives, closing, publishedAt, createdAt }], invites [{ id, instrumentId, kind, email, name, roleHint,
 opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt, createdAt }],
-responses [{ id, instrumentId, itemSetId, inviteId, fields, perspectives, confidence,
+responses [{ id, instrumentId, itemSetId, inviteId (null, with fields {}, for a response
+of a `hidden` or `anonymous` instrument, from E5-7: the file does not tie it to a personal
+invite; the import puts it on its instrument's public invite and refuses a null on a
+`named` one), fields, perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
 answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
 responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
@@ -647,7 +692,8 @@ instrument, filter, ctx, tiles, now }) in src/lib/export/summary.ts returns Summ
 (another workspace's instrument); summaryHtml(view), summaryHeader(view) and summaryFooter() in
 summary-html.ts; renderPdf(html, { header, footer }) and pageCount(bytes) in pdf.ts.
 results.signOffs(ws, instrumentId, filter) returns SignOff { id, who, anon, submittedAt,
-confidence, signedOff } for every submitted response the filter keeps, oldest first; the
+confidence, signedOff } for every submitted response the filter keeps, oldest first (from
+E5-7, under `hidden` and `anonymous`: submittedAt null, in the order of anon); the
 people CTE carries r.confidence. SUMMARY_PAGE_LIMIT = 30 in src/lib/export/copy.ts.
 EXPORT_FILES gains "summary" (migration 0025); the export log keeps the page count as rows.
 

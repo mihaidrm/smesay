@@ -1,7 +1,7 @@
 # E5-7 Anonymous responses: the PM chooses Named, Names hidden or Anonymous
 
 User: a PM whose experts answer more freely when they are not named
-Status: building
+Status: built
 Outcome: on Build the PM picks how far respondents are identified, the respondent is told on
 About you, and Results, exports and the AI show nothing that names a person beyond what the
 level allows.
@@ -64,3 +64,39 @@ picks": two levels besides today's.
 Follow reasonRule (design note 98, drizzle/0035) for the column, the lock and the copy across
 Build on version N, the preview, the export and the sample (the sample stays Named).
 MIN_GROUP is src/lib/results-agreement.ts. Change INTERFACES.md first.
+
+Built 2026-10-06 (design note 100):
+- Acceptance 1: instrument.anonymity (drizzle/0036_anonymity.sql, CHECK
+  instrument_anonymity_check, every existing row named); the card "Who sees whose answers" on
+  Build above the Respondent fields card (build/anonymity-form.tsx, ANONYMITY_META in
+  src/lib/anonymity.ts); saveAnonymity in src/lib/instruments.ts under instruments.updateLocked
+  (refused once published); buildOnLatest copies it; the project file carries it
+  (src/lib/export/project.ts). Tests: src/db/schema.test.ts (the migration on a row from
+  before it, the check), src/lib/instruments.test.ts (save, refuse, copy, lock, another
+  workspace), src/lib/export/project.test.ts (round trip, an older file reads named).
+- Acceptance 2: fieldsBlocking in src/lib/anonymity.ts; saveFields and saveAnonymity refuse a
+  text or email field by name, under the instrument row's lock. Tests: instruments.test.ts.
+- Acceptance 3: AboutYou's line above the fields (src/components/respondent/about-you.tsx,
+  ABOUT_YOU_COPY.anonymous and namesHidden); carriedFields carries nothing under Names hidden
+  and Anonymous; the invite email's namesHidden (src/lib/mail/templates/invite.ts). Tests:
+  src/lib/respondent.test.ts (carriedFields, a hidden personal Start stores no name),
+  src/lib/mail/templates/templates.test.ts, src/lib/invitees.test.ts.
+- Acceptance 4: the SQL in src/db/queries/results.ts head (who null, anon over all links, no
+  invite rows, pub_fields and pub_submitted_at for every row returned, reminders null);
+  responses-tab.tsx and registers-tab.tsx drop the columns; resultsContext
+  (src/lib/results-context.ts) with results.fieldValueCounts offers a value only with
+  MIN_GROUP counted respondents; foldSmallGroups for the split; a name never matches the text
+  filter. Tests: src/db/queries/results.test.ts ("Names hidden and Anonymous on Results",
+  with the workspace A and B test for fieldValueCounts), results-filter.test.ts,
+  results-agreement.test.ts.
+- Acceptance 5: src/lib/export/files.ts (no field, time, source, reminder or perspective
+  column), src/lib/export/summary.ts (sign-off with no time), toFile (no invite id, no
+  fields) and importProject (the response on its public invite). Tests: results.test.ts (the
+  three headers, the strip reconciled), src/lib/export/summary.test.ts, project.test.ts.
+- Acceptance 6: writeActions sends no field (src/lib/insights.ts); the citations' SQL names
+  nobody (src/db/queries/insights.ts). Tests: src/lib/insights.test.ts on the fake transport.
+- Acceptance 7: InvitesCard's line (share/invites-card.tsx); sendInvites and renewInvitee
+  refuse (INVITEES_ERRORS.anonymous). Test: invitees.test.ts.
+- Acceptance 8: docs/legal/privacy.md, respondents' section, AI and exports paragraphs, with
+  [LAWYER: check L43]; docs/legal/lawyer-review.md L43.
+- Acceptance 9: the unit tests above; e2e/anonymous.spec.ts written, run by the main session.

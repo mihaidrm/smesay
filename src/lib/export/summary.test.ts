@@ -50,7 +50,7 @@ beforeAll(async () => {
   wsB = await requireWorkspace(user.headers, (await createWorkspaceWithSample({ name: "Summary B", slug: `summary-b-${randomUUID()}` }, user.id)).id);
   [project] = (await projects.list(ws)).filter((p) => p.isSample);
   instrument = (await instruments.latestForProject(ws, project.id))!;
-  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
+  ctx = { fields: instrument.respondentFields, perspectives: instrument.perspectives, anonymity: instrument.anonymity };
 }, 60_000);
 
 const input = (f: ResultsFilter) => ({ ws, workspace: "Summary A", project, instrument, filter: f, ctx, tiles: DEFAULT_TILES, now: NOW });
@@ -74,6 +74,19 @@ describe("summaryView", () => {
     const states = v.actions.map((a) => (a.state === "Open" ? 0 : a.state.startsWith("Done") ? 1 : 2));
     expect(states).toEqual([...states].sort());
     expect(v.actions.every((a) => a.cites.startsWith("From: "))).toBe(true);
+  });
+  // E5-7, acceptance 5: under Names hidden the PDF names nobody and its sign-off record has
+  // no time.
+  it("names nobody under Names hidden, and the sign-off record reads Submitted with no time", async () => {
+    const [projectB] = (await projects.list(wsB)).filter((p) => p.isSample);
+    const instB = (await instruments.latestForProject(wsB, projectB.id))!;
+    const hidden = (await instruments.update(wsB, instB.id, { anonymity: "hidden" }))!;
+    const v = (await summaryView({ ws: wsB, workspace: "Summary B", project: projectB, instrument: hidden, filter: NONE, ctx: { fields: [], perspectives: [], anonymity: "hidden" }, tiles: DEFAULT_TILES, now: NOW }))!;
+    expect(v.signOffs).toHaveLength(expected.submitted);
+    expect(v.signOffs.every((s) => /^Anonymous \d+$/.test(s.who) && /^Submitted(, changes not submitted again)?$/.test(s.when))).toBe(true);
+    const text = JSON.stringify(v);
+    for (const name of ["Ioana", "Tom Reyes", "Dana Okafor", "Lukas", "Priya", "Sam Hill"]) expect(text).not.toContain(name);
+    await instruments.update(wsB, instB.id, { anonymity: "named" });
   });
   it("follows the filter and names it", async () => {
     const f = { ...NONE, kinds: ["disagree" as const] };

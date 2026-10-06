@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, optionsFor, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -12,6 +12,7 @@ const ctx: FilterContext = {
     { key: "role", label: "Role", type: "dropdown", mandatory: true, options: ["Sales", "Finance", "HR"] },
   ],
   perspectives: ["Finance", "Sales"],
+  anonymity: "named",
 };
 const read = (q: string, stored: boolean | null = null) => parseResultsFilter(Object.fromEntries([...new URLSearchParams(q).keys()].map((k) => [k, new URLSearchParams(q).getAll(k)])), ctx, stored);
 
@@ -109,9 +110,23 @@ describe("the tiles", () => {
     expect(read("unsubmitted=1&gaps=name").gaps).toBe("role");
     expect(read("unsubmitted=1&gaps=nope").gaps).toBe("role");
     expect(filterQuery(read("unsubmitted=1"), ctx)).toBe("unsubmitted=1");
-    const noRole: FilterContext = { fields: [{ key: "team", label: "Team", type: "dropdown", mandatory: false, options: ["A", "B"] }, { key: "dept", label: "Dept", type: "dropdown", mandatory: false, options: ["X"] }], perspectives: [] };
+    const noRole: FilterContext = { fields: [{ key: "team", label: "Team", type: "dropdown", mandatory: false, options: ["A", "B"] }, { key: "dept", label: "Dept", type: "dropdown", mandatory: false, options: ["X"] }], perspectives: [], anonymity: "named" };
     expect(defaultGapField(noRole)).toBe("team");
     expect(filterQuery({ ...read("unsubmitted=1"), gaps: "dept" }, noRole)).toBe("unsubmitted=1&gaps=dept");
-    expect(defaultGapField({ fields: [ctx.fields[0]], perspectives: [] })).toBeNull();
+    expect(defaultGapField({ fields: [ctx.fields[0]], perspectives: [], anonymity: "named" })).toBeNull();
+  });
+});
+
+// E5-7, acceptance 4: under Names hidden and Anonymous a filter picks only the values
+// offered (given by 3 counted people or more), and no text field is read.
+describe("the filter under Names hidden and Anonymous", () => {
+  it("drops a value not offered and any text field, keeps an offered one", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: { role: ["Sales"] } };
+    const q = (s: string) => parseResultsFilter(Object.fromEntries([...new URLSearchParams(s).keys()].map((k) => [k, new URLSearchParams(s).getAll(k)])), hidden, null);
+    expect(optionsFor(hidden.fields[1], hidden)).toEqual(["Sales"]);
+    expect(optionsFor(ctx.fields[1], ctx)).toEqual(["Sales", "Finance", "HR"]);
+    expect(q("f.role=Sales&f.role=HR&f.name=Ana").fields).toEqual({ role: ["Sales"] });
+    expect(q("f.role=HR").fields).toEqual({});
+    expect(optionsFor(hidden.fields[1], { ...hidden, offered: {} })).toEqual([]);
   });
 });

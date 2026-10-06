@@ -15,6 +15,7 @@ import { contextOf } from "@/lib/ai/context";
 import { InsightOutput } from "@/lib/ai/insights-schema";
 import { formatEur } from "@/lib/ai/prices";
 import { buildActionsPrompt, type ActionsAnswer } from "@/lib/ai/prompts/insights";
+import { namesShown } from "@/lib/anonymity";
 import { NotFoundError } from "@/lib/errors";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
 import { requireRole, type Actor } from "@/lib/members";
@@ -71,8 +72,10 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const input = await insights.inputFor(actor.ws, instrument.id);
   if (input.answers.length === 0) return { error: ACTIONS_COPY.emptyNoAnswers, retry: false };
   // The dropdown fields, except the name field even when the PM made it a dropdown of names:
-  // the model sees groups, never a person (note 66).
-  const groups = instrument.respondentFields.filter((f) => f.type === "dropdown" && f.key !== "name");
+  // the model sees groups, never a person (note 66). Under Names hidden and Anonymous
+  // (stories/E5-7, acceptance 6) no field at all: each respondent is a bare R ref, and the
+  // prompt's text and shape stay as they are.
+  const groups = namesShown(instrument.anonymity) ? instrument.respondentFields.filter((f) => f.type === "dropdown" && f.key !== "name") : [];
   const respondents = new Map<string, Record<string, string>>();
   for (const r of [...input.answers, ...input.missing]) if (!respondents.has(r.responseId)) respondents.set(r.responseId, Object.fromEntries(groups.map((g) => [g.label, r.fields[g.key] ?? ""])));
   const answers: ActionsAnswer[] = input.answers.flatMap((a) => (a.kind === "change" || a.kind === "disagree" || a.kind === "unclear" ? [{ id: a.id, itemId: a.itemId, respondent: a.responseId, kind: a.kind, value: a.value, text: a.reason ?? a.comment }] : []));

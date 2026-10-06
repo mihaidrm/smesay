@@ -66,7 +66,7 @@ export function sortRows(rows: Row[], sort: { key: AgreementSort; dir: "asc" | "
   return [...rows].sort((a, b) => unrated(a) - unrated(b) || sign * (compare(a, b, sort.key) || compare(a, b, "ref")));
 }
 
-type ByItem = { itemId: string; group: string | null } & Counts;
+export type ByItem = { itemId: string; group: string | null } & Counts;
 
 // The groups of a split, in name order, with the people who left the field empty last, under
 // `noGroup` ("Not given"), so the group bars always add up to the item's bar.
@@ -99,6 +99,23 @@ export function buildAgreement(items: AgreementItem[], areaNames: string[], coun
     const rated = b.items.every((it) => it.proposed === null);
     return { name: b.name, rows, totals, percent: rated ? null : percentOf(totals), notAnswered: notAnsweredOf(totals), rated };
   });
+}
+
+// A split under Names hidden and Anonymous (stories/E5-7, acceptance 4): the groups of the
+// values not offered (given by fewer than MIN_GROUP counted respondents) are summed into one
+// group, `small`, per item, so no value names a group of one or two people; the people with
+// no value stay their own group (null, Not given). `offered` undefined (Named) keeps every group.
+export function foldSmallGroups(counts: ByItem[], offered: string[] | undefined, small: string): ByItem[] {
+  if (offered === undefined) return counts;
+  const out = new Map<string, ByItem>();
+  for (const c of counts) {
+    const group = c.group === null || offered.includes(c.group) ? c.group : small;
+    const key = `${c.itemId}:${group === null ? "" : `=${group}`}`;
+    const was = out.get(key);
+    const sum = addCounts(was ?? EMPTY_COUNTS, c);
+    out.set(key, { ...sum, itemId: c.itemId, group });
+  }
+  return [...out.values()];
 }
 
 // Whether no item of the list showed a proposal (every area reads values rated).

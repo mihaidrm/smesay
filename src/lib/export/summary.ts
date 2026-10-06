@@ -2,7 +2,8 @@
 // under the page's filter (results.numbers with tileView for the headline numbers, the
 // Agreement tab's buildAgreement over agreement.byItem, registers.answers and registers.missing,
 // results.signOffs, insights.listWithCitations), so the PDF says what the page says. The
-// HTML is summary-html.ts; the PDF is pdf.ts.
+// HTML is summary-html.ts; the PDF is pdf.ts. Under Names hidden and Anonymous (stories/E5-7,
+// acceptance 5) the queries name nobody ("Anonymous [N]") and the sign-off record has no time.
 import { insights, items as itemsQuery, itemSets } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results } from "@/db/queries/results";
@@ -82,7 +83,8 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
       register(R.unclearTitle, ["", R.item, R.respondent, R.question], unclear.map((r) => [...itemOf(r), marked(r), r.reason ?? ""]), answersFile),
       register(R.missingTitle, [R.missingText, R.area, R.suggestedValue, R.respondent], missing.map((m) => [m.text, m.area ?? "", label(m.value), marked(m)]), missingFile),
     ],
-    signOffs: signOffs.map((s) => ({ who: name(s), when: s.signedOff ? formatUtc(s.submittedAt) : `${formatUtc(s.submittedAt)}, ${RESPONSES_COPY.changedSince.toLowerCase()}`, confidence: s.confidence === null ? SUMMARY_COPY.noConfidence : String(s.confidence) })),
+    // Under Names hidden and Anonymous (E5-7) the record has no time: "Submitted".
+    signOffs: signOffs.map((s) => { const at = s.submittedAt ? formatUtc(s.submittedAt) : RESPONSES_COPY.submittedStatus; return { who: name(s), when: s.signedOff ? at : `${at}, ${RESPONSES_COPY.changedSince.toLowerCase()}`, confidence: s.confidence === null ? SUMMARY_COPY.noConfidence : String(s.confidence) }; }),
     actions: [...actions].sort((a, b) => order[a.state] - order[b.state]).map((a) => ({
       state: a.state === "open" ? ACTIONS_COPY.states.open : a.closedAt ? ACTIONS_COPY.closedOn(a.state, formatUtc(a.closedAt)) : ACTIONS_COPY.states[a.state],
       kind: a.kind ? ACTIONS_COPY.kinds[a.kind] : "",

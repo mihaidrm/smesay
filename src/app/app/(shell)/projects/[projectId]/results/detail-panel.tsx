@@ -5,7 +5,8 @@
 // per person the page's filter keeps who sees the item: the pill (src/lib/results-detail.ts),
 // their value where it differs from the proposal, and the reason, question or comment. The
 // item is in the URL (item=[id]) so the detail can be linked within the workspace. Counts
-// honour the page's filter and switch (src/db/queries/results.ts detail.item). Copy:
+// honour the page's filter and switch (src/db/queries/results.ts detail.item). Under Names
+// hidden and Anonymous (stories/E5-7) the query sends no name, no role and no invitee row. Copy:
 // docs/copy/app.md, Results.
 import Link from "next/link";
 import { NeutralPill, NotAnsweredPill, StatusPill } from "@/components/ui/status-pill";

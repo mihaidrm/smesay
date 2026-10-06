@@ -16,13 +16,15 @@
 // "Start" with no areas or on the single long page) and wraps to a second line rather than
 // overflow (tailwindcss.com/docs/overflow-wrap) (docs/design-system.md, Respondent columns). The widths
 // follow the component's own width, not the window's (a container query:
-// tailwindcss.com/docs/responsive-design, container queries; @xl is 36rem).
+// tailwindcss.com/docs/responsive-design, container queries; @xl is 36rem). Under Names
+// hidden and Anonymous (stories/E5-7, acceptance 3) a line above the fields says how the
+// team sees the answers; nothing under Named.
 import { useId, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 import { RespondentHeader } from "./respondent-header";
-import type { RespondentFieldSpec, ResponseFields } from "@/db/types";
+import type { Anonymity, RespondentFieldSpec, ResponseFields } from "@/db/types";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
 
@@ -38,6 +40,8 @@ export type AboutYouProps = {
   title: string;
   intro: string | null;
   fields: RespondentFieldSpec[];
+  // Who sees whose answers (stories/E5-7): the line above the fields; Named by default.
+  anonymity?: Anonymity;
   // The values a personal link carries (stories/E6-2, acceptance 3), keyed by configured
   // fields only (the page filters them): a field with one is not asked; the About you page
   // says who is answering instead.
@@ -71,7 +75,7 @@ export type AboutYouProps = {
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground @xl:focus-visible:ring-offset-surface";
 
-export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, nav, className, poweredBy = true }: AboutYouProps) {
+export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, accent, title, intro, fields, anonymity = "named", prefilled, initialValues, initialPicks, starting = false, startError = null, firstChapter, perspectives = [], picked, onPickPerspectives, preview = false, heading: Heading = "h1", ring, onStart, nav, className, poweredBy = true }: AboutYouProps) {
   const [values, setValues] = useState<ResponseFields>({ ...(initialValues ?? {}), ...(prefilled ?? {}) });
   const asked = fields.filter((f) => !prefilled?.[f.key]);
   const filled = fields.flatMap((f) => (prefilled?.[f.key] ? [prefilled[f.key]] : []));
@@ -98,6 +102,9 @@ export function AboutYou({ workspaceName, logoUrl = null, headerNote = null, acc
           {intro && <p className="text-sm leading-5 text-ink-muted" data-testid="about-you-intro">{intro}</p>}
         </div>
         <div className={cn("flex flex-col gap-3.5", ring === "fields" && "rounded-xl ring-2 ring-violet ring-offset-8 ring-offset-ground @xl:ring-offset-surface")} data-testid="about-you-fields">
+          {anonymity !== "named" && (
+            <p className="text-sm font-semibold" data-testid="about-you-anonymity">{anonymity === "anonymous" ? ABOUT_YOU_COPY.anonymous : ABOUT_YOU_COPY.namesHidden}</p>
+          )}
           {filled.length > 0 && (
             <div className="flex flex-col gap-0.5 text-sm" data-testid="answering-as">
               <span className="font-semibold">{ABOUT_YOU_COPY.answeringAs(filled.join(", "))}</span>

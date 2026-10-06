@@ -16,6 +16,14 @@
 // answers counted are those of the started responses kept, submitted ones only when the
 // switch is off (decision 0030). Items and their visibility to a person follow
 // src/lib/perspectives.ts isVisible (an item with no perspective is for everyone).
+//
+// Who sees whose answers (stories/E5-7, acceptance 4 to 6; INTERFACES.md Anonymity): under
+// Names hidden and Anonymous the people carry no name (who null), every response is numbered
+// by its start across all the instrument's links (anon), the invites not opened are not
+// people, and every row a query returns carries no fields (pub_fields), no submitted time
+// (pub_submitted_at) and no reminders. The filters, the split and the gaps still read the
+// stored dropdown values (fields), which only dropdowns can hold under those levels. The rule
+// is here, in the SQL, so no page, file or prompt can show what the level hides.
 import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
@@ -66,7 +74,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
   const conds = personConditions(ws, f);
   const where = conds.length > 0 ? sql`where ${sql.join(conds, sql` and `)}` : sql``;
   return sql`with inst as (
-      select id, item_set_id, project_id, reason_rule from instrument where workspace_id = ${ws} and id = ${instrumentId}
+      select id, item_set_id, project_id, reason_rule, anonymity = 'named' as named from instrument where workspace_id = ${ws} and id = ${instrumentId}
     ),
     its as (
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
@@ -74,29 +82,36 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
     -- E8-2: "Anonymous [N]" numbers the instrument's public-link responses by when they
     -- started, before any filter and whatever the names, so a number never moves when a
     -- filter changes or another respondent adds a name (a named response keeps its number
-    -- unseen). Kept out of people so the filters still reach the response scan.
+    -- unseen). Kept out of people so the filters still reach the response scan. E5-7: under
+    -- Names hidden and Anonymous every response is numbered, across all its links.
     anon_n as (
       select r.id, row_number() over (order by r.created_at, r.id) as n
         from response r join inst on r.instrument_id = inst.id
           join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
-        where r.workspace_id = ${ws} and iv.kind = 'public'
+        where r.workspace_id = ${ws} and (iv.kind = 'public' or not inst.named)
     ),
     people as (
       select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at,
-          r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' then iv.reminders_sent end as reminders, r.confidence,
+          r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' and inst.named then iv.reminders_sent end as reminders, r.confidence,
           -- The name shown: the name field, else a personal invite's name or email (the PM
           -- typed them, E6-2); a public-link response with no name has its number instead.
-          coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) as who,
-          case when coalesce(r.fields ->> 'name', '') = '' then anon_n.n end as anon
+          -- E5-7: no name under Names hidden and Anonymous, every response its number.
+          case when inst.named then coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) end as who,
+          case when not inst.named or coalesce(r.fields ->> 'name', '') = '' then anon_n.n end as anon,
+          -- What a row may show (E5-7): the fields and the submitted time under Named only.
+          case when inst.named then r.fields else '{}'::jsonb end as pub_fields,
+          case when inst.named then r.submitted_at end as pub_submitted_at
         from response r join inst on r.instrument_id = inst.id
           join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
           left join anon_n on anon_n.id = r.id
         where r.workspace_id = ${ws}
       union all
       select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
-          false, i.created_at, i.kind, i.reminders_sent, null::int, coalesce(nullif(i.name, ''), i.email), null::bigint
+          false, i.created_at, i.kind, i.reminders_sent, null::int, coalesce(nullif(i.name, ''), i.email), null::bigint,
+          jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), null::timestamptz
         from invite i join inst on i.instrument_id = inst.id
-        where i.workspace_id = ${ws} and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
+        -- E5-7: an invitee who has not started is no one's row under Names hidden.
+        where i.workspace_id = ${ws} and inst.named and i.kind = 'personal' and i.revoked_at is null and i.sent_at is not null
           and not exists (select 1 from response r2 where r2.workspace_id = ${ws} and r2.invite_id = i.id)
     ),
     sel as (select * from people p ${where}),
@@ -177,7 +192,7 @@ export const results = {
     if (!isUuid(instrumentId)) return [];
     const rows = await db.execute<{ id: string; response_id: string; item_id: string; kind: string; value: string | null; reason: string | null; comment: string | null; submitted: boolean; who: string | null; anon: string | number | null; fields: Record<string, string> | null; perspectives: string[] | null; source: string; submitted_at: string | Date | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
       select ans.id, ans.response_id, ans.item_id, ans.kind, ans.value, ans.reason, ans.comment, (c.submitted_at is not null) as submitted,
-          c.who, c.anon, c.fields, c.perspectives, c.source, c.submitted_at, c.signed_off
+          c.who, c.anon, c.pub_fields as fields, c.perspectives, c.source, c.pub_submitted_at as submitted_at, c.signed_off
         from ans join counted c on c.id = ans.response_id order by ans.response_id, ans.item_id`);
     return rows.map((r) => ({
       id: r.id, responseId: r.response_id, itemId: r.item_id, kind: r.kind, value: r.value, reason: r.reason, comment: r.comment, submitted: r.submitted,
@@ -193,6 +208,16 @@ export const results = {
         from sel order by sel.id`);
     return rows.map((r) => ({ id: r.id, invited: r.src === "i", submitted: r.submitted, counted: r.counted, minutesToSubmit: r.minutes }));
   },
+  fieldValueCounts: async (ws: WorkspaceId, instrumentId: string, includeUnsubmitted: boolean): Promise<FieldValueCount[]> => {
+    if (!isUuid(instrumentId)) return [];
+    const rows = await db.execute<{ key: string; value: string; n: number }>(sql`
+      select kv.key, kv.value, count(*)::int as n
+        from response r join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws}
+          cross join lateral jsonb_each_text(r.fields) as kv(key, value)
+        where r.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and (${includeUnsubmitted} or r.submitted_at is not null)
+        group by 1, 2 order by 1, 2`);
+    return rows.map((r) => ({ key: r.key, value: r.value, n: Number(r.n) }));
+  },
   missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<MissingRow[]> => {
     if (!isUuid(instrumentId)) return [];
     const rows = await db.execute<{ id: string; response_id: string; text: string }>(sql`${head(ws, instrumentId, f)}
@@ -203,13 +228,21 @@ export const results = {
   // Responses tab names it, when it was submitted and how confident, oldest first.
   signOffs: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<SignOff[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; who: string | null; anon: string | number | null; submitted_at: string | Date; confidence: number | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
-      select c.id, c.who, c.anon, c.submitted_at, c.confidence, c.signed_off from counted c where c.submitted_at is not null order by c.submitted_at, c.id`);
-    return rows.map((r) => ({ id: r.id, who: r.who, anon: r.anon === null ? null : Number(r.anon), submittedAt: new Date(r.submitted_at), confidence: r.confidence, signedOff: r.signed_off }));
+    const rows = await db.execute<{ id: string; who: string | null; anon: string | number | null; submitted_at: string | Date | null; confidence: number | null; signed_off: boolean }>(sql`${head(ws, instrumentId, f)}
+      select c.id, c.who, c.anon, c.pub_submitted_at as submitted_at, c.confidence, c.signed_off from counted c where c.submitted_at is not null order by c.pub_submitted_at, c.anon, c.id`);
+    return rows.map((r) => ({ id: r.id, who: r.who, anon: r.anon === null ? null : Number(r.anon), submittedAt: r.submitted_at === null ? null : new Date(r.submitted_at), confidence: r.confidence, signedOff: r.signed_off }));
   },
 };
 
-export type SignOff = { id: string; who: string | null; anon: number | null; submittedAt: Date; confidence: number | null; signedOff: boolean };
+// submittedAt is null under Names hidden and Anonymous (E5-7), the rows then in anon's order.
+export type SignOff = { id: string; who: string | null; anon: number | null; submittedAt: Date | null; confidence: number | null; signedOff: boolean };
+
+// How many counted respondents gave each value of each field (E5-7, acceptance 4): the
+// instrument's started responses, the submitted ones only when the switch is off, as the
+// page counts them. Under Names hidden and Anonymous a dropdown value under MIN_GROUP is
+// not offered as a filter (src/lib/results-context.ts). jsonb_each_text:
+// postgresql.org/docs/current/functions-json.html.
+export type FieldValueCount = { key: string; value: string; n: number };
 
 // One person of the Responses tab (E8-2): every person the filter keeps, started or invited.
 export type PersonRow = {
@@ -241,20 +274,21 @@ function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
     name,
     status: sql`(case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) ${dir}`,
     progress: sql`coalesce(given.answered, 0) ${dir}`,
-    submitted: sql`p.submitted_at ${dir} nulls last`,
-    source: sql`p.source ${dir}`,
+    // E5-7: no submitted time and no source to sort by under Names hidden and Anonymous.
+    submitted: sql`p.pub_submitted_at ${dir} nulls last`,
+    source: sql`(case when (select named from inst) then p.source end) ${dir}`,
     reminders: sql`p.reminders ${dir} nulls last`,
     comments: sql`coalesce(given.with_comment, 0) ${dir}`,
   };
   const field = key.startsWith("field.") ? key.slice(6) : null;
-  const first = field !== null && fieldKeys.includes(field) ? sql`lower(p.fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(by, key) ? by[key] : name);
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(p.pub_fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(by, key) ? by[key] : name);
   return sql`${first}, ${name}, p.id`;
 }
 
 export const tracker = {
   people: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<PersonRow[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; who: string | null; anon: string | number | null; src: string; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ id: string; source: string; fields: Record<string, string>; who: string | null; anon: string | number | null; src: string; submitted: boolean; submitted_at: string | Date | null; signed_off: boolean; changed_after: boolean; answered: number; visible: number; reminders: number | null; with_comment: number }>(sql`${head(ws, instrumentId, f)},
       -- One pass each over the items and the answers, grouped by person (a subquery per person
       -- was too slow at 500 people).
       shown as (
@@ -275,13 +309,13 @@ export const tracker = {
           where a.workspace_id = ${ws}
           group by a.response_id
       )
-      select p.id, p.src, p.source, p.fields, p.who, p.anon, p.submitted_at, p.signed_off, p.reminders,
+      select p.id, p.src, p.source, p.pub_fields as fields, p.who, p.anon, (p.submitted_at is not null) as submitted, p.pub_submitted_at as submitted_at, p.signed_off, p.reminders,
           (p.first_submitted_at is not null and p.updated_at > p.first_submitted_at) as changed_after,
           shown.visible, coalesce(given.answered, 0) as answered, coalesce(given.with_comment, 0) as with_comment
         from sel p join shown on shown.id = p.id left join given on given.response_id = p.id
         order by ${personOrder(f.sort, fieldKeys)}`);
     return rows.map((r) => {
-      const submitted = r.submitted_at !== null;
+      const submitted = r.submitted;
       return {
         id: r.id,
         source: r.source === "public" ? "public" : "personal",
@@ -410,7 +444,7 @@ function registerOrder(sort: ResultsFilter["sort"], fieldKeys: string[], columns
   const dir = sort?.dir === "desc" ? sql`desc` : sql`asc`;
   const key = sort?.key ?? "item";
   const field = key.startsWith("field.") ? key.slice(6) : null;
-  const first = field !== null && fieldKeys.includes(field) ? sql`lower(c.fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(columns, key) ? columns[key] : columns.item);
+  const first = field !== null && fieldKeys.includes(field) ? sql`lower(c.pub_fields ->> ${field}) ${dir} nulls last` : (Object.hasOwn(columns, key) ? columns[key] : columns.item);
   return sql`${first}, ${columns.item}, x.id ${dir}`;
 }
 
@@ -425,7 +459,7 @@ export const registers = {
       status: sql`(c.submitted_at is not null) ${dir}`,
     };
     const rows = await db.execute<{ id: string; item_id: string; source_ref: string | null; original_text: string; reader_status: string | null; reader_text: string | null; proposed_value: string | null; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
-      select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
+      select x.id, x.item_id, it.source_ref, it.original_text, it.reader_status, it.reader_text, it.proposed_value, x.kind, x.value, x.reason, x.comment, c.pub_fields as fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from ans x join counted c on c.id = x.response_id join item it on it.id = x.item_id and it.workspace_id = ${ws}
         where x.kind in (${list(kinds)})
         order by ${registerOrder(f.sort, fieldKeys, columns)}`);
@@ -446,7 +480,7 @@ export const registers = {
       status: sql`(c.submitted_at is not null) ${dir}`,
     };
     const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
-      select x.id, x.text, x.suggested_area, x.suggested_value, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
+      select x.id, x.text, x.suggested_area, x.suggested_value, c.pub_fields as fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
         order by ${registerOrder(f.sort, fieldKeys, columns)}`);
     const out: MissingRegisterRow[] = rows.map((r) => ({ id: r.id, text: r.text, area: r.suggested_area, value: r.suggested_value, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted, changedSince: r.submitted && !r.signed_off }));
@@ -467,7 +501,7 @@ export const detail = {
     const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true)},
       one as (select its.id, its.perspectives from its where its.id = ${itemId})
       select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value,
-          p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.fields, p.who, p.anon,
+          p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.pub_fields as fields, p.who, p.anon,
           x.kind, x.value, x.reason, x.comment,
           -- The counts in SQL, over the rows (aggregate FILTER with OVER:
           -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).

@@ -51,7 +51,7 @@ import { signOffFor } from "@/lib/closing";
 import { PoweredBy, type PoweredByShow } from "@/components/respondent/powered-by";
 import { RespondentHeader } from "@/components/respondent/respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "@/components/respondent/frame";
-import type { ClosingSpec, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
+import type { Anonymity, ClosingSpec, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScaleLabels, ScoringMethod } from "@/db/types";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
@@ -69,7 +69,7 @@ export type RespondentAppProps = {
   accent: string;
   logoUrl: string | null;
   headerNote: string | null;
-  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout; reasonRule: ReasonRule };
+  instrument: { title: string; intro: string | null; fields: RespondentFieldSpec[]; perspectives: string[]; method: ScoringMethod; labels: ScaleLabels | null; showProposed: boolean; layout: Layout; reasonRule: ReasonRule; anonymity: Anonymity };
   prefilled: ResponseFields | undefined;
   items: RespondentItem[];
   areas: AreaMeta[];
@@ -448,7 +448,7 @@ export function RespondentApp(props: RespondentAppProps) {
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
       {screen.kind === "about" ? (
-        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("fields") ? "fields" : undefined} />
+        <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} anonymity={instrument.anonymity} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("fields") ? "fields" : undefined} />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (
         chapterScreen(screen.index)
       ) : screen.kind === "done" && submitted ? (

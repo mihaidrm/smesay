@@ -8,7 +8,9 @@
 // a percentage. A group with fewer than 3 answers on an item, or summed over items with fewer
 // than 3 people, is drawn but not compared (decision 0031), with the banner once. An item's
 // title opens its detail (E8-5). Under the views, where groups disagree (E8-6,
-// conflict-view.tsx). Copy: docs/copy/app.md, Results.
+// conflict-view.tsx). Under Names hidden and Anonymous (stories/E5-7, acceptance 4) a split
+// sums the values fewer than 3 people gave into one group (foldSmallGroups). Copy:
+// docs/copy/app.md, Results.
 import Link from "next/link";
 import { AlignedBars, Donut, Legend, StackedBar, type Series } from "@/components/app/charts";
 import { FadeOnChange } from "@/components/app/fade-on-change";
@@ -18,7 +20,7 @@ import type { Instrument } from "@/db/queries/instruments";
 import { agreement } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
-import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
+import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, foldSmallGroups, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -29,7 +31,8 @@ type Props = { ws: WorkspaceId; projectId: string; instrument: Instrument; filte
 type SeriesOf = (c: Counts) => Series[];
 
 export async function AgreementTab({ ws, projectId, instrument, filter, ctx, view, itemHref }: Props) {
-  const [set, rows, counts] = await Promise.all([itemSets.get(ws, instrument.itemSetId), itemsQuery.forSet(ws, instrument.itemSetId), agreement.byItem(ws, instrument.id, filter, filter.split)]);
+  const [set, rows, byItem] = await Promise.all([itemSets.get(ws, instrument.itemSetId), itemsQuery.forSet(ws, instrument.itemSetId), agreement.byItem(ws, instrument.id, filter, filter.split)]);
+  const counts = filter.split !== null && ctx.offered ? foldSmallGroups(byItem, ctx.offered[filter.split] ?? [], AGREEMENT_COPY.groupSmall) : byItem;
   const method = instrument.method;
   const listItems = rows.map((it) => ({ id: it.id, reference: it.sourceRef, title: textFor(it), area: it.area, proposed: instrument.showProposed ? proposedCode(method, it.proposedValue) : null, position: it.position }));
   const sort = agreementSortOf(filter.sort);

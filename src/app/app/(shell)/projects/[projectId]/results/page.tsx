@@ -25,7 +25,8 @@ import { results, resultsPrefs } from "@/db/queries/results";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { DETAIL_COPY, RESULTS_COPY } from "@/lib/results-copy";
 import { itemParam } from "@/lib/results-detail";
-import { describeFilter, filterActive, filterQuery, parseResultsFilter, RESULTS_KINDS, type FilterContext, type ResultsFilter, type SearchParams } from "@/lib/results-filter";
+import { describeFilter, filterActive, filterQuery, RESULTS_KINDS, type FilterContext, type ResultsFilter, type SearchParams } from "@/lib/results-filter";
+import { resultsContext } from "@/lib/results-context";
 import { DEFAULT_TILES, storedTiles, tabCounts, tileView, type ResultsNumbers, type TileId } from "@/lib/results-tiles";
 import { formatUtc, linkState } from "@/lib/sharing";
 import { FilterBar } from "./filter-bar";
@@ -63,8 +64,9 @@ export default async function ResultsPage({ params, searchParams }: { params: Pr
   const prefsOf = viewing ? (await members.list(current.ws)).filter((m) => m.role === "owner").sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0]?.userId ?? session.user.id : session.user.id;
   const prefs = await resultsPrefs.get(prefsOf, instrument.id);
   const stored = typeof prefs.includeUnsubmitted === "boolean" ? prefs.includeUnsubmitted : null;
-  const ctx: FilterContext = { fields: instrument.respondentFields, perspectives: instrument.perspectives };
-  const filter = parseResultsFilter(query, ctx, stored);
+  // The context and the filter (E5-7: under Names hidden and Anonymous, dropdown values under
+  // three counted respondents are not offered; src/lib/results-context.ts).
+  const { ctx, filter } = await resultsContext(current.ws, instrument, query, stored);
   const tab = parseTab(query.tab);
   // The URL always says which answers count (the switch), so a link copied from the address
   // bar reads the same for whoever opens it: a first open without it goes to the full URL
@@ -187,7 +189,7 @@ async function TabPanel({ tab, ws, projectId, isSample, instrument, filter, ctx,
   if (tab === "responses") return <ResponsesTab ws={ws} instrumentId={instrument.id} filter={filter} ctx={ctx} href={href} />;
   if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
-  if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} />;
+  if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} namesHidden={ctx.anonymity !== "named"} />;
   if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} itemHref={itemHref} />;
   return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
 }

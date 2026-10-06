@@ -1,0 +1,2 @@
+ALTER TABLE "instrument" ADD COLUMN "anonymity" text DEFAULT 'named' NOT NULL;--> statement-breakpoint
+ALTER TABLE "instrument" ADD CONSTRAINT "instrument_anonymity_check" CHECK ("anonymity" in ('named', 'hidden', 'anonymous'));

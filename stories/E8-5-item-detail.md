@@ -9,6 +9,9 @@ Amended 2026-10-04 (decision 0044, item 6): the pill for the change kind reads "
 priority", as everywhere on screen. Amended the same day (decision 0044, docs/review-list.md):
 the detail opens in place of the tabs, as the board draws it, and Back returns to the tab.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous every row reads
+"Anonymous [N]" with no role under it, and no invitee who has not started has a row.
+
 ## Acceptance criteria
 1. The detail (PM app board, item detail panel): reference, area, reader text, original text
    under it, proposed value, the four counts and "[N] not yet answered"; a row per respondent

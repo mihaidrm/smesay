@@ -68,7 +68,7 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
           action={tip === "rescue.noResponse" ? { label: GUIDE_LINES["rescue.noResponse"].action, href: "#share-invites-title" } : undefined} />
       )}
       <LinkCard projectId={project.id} isSample={project.isSample} instrument={instrument} invite={live} />
-      <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} linkState={linkState(live)} />
+      <InvitesCard ws={current.ws} projectId={project.id} instrumentId={instrument.id} isSample={project.isSample} linkState={linkState(live)} anonymity={instrument.anonymity} />
       {newerDraft && newerSet && builtOn && (
         <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-draft-title" data-testid="draft-card">
           <div className="flex items-center justify-between gap-3">

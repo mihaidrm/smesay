@@ -9,7 +9,7 @@
 // PM's ReasonRule on Build decides, design note 98: that default, never, or every answer,
 // an agreeing one and a rating needing their comment). Words:
 // RESPONDENT_COPY (docs/copy/app.md and errors.md, the respondent sections).
-import type { AnswerKind, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
+import type { Anonymity, AnswerKind, Layout, ReasonRule, RespondentFieldSpec, ResponseFields, ScoringMethod } from "@/db/types";
 import { isVisible } from "@/lib/perspectives";
 import { missingMandatory, startHint } from "@/lib/respondent-fields";
 import { classify, DISAGREE_CODE, SCALES, UNCLEAR } from "@/lib/scoring";
@@ -125,9 +125,11 @@ export const RESPONDENT_ERRORS = {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // The name and role a personal invite carries, on the fields the PM configured under those
-// keys; a dropdown only with one of its options (the rest is asked; E6-2).
-export function carriedFields(invite: { kind: string; name: string | null; roleHint: string | null }, spec: RespondentFieldSpec[]): ResponseFields {
-  if (invite.kind !== "personal") return {};
+// keys; a dropdown only with one of its options (the rest is asked; E6-2). Nothing under
+// Names hidden or Anonymous (stories/E5-7): the PM typed those values about one person, so
+// the response would carry them back to Results; the respondent picks their own.
+export function carriedFields(invite: { kind: string; name: string | null; roleHint: string | null }, spec: RespondentFieldSpec[], anonymity: Anonymity): ResponseFields {
+  if (invite.kind !== "personal" || anonymity !== "named") return {};
   const carried: Record<string, string | null> = { name: invite.name, role: invite.roleHint };
   const out: ResponseFields = {};
   for (const f of spec) {

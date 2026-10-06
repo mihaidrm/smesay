@@ -12,6 +12,9 @@ sentence form became columns that read across (respondent, value, reason), so ev
 sorts; the landing page no longer quotes the sentence. The disagree register sits under the
 different-priority register, not beside it, so both keep their columns at 1440.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous every respondent
+reads "Anonymous [N]" and the registers have no Role column and no sort by a field.
+
 ## Acceptance criteria
 1. "Different priority and Disagree" tab: the different-priority register (item, respondent,
    role, proposed, their value, reason) and, under it, the disagree register (item,

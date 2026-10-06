@@ -35,12 +35,15 @@ export const sameAction = (a: { kind: InsightKind | null; citedAnswerIds: string
 const ids = (list: string[]) => sql.join(list.map((id) => sql`${id}`), sql`, `);
 
 // The respondents of the project's instruments only (the anonymous numbers count within an
-// instrument, as on Results).
+// instrument, as on Results). Under Names hidden and Anonymous (stories/E5-7, acceptance 6)
+// nobody is named and every response has its number across all the instrument's links, as
+// on Results (src/db/queries/results.ts head).
 const people = (ws: WorkspaceId, projectId: string) => sql`
   people as (
     select r.id, r.instrument_id,
-        coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) as who,
-        case when coalesce(r.fields ->> 'name', '') = '' and iv.kind = 'public'
+        case when ins.anonymity = 'named' then coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) end as who,
+        case when ins.anonymity <> 'named' then row_number() over (partition by r.instrument_id order by r.created_at, r.id)
+          when coalesce(r.fields ->> 'name', '') = '' and iv.kind = 'public'
           then row_number() over (partition by r.instrument_id, iv.kind order by r.created_at, r.id) end as anon
       from response r join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
         join instrument ins on ins.id = r.instrument_id and ins.workspace_id = ${ws} and ins.project_id = ${projectId}

@@ -19,7 +19,13 @@
 // its own list, so the sort never narrows anything and is no filter), split=[key] (E8-3, a
 // dropdown field of the instrument) and gaps=[key] (E8-6, a dropdown field; written only when
 // it is not the default).
-import type { RespondentFieldSpec } from "@/db/types";
+//
+// Who sees whose answers (stories/E5-7, acceptance 4): under Names hidden and Anonymous the
+// context holds the dropdown fields only, and `offered` the values a filter may pick, each
+// given by MIN_GROUP counted respondents or more (src/lib/results-context.ts), so a filter
+// cannot single one person out; a value not offered is dropped from the URL like an unknown
+// one.
+import type { Anonymity, RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
 export type ResultsKind = (typeof RESULTS_KINDS)[number];
@@ -59,7 +65,12 @@ export type ResultsFilter = {
 export type ResultsSort = { key: string; dir: "asc" | "desc" };
 const SORT_KEY = /^[a-z][a-zA-Z0-9._-]{0,60}$/;
 
-export type FilterContext = { fields: RespondentFieldSpec[]; perspectives: string[] };
+export type FilterContext = { fields: RespondentFieldSpec[]; perspectives: string[]; anonymity: Anonymity; offered?: Record<string, string[]> };
+
+// The values of a dropdown field a filter may pick: its options, or under Names hidden and
+// Anonymous only those offered, in the options' order.
+export const optionsFor = (spec: RespondentFieldSpec, ctx: FilterContext): string[] =>
+  (spec.options ?? []).filter((o) => ctx.offered === undefined || (ctx.offered[spec.key] ?? []).includes(o));
 export type SearchParams = Record<string, string | string[] | undefined>;
 
 // The longest text a text-field filter keeps (a search, not a value).
@@ -76,9 +87,10 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
   for (const spec of ctx.fields) {
     const raw = params[`f.${spec.key}`];
     if (spec.type === "dropdown") {
-      const picked = unique(all(raw).filter((v) => (spec.options ?? []).includes(v)));
+      const allowed = optionsFor(spec, ctx);
+      const picked = unique(all(raw).filter((v) => allowed.includes(v)));
       if (picked.length > 0) fields[spec.key] = picked;
-    } else {
+    } else if (ctx.anonymity === "named") {
       const text = (first(raw) ?? "").trim().slice(0, FILTER_TEXT_MAX);
       if (text) fields[spec.key] = text;
     }

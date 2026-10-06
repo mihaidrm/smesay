@@ -25,6 +25,8 @@ export const RESULTS_COPY = {
   anyPerspective: "Any perspective",
   status: "Status",
   contains: (label: string) => `${label} contains`,
+  // E5-7, acceptance 4: under the bar when the validation hides names and a value was left out.
+  smallValues: "A value fewer than 3 people gave is not offered as a filter, so one person cannot be singled out.",
   clearFilters: "Clear filters",
   showing: (n: number, m: number, filters: string) => `Showing ${n} of ${m} responses: ${filters}.`,
   noAnswersTitle: "No answers yet.",
@@ -68,6 +70,8 @@ export const CONFLICT_COPY = {
 export const RESPONSES_COPY = {
   caption: (n: number) => (n === 1 ? "1 person" : `${n} people`),
   name: "Name",
+  // E5-7: the first column's header under Names hidden and Anonymous, where it holds Anonymous [N].
+  respondent: "Respondent",
   status: "Status",
   progress: "Progress",
   submitted: "Submitted",
@@ -117,6 +121,8 @@ export const AGREEMENT_COPY = {
   notCompared: "Fewer than 3 answers: not compared",
   notComparedPeople: "This group is not compared, so one person cannot be singled out",
   groupNone: "Not given",
+  // E5-7, acceptance 4: the values fewer than 3 people gave, together, under Names hidden and Anonymous.
+  groupSmall: "Groups under 3 people",
   valuesLegend: "Values picked, where no proposal was shown",
   smallGroups: "Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out.",
   chartTitle: (what: string) => `Answers on ${what}`,

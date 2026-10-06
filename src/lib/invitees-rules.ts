@@ -12,6 +12,10 @@ export const SECONDS_PER_ITEM = 20;
 export const INVITEES_COPY = {
   card: "Personal invites",
   line: "Each person gets their own link, sent by email from you. Each answers under their name and can carry on from any device.",
+  // Who sees whose answers (stories/E5-7): the line under Names hidden, and the card's only
+  // line under Anonymous, in place of the form.
+  lineHidden: "Each person gets their own link, sent by email from you. Results show their answers without their name; this list shows who has finished.",
+  anonymousOnly: "Anonymous validations use the public link only.",
   field: "People, one per line",
   hint: "Separate the addresses with commas, spaces or new lines. A name and a role may follow an address after commas: ana@company.example, Ana Pop, Finance",
   send: "Send",
@@ -47,6 +51,8 @@ export const INVITEES_ERRORS = {
   revokedAddress: (email: string) => `${email} is revoked. Press New link on its row to send a fresh one.`,
   notRevoked: (email: string) => `${email} is not revoked, so it has its link. Reload the page to see the row as it is.`,
   rowChanged: (email: string) => `${email} got a new link since the page opened. Reload the page to see the row as it is.`,
+  // E5-7, acceptance 7: a send to an anonymous validation (a stale tab, or a crafted request).
+  anonymous: "This validation is anonymous, so it takes no personal invites. Share the public link instead.",
   newLinkNotSent: (email: string, reason: string) => `The new link for ${email} was made but not sent: ${reason}. Paste the address again to send it.`,
 } as const;
 

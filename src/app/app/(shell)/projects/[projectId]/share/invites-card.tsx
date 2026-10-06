@@ -9,11 +9,14 @@
 // row with a live link and New link on a revoked row (stories/E6-4, invite-row-actions.tsx;
 // a revoked row reads Revoked with the date). The box and the buttons are on
 // while the public link is published and not closed or revoked. The sample shows its list
-// read-only. Copy: docs/copy/app.md (Share, Personal invites).
+// read-only. Under Anonymous (stories/E5-7, acceptance 7) the card holds one line in place of
+// the form and the list: the validation takes no personal invites. Under Names hidden the
+// line says Results show the answers without names. Copy: docs/copy/app.md (Share, Personal
+// invites).
 import { linkMark, listInvitees, inviteStatus } from "@/lib/invitees";
 import { INVITEES_COPY } from "@/lib/invitees-rules";
 import { formatUtc, type LinkState } from "@/lib/sharing";
-import type { WorkspaceId } from "@/db/types";
+import type { Anonymity, WorkspaceId } from "@/db/types";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { canRemind, REMINDERS_COPY, tooSoonLine } from "@/lib/reminders-rules";
@@ -21,7 +24,15 @@ import { InvitesForm } from "./invites-form";
 import { RemindAllForm, RemindForm } from "./remind-buttons";
 import { RenewInvite, RevokeInvite } from "./invite-row-actions";
 
-export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkState }: { ws: WorkspaceId; projectId: string; instrumentId: string; isSample: boolean; linkState: LinkState }) {
+export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkState, anonymity }: { ws: WorkspaceId; projectId: string; instrumentId: string; isSample: boolean; linkState: LinkState; anonymity: Anonymity }) {
+  if (anonymity === "anonymous") {
+    return (
+      <section className="card flex max-w-[720px] flex-col gap-1 p-4" aria-labelledby="share-invites-title" data-testid="invites-card">
+        <h3 id="share-invites-title" className="text-[15px] font-bold">{INVITEES_COPY.card}</h3>
+        <p className="text-sm text-ink-muted" data-testid="invites-anonymous">{INVITEES_COPY.anonymousOnly}</p>
+      </section>
+    );
+  }
   const rows = await listInvitees(ws, instrumentId);
   const now = new Date();
   const due = rows.filter((r) => canRemind(r, now).ok).length;
@@ -31,7 +42,7 @@ export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkS
     <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-invites-title" data-testid="invites-card">
       <div className="flex flex-col gap-1">
         <h3 id="share-invites-title" className="text-[15px] font-bold">{INVITEES_COPY.card}</h3>
-        <p className="text-sm text-ink-muted">{INVITEES_COPY.line}</p>
+        <p className="text-sm text-ink-muted">{anonymity === "hidden" ? INVITEES_COPY.lineHidden : INVITEES_COPY.line}</p>
       </div>
       {isSample ? <p className="text-[13px] text-ink-muted">{INVITEES_COPY.sample}</p> : <InvitesForm key={instrumentId} projectId={projectId} instrumentId={instrumentId} hint={hint} canSend={canSend} />}
       {rows.length === 0 ? (

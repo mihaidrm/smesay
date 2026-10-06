@@ -6,6 +6,11 @@ Outcome: CSV files (answers, items with totals, and from E8-1's audit people and
 items) that open in Excel with correct characters and dates, and whose rows are the
 dashboard's numbers.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the answers,
+people and missing files name each respondent "Anonymous [N]" and carry no field column, no
+Submitted at, no Source, no Reminders and no Perspectives; the People file keeps Minutes to
+submit, so the median tile still adds up. The Export tab says so in a line.
+
 ## Acceptance criteria
 1. Export tab (PM app board): "Answers" (one row per answer: respondent, every respondent
    field, item reference, area, item text, proposed value, answer kind, their value, reason or

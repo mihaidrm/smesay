@@ -13,7 +13,7 @@ import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { commitUpload } from "@/lib/imports";
-import { buildOnLatest, openDraft, saveIntro } from "@/lib/instruments";
+import { buildOnLatest, openDraft, saveAnonymity, saveFields, saveIntro } from "@/lib/instruments";
 import { cutServers, INVITEES_COPY, INVITEES_ERRORS, inviteStatus, listInvitees, refusalCopy, sendInvites } from "@/lib/invitees";
 import { INVITEES_MAX_PER_SEND, minutesFor, parseInvitees } from "@/lib/invitees-rules";
 import { memoryOutbox, type Mail } from "@/lib/mail";
@@ -274,6 +274,38 @@ describe("sendInvites", () => {
     const onNewer = await sendInvites(a.ws, project.id, newer!.id, "zed@x.example", sender, BASE, new Date("2026-10-07T12:00:00Z"), async (mail) => { sent.push(mail); });
     expect(onNewer).toEqual({ outcomes: [{ email: "zed@x.example", line: "zed@x.example", sent: true, error: null }] });
   }, 60_000);
+
+  // E5-7: Anonymous takes no personal invite (acceptance 7); Names hidden sends the invite
+  // with About you's line in place of "recorded under your name" (acceptance 3).
+  it("refuses an invite to an anonymous validation, and words the Names hidden invite as About you does", async () => {
+    const sender = { name: "Dana PM", email: "dana@marlow.example" };
+    const now = new Date("2026-10-03T12:00:00Z");
+    const setUp = async (name: string, level: "hidden" | "anonymous") => {
+      const project = await projects.create(a.ws, { name, createdBy: a.userId });
+      const pasted = await savePaste({ ws: a.ws, userId: a.userId }, project.id, ["One", "Two"].join("\n"));
+      if (!("upload" in pasted)) throw new Error(pasted.error);
+      await commitUpload(a.ws, pasted.upload.id, a.userId);
+      const { instrument } = (await openDraft(a.ws, project))!;
+      await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]));
+      const saved = await saveAnonymity(a.ws, project.id, instrument.id, level);
+      if (!("instrument" in saved)) throw new Error(saved.error);
+      const published = await publishLink(a.ws, project.id, instrument.id, "", "2026-10-20T15:00:00Z", "", now);
+      if (!("invite" in published)) throw new Error(published.error);
+      return { project, instrument };
+    };
+    const anonymous = await setUp("Anonymous survey", "anonymous");
+    const sent: Mail[] = [];
+    const keep = async (mail: Mail) => { sent.push(mail); };
+    expect(await sendInvites(a.ws, anonymous.project.id, anonymous.instrument.id, "ana@x.example", sender, BASE, now, keep)).toEqual({ error: INVITEES_ERRORS.anonymous });
+    expect(await listInvitees(a.ws, anonymous.instrument.id)).toEqual([]);
+    expect(sent).toEqual([]);
+    const hidden = await setUp("Hidden survey", "hidden");
+    const result = await sendInvites(a.ws, hidden.project.id, hidden.instrument.id, "ana@x.example, Ana Pop, Finance", sender, BASE, now, keep);
+    if (!("outcomes" in result)) throw new Error(result.error);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].text).toContain("The team sees your answers without your name. They can see that you have finished.");
+    expect(sent[0].text).not.toContain("recorded under your name");
+  });
 
   it("refuses the sample project", async () => {
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;

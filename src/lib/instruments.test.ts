@@ -3,6 +3,7 @@
 // the project with Name and Role; the intro and the fields save with the rule; a newer set
 // gets "Build on version 2", which copies the draft and locks the old one; two opens at once
 // make one draft; the sample refuses edits; another workspace reads nothing and its ids are 404.
+// E5-7: who sees whose answers saves with the rule on the fields, copies and locks.
 import { beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { instruments, invites, items, links, projects, workspaces } from "@/db/queries";
@@ -13,7 +14,8 @@ import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
 import { CLOSING_COPY, CLOSING_ERRORS, DEFAULT_SIGN_OFF } from "@/lib/closing";
-import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { BUILD_COPY, buildOnLatest, isPublished, openDraft, saveAnonymity, saveClosing, saveFields, saveIntro, savePerspectives, saveScoring, tagItem } from "@/lib/instruments";
+import { ANONYMITY_ERRORS, ANONYMITY_META, fieldsBlocking, isAnonymity } from "@/lib/anonymity";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { SCORING_ERRORS } from "@/lib/scoring";
 import { memoryOutbox } from "@/lib/mail";
@@ -225,6 +227,48 @@ describe("saveScoring, the reason rule (stories/E5-2, acceptance 6)", () => {
     expect(await saveScoring(a.ws, project.id, built.instrument.id, null, null, null, "page")).toMatchObject({ instrument: { reasonRule: "never", layout: "page" } });
     // Another workspace cannot save it.
     await expect(saveScoring(b.ws, project.id, built.instrument.id, "moscow", "1", "{}", "chapters", "always")).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe("saveAnonymity (stories/E5-7, acceptance 1 and 2)", () => {
+  it("refuses a level that hides names while a text or email field exists, then saves it, copies it and locks it once published", async () => {
+    const project = await projects.create(a.ws, { name: "Anonymity", createdBy: a.userId });
+    await importList(a.ws, a.userId, project.id, ["One", "Two"]);
+    const { instrument } = (await openDraft(a.ws, project))!;
+    expect(instrument.anonymity).toBe("named");
+    expect(await saveAnonymity(a.ws, project.id, instrument.id, "secret")).toEqual({ error: ANONYMITY_ERRORS.badLevel });
+    // The default fields Name and Role are text: both are named in the refusal.
+    expect(await saveAnonymity(a.ws, project.id, instrument.id, "hidden")).toEqual({ error: ANONYMITY_ERRORS.levelNeedsDropdowns("Names hidden", ["Name", "Role"]) });
+    expect(ANONYMITY_ERRORS.levelNeedsDropdowns("Names hidden", ["Name", "Role"])).toBe("Names hidden needs dropdown fields only. Remove Name and Role or make them dropdowns on the Respondent fields card, then pick Names hidden again.");
+    expect((await instruments.get(a.ws, instrument.id))!.anonymity).toBe("named");
+    // Name removed and Role made a dropdown: Anonymous saves.
+    expect(await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }]))).toMatchObject({ instrument: { respondentFields: [{ key: "role", type: "dropdown" }] } });
+    expect(await saveAnonymity(a.ws, project.id, instrument.id, "anonymous")).toMatchObject({ instrument: { anonymity: "anonymous" } });
+    // Under Anonymous a text or email field is refused on save, by name.
+    expect(await saveFields(a.ws, project.id, instrument.id, JSON.stringify([{ label: "Role", type: "dropdown", mandatory: true, options: "Sales\nFinance" }, { label: "Work email", type: "email", mandatory: false }]))).toEqual({ error: ANONYMITY_ERRORS.fieldsNeedDropdowns("Anonymous", ["Work email"]) });
+    expect((await instruments.get(a.ws, instrument.id))!.respondentFields.map((f) => f.key)).toEqual(["role"]);
+    expect(await saveAnonymity(a.ws, project.id, instrument.id, "hidden")).toMatchObject({ instrument: { anonymity: "hidden" } });
+    // Build on version N copies the level.
+    await importList(a.ws, a.userId, project.id, ["One", "Two", "Three"]);
+    const built = await buildOnLatest(a.ws, project.id, instrument.id);
+    if (!("instrument" in built)) throw new Error(built.error);
+    expect(built.instrument.anonymity).toBe("hidden");
+    await invites.create(a.ws, { instrumentId: built.instrument.id, kind: "public", token: randomUUID().replace(/-/g, "") });
+    // Published: another level is refused, the same one changes nothing.
+    expect(await saveAnonymity(a.ws, project.id, built.instrument.id, "named")).toEqual({ error: ANONYMITY_ERRORS.locked });
+    expect(await saveAnonymity(a.ws, project.id, built.instrument.id, "hidden")).toMatchObject({ instrument: { anonymity: "hidden" } });
+    // The fields still save after publishing (E5-1), dropdowns only.
+    expect(await saveFields(a.ws, project.id, built.instrument.id, JSON.stringify([{ label: "Name", type: "text", mandatory: true }]))).toEqual({ error: ANONYMITY_ERRORS.fieldsNeedDropdowns("Names hidden", ["Name"]) });
+    // Another workspace cannot save it.
+    await expect(saveAnonymity(b.ws, project.id, built.instrument.id, "named")).rejects.toBeInstanceOf(NotFoundError);
+  });
+  it("names no field under Named, and every text and email field under the other two", () => {
+    const fields = [{ label: "Name", type: "text" as const }, { label: "Role", type: "dropdown" as const }, { label: "Email", type: "email" as const }];
+    expect(fieldsBlocking(fields, "named")).toEqual([]);
+    expect(fieldsBlocking(fields, "hidden")).toEqual(["Name", "Email"]);
+    expect(fieldsBlocking(fields, "anonymous")).toEqual(["Name", "Email"]);
+    expect([isAnonymity("named"), isAnonymity("hidden"), isAnonymity("anonymous"), isAnonymity("open"), isAnonymity(null)]).toEqual([true, true, true, false, false]);
+    expect(ANONYMITY_META.map((m) => m.label)).toEqual(["Named", "Names hidden", "Anonymous"]);
   });
 });
 

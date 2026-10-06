@@ -5,6 +5,11 @@ Status: built
 Outcome: one JSON file holds everything about a project, and importing it into another
 workspace recreates it.
 
+Amended 2026-10-06 (E5-7, design note 100): each validation carries its anonymity (absent
+reads Named); a response of a validation set to Names hidden or Anonymous goes out with no
+invite id and no fields, and comes back on its validation's public invite. A null invite on
+a Named validation, or a text field under the other two, is a damaged file.
+
 ## Acceptance criteria
 1. "Whole project" export: items in every set version, the instrument(s), invites (tokens
    excluded, emails included), responses with answers, sign-offs, missing items, insights with

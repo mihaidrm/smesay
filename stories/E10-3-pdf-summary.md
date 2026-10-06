@@ -5,6 +5,10 @@ Status: built
 Outcome: a PDF of about three pages that renders in under ten seconds for 200 items and 50
 responses.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the summary
+names nobody ("Anonymous [N]" in the registers, the citations and the sign-off record) and
+the sign-off record reads Submitted with no time, in the order of the numbers.
+
 ## Acceptance criteria
 1. "Summary for the deck" export: page 1 the headline numbers, the agreement by area chart and
    the confidence histogram; page 2 onward the per-item table per area, the pushed back and

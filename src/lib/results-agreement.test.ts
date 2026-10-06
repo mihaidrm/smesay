@@ -3,7 +3,7 @@
 // ways with ties in the list's order, groups of fewer than 3 answers drawn but not compared,
 // and the series every view draws (the kinds, or the values picked where no proposal was shown).
 import { describe, expect, it } from "vitest";
-import { allRated, buildAgreement, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
+import { allRated, buildAgreement, figureOf, foldSmallGroups, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
 
 const c = (agree: number, change = 0, disagree = 0, unclear = 0, couldSee = agree + change + disagree + unclear, pick = 0, values: Record<string, number> = {}): Counts => ({ agree, change, disagree, unclear, pick, values, couldSee });
 const items = [
@@ -115,5 +115,28 @@ describe("the Agreement tab's model", () => {
     // A dropdown option named like the empty group stays its own group.
     const named = buildAgreement(items, ["Submitting"], [{ itemId: "i1", group: "Not given", ...c(1) }, { itemId: "i1", group: null, ...c(1) }], true, { key: "ref", dir: "asc" }, "Not given")[0].rows;
     expect(groupTotals(named).map((g) => [g.group, g.empty])).toEqual([["Not given", false], ["Not given", true]]);
+  });
+});
+
+// E5-7, acceptance 4: under Names hidden and Anonymous a split sums the values not offered
+// into one group per item; the people with no value keep their own group; Named keeps all.
+describe("foldSmallGroups", () => {
+  it("sums the groups of the values not offered, per item, and keeps Not given apart", () => {
+    const counts = [
+      { itemId: "i1", group: "Sales", ...c(2, 1) }, { itemId: "i1", group: "HR", ...c(1) }, { itemId: "i1", group: "Finance", ...c(0, 0, 1) }, { itemId: "i1", group: null, ...c(1) },
+      { itemId: "i2", group: "HR", ...c(0, 1) },
+    ];
+    expect(foldSmallGroups(counts, undefined, "Small")).toBe(counts);
+    const folded = foldSmallGroups(counts, ["Sales"], "Small");
+    expect(folded).toEqual([
+      { itemId: "i1", group: "Sales", ...c(2, 1) },
+      { itemId: "i1", group: "Small", ...c(1, 0, 1) },
+      { itemId: "i1", group: null, ...c(1) },
+      { itemId: "i2", group: "Small", ...c(0, 1) },
+    ]);
+    // The groups still add up to the item.
+    const rows = buildAgreement(items, ["Submitting"], folded, true, { key: "ref", dir: "asc" }, "Not given")[0].rows;
+    expect(rows[0].groups.map((g) => g.group)).toEqual(["Sales", "Small", "Not given"]);
+    expect(rows[0].counts).toEqual(buildAgreement(items, ["Submitting"], counts, true, { key: "ref", dir: "asc" }, "Not given")[0].rows[0].counts);
   });
 });

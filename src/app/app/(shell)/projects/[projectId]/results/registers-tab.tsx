@@ -7,13 +7,16 @@
 // ways with the sort in the URL (the value columns in the scale's order); values use the
 // instrument's labels (E5-2); a respondent who has not submitted, or changed answers after
 // Submit, is marked as on the Responses tab (decision 0030, E7-6). A row reads across its
-// columns: the respondent, then what they say and why. Copy: docs/copy/app.md, Results.
+// columns: the respondent, then what they say and why. Under Names hidden and Anonymous
+// (stories/E5-7, acceptance 4) the respondent is Anonymous [N] and there is no role column.
+// Copy: docs/copy/app.md, Results.
 import Link from "next/link";
 import { NeutralPill } from "@/components/ui/status-pill";
 import type { Instrument } from "@/db/queries/instruments";
 import { registers, type MissingRegisterRow, type RegisterRow } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
+import { namesShown } from "@/lib/anonymity";
 import { REGISTERS_COPY, RESPONSES_COPY } from "@/lib/results-copy";
 import { filterActive, nextSort, registerShownSort, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -83,9 +86,10 @@ function Item({ row, itemHref }: { row: RegisterRow; itemHref: Props["itemHref"]
 const CELL = "px-4 py-2.5 align-top";
 
 export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
-  const keys = ctx.fields.map((f) => f.key);
+  // E5-7: no field column, and no sort by field, under Names hidden and Anonymous.
+  const keys = namesShown(ctx.anonymity) ? ctx.fields.map((f) => f.key) : [];
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
-  const role = ctx.fields.find((f) => f.key === "role") ?? null;
+  const role = namesShown(ctx.anonymity) ? (ctx.fields.find((f) => f.key === "role") ?? null) : null;
   const rows = await registers.answers(ws, instrument.id, filter, ["change", "disagree"], keys, instrument.method);
   const label = (code: string | null) => (code ? (labelFor(instrument.method, instrument.scaleLabels, code) ?? code) : "");
   const proposed = (r: RegisterRow) => label(instrument.showProposed ? proposedCode(instrument.method, r.proposedValue) : null);
@@ -123,10 +127,11 @@ export async function PushedTab({ ws, instrument, filter, ctx, href, itemHref }:
 }
 
 export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref }: Props) {
-  const keys = ctx.fields.map((f) => f.key);
+  // E5-7: no field column, and no sort by field, under Names hidden and Anonymous.
+  const keys = namesShown(ctx.anonymity) ? ctx.fields.map((f) => f.key) : [];
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
   const missingKeys = [...MISSING_KEYS, ...keys.map((k) => `field.${k}`)];
-  const role = ctx.fields.find((f) => f.key === "role") ?? null;
+  const role = namesShown(ctx.anonymity) ? (ctx.fields.find((f) => f.key === "role") ?? null) : null;
   const [unclear, missing] = await Promise.all([registers.answers(ws, instrument.id, filter, ["unclear"], keys, instrument.method), registers.missing(ws, instrument.id, filter, keys, instrument.method)]);
   const label = (code: string | null) => (code ? (labelFor(instrument.method, instrument.scaleLabels, code) ?? code) : "");
   const who: Column[] = [{ key: "respondent", label: REGISTERS_COPY.respondent }, ...(role ? [{ key: "field.role", label: role.label }] : [])];

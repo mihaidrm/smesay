@@ -5,6 +5,11 @@ Status: built
 Outcome: an instrument draft exists on the current set version with an intro and the fields
 respondents fill in, and the preview refuses to start until the mandatory ones are filled.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the respondent
+fields can only be dropdowns; a text or email field is refused on save with a message naming
+it (saveFields reads the level under the instrument row's lock). The fields still save once
+published. A personal invite carries no name or role into About you under those levels.
+
 ## Acceptance criteria
 1. Build (PM app board) opens an instrument draft on the latest set version, or on the one
    chosen in E3-6. Title defaults to the project name; intro is a textarea with "Write one or

@@ -22,6 +22,8 @@ import type { WorkspaceId } from "@/db/types";
 import type { ResultsFilter } from "@/lib/results-filter";
 import { exportTable } from "@/lib/export/files";
 import { perItem } from "@/lib/export/per-item";
+import { insights } from "@/db/queries/insights";
+import { resultsContext } from "@/lib/results-context";
 
 let sql: ReturnType<typeof postgres>;
 const userId = `results-${Date.now()}`;
@@ -380,7 +382,7 @@ describe("the Agreement tab's numbers", () => {
       }
       // E10-1: the Answers file added up per item equals the Items with totals file, cell by cell.
       const inst = (await instruments.get(wsC, instrumentC))!;
-      const ctxC = { fields: inst.respondentFields, perspectives: inst.perspectives };
+      const ctxC = { fields: inst.respondentFields, perspectives: inst.perspectives, anonymity: inst.anonymity };
       const files = await Promise.all([exportTable(wsC, inst, "answers", f, ctxC, false), exportTable(wsC, inst, "items", f, ctxC, false)]);
       for (const [k, [fromAnswers, fromItems]] of perItem(files[0], files[1])) expect(fromAnswers, k).toEqual(fromItems);
       // The item detail (E8-5) on the same rows.
@@ -713,5 +715,103 @@ describe("where groups disagree", () => {
 
   it("reads nothing of another workspace's instrument", async () => {
     expect(await gaps.byField(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, "role")).toEqual([]);
+  });
+});
+
+// Who sees whose answers (stories/E5-7, acceptance 4, 5 and 6): the sample's instrument set
+// to Names hidden after the fact (its Name field and personal invites still in the rows) shows
+// no name, no field, no submitted time and no reminders in any query, numbers every response
+// by its start across its links, lists no invitee who has not started, and still splits and
+// filters by the stored dropdown values. The counts behind the offered values read nothing of
+// another workspace.
+describe("Names hidden and Anonymous on Results", () => {
+  let wsH: WorkspaceId;
+  let instrumentH: string;
+  beforeAll(async () => {
+    const h = await createWorkspaceWithSample({ name: "Results H", slug: `results-h-${Date.now()}` }, userId);
+    made.push(h.id);
+    wsH = unsafeWorkspaceId(h.id);
+    instrumentH = await sampleInstrument(wsH);
+    await sql`update instrument set anonymity = 'hidden' where id = ${instrumentH}`;
+  }, 60_000);
+
+  it("names nobody, numbers every response by its start, and keeps no invitee who has not started", async () => {
+    const on = { ...NONE, includeUnsubmitted: true };
+    const order = (await sql`select id from response where workspace_id = ${wsH} and instrument_id = ${instrumentH} order by created_at, id`).map((r) => r.id as string);
+    const people = await tracker.people(wsH, instrumentH, on, ["name", "role"]);
+    expect(people).toHaveLength(order.length);
+    expect(people.every((p) => p.who === null && p.status !== "invited" && Object.keys(p.fields).length === 0 && p.submittedAt === null && p.reminders === null)).toBe(true);
+    expect(new Map(people.map((p) => [p.id, p.anon]))).toEqual(new Map(order.map((id, i) => [id, i + 1])));
+    expect(people.filter((p) => p.status === "submitted")).toHaveLength(5);
+    // A sort by a field, by the submitted time, by the source or by the reminders falls to the
+    // respondent column, by number, in the direction asked.
+    const byNumberDesc = (await tracker.people(wsH, instrumentH, { ...on, sort: { key: "name", dir: "desc" } }, [])).map((p) => p.anon);
+    expect(byNumberDesc).toEqual(people.map((p) => p.anon).reverse());
+    for (const key of ["field.role", "submitted", "source", "reminders"]) expect((await tracker.people(wsH, instrumentH, { ...on, sort: { key, dir: "desc" } }, ["role"])).map((p) => p.anon)).toEqual(byNumberDesc);
+    const n = (await results.numbers(wsH, instrumentH, on))!;
+    expect([n.invited, n.submitted, n.inProgress]).toEqual([6, 5, 1]);
+    const rows = await results.rows(wsH, instrumentH, on);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.who === null && r.anon !== null && Object.keys(r.fields).length === 0 && r.submittedAt === null)).toBe(true);
+    const signOffs = await results.signOffs(wsH, instrumentH, on);
+    expect(signOffs.map((s) => s.submittedAt)).toEqual([null, null, null, null, null]);
+    expect(signOffs.map((s) => s.anon)).toEqual([...signOffs.map((s) => s.anon)].sort((x, y) => x! - y!));
+    const pushed = await registers.answers(wsH, instrumentH, on, ["change", "disagree", "unclear"], ["role"], "moscow");
+    const missing = await registers.missing(wsH, instrumentH, on, ["role"], "moscow");
+    expect([...pushed, ...missing].every((r) => r.who === null && r.anon !== null && Object.keys(r.fields).length === 0)).toBe(true);
+    const item = (await sql`select it.id from item it join instrument ins on ins.item_set_id = it.item_set_id where ins.id = ${instrumentH} and it.source_ref = 'CL-04'`)[0].id as string;
+    const one = (await detail.item(wsH, instrumentH, item, on))!;
+    expect(one.rows.every((r) => !r.invited && r.who === null && r.anon !== null && Object.keys(r.fields).length === 0)).toBe(true);
+    // The text filter on the name finds nobody: there is no name to match.
+    expect(await tracker.people(wsH, instrumentH, { ...on, fields: { name: "Ioana" } }, [])).toEqual([]);
+    // The split and the gaps still read the stored values, aggregated.
+    const split = await agreement.byItem(wsH, instrumentH, on, "role");
+    expect(split.some((c) => c.group === "Sales")).toBe(true);
+    // The Actions tab's citations (E9-1) name nobody either.
+    const cited = await insights.listWithCitations(wsH, (await instruments.get(wsH, instrumentH))!.projectId);
+    expect(cited.length).toBeGreaterThan(0);
+    expect(cited.flatMap((a) => [...a.answers, ...a.missing]).every((c) => c.who === null && c.anon !== null)).toBe(true);
+  });
+
+  it("writes the CSVs without names, fields, times, sources, reminders or perspectives", async () => {
+    const inst = (await instruments.get(wsH, instrumentH))!;
+    const f = { ...NONE, includeUnsubmitted: true };
+    const ctxH = { fields: inst.respondentFields.filter((s) => s.type === "dropdown"), perspectives: inst.perspectives, anonymity: inst.anonymity };
+    const answers = await exportTable(wsH, inst, "answers", f, ctxH, false);
+    expect(answers.header).toEqual(["Respondent", "Reference", "Area", "Item", "Proposed value", "Proposed label", "Answer", "Their value", "Their label", "Reason or question", "Comment", "Since submitting"]);
+    expect(answers.rows.every((r) => /^Anonymous \d+$/.test(String(r[0])))).toBe(true);
+    const people = await exportTable(wsH, inst, "people", f, ctxH, false);
+    expect(people.header).toEqual(["Respondent", "Status", "Since submitting", "Answered", "Items seen", "Minutes to submit", "Answers with a reason or comment"]);
+    expect(people.rows).toHaveLength(6);
+    const missing = await exportTable(wsH, inst, "missing", f, ctxH, false);
+    expect(missing.header).toEqual(["Suggested item", "Suggested area", "Suggested value", "Suggested label", "Respondent", "Status", "Since submitting"]);
+    // The strip still adds up from the rows.
+    await reconcileStrip(wsH, instrumentH, f);
+    await reconcileStrip(wsH, instrumentH, NONE);
+  });
+
+  it("offers a dropdown value as a filter only with 3 counted respondents, and reads nothing of another workspace", async () => {
+    const counts = await results.fieldValueCounts(wsH, instrumentH, true);
+    expect(counts.filter((c) => c.key === "role")).toEqual([
+      { key: "role", value: "Engineering manager", n: 1 }, { key: "role", value: "Finance", n: 1 }, { key: "role", value: "HR", n: 1 },
+      { key: "role", value: "Office manager", n: 1 }, { key: "role", value: "Sales", n: 2 },
+    ]);
+    expect((await results.fieldValueCounts(wsH, instrumentH, false)).find((c) => c.key === "role" && c.value === "Office manager")).toBeUndefined();
+    expect(await results.fieldValueCounts(wsA, instrumentH, true)).toEqual([]);
+    expect(await results.fieldValueCounts(wsH, "not-a-uuid", true)).toEqual([]);
+    const inst = (await instruments.get(wsH, instrumentH))!;
+    const { ctx, filter } = await resultsContext(wsH, inst, { "f.role": "Sales", "f.name": "Ioana", unsubmitted: "1" }, null);
+    expect(ctx.fields.map((s) => s.key)).toEqual(["role"]);
+    expect(ctx.offered).toEqual({ role: [] });
+    expect(filter.fields).toEqual({});
+    // A third Sales respondent makes Sales a value the filter offers.
+    const [{ public_invite, item_set_id }] = await sql`select i.id as public_invite, ins.item_set_id from invite i join instrument ins on ins.id = i.instrument_id where ins.id = ${instrumentH} and i.kind = 'public'`;
+    await sql`insert into response (workspace_id, instrument_id, item_set_id, invite_id, device_token, fields) values (${wsH}, ${instrumentH}, ${item_set_id}, ${public_invite}, ${"d".repeat(32)}, '{"role": "Sales"}'::jsonb)`;
+    const again = await resultsContext(wsH, inst, { "f.role": "Sales", unsubmitted: "1" }, null);
+    expect(again.ctx.offered).toEqual({ role: ["Sales"] });
+    expect(again.filter.fields).toEqual({ role: ["Sales"] });
+    // Under Named the context is the instrument's, every option offered.
+    const named = await resultsContext(wsA, (await instruments.get(wsA, instrumentA))!, { "f.role": "HR", unsubmitted: "1" }, null);
+    expect([named.ctx.offered, named.filter.fields]).toEqual([undefined, { role: ["HR"] }]);
   });
 });

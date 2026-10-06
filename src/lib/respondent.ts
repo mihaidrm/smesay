@@ -143,7 +143,7 @@ export async function startResponse(token: string, cookies: RespondentCookies, b
   const { link } = open;
   const input = (body && typeof body === "object" && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
   const spec = link.instrument.respondentFields;
-  const fields = parseFieldValues(spec, input.fields, carriedFields(link.invite, spec));
+  const fields = parseFieldValues(spec, input.fields, carriedFields(link.invite, spec, link.instrument.anonymity));
   if ("error" in fields) return { status: 422, error: fields.error };
   const picks = parsePicks(link.instrument.perspectives, input.perspectives);
   if ("error" in picks) return { status: 422, error: picks.error };
@@ -291,7 +291,7 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   const { items: all, areas } = await itemsOf(link);
   const chapters = chaptersFor(areas, all, response.perspectives);
   const spec = link.instrument.respondentFields;
-  if (missingMandatory(spec, { ...response.fields, ...carriedFields(link.invite, spec) }).length > 0) return { status: 422, error: RESPONDENT_ERRORS.fieldsOpen };
+  if (missingMandatory(spec, { ...response.fields, ...carriedFields(link.invite, spec, link.instrument.anonymity) }).length > 0) return { status: 422, error: RESPONDENT_ERRORS.fieldsOpen };
   const closing = link.instrument.closing;
   const parsed = parseSubmitInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm, signOff: signOffFor(closing) });
   if ("error" in parsed) return { status: 422, error: parsed.error };

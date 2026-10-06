@@ -5,6 +5,12 @@ Status: built
 Outcome: each person gets their own link by email; the link resumes their response on any
 device and records answers under their name.
 
+Amended 2026-10-06 (E5-7, design note 100): under Anonymous the card holds "Anonymous
+validations use the public link only." in place of the form and the list, and the server
+refuses a send or a New link to the validation. Under Names hidden the card's line says
+Results show the answers without names; the invite email drops "recorded under your name" and
+says what About you says; the invite carries no name or role into the response.
+
 ## Acceptance criteria
 1. Share, Personal invites (PM app board): a box that takes one or more emails (comma, space
    or newline separated), optional name and role per row, Send. "[TEXT] is not an email

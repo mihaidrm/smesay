@@ -3,9 +3,11 @@
 // every deployment and writes nothing (decision 0031, item 13). The items are as a respondent
 // gets them (src/lib/respondent.ts itemsFor): the reader text as the title, the details text,
 // the proposed value as the scale's code. Each item's id is its reference: nothing is stored
-// under it. It keeps the default reason rule (when the answer differs; design note 98).
+// under it. It keeps the default reason rule (when the answer differs; design note 98) and
+// stays Named (stories/E5-7).
 import * as seed from "@/db/seed/sample";
 import type { AreaMeta, RespondentItem } from "@/lib/respondent-rules";
+import { DEFAULT_ANONYMITY } from "@/lib/anonymity";
 import { DEFAULT_REASON_RULE, proposedCode } from "@/lib/scoring";
 
 export const SAMPLE_PATH = "/sample";
@@ -25,7 +27,7 @@ export function sampleInstrument() {
   return {
     workspaceName: seed.workspace.name,
     accentHex: seed.workspace.accentHex,
-    instrument: { title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: [] as string[], method: instrument.method, labels: null, showProposed: instrument.showProposed, layout: instrument.layout, reasonRule: DEFAULT_REASON_RULE },
+    instrument: { title: instrument.title, intro: instrument.intro, fields: instrument.respondentFields, perspectives: [] as string[], method: instrument.method, labels: null, showProposed: instrument.showProposed, layout: instrument.layout, reasonRule: DEFAULT_REASON_RULE, anonymity: DEFAULT_ANONYMITY },
     closing: instrument.closing,
     items,
     areas,

@@ -8,6 +8,12 @@ honours, the tabs the prototype shows, and an empty state before the first answe
 Amended 2026-10-03 (design note 40; Mihai: the tallies at the top configurable, filter by
 department, by those who pushed back, by those who left comments; the pushed back split).
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous the filter bar
+holds the dropdown fields only, each with the values 3 counted respondents or more gave
+(resultsContext, src/lib/results-context.ts), with a line saying why the others are not
+offered; Submitted of invited counts the people who started, since no invitee who has not
+started is a row.
+
 ## Acceptance criteria
 1. Results (PM app board): the headline strip holds up to six tiles chosen by the PM from
    the catalogue below, six on by default; then the tabs Agreement, Different priority and

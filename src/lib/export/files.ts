@@ -6,12 +6,16 @@
 // scale's code with the instrument's label beside it (E5-2, acceptance 3). The sample's files
 // start with the watermark line, a filtered file with the filter in words (design note 40), a
 // file with the answers not submitted yet with a line saying so; with none of these the header
-// is the first line (RFC 4180, section 2.3).
+// is the first line (RFC 4180, section 2.3). Under Names hidden and Anonymous (stories/E5-7,
+// acceptance 5) every respondent is "Anonymous [N]" and the answers, people and missing files
+// have no field column, no Submitted at, no Source, no Reminders and no Perspectives; the
+// People file keeps Minutes to submit (a duration), so the median tile still adds up.
 import { items } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { agreement, registers, results, tracker } from "@/db/queries/results";
 import type { CsvFile, WorkspaceId } from "@/db/types";
 import { textFor, type ReaderFields } from "@/lib/item-text";
+import { namesShown } from "@/lib/anonymity";
 import { describeFilter, filterActive, KIND_LABELS, type FilterContext, type ResultsFilter, type ResultsKind } from "@/lib/results-filter";
 import { RESPONSES_COPY } from "@/lib/results-copy";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -29,7 +33,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
   if (sample) preamble.push([EXPORT_COPY.watermark]);
   if (filterActive(f)) preamble.push([EXPORT_COPY.filtered(describeFilter(f, ctx))]);
   if (f.includeUnsubmitted) preamble.push([EXPORT_COPY.withUnsubmitted]);
-  const fields = instrument.respondentFields;
+  const named = namesShown(instrument.anonymity);
+  const fields = named ? instrument.respondentFields : [];
+  // A column kept only under Named (E5-7).
+  const only = <T,>(cells: T[]): T[] => (named ? cells : []);
   const method = instrument.method;
   const label = (code: string | null) => (code === null ? "" : labelFor(method, instrument.scaleLabels, code) ?? "");
   const setItems = await items.forSet(ws, instrument.itemSetId);
@@ -42,12 +49,12 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const rows = await results.rows(ws, instrument.id, f);
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, C.submittedAt, C.sinceSubmit, C.source, C.perspectives],
+      header: [C.respondent, ...fields.map((s) => s.label), C.reference, C.area, C.item, C.proposedValue, C.proposedLabel, C.answer, C.theirValue, C.theirLabel, C.reasonOrQuestion, C.comment, ...only([C.submittedAt]), C.sinceSubmit, ...only([C.source, C.perspectives])],
       rows: rows.map((r) => {
         const it = byId.get(r.itemId);
         const p = it ? proposed(it) : null;
         return [name(r), ...fields.map((s) => r.fields[s.key] ?? ""), it?.sourceRef ?? "", it?.area ?? "", it ? text(it) : "", p ?? "", label(p),
-          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", isoUtc(r.submittedAt), since(r), EXPORT_COPY.sources[r.source], r.perspectives.join(", ")];
+          KIND_LABELS[r.kind as ResultsKind] ?? r.kind, r.value ?? "", label(r.value), r.reason ?? "", r.comment ?? "", ...only([isoUtc(r.submittedAt)]), since(r), ...only([EXPORT_COPY.sources[r.source], r.perspectives.join(", ")])];
       }),
     };
   }
@@ -72,10 +79,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const minutes = new Map((await results.people(ws, instrument.id, f)).map((p) => [p.id, p.minutesToSubmit]));
     return {
       preamble,
-      header: [C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit, C.answered, C.visible, C.submittedAt, C.minutes, C.source, C.reminders, C.withComment],
+      header: [C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit, C.answered, C.visible, ...only([C.submittedAt]), C.minutes, ...only([C.source, C.reminders]), C.withComment],
       rows: people.map((p) => {
         const m = minutes.get(p.id);
-        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible, isoUtc(p.submittedAt), m ?? "", EXPORT_COPY.sources[p.source], p.reminders ?? "", p.withComment];
+        return [name(p), ...keys.map((k) => p.fields[k] ?? ""), EXPORT_COPY.statuses[p.status], since(p), p.answered, p.visible, ...only([isoUtc(p.submittedAt)]), m ?? "", ...only<string | number>([EXPORT_COPY.sources[p.source], p.reminders ?? ""]), p.withComment];
       }),
     };
   }

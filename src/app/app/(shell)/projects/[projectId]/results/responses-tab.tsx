@@ -7,36 +7,44 @@
 // comment that count under the switch. Every column header sorts, ascending then descending,
 // with the sort in the URL (aria-sort on the sorted header only, "should only be added to a
 // single table or grid header at a time": developer.mozilla.org/docs/Web/Accessibility/ARIA/
-// Reference/Attributes/aria-sort). Copy: docs/copy/app.md, Results.
+// Reference/Attributes/aria-sort). Under Names hidden and Anonymous (stories/E5-7, acceptance
+// 4) the columns are Respondent (Anonymous [N]), Status, Progress and With a reason or
+// comment: no field, no submitted time, no source and no reminders, which Share's list could
+// match to a person; the query sends none of them (src/db/queries/results.ts). Copy:
+// docs/copy/app.md, Results.
 import Link from "next/link";
 import { FadeOnChange } from "@/components/app/fade-on-change";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import type { WorkspaceId } from "@/db/types";
 import { tracker, type PersonRow } from "@/db/queries/results";
 import { RESPONSES_COPY } from "@/lib/results-copy";
+import { namesShown } from "@/lib/anonymity";
 import { nextSort, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { formatUtc } from "@/lib/sharing";
 
 type Props = { ws: WorkspaceId; instrumentId: string; filter: ResultsFilter; ctx: FilterContext; href: (f: ResultsFilter) => string };
 
 export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Props) {
-  const fields = ctx.fields.filter((f) => f.key !== "name");
-  const rows = await tracker.people(ws, instrumentId, filter, ctx.fields.map((f) => f.key));
+  const named = namesShown(ctx.anonymity);
+  const fields = named ? ctx.fields.filter((f) => f.key !== "name") : [];
+  const rows = await tracker.people(ws, instrumentId, filter, named ? ctx.fields.map((f) => f.key) : []);
   const columns: { key: string; label: string }[] = [
-    { key: "name", label: RESPONSES_COPY.name },
+    { key: "name", label: named ? RESPONSES_COPY.name : RESPONSES_COPY.respondent },
     ...fields.map((f) => ({ key: `field.${f.key}`, label: f.label })),
     { key: "status", label: RESPONSES_COPY.status },
     { key: "progress", label: RESPONSES_COPY.progress },
-    { key: "submitted", label: RESPONSES_COPY.submitted },
-    { key: "source", label: RESPONSES_COPY.source },
-    { key: "reminders", label: RESPONSES_COPY.reminders },
+    ...(named ? [
+      { key: "submitted", label: RESPONSES_COPY.submitted },
+      { key: "source", label: RESPONSES_COPY.source },
+      { key: "reminders", label: RESPONSES_COPY.reminders },
+    ] : []),
     { key: "comments", label: RESPONSES_COPY.withComment },
   ];
   // The header marked is the column the query sorted by: an unknown key sorts by name.
   const sort = filter.sort && columns.some((c) => c.key === filter.sort!.key) ? filter.sort : { key: "name", dir: "asc" as const };
   return (
     <div className="card overflow-x-auto p-0" data-testid="responses-tab">
-      <table className="w-full min-w-[880px] text-left text-sm">
+      <table className={named ? "w-full min-w-[880px] text-left text-sm" : "w-full text-left text-sm"}>
         <caption className="sr-only">{RESPONSES_COPY.caption(rows.length)}</caption>
         <thead>
           <tr>
@@ -60,9 +68,9 @@ export async function ResponsesTab({ ws, instrumentId, filter, ctx, href }: Prop
               {fields.map((f) => <td key={f.key} className="px-4 whitespace-nowrap">{p.fields[f.key] ?? ""}</td>)}
               <td className="px-4 whitespace-nowrap"><FadeOnChange value={`${p.status} ${p.changedSince} ${p.submittedAgain}`} className="inline-flex rounded-md"><Status p={p} /></FadeOnChange></td>
               <td className="px-4 font-mono whitespace-nowrap"><FadeOnChange value={`${p.answered} ${p.visible}`} className="inline-block rounded-md">{RESPONSES_COPY.progressOf(p.answered, p.visible)}</FadeOnChange></td>
-              <td className="px-4 whitespace-nowrap" data-testid="submitted-cell">{p.submittedAt ? formatUtc(p.submittedAt) : RESPONSES_COPY.notYet}</td>
-              <td className="px-4 whitespace-nowrap">{p.source === "public" ? RESPONSES_COPY.publicLink : RESPONSES_COPY.personalInvite}</td>
-              <td className="px-4 font-mono">{p.reminders ?? RESPONSES_COPY.none}</td>
+              {named && <td className="px-4 whitespace-nowrap" data-testid="submitted-cell">{p.submittedAt ? formatUtc(p.submittedAt) : RESPONSES_COPY.notYet}</td>}
+              {named && <td className="px-4 whitespace-nowrap">{p.source === "public" ? RESPONSES_COPY.publicLink : RESPONSES_COPY.personalInvite}</td>}
+              {named && <td className="px-4 font-mono">{p.reminders ?? RESPONSES_COPY.none}</td>}
               <td className="px-4 font-mono">{p.withComment}</td>
             </tr>
           ))}

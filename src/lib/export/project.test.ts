@@ -124,6 +124,45 @@ describe("importProject", () => {
     expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, reasonRule: "sometimes" })) }))).toEqual({ error: E.damaged("instruments.0.reasonRule") });
   });
 
+  // E5-7, acceptance 5: a validation set to Names hidden goes out with no invite id and no
+  // fields on its responses, comes back with the level and its responses on the public
+  // invite, and counts the same; a file written before the level existed reads Named; a
+  // response with no invite on a Named validation, or a text field under Names hidden, is a
+  // damaged file.
+  it("keeps who sees whose answers on a round trip, and the file ties no response to a personal invite", async () => {
+    const file = await exportProject(a, sampleId);
+    expect(file.instruments.map((i) => i.anonymity)).toEqual(file.instruments.map(() => "named"));
+    const asPm = { ...file, sample: false, note: null };
+    const hiddenFile = { ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "hidden" as const, respondentFields: i.respondentFields.filter((f) => f.type === "dropdown") })) };
+    expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "hidden" })) }))).toEqual({ error: E.damaged("a validation's fields") });
+    const hidden = await importProject(b, JSON.stringify(hiddenFile));
+    if (!("projectId" in hidden)) throw new Error(hidden.error);
+    const first = (await instruments.latestForProject(b.ws, hidden.projectId))!;
+    expect(first.anonymity).toBe("hidden");
+    const out = await exportProject(b, hidden.projectId);
+    expect(out.instruments.map((i) => i.anonymity)).toEqual(["hidden"]);
+    expect(out.responses.length).toBe(expected.responses);
+    expect(out.responses.every((r) => r.inviteId === null && Object.keys(r.fields).length === 0)).toBe(true);
+    const back = await importProject(b, JSON.stringify(out));
+    if (!("projectId" in back)) throw new Error(back.error);
+    const second = (await instruments.latestForProject(b.ws, back.projectId))!;
+    expect(second.anonymity).toBe("hidden");
+    const publicInvite = (await invites.list(b.ws)).find((v) => v.instrumentId === second.id && v.kind === "public")!;
+    const responsesBack = (await responsesQ.list(b.ws)).filter((r) => r.instrumentId === second.id);
+    expect(responsesBack.length).toBe(expected.responses);
+    expect(responsesBack.every((r) => r.inviteId === publicInvite.id)).toBe(true);
+    for (const f of [NONE, { ...NONE, includeUnsubmitted: true }]) {
+      const before = (await results.numbers(b.ws, first.id, f))!;
+      const after = (await results.numbers(b.ws, second.id, f))!;
+      expect({ ...after, actions: 0 }).toEqual({ ...before, actions: 0 });
+    }
+    const older = await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map(({ anonymity: _dropped, ...i }) => (void _dropped, i)) }));
+    if (!("projectId" in older)) throw new Error(older.error);
+    expect((await instruments.latestForProject(b.ws, older.projectId))?.anonymity).toBe("named");
+    expect(await importProject(b, JSON.stringify({ ...asPm, responses: asPm.responses.map((r, i) => (i === 0 ? { ...r, inviteId: null } : r)) }))).toEqual({ error: E.damaged("a response's validation, list or invite") });
+    expect(await importProject(b, JSON.stringify({ ...asPm, instruments: asPm.instruments.map((i) => ({ ...i, anonymity: "secret" })) }))).toEqual({ error: E.damaged("instruments.0.anonymity") });
+  });
+
   it("refuses what is not a project file of this version, a damaged file and the sample's, and writes nothing", async () => {
     const file = await exportProject(a, sampleId);
     const pm = { ...file, sample: false, note: null };

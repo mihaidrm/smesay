@@ -78,6 +78,16 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   plausible.io/data-policy) and the question of consent is the lawyer's.
 - L18 Rights: one month, extendable by two (Art. 12(3), gdpr-info.eu/art-12-gdpr). ANSPDCP's
   name, address and email from dataprotection.ro (contact page).
+- L43 Names hidden and Anonymous (stories/E5-7, added 2026-10-06): what each level hides and
+  what it does not. Under Names hidden the database keeps the link from an answer to its
+  invite (for reminders and the sharing page), so the answers stay personal data:
+  pseudonymised data "which could be attributed to a natural person by the use of additional
+  information should be considered to be information on an identifiable natural person"
+  (GDPR Recital 26, gdpr-info.eu/recitals/no-26). Under Anonymous no name or email is asked,
+  but the device cookie, the save times and free text remain, so the data may still not be
+  anonymous in Recital 26's sense; "anonymous" is the product's word for what the team sees.
+  Proposal: as written. Judgement: whether About you's "Your answers are anonymous" needs a
+  qualifier, and whether the DPA should say the customer, not Alerty, decides the level.
 
 ## Terms of service
 

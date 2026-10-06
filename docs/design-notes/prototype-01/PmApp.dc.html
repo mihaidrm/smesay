@@ -302,6 +302,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </sc-for>
 </div>
 </div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-weight: 500">Who sees whose answers</div>
+<div style="font-size: 13px; color: #5B6069">Pick how far respondents are identified. They read your choice on About you, above the fields.</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{anonymityLevels}}" as="an" hint-placeholder-count="3">
+<button type="button" onClick="{{an.pick}}" aria-pressed="{{an.active}}" style="text-align: left; padding: 12px 14px; border: 1px solid {{an.bd}}; border-radius: 6px; background: {{an.bg}}; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 500">{{an.label}}</span>
+<span style="font-size: 13px; color: #5B6069">{{an.hint}}</span>
+</button>
+</sc-for>
+</div>
+</div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
 <div style="border: 1px solid #E3E1DC; border-radius: 6px">
 <div style="padding: 10px 16px; border-bottom: 1px solid #E3E1DC; font-weight: 500">Respondent fields</div>
@@ -800,6 +814,7 @@ flagOpen: true,
 method: 'moscow',
 showProposed: true,
 reasonRule: 'differs',
+anonymity: 'named',
 layout: 'area',
 link: 'draft',
 reminded: {},
@@ -915,6 +930,16 @@ const reasonRules = [
 const active = s.reasonRule === x[0];
 const st = active ? selOn : selOff;
 return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ reasonRule: x[0] }) };
+});
+// Who sees whose answers (stories/E5-7, design note 100), above the Respondent fields.
+const anonymityLevels = [
+['named', 'Named', "Results show each person's name and fields. The default."],
+['hidden', 'Names hidden', 'Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, the finishing times on Share can still point to someone.'],
+['anonymous', 'Anonymous', 'The public link only: no personal invites, and no name or email fields.']
+].map((x) => {
+const active = s.anonymity === x[0];
+const st = active ? selOn : selOff;
+return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: () => this.setState({ anonymity: x[0] }) };
 });
 const layouts = [['area', 'Chapters: one area per screen, compact cards'], ['item', 'One item per screen'], ['page', 'Single long page']].map((x) => {
 const active = s.layout === x[0];
@@ -1138,7 +1163,7 @@ areas: areas,
 shapeCount: acceptedCount + ' of ' + d.items.length + ' reader versions accepted.',
 acceptAll: setAll('accepted'), rejectAll: setAll('rejected'),
 flagOpen: s.flagOpen, dismissFlag: () => this.setState({ flagOpen: false }),
-methods: methods, reasonRules: reasonRules, layouts: layouts,
+methods: methods, reasonRules: reasonRules, anonymityLevels: anonymityLevels, layouts: layouts,
 showProposed: s.showProposed,
 showPill: s.showProposed && s.method === 'moscow',
 toggleProposed: () => this.setState({ showProposed: !s.showProposed }),

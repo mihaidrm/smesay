@@ -7,7 +7,10 @@
 // checks a file (its format, its version, then every field with zod: zod.dev/api) and
 // recreates it under the current workspace with new ids and tokens and the public link revoked
 // (writeProject). A newer version is refused with its number; version 1 is the only one so
-// far, so there is nothing older to migrate. The sample's file is refused: its invented data
+// far, so there is nothing older to migrate. A response of a validation set to Names hidden
+// or Anonymous (stories/E5-7, acceptance 5) is written with no invite id and no fields, so
+// the file cannot tie it to a personal invite; the import puts it on its validation's public
+// invite. The sample's file is refused: its invented data
 // would show without the watermark (CLAUDE.md, dashboard).
 import { z } from "zod";
 import { projectTransfer } from "@/db/queries";
@@ -19,6 +22,7 @@ import { roomInPlan, withinPlan } from "@/lib/plans";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
 import { DEFAULT_REASON_RULE } from "@/lib/scoring";
+import { DEFAULT_ANONYMITY, fieldsBlocking, namesShown } from "@/lib/anonymity";
 import { FIELDS_MAX, OPTIONS_MAX, OPTIONS_MIN } from "@/lib/respondent-fields";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
@@ -38,6 +42,7 @@ export const FILE_ENUMS = {
   method: ["moscow", "fit", "kcd"],
   layout: ["chapters", "item", "page"],
   reasonRule: ["differs", "never", "always"],
+  anonymity: ["named", "hidden", "anonymous"],
   inviteKind: ["public", "personal"],
   answerKind: ["agree", "change", "disagree", "unclear", "pick"],
   insightKind: ["rewrite", "conflict", "followUp", "coverage"],
@@ -95,6 +100,8 @@ const ProjectFile = z.strictObject({
     id, itemSetId: id, title: text(200).refine((s) => s.trim() !== ""), intro: text(5000).nullable(), method: z.enum(FILE_ENUMS.method), showProposed: z.boolean(), layout: z.enum(FILE_ENUMS.layout),
     // From 2026-10-05 (design note 98): a file written before has none and reads the default.
     reasonRule: z.enum(FILE_ENUMS.reasonRule).optional(),
+    // From 2026-10-06 (E5-7): a file written before has none and reads Named.
+    anonymity: z.enum(FILE_ENUMS.anonymity).optional(),
     respondentFields, scaleLabels, perspectives: z.array(text(100)), closing, publishedAt: date.nullable(), createdAt: date,
   })).max(100),
   invites: z.array(z.strictObject({
@@ -102,7 +109,8 @@ const ProjectFile = z.strictObject({
     opensAt: date.nullable(), closesAt: date.nullable(), hadPasscode: z.boolean(), revokedAt: date.nullable(), remindersSent: count, lastReminderAt: date.nullable(), sentAt: date.nullable(), createdAt: date,
   })),
   responses: z.array(z.strictObject({
-    id, instrumentId: id, itemSetId: id, inviteId: id, fields: z.record(z.string(), text(500)), perspectives: z.array(text(100)), confidence: z.number().int().min(1).max(5).nullable(),
+    // Null for a response of a validation that hides names (E5-7).
+    id, instrumentId: id, itemSetId: id, inviteId: id.nullable(), fields: z.record(z.string(), text(500)), perspectives: z.array(text(100)), confidence: z.number().int().min(1).max(5).nullable(),
     signedOff: z.boolean(), submittedAt: date.nullable(), firstSubmittedAt: date.nullable(), closingAnswer: text(5000).nullable(), signOffText: text(1000).nullable(), createdAt: date, updatedAt: date,
     answers: z.array(z.strictObject({ id, itemId: id, kind: z.enum(FILE_ENUMS.answerKind), value: text(50).nullable(), reason: text(5000).nullable(), comment: text(5000).nullable(), updatedAt: date })),
   })),
@@ -117,6 +125,7 @@ export type ProjectExport = z.infer<typeof ProjectFile>;
 const iso = (d: Date | null) => (d === null ? null : d.toISOString());
 
 export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
+  const hides = new Set(rows.instruments.filter((i) => !namesShown(i.anonymity)).map((i) => i.id));
   const answersOf = new Map<string, TransferRows["answers"]>();
   for (const a of rows.answers) answersOf.set(a.responseId, [...(answersOf.get(a.responseId) ?? []), a]);
   return {
@@ -128,10 +137,10 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
       areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: iso(s.shapedAt), contextUsed: s.contextUsed,
       items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, flags: it.flags, perspectives: it.perspectives })),
     })),
-    instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, reasonRule: i.reasonRule, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
+    instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, reasonRule: i.reasonRule, anonymity: i.anonymity, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
     invites: rows.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),
     responses: rows.responses.map((r) => ({
-      id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
+      id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: hides.has(r.instrumentId) ? null : r.inviteId, fields: hides.has(r.instrumentId) ? {} : r.fields, perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff,
       submittedAt: iso(r.submittedAt), firstSubmittedAt: iso(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString(),
       answers: (answersOf.get(r.id) ?? []).map((a) => ({ id: a.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: a.updatedAt.toISOString() })),
     })),
@@ -163,8 +172,14 @@ function missingReference(f: ProjectExport): string | null {
   const all = [...sets, ...items, ...instruments, ...invites, ...responses, ...answers, ...missing];
   if (new Set(all).size !== all.length) return "an id that appears twice";
   if (f.instruments.some((i) => !sets.has(i.itemSetId))) return "a validation's list";
+  // E5-7: a validation that hides names has dropdown fields only.
+  if (f.instruments.some((i) => fieldsBlocking(i.respondentFields, i.anonymity ?? DEFAULT_ANONYMITY).length > 0)) return "a validation's fields";
   if (f.invites.some((v) => !instruments.has(v.instrumentId))) return "an invite's validation";
-  if (f.responses.some((r) => !instruments.has(r.instrumentId) || !sets.has(r.itemSetId) || !invites.has(r.inviteId))) return "a response's validation, list or invite";
+  // A response with no invite (E5-7) only on a validation that hides names, which then needs
+  // a public invite to carry it.
+  const hiding = new Set(f.instruments.filter((i) => !namesShown(i.anonymity ?? DEFAULT_ANONYMITY)).map((i) => i.id));
+  const publicOf = new Set(f.invites.filter((v) => v.kind === "public").map((v) => v.instrumentId));
+  if (f.responses.some((r) => !instruments.has(r.instrumentId) || !sets.has(r.itemSetId) || (r.inviteId === null ? !hiding.has(r.instrumentId) || !publicOf.has(r.instrumentId) : !invites.has(r.inviteId)))) return "a response's validation, list or invite";
   if (f.responses.some((r) => r.answers.some((a) => !items.has(a.itemId)))) return "an answer's item";
   if (f.missingItems.some((m) => !responses.has(m.responseId))) return "a missing item's response";
   if (f.insights.some((s) => s.citedAnswerIds.some((x) => !answers.has(x)) || s.citedMissingItemIds.some((x) => !missing.has(x)))) return "an action's citation";
@@ -180,7 +195,7 @@ function missingReference(f: ProjectExport): string | null {
   if (f.responses.some((r) => setOfInstrument.get(r.instrumentId) !== r.itemSetId)) return "a response's list";
   // response_invite_instrument_fk: a response came by an invite of its own instrument.
   const instrumentOfInvite = new Map(f.invites.map((v) => [v.id, v.instrumentId]));
-  if (f.responses.some((r) => instrumentOfInvite.get(r.inviteId) !== r.instrumentId)) return "a response's invite";
+  if (f.responses.some((r) => r.inviteId !== null && instrumentOfInvite.get(r.inviteId) !== r.instrumentId)) return "a response's invite";
   // A submitted response has its first Submit (the plan counts by it).
   if (f.responses.some((r) => r.submittedAt !== null && r.firstSubmittedAt === null)) return "a response's dates";
   if (f.responses.some((r) => r.answers.some((a) => setOfItem.get(a.itemId) !== r.itemSetId) || new Set(r.answers.map((a) => a.itemId)).size !== r.answers.length)) return "an answer's item";
@@ -221,14 +236,17 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
   if (room !== null && thisMonth > room) return { error: E.responsesFull(thisMonth, room) };
   // A response keeps only the fields its instrument asks for (CLAUDE.md, respondent side).
   const keysOf = new Map(f.instruments.map((i) => [i.id, new Set(i.respondentFields.map((s) => s.key))]));
+  // A response with no invite (E5-7) goes on its validation's public invite, the first in the file.
+  const publicInvite = new Map<string, string>();
+  for (const v of f.invites) if (v.kind === "public" && !publicInvite.has(v.instrumentId)) publicInvite.set(v.instrumentId, v.id);
   const fieldsOf = (r: ProjectExport["responses"][number]) => Object.fromEntries(Object.entries(r.fields).filter(([k]) => keysOf.get(r.instrumentId)?.has(k)));
   const input: TransferInput = {
     project: { name: name.data, contextGoal: f.project.contextGoal, contextTerms: f.project.contextTerms },
     itemSets: f.itemSets.map((s) => ({ id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport as TransferInput["itemSets"][number]["importReport"], importedAt: new Date(s.importedAt), areas: s.areas as TransferInput["itemSets"][number]["areas"], shapeRuns: s.shapeRuns, shapedAt: D(s.shapedAt), contextUsed: s.contextUsed as TransferInput["itemSets"][number]["contextUsed"] })),
     items: f.itemSets.flatMap((s) => s.items.map((it) => ({ ...it, itemSetId: s.id, flags: it.flags as TransferInput["items"][number]["flags"] }))),
-    instruments: f.instruments.map((i) => ({ ...i, reasonRule: i.reasonRule ?? DEFAULT_REASON_RULE, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),
+    instruments: f.instruments.map((i) => ({ ...i, reasonRule: i.reasonRule ?? DEFAULT_REASON_RULE, anonymity: i.anonymity ?? DEFAULT_ANONYMITY, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),
     invites: f.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: D(v.opensAt), closesAt: D(v.closesAt), revokedAt: D(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: D(v.lastReminderAt), sentAt: D(v.sentAt), createdAt: new Date(v.createdAt) })),
-    responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: fieldsOf(r), perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
+    responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId ?? publicInvite.get(r.instrumentId)!, fields: fieldsOf(r), perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
     answers: f.responses.flatMap((r) => r.answers.map((a) => ({ id: a.id, responseId: r.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: new Date(a.updatedAt) }))),
     missingItems: f.missingItems.map((m) => ({ ...m, createdAt: new Date(m.createdAt) })),
     insights: f.insights.map((s) => ({ kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds, citedMissingItemIds: s.citedMissingItemIds, state: s.state, closedAt: D(s.closedAt), model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: new Date(s.createdAt) })),

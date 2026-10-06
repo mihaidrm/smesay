@@ -1,8 +1,9 @@
 // Build (stories/E5-1 and E5-2; the PM app board, Build): the title and the version line,
 // "Build on version N" when a newer set exists (owed from E3-6), the Intro card, the Scoring
 // card (method, show proposed, labels, locked once published; the layout, E5-3), the
-// Perspectives card (E5-4; items are tagged on Shape), the Closing card (E5-5) and the
-// Respondent fields card, and on the right the preview (with-preview.tsx, E5-6): the real
+// Perspectives card (E5-4; items are tagged on Shape), the Closing card (E5-5), the "Who
+// sees whose answers" card (E5-7, above the fields card whose rule it sets; design note 100)
+// and the Respondent fields card, and on the right the preview (with-preview.tsx, E5-6): the real
 // respondent app for the draft, ringing the rating row, the chapter row, About you's fields
 // and the Wrap up's closing part. Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
@@ -15,8 +16,10 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { fieldSummary } from "@/lib/respondent-fields";
+import { labelOf } from "@/lib/anonymity";
 import { labelFor, LAYOUTS_META, METHODS, REASON_RULES_META, scaleFor } from "@/lib/scoring";
 import { BuildOn } from "./build-on";
+import { AnonymityForm } from "./anonymity-form";
 import { ClosingForm } from "./closing-form";
 import { FieldsForm } from "./fields-form";
 import { IntroForm } from "./intro-form";
@@ -114,6 +117,17 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
               </ul>
             ) : (
               <ClosingForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} closing={instrument.closing} locked={locked} />
+            )}
+          </section>
+          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-anonymity-title" data-testid="anonymity-card">
+            <div className="flex flex-col gap-0.5">
+              <h3 id="build-anonymity-title" className="text-[15px] font-bold">{BUILD_COPY.anonymityCard}</h3>
+              <p className="text-[13px] text-ink-muted">{BUILD_COPY.anonymityLine}</p>
+            </div>
+            {readOnly ? (
+              <p className="text-sm text-ink-muted" data-testid="anonymity-list">{labelOf(instrument.anonymity)}. {BUILD_COPY.sample}</p>
+            ) : (
+              <AnonymityForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} anonymity={instrument.anonymity} locked={locked} />
             )}
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-fields-title">

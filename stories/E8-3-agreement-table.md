@@ -15,6 +15,10 @@ direct labels are its counts in words under it, since no number in a status colo
 contrast; the percentage is summed into areas and groups in the model with the SQL's rule,
 tested to agree.
 
+Amended 2026-10-06 (E5-7, design note 100): under Names hidden and Anonymous a split sums
+the values fewer than 3 counted respondents gave into one group, "Groups under 3 people"
+(foldSmallGroups in src/lib/results-agreement.ts); the gaps view keeps its rule.
+
 ## Acceptance criteria
 1. Agreement tab (PM app board): areas in order, each with its items: reference, text,
    proposed value, the answers, the counts, and the agreement percentage; an area row with
