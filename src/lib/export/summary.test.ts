@@ -70,7 +70,7 @@ describe("summaryView", () => {
   it("lists the sign-offs with their confidence, and the actions open first", async () => {
     const v = (await summaryView(input(NONE)))!;
     expect(v.signOffs).toHaveLength(expected.submitted);
-    expect(v.confidence.reduce((a, b) => a + b, 0)).toBe(v.signOffs.filter((s) => s.confidence !== SUMMARY_COPY.noConfidence).length);
+    expect(v.confidence!.reduce((a, b) => a + b, 0)).toBe(v.signOffs.filter((s) => s.confidence !== SUMMARY_COPY.noConfidence).length);
     expect(v.actions).toHaveLength(expected.insights);
     const states = v.actions.map((a) => (a.state === "Open" ? 0 : a.state.startsWith("Done") ? 1 : 2));
     expect(states).toEqual([...states].sort());
@@ -102,7 +102,9 @@ describe("summaryView", () => {
     // Sales: 2 submitted people. The headline numbers, the areas and the items are not drawn;
     // the registers follow no field filter and say so.
     const sales = await view("anonymous", { ...NONE, fields: { role: ["Sales"] } });
-    expect([sales.tiles, sales.areas, sales.tables, sales.confidence]).toEqual([[], [], [], [0, 0, 0, 0, 0]]);
+    // Decision 0058 (N3): no confidence chart either.
+    expect([sales.tiles, sales.areas, sales.tables, sales.confidence]).toEqual([[], [], [], null]);
+    expect(summaryHtml(sales)).not.toContain(SUMMARY_COPY.confidence);
     expect(sales.lines).toEqual(["Filtered: Role: Sales", RESULTS_COPY.personLevel, RESULTS_COPY.tooFew]);
     expect(sales.registers.map((r) => r.total)).toEqual(anonymous.registers.map((r) => r.total));
     expect(sales.signOffs).toEqual(anonymous.signOffs);

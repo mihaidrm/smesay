@@ -934,8 +934,8 @@ return { label: x[1], hint: x[2], active: active, bg: st.bg, bd: st.bd, pick: ()
 // Who sees whose answers (stories/E5-7, design note 100), above the Respondent fields.
 const anonymityLevels = [
 ['named', 'Named', "Results show each person's name and fields. The default."],
-['hidden', 'Names hidden', 'Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, the finishing times on Share can still point to someone. Do not ask for a name in a dropdown or in the closing question.'],
-['anonymous', 'Anonymous', 'The public link only: no personal invites, and no name or email fields. Do not ask for a name in a dropdown or in the closing question.']
+['hidden', 'Names hidden', 'Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, comparing filtered views or the times on Share can still point to someone. Do not ask for a name in a dropdown or in the closing question.'],
+['anonymous', 'Anonymous', 'The public link only: no personal invites, and no name or email fields. With few people, comparing filtered views can still point to someone. Do not ask for a name in a dropdown or in the closing question.']
 ].map((x) => {
 const active = s.anonymity === x[0];
 const st = active ? selOn : selOff;

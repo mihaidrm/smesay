@@ -112,6 +112,11 @@ test("set Anonymous on Build, answer through the public link, see Anonymous 1 on
   // A field filter changes the charts only: the tab still lists all four, and says why.
   await page.getByTestId("filter-role").click();
   await expect(page).toHaveURL(/f\.role=Sales/);
-  await expect(page.getByTestId("person-level-line")).toHaveText("Filters by a field or perspective change the charts only, so no list can be narrowed to a few people.");
+  await expect(page.getByTestId("person-level-line")).toHaveText("Filters by a field or perspective change the charts only, and lists of people stay whole. Comparing a group's figures with the lists can still point to someone in a small group.");
   await expect(rows).toHaveCount(4);
+  // Decision 0058 (N1): a filter that keeps fewer than 3 people says so in place of "Showing 0 of 4".
+  await page.getByTestId("filter-kind-unclear").click();
+  await expect(page).toHaveURL(/kind=unclear/);
+  await expect(page.getByTestId("too-few")).toHaveText("Fewer than 3 people match these filters. Widen them to see the results.");
+  await expect(page.getByTestId("showing-line")).toHaveCount(0);
 });

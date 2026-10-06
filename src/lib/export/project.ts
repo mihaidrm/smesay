@@ -16,8 +16,12 @@
 // none, and no personal invite of the validation is written, so the imported project carries
 // the public link only and no reminder can reach a person who already answered. The import
 // refuses a personal invite on such a validation, and a response whose fields are not its
-// dropdowns' values, as a damaged file. The sample's file is refused: its invented data
-// would show without the watermark (CLAUDE.md, dashboard).
+// dropdowns' values, as a damaged file. Decision 0058: under those levels the responses go in
+// the fixed order of their "Anonymous [N]" numbers, under Names hidden only the submitted ones,
+// and no answer on an item fewer than MIN_GROUP of them could see (hiddenSelection). The
+// sample's file is refused: its invented data would show without the watermark (CLAUDE.md,
+// dashboard).
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { projectTransfer } from "@/db/queries";
 import type { TransferInput, TransferRows } from "@/db/queries/projectTransfer";
@@ -30,6 +34,7 @@ import { CLOSING_QUESTION_MAX, SIGN_OFF_MAX } from "@/lib/closing";
 import { DEFAULT_REASON_RULE } from "@/lib/scoring";
 import { DEFAULT_ANONYMITY, fieldsBlocking, namesShown } from "@/lib/anonymity";
 import { FIELDS_MAX, OPTIONS_MAX, OPTIONS_MIN } from "@/lib/respondent-fields";
+import { MIN_GROUP } from "@/lib/results-agreement";
 import { workspaceNameSchema } from "@/lib/workspace-name";
 import { EXPORT_COPY } from "./copy";
 import { log } from "@/lib/log";
@@ -130,8 +135,46 @@ export type ProjectExport = z.infer<typeof ProjectFile>;
 
 const iso = (d: Date | null) => (d === null ? null : d.toISOString());
 
-export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
-  const hides = new Set(rows.instruments.filter((i) => !namesShown(i.anonymity)).map((i) => i.id));
+// The fixed order of the "Anonymous [N]" numbers (src/db/queries/results.ts head): md5 of the
+// response id and the instrument id as text, compared byte by byte, as the SQL compares it under
+// the "C" collation. createHash and digest("hex"): nodejs.org/api/crypto.html#cryptocreatehashalgorithm-options.
+const fixedKey = (r: { id: string; instrumentId: string }) => createHash("md5").update(r.id + r.instrumentId).digest("hex");
+
+// Decision 0058: under Names hidden and Anonymous the responses written are, per validation,
+// in the fixed order of their numbers (not their start, which Share shows); under Names hidden
+// only the submitted ones (Share names who has finished, so a response not submitted would say
+// who has not); and no answer on an item fewer than MIN_GROUP of the responses written could
+// see (its perspectives), as on Results. A missing item follows its response, and an action
+// keeps the citations still in the file (one left with none is not written: its words could
+// quote an answer left out).
+function hiddenSelection(rows: TransferRows, hides: Set<string>) {
+  const written = rows.responses.filter((r) => !hides.has(r.instrumentId) || rows.instruments.find((i) => i.id === r.instrumentId)?.anonymity !== "hidden" || r.submittedAt !== null);
+  const sees = (itemPerspectives: string[], r: { perspectives: string[] }) => itemPerspectives.length === 0 || itemPerspectives.some((p) => r.perspectives.includes(p));
+  const setOf = new Map(rows.instruments.map((i) => [i.id, i.itemSetId]));
+  const few = new Set<string>();
+  for (const id of hides) {
+    const mine = written.filter((r) => r.instrumentId === id);
+    for (const it of rows.items.filter((x) => x.itemSetId === setOf.get(id))) if (mine.filter((r) => sees(it.perspectives, r)).length < MIN_GROUP) few.add(`${id} ${it.id}`);
+  }
+  const responseIds = new Set(written.map((r) => r.id));
+  const instrumentOf = new Map(written.map((r) => [r.id, r.instrumentId]));
+  const answers = rows.answers.filter((a) => responseIds.has(a.responseId) && !few.has(`${instrumentOf.get(a.responseId)} ${a.itemId}`));
+  const answerIds = new Set(answers.map((a) => a.id));
+  const missingItems = rows.missingItems.filter((m) => responseIds.has(m.responseId));
+  const missingIds = new Set(missingItems.map((m) => m.id));
+  const insights = rows.insights.flatMap((s) => {
+    const cited = { citedAnswerIds: s.citedAnswerIds.filter((x) => answerIds.has(x)), citedMissingItemIds: s.citedMissingItemIds.filter((x) => missingIds.has(x)) };
+    const had = s.citedAnswerIds.length + s.citedMissingItemIds.length;
+    return had > 0 && cited.citedAnswerIds.length + cited.citedMissingItemIds.length === 0 ? [] : [{ ...s, ...cited }];
+  });
+  const keyed = written.map((r) => ({ r, key: hides.has(r.instrumentId) ? fixedKey(r) : "" }));
+  const ordered = [...keyed.filter((x) => !hides.has(x.r.instrumentId)), ...[...hides].flatMap((id) => keyed.filter((x) => x.r.instrumentId === id).sort((p, q) => (p.key < q.key ? -1 : p.key > q.key ? 1 : 0)))].map((x) => x.r);
+  return { responses: ordered, answers, missingItems, insights };
+}
+
+export function toFile(all: TransferRows, now = new Date()): ProjectExport {
+  const hides = new Set(all.instruments.filter((i) => !namesShown(i.anonymity)).map((i) => i.id));
+  const rows: TransferRows = { ...all, ...hiddenSelection(all, hides) };
   const answersOf = new Map<string, TransferRows["answers"]>();
   for (const a of rows.answers) answersOf.set(a.responseId, [...(answersOf.get(a.responseId) ?? []), a]);
   // E5-7: one time for every row of a response of a validation that hides names.

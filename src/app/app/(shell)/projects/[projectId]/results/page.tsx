@@ -110,8 +110,8 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
   // An item's detail (E8-5), from the Agreement table and the registers; Close returns to the tab.
   const itemHref = (id: string) => href(filter, tab, id);
   // A value rated with no proposal shown is a kind of its own only where the instrument hides
-  // the proposal (E5-2).
-  const kinds = RESULTS_KINDS.filter((k) => k !== "pick" || !instrument.showProposed || n.pick > 0);
+  // the proposal (E5-2). No "Not answered" under Names hidden (decision 0058).
+  const kinds = RESULTS_KINDS.filter((k) => (k !== "pick" || !instrument.showProposed || n.pick > 0) && (k !== "none" || ctx.anonymity !== "hidden"));
   const active = filterActive(filter);
   const cleared = { ...filter, fields: {}, kinds: [], withComment: false, perspective: null, status: [] };
   // Nobody kept (acceptance 4): the people a filter keeps without a counted answer (an invite
@@ -125,10 +125,11 @@ async function ResultsBody({ projectId, isSample, sampleId, instrument, ws, filt
         {instrument.anonymity !== "hidden" && <UnsubmittedSwitch projectId={projectId} on={filter.includeUnsubmitted} />}
         <TileChooser projectId={projectId} tiles={tiles} />
       </div>
-      {n.tooFew ? <p role="status" className="card p-4 text-sm text-ink-muted" data-testid="too-few">{RESULTS_COPY.tooFew}</p> : !none && <Strip n={n} tiles={tiles} />}
-      {/* The filter bar and the line under the strip (acceptance 3). */}
+      {!n.tooFew && !none && <Strip n={n} tiles={tiles} />}
+      {/* The filter bar and the line under the strip (acceptance 3). Under the floor (E5-7) the
+          line is the floor's sentence in place of "Showing 0 of [M]" (decision 0058). */}
       <FilterBar filter={filter} ctx={ctx} tab={tab === "agreement" ? null : tab} item={item} kinds={kinds} />
-      <p role="status" className={cn("text-sm text-ink-muted", !active && "sr-only")} data-testid={active ? "showing-line" : undefined}>{active ? RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx)) : ""}</p>
+      <p role="status" className={cn("text-sm text-ink-muted", !active && "sr-only")} data-testid={active ? (n.tooFew ? "too-few" : "showing-line") : undefined}>{active ? (n.tooFew ? RESULTS_COPY.tooFew : RESULTS_COPY.showing(n.shown, n.total, describeFilter(filter, ctx))) : ""}</p>
       {none ? (
         <EmptyState title={RESULTS_COPY.noMatch} className="py-8">
           <Link href={href(cleared, tab, item)} className={cn(buttonVariants({ variant: "secondary", size: "small" }), "mt-2")} data-testid="no-match-clear">{RESULTS_COPY.clearFilters}</Link>

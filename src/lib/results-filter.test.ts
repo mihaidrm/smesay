@@ -3,7 +3,7 @@
 // include-unsubmitted switch from the URL or the PM's stored choice (default on), described
 // for the "Showing" line; the tiles' catalogue, the stored and posted choices, the values.
 import { describe, expect, it } from "vitest";
-import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, optionsFor, parseResultsFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
+import { clearedFilter, defaultGapField, describeFilter, filterActive, filterQuery, nextSort, optionsFor, parseResultsFilter, personFilter, registerShownSort, type FilterContext } from "@/lib/results-filter";
 import { agreementPercent, DEFAULT_TILES, parseTileChoice, storedTiles, tabCounts, tileView, type ResultsNumbers } from "@/lib/results-tiles";
 
 const ctx: FilterContext = {
@@ -133,5 +133,15 @@ describe("the filter under Names hidden and Anonymous", () => {
     const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: {} };
     expect(parseResultsFilter({ unsubmitted: "0" }, hidden, false).includeUnsubmitted).toBe(true);
     expect(parseResultsFilter({ unsubmitted: "0" }, { ...hidden, anonymity: "anonymous" }, false).includeUnsubmitted).toBe(false);
+  });
+  // Decision 0058 (B4): a list of those with an item not answered would say who has not finished.
+  it("drops Not answered under Names hidden, keeps it under Anonymous, and a list of people never follows it under Names hidden", () => {
+    const hidden: FilterContext = { ...ctx, anonymity: "hidden", offered: {} };
+    expect(parseResultsFilter({ kind: ["none", "change"] }, hidden, null).kinds).toEqual(["change"]);
+    expect(parseResultsFilter({ kind: ["none", "change"] }, { ...hidden, anonymity: "anonymous" }, null).kinds).toEqual(["change", "none"]);
+    const f = read("kind=change&kind=none");
+    expect(personFilter(f, "hidden").kinds).toEqual(["change"]);
+    expect(personFilter(f, "anonymous").kinds).toEqual(["change", "none"]);
+    expect(personFilter(f, "named")).toBe(f);
   });
 });

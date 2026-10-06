@@ -21,7 +21,8 @@ export type InputAnswer = { id: string; itemId: string; responseId: string; kind
 export type InputMissing = { id: string; responseId: string; text: string; area: string | null; value: string | null; fields: Record<string, string> };
 
 // A citation as the tab shows it: the respondent's name as on Results (the name field, else a
-// personal invite's name or email, else "Anonymous [N]" by the public link's start order).
+// personal invite's name or email, else "Anonymous [N]" by the public link's start order;
+// under Names hidden and Anonymous by the fixed order of results.ts head, decision 0058).
 export type CitedAnswer = { id: string; itemId: string; reference: string | null; title: string; who: string | null; anon: number | null };
 export type CitedMissing = { id: string; who: string | null; anon: number | null };
 export type InsightWithCitations = Insight & { answers: CitedAnswer[]; missing: CitedMissing[] };
@@ -36,13 +37,14 @@ const ids = (list: string[]) => sql.join(list.map((id) => sql`${id}`), sql`, `);
 
 // The respondents of the project's instruments only (the anonymous numbers count within an
 // instrument, as on Results). Under Names hidden and Anonymous (stories/E5-7, acceptance 6)
-// nobody is named and every response has its number across all the instrument's links, as
-// on Results (src/db/queries/results.ts head).
+// nobody is named and every response has its number across all the instrument's links, in
+// the fixed order of md5(response id || instrument id) that does not follow the start
+// (decision 0058), as on Results (src/db/queries/results.ts head).
 const people = (ws: WorkspaceId, projectId: string) => sql`
   people as (
     select r.id, r.instrument_id,
         case when ins.anonymity = 'named' then coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) end as who,
-        case when ins.anonymity <> 'named' then row_number() over (partition by r.instrument_id order by r.created_at, r.id)
+        case when ins.anonymity <> 'named' then row_number() over (partition by r.instrument_id order by md5(r.id::text || r.instrument_id::text) collate "C", r.created_at, r.id)
           when coalesce(r.fields ->> 'name', '') = '' and iv.kind = 'public'
           then row_number() over (partition by r.instrument_id, iv.kind order by r.created_at, r.id) end as anon
       from response r join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}

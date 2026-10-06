@@ -28,7 +28,8 @@ have this option". Asked whether personal invites stay, he picked "Both, PM pick
   role into the response under either level: the PM typed them about one person, so the role
   hint would put that person's own words back on Results.
 - The rule lives in the SQL. results.ts head reads the level: under the two levels who is
-  null, every response is numbered by start across all the validation's links (anon), the
+  null, every response is numbered across all the validation's links (anon; by start at
+  first, by a fixed order since decision 0058, below), the
   invitees who have not started are not people, and every row the queries return carries
   pub_fields ({}) and pub_submitted_at (null) and no reminders. The filters, the split and
   the gaps still read the stored dropdown values. insights.ts's citations follow the same
@@ -69,8 +70,9 @@ times and personal invites. The stricter model, under Names hidden and Anonymous
   registers, the detail's list, the answers, people and missing files, the PDF's registers
   and record) drops the field and perspective conditions, and under Names hidden the status
   condition, in the SQL itself. A list therefore always shows the whole validation, with the
-  line "Filters by a field or perspective change the charts only, so no list can be narrowed
-  to a few people." The kind, comment and switch still narrow a list: they hold no identity.
+  line "Filters by a field or perspective change the charts only, and lists of people stay
+  whole. Comparing a group's figures with the lists can still point to someone in a small
+  group." (reworded by decision 0058). The kind, comment and switch still narrow a list: they hold no identity.
   The Actions citations never followed a filter.
 - A floor on aggregates: when the filter keeps fewer than MIN_GROUP counted people, the
   aggregate query keeps nobody (guard), numbers says tooFew, and the strip, the Agreement
@@ -97,8 +99,8 @@ times and personal invites. The stricter model, under Names hidden and Anonymous
 - The project file (and Export everything, which writes it per project): every time of a
   response, of its answers and of its missing items is the export's (null kept), perspectives
   are none, and no personal invite of such a validation is written. The import refuses a
-  personal invite there and a response field that is not a dropdown's value. An import now
-  numbers the responses by id, not by start, since every start is the same.
+  personal invite there and a response field that is not a dropdown's value. An imported
+  project numbers its responses by the fixed order of decision 0058 (below), on its new ids.
 - Reminders refuse an Anonymous validation on the server, as invites and New link do.
 - About you under Anonymous: "No name or email is asked" in place of "Nothing here asks who
   you are". The Build hints of both levels add "Do not ask for a name in a dropdown or in
@@ -111,6 +113,48 @@ another workspace in both modes), results-agreement.test.ts, summary.test.ts,
 project.test.ts, reminders.test.ts, insights.test.ts on the fake transport. The four Results
 queries were timed on 600 responses before and after (the byItem split first joined a
 per-person table, four times slower; it now joins the small table of values).
+
+## Decision 0058: breakdowns kept, risk disclosed
+
+A third audit the same day asked whether the field and perspective breakdowns should stay
+under the two levels at all, since comparing views still points to people in small groups.
+Mihai picked "Breakdowns, risk disclosed" over "No breakdowns" (docs/decisions/0058). What
+changed with it:
+
+- The numbers. Share shows who started when, so a number by start was a name. Under the two
+  levels anon follows md5(response id || instrument id), compared byte by byte (the "C"
+  collation), in results.ts head and insights.ts; the project file writes the responses in the
+  same order (fixedKey, node's createHash). The number is now a window over the instrument's
+  responses in people, not a join to a separate CTE: the join ran once per person on fresh
+  tables, and the window roughly halved the main queries under Names hidden on 600 responses.
+- "Not answered" under Names hidden. A list of people with an item not answered says who has
+  not finished, which Share matches to a name. The kind is not offered under Names hidden (no
+  chip, the URL drops it, personFilter drops it), a person-mode read ignores it, and the item
+  detail lists no one without an answer while its Not yet answered count stays. Keeping the
+  chip for the charts only was weighed and left: it would need a line of its own for little.
+- The project file: under Names hidden the submitted responses only, so the file does not say
+  who has not finished; under both levels no answer on an item fewer than 3 of the responses
+  written could see, and an action keeps the citations left (one left with none goes, since
+  its words could quote what went).
+- No progress sort under Anonymous either: there is no Progress column there.
+- The words. The line under the filter bar, the line above the lists, the Build hints, the
+  privacy policy (L43) and SECURITY.md say that values under 3 are not offered and lists do
+  not follow field filters, and that comparing views, and under Names hidden the times on
+  Share and the citations of people who submitted, can still point to someone.
+- The reconciliation. With a field or perspective filter the tiles count the filter's people
+  and the person files everyone; the Items with totals file adds up to the tiles under any
+  filter (results.test.ts reconcileItemsFile), the Export tab's first line says so under the
+  two levels (EXPORT_COPY.tab.lineHidden), and the exception is a review-list row.
+- The item detail reads its list and its counts in one query: the person-mode people, each
+  marked when the whole filter keeps them (person mode keeps everyone aggregate mode keeps,
+  since every person-mode condition is the aggregate one or more), with the floor and the
+  items seen by few worked out again on the marked people. Under Names hidden on 600
+  responses it took 615 to 638 ms in two reads before and 140 to 317 ms in one read after on
+  tables never analyzed; the test now runs ANALYZE after its bulk insert, as autovacuum would
+  on a live database, and the detail then takes 21 to 25 ms and every main query under Names
+  hidden 262 ms or less (registers.answers the slowest).
+- Under the floor the sentence takes the place of "Showing [N] of [M]" and the box above the
+  bar goes, so it shows once; the PDF draws no confidence chart under the floor.
 
 ## Rejected
 

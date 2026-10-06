@@ -19,7 +19,10 @@ no Reminders, and no sort by them); an invitee who has not started has no row. A
 2026-10-06 after the audit: the tab follows no field or perspective filter under the two
 levels (a line says why); under Names hidden the columns are Respondent and With a reason or
 comment only, in the order of the numbers, with no status filter; no row fades on a live
-update.
+update. Amended 2026-10-06, decision 0058: under the two levels the numbers follow a fixed
+order (md5 of the response id and the instrument id), not the start, since Share shows who
+started when; under Anonymous there is no Progress column and no sort by progress, and under
+Names hidden no "Not answered" filter.
 
 ## Acceptance criteria
 1. Responses tab (PM app board): name, role (and every other respondent field as a column,

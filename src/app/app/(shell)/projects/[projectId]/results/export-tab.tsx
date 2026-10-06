@@ -5,7 +5,9 @@
 // the deck, the PDF of E10-3 under the page's filter. The sample's files start with the
 // watermark line (acceptance 4). Under Names hidden and Anonymous (stories/E5-7, acceptance 5)
 // a line says what the files leave out (amended 2026-10-06: the project file's personal
-// invites and times, and under Names hidden who has submitted). Copy: docs/copy/app.md, Results, Export.
+// invites and times, and under Names hidden who has submitted). Under those levels the first
+// line says the person files list everyone while the tiles follow a field filter (decision
+// 0058). Copy: docs/copy/app.md, Results, Export.
 import { CSV_FILES, type Anonymity } from "@/db/types";
 import { EXPORT_COPY, SUMMARY_PAGE_LIMIT } from "@/lib/export/copy";
 import { ExportDownload } from "./export-download";
@@ -14,7 +16,7 @@ export function ExportTab({ projectId, query, sample, anonymity = "named" }: { p
   const T = EXPORT_COPY.tab;
   return (
     <div className="flex flex-col gap-4" data-testid="export-tab">
-      <p className="text-sm text-ink-muted">{T.line}</p>
+      <p className="text-sm text-ink-muted" data-testid="export-line">{anonymity === "named" ? T.line : T.lineHidden}</p>
       {sample && <p className="text-sm text-ink-muted" data-testid="export-sample">{T.sample}</p>}
       {anonymity !== "named" && <p className="text-sm text-ink-muted" data-testid="export-names-hidden">{T.namesHidden}{anonymity === "hidden" ? ` ${T.namesHiddenStatus}` : ""}</p>}
       <ul className="grid gap-3 md:grid-cols-2">

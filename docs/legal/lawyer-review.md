@@ -93,8 +93,16 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   other answers; free text goes as written; a dropdown that asks for a name shows it. Results
   draw no chart, group or item for fewer than 3 people and no list follows a field or
   perspective filter, and the project file dates every response at the export.
+  Amended again 2026-10-06 (decision 0058, Mihai's choice "Breakdowns, risk disclosed"):
+  Results keep filters and splits by choice fields and perspectives under both levels, and
+  the policy now says that comparing views (a filtered against an unfiltered view, two
+  breakdowns, a group's figures against the list) can still identify someone in a small
+  group, as can, under Names hidden, the finishing and last-save times on the sharing page
+  and the AI's actions citing only people who submitted. The numbers no longer follow the
+  start order, and the project file under Names hidden holds only submitted responses.
   Proposal: as written. Judgement: whether About you's "Your answers are anonymous" needs a
-  further qualifier, and whether the DPA should say the customer, not Alerty, decides the level.
+  further qualifier given the disclosed comparison risk, and whether the DPA should say the
+  customer, not Alerty, decides the level.
 
 ## Terms of service
 

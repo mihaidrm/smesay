@@ -19,8 +19,9 @@
 //
 // Who sees whose answers (stories/E5-7, acceptance 4 to 6; INTERFACES.md Anonymity): under
 // Names hidden and Anonymous the people carry no name (who null), every response is numbered
-// by its start across all the instrument's links (anon), the invites not opened are not
-// people, and every row a query returns carries no fields (pub_fields), no submitted time
+// across all the instrument's links in a fixed order that is not its start (anon: by
+// md5(response id || instrument id), decision 0058, since Share shows who started when), the
+// invites not opened are not people, and every row a query returns carries no fields (pub_fields), no submitted time
 // (pub_submitted_at) and no reminders. The filters, the split and the gaps still read the
 // stored dropdown values (fields), which only dropdowns can hold under those levels. The rule
 // is here, in the SQL, so no page, file or prompt can show what the level hides.
@@ -31,8 +32,10 @@
 // counted respondents, nobody is kept (sel is empty, numbers says tooFew), so no chart can be
 // drawn for one or two people. "person" (the Responses tab, the registers, the detail's list,
 // rows, people, missing, signOffs) ignores the field and perspective filters under the two
-// levels, and the status filter under Names hidden, so no list can be narrowed to a few
-// people. In both modes, under the two levels, the answers on an item seen by fewer than
+// levels, and the status filter and the "Not answered" kind under Names hidden, so no list
+// can be narrowed by who someone is or by who has not finished (decision 0058: comparing a
+// list with the charts can still point to someone in a small group, which the app says
+// rather than prevents). In both modes, under the two levels, the answers on an item seen by fewer than
 // MIN_GROUP of the people counted (few) count nowhere, and the item reads few.
 import { eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
@@ -53,7 +56,9 @@ export type ReadMode = "aggregate" | "person";
 
 // The conditions on one person (the alias p of the people below). In person mode, under Names
 // hidden and Anonymous, a field or perspective condition holds for everyone, and under Names
-// hidden a status condition too (E5-7, amended 2026-10-06).
+// hidden a status condition and the "Not answered" kind too (E5-7, amended 2026-10-06;
+// decision 0058). Each person-mode condition is the aggregate one or more, so the people a
+// person-mode read keeps include those the aggregate read keeps (detail.item relies on it).
 function personConditions(ws: WorkspaceId, f: ResultsFilter, mode: ReadMode): SQL[] {
   const conds: SQL[] = [];
   const identity = (cond: SQL) => (mode === "person" ? sql`(not (select named from inst) or ${cond})` : cond);
@@ -74,7 +79,7 @@ function personConditions(ws: WorkspaceId, f: ResultsFilter, mode: ReadMode): SQ
     const either: SQL[] = [];
     if (real.length > 0) either.push(answered(real));
     if (f.kinds.includes("none")) {
-      const unanswered = sql`exists (select 1 from its where (cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives) and not exists (select 1 from answer a where a.workspace_id = ${ws} and a.response_id = p.id and a.item_id = its.id))`;
+      const unanswered = status(sql`exists (select 1 from its where (cardinality(its.perspectives) = 0 or its.perspectives && p.perspectives) and not exists (select 1 from answer a where a.workspace_id = ${ws} and a.response_id = p.id and a.item_id = its.id))`);
       either.push(f.withComment ? sql`(${unanswered} and ${answered(null)})` : unanswered);
     }
     conds.push(sql`(${sql.join(either, sql` or `)})`);
@@ -101,17 +106,6 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
     its as (
       select it.id, it.perspectives from item it join inst on it.item_set_id = inst.item_set_id where it.workspace_id = ${ws}
     ),
-    -- E8-2: "Anonymous [N]" numbers the instrument's public-link responses by when they
-    -- started, before any filter and whatever the names, so a number never moves when a
-    -- filter changes or another respondent adds a name (a named response keeps its number
-    -- unseen). Kept out of people so the filters still reach the response scan. E5-7: under
-    -- Names hidden and Anonymous every response is numbered, across all its links.
-    anon_n as (
-      select r.id, row_number() over (order by r.created_at, r.id) as n
-        from response r join inst on r.instrument_id = inst.id
-          join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
-        where r.workspace_id = ${ws} and (iv.kind = 'public' or not inst.named)
-    ),
     people as (
       select 'r'::text as src, r.id, r.fields, r.perspectives, r.submitted_at, r.first_submitted_at, r.created_at,
           r.signed_off, r.updated_at, iv.kind as source, case when iv.kind = 'personal' and inst.named then iv.reminders_sent end as reminders, r.confidence,
@@ -119,13 +113,23 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
           -- typed them, E6-2); a public-link response with no name has its number instead.
           -- E5-7: no name under Names hidden and Anonymous, every response its number.
           case when inst.named then coalesce(nullif(r.fields ->> 'name', ''), case when iv.kind = 'personal' then coalesce(nullif(iv.name, ''), iv.email) end) end as who,
-          case when not inst.named or coalesce(r.fields ->> 'name', '') = '' then anon_n.n end as anon,
+          -- E8-2: "Anonymous [N]" numbers the instrument's public-link responses by when they
+          -- started, before any filter and whatever the names, so a number never moves when a
+          -- filter changes or another respondent adds a name (a named response keeps its
+          -- number unseen). E5-7: under Names hidden and Anonymous every response is numbered,
+          -- across all its links, by md5(response id || instrument id) compared byte by byte
+          -- (the "C" collation: postgresql.org/docs/current/collation.html), a fixed order
+          -- unrelated to the start that Share shows (decision 0058; the project file writes the
+          -- same order, src/lib/export/project.ts). A window over the instrument's responses,
+          -- not a join, so the numbering is one pass.
+          case when (iv.kind = 'public' or not inst.named) and (not inst.named or coalesce(r.fields ->> 'name', '') = '')
+            then row_number() over (partition by (iv.kind = 'public' or not inst.named)
+              order by case when inst.named then null else md5(r.id::text || inst.id::text) collate "C" end, r.created_at, r.id) end as anon,
           -- What a row may show (E5-7): the fields and the submitted time under Named only.
           case when inst.named then r.fields else '{}'::jsonb end as pub_fields,
           case when inst.named then r.submitted_at end as pub_submitted_at
         from response r join inst on r.instrument_id = inst.id
           join invite iv on iv.id = r.invite_id and iv.workspace_id = ${ws}
-          left join anon_n on anon_n.id = r.id
         where r.workspace_id = ${ws}
       union all
       select 'i'::text, i.id, jsonb_strip_nulls(jsonb_build_object('name', i.name, 'role', i.role_hint)), '{}'::text[], null::timestamptz, null::timestamptz, i.created_at,
@@ -325,10 +329,12 @@ function personOrder(sort: ResultsFilter["sort"], fieldKeys: string[]): SQL {
   const name = sql`lower(p.who) ${dir} nulls last, p.anon ${dir} nulls last`;
   const by: Record<string, SQL> = {
     name,
-    // E5-7 (amended 2026-10-06): no status and no progress to sort by under Names hidden, where
-    // Share names who has finished; the rows then stay in the order of their numbers.
+    // E5-7 (amended 2026-10-06): no status to sort by under Names hidden, where Share names who
+    // has finished, and no progress under either level (decision 0058: Anonymous shows no
+    // Progress column, since the items a person could see differ by perspective); the rows then
+    // stay in the order of their numbers.
     status: sql`(case when (select anonymity from inst) <> 'hidden' then (case when p.src = 'i' then 0 when p.submitted_at is null then 1 else 2 end) end) ${dir}`,
-    progress: sql`(case when (select anonymity from inst) <> 'hidden' then coalesce(given.answered, 0) end) ${dir}`,
+    progress: sql`(case when (select named from inst) then coalesce(given.answered, 0) end) ${dir}`,
     // E5-7: no submitted time and no source to sort by under Names hidden and Anonymous.
     submitted: sql`p.pub_submitted_at ${dir} nulls last`,
     source: sql`(case when (select named from inst) then p.source end) ${dir}`,
@@ -587,52 +593,75 @@ export const registers = {
 // 2026-10-06), under Names hidden and Anonymous: the rows are read in person mode (no field,
 // perspective or, under Names hidden, status filter) and the counts in aggregate mode (the
 // whole filter, nothing under MIN_GROUP people); an item seen by fewer than MIN_GROUP counted
-// people has no row (`few`), and its counts are 0 (`countsFew`).
+// people has no row (`few`), and its counts are 0 (`countsFew`). Under Names hidden a person
+// with no answer on the item has no row either (decision 0058): the row would say who has not
+// finished, which Share matches to a name; the Not yet answered count stays.
 export type DetailItem = { id: string; reference: string | null; area: string | null; originalText: string; readerText: string | null; readerStatus: string | null; proposedValue: string | null };
 export type DetailRow = { personId: string; invited: boolean; submitted: boolean; fields: Record<string, string>; who: string | null; anon: number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null };
 export type DetailResult = { item: DetailItem; counts: DetailCounts; rows: DetailRow[]; few: boolean; countsFew: boolean };
 
-async function detailRead(ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter, mode: ReadMode): Promise<(DetailResult & { named: boolean }) | null> {
-  const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; named: boolean; few: boolean; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true, mode)},
-    one as (select its.id, its.perspectives, exists (select 1 from few where few.id = its.id) as few from its where its.id = ${itemId})
-    select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value, (select named from inst) as named, one.few,
-        p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.pub_fields as fields, p.who, p.anon,
-        x.kind, x.value, x.reason, x.comment,
-        -- The counts in SQL, over the rows (aggregate FILTER with OVER:
-        -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).
-        (count(*) filter (where x.kind = 'agree') over ())::int as n_agree,
-        (count(*) filter (where x.kind = 'change') over ())::int as n_change,
-        (count(*) filter (where x.kind = 'disagree') over ())::int as n_disagree,
-        (count(*) filter (where x.kind = 'unclear') over ())::int as n_unclear,
-        (count(*) filter (where x.kind = 'pick') over ())::int as n_pick,
-        (count(p.id) filter (where x.kind is null) over ())::int as n_not_yet
-      from one join item it on it.id = one.id and it.workspace_id = ${ws}
-        -- A person who sees the item, or who answered it before a Start again changed their
-        -- perspectives (responses.restart keeps the answers), as agreement.byItem counts them;
-        -- nobody on an item seen by few (E5-7).
-        left join sel p on not one.few and (cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
-          or exists (select 1 from ans a2 where a2.item_id = one.id and a2.response_id = p.id))
-        left join ans x on x.item_id = one.id and x.response_id = p.id
-      order by (x.kind is null), lower(p.who) nulls last, p.anon nulls last, p.id`);
-  if (rows.length === 0) return null;
-  const r0 = rows[0];
-  return {
-    named: r0.named, few: r0.few, countsFew: r0.few,
-    item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
-    counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
-    rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
-  };
-}
-
 export const detail = {
+  // One query (decision 0058; the 500 ms budget on 600 responses): the people of person mode
+  // (sel), each marked in_agg when they meet the whole filter (personConditions in aggregate
+  // mode; person mode keeps everyone aggregate mode keeps, so no one is missed). The counts are
+  // over the rows marked, with head's floor (aguard) and head's rule on items seen by few
+  // (afew) worked out again on the marked people.
   item: async (ws: WorkspaceId, instrumentId: string, itemId: string, f: ResultsFilter): Promise<DetailResult | null> => {
     if (!isUuid(instrumentId) || !isUuid(itemId)) return null;
-    const list = await detailRead(ws, instrumentId, itemId, f, "person");
-    if (!list) return null;
-    const { named, ...shown } = list;
-    if (named) return shown;
-    const counted = (await detailRead(ws, instrumentId, itemId, f, "aggregate"))!;
-    return { ...shown, counts: counted.counts, countsFew: counted.few };
+    const aggConds = personConditions(ws, f, "aggregate");
+    const agg = aggConds.length > 0 ? sql.join(aggConds, sql` and `) : sql`true`;
+    const rows = await db.execute<{ id: string; source_ref: string | null; area: string | null; original_text: string; reader_text: string | null; reader_status: string | null; proposed_value: string | null; few: boolean; counts_few: boolean; person_id: string | null; src: string | null; submitted: boolean | null; fields: Record<string, string> | null; who: string | null; anon: string | number | null; kind: string | null; value: string | null; reason: string | null; comment: string | null; n_agree: number; n_change: number; n_disagree: number; n_unclear: number; n_pick: number; n_not_yet: number }>(sql`${head(ws, instrumentId, f, true, "person")},
+      one as (select its.id, its.perspectives, exists (select 1 from few where few.id = its.id) as few from its where its.id = ${itemId}),
+      akept as (
+        select p.id, p.perspectives from sel p where p.src = 'r' and (${f.includeUnsubmitted} or p.submitted_at is not null) and ${agg}
+      ),
+      aguard as (select (select named from inst) or not ${filterActive(f)} or (select count(*) from akept) >= ${MIN_GROUP} as ok),
+      afew as (
+        select not (select named from inst)
+            and (not (select ok from aguard) or (select count(*) from akept k, one where cardinality(one.perspectives) = 0 or one.perspectives && k.perspectives) < ${MIN_GROUP}) as few
+      ),
+      listed as (
+        select it.id, it.source_ref, it.area, it.original_text, it.reader_text, it.reader_status, it.proposed_value, one.few,
+            p.id as person_id, p.src, (p.submitted_at is not null) as submitted, p.pub_fields as fields, p.who, p.anon,
+            x.kind, x.value, x.reason, x.comment, coalesce(${agg}, false) as in_agg
+          from one join item it on it.id = one.id and it.workspace_id = ${ws}
+            -- A person who sees the item, or who answered it before a Start again changed their
+            -- perspectives (responses.restart keeps the answers), as agreement.byItem counts them;
+            -- nobody on an item seen by few (E5-7).
+            left join sel p on not one.few and (cardinality(one.perspectives) = 0 or one.perspectives && p.perspectives
+              or exists (select 1 from ans a2 where a2.item_id = one.id and a2.response_id = p.id))
+            left join ans x on x.item_id = one.id and x.response_id = p.id
+      ),
+      counted_rows as (
+        select l.*, (select few from afew) as counts_few,
+            -- The counts in SQL, over the rows the whole filter keeps (aggregate FILTER with OVER:
+            -- postgresql.org/docs/current/sql-expressions.html#SYNTAX-WINDOW-FUNCTIONS).
+            (count(*) filter (where l.in_agg and l.kind = 'agree') over ())::int as n_agree,
+            (count(*) filter (where l.in_agg and l.kind = 'change') over ())::int as n_change,
+            (count(*) filter (where l.in_agg and l.kind = 'disagree') over ())::int as n_disagree,
+            (count(*) filter (where l.in_agg and l.kind = 'unclear') over ())::int as n_unclear,
+            (count(*) filter (where l.in_agg and l.kind = 'pick') over ())::int as n_pick,
+            (count(l.person_id) filter (where l.in_agg and l.kind is null) over ())::int as n_not_yet,
+            -- Under Names hidden a row with no answer is not listed (decision 0058).
+            ((select anonymity from inst) = 'hidden' and l.kind is null) as unlisted
+          from listed l
+      )
+      select c.id, c.source_ref, c.area, c.original_text, c.reader_text, c.reader_status, c.proposed_value, c.few, c.counts_few,
+          case when c.unlisted then null else c.person_id end as person_id, c.src, c.submitted, c.fields, c.who,
+          case when c.unlisted then null else c.anon end as anon, c.kind, c.value, c.reason, c.comment,
+          case when c.counts_few then 0 else c.n_agree end as n_agree, case when c.counts_few then 0 else c.n_change end as n_change,
+          case when c.counts_few then 0 else c.n_disagree end as n_disagree, case when c.counts_few then 0 else c.n_unclear end as n_unclear,
+          case when c.counts_few then 0 else c.n_pick end as n_pick, case when c.counts_few then 0 else c.n_not_yet end as n_not_yet
+        from counted_rows c
+        order by (c.kind is null), lower(c.who) nulls last, c.anon nulls last, c.person_id`);
+    if (rows.length === 0) return null;
+    const r0 = rows[0];
+    return {
+      few: r0.few, countsFew: r0.counts_few,
+      item: { id: r0.id, reference: r0.source_ref, area: r0.area, originalText: r0.original_text, readerText: r0.reader_text, readerStatus: r0.reader_status, proposedValue: r0.proposed_value },
+      counts: { agree: Number(r0.n_agree), change: Number(r0.n_change), disagree: Number(r0.n_disagree), unclear: Number(r0.n_unclear), pick: Number(r0.n_pick), notYet: Number(r0.n_not_yet) },
+      rows: rows.filter((r) => r.person_id !== null).map((r) => ({ personId: r.person_id!, invited: r.src === "i", submitted: r.submitted === true, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), kind: r.kind, value: r.value, reason: r.reason, comment: r.comment })),
+    };
   },
 };
 

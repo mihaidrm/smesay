@@ -4,7 +4,9 @@
 // it. Named is today's behaviour and the default. Names hidden keeps personal invites and
 // reminders, and hides names, fields and times from Results, the exports and the AI.
 // Anonymous is the public link only. Under both, the respondent fields can only be dropdowns:
-// a text or an email field could carry a name. Messages: docs/copy/errors.md, Build and
+// a text or an email field could carry a name. The hints say the risk left (decision 0058):
+// with few people, comparing filtered views, or under Names hidden the times on Share, can
+// still point to someone. Messages: docs/copy/errors.md, Build and
 // Share; the card: docs/copy/app.md, Build.
 import type { Anonymity, RespondentFieldSpec } from "@/db/types";
 
@@ -12,8 +14,8 @@ export const DEFAULT_ANONYMITY: Anonymity = "named";
 
 export const ANONYMITY_META: { key: Anonymity; label: string; hint: string }[] = [
   { key: "named", label: "Named", hint: "Results show each person's name and fields. The default." },
-  { key: "hidden", label: "Names hidden", hint: "Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, the finishing times on Share can still point to someone. Do not ask for a name in a dropdown or in the closing question." },
-  { key: "anonymous", label: "Anonymous", hint: "The public link only: no personal invites, and no name or email fields. Do not ask for a name in a dropdown or in the closing question." },
+  { key: "hidden", label: "Names hidden", hint: "Personal invites and reminders still work, and Share shows who has finished. Results, exports and the AI show answers without names or fields. With few people, comparing filtered views or the times on Share can still point to someone. Do not ask for a name in a dropdown or in the closing question." },
+  { key: "anonymous", label: "Anonymous", hint: "The public link only: no personal invites, and no name or email fields. With few people, comparing filtered views can still point to someone. Do not ask for a name in a dropdown or in the closing question." },
 ];
 
 export const isAnonymity = (value: unknown): value is Anonymity => value === "named" || value === "hidden" || value === "anonymous";

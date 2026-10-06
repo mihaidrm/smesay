@@ -26,7 +26,9 @@
 // cannot single one person out; a value not offered is dropped from the URL like an unknown
 // one. Amended 2026-10-06 after the audit: under those levels a field or perspective filter
 // narrows the charts only (src/db/queries/results.ts, aggregate and person modes), and under
-// Names hidden there is no status filter, since Share names who has finished.
+// Names hidden there is no status filter and no "Not answered" kind, since Share names who has
+// finished and a list of those with an item not answered would name who has not (decision
+// 0058).
 import type { Anonymity, RespondentFieldSpec } from "@/db/types";
 
 export const RESULTS_KINDS = ["agree", "change", "disagree", "unclear", "pick", "none"] as const;
@@ -103,8 +105,9 @@ export function parseResultsFilter(params: SearchParams, ctx: FilterContext, sto
   const unsubmitted = first(params.unsubmitted);
   return {
     fields,
-    // In the catalogue's order, so a URL written in another order reads the same.
-    kinds: RESULTS_KINDS.filter((k) => kinds.includes(k)),
+    // In the catalogue's order, so a URL written in another order reads the same. No "Not
+    // answered" under Names hidden (decision 0058).
+    kinds: RESULTS_KINDS.filter((k) => kinds.includes(k) && (k !== "none" || ctx.anonymity !== "hidden")),
     withComment: first(params.comment) === "1",
     perspective: perspective !== null && ctx.perspectives.includes(perspective) ? perspective : null,
     status: ctx.anonymity === "hidden" ? [] : RESULTS_STATUSES.filter((s) => status.includes(s)),
@@ -161,11 +164,13 @@ export function filterQuery(f: ResultsFilter, ctx: FilterContext, extra: Record<
 // detail's list, the CSV rows, the PDF's registers) do not follow; they say so.
 export const identityFiltered = (f: ResultsFilter, anonymity: Anonymity): boolean => anonymity !== "named" && (Object.keys(f.fields).length > 0 || f.perspective !== null);
 // The filter a person-level view follows: under the two levels without the field and
-// perspective filters, and under Names hidden without the status filter too. The queries
-// apply the same rule themselves (person mode); this describes it in a file's first lines.
+// perspective filters, and under Names hidden without the status filter and the "Not
+// answered" kind too (decision 0058). The queries apply the same rule themselves (person
+// mode); this describes it in a file's first lines.
 export function personFilter(f: ResultsFilter, anonymity: Anonymity): ResultsFilter {
   if (anonymity === "named") return f;
-  return { ...f, fields: {}, perspective: null, status: anonymity === "hidden" ? [] : f.status };
+  const hidden = anonymity === "hidden";
+  return { ...f, fields: {}, perspective: null, status: hidden ? [] : f.status, kinds: hidden ? f.kinds.filter((k) => k !== "none") : f.kinds };
 }
 
 // The filter with nothing narrowing (Clear filters keeps the switch, the sort and the split).

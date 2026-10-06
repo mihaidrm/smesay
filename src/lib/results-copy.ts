@@ -26,12 +26,14 @@ export const RESULTS_COPY = {
   status: "Status",
   contains: (label: string) => `${label} contains`,
   // E5-7, acceptance 4: under the bar when the validation hides names and a value was left out.
-  smallValues: "A value fewer than 3 people gave is not offered as a filter, so one person cannot be singled out.",
+  // Decision 0058: the residual risk is said, not promised away.
+  smallValues: "A value fewer than 3 people gave is not offered as a filter. Comparing a filtered view with an unfiltered one can still point to someone in a small group.",
   // E5-7, amended 2026-10-06: under Names hidden and Anonymous, in place of the numbers and the
   // Agreement view when a filter keeps fewer than 3 counted people (B).
   tooFew: "Fewer than 3 people match these filters. Widen them to see the results.",
   // Above every list of people under a field or perspective filter, at the two levels (A).
-  personLevel: "Filters by a field or perspective change the charts only, so no list can be narrowed to a few people.",
+  // Decision 0058: the lists stay whole, and comparing them with the charts is the risk left.
+  personLevel: "Filters by a field or perspective change the charts only, and lists of people stay whole. Comparing a group's figures with the lists can still point to someone in a small group.",
   clearFilters: "Clear filters",
   showing: (n: number, m: number, filters: string) => `Showing ${n} of ${m} responses: ${filters}.`,
   noAnswersTitle: "No answers yet.",

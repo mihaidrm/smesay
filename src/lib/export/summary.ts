@@ -7,7 +7,8 @@
 // Amended 2026-10-06 after the audit: the headline numbers, the areas, the items and the
 // confidence follow the whole filter and, when it keeps fewer than 3 counted people, are not
 // drawn (a line says why); an item fewer than 3 counted people could see reads "Fewer than 3
-// answers" with no count; the registers and the record follow no field or perspective filter
+// answers" with no count, and no confidence chart is drawn either (decision 0058); the
+// registers and the record follow no field or perspective filter
 // (a line says so); under Names hidden no row is marked not submitted or changed and the
 // record lists no one, since Share names who has finished.
 import { insights, items as itemsQuery, itemSets } from "@/db/queries";
@@ -81,7 +82,8 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
   if (identityFiltered(filter, instrument.anonymity)) lines.push(RESULTS_COPY.personLevel);
   if (tooFew) lines.push(RESULTS_COPY.tooFew);
   if (filter.includeUnsubmitted) lines.push(EXPORT_COPY.withUnsubmitted);
-  const confidence = [1, 2, 3, 4, 5].map((v) => (confidenceOf ?? signOffs).filter((s) => s.confidence === v).length);
+  // No confidence chart under the floor (decision 0058): it is a chart of the people kept.
+  const confidence = tooFew ? null : [1, 2, 3, 4, 5].map((v) => (confidenceOf ?? signOffs).filter((s) => s.confidence === v).length);
   const order = { open: 0, done: 1, dismissed: 2 } as const;
   return {
     workspace, project: project.name, title: instrument.title, generatedAt: formatUtc(now), sample: project.isSample, lines,

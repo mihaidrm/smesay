@@ -29,8 +29,9 @@ the check constraints use them). Change this file first.
   migration 0036; design note 100): who sees whose answers. `named`: Results, the exports and
   the AI read names and fields as before (every row before 2026-10-06 takes it). `hidden`
   (Names hidden): personal invites and reminders still work and Share still shows who has
-  finished, but every response reads "Anonymous [N]" (numbered by when it started, across all
-  the instrument's links), with no fields, no submitted time and no reminders on Results, the
+  finished, but every response reads "Anonymous [N]" (numbered across all the instrument's
+  links by md5(response id || instrument id) under the "C" collation, not by its start, from
+  decision 0058), with no fields, no submitted time and no reminders on Results, the
   exports and the AI, and no row for an invitee who has not started. `anonymous`: the public
   link only (no personal invite is sent), otherwise as `hidden`. Under `hidden` and `anonymous`
   the respondent fields can only be dropdowns (fieldsBlocking in src/lib/anonymity.ts names
@@ -47,6 +48,10 @@ the check constraints use them). Change this file first.
   into one group when the folded people reach MIN_GROUP, else left out; an item fewer than
   MIN_GROUP counted people could see counts nowhere; under `hidden` there is no status filter
   and no list says who has submitted; `anonymous` refuses reminders as it refuses invites.
+  Amended 2026-10-06, decision 0058 ("Breakdowns, risk disclosed"): the breakdowns stay and
+  the risk of comparing views is disclosed; under `hidden` the "Not answered" kind is not
+  parsed and a person-mode read ignores it, and no list of people has a row without an
+  answer; under both levels there is no progress sort.
 - InviteKind: public, personal.
 - ReaderStatus: suggested, accepted, rejected (E4; an item imported without AI has null).
 - InsightState: open, done, dismissed.
@@ -148,6 +153,8 @@ the check constraints use them). Change this file first.
   identityFiltered(filter, anonymity) says whether a field or perspective filter is on under
   the two levels, and personFilter(filter, anonymity) is the filter a list of people follows
   (no field or perspective filter, and under `hidden` no status), for a file's first lines.
+  From decision 0058, under `hidden` parseResultsFilter keeps no "none" kind and personFilter
+  drops it too.
 - ResultsPrefs (jsonb, user.results_prefs, default {}; E8-1, migration 0019):
   { [instrumentId]: { tiles?: string[] (the tile ids of E8-1's catalogue, one to six),
   includeUnsubmitted?: boolean (decision 0030's switch, kept per PM; under `hidden`
@@ -226,12 +233,14 @@ anon, kind, value, reason, comment } per person the filter keeps who sees the it
 answered it before a change of perspective (kind null: no answer that counts under the
 switch), with few and countsFew (E5-7: under the two levels the rows are read in person
 mode and the counts in aggregate mode; an item fewer than MIN_GROUP counted people could see
-has no row, few, and counts 0, countsFew), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
+has no row, few, and counts 0, countsFew; from decision 0058 one query reads both, and under
+`hidden` a person with no answer on the item has no row while notYet still counts them), or null for an item or instrument outside the workspace; resultsPrefs.get(userId, instrumentId) and
 resultsPrefs.set(userId, instrumentId, { tiles?, includeUnsubmitted?, view? }) read and merge the
 person's ResultsPrefs entry (the caller checks the instrument is in the current workspace).
 Anonymity on Results (E5-7, 2026-10-06): under `hidden` and `anonymous` the people of every
-query above have who null and anon numbered over all the instrument's responses by start
-(created_at, id), no invite rows, and the rows each query returns carry fields {},
+query above have who null and anon numbered over all the instrument's responses by
+md5(response id || instrument id) under the "C" collation (decision 0058; before it, by
+start), no invite rows, and the rows each query returns carry fields {},
 submittedAt null (ResultRow, PersonRow, SignOff; SignOff.submittedAt is Date or null) and
 reminders null; the filters, the split and the gaps still read the stored dropdown values.
 results.fieldValueCounts(ws, instrumentId, includeUnsubmitted) gives FieldValueCount { key,
@@ -244,8 +253,9 @@ agreement.byItem, gaps.byField and the detail's counts, which take the whole fil
 under the two levels, keep nobody when it narrows the counted people below MIN_GROUP;
 "person" for rows, people, missing, signOffs (its default; mode "aggregate" for the PDF's
 confidence chart), tracker.people, registers and the detail's rows, which under the two
-levels ignore the field and perspective filters, and under `hidden` the status filter and
-the status and progress sorts. In both modes, under the two levels, the answers on an item
+levels ignore the field and perspective filters, and under `hidden` the status filter, the
+"Not answered" kind and the status sort; under both levels the progress sort (decision
+0058). In both modes, under the two levels, the answers on an item
 seen by fewer than MIN_GROUP counted people are in no count and no row.
 Projects (E8-8): projects.update refuses a patch that carries isSample and projects.create
 refuses isSample true (SampleFlagError); the flag is set only when the sample is seeded
@@ -702,7 +712,10 @@ invite; the import puts it on its instrument's public invite and refuses a null 
 updatedAt, submittedAt and firstSubmittedAt equal to exportedAt (null kept), as have its
 answers' updatedAt and its missing items' createdAt; the file has no personal invite of
 such an instrument, and the import refuses one, or a field that is not a dropdown's value,
-as damaged), fields, perspectives, confidence,
+as damaged; from decision 0058 such an instrument's responses are written in the order of
+their anon numbers, under `hidden` only the submitted ones, with no answer on an item fewer
+than MIN_GROUP of the responses written could see, and an action keeps only the citations
+left in the file, and is left out when it had some and none is left), fields, perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
 answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
 responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
