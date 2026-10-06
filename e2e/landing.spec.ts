@@ -109,16 +109,16 @@ test("the comparison with a spreadsheet, a form and a workshop", async ({ page }
   expect(await page.getByTestId("compare-smesay").allInnerTexts()).toEqual(smesay);
 
   // The first row's Today and SMEsay cells side by side at 1024 px, stacked at 1023 px.
-  const tops = async () => {
-    const row = page.getByTestId("compare-row").first();
-    const today = await row.getByTestId("compare-today").boundingBox();
-    const ours = await row.getByTestId("compare-smesay").boundingBox();
-    return Math.round((ours?.y ?? 0) - (today?.y ?? 0));
-  };
+  // Both cells are measured in one call: two reads can straddle a layout change.
+  const tops = () =>
+    page.getByTestId("compare-row").first().evaluate((row) => {
+      const top = (id: string) => row.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().top ?? 0;
+      return Math.round(top("compare-smesay") - top("compare-today"));
+    });
   await page.setViewportSize({ width: 1024, height: 900 });
-  expect(await tops()).toBe(0);
+  await expect.poll(tops).toBe(0);
   await page.setViewportSize({ width: 1023, height: 900 });
-  expect(await tops()).toBeGreaterThan(20);
+  await expect.poll(tops).toBeGreaterThan(20);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await compare.scrollIntoViewIfNeeded();
