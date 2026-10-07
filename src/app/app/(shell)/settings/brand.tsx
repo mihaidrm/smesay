@@ -2,8 +2,10 @@
 // The brand form (stories/E2-5, acceptance 1 and 2): name, logo file, accent with its swatch
 // and contrast line. The contrast line follows the field as typed (src/lib/contrast.ts is pure)
 // and the server repeats every check (src/lib/brand.ts). useActionState wires the save action
-// (react.dev/reference/react/useActionState). Components: docs/design-system.md.
+// (react.dev/reference/react/useActionState). Components: docs/design-system.md; the logo's
+// picker is src/components/app/file-picker.tsx (design note 103).
 import { useActionState, useState } from "react";
+import { FilePicker, FILE_PICKER_COPY } from "@/components/app/file-picker";
 import { Banner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +42,7 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-logo">Logo</Label>
           <span className="text-xs text-ink-muted">Use a PNG or SVG up to 1 MB. It shows at 24 px in the respondent header in place of the mark.</span>
-          <input id="ws-logo" name="logo" type="file" accept="image/png,image/svg+xml" className="text-sm"
+          <FilePicker id="ws-logo" name="logo" accept="image/png,image/svg+xml" label={FILE_PICKER_COPY.chooseImage} disabled={pending} className="mt-1"
             onChange={(e) => setFileError((e.target.files?.[0]?.size ?? 0) > LOGO_MAX_BYTES ? LOGO_COPY.tooBig : null)}
             aria-invalid={fileError || state.field === "logo" ? true : undefined} aria-describedby={fileError || state.field === "logo" ? "ws-logo-error" : undefined} />
           {(fileError || state.field === "logo") && <p id="ws-logo-error" className="text-sm text-danger">{fileError ?? state.error}</p>}

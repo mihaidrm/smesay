@@ -41,6 +41,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Card title | Brand on the respondent side |
 | Name field label | Workspace name |
 | Logo label and line | Logo. Use a PNG or SVG up to 1 MB. It shows at 24 px in the respondent header in place of the mark. |
+| Logo picker (design note 103) | [Button: Choose an image], the file's name beside it; before a pick: No file chosen |
 | Logo, none yet (a member's view) | No logo yet |
 | Logo remove checkbox | Remove logo |
 | Accent label | Accent colour |
@@ -101,7 +102,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Links under the table | Show archived, Back to projects |
 | New project title and line | New project. A name is enough. The list comes on the next step. |
 | New project field and button | Project name, Create project |
-| Import a project page (E10-2) | Import a project. Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, validations, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.; field: Project file (.json); [Button: Import project]; refusals in docs/copy/errors.md, Projects |
+| Import a project page (E10-2) | Import a project. Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, validations, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.; field: Project file (.json), its picker [Button: Choose a file] with the file's name beside it, No file chosen before a pick (design note 103); [Button: Import project]; refusals in docs/copy/errors.md, Projects |
 | Project frame breadcrumb | [WORKSPACE NAME] (the sample: [WORKSPACE NAME] · sample project) |
 | Archived marker and buttons | Archived; Archive project, Unarchive |
 | Stepper | Import, Shape, Build, Share, Results |
@@ -120,6 +121,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Upload card title and line | The list. Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported. |
 | File field label | Your file (after the first upload: Upload another file) |
 | File field line | Upload an xlsx or csv file, up to 5 MB and 2,000 rows, with one item per row; the columns are mapped on the next card. |
+| File picker (design note 103) | [Button: Choose a file], the file's name beside it; before a pick: No file chosen |
 | Upload button | Upload |
 | Preview card title | Preview |
 | Summary line (the board's wording) | We read [N] rows from [FILE] and found the header on row [N]. (no header: We read [N] rows from [FILE] and found no header row.) |
