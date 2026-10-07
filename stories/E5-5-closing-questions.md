@@ -44,3 +44,8 @@ Built 2026-10-03 (design note 45, decision 0044):
   PM's words is no em dash. Once published the question locks (docs/review-list.md).
 - Playwright: e2e/build.spec.ts focuses the card, sees the Wrap up, saves a question with
   the form off, sees both in the preview and Submit disabled with its line.
+
+Amended 2026-10-07 (design note 107): acceptance 1's "Confidence 1 to 5" stays the stored
+scale; the respondent answers it on a slider from Guessing to Certain (stories/E7-5, amended
+the same day). The Closing card's line reads "Respondents always answer it, on a slider from
+Guessing to Certain. The dashboard shows the spread as 1 to 5."

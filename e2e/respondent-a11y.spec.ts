@@ -131,7 +131,8 @@ test("accessible journey: axe, keyboard, names, fonts, motion, dark accent", asy
   await link.getByTestId("chapter-continue").click();
   await expect(link.getByTestId("wrap-up")).toBeVisible();
   await noSeriousViolations(link, "Wrap up");
-  await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  await link.getByTestId("confidence-slider").focus();
+  await link.getByTestId("confidence-slider").press("ArrowRight");
   await link.getByTestId("wrap-up-signoff").click();
   await tabTo(link.getByTestId("wrap-up-submit"));
   await link.keyboard.press("Enter");
