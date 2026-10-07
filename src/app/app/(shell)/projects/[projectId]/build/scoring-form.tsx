@@ -10,20 +10,28 @@
 // change; Save is secondary like the other Build cards (design note 38). The section
 // headings are plain blocks named through aria-labelledby, not legends: a legend sits
 // outside the fieldset's flex flow and loses the gap (Mihai, 2026-10-03: "there is
-// basically 0 gap").
+// basically 0 gap"). The card registers with the unsaved changes guard (stories/E5-9);
+// Discard remounts it with the server's values (useDiscard).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Layout, ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { LABEL_MAX, LAYOUTS_META, METHODS, REASON_RULES_META, SCALES } from "@/lib/scoring";
+import { isUnsaved } from "@/lib/unsaved";
 import { cn } from "cn";
 import { saveScoringAction, type ProjectFormState } from "../../actions";
 
-export function ScoringForm({ projectId, instrumentId, method: initialMethod, showProposed: initialShow, labels: initialLabels, reasonRule: initialRule, layout: initialLayout, locked }: {
-  projectId: string; instrumentId: string; method: ScoringMethod; showProposed: boolean; labels: ScaleLabels | null; reasonRule: ReasonRule; layout: Layout; locked: boolean;
-}) {
+type Props = { projectId: string; instrumentId: string; method: ScoringMethod; showProposed: boolean; labels: ScaleLabels | null; reasonRule: ReasonRule; layout: Layout; locked: boolean };
+
+export function ScoringForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, method: initialMethod, showProposed: initialShow, labels: initialLabels, reasonRule: initialRule, layout: initialLayout, locked, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveScoringAction, { error: null, saved: false });
   const [method, setMethod] = useState<ScoringMethod>(initialMethod);
   const [showProposed, setShowProposed] = useState(initialShow);
@@ -35,10 +43,11 @@ export function ScoringForm({ projectId, instrumentId, method: initialMethod, sh
   const [labelsByMethod, setLabelsByMethod] = useState<Record<ScoringMethod, ScaleLabels>>({ moscow: {}, fit: {}, kcd: {}, [initialMethod]: initialLabels ?? {} });
   const labels = labelsByMethod[method];
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "build-scoring", label: BUILD_COPY.scoringCard, dirty: isUnsaved(dirty, pending, state), reset: discard });
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="scoring-form">
+    <form {...unsaved.props} action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="scoring-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="showProposed" value={showProposed ? "1" : "0"} />

@@ -11,11 +11,16 @@
 // (react.dev/reference/react/useSyncExternalStore, "Adding support for server rendering"),
 // so the two renders agree. A spring-forward gap or an ambiguous hour follows the browser's
 // own reading of `new Date(local)` (docs/review-list.md). "Saved." until the next change.
+// The card registers with the unsaved changes guard (stories/E5-9) under formId and
+// formLabel from the page, since Share can show two of these (the link and a newer draft);
+// Discard remounts it with the server's values (useDiscard).
 import { useActionState, useId, useState, useSyncExternalStore } from "react";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SHARE_COPY } from "@/lib/sharing-copy";
+import { isUnsaved } from "@/lib/unsaved";
 import { publishAction, saveLinkAction, type ProjectFormState } from "../../actions";
 
 // The local wall-clock text a datetime-local input shows for an instant.
@@ -32,7 +37,14 @@ const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 // again: after a revoke (E6-4), the button reads "Publish again" and makes a new link.
 // inviteId: the published row the page showed, so a Save from a tab left open across a
 // revoke and a Publish again is refused (E6-4).
-export function ShareForm({ projectId, instrumentId, inviteId = null, published, again = false, opensAt, closesAt, hasPasscode }: { projectId: string; instrumentId: string; inviteId?: string | null; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean }) {
+type Props = { projectId: string; instrumentId: string; inviteId?: string | null; published: boolean; again?: boolean; opensAt: string | null; closesAt: string | null; hasPasscode: boolean; formId: string; formLabel: string };
+
+export function ShareForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, inviteId = null, published, again = false, opensAt, closesAt, hasPasscode, formId, formLabel, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(published ? saveLinkAction : publishAction, { error: null, saved: false });
   const mounted = useMounted();
   const [opensTyped, setOpens] = useState<string | null>(null);
@@ -42,6 +54,7 @@ export function ShareForm({ projectId, instrumentId, inviteId = null, published,
   const [passcode, setPasscode] = useState("");
   const [remove, setRemove] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: formId, label: formLabel, dirty: isUnsaved(dirty, pending, state), reset: discard });
   // After a save the typed passcode is cleared, so a later Save does not hash it again
   // (state adjusted during render on a changed prop or result:
   // react.dev/learn/you-might-not-need-an-effect, "Adjusting some state when a prop changes").
@@ -51,7 +64,7 @@ export function ShareForm({ projectId, instrumentId, inviteId = null, published,
   const zone = mounted ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="share-form">
+    <form {...unsaved.props} action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="share-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}

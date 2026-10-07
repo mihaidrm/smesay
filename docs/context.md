@@ -129,10 +129,12 @@ Phase 2, Setup for building (about 1 week): Done 5 of 5 steps. Phase complete
 - 2.3 Styleguide page: done.
 - 2.4 Stories: done.
 - 2.5 PC setup: done.
-Phase 3, R1 build, fifteen epics in order (planned as about 47 sessions over 24 weeks, to about mid April 2027; built 2 to 5 October 2026): Done 14 of 15 steps. Left: Landing and onboarding
+Phase 3, R1 build, fifteen epics in order (planned as about 47 sessions over 24 weeks, to about mid April 2027; built 2 to 5 October 2026): Done 16 of 17 steps. Left: Landing and onboarding
 - E1 Foundation: done.
 - E2 Accounts: done.
 - E3 Import: done.
+- E4 AI shaping: done.
+- E5 Instrument builder: done.
 - E4 AI shaping: done.
 - E5 Instrument builder: done.
 - E6 Sharing: done.

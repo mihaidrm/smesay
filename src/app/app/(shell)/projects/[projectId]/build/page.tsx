@@ -16,6 +16,7 @@ import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, REASON_RULES_META, scaleFor } from "@/lib/scoring";
+import { UnsavedMark } from "@/components/app/unsaved";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
 import { FieldsForm } from "./fields-form";
@@ -60,7 +61,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
       <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-intro-title">
-            <h3 id="build-intro-title" className="text-[15px] font-bold">{BUILD_COPY.introCard}</h3>
+            <div className="flex items-center gap-2"><h3 id="build-intro-title" className="text-[15px] font-bold">{BUILD_COPY.introCard}</h3><UnsavedMark id="build-intro" /></div>
             {readOnly ? (
               <div className="flex flex-col gap-2 text-sm">
                 <div><span className="text-ink-muted">{BUILD_COPY.titleLabel}: </span>{instrument.title}</div>
@@ -73,7 +74,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-scoring-title">
             <div className="flex flex-col gap-0.5">
-              <h3 id="build-scoring-title" className="text-[15px] font-bold">{BUILD_COPY.scoringCard}</h3>
+              <div className="flex items-center gap-2"><h3 id="build-scoring-title" className="text-[15px] font-bold">{BUILD_COPY.scoringCard}</h3><UnsavedMark id="build-scoring" /></div>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.scoringLine}</p>
             </div>
             {readOnly ? (
@@ -90,7 +91,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-perspectives-title">
             <div className="flex flex-col gap-0.5">
-              <h3 id="build-perspectives-title" className="text-[15px] font-bold">{BUILD_COPY.perspectivesCard}</h3>
+              <div className="flex items-center gap-2"><h3 id="build-perspectives-title" className="text-[15px] font-bold">{BUILD_COPY.perspectivesCard}</h3><UnsavedMark id="build-perspectives" /></div>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
             </div>
             {readOnly ? (
@@ -101,7 +102,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-closing-title" data-preview-screen="wrap">
             <div className="flex flex-col gap-0.5">
-              <h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3>
+              <div className="flex items-center gap-2"><h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3><UnsavedMark id="build-closing" /></div>
               <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
             </div>
             {readOnly ? (
@@ -118,7 +119,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
           </section>
           <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-fields-title">
             <div className="flex flex-col gap-0.5">
-              <h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3>
+              <div className="flex items-center gap-2"><h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3><UnsavedMark id="build-fields" /></div>
               <p className="text-[13px] text-ink-muted">{BUILD_COPY.fieldsLine}</p>
             </div>
             {readOnly ? (

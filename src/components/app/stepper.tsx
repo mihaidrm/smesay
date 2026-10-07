@@ -19,7 +19,9 @@ export const STEPS = [
 ] as const;
 export type StepKey = (typeof STEPS)[number]["key"];
 
-export function Stepper({ current, reached, done, href }: { current: StepKey; reached: StepKey; done: StepKey[]; href: (step: StepKey) => string | null }) {
+// onClick: the unsaved changes guard of the project frame (stories/E5-9), run before the
+// link navigates.
+export function Stepper({ current, reached, done, href, onClick }: { current: StepKey; reached: StepKey; done: StepKey[]; href: (step: StepKey) => string | null; onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void }) {
   const reachedIndex = STEPS.findIndex((s) => s.key === reached);
   return (
     <nav aria-label="Steps" className="flex flex-wrap gap-1 rounded-full border border-hairline bg-surface p-1">
@@ -39,7 +41,7 @@ export function Stepper({ current, reached, done, href }: { current: StepKey; re
         // The current step is a link too once its page exists (E4-2: Shape is the current
         // step from the import on, and the only way to it is this pill).
         return target
-          ? <Link key={step.key} href={target} aria-current={active ? "step" : undefined} className={className}>{number}<span>{step.label}</span></Link>
+          ? <Link key={step.key} href={target} onClick={onClick} aria-current={active ? "step" : undefined} className={className}>{number}<span>{step.label}</span></Link>
           : <span key={step.key} aria-current={active ? "step" : undefined} className={className}>{number}<span>{step.label}</span></span>;
       })}
     </nav>
