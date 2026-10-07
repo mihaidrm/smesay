@@ -57,6 +57,9 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   // shown as what the next run will use, and after the run as what it used.
   await expect(page.getByTestId("context-line")).toHaveText("No project context given. Add one on Import so the AI keeps your names and terms. Add it on Import");
   await page.getByTestId("context-line").getByRole("link", { name: "Add it on Import" }).click();
+  // The link lands on #about-title: the About card, closed after an import, opens for the
+  // anchor inside it (design note 110).
+  await expect(page.getByTestId("card-about")).toHaveJSProperty("open", true);
   await page.getByLabel("What is this about?").fill("Replace the expense tool for 400 staff");
   await page.getByLabel("Terms to keep as written, optional").fill("Marlow, per diem");
   await page.getByRole("button", { name: "Save" }).click();
@@ -73,6 +76,13 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(page.getByTestId("context-line")).toHaveText("Context used: Replace the expense tool for 400 staff. Kept as written: Marlow, per diem.");
   const areas = page.getByTestId("area");
   await expect(areas).toHaveCount(3);
+  // The areas are collapsible cards (design note 110): the first open, the others closed
+  // with their counts; a click on an area's name row opens it.
+  await expect(areas.nth(0)).toHaveJSProperty("open", true);
+  await expect(areas.nth(1)).toHaveJSProperty("open", false);
+  await expect(areas.nth(1).getByTestId("card-summary")).toHaveText("0 of 1 reader version accepted");
+  await areas.nth(1).locator("summary").click();
+  await expect(areas.nth(1)).toHaveJSProperty("open", true);
   await expect(areas.nth(0)).toContainText("Submitting");
   await expect(areas.nth(0).getByTestId("rationale")).toHaveText("This comes first, because submitting starts it.");
   await expect(areas.nth(0).getByTestId("item")).toHaveCount(4);

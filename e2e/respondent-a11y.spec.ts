@@ -56,6 +56,8 @@ test("accessible journey: axe, keyboard, names, fonts, motion, dark accent", asy
   const csv = ["Requirement,Area,Priority,Notes", `Receipts captured by phone,Submitting,Must,"${notes}"`, `Paid with the next salary run,Paying,Should,"${notes}"`].join("\n");
   await page.getByLabel("Your file").setInputFiles({ name: "requirements.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
   await page.getByRole("button", { name: "Upload", exact: true }).click();
+  // The mapping card is closed once a text column is guessed (design note 110); open it.
+  await page.getByTestId("card-mapping").locator("summary").click();
   await page.getByLabel("Requirement", { exact: true }).selectOption("text");
   await page.getByLabel("Area", { exact: true }).selectOption("area");
   await page.getByLabel("Priority", { exact: true }).selectOption("value");

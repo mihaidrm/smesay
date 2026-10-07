@@ -267,6 +267,10 @@ test("build the intro and the respondent fields, see them in the preview", async
   await firstTags.getByRole("button", { name: "Finance" }).click();
   await expect(firstTags.getByRole("button", { name: "Finance" })).toHaveAttribute("aria-pressed", "true");
   await expect(firstTags.getByRole("button", { name: "Finance" })).toBeEnabled();
+  // Only the first area's card is open on Shape (design note 110); the second item's card
+  // opens from its summary when it is closed.
+  const secondArea = page.getByTestId("perspective-tags").nth(1).locator("xpath=ancestor::details[1]");
+  if (!(await secondArea.evaluate((el) => (el as HTMLDetailsElement).open))) await secondArea.locator("summary").click();
   await page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" }).click();
   await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).toHaveAttribute("aria-pressed", "true");
   // The pressed state shows at once; the chip is aria-disabled until the server answers.

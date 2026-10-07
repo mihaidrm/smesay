@@ -43,12 +43,16 @@ test("create a project and keep its context", async ({ page, request }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("New expense tool");
   await expect(page.getByRole("navigation", { name: "Steps" }).getByText("Import")).toBeVisible();
 
+  // Before an upload only The list card is open (design note 110); About opens by a click.
+  await expect(page.getByTestId("card-about").getByTestId("card-summary")).toHaveText("Nothing written yet");
+  await page.getByTestId("card-about").locator("summary").click();
   await page.getByLabel("What is this about?").fill("We are replacing the expense tool for all 400 staff.");
   await page.getByLabel("Terms to keep as written, optional").fill("cost centre, policy limit");
   await expect(page.getByTestId("context-count")).toHaveText("77 of 2,000 characters");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status")).toHaveText("Saved.");
   await page.reload();
+  await expect(page.getByTestId("card-about").getByTestId("card-summary")).toHaveText("77 of 2,000 characters");
   await expect(page.getByLabel("What is this about?")).toHaveValue("We are replacing the expense tool for all 400 staff.");
   await expect(page.getByLabel("Terms to keep as written, optional")).toHaveValue("cost centre, policy limit");
 

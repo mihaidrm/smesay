@@ -6,10 +6,14 @@
 // import-button.tsx. An upload already imported shows its version instead of the button.
 // The three counts sit side by side only when the card is 48rem wide or more (a container
 // query: tailwindcss.com/docs/responsive-design#container-queries), so beside the preview
-// panel they stack (decision 0021, item 5). With several sheets ticked (stories/E3-7,
+// panel they stack (decision 0021, item 5). A collapsible card (design note 110): open once
+// the mapping has a text column and until the import, by the page's rule; the summary is
+// the item count ready, or the version imported. With several sheets ticked (stories/E3-7,
 // acceptance 6) the counts come once per sheet under "Sheet [NAME]", the rows named as in
 // that sheet, and a duplicate of a row on another sheet says which.
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { IMPORT_COPY } from "@/lib/imports";
+import { IMPORT_CARD_COPY } from "@/lib/import-guide";
 import type { CheckResult, SheetCheck } from "@/lib/import/report";
 import { ImportButton } from "./import-button";
 
@@ -45,11 +49,10 @@ function Counts({ check }: { check: CountsInput }) {
   );
 }
 
-export function CheckCard({ uploadId, check, importedVersion, blocked }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; blocked: string | null }) {
+export function CheckCard({ uploadId, check, importedVersion, open, blocked }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; open: boolean; blocked: string | null }) {
   const n = check?.items.length ?? 0;
   return (
-    <section className="@container flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
-      <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-semibold">Check before import</h3></div>
+    <CollapsibleCard title={IMPORT_CARD_COPY.check.title} titleId="check-title" summary={IMPORT_CARD_COPY.check.summary(check ? n : null, importedVersion)} open={open} testId="check-card" className="@container" bodyClassName="flex flex-col border-t border-hairline">
       {check && check.sheets ? (
         check.sheets.map((sheet) => (
           <div key={sheet.name} className="flex flex-col border-b border-hairline" data-testid="check-sheet">
@@ -69,6 +72,6 @@ export function CheckCard({ uploadId, check, importedVersion, blocked }: { uploa
           <ImportButton uploadId={uploadId} label={IMPORT_COPY.button(n)} disabled={!check || n === 0} />
         )}
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }

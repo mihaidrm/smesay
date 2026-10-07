@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusPill, NotAnsweredPill } from "@/components/ui/status-pill";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Banner, EmptyState, Toast } from "@/components/ui/banner";
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { FilePicker, FILE_PICKER_COPY } from "@/components/app/file-picker";
 
 function Row({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
@@ -170,6 +171,16 @@ export function Demos() {
           </CardHeader>
           <CardContent className="p-0 pt-3 text-[13px] text-ink-muted">Not published yet. Nobody can open the link.</CardContent>
         </Card>
+      </Row>
+      <Row title="Collapsible card" note="A details element: the title row with a mono count, a one-line state summary and the chevron; the content opens over 300 ms (design note 110). The content stays in the page while closed.">
+        <div className="flex w-full max-w-[480px] flex-col gap-3">
+          <CollapsibleCard title="Versions" titleId="sg-card-open" summary="Version 2, 12 items" open>
+            <p className="text-[13px] text-ink-muted">Version 1 to 2: 11 items unchanged, 1 changed, 0 new, 0 gone.</p>
+          </CollapsibleCard>
+          <CollapsibleCard title="Submitting" titleId="sg-card-closed" count="4 items" summary="2 of 4 reader versions accepted" open={false}>
+            <p className="text-[13px] text-ink-muted">The items of the area, each with its reader version.</p>
+          </CollapsibleCard>
+        </div>
       </Row>
     </div>
   );

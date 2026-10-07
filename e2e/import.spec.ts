@@ -39,6 +39,14 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await page.getByLabel("Your file").setInputFiles("e2e/fixtures/expense-requirements.xlsx");
   await page.getByRole("button", { name: "Upload", exact: true }).click();
   await expect(page.getByTestId("upload-summary")).toHaveText("We read 12 rows from expense-requirements.xlsx and found the header on row 1.");
+  // The cards are collapsible (design note 110): with a text column guessed from the headers
+  // the check card is open and Preview and Column mapping are closed, each with a summary; a
+  // click on a card's title row opens it (its controls are hidden while it is closed).
+  await expect(page.getByTestId("check-card")).toHaveJSProperty("open", true);
+  await expect(page.getByTestId("card-preview")).toHaveJSProperty("open", false);
+  await expect(page.getByTestId("card-preview").getByTestId("card-summary")).toHaveText("12 rows, header on row 1");
+  await page.getByTestId("card-preview").locator("summary").click();
+  await expect(page.getByTestId("card-preview")).toHaveJSProperty("open", true);
   const headers = page.getByTestId("preview-table").getByRole("columnheader");
   await expect(headers).toHaveText(["ARef", "BRequirement", "CModule", "DPriority"]);
   await expect(page.getByTestId("preview-row")).toHaveCount(10);
@@ -58,12 +66,18 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("preview-row")).toHaveCount(10);
 
   // E3-3: the mapping guessed from the headers, one change saved, the same file remembered.
+  // The mapping card is closed (the text column is picked); open it to change a role.
+  await expect(page.getByTestId("card-mapping").getByTestId("card-summary")).toHaveText("4 of 4 columns mapped");
+  await page.getByTestId("card-mapping").locator("summary").click();
   await expect(page.getByLabel("Requirement", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("value");
   await expect(page.getByTestId("mapping-remembered")).toHaveCount(0);
   await page.getByLabel("Module", { exact: true }).selectOption("custom");
   await page.getByLabel("Requirement", { exact: true }).selectOption("skip");
   await expect(page.locator("#mapping-error")).toHaveText("Pick the column that holds the requirement text. Without it there is nothing to import.");
+  // Without a text column the guide opens Preview and the mapping and closes the check.
+  await expect(page.getByTestId("check-card")).toHaveJSProperty("open", false);
+  await expect(page.getByTestId("card-mapping").getByTestId("card-summary")).toHaveText("No text column yet");
   await page.getByLabel("Requirement", { exact: true }).selectOption("text");
   await expect(page.locator("#mapping-error")).toHaveCount(0);
 
@@ -77,6 +91,15 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   // The filled pill is the open page (design note 106): Import, with Shape now a link.
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Import/);
   await expect(page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ })).toBeVisible();
+  // Everything imported: Versions is open with its summary, The list is closed with the file
+  // name; a click on The list's title row opens it (design note 110).
+  await expect(page.getByTestId("import-log")).toHaveJSProperty("open", true);
+  await expect(page.getByTestId("import-log").getByTestId("card-summary")).toHaveText("Version 1, 12 items");
+  await expect(page.getByTestId("check-card")).toHaveJSProperty("open", false);
+  await expect(page.getByTestId("card-list")).toHaveJSProperty("open", false);
+  await expect(page.getByTestId("card-list").getByTestId("card-summary")).toHaveText("expense-requirements.xlsx");
+  await page.getByTestId("card-list").locator("summary").click();
+  await expect(page.getByTestId("card-list")).toHaveJSProperty("open", true);
 
   // A second copy with one changed row (CL-05): the mapping remembered, then version 2 and
   // the diff counts (E3-6, acceptance 4 and 5).
