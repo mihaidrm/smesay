@@ -45,3 +45,10 @@ Built 2026-10-05 (design note 78, decision 0044):
   workspace now pass through the quickstart first; e2e/members.spec.ts expects it for the
   invitee. Migration 0027 marks every membership that existed before it as seen, so people
   already using the app are not sent to it.
+
+Changed 2026-10-07 (design note 102): Mihai called the page "a wall of text". The intro is one
+sentence, each step card is two lines (what you do, what you get, at most 14 words each), and
+"Then: read the results" is three bullets. Titles, the four steps, the two links, the test id
+and the heading levels are as before; e2e/quickstart.spec.ts counts the step cards inside the
+list of steps and the three bullets. Acceptance 3 is unchanged: "about ten minutes" stays in
+the intro until the timed run.

@@ -17,11 +17,30 @@ export const BRAND_COPY = {
   saved: "Saved. Your validations carry the new name, logo and accent.",
   accentUse: "The accent colours the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink.",
   noAccent: "No accent set. The respondent page uses violet.",
+  pick: "Pick a colour",
+  clear: "Clear",
 };
 
 // "Powered by SMEsay" on the respondent side and in the Build preview (stories/E7-7,
 // acceptance 5; docs/design-system.md, Identity): while the workspace is on the Free plan.
 export const showsPoweredBy = (plan: PlanKey): boolean => plan === "free";
+
+// The picker beside the hex field (design note 104, Mihai 2026-10-07: "accent color in brand
+// needs to open a color picker"). An input of type color always holds a 7-character lowercase
+// hex and is never empty (developer.mozilla.org/docs/Web/HTML/Element/input/color, Value), so
+// the two sides are kept in sync by these two: the text as typed to the picker's value (null
+// while the text is not a colour yet, so the picker keeps the last valid one; the default
+// violet when the field is empty, which is what the respondent page then uses), and a picked
+// value to the text in upper case, as the server stores it (src/lib/brand.ts).
+export function pickerValue(text: string): string | null {
+  const trimmed = text.trim();
+  if (trimmed === "") return DEFAULT_ACCENT.toLowerCase();
+  return HEX.test(trimmed) ? trimmed.toLowerCase() : null;
+}
+
+export function pickedHex(value: string): string {
+  return value.trim().toUpperCase();
+}
 
 export function accentContrast(hex: string | null): number | null {
   return hex && HEX.test(hex) ? contrastRatio(hex, "#FFFFFF") : null;
