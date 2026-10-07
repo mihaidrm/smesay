@@ -20,26 +20,33 @@ export default async function QuickstartPage() {
   if (!viewing && await members.markQuickstartSeen(current.ws, session.user.id, new Date())) await track("quickstart_seen", {}, { workspaceId: current.ws, userId: session.user.id });
   const sample = list.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
-    <main className="flex max-w-[880px] flex-col gap-6 px-8 py-6" data-testid="quickstart">
-      <div className="flex flex-col gap-1">
+    <main className="flex max-w-[880px] flex-col gap-8 px-8 py-8" data-testid="quickstart">
+      <div className="flex flex-col gap-2">
         <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}</div>
         <h1 className="text-[30px] font-extrabold leading-9 tracking-[-0.03em]">{Q.title}</h1>
-        <p className="mt-1 max-w-[640px] text-ink-muted">{Q.intro}</p>
+        <p className="max-w-[640px] text-[15px] leading-6 text-ink-muted">{Q.intro}</p>
       </div>
-      <ol className="grid grid-cols-2 gap-3.5">
+      {/* Each card: the number beside the title, then what you do and what you get, one line each
+          (design note 102). The number badge and the title share one 32 px row. */}
+      <ol className="grid grid-cols-2 gap-5" data-testid="quickstart-steps">
         {Q.steps.map((step, i) => (
-          <li key={step.title} className="flex flex-col gap-2 rounded-2xl border border-hairline bg-surface p-5">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 items-center justify-center rounded-full bg-violet-soft font-mono text-[13px] font-bold text-violet-text" aria-hidden="true">{i + 1}</span>
-              <h2 className="text-base font-bold">{step.title}</h2>
+          <li key={step.title} className="flex flex-col gap-4 rounded-2xl border border-hairline bg-surface p-6">
+            <div className="flex items-center gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-violet-soft font-mono text-sm font-bold text-violet-text" aria-hidden="true">{i + 1}</span>
+              <h2 className="text-[17px] font-bold leading-8">{step.title}</h2>
             </div>
-            <p className="text-sm leading-[21px] text-ink-muted">{step.body}</p>
+            <div className="flex flex-col gap-1.5 text-[15px] leading-6">
+              <p>{step.you}</p>
+              <p className="text-ink-muted">{step.get}</p>
+            </div>
           </li>
         ))}
       </ol>
-      <section className="flex flex-col gap-2 rounded-2xl border border-hairline bg-tint p-5">
-        <h2 className="text-base font-bold">{Q.then.title}</h2>
-        <p className="text-sm leading-[21px] text-ink-muted">{Q.then.body}</p>
+      <section className="flex flex-col gap-4 rounded-2xl border border-hairline bg-tint p-6">
+        <h2 className="text-[17px] font-bold leading-8">{Q.then.title}</h2>
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-6 text-ink-muted" data-testid="quickstart-then">
+          {Q.then.lines.map((line) => <li key={line}>{line}</li>)}
+        </ul>
       </section>
       <div className="flex items-center gap-4">
         <Link href="/app/projects/new" className={buttonVariants()}>{Q.start}</Link>

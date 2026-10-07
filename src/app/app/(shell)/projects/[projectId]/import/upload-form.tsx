@@ -3,7 +3,9 @@
 // Upload button. The size is checked here first (the same limit the server applies, so a 20 MB
 // file gets the message without the round trip) and again on the server. The error of the last
 // attempt shows inline under the input. useActionState: react.dev/reference/react/useActionState.
+// The file input is the shared picker (src/components/app/file-picker.tsx, design note 103).
 import { useActionState, useState } from "react";
+import { FilePicker } from "@/components/app/file-picker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { UPLOAD_COPY } from "@/lib/import/copy";
@@ -28,7 +30,7 @@ export function UploadForm({ projectId, hasUpload }: { projectId: string; hasUpl
         <Label htmlFor="upload-file" className="text-[13px]">{hasUpload ? "Upload another file" : "Your file"}</Label>
         <p className="text-[13px] text-ink-muted">Upload an xlsx or csv file, up to {formatBytes(SIZE_MAX)} and 2,000 rows, with one item per row; the columns are mapped on the next card.</p>
         <div className="flex flex-wrap items-center gap-3">
-          <input id="upload-file" name="file" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" className="text-sm" aria-describedby={error ? "upload-error" : undefined} />
+          <FilePicker id="upload-file" name="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" disabled={pending} aria-describedby={error ? "upload-error" : undefined} />
           <Button type="submit" loading={pending}>Upload</Button>
         </div>
       </div>
