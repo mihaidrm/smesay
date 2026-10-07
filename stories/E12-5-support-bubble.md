@@ -82,7 +82,7 @@ Built 2026-10-05 (design note 94, decision 0044):
   the length line reads "2,000" as the app writes numbers.
 - Acceptance 6: no model call and no "AI" in the bubble (a unit test checks the words).
 - Acceptance 7: docs/legal/privacy.md, "Questions sent from the landing page", with a LAWYER
-  marker.
+  marker; approved by the lawyer and the marker removed 2026-10-07 (decision 0059).
 - Acceptance 8: src/lib/support.test.ts (10 tests: fields, header syntax in the address, the
   hidden field, the page path, both limits, the counts given back, email 5 with Reply-To and
   no HTML, the words) and src/app/api/support/route.test.ts (5 tests through the route: the
