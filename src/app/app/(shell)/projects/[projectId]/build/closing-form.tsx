@@ -7,9 +7,12 @@
 // change. Focusing or clicking any control opens the Wrap up in the preview (acceptance
 // 3; data-preview-screen on the card in build/page.tsx, src/components/app/preview-frame.tsx
 // PreviewColumn). "Saved."
-// until the next change; Save is secondary like the other Build cards (design note 38).
+// until the next change; Save is secondary like the other Build cards (design note 38). The
+// card registers with the unsaved changes guard (stories/E5-9); Discard remounts it with the
+// server's values (useDiscard).
 import { useActionState, useId, useState } from "react";
 import { Toggle } from "@/components/app/toggle";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,18 +20,27 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ClosingSpec } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { CLOSING_COPY, CLOSING_QUESTION_MAX, SIGN_OFF_MAX, signOffFor } from "@/lib/closing";
+import { isUnsaved } from "@/lib/unsaved";
 import { saveClosingAction, type ProjectFormState } from "../../actions";
 
-export function ClosingForm({ projectId, instrumentId, closing, locked }: { projectId: string; instrumentId: string; closing: ClosingSpec; locked: boolean }) {
+type Props = { projectId: string; instrumentId: string; closing: ClosingSpec; locked: boolean };
+
+export function ClosingForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, closing, locked, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveClosingAction, { error: null, saved: false });
   const [question, setQuestion] = useState(closing.closingQuestion ?? "");
   const [missingForm, setMissingForm] = useState(closing.missingForm);
   const [signOff, setSignOff] = useState(signOffFor(closing));
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "build-closing", label: CLOSING_COPY.card, dirty: isUnsaved(dirty, pending, state), reset: discard });
   const id = useId();
   const touch = () => setDirty(true);
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="closing-form">
+    <form {...unsaved.props} action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-4" data-testid="closing-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="missingForm" value={missingForm ? "1" : "0"} />

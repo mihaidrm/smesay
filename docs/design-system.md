@@ -219,6 +219,13 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   secondary Dismiss pill. Toast: dark surface, light text, violet 300 action, the toast shadow.
   Empty state: a dashed card with a title at 18 px 700, one line that says what to do and the
   mascot where the screen is a first visit (Projects, Import, Results).
+- Unsaved changes guard (stories/E5-9, design note 112): a card of Import, Build or Share
+  whose form holds changes not saved, after a click on a stepper pill or a sidebar link,
+  turns its hairline danger with an inset line (2 px, nothing moves), shakes once 4 px side
+  to side over 400 ms (nothing under reduced motion) and shows "Not saved" at 12 px 600 in
+  danger beside its title; under the project header's title row a banner on the surface with
+  a danger hairline, 14 px 600 danger text naming the cards, and a small secondary Discard.
+  Components in src/components/app/unsaved.tsx.
 - Table: header 36 at 12 px muted 600, no fill; rows 40 with a hairline above; hovered row
   tint. Card: radius 16, hairline, the card shadow, 16 padding, title 15 weight 700 with a mono
   count beside it when there is one. Item row (Shape, the respondent cards' list form): raised
