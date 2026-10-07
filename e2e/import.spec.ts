@@ -74,7 +74,9 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
   await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();
   await expect(page.getByTestId("imported-version")).toHaveText("Imported as version 1.");
-  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Shape/);
+  // The filled pill is the open page (design note 106): Import, with Shape now a link.
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Import/);
+  await expect(page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ })).toBeVisible();
 
   // A second copy with one changed row (CL-05): the mapping remembered, then version 2 and
   // the diff counts (E3-6, acceptance 4 and 5).
