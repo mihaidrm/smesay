@@ -46,7 +46,7 @@ describe("actions", () => {
       { id: "a1", itemId: "i1", respondent: "r1", kind: "change", value: "S", text: "Most receipts arrive by email now." },
       { id: "a2", itemId: "i1", respondent: "r2", kind: "disagree", value: null, text: "Finance checks this already." },
     ],
-    missing: [{ id: "m1", respondent: "r1", text: "Mileage from addresses", area: null, value: null }],
+    missing: [{ id: "m1", respondent: "r1", text: "Mileage from addresses" }],
     respondents: [{ key: "r1", groups: { Team: "Sales" } }, { key: "r2", groups: { Team: "Finance" } }],
     scale: ["Must", "Should"],
     labelOf: (code) => (code === "M" ? "Must" : code === "S" ? "Should" : ""),

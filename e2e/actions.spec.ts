@@ -68,7 +68,8 @@ test("write actions from the answers, each citing the answers behind it", async 
   const wrapSaved = link.waitForResponse((r) => r.url().endsWith("/wrap") && r.request().method() === "PUT" && r.ok());
   await link.getByLabel("What is missing?").fill("Mileage from a start and end address");
   await wrapSaved;
-  await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  await link.getByTestId("confidence-slider").focus();
+  await link.getByTestId("confidence-slider").press("ArrowRight");
   await link.getByTestId("wrap-up-signoff").click();
   await link.getByTestId("wrap-up-submit").click();
   await expect(link.getByTestId("done-thanks")).toBeVisible();

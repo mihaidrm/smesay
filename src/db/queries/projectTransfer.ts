@@ -55,7 +55,7 @@ export type TransferInput = {
   invites: { id: string; instrumentId: string; kind: "public" | "personal"; email: string | null; name: string | null; roleHint: string | null; opensAt: Date | null; closesAt: Date | null; revokedAt: Date | null; remindersSent: number; lastReminderAt: Date | null; sentAt: Date | null; createdAt: Date }[];
   responses: { id: string; instrumentId: string; itemSetId: string; inviteId: string; fields: Record<string, string>; perspectives: string[]; confidence: number | null; signedOff: boolean; submittedAt: Date | null; firstSubmittedAt: Date | null; closingAnswer: string | null; signOffText: string | null; createdAt: Date; updatedAt: Date }[];
   answers: { id: string; responseId: string; itemId: string; kind: (typeof answer.$inferInsert)["kind"]; value: string | null; reason: string | null; comment: string | null; updatedAt: Date }[];
-  missingItems: { id: string; responseId: string; text: string; suggestedArea: string | null; suggestedValue: string | null; createdAt: Date }[];
+  missingItems: { id: string; responseId: string; text: string; createdAt: Date }[];
   insights: { kind: (typeof insight.$inferInsert)["kind"]; title: string; why: string | null; citedAnswerIds: string[]; citedMissingItemIds: string[]; state: "open" | "done" | "dismissed"; closedAt: Date | null; model: string | null; tokensIn: number | null; tokensOut: number | null; costEurCents: number | null; createdAt: Date }[];
 };
 
@@ -87,7 +87,7 @@ export async function writeProject(ws: WorkspaceId, input: TransferInput, userId
     const answerRows = input.answers.map((a) => ({ id: fresh(a.id), workspaceId: ws, responseId: map(a.responseId), itemSetId: map(setOfItem.get(a.itemId) ?? a.itemId), itemId: map(a.itemId), kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: a.updatedAt }));
     for (let i = 0; i < answerRows.length; i += 500) await tx.insert(answer).values(answerRows.slice(i, i + 500));
     for (const m of input.missingItems) {
-      await tx.insert(missingItem).values({ id: fresh(m.id), workspaceId: ws, responseId: map(m.responseId), text: m.text, suggestedArea: m.suggestedArea, suggestedValue: m.suggestedValue, createdAt: m.createdAt });
+      await tx.insert(missingItem).values({ id: fresh(m.id), workspaceId: ws, responseId: map(m.responseId), text: m.text, createdAt: m.createdAt });
     }
     for (const s of input.insights) {
       await tx.insert(insight).values({ workspaceId: ws, projectId, kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds.map(map), citedMissingItemIds: s.citedMissingItemIds.map(map), state: s.state, closedAt: s.state === "open" ? null : (s.closedAt ?? now), closedBy: null, model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: s.createdAt });

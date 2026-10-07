@@ -27,9 +27,9 @@ export const CLOSING_COPY = {
   questionLabel: "Closing question, optional",
   questionHint: `Respondents answer one open question at the end, up to ${CLOSING_QUESTION_MAX} characters. Leave it empty to ask none.`,
   missingTitle: "Ask for missing items",
-  missingLine: "On: respondents can name an item the list lacks, with an area and a proposed value.",
+  missingLine: "On: respondents write what the list lacks in their own words, with room for a list.",
   confidenceTitle: "Ask how confident they are",
-  confidenceLine: "Respondents always answer it, from 1 to 5. The dashboard shows the spread.",
+  confidenceLine: "Respondents always answer it, on a slider from Guessing to Certain. The dashboard shows the spread as 1 to 5.",
   always: "Always on",
   signOffLabel: "Sign-off text",
   signOffHint: `Respondents tick this before they submit. It can be up to ${SIGN_OFF_MAX} characters.`,
@@ -47,10 +47,9 @@ export const WRAP_UP_COPY = {
   previewSubmit: "Submit is off in the preview.",
   missingTitle: "Is anything missing from the list? Optional.",
   missingText: "What is missing?",
-  missingArea: "Where does it belong?",
-  missingValue: "How important is it?",
-  choose: "Choose one",
+  missingHint: "More than one thing? Put each on its own line.",
   confidenceTitle: "How confident are you in these answers?",
+  confidencePrompt: "Drag to say how sure you are",
   guessing: "Guessing",
   certain: "Certain",
   stillNeeded: (parts: string[]) => `Still needed: ${parts.join(", ")}.`,
@@ -60,6 +59,20 @@ export const WRAP_UP_COPY = {
   needSignOff: "the confirmation",
   submit: "Submit",
 } as const;
+
+// The five words of the confidence slider (design note 107), 1 to 5. The stored value stays
+// the integer (INTERFACES.md; the dashboard, the PDF and the CSV keep the numbers); the word
+// is what the respondent reads under the slider and what the receipt email names.
+export const CONFIDENCE_WORDS = ["Guessing", "Not very sure", "Fairly sure", "Confident", "Certain"] as const;
+export const CONFIDENCE_MIN = 1;
+export const CONFIDENCE_MAX = 5;
+// Where the slider rests before the respondent picks: the middle, dimmed, until a change.
+export const CONFIDENCE_UNSET = 3;
+
+export function confidenceWord(n: number): string {
+  if (!Number.isInteger(n) || n < CONFIDENCE_MIN || n > CONFIDENCE_MAX) throw new RangeError(`Confidence is ${CONFIDENCE_MIN} to ${CONFIDENCE_MAX}, not ${n}.`);
+  return CONFIDENCE_WORDS[n - 1];
+}
 
 export const DEFAULT_CLOSING: ClosingSpec = { confidence: true, missingForm: true, signOffText: "" };
 

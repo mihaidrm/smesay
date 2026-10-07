@@ -153,7 +153,7 @@ count under the switch), minutesToSubmit (whole minutes, rounded in SQL; medianM
 their median, rounded) } and results.missing(ws, instrumentId, filter) the
 missing items of the counted people as MissingRow { id, responseId, text }, the rows of
 E10-1's "People" and "Missing items" files; registers.answers(ws, instrumentId, filter, kinds, fieldKeys, method) and registers.missing(ws,
-instrumentId, filter, fieldKeys, method) (E8-4) the answers of the kinds asked (change, disagree,
+instrumentId, filter, fieldKeys) (E8-4) the answers of the kinds asked (change, disagree,
 unclear) and the missing items the filter keeps, as RegisterRow { id, itemId, reference,
 itemText, readerStatus, readerText, proposedValue, kind, value, reason, comment, fields, who,
 anon, submitted, changedSince } and MissingRegisterRow { id, text, area, value, fields, who,
@@ -454,20 +454,20 @@ version, writer and save number and the response id added the same day after the
   first Submit; submitted_at is the latest, so E8-2's "changed after submitting" needs no
   history), wrap_version, wrap_writer and wrap_writer_seq (the Wrap up's version, counted up
   on every Wrap up write and Submit, the page that wrote it last and that page's number: the
-  answer's rule, wrapTakes in src/lib/respondent-rules.ts). missing_item gains
-  suggested_value (a code of the instrument's scale, or null); suggested_area is one of the
-  list's areas the respondent sees (areasOf: not "Other items") or null; a response has at
+  answer's rule, wrapTakes in src/lib/respondent-rules.ts). missing_item holds free text
+  only (up to 2,000 characters, line breaks kept; the area and value columns of E7-5 were
+  dropped on 2026-10-07, decision 0060, migration 0036); a response has at
   most one missing item, written by every Wrap up save and Submit that changes it, updated
   in place so it keeps its id. updated_at moves on a Wrap up write or Submit only when it
   changes the Wrap up. The plan's monthly responses count first_submitted_at
   (src/db/queries/usage.ts).
 - The Wrap up's save: PUT /r/[token]/wrap, JSON { response, confidence: 1 to 5 or null,
-  closingAnswer?: string, missing?: { text, area?, value? } | null, base, page, seq, after? }
+  closingAnswer?: string, missing?: { text } | null, base, page, seq, after? }
   (the Wrap up's version the write was made on, the page's id, its number for the write, the
   saves of other pages it was made on top of, as an answer's), as the respondent writes
   (saveWrap, parseWrapInput). 200 { saved: true, version, writer, writerSeq, changedSince,
   submittedAt }; 409 { error: "stale", wrap: { confidence, signed: false, closingAnswer,
-  missing: { text, area, value } }, version, writer, writerSeq, changedSince, submittedAt }
+  missing: { text } }, version, writer, writerSeq, changedSince, submittedAt }
   when the stored Wrap up is not
   one the write was made on;
   refusals as an answer's (409 when this device has no response or not the one named,
@@ -477,7 +477,7 @@ version, writer and save number and the response id added the same day after the
 - The submit payload: POST /r/[token]/submit, JSON { response (the response the page answers
   for; 409 not started when it is not this device's, checked first), confidence: 1 to 5,
   signedOff: true, signOffText?: string (the sentence the page showed; refused when the PM's
-  differs), closingAnswer?: string, missing?: { text, area?, value? } | null, base, page,
+  differs), closingAnswer?: string, missing?: { text } | null, base, page,
   seq, after? (as the Wrap up's save) }. 200 { submittedAt (ISO, UTC; the stored time, at
   least a millisecond after the response's Submit before, E7-6), name (the first name,
   or null), version (the Wrap up's) }; 409 { error: "stale", wrap, version, writer,
@@ -494,7 +494,7 @@ version, writer and save number and the response id added the same day after the
   sentence } when check(rows, perspectives as locked) refuses; responses.saveWrap(ws,
   inviteId, responseId, data, stillOpen, now) under the same locks returns { saved, changed }
   or { stale }. loadRespondent's ready view carries wrap: { confidence, signed: false,
-  closingAnswer, missing: { text, area, value } } as the server holds it (empty before any)
+  closingAnswer, missing: { text } } as the server holds it (empty before any)
   and wrapSync: { version, writer, writerSeq }; the page keeps its newest change the server
   has not confirmed under smesay-wrap:[token] as JSON { response, value, base, page, seq,
   after? } (src/lib/wrap-queue.ts) and sends it when it opens if the server would still take
@@ -637,7 +637,8 @@ opensAt, closesAt, hadPasscode, revokedAt, remindersSent, lastReminderAt, sentAt
 responses [{ id, instrumentId, itemSetId, inviteId, fields, perspectives, confidence,
 signedOff, submittedAt, firstSubmittedAt, closingAnswer, signOffText, createdAt, updatedAt,
 answers [{ id, itemId, kind, value, reason, comment, updatedAt }] }], missingItems [{ id,
-responseId, text, suggestedArea, suggestedValue, createdAt }], insights [{ kind, title, why,
+responseId, text, createdAt }] (files from before 2026-10-07 also carry suggestedArea and
+suggestedValue, read and dropped), insights [{ kind, title, why,
 citedAnswerIds, citedMissingItemIds, state, closedAt, closedBy (an email), model, tokensIn,
 tokensOut, costEurCents, createdAt }] }. Dates are ISO 8601 with an offset. Ids are keys inside
 the file; the import makes new ones. No token, passcode hash or device token is in the file.

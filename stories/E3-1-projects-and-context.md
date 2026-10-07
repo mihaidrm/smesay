@@ -11,8 +11,9 @@ projects shows where each one stands.
    "Delete sample" (E8-8). Empty state when only the sample exists: "No projects yet" with the
    button, per docs/design-system.md.
 2. New project asks for a name only and opens the Import step. The stepper shows Import,
-   Shape, Build, Share, Results with the current step filled, done steps numbered in ink,
-   coming steps grey (PM app board, stepper after the canvas comment of 2026-10-01).
+   Shape, Build, Share, Results with the open step filled and ringed, done steps ticked,
+   coming steps grey (PM app board, stepper after the canvas comment of 2026-10-01; the
+   filled pill is the open page since 2026-10-07, design note 106).
 3. Import holds the "About this project" card above the mapping (decision 0020): one text
    "What is this about?" and one line "Terms to keep as written", counted live as
    "[N] of 2,000 characters"; over 2,000 the server refuses with the message in
@@ -74,3 +75,10 @@ Built 2026-10-02.
   project 404 on every action); e2e/projects.spec.ts (acceptance 5 plus the list). Design note
   19 has the screenshots.
 - Copy: docs/copy/app.md (Projects and the project frame) and errors.md.
+
+Changed 2026-10-07 (design note 106): the filled pill is the page that is open, not the
+furthest step the project's data has reached; the ticks still follow the data (every step
+before the furthest one, plus Share once published). The filled pill carries a 2 px violet
+ring with a 2 px surface offset, the pills' focus ring, so it reads beyond its colour.
+project-stepper.tsx passes `reached` to the Stepper for the ticks; e2e/import.spec.ts,
+build.spec.ts and share.spec.ts assert the open page.

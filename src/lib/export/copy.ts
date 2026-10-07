@@ -17,7 +17,7 @@ export const EXPORT_COPY = {
     reasonOrQuestion: "Reason or question", comment: "Comment", submittedAt: "Submitted at", sinceSubmit: "Since submitting", source: "Source", perspectives: "Perspectives",
     notAnswered: "Not answered", agreement: "Agreement %", status: "Status", answered: "Answered", visible: "Items seen",
     minutes: "Minutes to submit", reminders: "Reminders", withComment: "Answers with a reason or comment",
-    suggested: "Suggested item", suggestedArea: "Suggested area", suggestedValue: "Suggested value", suggestedLabel: "Suggested label",
+    suggested: "Suggested item",
   },
   // The Export tab (E10-1, acceptance 1).
   tab: {

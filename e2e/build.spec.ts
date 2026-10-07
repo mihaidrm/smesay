@@ -63,6 +63,14 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("field-row")).toHaveCount(2);
   await expect(page.getByLabel("Label, field 1")).toHaveValue("Name");
   await expect(page.getByLabel("Label, field 2")).toHaveValue("Role");
+  // The filled pill follows the open page (design note 106): Share while Share is open,
+  // Build again on the way back.
+  await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Share/ }).click();
+  await expect(page).toHaveURL(/\/share$/);
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Share/);
+  await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
+  await expect(page).toHaveURL(/\/build$/);
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
 
   // The preview (E5-6): the panel, its caption, the phone at true size; the app opens on the
   // first chapter, and its row goes to About you. Every save reloads it.
@@ -296,7 +304,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers.");
   await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
   await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
-  await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
+  await expect(wrapUp.getByTestId("confidence-slider")).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
   await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
 
