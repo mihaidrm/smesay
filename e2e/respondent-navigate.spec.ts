@@ -116,3 +116,70 @@ test("chapter row, progress, Continue, Wrap up still to finish, welcome back", a
   await expect(again.getByTestId("welcome-back")).toHaveCount(0);
   await phone.close();
 });
+
+// From the 576 px column the row wraps instead of scrolling (design note 109; Mihai,
+// 2026-10-07: "maybe show the areas on 2 rows at the top if they are going off screen"). A
+// list of eight one-item areas opened in a 1440 by 900 window shows the pills on two rows:
+// the last pill sits lower than the first, every pill is inside the card and the row has
+// nothing to scroll.
+test("chapter row wraps onto two rows on a desktop", async ({ page, request, browser }) => {
+  test.setTimeout(150_000);
+  const stamp = Date.now();
+  const email = `e2e-navigate-wrap-${stamp}@marlow.example`;
+  await page.goto("/sign-in");
+  await page.getByLabel("Email").fill(email);
+  await page.getByRole("button", { name: "Send me a link" }).click();
+  await expect(page.getByRole("status")).toBeVisible();
+  await page.goto(await latestLink(request, email));
+  await page.getByLabel("Workspace name").fill("Marlow Group");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page).toHaveURL(/\/app\/quickstart$/, { timeout: 15_000 });
+  await expect(page.getByTestId("quickstart")).toBeVisible();
+  await page.goto("/app");
+  await expect(page).toHaveURL(/\/app$/);
+  await page.getByRole("link", { name: "Projects" }).first().click();
+  await page.getByRole("link", { name: "New project" }).first().click();
+  await page.getByLabel("Project name").fill("Sales tool");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/import$/);
+  const projectUrl = page.url().replace(/\/import$/, "");
+  await page.getByRole("button", { name: "Paste a list instead" }).click();
+  const areas = ["Forms and flows", "Forms and approvals", "International support", "Assisted sales", "Data quality", "Experiments", "Reporting", "Integrations"];
+  await page.getByLabel("Paste a list").fill(areas.map((area, i) => `Item ${i + 1} of the list | ${area} | Must`).join("\n"));
+  await page.getByRole("button", { name: "Use this list" }).click();
+  await page.getByRole("button", { name: "Import 8 items" }).click();
+  await expect(page.getByTestId("imported-line")).toBeVisible();
+  await page.goto(`${projectUrl}/build`);
+  await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
+  await page.goto(`${projectUrl}/share`);
+  await expect(page.getByTestId("share-zone")).not.toBeEmpty();
+  await page.getByLabel("Closes").fill("2027-01-20T18:00");
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByTestId("link-state")).toHaveText("Published");
+  const url = await page.getByTestId("share-link").inputValue();
+
+  const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const link = await desktop.newPage();
+  await link.goto(url);
+  await link.locator("[data-ready]").waitFor();
+  await link.getByLabel("Name").fill("Ana Pop");
+  await link.getByLabel("Role").fill("Finance lead");
+  await link.getByTestId("about-you-start").click();
+  await expect(link.getByTestId("chapter-title")).toHaveText("Forms and flows");
+  await expect(link.getByTestId("row-chapter-8")).toBeVisible();
+  const row = link.getByTestId("chapter-row");
+  const card = link.getByTestId("chapter-screen").locator("> div").first();
+  const cardBox = (await card.boundingBox())!;
+  const first = (await link.getByTestId("row-about").boundingBox())!;
+  const last = (await link.getByTestId("row-wrap").boundingBox())!;
+  // Two rows: the last pill starts under the first pill's bottom edge.
+  expect(last.y).toBeGreaterThanOrEqual(first.y + first.height);
+  // Both pills sit inside the card's width.
+  expect(first.x).toBeGreaterThanOrEqual(cardBox.x);
+  expect(first.x + first.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+  expect(last.x).toBeGreaterThanOrEqual(cardBox.x);
+  expect(last.x + last.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+  // Nothing to scroll sideways.
+  expect(await row.evaluate((e) => e.scrollWidth - e.clientWidth)).toBe(0);
+  await desktop.close();
+});

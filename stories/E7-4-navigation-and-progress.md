@@ -94,3 +94,10 @@ of the Wrap up, the direction from the screens' order in respondent-app.tsx, the
 src/app/globals.css under prefers-reduced-motion: no-preference. e2e/sample-instrument.spec.ts
 reads "next" after Continue and "prev" after Back. Acceptance 3's notes now read "Reason not
 written yet" and "Question not written yet".
+
+Changed 2026-10-07 (design note 109; Mihai: "maybe show the areas on 2 rows at the top if they
+are going off screen, and also add a scroll bar so that user can easily navigate through
+them"): from the 576 px column the row wraps onto as many rows as it needs, 6 px apart, and
+no longer scrolls; under 576 px it scrolls as before with a thin visible scrollbar under the
+pills (scrollbar-width and scrollbar-color; Safari on iOS shows its own overlay bar instead).
+e2e/respondent-navigate.spec.ts gains a test with eight areas at 1440 by 900.
