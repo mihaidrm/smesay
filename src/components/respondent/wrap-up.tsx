@@ -6,9 +6,15 @@
 // 48 px label with a checkbox, and Submit, disabled with the line naming what is still
 // needed. One component, used by the respondent app on a link and in the builder's preview
 // (stories/E5-6), so the two cannot drift. In preview mode the band says nothing is saved
-// and Submit stays disabled. The confidence pills are one radio
-// group with a roving tabindex and arrow keys, as the rating row (rating-row.tsx), with
-// Guessing and Certain described on 1 and 5. E7-4 renders it on the live link with the
+// and Submit stays disabled. Confidence is a native range input, 1 to 5 (design note 107;
+// developer.mozilla.org/docs/Web/HTML/Element/input/range): the thumb in the PM's accent
+// through accent-color (developer.mozilla.org/docs/Web/CSS/accent-color), the word of the
+// value under it (confidenceWord), Guessing and Certain captioned at the ends. A range input
+// always holds a value, so while the form's confidence is null it rests at 3, dimmed and
+// marked data-unset, with the prompt in place of the word; a change (a drag, a tap on the
+// track, the arrow, Home and End keys the browser handles) sets the confidence, and so does
+// a tap that does not move it or Enter or Space while it has the focus, so a respondent who
+// agrees with the middle can pick it. E7-4 renders it on the live link with the
 // header and chapter row (`top`) and the gaps the page counts (`gaps`): the box "[N] still to
 // finish." with "Go to section [N]: [CHAPTER]" to the first one's item ("Go to [CHAPTER]" on
 // the single long page, decision 0055), and the list "Still to finish" naming each item
@@ -24,14 +30,14 @@
 // buttons keep their pill and take a 48 px hit area. The frame of ./frame.ts (decisions 0051 and 0052):
 // from a 576 px column a centered card, Back and Submit centered in its bottom band with the
 // line under them, and "Powered by" under the card.
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
 import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
-import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
-import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
+import { CONFIDENCE_MAX, CONFIDENCE_MIN, CONFIDENCE_UNSET, confidenceWord, signOffFor, WRAP_UP_COPY } from "@/lib/closing";
+import { accentVars } from "@/lib/brand-rules";
 import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS, type Bucket, type Gap, type WrapValue } from "@/lib/respondent-rules";
 import { labelFor } from "@/lib/scoring";
 
@@ -96,12 +102,11 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
   const setSigned = (on: boolean) => setForm({ ...form, signed: on });
   const setMissing = (patch: Partial<WrapValue["missing"]>) => setForm({ ...form, missing: { ...form.missing, ...patch } });
   const prefix = useId();
-  const pills = useRef<(HTMLButtonElement | null)[]>([]);
-  const moveConfidence = (from: number, delta: number) => {
-    const to = ((from - 1 + delta + 5) % 5) + 1;
-    pills.current[to]?.focus();
-    setConfidence(to);
-  };
+  // The slider's value: the confidence, or the middle while none is picked.
+  const slider = confidence ?? CONFIDENCE_UNSET;
+  const unset = confidence === null;
+  // A tap that did not move the thumb, or Enter or Space: the value under the thumb counts.
+  const pickCurrent = (el: HTMLInputElement) => { const n = el.valueAsNumber; if (confidence !== n) setConfidence(n); };
   const tileKeys: Bucket[] = showProposed ? ["agreed", "higher", "lower", "notNeeded", "unclear", ...((tally?.rated ?? 0) > 0 ? (["rated"] as Bucket[]) : [])] : ["rated", "notNeeded", "unclear"];
   const tileLabel: Record<Bucket, string> = { agreed: WRAP_UP_COPY.tally.agreed, higher: WRAP_UP_COPY.tally.higher, lower: WRAP_UP_COPY.tally.lower, notNeeded: WRAP_UP_COPY.tally.notNeeded, unclear: WRAP_UP_COPY.tally.unclear, rated: WRAP_UP_COPY.tally.rated };
   const needed = [...(open > 0 ? [WRAP_UP_COPY.needItems(open)] : []), ...(fieldsMissing ? [RESPONDENT_COPY.needFields] : []), ...(confidence === null ? [WRAP_UP_COPY.needConfidence] : []), ...(signed ? [] : [WRAP_UP_COPY.needSignOff])];
@@ -198,25 +203,22 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
             <textarea id={`${prefix}-closing`} rows={3} maxLength={REASON_MAX} value={form.closingAnswer} onChange={(e) => setForm({ ...form, closingAnswer: e.target.value })} className={cn(FIELD, "h-auto py-3")} />
           </div>
         )}
-        <div className="flex flex-col gap-2" data-testid="wrap-up-confidence">
+        <div className="flex flex-col gap-1" data-testid="wrap-up-confidence">
           <div id={`${prefix}-confidence-title`} className="mb-1 text-sm font-semibold">{WRAP_UP_COPY.confidenceTitle}</div>
-          <div className="flex gap-1" role="radiogroup" aria-labelledby={`${prefix}-confidence-title`}>
-            {[1, 2, 3, 4, 5].map((n) => {
-              const on = confidence === n;
-              const tabbable = confidence === null ? n === 1 : on;
-              const captionId = n === 1 ? `${prefix}-guessing` : n === 5 ? `${prefix}-certain` : undefined;
-              return (
-                <button key={n} ref={(el) => { pills.current[n] = el; }} type="button" role="radio" aria-checked={on} aria-describedby={captionId} tabIndex={tabbable ? 0 : -1} onClick={() => setConfidence(n)}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); moveConfidence(n, 1); }
-                    if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); moveConfidence(n, -1); }
-                    if (e.key === " " || e.key === "Enter") { e.preventDefault(); setConfidence(n); }
-                  }}
-                  style={on ? (accentVars(accent) as React.CSSProperties) : undefined} className={cn("h-12 flex-1 rounded-full border text-base font-semibold transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground", on ? cn("border-transparent", ACCENT_FILL) : "border-hairline-strong bg-surface text-ink-muted")}>{n}</button>
-              );
-            })}
-          </div>
-          <div className="flex justify-between font-mono text-[10px] text-ink-muted"><span id={`${prefix}-guessing`}>{WRAP_UP_COPY.guessing}</span><span id={`${prefix}-certain`}>{WRAP_UP_COPY.certain}</span></div>
+          {/* 48 px tall for the tap target (docs/design-system.md, Respondent tap targets); the
+              browser centres the track in the box. The thumb at 40 percent until a value is
+              picked (developer.mozilla.org/docs/Web/CSS/::-webkit-slider-thumb and
+              ::-moz-range-thumb). No transition of its own, so reduced motion has nothing to stop. */}
+          <input type="range" min={CONFIDENCE_MIN} max={CONFIDENCE_MAX} step={1} value={slider}
+            onChange={(e) => setConfidence(e.target.valueAsNumber)}
+            onPointerUp={(e) => { if (unset) pickCurrent(e.currentTarget); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCurrent(e.currentTarget); } }}
+            aria-labelledby={`${prefix}-confidence-title`} aria-describedby={`${prefix}-confidence-word`} aria-valuetext={confidenceWord(slider)}
+            data-unset={unset || undefined} style={accentVars(accent) as React.CSSProperties}
+            className={cn("block h-12 w-full rounded-full accent-(--brand-accent) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground dark:accent-(--brand-accent-dark)", unset && "[&::-moz-range-thumb]:opacity-40 [&::-webkit-slider-thumb]:opacity-40")}
+            data-testid="confidence-slider" />
+          <div className="flex justify-between font-mono text-[10px] text-ink-muted" aria-hidden="true"><span>{WRAP_UP_COPY.guessing}</span><span>{WRAP_UP_COPY.certain}</span></div>
+          <p id={`${prefix}-confidence-word`} className={cn("min-h-6 text-center text-base font-semibold", unset && "text-ink-muted")} data-testid="confidence-word">{unset ? WRAP_UP_COPY.confidencePrompt : confidenceWord(confidence)}</p>
         </div>
         <label htmlFor={`${prefix}-signoff`} className="flex min-h-12 items-start gap-3 rounded-xl border border-hairline-strong bg-surface px-4 py-3 text-[15px] leading-5 has-[:checked]:border-violet has-[:checked]:bg-violet-soft has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-ground" data-testid="wrap-up-signoff">
           <input id={`${prefix}-signoff`} type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--violet)] focus:outline-hidden" />

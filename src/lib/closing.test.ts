@@ -3,7 +3,7 @@
 // sign-off. The labels that send a respondent to a chapter name it by number (decision 0055).
 import { describe, expect, it } from "vitest";
 import { ABOUT_YOU_COPY } from "./build-copy";
-import { CLOSING_ERRORS, DEFAULT_CLOSING, DEFAULT_SIGN_OFF, parseClosing, signOffFor, WRAP_UP_COPY } from "./closing";
+import { CLOSING_ERRORS, CONFIDENCE_UNSET, CONFIDENCE_WORDS, confidenceWord, DEFAULT_CLOSING, DEFAULT_SIGN_OFF, parseClosing, signOffFor, WRAP_UP_COPY } from "./closing";
 import { RESPONDENT_COPY } from "./respondent-rules";
 
 describe("parseClosing", () => {
@@ -28,6 +28,20 @@ describe("parseClosing", () => {
   it("reads the default sentence for an empty sign-off", () => {
     expect(signOffFor(DEFAULT_CLOSING)).toBe(DEFAULT_SIGN_OFF);
     expect(signOffFor({ ...DEFAULT_CLOSING, signOffText: "Mine." })).toBe("Mine.");
+  });
+});
+
+describe("confidenceWord", () => {
+  it("names the five values, Guessing to Certain, with the ends as the captions", () => {
+    expect([1, 2, 3, 4, 5].map(confidenceWord)).toEqual(["Guessing", "Not very sure", "Fairly sure", "Confident", "Certain"]);
+    expect(CONFIDENCE_WORDS).toHaveLength(5);
+    expect(confidenceWord(1)).toBe(WRAP_UP_COPY.guessing);
+    expect(confidenceWord(5)).toBe(WRAP_UP_COPY.certain);
+    // The slider rests in the middle until the respondent moves it.
+    expect(confidenceWord(CONFIDENCE_UNSET)).toBe("Fairly sure");
+  });
+  it("refuses a value off the scale", () => {
+    for (const n of [0, 6, 2.5, NaN]) expect(() => confidenceWord(n)).toThrow(RangeError);
   });
 });
 
