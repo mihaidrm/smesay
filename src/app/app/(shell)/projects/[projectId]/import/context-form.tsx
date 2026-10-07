@@ -4,8 +4,12 @@
 // read-only (stories/E8-8, acceptance 2). useActionState: react.dev/reference/react/useActionState.
 // A save that finds the session ended shows the signed-out banner and keeps the text; the draft
 // is in the tab's session storage until the server saves it (stories/E11-6, acceptance 3).
-import { useActionState, useEffect, useRef } from "react";
+// The card registers with the unsaved changes guard (stories/E5-9): a change, a draft put
+// back, a save on its way, refused or signed out all count; Discard drops the stored draft
+// and remounts the form with the server's values (useDiscard).
+import { useActionState, useEffect, useRef, useState } from "react";
 import { SignedOutBanner } from "@/components/app/signed-out-banner";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { useDraft } from "@/components/app/use-draft";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,19 +18,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { CONTEXT_MAX, contextCount, contextLength } from "@/lib/project-context";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { ERROR_PAGE_COPY } from "@/lib/error-pages-copy";
+import { isUnsaved } from "@/lib/unsaved";
 import { saveContextAction, type ProjectFormState } from "../../actions";
 
-export function ContextForm({ projectId, goal: initialGoal, terms: initialTerms, readOnly }: { projectId: string; goal: string; terms: string; readOnly: boolean }) {
+type Props = { projectId: string; goal: string; terms: string; readOnly: boolean };
+
+export function ContextForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, goal: initialGoal, terms: initialTerms, readOnly, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveContextAction, { error: null, saved: false });
-  const { values: { goal, terms }, set, restored, clear } = useDraft(`context:${projectId}`, { goal: initialGoal, terms: initialTerms }, Boolean(state.signedOut));
+  const { values: { goal, terms }, set, restored, clear, forget } = useDraft(`context:${projectId}`, { goal: initialGoal, terms: initialTerms }, Boolean(state.signedOut));
+  const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "import-context", label: PROJECTS_COPY.aboutCard, dirty: !readOnly && (restored || isUnsaved(dirty, pending, state)), reset: () => { forget(); discard(); } });
   // What the last Save sent, so a stored draft is cleared only when that is what is on screen.
   const sent = useRef({ goal: initialGoal, terms: initialTerms });
-  const setGoal = (v: string) => set("goal", v);
-  const setTerms = (v: string) => set("terms", v);
+  const setGoal = (v: string) => { setDirty(true); set("goal", v); };
+  const setTerms = (v: string) => { setDirty(true); set("terms", v); };
   useEffect(() => { if (state.saved) clear(sent.current); }, [state, clear]);
   const over = contextLength(goal.trim(), terms.trim()) > CONTEXT_MAX;
   return (
-    <form action={action} onSubmit={() => { sent.current = { goal, terms }; }} noValidate className="flex flex-col gap-3">
+    <form {...unsaved.props} action={action} onSubmit={() => { sent.current = { goal, terms }; setDirty(false); }} noValidate className="flex flex-col gap-3">
       <input type="hidden" name="projectId" value={projectId} />
       <div className="flex flex-col gap-1">
         <Label htmlFor="ctx-goal" className="text-[13px]">What is this about?</Label>

@@ -17,6 +17,7 @@ import type { WorkspaceId } from "@/db/types";
 import { NeutralPill, StatusPill } from "@/components/ui/status-pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { canRemind, REMINDERS_COPY, tooSoonLine } from "@/lib/reminders-rules";
+import { UnsavedMark } from "@/components/app/unsaved";
 import { InvitesForm } from "./invites-form";
 import { RemindAllForm, RemindForm } from "./remind-buttons";
 import { RenewInvite, RevokeInvite } from "./invite-row-actions";
@@ -30,7 +31,7 @@ export async function InvitesCard({ ws, projectId, instrumentId, isSample, linkS
   return (
     <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-invites-title" data-testid="invites-card">
       <div className="flex flex-col gap-1">
-        <h3 id="share-invites-title" className="text-[15px] font-bold">{INVITEES_COPY.card}</h3>
+        <div className="flex items-center gap-2"><h3 id="share-invites-title" className="text-[15px] font-bold">{INVITEES_COPY.card}</h3><UnsavedMark id="share-invites" /></div>
         <p className="text-sm text-ink-muted">{INVITEES_COPY.line}</p>
       </div>
       {isSample ? <p className="text-[13px] text-ink-muted">{INVITEES_COPY.sample}</p> : <InvitesForm key={instrumentId} projectId={projectId} instrumentId={instrumentId} hint={hint} canSend={canSend} />}
