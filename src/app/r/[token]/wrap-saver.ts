@@ -38,8 +38,6 @@ export type WrapSaverEvents = {
   // wrote: the page shows them.
   onRestore: (value: WrapValue) => void;
   onStale: (value: WrapValue) => void;
-  // A missing item's area the list no longer offers is not sent.
-  clean: (value: WrapValue) => WrapValue;
   // A save the server answered (taken or stale), with what it says of the response's latest
   // Submit and the changes since (E7-6).
   onSaved?: (reply: SinceReply) => void;
@@ -47,7 +45,7 @@ export type WrapSaverEvents = {
 
 const bodyOf = (response: string, entry: WrapEntry) => {
   const v = entry.draft;
-  const missing = v.missing.text.trim() ? { text: v.missing.text, area: v.missing.area || null, value: v.missing.value || null } : null;
+  const missing = v.missing.text.trim() ? { text: v.missing.text } : null;
   return JSON.stringify({ response, confidence: v.confidence, closingAnswer: v.closingAnswer, missing, base: entry.base, page: entry.page, seq: entry.seq, after: entry.after });
 };
 
@@ -173,7 +171,7 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
   const queue = useCallback((raw: WrapValue) => {
     const response = responseRef.current;
     if (!response) return;
-    const value = eventsRef.current.clean(raw);
+    const value = raw;
     const prev = current.current;
     if (wrapChange(prev, value, held.current, refused.current) === "skip") return;
     setError(null);
@@ -262,9 +260,8 @@ export function useWrapSaver(token: string, responseId: string | null, server: {
       try { raw = window.localStorage.getItem(key); } catch { /* Nothing kept. */ }
       const { entry, dropped } = restorableWrap(raw, response, initial.current);
       if (entry) {
-        const draft = eventsRef.current.clean(entry.draft);
-        current.current = { ...entry, draft };
-        queueMicrotask(() => eventsRef.current.onRestore(draft));
+        current.current = entry;
+        queueMicrotask(() => eventsRef.current.onRestore(entry.draft));
       } else if (wrapEntryOf(raw, response)) {
         update(() => null);
         if (dropped) queueMicrotask(() => setNotice(RESPONDENT_ERRORS.wrapChanged));

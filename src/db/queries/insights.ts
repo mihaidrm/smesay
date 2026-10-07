@@ -18,7 +18,7 @@ const base = scoped(insight);
 // One answer the run reads: from a submitted response of the instrument (what Results counts
 // with the include-unsubmitted switch off, decision 0030), with the respondent's fields.
 export type InputAnswer = { id: string; itemId: string; responseId: string; kind: string; value: string | null; reason: string | null; comment: string | null; fields: Record<string, string> };
-export type InputMissing = { id: string; responseId: string; text: string; area: string | null; value: string | null; fields: Record<string, string> };
+export type InputMissing = { id: string; responseId: string; text: string; fields: Record<string, string> };
 
 // A citation as the tab shows it: the respondent's name as on Results (the name field, else a
 // personal invite's name or email, else "Anonymous [N]" by the public link's start order).
@@ -56,14 +56,14 @@ export const insights = {
         from answer a join response r on r.id = a.response_id and r.workspace_id = ${ws}
         where a.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and r.submitted_at is not null
         order by r.created_at, r.id, a.item_id`);
-    const missing = await db.execute<{ id: string; response_id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string> | null }>(sql`
-      select m.id, m.response_id, m.text, m.suggested_area, m.suggested_value, r.fields
+    const missing = await db.execute<{ id: string; response_id: string; text: string; fields: Record<string, string> | null }>(sql`
+      select m.id, m.response_id, m.text, r.fields
         from missing_item m join response r on r.id = m.response_id and r.workspace_id = ${ws}
         where m.workspace_id = ${ws} and r.instrument_id = ${instrumentId} and r.submitted_at is not null
         order by m.created_at, m.id`);
     return {
       answers: answers.map((a) => ({ id: a.id, itemId: a.item_id, responseId: a.response_id, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, fields: a.fields ?? {} })),
-      missing: missing.map((m) => ({ id: m.id, responseId: m.response_id, text: m.text, area: m.suggested_area, value: m.suggested_value, fields: m.fields ?? {} })),
+      missing: missing.map((m) => ({ id: m.id, responseId: m.response_id, text: m.text, fields: m.fields ?? {} })),
     };
   },
 

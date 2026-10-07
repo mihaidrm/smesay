@@ -135,8 +135,6 @@ export const REGISTERS_COPY = {
   reason: "Reason",
   question: "Question",
   missingText: "Suggested item",
-  area: "Suggested area",
-  suggestedValue: "Suggested value",
   notSubmitted: "Not submitted",
   none: "None under this filter.",
   noneYet: "None yet.",
