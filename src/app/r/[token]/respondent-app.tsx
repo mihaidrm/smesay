@@ -56,7 +56,7 @@ import { PERSPECTIVES_COPY } from "@/lib/perspectives";
 import { missingMandatory } from "@/lib/respondent-fields";
 import { formatUtc } from "@/lib/sharing-format";
 import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
-import { areasOf, chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
+import { chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 import type { PreviewRing } from "@/lib/preview";
 import { ABOUT_YOU_COPY } from "@/lib/build-copy";
@@ -168,8 +168,6 @@ export function RespondentApp(props: RespondentAppProps) {
   // cannot read). Every change goes to the server within a second (wrap-saver.ts, E7-5).
   const [wrap, setWrapState] = useState<WrapValue>(props.wrap);
   // A missing item's area that the list no longer offers (perspectives changed) is not sent.
-  const areaNames = areasOf(chapters);
-  const cleanWrap = (w: WrapValue): WrapValue => (w.missing.area === "" || areaNames.includes(w.missing.area) ? w : { ...w, missing: { ...w.missing, area: "" } });
   const wrapSaver = useWrapSaver(token, responseId, { wrap: props.wrap, ...props.wrapSync }, {
     onGone: () => window.location.reload(),
     onNotStarted: () => lostResponse(),
@@ -177,7 +175,6 @@ export function RespondentApp(props: RespondentAppProps) {
     // Another window or device changed it: the stored one shows, and the sign-off is ticked
     // again for it.
     onStale: (value) => setWrapState({ ...value, signed: false }),
-    clean: cleanWrap,
     onSaved: heard,
   });
   const wrapNow = useRef(wrap);
@@ -379,8 +376,8 @@ export function RespondentApp(props: RespondentAppProps) {
       if (cards !== "ok") { setSubmitError(cards === "check" ? RESPONDENT_ERRORS.checkCards : RESPONDENT_COPY.submitFailed); return; }
       const held = await wrapSaver.settle();
       if (held !== "ok") { setSubmitError(held === "check" ? wrapSaver.lastProblem() : RESPONDENT_COPY.submitFailed); return; }
-      const posted = cleanWrap(wrapNow.current);
-      const missing = posted.missing.text.trim() ? { text: posted.missing.text, area: posted.missing.area || null, value: posted.missing.value || null } : null;
+      const posted = wrapNow.current;
+      const missing = posted.missing.text.trim() ? { text: posted.missing.text } : null;
       const response = await fetch(`/r/${encodeURIComponent(token)}/submit`, { method: "POST", signal: AbortSignal.timeout(SAVE_TIMEOUT_MS), headers: { "content-type": "application/json" }, body: JSON.stringify({ response: responseId, confidence: posted.confidence, signedOff: posted.signed, signOffText: signOffFor(props.closing), closingAnswer: posted.closingAnswer, missing, ...wrapSaver.claim() }) });
       const body = (await response.json().catch(() => ({}))) as { submittedAt?: string; name?: string | null; error?: string; version?: unknown; wrap?: WrapValue; changedSince?: unknown };
       // Answered: the page can move again.
@@ -471,7 +468,7 @@ export function RespondentApp(props: RespondentAppProps) {
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
-        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}

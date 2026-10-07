@@ -79,7 +79,7 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const prompt = buildActionsPrompt({
     items: items.map((it) => { const c = counts.get(it.id); return { id: it.id, reference: it.reference, area: it.area, text: it.title, proposed: it.proposed, counts: { agree: c?.agree ?? 0, change: c?.change ?? 0, disagree: c?.disagree ?? 0, unclear: c?.unclear ?? 0, rated: c?.pick ?? 0, couldSee: c?.couldSee ?? 0 } }; }),
     answers,
-    missing: input.missing.map((m) => ({ id: m.id, respondent: m.responseId, text: m.text, area: m.area, value: m.value })),
+    missing: input.missing.map((m) => ({ id: m.id, respondent: m.responseId, text: m.text })),
     respondents: [...respondents].map(([key, g]) => ({ key, groups: g })),
     scale: scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label),
     labelOf: (code) => labelFor(instrument.method, instrument.scaleLabels, code) ?? code ?? "",

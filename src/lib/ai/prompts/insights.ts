@@ -12,7 +12,7 @@ import { ACTIONS_MAX } from "../insights-schema";
 
 export type ActionsItem = { id: string; reference: string | null; area: string | null; text: string; proposed: string | null; counts: { agree: number; change: number; disagree: number; unclear: number; rated: number; couldSee: number } };
 export type ActionsAnswer = { id: string; itemId: string; respondent: string; kind: "change" | "disagree" | "unclear"; value: string | null; text: string | null };
-export type ActionsMissing = { id: string; respondent: string; text: string; area: string | null; value: string | null };
+export type ActionsMissing = { id: string; respondent: string; text: string };
 export type ActionsRespondent = { key: string; groups: Record<string, string> };
 
 export type ActionsPrompt = { instructions: string; data: string; answerRefs: Map<string, string>; missingRefs: Map<string, string> };
@@ -66,8 +66,7 @@ export function buildActionsPrompt(input: { items: ActionsItem[]; answers: Actio
   input.missing.forEach((m, i) => {
     const ref = `M${i + 1}`;
     missingRefs.set(ref, m.id);
-    const where = [m.area ? `area: ${fold(m.area)}` : null, m.value ? `priority: ${input.labelOf(m.value)}` : null].filter(Boolean).join(", ");
-    lines.push(`[${ref}] ${respondentRef.get(m.respondent) ?? "R?"}: ${fold(m.text)}${where ? ` (${where})` : ""}`);
+    lines.push(`[${ref}] ${respondentRef.get(m.respondent) ?? "R?"}: ${fold(m.text)}`);
   });
   return { instructions, data: lines.join("\n"), answerRefs, missingRefs };
 }
