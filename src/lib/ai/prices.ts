@@ -6,6 +6,9 @@
 // time 2026-10-02, USD 1.1225). Both are refreshed by hand with the date; nothing here is
 // fetched at run time, so a cost is reproducible from the row.
 export const DEFAULT_MODEL = "claude-sonnet-5-5";
+// The model name a stand-in run is logged under (stories/E4-8): the answer came from
+// src/lib/ai/stand-in.ts in the process, so it costs nothing and has no price row.
+export const STAND_IN_MODEL = "stand-in";
 
 export type ModelPrice = { usdPerMtokIn: number; usdPerMtokOut: number; readOn: string };
 
@@ -18,6 +21,7 @@ export const USD_PER_EUR = { rate: 1.1225, date: "2026-10-02" } as const;
 // Whole euro cents, rounded up: a call that used any token costs at least one cent, so the
 // month's sum never under-reports. The cost in euro is usd / rate.
 export function costEurCents(model: string, tokensIn: number, tokensOut: number): number {
+  if (model === STAND_IN_MODEL) return 0;
   const price = PRICES[model];
   if (!price) throw new Error(`No price for model ${model}. Add it to src/lib/ai/prices.ts.`);
   const usd = (tokensIn * price.usdPerMtokIn + tokensOut * price.usdPerMtokOut) / 1_000_000;

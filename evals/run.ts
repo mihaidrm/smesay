@@ -122,7 +122,8 @@ export async function mainInsights(): Promise<number> {
   const { ws, projectId } = await evalsWorkspace();
   const runs: InsightRun[] = [];
   for (const spec of loadInsightSpecs()) {
-    const run = await runInsightSpec(spec, ws, projectId);
+    // Mihai's paid check (decision 0039): the real model whatever the developer menu says (E4-8).
+    const run = await runInsightSpec(spec, ws, projectId, { mode: "real" });
     runs.push(run);
     console.log(insightLine(run));
     if (run.error) console.error(`  ${run.error}`);
@@ -140,7 +141,7 @@ export async function main(): Promise<number> {
   const { ws, projectId } = await evalsWorkspace();
   const runs: SpecRun[] = [];
   for (const expected of specs) {
-    const run = await runSpec(expected, ws, projectId);
+    const run = await runSpec(expected, ws, projectId, { mode: "real" });
     runs.push(run);
     console.log(line(run.score, run.costCents));
     if (run.error) console.error(`  ${run.error}`);

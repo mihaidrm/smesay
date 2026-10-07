@@ -140,6 +140,16 @@ AI
   per-workspace and per-request token budgets enforced (decision 0036).
 - Uploaded text passed as data, separated from instructions; output validated against a JSON
   schema before display; model may not add items, additions flagged as suggestions.
+- The developer menu (E4-8, src/lib/ai/mode.ts): the cookie smesay-ai-mode sends a call to
+  the stand-in, the model or nowhere. It counts only when the server sees the menu on
+  (NODE_ENV not "production", or SMESAY_DEV_MENU=1, which only CI sets); a production build
+  without the variable ignores the cookie and always calls the model, so no visitor can turn
+  the product's AI off or onto the stand-in. The cookie is httpOnly, SameSite Lax, set by a
+  server action behind the session that refuses when the menu is off or the value is not
+  one of the three modes. The stand-in (src/lib/ai/stand-in.ts) answers from the request
+  body in the process: no network, no key, no environment; a stand-in run is an ai_run row
+  with model "stand-in" and zero cost, and every screen marks its output. scripts/ai-smoke.ts
+  and evals/run.ts pass the mode "real", so Mihai's paid checks are never answered by it.
 
 Admin area (E13-2, E14)
 - /admin served only to ADMIN_EMAILS; everyone else gets 404. The admin queries live in one

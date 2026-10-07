@@ -214,6 +214,17 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   surface, hairline, radius 12, 12 by 14 padding.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
+- Thinking (design note 113; src/components/app/thinking.tsx): while an AI run is pending,
+  under the button, the mascot in the analysis pose at 56 px beside one line in soft ink at
+  14 px that walks through the steps the screen passes, 1.6 seconds each, stopping on the
+  last, with three 6 px violet dots pulsing after it, each 200 ms behind the one before. The
+  line is a polite status region. Under prefers-reduced-motion the first line stays and
+  nothing pulses. The refusal box beside the same buttons is the danger tint: coral soft,
+  danger text, a 16 px alert icon before the sentence.
+- Developer menu (design note 113; src/components/app/dev-menu.tsx; local and test builds
+  only): a dashed card at the bottom of the sidebar, "Developer" in soft ink, a radio group
+  "AI calls" with three choices, the month's usage under it; a neutral pill "AI: stand-in" or
+  "AI: off" beside the project header's stepper while the choice is not the real model.
 - Sidebar: 248 wide on the surface, pinned to the viewport at its full height so the whole
   menu stays in view however long the page is (only the project list scrolls, inside it);
   the lockup at 17 px; the workspace chip on the tint with

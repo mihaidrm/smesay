@@ -27,6 +27,9 @@ export const SHAPE_COPY = {
   tooManyItems: (n: number) => `This list has ${n} items. Shape works on lists up to 400 items for now. Split the list, or come back when larger lists are supported.`,
   tooLong: (n: number) => `The AI call for this list, its context and the instructions comes to ${n.toLocaleString("en-GB")} characters, more than one call can take. Shorten the longest items, or split the list.`,
   tryAgain: AI_COPY.tryAgain,
+  // E4-8: the thinking lines while a run is pending and the stand-in line after one.
+  thinking: (items: number) => [`Reading ${items} ${items === 1 ? "item" : "items"}`, "Grouping them into areas", "Writing a readable version of each"],
+  standIn: "These areas and readable versions came from the stand-in, not the AI.",
   // Reader versions (stories/E4-3; docs/copy/app.md, Shape).
   counter: (accepted: number, total: number) => `${accepted} of ${total} reader ${total === 1 ? "version" : "versions"} accepted.`,
   pill: { suggested: "Suggested", accepted: "Reader version used", rejected: "Original kept" } as const,

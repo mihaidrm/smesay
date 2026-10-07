@@ -72,7 +72,8 @@ of the content; page means it replaces the screen.
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
 | Banner, Shape | Plan's AI run cap reached (E2-6, E4-1; no plan carries a cap today) | This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
 | Banner, Shape | AI answered but the answer is unusable: refused, cut off, or failed the schema or the check (E4-1) | The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
-| | The Try again button sits beside the two messages above only; a paused, budget, plan, size or sample refusal has none (E4-2). | |
+| Banner, Shape and inline, Actions tab (E4-8) | The developer menu's AI calls switch is Off (local and test builds only; never in production) | AI is switched off in the developer menu. Switch it to Stand-in or Real to run this. |
+| | The Try again button sits beside the two messages above only; a paused, budget, plan, size, sample or off refusal has none (E4-2, E4-8). From E4-8 every refusal shows in the danger tint with an alert icon, on Shape and on the Actions tab. | |
 | Inline, Shape | Shape on the sample project, through the server (E4-1) | The sample project cannot be changed by AI. |
 | Banner, Shape | The area column has more than 12 distinct areas (E4-2) | This list has [N] areas in its area column. Shape works with up to 12. Merge some in the file and import it again. |
 | Banner, Shape | An imported area name is over 60 characters (E4-2) | An area name in the list is [N] characters long. Shape works with names up to 60. Shorten it in the file and import it again. |

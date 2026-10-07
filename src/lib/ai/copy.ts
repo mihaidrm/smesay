@@ -7,6 +7,8 @@ export const AI_COPY = {
   failed: "The AI did not answer. Nothing changed. Try again; if it fails again, use the items as imported and come back later.",
   invalid: "The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later.",
   rateLimited: "Too many AI requests at once. Wait a minute and try again.",
+  // E4-8: the developer menu's "Off" (src/lib/ai/mode.ts).
+  off: "AI is switched off in the developer menu. Switch it to Stand-in or Real to run this.",
   sample: "The sample project cannot be changed by AI.",
   tryAgain: "Try again",
 } as const;

@@ -525,9 +525,10 @@ maxOutputTokens?, expectedOutputTokens? }, deps?)` in src/lib/ai/client.ts, the 
 ANTHROPIC_API_KEY or imports the SDK (lint rule smesay/ai-sdk, which also keeps the module
 out of "use client" files). It returns `{ ok: true, output, run }` (run: id, model, tokensIn,
 tokensOut, costEurCents, durationMs) or `{ ok: false, reason: "paused" | "budget" | "plan" |
-"rateLimited" | "failed" | "invalid", message, detail, estimateCents? }` (estimateCents on a
+"rateLimited" | "failed" | "invalid" | "off", message, detail, estimateCents? }` (estimateCents on a
 paused or budget refusal, E9-3) (paused: the product's monthly cap,
-ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036; budget: the workspace's); message is what the screen shows
+ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036; budget: the workspace's; off: the developer
+menu's switch, E4-8, refused before the budget checks, no row); message is what the screen shows
 (AI_COPY in src/lib/ai/copy.ts, no database import), detail is for the server log (codes and
 paths from the route, plus the caller's check reason, which the caller keeps free of list text). The instructions are the system prompt; data is
 its own content block of the user message; every object in the schema is a z.strictObject
@@ -542,7 +543,16 @@ estimateText(instructions, data, outputFormat) in src/lib/ai/client.ts: the prom
 output schema the API sends, at four characters a token, and expectedOutputTokens, or the
 whole allowance when the caller gives none (E9-3; Write actions expects 1,500,
 ACTIONS_EXPECTED_OUTPUT); each answered run logs the estimate next to the actual.
-formatEur(cents) gives "EUR 0.05". aiRuns.lastFor(ws, projectId, purpose) is a project's latest
+formatEur(cents) gives "EUR 0.05". E4-8: RunDeps carries `mode?: "standin" | "real" | "off"`
+and `standInDelayMs?: number`; runModel takes deps.mode, else "real" when deps.fetch is
+given, else aiMode() (src/lib/ai/mode.ts: the cookie smesay-ai-mode when the developer menu
+is on, src/lib/ai/mode-rules.ts devMenuOn and modeFrom; always "real" without the menu;
+"standin" with the menu and no cookie outside production, "real" in production). A
+stand-in run goes to src/lib/ai/stand-in.ts (shape, actions, answer, standInFetch; the
+module e2e/fake-anthropic.mjs serves) through the SDK's fetch option, needs neither the key
+nor the product cap, and writes its ai_run row with model STAND_IN_MODEL ("stand-in",
+src/lib/ai/prices.ts) and costEurCents 0 (the usage reported is 1,000 tokens in, 500 out);
+the workspace budget and plan checks still run. aiRuns.lastFor(ws, projectId, purpose) is a project's latest
 answered run of one purpose (a row with no tokens, a call not answered, is skipped).
 Shaping (E4-2): `shapeSet(actor, projectId)`, `moveItemTo(actor, projectId, itemId, area)`,
 `groupByArea(set, rows)`, `areaNames(set, rows)` in src/lib/shaping.ts; `applyShaping` and

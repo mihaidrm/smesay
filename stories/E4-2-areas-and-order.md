@@ -33,3 +33,11 @@ item.area and item.area_rationale per item in v1; an areas table is not needed u
 Drag and drop: the browser's own API with a "Move to" select as the keyboard path, no library
 (design note 27 has the research check on dnd-kit; Mihai decides whether a library comes with
 E5's builder). One answer carries at most 400 items (design note 27).
+
+Amended 2026-10-07 (stories/E4-8, design note 113, decision 0044): while a run is pending
+the thinking state shows under the button ("Reading [N] items", "Grouping them into areas",
+"Writing a readable version of each"); a refusal shows in the danger tint with an alert
+icon, and the developer menu's "Off" adds its own refusal; after a run by the menu's
+stand-in the grouped line ends with "These areas and readable versions came from the
+stand-in, not the AI."; a refusal for "Off" writes no shape_failed event, so the rescue tip
+(E15-4) does not fire for it.

@@ -16,7 +16,8 @@ import { memoryOutbox } from "@/lib/mail";
 import { requireWorkspace } from "@/lib/workspace";
 import { AI_COPY } from "./copy";
 import { estimateText, INPUT_CHARS_MAX, outputFormatOf, OUTPUT_TOKENS_MAX, runModel } from "./client";
-import { costEurCents, DEFAULT_MODEL, estimateCents } from "./prices";
+import { costEurCents, DEFAULT_MODEL, estimateCents, STAND_IN_MODEL } from "./prices";
+import { ShapeOutput } from "./shape-schema";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const KEY = "test-key-for-the-fake-transport";
@@ -236,6 +237,32 @@ describe("runModel", () => {
     const { fetch, calls } = answer(good);
     const result = await runModel(input(), { fetch });
     expect(result).toMatchObject({ ok: false, reason: "failed", detail: "ANTHROPIC_API_KEY is not set" });
+    expect(calls).toHaveLength(0);
+  });
+
+  // E4-8: the developer menu's switch (src/lib/ai/mode.ts), named here as deps.mode.
+  it("refuses with off before any call and writes no row", async () => {
+    const { fetch, calls } = answer(good);
+    const before = await aiRuns.count(ws);
+    expect(await runModel(input(), { fetch, mode: "off" })).toEqual({ ok: false, reason: "off", message: AI_COPY.off, detail: "AI is off in the developer menu" });
+    expect(calls).toHaveLength(0);
+    expect(await aiRuns.count(ws)).toBe(before);
+  });
+
+  it("answers from the stand-in in the process, without the key or the cap, and logs the run as stand-in at zero cost", async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_MONTHLY_BUDGET_EUR;
+    const before = await aiRuns.count(ws);
+    const result = await runModel({ ws, projectId, purpose: "shape", instructions: "Group the items.", data: "[1] Receipts\n[2] Limits\n[3] Per diem", schema: ShapeOutput, check: () => null }, { mode: "standin", standInDelayMs: 0 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.output.areas.map((a) => a.items)).toEqual([["1"], ["2"], ["3"]]);
+    expect(result.run).toMatchObject({ model: STAND_IN_MODEL, tokensIn: 1000, tokensOut: 500, costEurCents: 0 });
+    expect(await aiRuns.get(ws, result.run.id)).toMatchObject({ model: "stand-in", purpose: "shape", tokensIn: 1000, tokensOut: 500, costEurCents: 0 });
+    expect(await aiRuns.count(ws)).toBe(before + 1);
+    // A fetch given without a mode is the transport of a real call, which still needs the cap.
+    const { fetch, calls } = answer(good);
+    expect(await runModel(input(), { fetch })).toMatchObject({ ok: false, reason: "failed", detail: "ANTHROPIC_MONTHLY_BUDGET_EUR is not set" });
     expect(calls).toHaveLength(0);
   });
 

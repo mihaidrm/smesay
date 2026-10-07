@@ -3,7 +3,9 @@
 // workspace chip (initials tile, the name or the switcher when the person belongs to more than
 // one, the member count), the nav (Projects, Settings), the project list,
 // then at the bottom the sample card, Help (the quickstart, stories/E12-2), Show tips (the
-// guide's switch, stories/E15-1), the mode toggle and the signed-in email with Sign out.
+// guide's switch, stories/E15-1), the mode toggle, the developer menu when the server sees it
+// on (stories/E4-8: SMESAY_DEV_MENU=1 or NODE_ENV not "production") and the signed-in email
+// with Sign out.
 // The sample opens on Results from the list and the card (stories/E8-8, acceptance 1).
 // The sidebar is pinned to the viewport (sticky, the viewport's height) so the whole menu
 // stays in view however long the page is; only its project list scrolls, inside the
@@ -20,6 +22,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { guide, members, projects } from "@/db/queries";
 import { ShowTips } from "@/components/app/show-tips";
+import { DevMenu } from "@/components/app/dev-menu";
+import { usage } from "@/db/queries/usage";
+import { aiMode, devMenuOn } from "@/lib/ai/mode";
+import { formatEur } from "@/lib/ai/prices";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
 import { SignOutButton } from "../sign-out-button";
@@ -35,6 +41,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { session, memberships, current, viewing } = await requireCurrentWorkspace("/app");
   const [memberRows, projectRows, guideState] = await Promise.all([members.list(current.ws), projects.list(current.ws), guide.state(session.user.id)]);
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
+  // The developer menu (stories/E4-8): only when the server sees it on, never in a production
+  // build without SMESAY_DEV_MENU; the AI mode from the cookie and the month's usage.
+  const dev = devMenuOn() ? { mode: await aiMode(), used: await usage(current.ws) } : null;
   return (
     <div className="flex min-h-screen items-start">
       {!viewing && <PlausibleScript />}
@@ -75,6 +84,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NavLink href="/app/quickstart" icon={<CircleHelp aria-hidden="true" />}>{QUICKSTART_COPY.help}</NavLink>
           <ShowTips on={!guideState.tipsOff} disabled={viewing !== null} />
           <ModeToggle />
+          {dev && <DevMenu mode={dev.mode} runs={dev.used.aiRunsThisMonth} eur={formatEur(dev.used.aiCostCentsThisMonth)} />}
           <div className="flex flex-col gap-2 px-2.5 text-ink-muted">
             <div className="truncate text-xs" title={session.user.email}>{session.user.email}</div>
             <SignOutButton />
