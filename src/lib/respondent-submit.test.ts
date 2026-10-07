@@ -165,7 +165,7 @@ describe("the Wrap up's rules", () => {
   it("words the receipt for a rate-blind list and a link with no close date", () => {
     const base = { respondentName: "Ana", projectName: "Expense tool", workspaceName: "Marlow", submittedAt: new Date("2026-10-05T12:00:00Z"), closesAt: null, url: "https://smesay.test/r/abc", counts: { items: 3, changed: 0, rated: 2, notNeeded: 1, unclear: 0, missing: 0, confidence: 4 } };
     const blind = receiptEmail({ ...base, rateBlind: true });
-    expect(blind.text).toContain("You answered 3 items. You rated 2, marked 1 not needed and 0 unclear, and suggested 0 missing items. Your confidence was 4 of 5.");
+    expect(blind.text).toContain("You answered 3 items. You rated 2, marked 1 not needed and 0 unclear, and suggested 0 missing items. Your confidence: Confident (4 of 5).");
     expect(blind.text).toContain("You can change your answers while the link is open. Open the same link and press Change my answers.");
     expect(receiptEmail({ ...base, rateBlind: false }).text).toContain("You gave 0 a different priority");
   });
@@ -322,7 +322,7 @@ describe("Submit", () => {
     expect(sent).toEqual([]);
     await first.receipt?.();
     expect(sent.map((m) => [m.to, m.subject])).toEqual([["ana@x.example", "Your answers on Submit personal were submitted"]]);
-    expect(sent[0].text).toContain("You answered 2 items. You gave 1 a different priority, marked 0 not needed and 1 unclear, and suggested 0 missing items. Your confidence was 3 of 5.");
+    expect(sent[0].text).toContain("You answered 2 items. You gave 1 a different priority, marked 0 not needed and 1 unclear, and suggested 0 missing items. Your confidence: Fairly sure (3 of 5).");
     expect(sent[0].text).toContain(`${BASE}/r/${ana.token}`);
     expect(sent[0].text).not.toContain("Later");
     // A second Submit sends none; the Done page is its receipt.
