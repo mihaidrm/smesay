@@ -33,7 +33,7 @@ import { BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
 import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS, type Bucket, type Gap, type WrapValue } from "@/lib/respondent-rules";
-import { labelFor, scaleFor } from "@/lib/scoring";
+import { labelFor } from "@/lib/scoring";
 
 export type WrapUpProps = {
   // The way the respondent arrived, for the slide in (design note 99); null on the first screen.
@@ -44,13 +44,11 @@ export type WrapUpProps = {
   method: ScoringMethod;
   labels: ScaleLabels | null;
   showProposed: boolean;
-  // The chapters' names, for Go to; the preview also offers them as the missing item's areas.
+  // The chapters' names, for Go to.
   chapters: string[];
   // Whether Go to names the chapter by number, "Go to section [N]: [CHAPTER]" (decision
   // 0055): the chapters are separate screens with names, not the single long page.
   numbered?: boolean;
-  // The live link: the areas a missing item can name (areasOf); none means no area asked.
-  areas?: string[];
   // How many items this respondent can see; all still to finish in the preview.
   total: number;
   preview?: boolean;
@@ -89,7 +87,7 @@ const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRat
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null, compact = false }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null, compact = false }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = "main";
   const firstGap = gaps?.[0];
@@ -192,21 +190,8 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
           <fieldset className="flex flex-col gap-2.5" data-testid="wrap-up-missing">
             <legend className="float-left mb-1 w-full text-sm font-semibold">{WRAP_UP_COPY.missingTitle}</legend>
             <label htmlFor={`${prefix}-missing`} className="clear-both text-[13px] text-ink-muted">{WRAP_UP_COPY.missingText}</label>
-            <input id={`${prefix}-missing`} type="text" maxLength={MISSING_MAX} value={form.missing.text} onChange={(e) => setMissing({ text: e.target.value })} className={FIELD} />
-            {(areas ?? chapters).length > 0 && (
-              <>
-                <label htmlFor={`${prefix}-area`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingArea}</label>
-                <select id={`${prefix}-area`} value={form.missing.area} onChange={(e) => setMissing({ area: e.target.value })} className={FIELD} data-testid="wrap-up-area">
-                  <option value="">{WRAP_UP_COPY.choose}</option>
-                  {(areas ?? chapters).map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </>
-            )}
-            <label htmlFor={`${prefix}-value`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingValue}</label>
-            <select id={`${prefix}-value`} value={form.missing.value} onChange={(e) => setMissing({ value: e.target.value })} className={FIELD}>
-              <option value="">{WRAP_UP_COPY.choose}</option>
-              {scaleFor(method, labels).map((v) => <option key={v.code} value={v.code}>{v.label}</option>)}
-            </select>
+            <textarea id={`${prefix}-missing`} rows={5} maxLength={MISSING_MAX} value={form.missing.text} onChange={(e) => setMissing({ text: e.target.value })} aria-describedby={`${prefix}-missing-hint`} className={cn(FIELD, "h-auto py-3")} />
+            <p id={`${prefix}-missing-hint`} className="text-[13px] text-ink-muted">{WRAP_UP_COPY.missingHint}</p>
           </fieldset>
         )}
         {closing.closingQuestion && (

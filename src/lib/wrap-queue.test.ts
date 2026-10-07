@@ -16,7 +16,7 @@ const entry = (draft: WrapValue, base: number, seq: number, page = P, after: { p
 
 describe("the Wrap up's device queue", () => {
   it("keeps the change for its response, never the sign-off", () => {
-    const kept = entry({ ...value("Fine"), signed: true, missing: { text: "Mileage", area: "Submitting", value: "S" } }, 2, 3);
+    const kept = entry({ ...value("Fine"), signed: true, missing: { text: "Mileage" } }, 2, 3);
     const raw = withWrapEntry("r1", kept);
     expect(wrapEntryOf(raw, "r1")).toEqual({ ...kept, draft: { ...kept.draft, signed: false } });
     expect(wrapEntryOf(raw, "r2")).toBeNull();
@@ -24,7 +24,7 @@ describe("the Wrap up's device queue", () => {
     // No version, page or number: not kept (an older format, or written by hand).
     expect(wrapEntryOf(JSON.stringify({ response: "r1", value: { confidence: 4 } }), "r1")).toBeNull();
     // Values off the form's limits are cut back.
-    expect(wrapEntryOf(JSON.stringify({ response: "r1", value: { confidence: 9, closingAnswer: 3, missing: { text: "x".repeat(600) } }, base: 0, page: P, seq: 1 }), "r1")?.draft).toEqual({ ...EMPTY_WRAP, missing: { text: "x".repeat(500), area: "", value: "" } });
+    expect(wrapEntryOf(JSON.stringify({ response: "r1", value: { confidence: 9, closingAnswer: 3, missing: { text: "x".repeat(2100) } }, base: 0, page: P, seq: 1 }), "r1")?.draft).toEqual({ ...EMPTY_WRAP, missing: { text: "x".repeat(2000) } });
   });
 
   it("removes the change once the server holds it, and keeps another window's newer one", () => {
@@ -90,8 +90,9 @@ describe("the Wrap up's device queue", () => {
 
   it("compares Wrap ups as the server stores them", () => {
     expect(sameWrap(value("Export to CSV "), value("Export to CSV"))).toBe(true);
-    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: " ", area: "Submitting", value: "S" } }, EMPTY_WRAP)).toBe(true);
-    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: "Mileage", area: "Submitting", value: "" } }, { ...EMPTY_WRAP, missing: { text: "Mileage ", area: "", value: "" } })).toBe(false);
+    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: " " } }, EMPTY_WRAP)).toBe(true);
+    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: "Mileage" } }, { ...EMPTY_WRAP, missing: { text: "Mileage " } })).toBe(true);
+    expect(sameWrap({ ...EMPTY_WRAP, missing: { text: "Mileage" } }, { ...EMPTY_WRAP, missing: { text: "Mileage claims" } })).toBe(false);
     expect(sameWrap(value("A", 3), value("A", 4))).toBe(false);
     // A kept change that landed trimmed (its keepalive) is not "changed elsewhere".
     const raw = withWrapEntry("r1", entry(value("Export to CSV "), 1, 2, Q));

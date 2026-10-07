@@ -26,7 +26,7 @@ describe("parseSample", () => {
       drafts: { "CL-01": { picked: "M", reason: "", comment: "x" }, "CL-02": { picked: null, reason: "r", comment: "" }, "CL-99": { picked: "M", reason: "", comment: "" } },
       fields: { name: "Dana", role: "Finance", email: "dana@marlow.example" },
       picks: ["Finance", 3],
-      wrap: { confidence: 4, signed: true, closingAnswer: "ok", missing: { text: "Mileage", area: "Submitting", value: "" } },
+      wrap: { confidence: 4, signed: true, closingAnswer: "ok", missing: { text: "Mileage", area: "Submitting" } },
       started: true,
       submittedAt: "2026-10-05T09:00:00.000Z",
     });
@@ -34,7 +34,7 @@ describe("parseSample", () => {
       drafts: { "CL-01": { picked: "M", reason: "", comment: "x" }, "CL-02": { picked: null, reason: "r", comment: "" } },
       fields: { name: "Dana", role: "Finance" },
       picks: ["Finance"],
-      wrap: { confidence: 4, signed: true, closingAnswer: "ok", missing: { text: "Mileage", area: "Submitting", value: "" } },
+      wrap: { confidence: 4, signed: true, closingAnswer: "ok", missing: { text: "Mileage" } },
       started: true,
       submittedAt: "2026-10-05T09:00:00.000Z",
     });

@@ -75,7 +75,8 @@ Built 2026-10-03 (design note 46, decision 0044):
   Publishing records instrument.published_at (migration 0015). Dates change after
   publishing, also after "Build on version N" (the link in force stays on the published
   instrument; publishing the newer draft replaces it, docs/review-list.md); the respondent
-  header says "Closes [DATE] UTC"; the stepper shows Share as the current step (from E8-1: Results, with Share done).
+  header says "Closes [DATE] UTC"; the stepper ticks Share once published (from E8-1), and the
+  filled pill is the open page (design note 106, 2026-10-07).
 - Acceptance 6: e2e/share.spec.ts publishes with a passcode, opens the link in a fresh
   context, is refused with a wrong passcode and let in with the right one, sees About you,
   moves the close date into the past and sees the closed page; the Import banner owed from
