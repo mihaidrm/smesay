@@ -5,13 +5,17 @@
 // pickers and its own summary line. A workbook with several sheets that have rows (stories/E3-7)
 // opens with the Sheets step (sheets-step.tsx) and shows nothing else until the PM confirms;
 // with several ticked, each sheet has its line, its picker and its ten rows. Server component;
-// the pickers are pickers.tsx.
+// the pickers are pickers.tsx. A collapsible card (design note 110): open while the mapping
+// has no text column or the Sheets step waits, by the page's rule; its one-line summary is the
+// row count and the header row, or the sheets.
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Upload } from "@/db/queries/uploads";
 import type { SheetPreview } from "@/db/types";
 import { PREVIEW_ROWS } from "@/lib/import/limits";
 import { UPLOAD_COPY } from "@/lib/import/copy";
 import { PASTE_COPY } from "@/lib/import/paste";
+import { IMPORT_CARD_COPY } from "@/lib/import-guide";
 import { needsSheetStep, tickedNames } from "@/lib/import/sheets";
 import { Pickers } from "./pickers";
 import { SheetsStep } from "./sheets-step";
@@ -45,7 +49,7 @@ function SheetTable({ sheet }: { sheet: { columns: { letter: string; name: strin
   );
 }
 
-export function UploadPreview({ upload }: { upload: Upload }) {
+export function UploadPreview({ upload, open }: { upload: Upload; open: boolean }) {
   const { preview } = upload;
   const step = needsSheetStep(upload);
   const waiting = step && upload.sheets === null;
@@ -55,11 +59,8 @@ export function UploadPreview({ upload }: { upload: Upload }) {
     : several ? UPLOAD_COPY.summarySheets(upload.filename, preview.rowsRead, several.length)
     : UPLOAD_COPY.summary(upload.filename, preview.rowsRead, preview.headerRow);
   return (
-    <section className="flex flex-col gap-3 card p-4" aria-labelledby="preview-title">
-      <div className="flex flex-col gap-1">
-        <h3 id="preview-title" className="font-semibold">Preview</h3>
-        <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{summary}</p>
-      </div>
+    <CollapsibleCard title={IMPORT_CARD_COPY.preview.title} titleId="preview-title" summary={IMPORT_CARD_COPY.preview.summary({ kind: upload.kind, rows: preview.rowsRead, headerRow: preview.headerRow, sheets: waiting ? "waiting" : several ? several.length : null })} open={open} testId="card-preview">
+      <p data-testid="upload-summary" className="text-[13px] text-ink-muted">{summary}</p>
       {step && <SheetsStep uploadId={upload.id} sheets={preview.sheetRows ?? []} ticked={tickedNames(upload)} confirmed={!waiting} />}
       {waiting ? null : several ? (
         several.map((sheet, i) => (
@@ -77,6 +78,6 @@ export function UploadPreview({ upload }: { upload: Upload }) {
           <SheetTable sheet={preview} />
         </>
       )}
-    </section>
+    </CollapsibleCard>
   );
 }

@@ -11,6 +11,8 @@
 // with the new mapping after every save. The page keys the card by upload id, so a new upload
 // gets a fresh card (react.dev/learn/preserving-and-resetting-state). useActionState:
 // react.dev/reference/react/useActionState.
+// A collapsible card (design note 110): open while the mapping has no text column, by the
+// page's rule; the summary counts the columns mapped. The remembered line sits inside it.
 // Several sheets (stories/E3-7, acceptance 4 and 5): the message naming a ticked sheet without
 // the item text column comes from the page (sheetsError in src/lib/imports.ts), and the switch
 // "Use the sheet names as areas" rides in the same form (name sheetAreas, "on" or "off") when
@@ -18,25 +20,24 @@
 // select. Switch: src/components/ui/switch.tsx (Base UI; name, value, uncheckedValue and
 // defaultChecked in node_modules/@base-ui/react/switch/root/SwitchRoot.d.ts).
 import { useActionState, useRef } from "react";
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import type { ColumnMapping } from "@/db/types";
 import { columnKeys, CUSTOM_MAX, customCount, MAPPING_COPY, mappingError, ROLES, type Column } from "@/lib/import/mapping";
+import { IMPORT_CARD_COPY } from "@/lib/import-guide";
 import { mapAction, type ProjectFormState } from "../../actions";
 
-export function MappingCard({ uploadId, columns, mapping, rememberedFrom, sheetsError = null, sheetAreas = null }: { uploadId: string; columns: Column[]; mapping: ColumnMapping; rememberedFrom: string | null; sheetsError?: string | null; sheetAreas?: boolean | null }) {
+export function MappingCard({ uploadId, columns, mapping, rememberedFrom, open, sheetsError = null, sheetAreas = null }: { uploadId: string; columns: Column[]; mapping: ColumnMapping; rememberedFrom: string | null; open: boolean; sheetsError?: string | null; sheetAreas?: boolean | null }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(mapAction, { error: null, saved: false });
   const form = useRef<HTMLFormElement>(null);
   const custom = customCount(mapping);
   const keys = columnKeys(columns);
   const error = pending ? null : state.error ?? mappingError(mapping) ?? sheetsError;
+  const mapped = keys.filter((key) => (mapping[key] ?? "skip") !== "skip").length;
   return (
-    <div className="flex flex-col gap-2">
-      {rememberedFrom && <p data-testid="mapping-remembered" className="text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</p>}
-    <section className="flex flex-col card" aria-labelledby="mapping-title">
-      <div className="border-b border-hairline px-4 py-3">
-        <h3 id="mapping-title" className="font-semibold">Column mapping</h3>
-      </div>
+    <CollapsibleCard title={IMPORT_CARD_COPY.mapping.title} titleId="mapping-title" summary={IMPORT_CARD_COPY.mapping.summary(mapped, columns.length, mappingError(mapping) === null)} open={open} testId="card-mapping" bodyClassName="flex flex-col border-t border-hairline">
+      {rememberedFrom && <p data-testid="mapping-remembered" className="px-4 pt-3 text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</p>}
       <form ref={form} action={action} className="flex flex-col">
         <input type="hidden" name="uploadId" value={uploadId} />
         {columns.map((column, i) => {
@@ -72,7 +73,6 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom, sheets
         <div className="px-4 py-3 text-[13px] text-ink-muted">{MAPPING_COPY.footer}</div>
         {error && <p id="mapping-error" role="alert" className="px-4 pb-3 text-sm text-danger">{error}</p>}
       </form>
-    </section>
-    </div>
+    </CollapsibleCard>
   );
 }

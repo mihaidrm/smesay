@@ -93,3 +93,9 @@ Built 2026-10-02.
   because a header "Requirement" over 19-character requirements was not found (the data
   rows were not "clearly longer" by 8); header.test.ts has the case. The six fixtures still
   give the same rows, no-header.csv included.
+- Changed 2026-10-07 (design note 110): The list and Preview are collapsible cards
+  (src/components/app/collapsible-card.tsx). The list is open until the first upload, then
+  closed with the file name on its title row; Preview is open while the mapping has no text
+  column and closed with "[N] rows, header on row [N]" once it has one. The rule is
+  src/lib/import-guide.ts; e2e/import.spec.ts opens Preview by its title row before the
+  header row picker.

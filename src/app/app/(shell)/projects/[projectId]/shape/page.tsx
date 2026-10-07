@@ -104,7 +104,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <Link href={`/app/projects/${project.id}/import`} className="text-sm underline underline-offset-4">{SHAPE_COPY.noSetLink}</Link>
         </div>
       ) : (
-        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped || viewing !== null} readerOnly={project.isSample || viewing !== null} perspectives={perspectives} />
+        <Board key={`${set.id}-${set.shapeRuns}`} projectId={project.id} areas={areaNames(set, rows)} groups={groups.map((g) => ({ name: g.name, rationale: g.rationale, summary: showReaders ? SHAPE_COPY.areaSummary(readerCounts(g.items)) : null, items: g.items.map((it) => ({ id: it.id, position: it.position, ref: it.sourceRef, text: it.originalText, placedByAi: imported && it.flags?.areaBy === "ai", moved: it.flags?.areaBy === "pm", reader: { reader: showReaders ? it.readerText : null, status: it.readerStatus, same: readerIsOriginal(it) }, notes: notesFor(it.id), tags: it.perspectives })) }))} readOnly={project.isSample || !shaped || viewing !== null} readerOnly={project.isSample || viewing !== null} perspectives={perspectives} />
       )}
     </WithPreview>
   );

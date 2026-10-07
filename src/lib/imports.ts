@@ -18,8 +18,8 @@ import { checkRows, checkSheets, type CheckResult, type SheetInput } from "@/lib
 import { track } from "@/lib/analytics";
 import { getObject } from "@/lib/storage";
 
+// The card titles and summaries are IMPORT_CARD_COPY in src/lib/import-guide.ts.
 export const IMPORT_COPY = {
-  logTitle: "Versions",
   diff: (text: string, from: number, to: number) => `Version ${from} to ${to}: ${text}.`,
   button: (n: number) => `Import ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}`,
   nothing: "There is nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file.",

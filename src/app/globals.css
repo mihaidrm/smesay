@@ -557,3 +557,31 @@ select:not([multiple]) {
     animation: respondent-slide-prev 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
+
+/* The collapsible card (design note 110; src/components/app/collapsible-card.tsx): the
+   content of a details element opens and closes over 300 ms ease-out. The content box is
+   the ::details-content pseudo-element (developer.mozilla.org/docs/Web/CSS/::details-content;
+   browser-compat-data on 2026-10-07: Chrome 131, Firefox 143, Safari 18.4). Its height
+   animates from 0 to auto because interpolate-size: allow-keywords lets a transition reach
+   an intrinsic size (developer.mozilla.org/docs/Web/CSS/interpolate-size; inherited; Chrome
+   129, not in Firefox or Safari as of that date), and content-visibility transitions with
+   allow-discrete so the content stays drawn while it closes (the ::details-content page's
+   example). A browser without either opens and closes at once. The base rule above stops
+   the transition under prefers-reduced-motion. */
+.collapsible {
+  interpolate-size: allow-keywords;
+}
+.collapsible::details-content {
+  height: 0;
+  overflow: hidden;
+  transition: height 300ms ease-out, content-visibility 300ms allow-discrete;
+}
+.collapsible[open]::details-content {
+  height: auto;
+}
+.collapsible-chevron {
+  transition: transform 300ms ease-out;
+}
+.collapsible[open] > summary .collapsible-chevron {
+  transform: rotate(180deg);
+}

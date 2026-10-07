@@ -37,7 +37,9 @@ test("step tips on Import, the rescue card, and the sample walkthrough", async (
   await page.getByRole("button", { name: "Paste a list instead" }).click();
   await page.getByLabel("Paste a list").fill(["Receipts captured by phone", "Approval from the notification email", "Reimbursement through payroll"].join("\n"));
   await page.getByRole("button", { name: "Use this list" }).click();
-  await expect(page.getByTestId("upload-summary")).toBeVisible();
+  // The Preview card is closed once the list maps itself (design note 110), so its line is
+  // checked by text, not by sight.
+  await expect(page.getByTestId("upload-summary")).toHaveText("Pasted list, 3 items.");
   await expect(card).toHaveAttribute("data-tip", "import.mapping");
 
   // Eleven minutes later, still not imported: the rescue card, with the way to the mapping.

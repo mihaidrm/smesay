@@ -230,6 +230,15 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   tint. Card: radius 16, hairline, the card shadow, 16 padding, title 15 weight 700 with a mono
   count beside it when there is one. Item row (Shape, the respondent cards' list form): raised
   surface, hairline, radius 12, 12 by 14 padding.
+- Collapsible card (src/components/app/collapsible-card.tsx, design note 110): a card built
+  on the native details and summary elements. The title row is the title with its mono count
+  on the left and a one-line muted state summary (13 px) with Lucide's chevron-down (16 px,
+  turned 180 degrees while open) on the right, the hand cursor, the focus ring. The content
+  opens and closes over 300 ms ease-out (height to auto through interpolate-size on
+  ::details-content; browsers without it open at once) and stays in the DOM while closed.
+  The page decides which cards are open: on Import the card whose work comes next (the rule
+  in src/lib/import-guide.ts), on Shape the first area. Any card opens by a click; a link to
+  an anchor inside a closed card opens it.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
 - Thinking (design note 113; src/components/app/thinking.tsx): while an AI run is pending,

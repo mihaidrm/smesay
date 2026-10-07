@@ -32,6 +32,9 @@ export const SHAPE_COPY = {
   standIn: "These areas and readable versions came from the stand-in, not the AI.",
   // Reader versions (stories/E4-3; docs/copy/app.md, Shape).
   counter: (accepted: number, total: number) => `${accepted} of ${total} reader ${total === 1 ? "version" : "versions"} accepted.`,
+  // The summary on an area's collapsed card (design note 110); none while the area has no
+  // reader version to decide on.
+  areaSummary: (c: { accepted: number; total: number }) => (c.total === 0 ? null : `${c.accepted} of ${c.total} reader ${c.total === 1 ? "version" : "versions"} accepted`),
   pill: { suggested: "Suggested", accepted: "Reader version used", rejected: "Original kept" } as const,
   original: "Original:",
   sameAsOriginal: "The readable version is the same as the original, so there is nothing to accept.",

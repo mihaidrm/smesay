@@ -53,6 +53,9 @@ test("tick two sheets, import them as one version with the sheet names as areas"
   await expect(page.getByTestId("preview-row")).toHaveCount(5);
   await expect(page.getByLabel("Requirement", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("value");
+  // The mapping card is closed once the text column is mapped (design note 110): it opens
+  // from its summary to reach the switch.
+  await page.getByTestId("card-mapping").locator("summary").click();
   await expect(page.getByRole("switch", { name: "Use the sheet names as areas" })).toBeChecked();
   await expect(page.getByTestId("check-sheet")).toHaveCount(2);
   await expect(page.getByTestId("check-card").getByText("0 exact duplicates were imported once.", { exact: true })).toHaveCount(2);
