@@ -130,8 +130,11 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Upload button | Upload |
 | Preview card title | Preview |
 | Summary line (the board's wording) | We read [N] rows from [FILE] and found the header on row [N]. (no header: We read [N] rows from [FILE] and found no header row.) |
-| Sheet picker | Sheet; Show sheet |
-| Header row picker | Header row; No header row, Row [N]; Use this row (both pickers show a loading button while the file is re-read) |
+| Sheets step (E3-7; a workbook with more than one sheet that has rows; the first sheet with rows ticked; an empty sheet is not listed) | Sheets; one checkbox per sheet: [NAME] ([N] rows); [Button: Use these sheets] |
+| Summary line before the step is confirmed (E3-7; the mapping and check cards wait) | Tick the sheets that hold the list, then press Use these sheets. |
+| Summary line with several sheets ticked (E3-7) | We read [N] rows from [FILE] across [N] sheets. |
+| Line over each ticked sheet's rows (E3-7; each sheet has its own header row picker) | Sheet [NAME]: [N] rows, header on row [N]. (no header: Sheet [NAME]: [N] rows, no header row.) |
+| Header row picker | Header row; No header row, Row [N]; Use this row (the picker shows a loading button while the file is re-read; one picker per ticked sheet with several sheets) |
 | Column headers | [LETTER] [NAME] (the letter alone when there is no header) |
 | Line under the rows | The first 10 of [N] rows. |
 | Empty sheet | This sheet has no rows. Pick another sheet, or upload another file. |
@@ -157,6 +160,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | The three counts (board, errors.md) | [N] empty rows were skipped. / [N] exact duplicates were imported once. / [N] items are over 1,000 characters and were imported whole; consider splitting them in Shape. (1 empty row was skipped; 1 item is over 1,000 characters and was imported whole; consider splitting it in Shape.) |
 | Fourth line, only above zero | [N] proposed values were not recognised and are kept as written. (1 proposed value was not recognised and is kept as written.) |
 | Rows under a count | Row [N]; Row [N], same as row [N]; Row [N]: [VALUE] |
+| With several sheets ticked (E3-7): the counts once per sheet under a heading; a duplicate of a row on another sheet | Sheet [NAME]; Row [N], same as row [N] of sheet [NAME] |
 | Import button | Import [N] items (disabled at 40 percent without a text column or with nothing to import) |
 | After the import, in the check card | Imported as version [N]. |
 | Under the Import title, once a set exists | Imported [N] items as version [N] on [DATE]. Import a new version (a link to the upload card) |
@@ -170,7 +174,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Table headers | Version, Source, File, Imported, Items, Checks, By |
 | Version cell | Version [N] (a link to the read-only version) |
 | File cell of a pasted list | Pasted list |
-| Checks cell | [N] empty, [N] duplicates, [N] long, [N] values (singular at 1) |
+| Checks cell | [N] empty, [N] duplicates, [N] long, [N] values (singular at 1; an import from several sheets, E3-7, ends in , [N] sheets) |
 | Diff line under the table | Version [N] to [N]: [N] items unchanged, [N] changed, [N] new, [N] gone. |
 | Version page title and line | Version [N]. [FILE], imported [DATE], [N] items. Read-only. Back to Import |
 | Version page headers | #, Ref, Item, Area, Proposed value |
@@ -390,6 +394,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Roles | Item text, Area, Proposed value, Reference, Custom field, Do not import (the board's wording; the story said Ignore) |
 | Sixth custom field | Custom field (up to five custom fields), disabled |
 | Remembered line, above the card | Mapping remembered from [DATE] |
+| Rows with several sheets ticked (E3-7) | the columns of every ticked sheet once, by header, with the letter of the sheet it was first seen in |
+| Switch under the rows, only with several sheets ticked and no column mapped as Area (E3-7; on by default) | Use the sheet names as areas; on: Each item's area is the name of the sheet it came from.; off: No area column is mapped; the items come in without an area. |
 | Footer line | This mapping is remembered for files with the same headers. |
 
 ## Signed-in shell (E2-1, E2-3)

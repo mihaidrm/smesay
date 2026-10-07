@@ -6,9 +6,11 @@
 // import-button.tsx. An upload already imported shows its version instead of the button.
 // The three counts sit side by side only when the card is 48rem wide or more (a container
 // query: tailwindcss.com/docs/responsive-design#container-queries), so beside the preview
-// panel they stack (decision 0021, item 5).
+// panel they stack (decision 0021, item 5). With several sheets ticked (stories/E3-7,
+// acceptance 6) the counts come once per sheet under "Sheet [NAME]", the rows named as in
+// that sheet, and a duplicate of a row on another sheet says which.
 import { IMPORT_COPY } from "@/lib/imports";
-import type { CheckResult } from "@/lib/import/report";
+import type { CheckResult, SheetCheck } from "@/lib/import/report";
 import { ImportButton } from "./import-button";
 
 function Rows({ label, rows }: { label: string; rows: string[] }) {
@@ -21,23 +23,44 @@ function Rows({ label, rows }: { label: string; rows: string[] }) {
   );
 }
 
-export function CheckCard({ uploadId, check, importedVersion }: { uploadId: string; check: CheckResult | null; importedVersion: number | null }) {
-  const counts = check ? IMPORT_COPY.counts(check.report) : null;
+type CountsInput = Pick<SheetCheck, "emptyRows" | "longRows" | "unrecognisedRows"> & {
+  name: string | null;
+  report: Parameters<typeof IMPORT_COPY.counts>[0];
+  duplicateRows: { row: number; keptRow: number; keptSheet?: string }[];
+};
+
+function Counts({ check }: { check: CountsInput }) {
+  const counts = IMPORT_COPY.counts(check.report);
+  return (
+    <>
+      <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
+        <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
+        <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => IMPORT_COPY.sameAs(d.row, d.keptRow, d.keptSheet && d.keptSheet !== check.name ? d.keptSheet : null))} />
+        <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
+      </div>
+      {check.report.unrecognisedValues > 0 && (
+        <div className="border-t border-hairline"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
+      )}
+    </>
+  );
+}
+
+export function CheckCard({ uploadId, check, importedVersion, blocked }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; blocked: string | null }) {
   const n = check?.items.length ?? 0;
   return (
     <section className="@container flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
       <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-semibold">Check before import</h3></div>
-      {check && counts ? (
-        <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
-          <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
-          <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => `Row ${d.row}, same as row ${d.keptRow}`)} />
-          <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
-        </div>
+      {check && check.sheets ? (
+        check.sheets.map((sheet) => (
+          <div key={sheet.name} className="flex flex-col border-b border-hairline" data-testid="check-sheet">
+            <div className="px-4 pt-3 text-[13px] font-semibold">{IMPORT_COPY.sheetHeading(sheet.name)}</div>
+            <Counts check={sheet} />
+          </div>
+        ))
+      ) : check ? (
+        <Counts check={{ ...check, name: null }} />
       ) : (
-        <div className="px-4 py-3 text-sm text-ink-muted">{IMPORT_COPY.noCheck}</div>
-      )}
-      {check && counts && check.report.unrecognisedValues > 0 && (
-        <div className="border-t border-hairline"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
+        <div className="px-4 py-3 text-sm text-ink-muted">{blocked ?? IMPORT_COPY.noCheck}</div>
       )}
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-hairline px-4 py-3">
         {importedVersion !== null ? (

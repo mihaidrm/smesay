@@ -13,7 +13,7 @@ const PURPOSE = {
   workspace_member: 'who belongs to a workspace and as what (owner, member); user_id is better-auth\'s',
   workspace_invite: 'an open invitation by email (E2-4); becomes a workspace_member row on the invitee\'s first signed-in request',
   workspace_mapping: 'a column mapping remembered per workspace (E3-3), keyed by the sorted headers; the next file with the same headers maps itself',
-  upload: 'a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview and the column mapping in jsonb',
+  upload: 'a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, the sheets ticked and the sheet-names-as-areas switch (E3-7), a ten-row preview and the column mapping in jsonb',
   project: 'one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample',
   item_set: 'one imported or pasted version of the list (decision 0010); version is unique per project',
   item: 'one requirement: original_text is never overwritten, reader_text sits beside it (E4); area, proposed value, custom fields, flags',

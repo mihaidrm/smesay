@@ -8,8 +8,9 @@ import { notFound } from "next/navigation";
 import { Banner } from "@/components/ui/banner";
 import { invites, projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { checkUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
+import { checkUpload, IMPORT_COPY, importLog, latestSet, sheetsError } from "@/lib/imports";
 import { mappingError } from "@/lib/import/mapping";
+import { needsSheetStep } from "@/lib/import/sheets";
 import { rememberedFrom } from "@/lib/uploads";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
@@ -36,6 +37,12 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const remembered = upload ? await rememberedFrom(current.ws, upload) : null;
   const set = project.isSample ? null : await latestSet(current.ws, project.id);
   const check = upload && upload.mapping && !mappingError(upload.mapping) ? await checkUpload(upload) : null;
+  // Several sheets (stories/E3-7): the mapping and the check wait for the Sheets step; a ticked
+  // sheet without the item text column blocks the import; the switch shows when the sheet
+  // names can stand in for areas.
+  const waitingForSheets = upload !== null && needsSheetStep(upload) && upload.sheets === null;
+  const blocked = upload ? sheetsError(upload) : null;
+  const sheetAreas = upload && upload.mapping && (upload.preview.perSheet?.length ?? 0) > 1 && !Object.values(upload.mapping).includes("area") ? upload.sheetAreas : null;
   const log = project.isSample ? { versions: [], diffText: null } : await importLog(current.ws, project.id);
   const setItems = log.versions[0]?.items ?? 0;
   // The banner owed from E3-6 (stories/E6-1): the project has a public link in force.
@@ -79,11 +86,11 @@ export default async function ImportPage({ params }: { params: Promise<{ project
         </section>
       )}
       {upload && <UploadPreview upload={upload} />}
-      {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} />
+      {upload && upload.mapping && upload.preview.columns.length > 0 && !waitingForSheets && (
+        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} sheetsError={blocked} sheetAreas={sheetAreas} />
       )}
-      {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} />
+      {upload && upload.mapping && upload.preview.columns.length > 0 && !waitingForSheets && (
+        <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} blocked={blocked} />
       )}
     </WithPreview>
   );

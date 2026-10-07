@@ -20,6 +20,14 @@ export const MAPPING_COPY = {
   customLimit: "Up to five custom fields",
   remembered: (date: string) => `Mapping remembered from ${date}`,
   footer: "This mapping is remembered for files with the same headers.",
+  // Several sheets (stories/E3-7, acceptance 4 and 5).
+  sheetNoText: (sheets: string[], column: string) =>
+    sheets.length === 1
+      ? `Sheet ${sheets[0]} has no column ${column}. Untick it, or map the item text to a column every ticked sheet has.`
+      : `Sheets ${sheets.slice(0, -1).join(", ")} and ${sheets[sheets.length - 1]} have no column ${column}. Untick them, or map the item text to a column every ticked sheet has.`,
+  sheetAreas: "Use the sheet names as areas",
+  sheetAreasHint: "Each item's area is the name of the sheet it came from.",
+  sheetAreasOff: "No area column is mapped; the items come in without an area.",
 };
 
 export type Column = { letter: string; name: string };
@@ -102,4 +110,18 @@ export function applyMapping(columns: Column[], remembered: ColumnMapping): Colu
   const mapping: ColumnMapping = {};
   for (const key of columnKeys(columns)) mapping[key] = remembered[key] ?? "skip";
   return mapping;
+}
+
+// Several sheets (stories/E3-7, acceptance 4): the ticked sheets whose header does not carry
+// the column mapped as item text, with that column's key; null when every sheet has it or no
+// column is the text.
+export function sheetsMissingText(sheets: { name: string; columns: Column[] }[], mapping: ColumnMapping): { column: string; sheets: string[] } | null {
+  const column = Object.keys(mapping).find((key) => mapping[key] === "text");
+  if (!column) return null;
+  const missing = sheets.filter((s) => !columnKeys(s.columns).includes(column)).map((s) => s.name);
+  return missing.length > 0 ? { column, sheets: missing } : null;
+}
+
+export function sheetsMissingTextError(missing: { column: string; sheets: string[] } | null): string | null {
+  return missing ? MAPPING_COPY.sheetNoText(missing.sheets, missing.column) : null;
 }

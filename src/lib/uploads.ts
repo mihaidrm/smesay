@@ -14,7 +14,7 @@
 import { randomBytes } from "node:crypto";
 import { projects, uploads, workspaceMappings } from "@/db/queries";
 import type { Upload } from "@/db/queries/uploads";
-import type { ColumnMapping, UploadPreview, WorkspaceId } from "@/db/types";
+import type { ColumnMapping, UploadPreview, UploadSheets, WorkspaceId } from "@/db/types";
 import type { ParsedFile } from "@/lib/import/parse";
 import { NotFoundError } from "@/lib/errors";
 import { UPLOAD_COPY } from "@/lib/import/copy";
@@ -104,20 +104,65 @@ function overRowLimit(parsed: ParsedFile): string | null {
   return null;
 }
 
+// A sheet or header row pick. With a confirmed set of sheets (stories/E3-7), a header row pick
+// lands on the named sheet (the first ticked when none is named) and a sheet outside the set
+// replaces the set with that one sheet; without one, the single-sheet path of E3-2.
 export async function rechoose(ws: WorkspaceId, uploadId: string, choice: { sheet?: string | null; headerRow?: number | null }): Promise<{ error: string } | { upload: Upload }> {
   const current = await uploads.get(ws, uploadId);
   if (!current) throw new NotFoundError();
   const object = await getObject(current.objectKey);
   if (!object) throw new NotFoundError();
   const parsed = await parseFile(current.kind, object.body);
-  const sheetChanged = choice.sheet !== undefined && choice.sheet !== current.sheet;
-  const preview: UploadPreview = buildPreview(parsed, { sheet: choice.sheet ?? current.sheet, headerRow: sheetChanged ? null : choice.headerRow });
-  if (preview.rowsRead > ROWS_MAX) return { error: UPLOAD_COPY.tooManyRows(preview.rowsRead, current.kind === "xlsx" ? preview.sheet : null) };
+  let sheets: UploadSheets | null = current.sheets;
+  let preview: UploadPreview;
+  if (sheets && sheets.length > 0) {
+    const name = choice.sheet ?? sheets[0].name;
+    if (!sheets.some((s) => s.name === name)) sheets = [{ name }];
+    else if (choice.headerRow !== undefined) sheets = sheets.map((s) => (s.name === name ? (choice.headerRow === null ? { name } : { name, headerRow: choice.headerRow }) : s));
+    preview = buildPreview(parsed, { sheets });
+  } else {
+    const sheetChanged = choice.sheet !== undefined && choice.sheet !== current.sheet;
+    preview = buildPreview(parsed, { sheet: choice.sheet ?? current.sheet, headerRow: sheetChanged ? null : choice.headerRow });
+    // A sheet picked by name on a workbook with several confirms that one sheet.
+    if (choice.sheet !== undefined && preview.sheet && (preview.sheetRows?.length ?? 0) > 1) sheets = [{ name: preview.sheet }];
+  }
+  const over = overLimit(current, preview);
+  if (over) return { error: over };
   const { mapping, remember } = await initialMapping(ws, preview);
-  const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, preview, mapping });
+  const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, sheets, preview, mapping });
   if (!updated) throw new NotFoundError();
   if (remember && mapping) await workspaceMappings.upsert(ws, headersKey(preview.columns), mapping);
   return { upload: updated };
+}
+
+// The Sheets step (stories/E3-7, acceptance 1 and 2): the names ticked, in file order, among
+// the sheets with rows; a header row picked earlier for a sheet still ticked is kept. One name
+// is the single-sheet path; several fill preview.perSheet. The row limit counts the ticked
+// sheets together; a pick over it is refused and the stored choice stays.
+export async function chooseSheets(ws: WorkspaceId, uploadId: string, names: string[]): Promise<{ error: string } | { upload: Upload }> {
+  const current = await uploads.get(ws, uploadId);
+  if (!current) throw new NotFoundError();
+  const available = current.preview.sheetRows ?? current.preview.sheets.map((name) => ({ name }));
+  const picked = available.filter((s) => names.includes(s.name)).map((s) => s.name);
+  if (picked.length === 0) return { error: UPLOAD_COPY.noSheet };
+  const object = await getObject(current.objectKey);
+  if (!object) throw new NotFoundError();
+  const parsed = await parseFile(current.kind, object.body);
+  const sheets: UploadSheets = picked.map((name) => current.sheets?.find((s) => s.name === name) ?? { name });
+  const preview = buildPreview(parsed, { sheets });
+  const over = overLimit(current, preview);
+  if (over) return { error: over };
+  const { mapping, remember } = await initialMapping(ws, preview);
+  const updated = await uploads.update(ws, uploadId, { sheet: preview.sheet, headerRow: preview.headerRow, sheets, preview, mapping });
+  if (!updated) throw new NotFoundError();
+  if (remember && mapping) await workspaceMappings.upsert(ws, headersKey(preview.columns), mapping);
+  return { upload: updated };
+}
+
+function overLimit(current: Upload, preview: UploadPreview): string | null {
+  if (preview.rowsRead <= ROWS_MAX) return null;
+  if (preview.perSheet && preview.perSheet.length > 1) return UPLOAD_COPY.sheetsTooManyRows(preview.rowsRead);
+  return UPLOAD_COPY.tooManyRows(preview.rowsRead, current.kind === "xlsx" ? preview.sheet : null);
 }
 
 // Remembered for the headers when the workspace has one, else guessed; a guess with a text
@@ -135,11 +180,13 @@ async function initialMapping(ws: WorkspaceId, preview: UploadPreview): Promise<
 // The mapping as the form sent it, cleaned (src/lib/import/mapping.ts), stored on the upload
 // and remembered for the workspace under the headers; the error names a missing text column
 // but the mapping is saved either way, so the PM can fix one select at a time.
-export async function saveMapping(ws: WorkspaceId, uploadId: string, raw: Record<string, unknown>): Promise<{ upload: Upload; error: string | null }> {
+// sheetAreas (stories/E3-7, acceptance 5) is the switch "Use the sheet names as areas", saved
+// when the form carries it.
+export async function saveMapping(ws: WorkspaceId, uploadId: string, raw: Record<string, unknown>, sheetAreas?: boolean): Promise<{ upload: Upload; error: string | null }> {
   const current = await uploads.get(ws, uploadId);
   if (!current) throw new NotFoundError();
   const mapping = cleanMapping(current.preview.columns, raw);
-  const updated = await uploads.update(ws, uploadId, { mapping });
+  const updated = await uploads.update(ws, uploadId, sheetAreas === undefined ? { mapping } : { mapping, sheetAreas });
   if (!updated) throw new NotFoundError();
   const error = mappingError(mapping);
   if (error === null) await workspaceMappings.upsert(ws, headersKey(current.preview.columns), mapping);

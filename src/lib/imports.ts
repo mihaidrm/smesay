@@ -12,9 +12,9 @@ import type { ItemSet } from "@/db/queries/itemSets";
 import type { Upload } from "@/db/queries/uploads";
 import type { WorkspaceId } from "@/db/types";
 import { NotFoundError } from "@/lib/errors";
-import { mappingError } from "@/lib/import/mapping";
+import { mappingError, sheetsMissingText, sheetsMissingTextError } from "@/lib/import/mapping";
 import { parseFile } from "@/lib/import/parse";
-import { checkRows, type CheckResult } from "@/lib/import/report";
+import { checkRows, checkSheets, type CheckResult, type SheetInput } from "@/lib/import/report";
 import { track } from "@/lib/analytics";
 import { getObject } from "@/lib/storage";
 
@@ -29,6 +29,11 @@ export const IMPORT_COPY = {
   // The banner owed from E3-6, once an instrument can be published (E6-1).
   published: "This list is published. Importing a new version does not change the published validation; you build a new one on the new version.",
   imported: (n: number, version: number, date: string) => `Imported ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"} as version ${version} on ${date}.`,
+  // Several sheets (stories/E3-7, acceptance 6): the check card's sheet heading, the "same as"
+  // line across sheets, the Checks cell of the import log.
+  sheetHeading: (name: string) => `Sheet ${name}`,
+  sheetsCell: (n: number) => `${n} sheets`,
+  sameAs: (row: number, keptRow: number, keptSheet: string | null) => `Row ${row}, same as row ${keptRow}${keptSheet ? ` of sheet ${keptSheet}` : ""}`,
   counts: (r: { emptyRows: number; exactDuplicates: number; overLimit: number; unrecognisedValues: number }) => ({
     empty: `${r.emptyRows.toLocaleString("en-GB")} empty ${r.emptyRows === 1 ? "row was" : "rows were"} skipped.`,
     duplicates: `${r.exactDuplicates.toLocaleString("en-GB")} exact ${r.exactDuplicates === 1 ? "duplicate was" : "duplicates were"} imported once.`,
@@ -37,11 +42,34 @@ export const IMPORT_COPY = {
   }),
 };
 
+// Several sheets ticked (stories/E3-7, acceptance 4): the message naming the ticked sheets
+// whose header lacks the item text column; null on the single-sheet path.
+export function sheetsError(upload: Upload): string | null {
+  if (!upload.mapping || !upload.preview.perSheet || upload.preview.perSheet.length < 2) return null;
+  return sheetsMissingTextError(sheetsMissingText(upload.preview.perSheet, upload.mapping));
+}
+
+// Whether the import takes each item's area from its sheet (E3-7, acceptance 5): the switch
+// on, several sheets ticked and no column mapped as area.
+export function sheetNamesAsAreas(upload: Upload): boolean {
+  return upload.sheetAreas && (upload.preview.perSheet?.length ?? 0) > 1 && !Object.values(upload.mapping ?? {}).includes("area");
+}
+
 export async function checkUpload(upload: Upload): Promise<CheckResult | null> {
-  if (!upload.mapping || mappingError(upload.mapping)) return null;
+  if (!upload.mapping || mappingError(upload.mapping) || sheetsError(upload)) return null;
   const object = await getObject(upload.objectKey);
   if (!object) throw new NotFoundError();
   const parsed = await parseFile(upload.kind, object.body);
+  const perSheet = upload.preview.perSheet;
+  if (perSheet && perSheet.length > 1) {
+    const inputs: SheetInput[] = [];
+    for (const p of perSheet) {
+      const sheet = parsed.sheets.find((s) => s.name === p.name);
+      if (sheet) inputs.push({ name: p.name, columns: p.columns, rows: sheet.rows.slice(p.headerRow ?? 0), firstRow: (p.headerRow ?? 0) + 1, headerRow: p.headerRow });
+    }
+    if (inputs.length === 0) return null;
+    return checkSheets(upload.mapping, inputs, { sheetAsArea: sheetNamesAsAreas(upload) });
+  }
   const sheet = parsed.sheets.find((s) => s.name === upload.sheet) ?? parsed.sheets[0];
   if (!sheet) return null;
   const rows = sheet.rows.slice(upload.headerRow ?? 0);
@@ -54,7 +82,7 @@ export async function commitUpload(ws: WorkspaceId, uploadId: string, userId: st
   const already = (await itemSets.list(ws)).find((set) => set.uploadId === upload.id);
   if (already) return { error: IMPORT_COPY.already(already.version) };
   const check = await checkUpload(upload);
-  if (!check) return { error: mappingError(upload.mapping ?? {}) ?? IMPORT_COPY.nothing };
+  if (!check) return { error: mappingError(upload.mapping ?? {}) ?? sheetsError(upload) ?? IMPORT_COPY.nothing };
   if (check.items.length === 0) return { error: IMPORT_COPY.nothing };
   const set = await commitImport(ws, {
     projectId: upload.projectId, uploadId: upload.id, source: upload.kind, filename: upload.kind === "pasted" ? null : upload.filename,
