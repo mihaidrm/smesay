@@ -1,5 +1,10 @@
 # Legal pages: the review sheet for the lawyer, 2026-10-05
 
+Mihai, 2026-10-07: "lawyer check all items and he approved so you can remove the tags for
+lawyer to check". Version 3 of the four pages removes the 42 check markers (decision 0059).
+This sheet stays as the record of what was checked and why. Left to fill: the three company
+details below, and the identity paragraph of E5-7, written after the lawyer's read.
+
 Mihai, 2026-10-05: "i think you should first do a version when you put everything with what you
 find online as guidance - and he will check those final things - i think you can put everything
 except the company details" (decision 0054).
@@ -7,7 +12,7 @@ except the company details" (decision 0054).
 Version 2 of the four pages (docs/legal/privacy.md, terms.md, dpa.md, subprocessors.md) puts a
 proposed value everywhere the lawyer had a question, except the company details (registered
 address, registration number, fiscal code), which stay as markers. Each proposed value carries
-a marker "[LAWYER: check L#]"; the line below with the same number gives the proposal, the
+a check marker with its number; the line below with the same number gives the proposal, the
 source and the reason. Sources were read on 2026-10-05; where a page shows its own date it is
 given. These are proposals from public sources, not legal advice. "Judgement" marks a value no
 source sets.

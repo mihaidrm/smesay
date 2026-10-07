@@ -1,7 +1,7 @@
 // The legal pages (stories/E11-3): /legal/privacy, /legal/terms, /legal/dpa and
 // /legal/subprocessors, each rendered from its file in docs/legal/ (src/lib/legal.ts) with
-// "Version [N], [DATE]" at the top and the lawyer's markers shown in the sun tint until Mihai
-// says they are confirmed (acceptance 4). generateStaticParams with dynamicParams false: any
+// "Version [N], [DATE]" at the top and any marker left shown in the sun tint (acceptance 4; since
+// the lawyer's approval, decision 0059, only the company details are marked). generateStaticParams with dynamicParams false: any
 // other name is the 404 page (node_modules/next/dist/docs/01-app/03-api-reference/04-functions/
 // generate-static-params.md). Rendered per request since E11-5, for the content security
 // policy's nonce (src/app/layout.tsx); the files travel with the route (next.config.ts,
