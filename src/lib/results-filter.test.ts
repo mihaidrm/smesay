@@ -59,11 +59,14 @@ describe("the Results filter", () => {
   });
 });
 
-const n: ResultsNumbers = { invited: 7, submitted: 5, inProgress: 1, shown: 5, total: 5, agree: 19, change: 7, disagree: 2, unclear: 2, pick: 0, answered: 30, withComment: 11, missing: 1, unansweredItems: 0, fullyAgreed: 1, pushedBackItems: 5, medianMinutes: null, anyAnswer: true, actions: 4 };
+const n: ResultsNumbers = { invited: 7, submitted: 5, inProgress: 1, shown: 5, total: 5, agree: 18, change: 7, disagree: 3, unclear: 2, pick: 0, answered: 30, withComment: 12, missing: 1, unansweredItems: 0, fullyAgreed: 0, differentPriorityItems: 5, notNeededItems: 3, medianMinutes: null, anyAnswer: true, actions: 4 };
 
 describe("the tiles", () => {
   it("keeps a stored choice of known tiles, once each, at most six, else the default six", () => {
     expect(storedTiles(["missing", "agreement", "missing", "bogus"])).toEqual(["missing", "agreement"]);
+    // The merged tile of before decision 0062 is dropped: the PM gets neither of the two that replaced it.
+    expect(storedTiles(["pushedBackItems", "agreement"])).toEqual(["agreement"]);
+    expect(storedTiles(["differentPriorityItems", "notNeededItems"])).toEqual(["differentPriorityItems", "notNeededItems"]);
     expect(storedTiles(["submitted", "agreement", "change", "disagree", "unclear", "missing", "inProgress"])).toHaveLength(6);
     expect([storedTiles(null), storedTiles([]), storedTiles(["bogus"]), storedTiles("agreement")]).toEqual([null, null, null, null]);
     expect(DEFAULT_TILES).toEqual(["submitted", "agreement", "change", "disagree", "unclear", "missing"]);
@@ -77,12 +80,14 @@ describe("the tiles", () => {
 
   it("shows the sample's numbers as the board does", () => {
     expect(tileView("submitted", n)).toEqual({ id: "submitted", value: "5 of 7", label: "Submitted of invited", tone: "ink" });
-    expect(tileView("agreement", n)).toMatchObject({ value: "63%", label: "Agreement, 19 of 30 answers" });
+    expect(tileView("agreement", n)).toMatchObject({ value: "60%", label: "Agreement, 18 of 30 answers" });
+    expect(tileView("differentPriorityItems", n)).toEqual({ id: "differentPriorityItems", value: "5", label: "Items with a different priority", tone: "sun" });
+    expect(tileView("notNeededItems", n)).toEqual({ id: "notNeededItems", value: "3", label: "Items marked not needed", tone: "sun" });
     expect(tileView("agreement", { ...n, agree: 0, answered: 0 }).value).toBe("None yet");
     expect(tileView("medianMinutes", n).value).toBe("None yet");
     expect(tileView("medianMinutes", { ...n, medianMinutes: 42 }).value).toBe("42");
     expect(agreementPercent({ agree: 23, answered: 34 })).toBe(68);
-    expect(tabCounts(n)).toEqual({ pushed: 9, questions: 3, actions: 4 });
+    expect(tabCounts(n)).toEqual({ change: 7, disagree: 3, questions: 3, actions: 4 });
   });
 
   it("reads a split only of the instrument's dropdown fields, and writes it", () => {

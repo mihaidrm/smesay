@@ -7,8 +7,8 @@ import { ResultsFailed } from "./results-boundary";
 
 describe("a part of Results that failed", () => {
   it("names the part and offers Try again", () => {
-    const html = renderToStaticMarkup(<ResultsFailed what="Different priority and Disagree (9)" onRetry={() => {}} />);
-    expect(html).toContain("Different priority and Disagree (9) could not load. It has been logged. Try again in a minute.");
+    const html = renderToStaticMarkup(<ResultsFailed what="Different priority 7 · Disagree 3" onRetry={() => {}} />);
+    expect(html).toContain("Different priority 7 · Disagree 3 could not load. It has been logged. Try again in a minute.");
     expect(html).toContain(">Try again</button>");
     expect(html).toContain('role="status"');
   });

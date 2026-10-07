@@ -1,10 +1,12 @@
 "use client";
 // The builder's preview panel (stories/E5-6, acceptance 1, 3 and 5; the PM app board, note
 // 13): 460 px on the right of Import, Shape, Build and Share. "Preview", Desktop and Phone
-// (desktop first), "Open full size" (the same preview in a new tab, for the device chosen),
-// the step's caption, and the real respondent app in an iframe: on desktop the 1032 px column
-// (a 1000 px chapter card with its 16 px sides, decision 0052) at 40.7 percent (CSS transform: developer.mozilla.org/docs/Web/CSS/transform-function/scale),
-// on a phone 390 px at true size, scrolling inside the panel. The source changes only when
+// (desktop first), "Full view" (the whole respondent app in a new tab, for the device chosen,
+// with the step's rings), the step's caption, and the real respondent app in an iframe in its
+// compact view (decision 0061: the band, the header, the chapter row and the first card, no
+// rings): on desktop a 720 px column at 58.3 percent (CSS transform:
+// developer.mozilla.org/docs/Web/CSS/transform-function/scale), so the one card reads at
+// 420 px; on a phone 390 px at true size, scrolling inside the panel. The source changes only when
 // what the preview shows does (src/lib/preview.ts previewSrc), and the iframe is keyed by it:
 // a new source is a new frame, so a save does not add an entry to the tab's history (the
 // iframe's first load replaces about:blank; html.spec.whatwg.org, "process the iframe
@@ -62,6 +64,7 @@ export function PreviewFrame({ src, caption }: { src: string; caption: string })
   const [device, setDevice] = useState<Device>("desktop");
   const { screen } = usePreviewScreen();
   const url = `${src}&device=${device}${screen === "wrap" ? "&screen=wrap" : ""}`;
+  const compactUrl = `${url}&compact=1`;
   return (
     <aside className="sticky top-28 flex max-h-[calc(100vh-8rem)] w-[460px] shrink-0 flex-col gap-3 self-start overflow-y-auto rounded-2xl border border-hairline bg-surface p-4" aria-labelledby="preview-panel-title" data-testid="preview-panel">
       <div className="flex items-center justify-between gap-3">
@@ -71,12 +74,12 @@ export function PreviewFrame({ src, caption }: { src: string; caption: string })
       <SegmentedControl value={device} onChange={setDevice} label={PREVIEW_COPY.device} options={[{ value: "desktop", label: PREVIEW_COPY.desktop }, { value: "phone", label: PREVIEW_COPY.phone }]} className="self-start" />
       <p className="text-sm text-ink-muted" data-testid="preview-caption">{caption}</p>
       {device === "desktop" ? (
-        <div className="relative h-[560px] w-[420px] shrink-0 overflow-hidden rounded-xl border border-hairline-strong bg-ground" data-testid="preview-desktop">
-          <Frame key={url} url={url} className="h-[1376px] w-[1032px] origin-top-left scale-[0.407] border-0" />
+        <div className="relative h-[440px] w-[420px] shrink-0 overflow-hidden rounded-xl border border-hairline-strong bg-ground" data-testid="preview-desktop">
+          <Frame key={compactUrl} url={compactUrl} className="h-[755px] w-[720px] origin-top-left scale-[0.583] border-0" />
         </div>
       ) : (
-        <div className="relative mx-auto h-[720px] w-[390px] shrink-0 overflow-hidden rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-phone">
-          <Frame key={url} url={url} className="h-full w-[390px] border-0" />
+        <div className="relative mx-auto h-[600px] w-[390px] shrink-0 overflow-hidden rounded-[28px] border border-hairline-strong bg-ground" data-testid="preview-phone">
+          <Frame key={compactUrl} url={compactUrl} className="h-full w-[390px] border-0" />
         </div>
       )}
     </aside>

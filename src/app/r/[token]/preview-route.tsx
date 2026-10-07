@@ -3,14 +3,19 @@
 // the PM the token was made for, in their current workspace (the iframe sends their session;
 // src/lib/preview-token.ts). It opens on the first chapter with the step's rings
 // (?ring=...), the workspace's current brand, and on a phone (?device=phone) in a 390 px
-// column; ?screen=wrap opens the Wrap up (the Closing card focused on Build). A token that is
+// column; ?screen=wrap opens the Wrap up (the Closing card focused on Build). The panel asks
+// for the compact view (?compact=1, decision 0061): the band, the header, the chapter row and
+// the first card only, no rings; the full view (the panel's link) is the whole app with the
+// rings. The band that says nothing is saved sits above the app, as the sample's does. A token that is
 // expired or not this PM's shows the expired page, this PM's for another workspace a page
 // saying to switch workspace (previewAccess); a revoked
 // link on Share shows the withdrawn page (decision 0021, item 3). Nothing is stored: the app
 // keeps everything in memory and the write routes refuse a preview token.
+import { SampleBand } from "@/components/app/sample-band";
 import { LinkPage } from "@/components/respondent/link-page";
 import { logoUrlFor } from "@/components/respondent/respondent-header";
 import { effectiveAccent, showsPoweredBy } from "@/lib/brand-rules";
+import { ABOUT_YOU_COPY } from "@/lib/build-copy";
 import { getAppContext } from "@/lib/current-workspace";
 import { loadPreview, parseRings, PREVIEW_STEPS, previewKey, type PreviewStep } from "@/lib/preview";
 import { previewAccess, readPreviewToken } from "@/lib/preview-token";
@@ -19,7 +24,7 @@ import { formatUtc } from "@/lib/sharing";
 import { LINK_PAGE_COPY, PREVIEW_PAGE_COPY } from "@/lib/sharing-copy";
 import { RespondentApp } from "./respondent-app";
 
-type Query = { ring?: string | string[]; step?: string | string[]; device?: string | string[]; screen?: string | string[] };
+type Query = { ring?: string | string[]; step?: string | string[]; device?: string | string[]; screen?: string | string[]; compact?: string | string[] };
 
 export async function PreviewRoute({ token, query }: { token: string; query: Query }) {
   const claim = readPreviewToken(token, previewKey());
@@ -37,8 +42,10 @@ export async function PreviewRoute({ token, query }: { token: string; query: Que
   if (view.kind === "revoked") return <LinkPage {...page} title={LINK_PAGE_COPY.revokedTitle} line={LINK_PAGE_COPY.revokedLine(workspace.name)} />;
   const { spec } = view;
   const phone = query.device === "phone";
+  const compact = query.compact === "1";
   return (
-    <div className={phone ? "mx-auto w-full max-w-[390px]" : undefined} data-preview-device={phone ? "phone" : "desktop"}>
+    <div className={phone ? "mx-auto w-full max-w-[390px]" : undefined} data-preview-device={phone ? "phone" : "desktop"} data-preview-compact={compact || undefined}>
+      <SampleBand text={ABOUT_YOU_COPY.previewNote} testId="preview-note" className="rounded-none border-x-0 border-t-0 text-center" />
       <RespondentApp
         token={token}
         workspaceName={workspace.name}
@@ -65,7 +72,7 @@ export async function PreviewRoute({ token, query }: { token: string; query: Que
         changedSince={false}
         closesAt={view.closesAt ? view.closesAt.toISOString() : null}
         poweredBy={page.poweredBy}
-        preview={{ rings: parseRings(query.ring) }}
+        preview={{ rings: compact ? [] : parseRings(query.ring), compact }}
       />
     </div>
   );

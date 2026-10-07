@@ -51,6 +51,9 @@ of the content; page means it replaces the screen.
 | Inline, upload | The file has the extension but is not a workbook or readable text (E3-2) | The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it. |
 | Inline, upload | Upload on the sample project, through the server (E3-2) | The sample project cannot be edited. |
 | Inline, preview | No header row found | We found no header row. Pick the row that holds the column names, or tell us which column is the requirement. |
+| Inline, Sheets step | Use these sheets pressed with no sheet ticked (E3-7) | Tick at least one sheet. |
+| Inline, Sheets step | The sheets ticked have more than 2,000 rows together (E3-7; the stored choice stays) | The sheets ticked have [N] rows together. The limit is 2,000. Untick a sheet or split the list. |
+| Inline, mapping card and check card | A ticked sheet's header lacks the column mapped as item text (E3-7; the Import button stays disabled; several sheets: Sheets [NAME] and [NAME] have no column [HEADER]. Untick them, or ...) | Sheet [NAME] has no column [HEADER]. Untick it, or map the item text to a column every ticked sheet has. |
 | Inline, mapping card | No column mapped to the item text (E3-3) | Pick the column that holds the requirement text. Without it there is nothing to import. |
 | Select option, mapping card | A sixth Custom field (E3-3) | Up to five custom fields |
 | Inline, paste box | Empty or one line (E3-4) | Paste at least two lines, one item per line. |

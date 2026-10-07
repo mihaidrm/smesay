@@ -16,4 +16,17 @@ export const UPLOAD_COPY = {
   noHeader: "We found no header row. Pick the row that holds the column names, or tell us which column is the requirement.",
   summary: (filename: string, rows: number, headerRow: number | null) =>
     `We read ${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"} from ${filename} and found ${headerRow ? `the header on row ${headerRow}` : "no header row"}.`,
+  // Several sheets (stories/E3-7): the Sheets step and the per-sheet preview.
+  sheetsTitle: "Sheets",
+  sheetsLine: "Tick the sheets that hold the list, then press Use these sheets.",
+  sheetsButton: "Use these sheets",
+  sheetCount: (rows: number) => `${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"}`,
+  noSheet: "Tick at least one sheet.",
+  sheetsTooManyRows: (rows: number) =>
+    `The sheets ticked have ${rows.toLocaleString("en-GB")} rows together. The limit is ${ROWS_MAX.toLocaleString("en-GB")}. Untick a sheet or split the list.`,
+  summarySheets: (filename: string, rows: number, sheets: number) =>
+    `We read ${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"} from ${filename} across ${sheets} sheets.`,
+  sheetLine: (name: string, rows: number, headerRow: number | null) =>
+    `Sheet ${name}: ${rows.toLocaleString("en-GB")} ${rows === 1 ? "row" : "rows"}, ${headerRow ? `header on row ${headerRow}` : "no header row"}.`,
+  sheetNoRows: "This sheet has no rows. Pick another sheet, or upload another file.",
 };

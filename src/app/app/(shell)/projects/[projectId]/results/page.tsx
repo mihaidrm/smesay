@@ -1,7 +1,8 @@
 // Results (stories/E8-1; the PM app board, Results; design note 40): the include-unsubmitted
 // switch at the top (decision 0030), Choose tiles, the one filter bar, "Showing [N] of [M]
 // responses" while a filter is on, the headline tiles the PM chose, then the tabs Agreement,
-// Different priority and Disagree (n), Questions and gaps (n), Responses, Actions (n), Export.
+// Different priority (n) · Disagree (n) (the two counts side by side, never summed: decision
+// 0062), Questions and gaps (n), Responses, Actions (n), Export.
 // Every number is one SQL query with the filter (src/db/queries/results.ts numbers). Before
 // the first answer the page is the empty state; a filter that keeps no answer says so with
 // Clear filters. The numbers and each tab fail on their own (results-boundary.tsx) and load
@@ -164,7 +165,8 @@ function Strip({ n, tiles }: { n: ResultsNumbers; tiles: TileId[] }) {
 
 function tabName(tab: Tab, n: ResultsNumbers): string {
   const c = tabCounts(n);
-  const count: Partial<Record<Tab, number>> = { pushed: c.pushed, questions: c.questions, actions: c.actions };
+  if (tab === "pushed") return RESULTS_COPY.pushedCounted(c.change, c.disagree);
+  const count: Partial<Record<Tab, number>> = { questions: c.questions, actions: c.actions };
   return count[tab] === undefined ? RESULTS_COPY.tabs[tab] : `${RESULTS_COPY.tabs[tab]} (${count[tab]})`;
 }
 

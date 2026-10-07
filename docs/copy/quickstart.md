@@ -30,7 +30,7 @@ Publish a public link or send personal invites, and set when it closes.
 Respondents need no account, and you can close or withdraw the link any time.
 
 Then: read the results
-- Answers arrive live: who agreed, who pushed back and why, what is missing.
+- Answers arrive live: who agreed, who chose a different priority, who said not needed and why, and what is missing.
 - The AI writes a short to-do list and names the answers behind each line.
 - Export the answers as CSV, the project as JSON, or a PDF summary.
 

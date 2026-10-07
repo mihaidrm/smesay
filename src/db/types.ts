@@ -13,7 +13,9 @@ export type ClosingSpec = { confidence: true; missingForm: boolean; signOffText:
 export type ScaleLabels = { [code: string]: string };
 // The check before import (stories/E3-5): counts over the data rows, headerRow 0 when the
 // file had none, the folded duplicates by reference (E3-3's unrecognised values too).
-export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number; unrecognisedValues: number; duplicateRefs: { kept: string; folded: string[] }[] };
+export type ImportReport = { emptyRows: number; exactDuplicates: number; overLimit: number; rowsRead: number; headerRow: number; unrecognisedValues: number; duplicateRefs: { kept: string; folded: string[] }[]; sheets?: SheetReport[] };
+// SheetReport (E3-7): the same counts for one sheet, present when more than one sheet was read.
+export type SheetReport = { name: string; rowsRead: number; headerRow: number; items: number; emptyRows: number; exactDuplicates: number; overLimit: number; unrecognisedValues: number };
 // foldedRefs (E3-5): the references of the exact duplicates folded into this item at import.
 // areaBy (E4-2): who put the item in its area, "ai" (the model; a re-run places it again) or
 // "pm" (a move; a re-run leaves it); absent, the area came with the import. importedArea
@@ -51,7 +53,24 @@ export type UploadPreview = {
   columns: { letter: string; name: string }[];
   rows: string[][];
   rowsRead: number;
+  // E3-7: every sheet with rows and its count (xlsx only), and the ticked sheets when more
+  // than one, each previewed on its own; columns is then the union of theirs.
+  sheetRows?: { name: string; rows: number }[];
+  perSheet?: SheetPreview[];
 };
+
+export type SheetPreview = {
+  name: string;
+  headerRow: number | null;
+  columns: { letter: string; name: string }[];
+  rows: string[][];
+  rowsRead: number;
+};
+
+// The sheets the PM ticked (E3-7), in file order; headerRow absent means the finder's row, 0
+// no header row, N the row picked. Null until the step is confirmed.
+export type SheetChoice = { name: string; headerRow?: number };
+export type UploadSheets = SheetChoice[];
 
 export type MemberRole = "owner" | "member";
 export type PlanKey = "free" | "pro" | "team" | "enterprise";

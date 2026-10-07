@@ -14,7 +14,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 import { ADMIN_ACTIONS, AUDIT_OUTCOMES, EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
-import type { AuditChanges, ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview } from "./types";
+import type { AuditChanges, ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview, UploadSheets } from "./types";
 
 export * from "./auth-schema";
 
@@ -120,6 +120,11 @@ export const upload = pgTable("upload", {
   byteSize: integer("byte_size").notNull(),
   sheet: text("sheet"),
   headerRow: integer("header_row"),
+  // The sheets ticked in the Sheets step (stories/E3-7), UploadSheets in INTERFACES.md; null
+  // until confirmed and for a csv or a pasted list. sheet_areas is the "Use the sheet names
+  // as areas" switch, read when several sheets are ticked and no column is mapped as area.
+  sheets: jsonb("sheets").$type<UploadSheets>(),
+  sheetAreas: boolean("sheet_areas").notNull().default(true),
   preview: jsonb("preview").$type<UploadPreview>().notNull(),
   // The mapping of this upload's columns (stories/E3-3), ColumnMapping in INTERFACES.md; null
   // until the preview has columns.

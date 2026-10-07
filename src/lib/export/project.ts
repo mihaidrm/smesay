@@ -64,6 +64,8 @@ const count = z.number().int().min(0).max(2147483647);
 const importReport = z.strictObject({
   emptyRows: count, exactDuplicates: count, overLimit: count, rowsRead: count, headerRow: count, unrecognisedValues: count,
   duplicateRefs: z.array(z.strictObject({ kept: text(WHOLE), folded: z.array(text(WHOLE)) })),
+  // E3-7: the counts per sheet when the import read several.
+  sheets: z.array(z.strictObject({ name: text(200), rowsRead: count, headerRow: count, items: count, emptyRows: count, exactDuplicates: count, overLimit: count, unrecognisedValues: count })).max(200).optional(),
 }).nullable();
 const areas = z.array(z.strictObject({ name: text(200), rationale: text(1000) })).max(50).nullable();
 const contextUsed = z.strictObject({ goal: text(2000).nullable(), terms: text(2000).nullable() }).nullable();
