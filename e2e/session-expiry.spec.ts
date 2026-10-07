@@ -33,6 +33,8 @@ test("a save after the session ended keeps what was typed", async ({ page, reque
   const signedIn = await page.context().cookies();
   await page.context().clearCookies();
   const goal = "We are replacing the expense tool for all 400 staff.";
+  // The About card is closed before an upload (design note 110); its title row opens it.
+  await page.getByTestId("card-about").locator("summary").click();
   await page.getByLabel("What is this about?").fill(goal);
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("signed-out")).toContainText("You were signed out. Sign in again; what you typed on this page is kept.");
@@ -42,6 +44,7 @@ test("a save after the session ended keeps what was typed", async ({ page, reque
   await page.context().addCookies(signedIn);
   await page.goto(url);
   await expect(page.getByLabel("What is this about?")).toHaveValue(goal);
+  await page.getByTestId("card-about").locator("summary").click();
   await expect(page.getByTestId("draft-back")).toBeVisible();
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status")).toHaveText("Saved.");

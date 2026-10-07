@@ -1,20 +1,23 @@
 // The import log (stories/E3-6, acceptance 2 and 4): every version of the project, newest
 // first, with number, source, file, imported date, item count, the check counts and who
 // imported; each number opens the version read-only (versions/[setId]). Under the table, the
-// diff between the two latest versions as counts. Server component.
+// diff between the two latest versions as counts. Server component. A collapsible card
+// (design note 110) with the latest version as its summary; open once everything is
+// imported, by the page's rule.
 import Link from "next/link";
 import type { ItemSetVersion } from "@/db/queries/itemSets";
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IMPORT_COPY } from "@/lib/imports";
+import { IMPORT_CARD_COPY } from "@/lib/import-guide";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 const SOURCE = { xlsx: "xlsx", csv: "csv", pasted: "pasted" } as const;
 
-export function ImportLog({ projectId, versions, diffText }: { projectId: string; versions: ItemSetVersion[]; diffText: string | null }) {
+export function ImportLog({ projectId, versions, diffText, open }: { projectId: string; versions: ItemSetVersion[]; diffText: string | null; open: boolean }) {
   if (versions.length === 0) return null;
   return (
-    <section className="flex flex-col gap-3 card p-4" aria-labelledby="log-title" data-testid="import-log">
-      <h3 id="log-title" className="font-semibold">{IMPORT_COPY.logTitle}</h3>
+    <CollapsibleCard title={IMPORT_CARD_COPY.versions.title} titleId="log-title" summary={IMPORT_CARD_COPY.versions.summary(versions[0].version, versions[0].items)} open={open} testId="import-log">
       <Table>
         <TableHeader>
           <TableRow>
@@ -39,6 +42,6 @@ export function ImportLog({ projectId, versions, diffText }: { projectId: string
         </TableBody>
       </Table>
       {diffText && versions.length >= 2 && <p data-testid="version-diff" className="text-[13px] text-ink-muted">{IMPORT_COPY.diff(diffText, versions[1].version, versions[0].version)}</p>}
-    </section>
+    </CollapsibleCard>
   );
 }

@@ -41,6 +41,10 @@ test("paste a list and see the preview", async ({ page, request }) => {
   ].join("\n"));
   await page.getByRole("button", { name: "Use this list" }).click();
   await expect(page.getByTestId("upload-summary")).toHaveText("Pasted list, 6 items.");
+  // A pasted list maps itself, so the check card is open and Preview closed (design note
+  // 110); its title row opens it.
+  await expect(page.getByTestId("card-preview").getByTestId("card-summary")).toHaveText("6 items");
+  await page.getByTestId("card-preview").locator("summary").click();
   await expect(page.getByTestId("preview-table").getByRole("columnheader")).toHaveText(["AItem", "BArea", "CProposed value"]);
   await expect(page.getByTestId("preview-row")).toHaveCount(6);
   await expect(page.getByTestId("preview-row").first()).toContainText("Receipts captured by phone");

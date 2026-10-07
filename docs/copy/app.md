@@ -110,6 +110,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | About card line | Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build. |
 | About card fields | What is this about?; Terms to keep as written, optional (placeholder: Product names, internal acronyms, the client's own labels) |
 | About card count | [N] of 2,000 characters |
+| About card summary, on its closed title row (design note 110) | [N] of 2,000 characters (saved text); Nothing written yet |
 | About card button and saved line | Save; Saved. |
 | About card on the sample | The sample project cannot be edited. |
 
@@ -117,11 +118,14 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 
 | Where | Text |
 |---|---|
+| Import cards (design note 110) | Every card on Import is collapsible: the card whose work comes next is open, the others closed with a summary on the title row (src/lib/import-guide.ts). No upload: The list. An upload without a text column: Preview and Column mapping. A text column picked: Check before import. The latest upload imported: Versions. Any card opens by a click. |
 | Upload card title and line | The list. Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported. |
+| Upload card summary | [FILE] (Pasted list for a pasted one); No list yet |
 | File field label | Your file (after the first upload: Upload another file) |
 | File field line | Upload an xlsx or csv file, up to 5 MB and 2,000 rows, with one item per row; the columns are mapped on the next card. |
 | Upload button | Upload |
 | Preview card title | Preview |
+| Preview card summary | [N] rows, header on row [N] / [N] rows, no header row / [N] items (a pasted list) |
 | Summary line (the board's wording) | We read [N] rows from [FILE] and found the header on row [N]. (no header: We read [N] rows from [FILE] and found no header row.) |
 | Sheet picker | Sheet; Show sheet |
 | Header row picker | Header row; No header row, Row [N]; Use this row (both pickers show a loading button while the file is re-read) |
@@ -147,6 +151,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Check card title (board) | Check before import |
+| Check card summary (design note 110) | [N] items ready / Imported as version [N] / Waiting for the text column |
 | The three counts (board, errors.md) | [N] empty rows were skipped. / [N] exact duplicates were imported once. / [N] items are over 1,000 characters and were imported whole; consider splitting them in Shape. (1 empty row was skipped; 1 item is over 1,000 characters and was imported whole; consider splitting it in Shape.) |
 | Fourth line, only above zero | [N] proposed values were not recognised and are kept as written. (1 proposed value was not recognised and is kept as written.) |
 | Rows under a count | Row [N]; Row [N], same as row [N]; Row [N]: [VALUE] |
@@ -160,6 +165,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Log card title | Versions |
+| Log card summary (design note 110) | Version [N], [N] items |
 | Table headers | Version, Source, File, Imported, Items, Checks, By |
 | Version cell | Version [N] (a link to the read-only version) |
 | File cell of a pasted list | Pasted list |
@@ -196,6 +202,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Area header | [Name] [rationale, the model's one sentence] |
 | Group of items without an area, before a run | Not shaped yet |
 | Pill on an item the model placed (the import had an area column and the item none) | Placed by AI |
+| Area cards (design note 110) | Each area is a collapsible card, the first open and the rest closed: [AREA] [N] items on the left; on the right, once shaped, [A] of [R] reader versions accepted (nothing for an area with no reader version to decide on). The rationale is the first line inside. |
 | Pill on an item the PM moved | Moved by you |
 | Per item: the select (its label is visually hidden) and its button; the keyboard path, dragging an item onto an area does the same | Move [ref] to [area], Move |
 | Empty state, no list yet | Import a list first. Shape works on the latest version. [Link: Go to Import] |
@@ -375,6 +382,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Mapping card title | Column mapping |
+| Mapping card summary (design note 110) | [N] of [N] columns mapped / No text column yet |
 | Row | [HEADER] (or Column [LETTER] without a header), Column [LETTER], maps to |
 | Roles | Item text, Area, Proposed value, Reference, Custom field, Do not import (the board's wording; the story said Ignore) |
 | Sixth custom field | Custom field (up to five custom fields), disabled |

@@ -6,8 +6,12 @@
 // import-button.tsx. An upload already imported shows its version instead of the button.
 // The three counts sit side by side only when the card is 48rem wide or more (a container
 // query: tailwindcss.com/docs/responsive-design#container-queries), so beside the preview
-// panel they stack (decision 0021, item 5).
+// panel they stack (decision 0021, item 5). A collapsible card (design note 110): open once
+// the mapping has a text column and until the import, by the page's rule; the summary is
+// the item count ready, or the version imported.
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { IMPORT_COPY } from "@/lib/imports";
+import { IMPORT_CARD_COPY } from "@/lib/import-guide";
 import type { CheckResult } from "@/lib/import/report";
 import { ImportButton } from "./import-button";
 
@@ -21,12 +25,11 @@ function Rows({ label, rows }: { label: string; rows: string[] }) {
   );
 }
 
-export function CheckCard({ uploadId, check, importedVersion }: { uploadId: string; check: CheckResult | null; importedVersion: number | null }) {
+export function CheckCard({ uploadId, check, importedVersion, open }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; open: boolean }) {
   const counts = check ? IMPORT_COPY.counts(check.report) : null;
   const n = check?.items.length ?? 0;
   return (
-    <section className="@container flex flex-col card" aria-labelledby="check-title" data-testid="check-card">
-      <div className="border-b border-hairline px-4 py-3"><h3 id="check-title" className="font-semibold">Check before import</h3></div>
+    <CollapsibleCard title={IMPORT_CARD_COPY.check.title} titleId="check-title" summary={IMPORT_CARD_COPY.check.summary(check ? n : null, importedVersion)} open={open} testId="check-card" className="@container" bodyClassName="flex flex-col border-t border-hairline">
       {check && counts ? (
         <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
           <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
@@ -46,6 +49,6 @@ export function CheckCard({ uploadId, check, importedVersion }: { uploadId: stri
           <ImportButton uploadId={uploadId} label={IMPORT_COPY.button(n)} disabled={!check || n === 0} />
         )}
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }

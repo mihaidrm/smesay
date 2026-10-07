@@ -53,3 +53,8 @@ Built 2026-10-02.
 - Audit of 2026-10-02 (with E3-5): the Versions card moved under the imported line as design
   note 24 says; tests for the log from another workspace; E5-1 and E6-1 now name what E3-6
   hands them; exact Playwright locators for "Version 1".
+- Changed 2026-10-07 (design note 110): the Versions card is collapsible, open once the
+  latest upload is imported with "Version [N], [N] items" on its title row, closed while a
+  newer upload waits; every other card on Import is closed then, and "Import a new version"
+  opens The list. e2e/import.spec.ts asserts Versions open and The list closed after the
+  import, then The list opened by a click.

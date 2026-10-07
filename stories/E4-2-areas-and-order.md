@@ -33,3 +33,8 @@ item.area and item.area_rationale per item in v1; an areas table is not needed u
 Drag and drop: the browser's own API with a "Move to" select as the keyboard path, no library
 (design note 27 has the research check on dnd-kit; Mihai decides whether a library comes with
 E5's builder). One answer carries at most 400 items (design note 27).
+- Changed 2026-10-07 (design note 110): each area is a collapsible card, the first open and
+  the rest closed with the item count beside the name and "[A] of [R] reader versions
+  accepted" on the title row once shaped. The card is the drop target, so a drop on a closed
+  area's row lands in it; the rationale is the first line inside. e2e/shape.spec.ts asserts
+  the first area open and the second closed, then opened by a click.

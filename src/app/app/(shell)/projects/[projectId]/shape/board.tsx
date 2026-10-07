@@ -8,8 +8,12 @@
 // list is read-only: the imported areas, or one "Not shaped yet" group. Each row also shows
 // the reader version with its pill and buttons (stories/E4-3, reader-row.tsx); readerOnly
 // (the sample) keeps the pills and drops every control.
+// Each area is a collapsible card (design note 110): the first open, the rest closed with
+// the item count beside the name and the reader counts as the summary; a click on the name
+// row opens one. The card is the drop target, so a drop on a closed area's row lands in it.
 import { useActionState, useState, useTransition } from "react";
 import { cn } from "cn";
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { SHAPE_COPY } from "@/lib/shaping-copy";
@@ -19,7 +23,8 @@ import { ReaderControls, ReaderText, type ReaderState } from "./reader-row";
 
 // notes (E4-4): the item's own lines under its text, the ambiguity and the duplicate it may be.
 export type BoardItem = { id: string; position: number; ref: string | null; text: string; placedByAi: boolean; moved: boolean; reader: ReaderState; notes: string[]; tags: string[] };
-export type BoardGroup = { name: string; rationale: string | null; items: BoardItem[] };
+// summary: the area's reader counts once shaped ("2 of 4 reader versions accepted"), null before.
+export type BoardGroup = { name: string; rationale: string | null; summary: string | null; items: BoardItem[] };
 const NONE: ProjectFormState = { error: null, saved: false };
 
 // perspectives (stories/E5-4): the newest instrument's names, chips under every item; none
@@ -41,21 +46,22 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly, perspect
       {groups.map((group, g) => {
         const target = !readOnly && areas.includes(group.name);
         return (
-          <section
+          <CollapsibleCard
             key={group.name}
-            aria-labelledby={`area-${g}`}
-            data-testid="area"
+            title={group.name}
+            titleId={`area-${g}`}
+            count={group.items.length === 1 ? "1 item" : `${group.items.length} items`}
+            summary={group.summary}
+            open={g === 0}
+            testId="area"
             data-area={group.name}
-            className={cn("card flex flex-col", over === group.name && "ring-2 ring-violet ring-offset-2 ring-offset-ground")}
+            className={cn(over === group.name && "ring-2 ring-violet ring-offset-2 ring-offset-ground")}
+            bodyClassName="flex flex-col gap-2.5 p-3 pt-0"
             onDragOver={target ? (e) => { e.preventDefault(); setOver(group.name); } : undefined}
             onDragLeave={target ? () => setOver(null) : undefined}
             onDrop={target ? (e) => { e.preventDefault(); setOver(null); const id = e.dataTransfer.getData("text/plain"); if (id) drop(id, group.name); } : undefined}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 pt-4 pb-1">
-              <h3 id={`area-${g}`} className="text-[15px] font-bold">{group.name} <span className="font-mono text-xs font-normal text-ink-muted">{group.items.length === 1 ? "1 item" : `${group.items.length} items`}</span></h3>
-              {group.rationale && <div className="text-xs text-ink-muted" data-testid="rationale">{group.rationale}</div>}
-            </div>
-            <div className="flex flex-col gap-2.5 p-3">
+            {group.rationale && <div className="px-1 pb-1 text-xs text-ink-muted" data-testid="rationale">{group.rationale}</div>}
             {group.items.map((it) => (
               <div
                 key={it.id}
@@ -93,8 +99,7 @@ export function Board({ projectId, areas, groups, readOnly, readerOnly, perspect
                 </div>
               </div>
             ))}
-            </div>
-          </section>
+          </CollapsibleCard>
         );
       })}
     </div>
