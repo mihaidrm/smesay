@@ -1,20 +1,35 @@
 "use client";
-// The brand form (stories/E2-5, acceptance 1 and 2): name, logo file, accent with its swatch
+// The brand form (stories/E2-5, acceptance 1 and 2): name, logo file, accent with its picker
 // and contrast line. The contrast line follows the field as typed (src/lib/contrast.ts is pure)
 // and the server repeats every check (src/lib/brand.ts). useActionState wires the save action
 // (react.dev/reference/react/useActionState). Components: docs/design-system.md.
+// The swatch is an input of type color (developer.mozilla.org/docs/Web/HTML/Element/input/
+// color) that opens the browser's picker (design note 104). The browser paints its own box
+// inside a colour input, so the input sits over the app's 40 px swatch at opacity 0 and the
+// swatch under it carries the colour, the hairline and the focus ring (Tailwind's has-[]
+// variant: tailwindcss.com/docs/hover-focus-and-other-states#styling-based-on-descendants).
+// It has no name, so the form posts the hex field only; the two stay in sync through
+// pickerValue() and pickedHex() (src/lib/brand-rules.ts).
 import { useActionState, useState } from "react";
 import { Banner } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { accentContrast, BRAND_COPY, HEX, MIN_CONTRAST } from "@/lib/brand-rules";
+import { accentContrast, BRAND_COPY, HEX, MIN_CONTRAST, pickedHex, pickerValue } from "@/lib/brand-rules";
 import { LOGO_COPY, LOGO_MAX_BYTES } from "@/lib/logo";
 import { saveBrandAction, type BrandState } from "./actions";
 
 export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHex: string | null; logoUrl: string | null }) {
   const [state, action, pending] = useActionState<BrandState, FormData>(saveBrandAction, { error: null, field: null, saved: false, tooLight: false });
   const [accent, setAccent] = useState(accentHex ?? "");
+  // The picker's colour: the field when it holds a colour, the last valid one while it does
+  // not, the default violet when it is empty.
+  const [swatch, setSwatch] = useState(() => pickerValue(accentHex ?? "") ?? pickerValue("")!);
+  const typeAccent = (text: string) => {
+    setAccent(text);
+    const next = pickerValue(text);
+    if (next !== null) setSwatch(next);
+  };
   // The size is checked here before the upload too (the server repeats it), so an over-size
   // file never leaves the browser.
   const [fileError, setFileError] = useState<string | null>(null);
@@ -48,11 +63,16 @@ export function BrandForm({ name, accentHex, logoUrl }: { name: string; accentHe
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <span className="block size-10 rounded-[10px] border border-hairline bg-surface" style={{ background: valid && accent.trim() ? accent.trim() : undefined }} aria-hidden="true" data-testid="accent-swatch" />
+        <span className="relative block size-10 shrink-0 rounded-[10px] border border-hairline has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-surface" style={{ background: swatch }} data-testid="accent-swatch" data-valid={valid ? undefined : "false"}>
+          <input type="color" value={swatch} onChange={(e) => { setSwatch(e.target.value); setAccent(pickedHex(e.target.value)); }} aria-label={BRAND_COPY.pick} aria-describedby="ws-accent-line" className="absolute inset-0 size-full cursor-pointer rounded-[10px] opacity-0" data-testid="accent-picker" />
+        </span>
         <div className="flex flex-grow flex-col gap-1">
           <Label htmlFor="ws-accent">Accent colour</Label>
-          <Input id="ws-accent" name="accentHex" value={accent} onChange={(e) => setAccent(e.target.value)} placeholder="#1F4F7A" className="h-9 w-40 font-mono"
-            aria-invalid={state.field === "accentHex" ? true : undefined} aria-describedby="ws-accent-line" />
+          <div className="flex items-center gap-3">
+            <Input id="ws-accent" name="accentHex" value={accent} onChange={(e) => typeAccent(e.target.value)} placeholder="#1F4F7A" className="h-9 w-40 font-mono"
+              aria-invalid={state.field === "accentHex" ? true : undefined} aria-describedby="ws-accent-line" />
+            <Button type="button" variant="tertiary" size="small" onClick={() => typeAccent("")} disabled={accent === ""} data-testid="accent-clear">{BRAND_COPY.clear}</Button>
+          </div>
           <p id="ws-accent-line" className={`text-xs ${ratio !== null && ratio < MIN_CONTRAST ? "text-danger" : "text-ink-muted"}`} data-testid="accent-line">
             {state.field === "accentHex" ? state.error
               : ratio === null ? BRAND_COPY.noAccent
