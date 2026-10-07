@@ -273,14 +273,15 @@ Variables for the Browser"), so changing it on the host needs a new build.
 
 ## Step 12. Legal (before launch)
 
-Claude drafts the privacy policy, terms, DPA and subprocessor list, and marks every place a
-lawyer must confirm. You send the drafts to a Romanian lawyer once and tell Claude what to change.
-
-The drafts are docs/legal/privacy.md, terms.md, dpa.md and subprocessors.md (stories/E11-3), shown
-at /legal/privacy, /legal/terms, /legal/dpa and /legal/subprocessors. `npm run legal:markers`
-lists every "[LAWYER: ...]" marker per page: 42 on 2026-10-05 (privacy 17, terms 9, DPA 12,
-subprocessors 4). Send the lawyer the four files and that list; when the lawyer has answered,
-tell Claude, and one commit replaces the markers.
+Done on 2026-10-07: the lawyer checked the 42 marked items of version 2 and approved them all
+(decision 0059), and version 3 of docs/legal/privacy.md, terms.md, dpa.md and
+subprocessors.md (stories/E11-3), shown at /legal/privacy, /legal/terms, /legal/dpa and
+/legal/subprocessors, carries no check markers. `npm run legal:markers` lists what is left:
+3 on 2026-10-07, the registered address, the registration number and the fiscal code, on the
+privacy policy, the terms and the DPA. Send Claude the three values, and one commit fills them
+in (and COMPANY_ADDRESS for the emails' footer, step 11). A paragraph written after the
+lawyer's read (the identity levels of E5-7, in the anonymous responses pull request) keeps its
+marker until the lawyer reads it.
 
 ## Step 13. Later phases
 
