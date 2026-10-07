@@ -308,7 +308,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers.");
   await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
   await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
-  await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
+  await expect(wrapUp.getByTestId("confidence-slider")).toBeVisible();
   // The compact Wrap up has no Submit and no note (decision 0061); e2e/preview.spec.ts proves
   // the preview saves nothing and e2e/respondent-submit.spec.ts proves the Submit rules.
   await expect(wrapUp.getByTestId("wrap-up-submit")).toHaveCount(0);

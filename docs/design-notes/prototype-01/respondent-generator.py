@@ -155,14 +155,11 @@ screens = f'''
 <label for="r-closing" style="font-size: 14px; font-weight: 500">Anything else the team should know? Optional. [PM CLOSING QUESTION]</label>
 <textarea id="r-closing" rows="2" value="{{{{closingText}}}}" onChange="{{{{setClosing}}}}" style="{TA}"></textarea>
 </div>
-<div style="display: flex; flex-direction: column; gap: 8px">
-<div style="font-size: 14px; font-weight: 500">How confident are you in these answers?</div>
-<div style="display: flex; gap: 8px">
-<sc-for list="{{{{confidence}}}}" as="k" hint-placeholder-count="5">
-<button type="button" class="hov" onClick="{{{{k.pick}}}}" aria-pressed="{{{{k.active}}}}" aria-label="{{{{k.aria}}}}" style="flex-grow: 1; min-height: 48px; border: 1px solid {{{{k.bd}}}}; border-radius: 12px; background: {{{{k.bg}}}}; color: {{{{k.fg}}}}; font-family: 'Geist Mono', monospace">{{{{k.n}}}}</button>
-</sc-for>
-</div>
-<div style="display: flex; justify-content: space-between; font-size: 13px; color: #5B6069"><div>Guessing</div><div>Certain</div></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div id="r-conf-title" style="font-size: 14px; font-weight: 500; margin-bottom: 4px">How confident are you in these answers?</div>
+<input type="range" min="1" max="5" step="1" value="{{{{confidenceValue}}}}" onChange="{{{{setConfidence}}}}" aria-labelledby="r-conf-title" aria-describedby="r-conf-word" aria-valuetext="{{{{confidenceAria}}}}" style="display: block; width: 100%; height: 48px; margin: 0; accent-color: {{{{confidenceAccent}}}}; opacity: {{{{confidenceOpacity}}}}">
+<div style="display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 10px; color: #5B6069"><div>Guessing</div><div>Certain</div></div>
+<div id="r-conf-word" style="min-height: 24px; text-align: center; font-size: 16px; font-weight: 600; color: {{{{confidenceColor}}}}">{{{{confidenceWord}}}}</div>
 </div>
 <label for="r-sign" style="display: flex; align-items: center; gap: 12px; background: #F6F6F4; border-radius: 12px; padding: 12px 16px; min-height: 48px; box-sizing: border-box">
 <input id="r-sign" type="checkbox" checked="{{{{signed}}}}" onChange="{{{{toggleSigned}}}}" style="width: 24px; height: 24px; margin: 0; flex-shrink: 0; accent-color: #16181C">
@@ -358,11 +355,13 @@ const rows = [];
 const pushed = higher + lower;
 const hasMissing = s.missingText.trim().length > 0;
 const summaryLine = (s.blind ? picked + ' rated' : agreed + ' agreed, ' + pushed + ' changed') + ', ' + disagreed + ' not needed, ' + unclear + ' unclear' + (hasMissing ? ', 1 item added' : '') + (answered < items.length ? ', ' + (items.length - answered) + ' not answered' : '');
-const confidence = [1, 2, 3, 4, 5].map((n) => { const active = s.confidence === n; const st = active ? on : off; return { n: String(n), aria: 'Confidence ' + n + ' of 5', active: active, bg: st.bg, fg: st.fg, bd: st.bd, pick: () => this.setState({ confidence: n }) }; });
+const CONFIDENCE_WORDS = ['Guessing', 'Not very sure', 'Fairly sure', 'Confident', 'Certain'];
+const confidenceUnset = s.confidence === 0;
+const confidenceValue = confidenceUnset ? 3 : s.confidence;
 const submitMissing = [];
 if (!fieldsOk) submitMissing.push('your name and role');
 if (answered < items.length) submitMissing.push((items.length - answered) + ' unrated item' + (items.length - answered === 1 ? '' : 's'));
-if (s.confidence === 0) submitMissing.push('a confidence level');
+if (confidenceUnset) submitMissing.push('how confident you are');
 if (!s.signed) submitMissing.push('the confirmation tick');
 const submitDisabled = submitMissing.length > 0 || s.submitting;
 const pad = (n) => (n < 10 ? '0' : '') + n;
@@ -392,7 +391,7 @@ summaryLine: summaryLine, rows: rows, sections: sections, tally: tally, nothingT
 hasGaps: answered < items.length || !fieldsOk, gapLine: !fieldsOk ? 'Your name and role are missing.' : (items.length - answered) + ' item' + (items.length - answered === 1 ? '' : 's') + ' still unrated.', gapChapter: !fieldsOk ? 'About you' : 'section ' + (Math.max(0, areas.findIndex((x) => x.name === (firstGapArea || 'Submitting'))) + 1) + ': ' + (firstGapArea || 'Submitting'), gapGo: () => this.setState(!fieldsOk ? { screen: 'about' } : { screen: 'area', area: firstGapArea || 'Submitting' }),
 missingText: s.missingText, setMissing: (e) => this.setState({ missingText: e.target.value }),
 closingText: s.closingText, setClosing: (e) => this.setState({ closingText: e.target.value }),
-confidence: confidence, signed: s.signed, toggleSigned: (e) => this.setState({ signed: e.target.checked }),
+confidenceValue: String(confidenceValue), confidenceUnset: confidenceUnset, confidenceWord: confidenceUnset ? 'Drag to say how sure you are' : CONFIDENCE_WORDS[s.confidence - 1], confidenceAria: CONFIDENCE_WORDS[confidenceValue - 1], confidenceAccent: accent, confidenceOpacity: confidenceUnset ? '0.4' : '1', confidenceColor: confidenceUnset ? '#5B6069' : '#16181C', setConfidence: (e) => this.setState({ confidence: Number(e.target.value) }), signed: s.signed, toggleSigned: (e) => this.setState({ signed: e.target.checked }),
 submitDisabled: submitDisabled, submitOpacity: submitDisabled ? 0.4 : 1, submitLabel: s.submitting ? 'Submitting' : 'Submit answers', submit: submit,
 submitNote: s.submitting ? 'Sending your answers.' : (submitMissing.length ? 'Still needed: ' + submitMissing.join(', ') + '.' : 'Everything is in. Submit when you are ready.'),
 submittedAt: s.submittedAt, thanks: firstName ? 'Thank you, ' + firstName + '.' : 'Thank you.',

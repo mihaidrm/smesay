@@ -25,19 +25,21 @@ r.visible[1].toggleDetails(); r = c.renderVals(); ok(r.visible[1].detailsOpen &&
 r.visible[1].p2Pick(); r = c.renderVals(); ok(r.visible[1].showCommentToggle && !r.visible[1].commentOpen, 'agree: comment optional and closed'); r.visible[1].toggleComment(); r = c.renderVals(); ok(r.visible[1].commentOpen && r.visible[1].detailsOpen && r.visible[1].commentLabel === 'Comment, optional', 'optional comment opens beside the open details');
 r.next(); r = c.renderVals(); r.next(); r = c.renderVals(); ok(r.isWrap, 'continue past Paying reaches Wrap up');
 ok(r.hasGaps && r.gapLine === '2 items still unrated.' && r.gapChapter === 'section 3: Paying', 'wrap up names the gap and the chapter');
-ok(r.submitDisabled && r.submitNote.includes('2 unrated items') && r.submitNote.includes('confidence'), 'submit lists what is missing');
+ok(r.submitDisabled && r.submitNote.includes('2 unrated items') && r.submitNote.includes('confident'), 'submit lists what is missing');
+ok(r.confidenceUnset && r.confidenceValue === '3' && r.confidenceWord === 'Drag to say how sure you are', 'the slider rests at 3 with the prompt until moved');
 r.gapGo(); r = c.renderVals(); ok(r.isArea && r.areaName === 'Paying', 'go to gap lands on Paying');
 r.visible[0].p1Pick(); r = c.renderVals(); r.visible[1].p3Pick(); r = c.renderVals();
 r.chapters[4].go(); r = c.renderVals(); ok(!r.hasGaps && r.sections.map(x => x.title + ':' + x.rows.length).join('|') === 'You suggested a lower priority:1|You said these are not needed:1', 'wrap up groups by suggestion: ' + r.sections.map(x => x.title).join(' / '));
 ok(r.tally.map(x => x.n + ' ' + x.label).join(', ') === '4 agreed, 0 higher priority, 1 lower priority, 1 not needed, 0 unclear', 'tally: ' + r.tally.map(x => x.n + ' ' + x.label).join(', '));
 ok(r.summaryLine === '4 agreed, 1 changed, 1 not needed, 0 unclear', 'summary line: ' + r.summaryLine);
 r.sections[0].rows[0].edit(); r = c.renderVals(); ok(r.areaName === 'Submitting', 'change link goes to the item chapter'); r.chapters[4].go(); r = c.renderVals();
-r.confidence[3].pick(); r = c.renderVals(); r.toggleSigned(ev(true)); r = c.renderVals(); ok(!r.submitDisabled, 'submit enabled');
+r.setConfidence(ev('4')); r = c.renderVals(); ok(!r.confidenceUnset && r.confidenceWord === 'Confident' && r.confidenceAria === 'Confident', 'the slider names the value');
+r.toggleSigned(ev(true)); r = c.renderVals(); ok(!r.submitDisabled, 'submit enabled');
 r.submit(); r = c.renderVals(); ok(r.submitLabel === 'Submitting' && r.submitDisabled, 'loading state');
 setTimeout(() => {
 r = c.renderVals(); ok(r.isDone && r.thanks === 'Thank you, Dana.' && r.headerNote === 'Submitted', 'done screen');
 r.reopen(); r = c.renderVals(); ok(r.isWrap && !r.signed && r.submitDisabled, 'change my answers clears the confirmation');
-r.toggleBlind(); r = c.renderVals(); ok(r.isAbout && r.answeredCount === 0 && r.confidence.every(k => !k.active) && !r.submittedAt, 'blind toggle resets the flow');
+r.toggleBlind(); r = c.renderVals(); ok(r.isAbout && r.answeredCount === 0 && r.confidenceUnset && !r.submittedAt, 'blind toggle resets the flow');
 r.start(); r = c.renderVals(); ok(r.visible[0].p1Cap === '' && r.visible[0].p1BdStyle === 'solid', 'blind cards show no proposed marker');
 r.visible[0].p2Pick(); r = c.renderVals(); ok(r.visible[0].note === 'Saved' && c.state.answers.i1.kind === 'pick', 'pick saves');
 r.chapters[4].go(); r = c.renderVals(); ok(r.summaryLine.startsWith('1 rated'), 'blind summary wording: ' + r.summaryLine);
