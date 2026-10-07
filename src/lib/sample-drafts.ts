@@ -35,7 +35,7 @@ export function parseSample(raw: string | null, itemIds: string[], fieldKeys: st
   const w = obj(v.wrap) ?? {};
   const m = obj(w.missing) ?? {};
   const confidence = typeof w.confidence === "number" && Number.isInteger(w.confidence) && w.confidence >= 1 && w.confidence <= 5 ? w.confidence : null;
-  const wrap: WrapValue = { confidence, signed: w.signed === true, closingAnswer: str(w.closingAnswer, REASON_MAX) ?? "", missing: { text: str(m.text, MISSING_MAX) ?? "", area: str(m.area, 200) ?? "", value: str(m.value, 40) ?? "" } };
+  const wrap: WrapValue = { confidence, signed: w.signed === true, closingAnswer: str(w.closingAnswer, REASON_MAX) ?? "", missing: { text: str(m.text, MISSING_MAX) ?? "" } };
   const submittedAt = typeof v.submittedAt === "string" && !Number.isNaN(Date.parse(v.submittedAt)) ? v.submittedAt : null;
   return { drafts, fields, picks, wrap, started: v.started === true, submittedAt };
 }

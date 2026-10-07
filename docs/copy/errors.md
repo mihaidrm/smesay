@@ -234,7 +234,7 @@ of the content; page means it replaces the screen.
 | Wrap up, from the server (E7-5) | An item is still to finish (another tab, a stale page) | [N] items are still to finish. Finish them in the sections, then submit. (1 item is ... Finish it ...) |
 | Wrap up, from the server (E7-5) | A mandatory field is empty (the PM changed About you) | Fill in your details on About you, then submit. |
 | Wrap up, from the server (E7-5) | The missing item names an area or a value not on the page, or is not text | The missing item did not reach the server as written. Check it and submit again. |
-| Wrap up, from the server (E7-5) | The missing item over 500 characters, the closing answer over 2,000 | Keep the missing item to 500 characters. / Keep your answer to 2000 characters. |
+| Wrap up, from the server (E7-5) | The missing item or the closing answer over 2,000 characters | Keep the missing item to 2000 characters. / Keep your answer to 2000 characters. |
 | Wrap up, from the server (E7-5) | The workspace's plan has used its responses for the month (no plan has a cap today, E2-6) | This survey is not taking answers right now. Tell the person who sent you the link; your answers are kept. |
 | Banner over the first screen after About you, once (E7-3) | Device storage unavailable: the browser refuses localStorage (blocked site data; MDN, Window.localStorage: a private window's storage is cleared when its last private tab closes) | This browser does not keep answers between visits. You can still answer in one go; if you close the page before you submit, your answers are lost. |
 

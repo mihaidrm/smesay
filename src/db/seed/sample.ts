@@ -80,7 +80,7 @@ export const answers: Record<number, Record<number, A>> = {
   6: { 1: agree, 2: agree, 3: { kind: "change", value: "S", reason: "New starters ask for an advance every month. It is a real need." }, 4: { kind: "unclear", reason: "Would the advance be deducted from salary if the trip is cancelled?" }, 5: { kind: "disagree", reason: "Advances are taxable income if not reconciled in time. Payroll would have to police it." } },
 };
 
-export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in.", suggestedArea: "Submitting" };
+export const missingItem = { person: 3, text: "Mileage is calculated from a start and end address instead of typed in." };
 
 // Four actions with their kind (stories/E9-1); cites are (item, person) answer pairs, and the
 // fourth cites the missing item (cited_missing_item_ids, decision 0033).

@@ -10,8 +10,8 @@ confirms, and submits once; a second submit updates.
    higher priority, lower priority, not needed, unclear; in rate-blind mode rated, not
    needed, unclear), an amber box naming the gaps with a button to the chapter, sections for
    what the respondent suggested (still to finish, higher, lower, not needed, a question; agreed
-   items are not listed) with Change per row, the missing-item form when on (text, area
-   dropdown, suggested value), the closing question when set, confidence 1 to 5, the sign-off
+   items are not listed) with Change per row, the missing-item form when on (one text box since
+   2026-10-07, decision 0060; text, area dropdown and suggested value before), the closing question when set, confidence 1 to 5, the sign-off
    as one 48 px label with a checkbox, Submit with "Still needed: ..." or "Everything is in.
    Submit when you are ready."
 2. Submit is disabled at 40 percent until every visible item is complete, the mandatory
@@ -42,8 +42,9 @@ confirms, and submits once; a second submit updates.
 ## Technical notes
 Submission calls `withinPlan(ws, "responses")` (E2-6) before marking the response submitted;
 always true on the free entry.
-missing_item (text, suggested_area, and a suggested value column added in migration 0018
-with the closing answer column on response, `closing_answer`); INTERFACES.md first. The tally
+missing_item (text; suggested_area and the suggested value column of migration 0018 were
+dropped by migration 0036 on 2026-10-07, decision 0060; the closing answer column on response,
+`closing_answer`); INTERFACES.md first. The tally
 and sections reuse the respondent board's bucket rules.
 
 Owed from E5-5 (recorded 2026-10-03): the Wrap up is src/components/respondent/wrap-up.tsx,

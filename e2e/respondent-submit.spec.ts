@@ -76,13 +76,11 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   // The Wrap up's answers save to the server as they are written, within a second.
   const wrapSaved = link.waitForResponse((r) => r.url().endsWith("/wrap") && r.request().method() === "PUT" && r.ok());
   await link.getByLabel("What is missing?").fill("Mileage from a start and end address");
-  await link.getByLabel("Where does it belong?").selectOption("Submitting");
   await wrapSaved;
   // They survive a reload before Submit.
   await link.reload();
   await link.locator("[data-ready]").waitFor();
   await expect(link.getByLabel("What is missing?")).toHaveValue("Mileage from a start and end address");
-  await expect(link.getByLabel("Where does it belong?")).toHaveValue("Submitting");
   // The slider rests at 3 until a move; one step right is 4, and the word under it says so.
   await link.getByTestId("confidence-slider").focus();
   await link.getByTestId("confidence-slider").press("ArrowRight");
