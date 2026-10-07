@@ -1,5 +1,5 @@
-// The registers (stories/E8-4): the "Different priority and Disagree" tab holds the
-// different-priority register (item, respondent, role, proposed, their value, reason) and the
+// The registers (stories/E8-4): the Different priority and Disagree tab (named with both
+// counts, decision 0062) holds the different-priority register (item, respondent, role, proposed, their value, reason) and the
 // disagree register (item, respondent, role, reason); the "Questions and gaps" tab the unclear
 // register (item, respondent, role, question) and the missing-item register (text, suggested
 // area, suggested value, respondent, role). Each register's heading carries its count, which is

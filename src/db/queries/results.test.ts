@@ -10,7 +10,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { ensureTestDatabase } from "../test-db";
 import { proposedCode } from "@/lib/scoring";
-import { figureOf, percentOf } from "@/lib/results-agreement";
+import { changePercentOf, disagreePercentOf, figureOf, percentOf } from "@/lib/results-agreement";
 import { isComplete } from "@/lib/respondent-rules";
 import { instruments, projects } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
@@ -65,10 +65,13 @@ async function reconcileStrip(ws: WorkspaceId, instrumentId: string, f: ResultsF
   const mid = minutes.length === 0 ? null : minutes.length % 2 ? minutes[(minutes.length - 1) / 2] : (minutes[minutes.length / 2 - 1] + minutes[minutes.length / 2]) / 2;
   expect(n.medianMinutes).toBe(mid === null ? null : Math.round(mid));
   const of = (id: string) => rows.filter((r) => r.itemId === id);
-  expect([n.unansweredItems, n.fullyAgreed, n.pushedBackItems]).toEqual([
+  // The items with a different priority and the items marked not needed are two counts of the
+  // same rows, never one (decision 0062).
+  expect([n.unansweredItems, n.fullyAgreed, n.differentPriorityItems, n.notNeededItems]).toEqual([
     itemIds.filter((id) => of(id).length === 0).length,
     itemIds.filter((id) => of(id).length > 0 && of(id).every((r) => r.kind === "agree")).length,
-    itemIds.filter((id) => of(id).some((r) => r.kind === "change" || r.kind === "disagree")).length,
+    itemIds.filter((id) => of(id).some((r) => r.kind === "change")).length,
+    itemIds.filter((id) => of(id).some((r) => r.kind === "disagree")).length,
   ]);
   expect(rows.every((r) => r.submitted || f.includeUnsubmitted)).toBe(true);
 }
@@ -102,17 +105,18 @@ describe("Results numbers", () => {
       agree: expected.agree, change: expected.change, disagree: expected.disagree, unclear: expected.unclear, pick: 0, answered: expected.submittedAnswers,
       withComment: expected.change + expected.disagree + expected.unclear, missing: expected.missing, actions: expected.insights, anyAnswer: true,
     });
-    expect([off.agree, off.answered, kinds.length]).toEqual([19, 30, 30]);
+    expect([off.agree, off.answered, kinds.length]).toEqual([18, 30, 30]);
     const on = (await results.numbers(wsA, instrumentA, { ...NONE, includeUnsubmitted: true }))!;
     const all = fixtureKinds(() => true);
     expect(on).toMatchObject({ invited: 7, submitted: 5, inProgress: 1, shown: 6, total: 6, answered: expected.answers, agree: count(all, "agree"), change: count(all, "change") });
     expect(on.answered - off.answered).toBe(4);
-    // Every item has an answer; items with a different priority or disagree, and items every
-    // answer agrees with, from the fixture.
+    // Every item has an answer; items with a different priority, items marked not needed (two
+    // counts, decision 0062), and items every answer agrees with, from the fixture.
     const items = Object.entries(fixture);
-    const pushed = items.filter(([, byPerson]) => Object.entries(byPerson).some(([n, a]) => submittedPeople.has(Number(n)) && (a.kind === "change" || a.kind === "disagree"))).length;
+    const withKind = (kind: string) => items.filter(([, byPerson]) => Object.entries(byPerson).some(([n, a]) => submittedPeople.has(Number(n)) && a.kind === kind)).length;
     const fully = items.filter(([, byPerson]) => Object.entries(byPerson).filter(([n]) => submittedPeople.has(Number(n))).every(([, a]) => a.kind === "agree")).length;
-    expect([off.unansweredItems, off.pushedBackItems, off.fullyAgreed]).toEqual([0, pushed, fully]);
+    expect([off.unansweredItems, off.differentPriorityItems, off.notNeededItems, off.fullyAgreed]).toEqual([0, withKind("change"), withKind("disagree"), fully]);
+    expect([off.differentPriorityItems, off.notNeededItems, off.fullyAgreed]).toEqual([expected.differentPriorityItems, expected.notNeededItems, expected.fullyAgreed]);
   });
 
   it("narrows to the people a filter keeps, and the rows add up to the strip", async () => {
@@ -322,8 +326,11 @@ describe("the Agreement tab's numbers", () => {
       expect([c.agree, c.change, c.disagree, c.unclear, c.pick]).toEqual([k("agree"), k("change"), k("disagree"), k("unclear"), k("pick")]);
       const answered = c.agree + c.change + c.disagree + c.unclear;
       expect(c.percent).toBe(answered === 0 ? null : Math.round((100 * c.agree) / answered));
+      // The two shares beside it (decision 0062), each its own count over the same answered.
+      expect(c.changePercent).toBe(answered === 0 ? null : Math.round((100 * c.change) / answered));
+      expect(c.disagreePercent).toBe(answered === 0 ? null : Math.round((100 * c.disagree) / answered));
       // The screen's rule (src/lib/results-agreement.ts percentOf) gives the SQL's number.
-      expect(percentOf(c)).toBe(c.percent);
+      expect([percentOf(c), changePercentOf(c), disagreePercentOf(c)]).toEqual([c.percent, c.changePercent, c.disagreePercent]);
       // The values per code, and the people of the cell who could see the item (Not answered
       // is those people less the answers).
       const codes: Record<string, number> = {};
@@ -685,15 +692,15 @@ describe("where groups disagree", () => {
     const out = await gaps.byField(wsF, instrumentF, NONE, "team");
     expect(out.map((g) => [refs.get(g.itemId), g.gap])).toEqual([["CL-02", 100], ["CL-05", 67], ["CL-01", 0], ["CL-03", null], ["CL-04", null], ["CL-06", null]]);
     expect(out.find((g) => refs.get(g.itemId) === "CL-05")!.groups).toEqual([
-      { group: "", agree: 3, answered: 3, compared: true },
-      { group: "A", agree: 1, answered: 3, compared: true },
-      { group: "B", agree: 2, answered: 3, compared: true },
+      { group: "", agree: 3, change: 0, disagree: 0, answered: 3, compared: true },
+      { group: "A", agree: 1, change: 2, disagree: 0, answered: 3, compared: true },
+      { group: "B", agree: 2, change: 0, disagree: 1, answered: 3, compared: true },
     ]);
     const cl01 = out.find((g) => refs.get(g.itemId) === "CL-01")!;
     expect(cl01.groups).toEqual([
-      { group: "A", agree: 3, answered: 3, compared: true },
-      { group: "B", agree: 3, answered: 3, compared: true },
-      { group: "C", agree: 0, answered: 2, compared: false },
+      { group: "A", agree: 3, change: 0, disagree: 0, answered: 3, compared: true },
+      { group: "B", agree: 3, change: 0, disagree: 0, answered: 3, compared: true },
+      { group: "C", agree: 0, change: 0, disagree: 2, answered: 2, compared: false },
     ]);
     // The filter narrows the people first: team A alone leaves nothing to compare.
     expect((await gaps.byField(wsF, instrumentF, { ...NONE, fields: { team: "A" } }, "team")).every((g) => g.gap === null)).toBe(true);
@@ -707,7 +714,7 @@ describe("where groups disagree", () => {
     const split = await agreement.byItem(wsA, instrumentA, NONE, "role");
     for (const g of out) for (const x of g.groups) {
       const c = split.find((s) => s.itemId === g.itemId && s.group === (x.group === "" ? null : x.group))!;
-      expect([x.agree, x.answered]).toEqual([c.agree, c.agree + c.change + c.disagree + c.unclear]);
+      expect([x.agree, x.change, x.disagree, x.answered]).toEqual([c.agree, c.change, c.disagree, c.agree + c.change + c.disagree + c.unclear]);
     }
   });
 

@@ -15,7 +15,7 @@ export const EXPORT_COPY = {
     respondent: "Respondent", reference: "Reference", area: "Area", item: "Item", original: "Original text",
     proposedValue: "Proposed value", proposedLabel: "Proposed label", answer: "Answer", theirValue: "Their value", theirLabel: "Their label",
     reasonOrQuestion: "Reason or question", comment: "Comment", submittedAt: "Submitted at", sinceSubmit: "Since submitting", source: "Source", perspectives: "Perspectives",
-    notAnswered: "Not answered", agreement: "Agreement %", status: "Status", answered: "Answered", visible: "Items seen",
+    notAnswered: "Not answered", agreement: "Agreement %", changeShare: "Different priority %", disagreeShare: "Not needed %", status: "Status", answered: "Answered", visible: "Items seen",
     minutes: "Minutes to submit", reminders: "Reminders", withComment: "Answers with a reason or comment",
     suggested: "Suggested item", suggestedArea: "Suggested area", suggestedValue: "Suggested value", suggestedLabel: "Suggested label",
   },
@@ -24,7 +24,7 @@ export const EXPORT_COPY = {
     line: "Each CSV file and the summary hold what this page shows: the same filter and the same switch; Whole project holds everything, whatever the filter. The answer counts, the item counts, the people and the missing items on this page add up from the files' rows.",
     files: {
       answers: { title: "Answers", line: "Each row is one answer: the respondent and their fields, the item, the answer, their value, the reason or question and the comment." },
-      items: { title: "Items with totals", line: "Each row is one item: the counts of each answer, not answered, and the agreement." },
+      items: { title: "Items with totals", line: "Each row is one item: the counts of each answer, not answered, the agreement, and the different priority and not needed shares." },
       people: { title: "People", line: "Each row is one person: the Responses tab's columns and the minutes to submit." },
       missing: { title: "Missing items", line: "Each row is one suggested missing item, with who suggested it." },
     } satisfies Record<CsvFile, { title: string; line: string }>,

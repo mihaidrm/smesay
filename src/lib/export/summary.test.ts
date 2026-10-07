@@ -10,6 +10,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { instruments, projects } from "@/db/queries";
 import type { Instrument } from "@/db/queries/instruments";
 import { createWorkspaceWithSample } from "@/db/queries/onboarding";
+import { expected } from "@/db/seed/sample";
 import { results } from "@/db/queries/results";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
@@ -30,8 +31,6 @@ let project: { id: string; name: string; isSample: boolean };
 let instrument: Instrument;
 let ctx: FilterContext;
 const NOW = new Date("2026-10-21T08:00:00Z");
-// The seed's counts (src/db/seed/sample.ts expected).
-const expected = { items: 6, submitted: 5, agree: 19, change: 7, disagree: 2, unclear: 2, insights: 4 };
 
 async function signIn(label: string) {
   const email = `${label}-${Date.now()}-${randomUUID().slice(0, 6)}@example.com`;
@@ -63,6 +62,13 @@ describe("summaryView", () => {
     const sum = (k: "agree" | "change" | "disagree" | "unclear") => v.areas.reduce((s, a) => s + a.counts[k], 0);
     expect([sum("agree"), sum("change"), sum("disagree"), sum("unclear")]).toEqual([expected.agree, expected.change, expected.disagree, expected.unclear]);
     expect(v.tables.flatMap((t) => t.rows)).toHaveLength(expected.items);
+    // The two shares beside each item's agreement (decision 0062), each from the row's own
+    // counts over its answered four kinds; each area's line carries the three shares.
+    for (const r of v.tables.flatMap((t) => t.rows)) {
+      const answered = r.counts.agree + r.counts.change + r.counts.disagree + r.counts.unclear;
+      expect([r.changePercent, r.disagreePercent]).toEqual(answered === 0 ? ["", ""] : [`${Math.round((100 * r.counts.change) / answered)}%`, `${Math.round((100 * r.counts.disagree) / answered)}%`]);
+    }
+    expect(v.areas.map((a) => a.percent).every((p) => /^\d+% agree · \d+% different priority · \d+% not needed$/.test(p))).toBe(true);
     expect(v.sample).toBe(true);
     expect(v.generatedAt).toBe("21 Oct 2026, 08:00 UTC");
   });
@@ -92,7 +98,7 @@ const VIEW: SummaryView = {
   tiles: [{ label: "Submitted of invited", value: "5 of 7" }],
   areas: [{ name: "Submitting", counts: { agree: 3, change: 1, disagree: 0, unclear: 1, pick: 0, notAnswered: 0 }, percent: "60%" }],
   confidence: [0, 1, 0, 2, 2],
-  tables: [{ area: "Submitting", rows: [{ ref: "CL-04", text: "Photograph a receipt", proposed: "Should", counts: { agree: 3, change: 1, disagree: 0, unclear: 1, pick: 0, notAnswered: 0 }, percent: "60%" }] }],
+  tables: [{ area: "Submitting", rows: [{ ref: "CL-04", text: "Photograph a receipt", proposed: "Should", counts: { agree: 3, change: 1, disagree: 0, unclear: 1, pick: 0, notAnswered: 0 }, percent: "60%", changePercent: "20%", disagreePercent: "0%" }] }],
   registers: [{ title: "Unclear", columns: ["", "Item", "Respondent", "Question"], rows: [["CL-04", "Photograph a receipt", "Ioana Marin", "What about <b>PDF</b> & scans?"]], total: 1, more: null, empty: "None under this filter." }],
   signOffs: [{ who: "Ioana Marin", when: "9 Oct 2026, 16:30 UTC", confidence: "4" }],
   actions: [{ state: "Open", kind: "Rewrite", title: "Say what a receipt is", why: "Two people asked.", cites: "From: Ioana Marin on CL-04" }],
@@ -119,6 +125,11 @@ describe("summaryHtml", () => {
     expect(html).toContain(`<h2 class="break">${SUMMARY_COPY.signOff}</h2>`);
     expect(html).toContain(`<h2 class="break">${SUMMARY_COPY.items}</h2>`);
     expect(html).toContain("@page{size:A4 portrait;margin:16mm}");
+  });
+  it("puts the two shares beside the agreement in the items table (decision 0062)", () => {
+    const html = summaryHtml(VIEW);
+    expect(html).toContain('<th class="n">Agreement</th><th class="n">Different priority %</th><th class="n">Not needed %</th>');
+    expect(html).toContain('<td class="n">60%</td><td class="n">20%</td><td class="n">0%</td>');
   });
   it("labels every bar with its counts in words, never colour alone", () => {
     const html = summaryHtml(VIEW);

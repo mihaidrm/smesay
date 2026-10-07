@@ -15,7 +15,7 @@ import { auth } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import { requireWorkspace } from "@/lib/workspace";
 import type { FilterContext, ResultsFilter } from "@/lib/results-filter";
-import { EMPTY_COUNTS, notAnsweredOf, percentOf } from "@/lib/results-agreement";
+import { changePercentOf, disagreePercentOf, EMPTY_COUNTS, notAnsweredOf, percentOf } from "@/lib/results-agreement";
 import { csv, safeText } from "./csv";
 import { EXPORT_COPY } from "./copy";
 import { exportTable } from "./files";
@@ -65,24 +65,32 @@ async function reconcile(f: ResultsFilter) {
   const items = (await file(wsA, "items", f)).rows;
   const sum = (col: string) => items.reduce((s, r) => s + Number(r[col]), 0);
   expect([sum("Agree"), sum("Different priority"), sum("Disagree"), sum("Unclear"), sum("Rated")]).toEqual([n.agree, n.change, n.disagree, n.unclear, n.pick]);
-  // Each item's row, found by its reference, carries the Agreement tab's figures for that item.
+  // Each item's row, found by its reference, carries the Agreement tab's figures for that item:
+  // the counts, not answered, the agreement and the two shares beside it (decision 0062), each
+  // share the row's own count over its answered four kinds.
   const setItems = await itemsOf(wsA, instrument.itemSetId);
   const counts = new Map((await agreement.byItem(wsA, instrument.id, f)).map((c) => [c.itemId, c]));
   expect(items.length).toBe(setItems.length);
+  const num = (r: Record<string, string>, k: string) => Number(r[k]);
   for (const it of setItems) {
     const row = items.filter((r) => r.Reference === (it.sourceRef ?? ""));
     expect(row, `one row for ${it.sourceRef}`).toHaveLength(1);
-    const c = counts.get(it.id) ?? { ...EMPTY_COUNTS, itemId: it.id, group: null, percent: null };
+    const c = counts.get(it.id) ?? { ...EMPTY_COUNTS, itemId: it.id, group: null, percent: null, changePercent: null, disagreePercent: null };
     const p = percentOf(c);
-    expect([row[0].Agree, row[0]["Different priority"], row[0].Disagree, row[0].Unclear, row[0].Rated, row[0]["Not answered"], row[0]["Agreement %"]])
-      .toEqual([c.agree, c.change, c.disagree, c.unclear, c.pick, notAnsweredOf(c), p ?? ""].map(String));
+    expect([row[0].Agree, row[0]["Different priority"], row[0].Disagree, row[0].Unclear, row[0].Rated, row[0]["Not answered"], row[0]["Agreement %"], row[0]["Different priority %"], row[0]["Not needed %"]])
+      .toEqual([c.agree, c.change, c.disagree, c.unclear, c.pick, notAnsweredOf(c), p ?? "", changePercentOf(c) ?? "", disagreePercentOf(c) ?? ""].map(String));
+    // Each share recomputed from the row's own cells, rounded half up.
+    const answered = num(row[0], "Agree") + num(row[0], "Different priority") + num(row[0], "Disagree") + num(row[0], "Unclear");
+    const share = (k: string) => (answered === 0 ? "" : String(Math.round((100 * num(row[0], k)) / answered)));
+    expect([row[0]["Agreement %"], row[0]["Different priority %"], row[0]["Not needed %"]]).toEqual([share("Agree"), share("Different priority"), share("Disagree")]);
   }
   // The Answers file added up per item gives each Items row's five counts.
   for (const [k, [fromAnswers, fromItems]] of perItem(await exportTable(wsA, instrument, "answers", f, ctx, true), await exportTable(wsA, instrument, "items", f, ctx, true))) expect(fromAnswers, k).toEqual(fromItems);
-  const num = (r: Record<string, string>, k: string) => Number(r[k]);
   expect(items.filter((r) => ["Agree", "Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.unansweredItems);
   expect(items.filter((r) => num(r, "Agree") > 0 && ["Different priority", "Disagree", "Unclear", "Rated"].every((k) => r[k] === "0")).length).toBe(n.fullyAgreed);
-  expect(items.filter((r) => num(r, "Different priority") + num(r, "Disagree") > 0).length).toBe(n.pushedBackItems);
+  // The two item tiles are two counts of the file's rows, never one (decision 0062).
+  expect(items.filter((r) => num(r, "Different priority") > 0).length).toBe(n.differentPriorityItems);
+  expect(items.filter((r) => num(r, "Disagree") > 0).length).toBe(n.notNeededItems);
   const people = (await file(wsA, "people", f)).rows;
   expect([people.length, people.filter((r) => r.Status === "Submitted").length, people.filter((r) => r.Status === "In progress").length]).toEqual([n.invited, n.submitted, n.inProgress]);
   // The tile is ROUND(MEDIAN(Minutes to submit), 0) over the People file.

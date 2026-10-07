@@ -1,5 +1,6 @@
 // The main path of E8-4 on the sample, the include-unsubmitted switch off: the Different
-// priority and Disagree tab holds 7 and 2 rows with the counts in the headings and the tab,
+// priority and Disagree tab holds 7 and 3 rows with the two counts in the headings and in the
+// tab's name, side by side, never summed (decision 0062),
 // Ioana's reason on CL-04 among them; sorting by respondent puts the sort in the URL; the
 // Questions and gaps tab holds the 2 questions and Dana's missing item.
 import { expect, test } from "@playwright/test";
@@ -28,9 +29,10 @@ test("registers: different priority and disagree, questions and gaps", async ({ 
   const id = href!.match(/projects\/([0-9a-f-]{36})/)![1];
   await page.goto(`/app/projects/${id}/results?unsubmitted=0&tab=pushed`);
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
-  await expect(page.getByTestId("tab-pushed")).toHaveText("Different priority and Disagree (9)");
+  await expect(page.getByTestId("tab-pushed")).toHaveText("Different priority 7 · Disagree 3");
   await expect(page.getByTestId("register-change-count")).toHaveText("7");
-  await expect(page.getByTestId("register-disagree-count")).toHaveText("2");
+  await expect(page.getByTestId("register-disagree-count")).toHaveText("3");
+  await expect(page.getByTestId("register-disagree").getByTestId("register-row").filter({ hasText: "Lukas Berg" })).toContainText("CL-05");
   const ioana = page.getByTestId("register-change").getByTestId("register-row").filter({ hasText: "Ioana Marin" }).filter({ hasText: "CL-04" });
   await expect(ioana).toContainText("I find out I was over the limit three weeks later, after I have paid.");
   await expect(ioana).toContainText("Must");

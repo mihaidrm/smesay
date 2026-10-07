@@ -1,6 +1,6 @@
 // The main path of E8-1: sign in, create a workspace (it gets the sample project), open the
 // sample's Results; the switch on by default counts the in-progress respondent's 4 answers
-// (23 of 34), off it reads 5 of 7 and 63% (19 of 30); the role filter Sales narrows the strip,
+// (22 of 34), off it reads 5 of 7 and 60% (18 of 30); the role filter Sales narrows the strip,
 // the tab counts and says what is showing; Clear filters; a tile swapped in Choose tiles is
 // kept after a reload; a project with nothing built shows the empty state; the sample carries
 // its watermark band.
@@ -41,16 +41,16 @@ test("results: switch, filter, tiles, empty state", async ({ page, request }) =>
   const sw = page.getByRole("switch", { name: "Include unsubmitted answers" });
   await expect(sw).toHaveAttribute("aria-checked", "true");
   await expect(tile("submitted")).toContainText("5 of 7");
-  await expect(tile("agreement")).toContainText("Agreement, 23 of 34 answers");
+  await expect(tile("agreement")).toContainText("Agreement, 22 of 34 answers");
   await sw.click();
-  await expect(tile("agreement")).toContainText("63%");
-  await expect(tile("agreement")).toContainText("Agreement, 19 of 30 answers");
+  await expect(tile("agreement")).toContainText("60%");
+  await expect(tile("agreement")).toContainText("Agreement, 18 of 30 answers");
   await expect(tile("submitted")).toContainText("5 of 7");
   await page.reload();
   await ready(page);
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await sw.click();
-  await expect(tile("agreement")).toContainText("Agreement, 23 of 34 answers");
+  await expect(tile("agreement")).toContainText("Agreement, 22 of 34 answers");
 
   // The role filter Sales: Ioana and Tom submitted, Elena has not opened her invite.
   const pushedTab = page.getByTestId("tab-pushed");

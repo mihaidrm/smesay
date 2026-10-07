@@ -102,9 +102,11 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
     sel as (select * from people p ${where}),
     counted as ${once ? sql`materialized ` : sql``}(select * from sel where src = 'r' and (${f.includeUnsubmitted} or submitted_at is not null)),
     ans as (select a.id, a.response_id, a.item_id, a.kind, a.value, a.reason, a.comment, c.fields as rfields from answer a join counted c on c.id = a.response_id where a.workspace_id = ${ws}),
-    -- Per item, in one pass over the answers (not a scan of them per item).
+    -- Per item, in one pass over the answers (not a scan of them per item). A different
+    -- priority and a disagree are counted apart, never as one (decision 0062).
     per_item as (
-      select its.id, count(ans.id) as n, count(ans.id) filter (where ans.kind <> 'agree') as other, count(ans.id) filter (where ans.kind in ('change', 'disagree')) as pushed
+      select its.id, count(ans.id) as n, count(ans.id) filter (where ans.kind <> 'agree') as other,
+          count(ans.id) filter (where ans.kind = 'change') as changed, count(ans.id) filter (where ans.kind = 'disagree') as not_needed
         from its left join ans on ans.item_id = its.id group by its.id
     )`;
 }
@@ -112,7 +114,7 @@ function head(ws: WorkspaceId, instrumentId: string, f: ResultsFilter, once = fa
 type NumbersRow = {
   invited: number; submitted: number; in_progress: number; shown: number; total: number;
   agree: number; change: number; disagree: number; unclear: number; pick: number; answered: number;
-  with_comment: number; missing: number; unanswered_items: number; fully_agreed: number; pushed_back_items: number;
+  with_comment: number; missing: number; unanswered_items: number; fully_agreed: number; different_priority_items: number; not_needed_items: number;
   median_minutes: number | null; any_answer: boolean; actions: number;
 };
 
@@ -157,7 +159,8 @@ export const results = {
         (select count(*) from missing_item m join counted c on c.id = m.response_id where m.workspace_id = ${ws})::int as missing,
         (select count(*) from per_item where n = 0)::int as unanswered_items,
         (select count(*) from per_item where n > 0 and other = 0)::int as fully_agreed,
-        (select count(*) from per_item where pushed > 0)::int as pushed_back_items,
+        (select count(*) from per_item where changed > 0)::int as different_priority_items,
+        (select count(*) from per_item where not_needed > 0)::int as not_needed_items,
         (select round((percentile_cont(0.5) within group (order by ${WHOLE_MINUTES}))::numeric)::int
           from sel where src = 'r' and first_submitted_at is not null) as median_minutes,
         exists (select 1 from answer a join response r on r.id = a.response_id join inst on r.instrument_id = inst.id where a.workspace_id = ${ws} and r.workspace_id = ${ws}) as any_answer,
@@ -170,7 +173,7 @@ export const results = {
       invited: row.invited, submitted: row.submitted, inProgress: row.in_progress, shown: row.shown, total: row.total,
       agree: row.agree, change: row.change, disagree: row.disagree, unclear: row.unclear, pick: row.pick, answered: row.answered,
       withComment: row.with_comment, missing: row.missing, unansweredItems: row.unanswered_items, fullyAgreed: row.fully_agreed,
-      pushedBackItems: row.pushed_back_items, medianMinutes: row.median_minutes, anyAnswer: row.any_answer, actions: row.actions,
+      differentPriorityItems: row.different_priority_items, notNeededItems: row.not_needed_items, medianMinutes: row.median_minutes, anyAnswer: row.any_answer, actions: row.actions,
     };
   },
   rows: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter): Promise<ResultRow[]> => {
@@ -320,7 +323,11 @@ export type ItemCounts = {
   // The values picked, by code, over every kind that carries a value.
   values: Record<string, number>;
   couldSee: number;
+  // Agree, change and disagree over answered (the four kinds), rounded half up in SQL; null
+  // where nobody answered. The three are shown side by side and never added (decision 0062).
   percent: number | null;
+  changePercent: number | null;
+  disagreePercent: number | null;
 };
 
 export const agreement = {
@@ -328,7 +335,7 @@ export const agreement = {
     if (!isUuid(instrumentId)) return [];
     const group = split === null ? sql`null::text` : sql`(c.fields ->> ${split})`;
     const answerGroup = split === null ? sql`null::text` : sql`(ans.rfields ->> ${split})`;
-    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number> | null; could_see: number; percent: number | null }>(sql`${head(ws, instrumentId, f)},
+    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number> | null; could_see: number; percent: number | null; change_percent: number | null; disagree_percent: number | null }>(sql`${head(ws, instrumentId, f)},
       seen as (
         select its.id as item_id, ${group} as grp, c.id as response_id
           from its join counted c on cardinality(its.perspectives) = 0 or its.perspectives && c.perspectives
@@ -357,11 +364,13 @@ export const agreement = {
           coalesce(b.unclear, 0) as unclear, coalesce(b.pick, 0) as pick,
           v.vals as values,
           k.could_see,
-          round(100.0 * coalesce(b.agree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as percent
+          round(100.0 * coalesce(b.agree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as percent,
+          round(100.0 * coalesce(b.change, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as change_percent,
+          round(100.0 * coalesce(b.disagree, 0) / nullif(coalesce(b.agree, 0) + coalesce(b.change, 0) + coalesce(b.disagree, 0) + coalesce(b.unclear, 0), 0))::int as disagree_percent
         from keys k left join bykind b on b.item_id = k.item_id and b.grp is not distinct from k.grp
           left join vals v on v.item_id = k.item_id and v.grp is not distinct from k.grp
         order by k.item_id, k.grp nulls last`);
-    return rows.map((r) => ({ itemId: r.item_id, group: r.grp, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent }));
+    return rows.map((r) => ({ itemId: r.item_id, group: r.grp, agree: r.agree, change: r.change, disagree: r.disagree, unclear: r.unclear, pick: r.pick, values: r.values ?? {}, couldSee: r.could_see, percent: r.percent, changePercent: r.change_percent, disagreePercent: r.disagree_percent }));
   },
 };
 
@@ -496,24 +505,27 @@ export const detail = {
 
 // Where groups disagree (E8-6): per item, the agreement share of each group of a dropdown
 // field among the answers that count (agree over agree, different priority, disagree and
-// unclear; a value rated with no proposal is no agreement), and the gap, the largest
+// unclear; a value rated with no proposal is no agreement), with the group's different
+// priority and disagree counts beside it (decision 0062: shown apart, never summed), and the gap, the largest
 // difference in share between two groups with at least MIN_GROUP answers (decision 0031:
 // smaller groups are shown, not compared), in percentage points rounded half up; null when
 // fewer than two groups are compared. Items in order of the gap, largest first (the caller
 // orders ties by the list, src/lib/results-gaps.ts). People without a value on the field are
 // the group '' (Not given on screen).
-export type GapGroup = { group: string; agree: number; answered: number; compared: boolean };
+export type GapGroup = { group: string; agree: number; change: number; disagree: number; answered: number; compared: boolean };
 export type GapItem = { itemId: string; gap: number | null; groups: GapGroup[] };
 
 export const gaps = {
   byField: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKey: string): Promise<GapItem[]> => {
     if (!isUuid(instrumentId)) return [];
-    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
+    const rows = await db.execute<{ item_id: string; grp: string | null; agree: number | null; change: number | null; disagree: number | null; answered: number | null; gap: number | null }>(sql`${head(ws, instrumentId, f, true)},
       g as (
         -- The people who left the field empty are a group of their own, '' (Not given on
         -- screen), as in the Agreement tab's split.
         select ans.item_id, coalesce(nullif(ans.rfields ->> ${fieldKey}, ''), '') as grp,
             count(*) filter (where ans.kind = 'agree')::int as agree,
+            count(*) filter (where ans.kind = 'change')::int as change,
+            count(*) filter (where ans.kind = 'disagree')::int as disagree,
             count(*) filter (where ans.kind in ('agree', 'change', 'disagree', 'unclear'))::int as answered
           from ans
           group by 1, 2
@@ -523,7 +535,7 @@ export const gaps = {
         select item_id, case when count(share) >= 2 then round(100 * (max(share) - min(share)))::int end as gap
           from shares group by item_id
       )
-      select its.id as item_id, s.grp, s.agree, s.answered, gap.gap
+      select its.id as item_id, s.grp, s.agree, s.change, s.disagree, s.answered, gap.gap
         from its join item it on it.id = its.id and it.workspace_id = ${ws}
           left join shares s on s.item_id = its.id
           left join gap on gap.item_id = its.id
@@ -532,7 +544,7 @@ export const gaps = {
     for (const r of rows) {
       let last = out.at(-1);
       if (!last || last.itemId !== r.item_id) out.push((last = { itemId: r.item_id, gap: r.gap, groups: [] }));
-      if (r.grp !== null) last.groups.push({ group: r.grp, agree: r.agree ?? 0, answered: r.answered ?? 0, compared: (r.answered ?? 0) >= MIN_GROUP });
+      if (r.grp !== null) last.groups.push({ group: r.grp, agree: r.agree ?? 0, change: r.change ?? 0, disagree: r.disagree ?? 0, answered: r.answered ?? 0, compared: (r.answered ?? 0) >= MIN_GROUP });
     }
     return out;
   },

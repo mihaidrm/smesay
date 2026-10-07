@@ -1,6 +1,6 @@
 // The main path of E8-3 on the sample, the include-unsubmitted switch off: the Table view lists
 // the six items; Columns shows one bar per kind for Submitting; Share shows the list donut with
-// "19 of 30 agree"; the view is kept after a reload; split by Role draws Sales and Finance bars
+// "18 of 30 agree" with the two shares beside it (decision 0062); the view is kept after a reload; split by Role draws Sales and Finance bars
 // on CL-04, Finance's not compared (one answer); sorted by disagree, CL-06 leads Paying.
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
@@ -29,13 +29,17 @@ test("agreement tab: three views, split by role, sort by disagree", async ({ pag
   await page.goto(`/app/projects/${id}/results?unsubmitted=0`);
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
   await expect(page.getByTestId("agreement-row")).toHaveCount(6);
+  // CL-05: 4 agree and Lukas's not needed, so 80% agree, 0% a different priority, 20% not needed.
+  const cl05 = page.getByTestId("agreement-row").filter({ hasText: "CL-05" });
+  await expect(cl05.getByTestId("row-change-share")).toHaveText("0%");
+  await expect(cl05.getByTestId("row-disagree-share")).toHaveText("20%");
 
   const views = page.getByRole("group", { name: "View" });
   await views.getByRole("button", { name: "Columns" }).click();
   const submitting = page.locator('[data-testid=columns-area][data-area="Submitting"]');
   await expect(submitting.locator("[data-series]")).toHaveCount(5);
   await views.getByRole("button", { name: "Share" }).click();
-  await expect(page.getByTestId("share-list").getByTestId("donut-line")).toHaveText("19 of 30 agree");
+  await expect(page.getByTestId("share-list").getByTestId("donut-line")).toHaveText("18 of 30 agree · 23% different priority · 10% not needed");
   await page.reload();
   await page.locator("[data-testid=filter-bar][data-ready]").waitFor();
   await expect(page.getByRole("group", { name: "View" }).getByRole("button", { name: "Share" })).toHaveAttribute("aria-pressed", "true");

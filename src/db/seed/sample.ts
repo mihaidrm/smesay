@@ -76,7 +76,9 @@ export const answers: Record<number, Record<number, A>> = {
   2: { 1: agree, 2: { kind: "unclear", reason: "Does this include splitting between two clients on one trip?" }, 3: { kind: "change", value: "M", reason: "Finance re-keys about thirty split claims a month by hand." }, 4: { kind: "change", value: "M", reason: "My team bills two projects on almost every trip." }, 5: agree, 6: agree },
   3: { 1: agree, 2: { kind: "change", value: "S", reason: "Approving from email means approving without seeing the receipt." }, 3: agree, 4: agree, 5: agree, 6: agree },
   4: { 1: { kind: "change", value: "M", reason: "I find out I was over the limit three weeks later, after I have paid." }, 2: { kind: "change", value: "M", reason: "Sales gets most of the rejections, and always after the fact." }, 3: agree, 4: agree, 5: { kind: "disagree", reason: "Flagging after submission is too late. The limit should block the claim at entry." }, 6: agree },
-  5: { 1: agree, 2: agree, 3: agree, 4: agree, 5: agree },
+  // Lukas marks CL-05 not needed (decision 0062, 2026-10-07): a disagree on an item nobody
+  // gave a different priority, so the two item counts differ, and a disagree outside HR.
+  5: { 1: agree, 2: agree, 3: agree, 4: { kind: "disagree", reason: "Waiting for the salary run means a claim approved on the 21st is paid five weeks later. Pay by bank transfer within five working days instead." }, 5: agree },
   6: { 1: agree, 2: agree, 3: { kind: "change", value: "S", reason: "New starters ask for an advance every month. It is a real need." }, 4: { kind: "unclear", reason: "Would the advance be deducted from salary if the trip is cancelled?" }, 5: { kind: "disagree", reason: "Advances are taxable income if not reconciled in time. Payroll would have to police it." } },
 };
 
@@ -98,5 +100,7 @@ export const aiRuns = [
 ];
 
 // What the dashboard must show for this sample (E8 tests read these). The answer counts are
-// over submitted responses only; the in-progress response adds 4 more rows.
-export const expected = { items: 6, invites: 7, responses: 6, submitted: 5, answers: 34, submittedAnswers: 30, agree: 19, change: 7, disagree: 2, unclear: 2, missing: 1, insights: 4, aiRuns: 2, confidenceAverage: 3.8 };
+// over submitted responses only; the in-progress response adds 4 more rows. Items with a
+// different priority (CL-01, 02, 03, 04, 06) and items marked not needed (CL-04, 05, 06) are
+// two counts (decision 0062); no item has every answer agree.
+export const expected = { items: 6, invites: 7, responses: 6, submitted: 5, answers: 34, submittedAnswers: 30, agree: 18, change: 7, disagree: 3, unclear: 2, missing: 1, insights: 4, aiRuns: 2, confidenceAverage: 3.8, differentPriorityItems: 5, notNeededItems: 3, fullyAgreed: 0 };

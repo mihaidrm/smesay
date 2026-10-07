@@ -49,6 +49,13 @@ row of a filtered file names the filter. The answer kind column uses the names o
 0014 as E8 shows them (Agree, Different priority, Disagree, Unclear); the items file's
 counts are headed the same way.
 
+Amended 2026-10-07 (decision 0062, design note 114): Items with totals gains two columns after
+Agreement %, "Different priority %" (change over the row's answered four kinds) and "Not
+needed %" (disagree over the same), rounded half up, empty with no answer; files.test.ts
+recomputes each share from the row's own cells and checks the two item tiles (items with a
+different priority, items marked not needed) as two counts of the file's rows. The Export
+tab's line names the shares.
+
 Built 2026-10-04 (design note 69, decision 0044):
 - Acceptance 1: the Export tab (results/export-tab.tsx) lists Answers, Items with totals,
   People and Missing items, each a download of GET /api/projects/[id]/export/[file] with the

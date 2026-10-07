@@ -148,7 +148,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <LiveCard />
             <Mascot pose="hi" size={104} className="landing-float absolute right-0 bottom-8 lg:-right-12 lg:-bottom-2" />
             <div className="absolute bottom-2 -left-2 flex items-center gap-3 rounded-[14px] border border-[#343252] bg-[#1E1D33] px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.45)] lg:bottom-1 lg:-left-5" data-testid="agreement-chip">
-              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">63%</span>
+              <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">60%</span>
               <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">30 answers from 5 experts</div></div>
             </div>
           </div>
@@ -200,10 +200,17 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <Reveal delay={120} testId="gain-groups" className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
                 <h3 className="text-xs font-bold text-[#9E3321]">Know who disagrees, and why</h3>
                 <div className="text-[16px] leading-[22px] font-semibold">Sales and everyone else split on the policy flags.</div>
-                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]">
-                  <span>Did not agree with Should have</span>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#FF6B57]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
+                {/* The two kinds apart, never as one "did not agree" (decision 0062): CL-04's
+                    Sales answers are both a different priority; Priya's is the one not needed. */}
+                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-change">
+                  <span>A different priority than Should have</span>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#B7791F]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 3</span></div>
+                </div>
+                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-disagree">
+                  <span>Not needed</span>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 2</span></div>
+                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#718096]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
                 </div>
                 <figure className="flex flex-col gap-1 border-l-2 border-[#FF6B57] pl-3">
                   <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;Sales gets most of the rejections, and always after the fact.&rdquo;</blockquote>
