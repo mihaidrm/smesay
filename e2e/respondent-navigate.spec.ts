@@ -117,12 +117,11 @@ test("chapter row, progress, Continue, Wrap up still to finish, welcome back", a
   await phone.close();
 });
 
-// From the 576 px column the row wraps instead of scrolling (design note 109; Mihai,
-// 2026-10-07: "maybe show the areas on 2 rows at the top if they are going off screen"). A
-// list of eight one-item areas opened in a 1440 by 900 window shows the pills on two rows:
-// the last pill sits lower than the first, every pill is inside the card and the row has
-// nothing to scroll.
-test("chapter row wraps onto two rows on a desktop", async ({ page, request, browser }) => {
+// The chapter row on two rows (design note 115; Mihai, 2026-10-07): eight one-item areas
+// make ten pills. At 1440 by 900 the pills take two rows inside the card and nothing scrolls;
+// at 390 the same two rows run past the card, so the row scrolls sideways under a thin
+// scrollbar, and no pill sits on a third row.
+test("chapter row takes two rows, then scrolls", async ({ page, request, browser }) => {
   test.setTimeout(150_000);
   const stamp = Date.now();
   const email = `e2e-navigate-wrap-${stamp}@marlow.example`;
@@ -168,18 +167,26 @@ test("chapter row wraps onto two rows on a desktop", async ({ page, request, bro
   await expect(link.getByTestId("chapter-title")).toHaveText("Forms and flows");
   await expect(link.getByTestId("row-chapter-8")).toBeVisible();
   const row = link.getByTestId("chapter-row");
+  const rowTops = () => row.locator("li").evaluateAll((items) => [...new Set(items.map((li) => Math.round(li.getBoundingClientRect().top)))].length);
+  const overflow = () => row.evaluate((ol) => { const box = ol.parentElement!; return box.scrollWidth - box.clientWidth; });
+  // 1440: two rows inside the card, nothing to scroll.
+  await expect(row).toHaveAttribute("data-rows", "2");
+  expect(await rowTops()).toBe(2);
   const card = link.getByTestId("chapter-screen").locator("> div").first();
   const cardBox = (await card.boundingBox())!;
   const first = (await link.getByTestId("row-about").boundingBox())!;
   const last = (await link.getByTestId("row-wrap").boundingBox())!;
-  // Two rows: the last pill starts under the first pill's bottom edge.
   expect(last.y).toBeGreaterThanOrEqual(first.y + first.height);
-  // Both pills sit inside the card's width.
   expect(first.x).toBeGreaterThanOrEqual(cardBox.x);
   expect(first.x + first.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
   expect(last.x).toBeGreaterThanOrEqual(cardBox.x);
   expect(last.x + last.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
-  // Nothing to scroll sideways.
-  expect(await row.evaluate((e) => e.scrollWidth - e.clientWidth)).toBe(0);
+  expect(await overflow()).toBe(0);
+  // 390: still two rows, now wider than the card, so the row scrolls with its thin bar.
+  await link.setViewportSize({ width: 390, height: 844 });
+  await expect(row).toHaveAttribute("data-rows", "2");
+  await expect.poll(rowTops).toBe(2);
+  expect(await overflow()).toBeGreaterThan(0);
+  expect(await row.evaluate((ol) => getComputedStyle(ol.parentElement!).scrollbarWidth)).toBe("thin");
   await desktop.close();
 });

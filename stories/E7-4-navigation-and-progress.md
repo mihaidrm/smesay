@@ -101,3 +101,10 @@ them"): from the 576 px column the row wraps onto as many rows as it needs, 6 px
 no longer scrolls; under 576 px it scrolls as before with a thin visible scrollbar under the
 pills (scrollbar-width and scrollbar-color; Safari on iOS shows its own overlay bar instead).
 e2e/respondent-navigate.spec.ts gains a test with eight areas at 1440 by 900.
+
+Changed again 2026-10-07 (design note 115; Mihai: "we should only show the areas on 2 rows and
+add horizontal scroll bar if they are too many"): at every width the row is one row while it
+fits, two rows and never more once it would run off (the list takes the width of the wider
+half of the pills), and scrolls sideways under the thin scrollbar when two rows are wider
+than the card. The test now checks two rows with nothing to scroll at 1440 and two rows with
+a scrollbar at 390.
