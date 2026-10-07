@@ -7,7 +7,7 @@ and imported in one version, and the tab names become the areas when the file ha
 
 ## Acceptance criteria
 1. When an xlsx has more than one sheet with at least one non-empty row, the Preview card shows
-   a Sheets step before the header row: every such sheet with its row count and a checkbox,
+   a Sheets step before the header row: every such sheet with its count of non-empty rows (the header among them, since the header row is found after the pick) and a checkbox,
    the first sheet with rows ticked, and a "Use these sheets" button. A sheet with no rows is
    not listed. A file with one such sheet, a csv and a pasted list skip the step and keep the
    path of E3-2 as it is.

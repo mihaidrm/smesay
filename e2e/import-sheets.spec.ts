@@ -32,27 +32,28 @@ test("tick two sheets, import them as one version with the sheet names as areas"
   await page.getByRole("button", { name: "Create project" }).click();
   await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]{36}\/import$/);
 
-  // The step: the two sheets with rows, the first ticked, the empty one not listed; the
+  // The step: the two sheets with rows (the non-empty rows, the header among them, since the
+  // header row is found after the pick), the first ticked, the empty one not listed; the
   // mapping and the check wait.
   await page.getByLabel("Your file").setInputFiles({ name: "expense-areas.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: FILE });
   await page.getByRole("button", { name: "Upload", exact: true }).click();
   await expect(page.getByTestId("upload-summary")).toHaveText("Tick the sheets that hold the list, then press Use these sheets.");
   const step = page.getByTestId("sheets-step");
   await expect(step.getByRole("checkbox")).toHaveCount(2);
-  await expect(step.getByRole("checkbox", { name: "Submitting (3 rows)" })).toBeChecked();
-  await expect(step.getByRole("checkbox", { name: "Approving (2 rows)" })).not.toBeChecked();
+  await expect(step.getByRole("checkbox", { name: "Submitting (4 rows)" })).toBeChecked();
+  await expect(step.getByRole("checkbox", { name: "Approving (3 rows)" })).not.toBeChecked();
   await expect(page.getByRole("heading", { name: "Column mapping" })).toHaveCount(0);
   await expect(page.getByTestId("check-card")).toHaveCount(0);
 
   // Both sheets: the summary, a line and ten rows per sheet, the mapping over both.
-  await step.getByRole("checkbox", { name: "Approving (2 rows)" }).check();
+  await step.getByRole("checkbox", { name: "Approving (3 rows)" }).check();
   await page.getByRole("button", { name: "Use these sheets" }).click();
   await expect(page.getByTestId("upload-summary")).toHaveText("We read 5 rows from expense-areas.xlsx across 2 sheets.");
   await expect(page.getByTestId("sheet-line")).toHaveText(["Sheet Submitting: 3 rows, header on row 1.", "Sheet Approving: 2 rows, header on row 1."]);
   await expect(page.getByTestId("preview-row")).toHaveCount(5);
   await expect(page.getByLabel("Requirement", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("value");
-  await expect(page.getByLabel("Use the sheet names as areas")).toBeChecked();
+  await expect(page.getByRole("switch", { name: "Use the sheet names as areas" })).toBeChecked();
   await expect(page.getByTestId("check-sheet")).toHaveCount(2);
   await expect(page.getByTestId("check-card").getByText("0 exact duplicates were imported once.", { exact: true })).toHaveCount(2);
 
