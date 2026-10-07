@@ -119,7 +119,9 @@ Your answers on [PROJECT NAME] for [WORKSPACE NAME] were submitted on
 
 You answered [ITEM COUNT] items. You gave [PUSHED BACK] a different priority, marked
 [DISAGREED] not needed and [UNCLEAR] unclear, and suggested [MISSING] missing items. Your
-confidence was [CONFIDENCE] of 5. (A list that does not show the proposed priority,
+confidence: [WORD] ([CONFIDENCE] of 5). (The word is the one the slider showed: Guessing, Not
+very sure, Fairly sure, Confident, Certain; design note 107. A list that does not show the
+proposed priority,
 rate-blind: "You rated [RATED]" in place of "You gave [PUSHED BACK] a different priority",
 since there was nothing to differ from.)
 

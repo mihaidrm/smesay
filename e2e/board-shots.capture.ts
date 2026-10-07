@@ -110,7 +110,8 @@ test("respondent screens for the board", async ({ page, request, browser }) => {
   await p.getByTestId("item-card").getByRole("radio", { name: /^Should/ }).click();
   await expect(p.getByTestId("item-card-note")).toHaveText("Saved");
   await p.getByTestId("chapter-continue").click();
-  await p.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  await p.getByTestId("confidence-slider").focus();
+  await p.getByTestId("confidence-slider").press("ArrowRight");
   await p.getByTestId("wrap-up-signoff").click();
   await p.waitForTimeout(1200);
   await phone.shot("04-wrap-up-ready");
@@ -124,7 +125,9 @@ test("respondent screens for the board", async ({ page, request, browser }) => {
     await v.shot("06-welcome-back");
   }
   await p.getByTestId("done-change").click();
-  await p.getByTestId("wrap-up-confidence").getByRole("radio", { name: "3" }).click();
+  // The slider holds the submitted 4; one step left is 3.
+  await p.getByTestId("confidence-slider").focus();
+  await p.getByTestId("confidence-slider").press("ArrowLeft");
   await expect(p.getByTestId("changed-since")).toBeVisible();
   await p.waitForTimeout(400);
   await phone.shot("07-changed-since");

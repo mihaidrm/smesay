@@ -197,6 +197,12 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
   14 px, active ink with a 2 px violet underline. Segmented control: tint track, the active
   option a surface pill with the card shadow.
+- Slider (the confidence on the Wrap up, design note 107): a native range input, 48 high as
+  its tap target, the thumb and the filled track in the PM's accent through accent-color
+  (lifted on dark as the pills were), the word of the value centred under it at 16 px 600,
+  the end captions in mono 10 px muted. Until a value is picked the thumb is at 40 percent
+  and the word line carries the prompt in muted ink. Focus as buttons. No transition of its
+  own.
 - Banner (the ambiguity flag): a card on the soft violet gradient with a sun dot, ink text, a
   secondary Dismiss pill. Toast: dark surface, light text, violet 300 action, the toast shadow.
   Empty state: a dashed card with a title at 18 px 700, one line that says what to do and the
