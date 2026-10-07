@@ -16,7 +16,7 @@ import { classify, DISAGREE_CODE, SCALES, UNCLEAR } from "@/lib/scoring";
 
 export const FIELD_VALUE_MAX = 200;
 export const REASON_MAX = 2000;
-export const MISSING_MAX = 500;
+export const MISSING_MAX = 2000;
 
 export const RESPONDENT_COPY = {
   otherItems: "Other items",
@@ -191,26 +191,17 @@ export function chaptersFor(areas: AreaMeta[], items: RespondentItem[], picks: s
   return chapters.filter((c) => c.items.length > 0);
 }
 
-// The areas a missing item can name (E7-5): the chapters that are areas of the list, not
-// "Other items" and not the unnamed chapter of a list with no areas (none then: the Wrap up
-// asks no area).
-export const areasOf = (chapters: Chapter[]): string[] => chapters.flatMap((c) => (c.name && !c.loose ? [c.name] : []));
-
 // The Wrap up's answers as the respondent leaves them (E7-5): the form's values, saved to
 // the server as the respondent writes (and kept on the device under smesay-wrap:[token] until
 // the server holds them: src/lib/wrap-queue.ts). The sign-off is never kept or saved: it is
 // ticked for each Submit.
-export type WrapValue = { confidence: number | null; signed: boolean; closingAnswer: string; missing: { text: string; area: string; value: string } };
-export const EMPTY_WRAP: WrapValue = { confidence: null, signed: false, closingAnswer: "", missing: { text: "", area: "", value: "" } };
+export type WrapValue = { confidence: number | null; signed: boolean; closingAnswer: string; missing: { text: string } };
+export const EMPTY_WRAP: WrapValue = { confidence: null, signed: false, closingAnswer: "", missing: { text: "" } };
 export const wrapKey = (token: string) => `smesay-wrap:${token}`;
 // Whether two Wrap ups say the same as the server stores them (the sign-off aside): the texts
-// trimmed, and a missing item with no text is none, whatever its area and value say
-// (parseWrapInput).
-export const sameWrap = (a: WrapValue, b: WrapValue): boolean => {
-  const ma = a.missing.text.trim();
-  const mb = b.missing.text.trim();
-  return a.confidence === b.confidence && a.closingAnswer.trim() === b.closingAnswer.trim() && ma === mb && (ma === "" || (a.missing.area === b.missing.area && a.missing.value === b.missing.value));
-};
+// trimmed, and a missing item with no text is none (parseWrapInput).
+export const sameWrap = (a: WrapValue, b: WrapValue): boolean =>
+  a.confidence === b.confidence && a.closingAnswer.trim() === b.closingAnswer.trim() && a.missing.text.trim() === b.missing.text.trim();
 
 // An answer as stored (INTERFACES.md, AnswerKind) and when it is complete.
 export type AnswerState = { kind: AnswerKind; value: string | null; reason: string | null; comment: string | null };
@@ -395,14 +386,14 @@ export function tallyOf(method: ScoringMethod, items: { id: string; proposed: st
 // The Wrap up's answers as the page saves them while the respondent writes (E7-5, saved within
 // a second like the cards) and as Submit posts them: the response the page answers for,
 // confidence 1 to 5 or none yet, the closing answer (kept only when the PM asked a question),
-// and the missing item (text up to 500 characters, an area of the list the respondent sees,
-// a value of the scale).
+// and the missing item (free text up to 2,000 characters, one box since 2026-10-07, decision
+// 0060).
 // Every write carries the Wrap up's version it was made on, the page that sends it, that
 // page's number for it and the saves of other pages it was made on top of, as an answer's
 // (base, page, seq, after; src/lib/answer-queue.ts), and the server applies the same rule
 // (wrapTakes).
-export type WrapCtx = { method: ScoringMethod; areas: string[]; hasQuestion: boolean; missingForm: boolean; signOff?: string };
-export type WrapInput = { response: string; confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null; base: number; page: string; seq: number; after: SaveRef[] };
+export type WrapCtx = { method: ScoringMethod; hasQuestion: boolean; missingForm: boolean; signOff?: string };
+export type WrapInput = { response: string; confidence: number | null; closingAnswer: string | null; missing: { text: string } | null; base: number; page: string; seq: number; after: SaveRef[] };
 export function parseWrapInput(raw: unknown, ctx: WrapCtx): { error: string } | { input: WrapInput } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { error: RESPONDENT_ERRORS.badShape };
   const r = raw as Record<string, unknown>;
@@ -418,11 +409,8 @@ export function parseWrapInput(raw: unknown, ctx: WrapCtx): { error: string } | 
     if (typeof r.missing !== "object" || Array.isArray(r.missing)) return { error: RESPONDENT_ERRORS.badMissing };
     const m = r.missing as Record<string, unknown>;
     const text = typeof m.text === "string" ? m.text.trim() : "";
-    const area = typeof m.area === "string" && m.area !== "" ? m.area : null;
-    const value = typeof m.value === "string" && m.value !== "" ? m.value : null;
     if (text.length > MISSING_MAX) return { error: RESPONDENT_ERRORS.missingTooLong };
-    if ((area !== null && !ctx.areas.includes(area)) || (value !== null && !SCALES[ctx.method].some((v) => v.code === value))) return { error: RESPONDENT_ERRORS.badMissing };
-    if (text) missing = { text, area, value };
+    if (text) missing = { text };
   }
   return { input: { response: r.response, confidence: confidence as number | null, closingAnswer: ctx.hasQuestion && answer ? answer : null, missing, base: r.base, page: r.page, seq: r.seq, after } };
 }

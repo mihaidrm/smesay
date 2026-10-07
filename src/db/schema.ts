@@ -357,10 +357,9 @@ export const missingItem = pgTable("missing_item", {
   id: id(),
   workspaceId: wsRef(),
   responseId: uuid("response_id").notNull(),
+  // Free text since 2026-10-07 (decision 0060): one box, with room for a list; the area and
+  // value columns of E7-5 are gone (migration 0036).
   text: text("text").notNull(),
-  suggestedArea: text("suggested_area"),
-  // E7-5: a code of the instrument's scale, or null.
-  suggestedValue: text("suggested_value"),
   createdAt: ts("created_at").notNull().defaultNow(),
 }, (t) => [
   foreignKey({ name: "missing_item_response_fk", columns: [t.responseId, t.workspaceId], foreignColumns: [response.id, response.workspaceId] }).onDelete("cascade"),

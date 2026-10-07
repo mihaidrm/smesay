@@ -75,7 +75,7 @@ async function answeredProject() {
   const boFlags = await answer(bo.id, rows[1].id, "disagree", null, "Finance checks this already.");
   await answer(ana.id, rows[0].id, "agree", "M", null);
   await answer(cy.id, rows[2].id, "unclear", null, "UNSUBMITTED QUESTION");
-  const missing = await missingItems.create(a.ws, { responseId: bo.id, text: "Mileage from addresses.", suggestedArea: "Submitting" });
+  const missing = await missingItems.create(a.ws, { responseId: bo.id, text: "Mileage from addresses." });
   return { project, instrument, rows, anaFlags, boFlags, missing };
 }
 
@@ -117,7 +117,7 @@ describe("writeActions", () => {
     expect(data).toContain("[A1] R1 on I2: different priority, Must: Sales loses deals over late claims.");
     expect(data).toContain("[A2] R2 on I2: not needed: Finance checks this already.");
     expect(data).toContain("[R1] Team: Sales");
-    expect(data).toContain("[M1] R2: Mileage from addresses. (area: Submitting)");
+    expect(data).toContain("[M1] R2: Mileage from addresses.");
     expect(data).not.toMatch(/Ana|Bo Lind|Cy Draft|UNSUBMITTED/);
     expect(result.written.map((w) => w.kind)).toEqual(["conflict", "rewrite", "followUp", "coverage"]);
     expect(result.written[0].citedAnswerIds.sort()).toEqual([p.anaFlags.id, p.boFlags.id].sort());
