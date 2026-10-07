@@ -1,10 +1,12 @@
 // The project stepper (stories/E3-1, acceptance 2; the PM app board, design v2): Import,
 // Shape, Build, Share, Results as pills on a surface track (4 px padding, radius 999, hairline
-// border). The current step is a violet pill with a white circle and a violet number; a done
-// step has a mint circle with a dark tick; a coming step is muted with a strong hairline
-// circle. The active pill's text is the on-violet token (white on light, the dark ground on
-// dark), so it reads at 5.25 and 6.17. A step with no page yet is not a link; one with a page is, current or not. Design
-// notes 19 and 34.
+// border). The current step (the open page, design note 106) is a violet pill with a white
+// circle and a violet number, ringed in violet (2 px) with a 2 px surface offset, the same
+// ring every pill shows on focus, so it reads beyond its colour; a done step (before
+// `reached`, or in `done`) has a mint circle with a dark tick; a coming step is muted with a
+// strong hairline circle. The active pill's text is the on-violet token (white on light, the
+// dark ground on dark), so it reads at 5.25 and 6.17. A step with no page yet is not a link;
+// one with a page is, current or not. Design notes 19, 34 and 106.
 import Link from "next/link";
 import { cn } from "cn";
 
@@ -19,17 +21,17 @@ export type StepKey = (typeof STEPS)[number]["key"];
 
 // onClick: the unsaved changes guard of the project frame (stories/E5-9), run before the
 // link navigates.
-export function Stepper({ current, done, href, onClick }: { current: StepKey; done: StepKey[]; href: (step: StepKey) => string | null; onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void }) {
-  const currentIndex = STEPS.findIndex((s) => s.key === current);
+export function Stepper({ current, reached, done, href, onClick }: { current: StepKey; reached: StepKey; done: StepKey[]; href: (step: StepKey) => string | null; onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void }) {
+  const reachedIndex = STEPS.findIndex((s) => s.key === reached);
   return (
     <nav aria-label="Steps" className="flex flex-wrap gap-1 rounded-full border border-hairline bg-surface p-1">
       {STEPS.map((step, i) => {
         const active = step.key === current;
-        const finished = done.includes(step.key) || i < currentIndex;
+        const finished = done.includes(step.key) || i < reachedIndex;
         const target = href(step.key);
         const className = cn(
           "inline-flex h-[34px] items-center gap-2 rounded-full py-0 pl-2 pr-3.5 text-[13px] font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-          active ? "bg-violet text-on-violet" : finished ? "text-ink" : "text-ink-muted",
+          active ? "bg-violet text-on-violet ring-2 ring-violet ring-offset-2 ring-offset-surface" : finished ? "text-ink" : "text-ink-muted",
           target && !active && "hover:bg-tint",
         );
         const number = (
