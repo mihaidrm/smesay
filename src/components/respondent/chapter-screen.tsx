@@ -106,6 +106,8 @@ export function ChapterScreen(props: ChapterScreenProps) {
             <div className="flex flex-col gap-1">
               <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] wrap-break-word" data-screen-heading data-testid="chapter-title">{(layout === "page" ? chapters[0] : chapter)?.name ?? title}</h1>
             </div>
+            {layout === "item" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(1, chapter.items.length, chapter.name ?? title)}</p>}
+            {layout === "page" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>}
             <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{(layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items).slice(0, 1).map(card)}</div>
             <p className="text-sm text-ink-muted" data-testid="compact-note">{PREVIEW_COPY.compactNote(chapters.reduce((n, c) => n + c.items.length, 0))}</p>
           </>

@@ -236,7 +236,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(chapter).toHaveAttribute("data-layout", "page");
   await expect(app.getByTestId("chapter-row")).toHaveCount(0);
   await expect(chapter.getByTestId("layout-note")).toHaveText("All 2 on one page");
-  await expect(chapter.getByTestId("item-card")).toHaveCount(2);
+  // The compact view keeps one card (decision 0061); the note counts both.
+  await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  await expect(chapter.getByTestId("compact-note")).toHaveText("1 of 2 cards. The full view shows them all.");
   await noSideScroll(); await pillsTall();
   await page.getByText("Chapters", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
