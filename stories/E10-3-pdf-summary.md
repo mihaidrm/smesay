@@ -22,6 +22,12 @@ responses.
    (docs/copy/errors.md).
 5. Sample exports carry the watermark band on every page.
 
+Amended 2026-10-07 (decision 0062, design note 114): each area's figure on page 1 reads "[P]%
+agree · [P]% different priority · [P]% not needed" and the per-item table gains the columns
+Different priority % and Not needed % after Agreement, empty where Agreement reads rated or No
+answers. Acceptance 1's "pushed back and disagree registers" are the Different priority and
+Disagree registers.
+
 ## Out of scope
 - A branded cover with the PM's logo: the header carries the workspace name and logo at 24 px
   only.

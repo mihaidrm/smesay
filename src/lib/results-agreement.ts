@@ -2,19 +2,25 @@
 // order, as the respondent's chapters: src/lib/respondent-rules.ts chaptersFor), each with the
 // counts of src/db/queries/results.ts agreement.byItem, the area totals, the sort within an
 // area, and the series every view draws: the four kinds and Not answered, or, where no
-// proposal was shown (decision 0014: a value rated, "pick"), the values picked. No database.
+// proposal was shown (decision 0014: a value rated, "pick"), the values picked. Beside the
+// agreement share, the different priority share and the not needed share (decision 0062: a
+// different priority and a disagree are two numbers, never added into one). No database.
 import type { ScaleLabels, ScoringMethod } from "@/db/types";
+import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { KIND_LABELS, type ResultsSort } from "@/lib/results-filter";
 import { labelFor, SCALES } from "@/lib/scoring";
 import type { Series } from "@/components/app/charts";
 
 export type AgreementItem = { id: string; reference: string | null; title: string; area: string | null; proposed: string | null; position: number };
 export type Counts = { agree: number; change: number; disagree: number; unclear: number; pick: number; values: Record<string, number>; couldSee: number };
-// percent is null where no proposal was shown (the item's proposed is null): its answers are
-// values rated, not agreement. A group's empty is the people who left the split field empty.
-export type Row = AgreementItem & { counts: Counts; percent: number | null; notAnswered: number; groups: GroupRow[] };
-export type GroupRow = { group: string; empty: boolean; counts: Counts; percent: number | null; notAnswered: number; compared: boolean };
-export type AreaBlock = { name: string | null; rows: Row[]; totals: Counts; percent: number | null; notAnswered: number; rated: boolean };
+// percent (agree over answered), changePercent (change over answered) and disagreePercent
+// (disagree over answered) are null where no proposal was shown (the item's proposed is null):
+// its answers are values rated, not agreement. A group's empty is the people who left the split
+// field empty.
+export type Shares = { percent: number | null; changePercent: number | null; disagreePercent: number | null };
+export type Row = AgreementItem & Shares & { counts: Counts; notAnswered: number; groups: GroupRow[] };
+export type GroupRow = Shares & { group: string; empty: boolean; counts: Counts; notAnswered: number; compared: boolean };
+export type AreaBlock = Shares & { name: string | null; rows: Row[]; totals: Counts; notAnswered: number; rated: boolean };
 
 // E8-6 and decision 0031: a group with fewer answers than this on an item is drawn but not
 // compared, so one person cannot be singled out.
@@ -22,21 +28,37 @@ export const MIN_GROUP = 3;
 
 export const EMPTY_COUNTS: Counts = { agree: 0, change: 0, disagree: 0, unclear: 0, pick: 0, values: {}, couldSee: 0 };
 export const answeredOf = (c: Counts) => c.agree + c.change + c.disagree + c.unclear;
-// Agree over answered, rounded half up (as the SQL's round and E8-1's tile).
-export const percentOf = (c: Counts): number | null => (answeredOf(c) === 0 ? null : Math.round((100 * c.agree) / answeredOf(c)));
+// Agree over answered, rounded half up (as the SQL's round and E8-1's tile); the same rule for
+// change and disagree over answered (the SQL's change_percent and disagree_percent).
+const shareOf = (c: Counts, n: number): number | null => (answeredOf(c) === 0 ? null : Math.round((100 * n) / answeredOf(c)));
+export const percentOf = (c: Counts): number | null => shareOf(c, c.agree);
+export const changePercentOf = (c: Counts): number | null => shareOf(c, c.change);
+export const disagreePercentOf = (c: Counts): number | null => shareOf(c, c.disagree);
+const NO_SHARES: Shares = { percent: null, changePercent: null, disagreePercent: null };
+// The three shares of a count, or none where no proposal was shown (`rated`).
+export const sharesOf = (c: Counts, rated = false): Shares => (rated ? NO_SHARES : { percent: percentOf(c), changePercent: changePercentOf(c), disagreePercent: disagreePercentOf(c) });
 export const notAnsweredOf = (c: Counts) => Math.max(0, c.couldSee - answeredOf(c) - c.pick);
 
-// What an item, an area or a group reads as its figure: the agreement percentage where a
-// proposal was shown and answered; where none was (`rated`: a rate-blind list, or an item
-// with no proposal), the values rated, even 0 beside questions (decision 0014: a value rated
-// with no proposal is not an agreement, so it is never "No answers" or a percentage); a mix
-// whose answers are all values rated reads the same; nothing when nobody answered.
-export type Figure = { percent: number } | { rated: number } | null;
+// What an item, an area or a group reads as its figure: the agreement percentage with the
+// different priority and not needed shares beside it where a proposal was shown and answered;
+// where none was (`rated`: a rate-blind list, or an item with no proposal), the values rated,
+// even 0 beside questions (decision 0014: a value rated with no proposal is not an agreement,
+// so it is never "No answers" or a percentage); a mix whose answers are all values rated reads
+// the same; nothing when nobody answered.
+export type Figure = { percent: number; changePercent: number; disagreePercent: number } | { rated: number } | null;
 export function figureOf(c: Counts, rated = false): Figure {
   if (answeredOf(c) + c.pick === 0) return null;
   if (rated || (answeredOf(c) === 0 && c.pick > 0)) return { rated: c.pick };
   const p = percentOf(c);
-  return p === null ? null : { percent: p };
+  return p === null ? null : { percent: p, changePercent: changePercentOf(c)!, disagreePercent: disagreePercentOf(c)! };
+}
+
+// The figure as one line (the Columns heading, the Share donut's line, the PDF's area line):
+// "60% agree · 23% different priority · 10% not needed", "[N] rated", or `none`.
+export function figureLine(c: Counts, rated = false, none: string = AGREEMENT_COPY.noPercent): string {
+  const f = figureOf(c, rated);
+  if (f === null) return none;
+  return "rated" in f ? AGREEMENT_COPY.ratedLine(f.rated) : AGREEMENT_COPY.shareLine(f.percent, f.changePercent, f.disagreePercent);
 }
 
 export function addCounts(a: Counts, b: Counts): Counts {
@@ -73,7 +95,7 @@ type ByItem = { itemId: string; group: string | null } & Counts;
 const byGroup = (a: { group: string; empty: boolean }, b: { group: string; empty: boolean }) => Number(a.empty) - Number(b.empty) || a.group.localeCompare(b.group);
 function groupsOf(mine: ByItem[], noGroup: string, rated: boolean): GroupRow[] {
   return mine
-    .map((c) => ({ group: c.group ?? noGroup, empty: c.group === null, counts: c, percent: rated ? null : percentOf(c), notAnswered: notAnsweredOf(c), compared: answeredOf(c) + c.pick >= MIN_GROUP }))
+    .map((c) => ({ group: c.group ?? noGroup, empty: c.group === null, counts: c, ...sharesOf(c, rated), notAnswered: notAnsweredOf(c), compared: answeredOf(c) + c.pick >= MIN_GROUP }))
     .sort(byGroup);
 }
 
@@ -87,7 +109,7 @@ export function buildAgreement(items: AgreementItem[], areaNames: string[], coun
     const total = mine.reduce<Counts>((a, c) => addCounts(a, c), EMPTY_COUNTS);
     const rated = it.proposed === null;
     const groups = split ? groupsOf(mine, noGroup, rated) : [];
-    return { ...it, counts: total, percent: rated ? null : percentOf(total), notAnswered: notAnsweredOf(total), groups };
+    return { ...it, counts: total, ...sharesOf(total, rated), notAnswered: notAnsweredOf(total), groups };
   });
   const blocks: { name: string | null; items: AgreementItem[] }[] = names.map((name) => ({ name, items: items.filter((it) => it.area === name) }));
   const loose = items.filter((it) => !it.area || !names.includes(it.area));
@@ -97,7 +119,7 @@ export function buildAgreement(items: AgreementItem[], areaNames: string[], coun
     const totals = rows.reduce<Counts>((a, r) => addCounts(a, r.counts), EMPTY_COUNTS);
     // An area with no proposal on any item reads values rated, as its items do.
     const rated = b.items.every((it) => it.proposed === null);
-    return { name: b.name, rows, totals, percent: rated ? null : percentOf(totals), notAnswered: notAnsweredOf(totals), rated };
+    return { name: b.name, rows, totals, ...sharesOf(totals, rated), notAnswered: notAnsweredOf(totals), rated };
   });
 }
 

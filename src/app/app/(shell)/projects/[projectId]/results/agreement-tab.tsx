@@ -5,7 +5,8 @@
 // within each area. The counts come from src/db/queries/results.ts agreement.byItem with the
 // page's filter (SQL), the model from src/lib/results-agreement.ts. Where no proposal was
 // shown (rate-blind) every view shows the values picked, and a figure reads "[N] rated", never
-// a percentage. A group with fewer than 3 answers on an item, or summed over items with fewer
+// a percentage. Beside every agreement figure sit the different priority share and the not
+// needed share, two numbers never added into one (decision 0062, design note 114). A group with fewer than 3 answers on an item, or summed over items with fewer
 // than 3 people, is drawn but not compared (decision 0031), with the banner once. An item's
 // title opens its detail (E8-5). Under the views, where groups disagree (E8-6,
 // conflict-view.tsx). Copy: docs/copy/app.md, Results.
@@ -18,7 +19,7 @@ import type { Instrument } from "@/db/queries/instruments";
 import { agreement } from "@/db/queries/results";
 import type { WorkspaceId } from "@/db/types";
 import { textFor } from "@/lib/item-text";
-import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
+import { addCounts, agreementSortOf, allRated, answeredOf, buildAgreement, EMPTY_COUNTS, figureLine, figureOf, groupTotals, kindSeries, valueSeries, type AreaBlock, type Counts, type GroupTotal, type Row } from "@/lib/results-agreement";
 import { AGREEMENT_COPY } from "@/lib/results-copy";
 import { filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { labelFor, proposedCode } from "@/lib/scoring";
@@ -72,6 +73,13 @@ function figureText(c: Counts, rated: boolean): string {
   return "percent" in f ? `${f.percent}%` : AGREEMENT_COPY.ratedLine(f.rated);
 }
 
+// The share in its own column beside the agreement (decision 0062): empty where the figure is
+// "[N] rated" or "No answers", since the figure column already says so.
+function shareText(c: Counts, rated: boolean, which: "changePercent" | "disagreePercent"): string {
+  const f = figureOf(c, rated);
+  return f !== null && "percent" in f ? `${f[which]}%` : "";
+}
+
 // The counts in words under a bar (acceptance 1): every series with a count, in the legend's
 // order, so no count hides in a narrow segment and colour is never the only cue.
 function countsText(series: Series[]): string {
@@ -93,6 +101,8 @@ function TableArea({ area, series, coverage, blind, proposedLabel, itemHref }: {
             {!blind && <th scope="col" className="px-2 pt-2 font-semibold">{AGREEMENT_COPY.proposed}</th>}
             <th scope="col" className="px-2 pt-2 font-semibold">{AGREEMENT_COPY.answers}</th>
             <th scope="col" className="px-4 pt-2 text-right font-semibold">{blind ? AGREEMENT_COPY.rated : AGREEMENT_COPY.agreement}</th>
+            {!blind && <th scope="col" className="px-3 pt-2 text-right font-semibold">{AGREEMENT_COPY.changeShare}</th>}
+            {!blind && <th scope="col" className="px-3 pt-2 text-right font-semibold">{AGREEMENT_COPY.disagreeShare}</th>}
             {coverage && <th scope="col" className="px-4 pt-2 text-right font-semibold">{AGREEMENT_COPY.coverage}</th>}
           </tr>
         </thead>
@@ -104,6 +114,8 @@ function TableArea({ area, series, coverage, blind, proposedLabel, itemHref }: {
               <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="area-counts">{countsText(series(area.totals))}</p>
             </td>
             <td className="w-[88px] px-4 text-right font-mono font-bold">{figureText(area.totals, area.rated)}</td>
+            {!blind && <td className="w-[72px] px-3 text-right font-mono text-xs text-ink-muted" data-testid="area-change-share">{shareText(area.totals, area.rated, "changePercent")}</td>}
+            {!blind && <td className="w-[72px] px-3 text-right font-mono text-xs text-ink-muted" data-testid="area-disagree-share">{shareText(area.totals, area.rated, "disagreePercent")}</td>}
             {coverage && <td />}
           </tr>
           {area.rows.map((r) => <ItemRows key={r.id} row={r} series={series} coverage={coverage} blind={blind} proposedLabel={proposedLabel} itemHref={itemHref} />)}
@@ -131,6 +143,8 @@ function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { r
           <p className="mt-1 font-mono text-[11px] text-ink-muted" data-testid="row-counts">{countsText(series(row.counts))}</p>
         </td>
         <td className="w-[88px] px-4 text-right font-mono font-bold"><FadeOnChange value={figureText(row.counts, rated)} className="inline-block rounded-md">{figureText(row.counts, rated)}</FadeOnChange></td>
+        {!blind && <td className="w-[72px] px-3 text-right font-mono text-xs text-ink-muted" data-testid="row-change-share">{shareText(row.counts, rated, "changePercent")}</td>}
+        {!blind && <td className="w-[72px] px-3 text-right font-mono text-xs text-ink-muted" data-testid="row-disagree-share">{shareText(row.counts, rated, "disagreePercent")}</td>}
         {coverage && <td className="px-4 text-right font-mono text-xs whitespace-nowrap text-ink-muted" data-testid="row-coverage">{`${answeredOf(row.counts) + row.counts.pick} of ${row.counts.couldSee}`}</td>}
       </tr>
       {row.groups.map((g) => (
@@ -141,6 +155,8 @@ function ItemRows({ row, series, coverage, blind, proposedLabel, itemHref }: { r
             <p className="mt-0.5 font-mono text-[11px] text-ink-muted" data-testid="group-counts">{countsText(series(g.counts))}</p>
           </td>
           <td className="px-4 text-right font-mono text-xs">{g.compared ? figureText(g.counts, rated) : ""}</td>
+          {!blind && <td className="px-3 text-right font-mono text-xs text-ink-muted">{g.compared ? shareText(g.counts, rated, "changePercent") : ""}</td>}
+          {!blind && <td className="px-3 text-right font-mono text-xs text-ink-muted">{g.compared ? shareText(g.counts, rated, "disagreePercent") : ""}</td>}
           {coverage && <td />}
         </tr>
       ))}
@@ -157,7 +173,7 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
         const max = Math.max(1, ...groups.flatMap((g) => series(g.counts).map((s) => s.value)));
         return (
           <section key={a.name ?? ""} className="card flex flex-col gap-3 p-4" aria-label={areaName(a)} data-testid="columns-area" data-area={areaName(a)}>
-            <h3 className="text-[15px] font-bold">{areaName(a)} <span className="font-mono text-sm text-ink-muted">{figureText(a.totals, a.rated)}</span></h3>
+            <h3 className="text-[15px] font-bold">{areaName(a)} <span className="font-mono text-sm font-normal text-ink-muted" data-testid="columns-figure">{figureLine(a.totals, a.rated)}</span></h3>
             {!split ? <AlignedBars title={AGREEMENT_COPY.chartTitle(areaName(a))} series={series(a.totals)} /> : groups.map((g) => (
               <div key={`${g.empty}:${g.group}`} className={g.compared ? "" : "opacity-60"} data-testid="columns-group" data-group={g.group}>
                 <p className="text-xs font-semibold text-ink-muted">{g.group}{g.compared ? "" : `, ${shortText(g)}`}</p>
@@ -175,10 +191,11 @@ function ColumnsView({ areas, series, split }: { areas: AreaBlock[]; series: Ser
 // the list and its groups read values rated; an area reads its own (AreaBlock.rated).
 function ShareView({ areas, list, series, rated, split, none }: { areas: AreaBlock[]; list: Counts; series: SeriesOf; rated: boolean; split: boolean; none: string }) {
   // The line beside a donut follows the figure's rule: nothing answered, values rated (no
-  // proposal shown, or answers that are all values rated), or agree of answered.
+  // proposal shown, or answers that are all values rated), or agree of answered with the two
+  // shares beside it.
   const line = (c: Counts, noProposal = rated) => {
     const f = figureOf(c, noProposal);
-    return f === null ? none : "rated" in f ? AGREEMENT_COPY.ratedLine(f.rated) : AGREEMENT_COPY.agreeLine(c.agree, answeredOf(c));
+    return f === null ? none : "rated" in f ? AGREEMENT_COPY.ratedLine(f.rated) : AGREEMENT_COPY.agreeLine(c.agree, answeredOf(c), f.changePercent, f.disagreePercent);
   };
   const groups: GroupTotal[] = split ? groupTotals(areas.flatMap((a) => a.rows)) : [];
   return (

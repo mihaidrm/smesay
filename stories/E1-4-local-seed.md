@@ -46,9 +46,12 @@ released 2026-09-20, checked with `npm view` on 2026-10-02). One fixed id, the w
 other sample row is found by its natural key (item reference, invite token, respondent name).
 Counts: the prototype board stored Priya Nair's answer on CL-06 as "changed to Not needed";
 under decision 0018 Not needed is Disagree, so the seed stores it as disagree and the totals
-are 19 agree, 7 changed, 2 not needed, 2 unclear over the 30 submitted answers (63 percent
+were 19 agree, 7 changed, 2 not needed, 2 unclear over the 30 submitted answers (63 percent
 agree); the board, the landing page fragment and story E8-1 were corrected to these numbers
-the same day (decision 0033). Sign-off times and confidences are the landing page's sign-off
+the same day (decision 0033). Since 2026-10-07 (decision 0062) Lukas marks CL-05 not needed,
+so the totals are 18 agree, 7 changed, 3 not needed, 2 unclear (60 percent agree), items
+with a different priority 5, items marked not needed 3, none fully agreed; the landing page
+fragment, its copy and the tests follow. Sign-off times and confidences are the landing page's sign-off
 record; the opens and closes instants are the boards' 09:00 and 18:00 in Romania's October
 time (UTC+3); the import report is the Import step's (6 rows, header on row 1, nothing
 skipped, expense-requirements.xlsx). Tokens are fresh from crypto.randomBytes(16) on every

@@ -32,7 +32,7 @@ Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agre
 engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
 2 answers.
 
-Agreement chip: 63%. Agreement so far. 30 answers from 5 experts.
+Agreement chip: 60%. Agreement so far. 30 answers from 5 experts.
 
 ## Three steps
 
@@ -67,7 +67,8 @@ and why, and what to decide next.
 Results card. Label: See where the list is weak. Title: Every item and every area updates as answers
 arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
 the chart to the view your meeting needs.
-Tiles: Submitted 5 of 7. Agreement 63%. Different priority 7. Unclear 2.
+Tiles: Submitted 5 of 7. Agreement 60%. Different priority 7. Disagree 3. Unclear 2 (the two
+kinds as two tiles, never one number; decision 0062).
 Chips: Role: any. With a reason. + Choose tiles.
 View switch (works on the page): Table, Columns, Share. Table: the six items with a stacked bar
 and the agreement each, the seed's reader texts cut to one line (CL-01 Photograph a receipt
@@ -75,16 +76,17 @@ and the amount, date and merchant are filled in automatically, 80%; CL-02 Split 
 across two projects or cost centres, 40%; CL-03 Managers approve or reject from the email,
 without logging in, 80%; CL-04 Expenses over the policy limit are flagged before they reach
 the approver, 40%;
-CL-05 Approved expenses are paid with the next salary run, 100%; CL-06 Employees can request
+CL-05 Approved expenses are paid with the next salary run, 80%; CL-06 Employees can request
 a cash advance before a trip, 40%). Columns: per area, one bar per kind with its count.
 Share: a donut per area with the agreement in the middle and the counts beside it.
 Legend: Agree, Different priority, Disagree, Unclear.
 Under it: Filter by any field you asked for, such as role, or by who left a reason. Every
 chart, count and export follows the same filter.
 
-Label: Know who disagrees, and why. Sales and everyone else split on the policy flags. Did not
-agree with Should have: Sales 2 of 2, everyone else 1 of 3. "Sales gets most of the
-rejections, and always after the fact." Tom, sales.
+Label: Know who disagrees, and why. Sales and everyone else split on the policy flags. A
+different priority than Should have: Sales 2 of 2, everyone else 0 of 3. Not needed: Sales 0
+of 2, everyone else 1 of 3 (the two kinds on their own lines, never one "did not agree";
+decision 0062). "Sales gets most of the rejections, and always after the fact." Tom, sales.
 
 Label: Walk into the meeting with the decisions listed. Decide whether policy flags move to
 Must have. To do, written by AI · cites 2 answers. Answer two open questions before the link
@@ -274,8 +276,8 @@ screen:
 True on the day: the upload and shaping lines (E3, E4) and the free lines (decision 0008).
 
 Numbers inside product screens, the Marlow example, not claims: the live card's answers and
-the agreement chip (63%, 30 answers from 5 experts), the Shape fragment's rows and the results
-card's tiles, items, percentages and counts, "2 of 2", "1 of 3", Tom's reason and the two
-to-dos are all the seed's
-(src/db/seed/sample.ts: 5 of 7 submitted, 30 answers, 19 agree, 7 different priority, 2
-disagree, 2 unclear).
+the agreement chip (60%, 30 answers from 5 experts), the Shape fragment's rows and the results
+card's tiles, items, percentages and counts, "2 of 2", "0 of 3", "0 of 2", "1 of 3", Tom's
+reason and the two to-dos are all the seed's
+(src/db/seed/sample.ts: 5 of 7 submitted, 30 answers, 18 agree, 7 different priority, 3
+disagree, 2 unclear; since decision 0062, 2026-10-07, Lukas marks CL-05 not needed).

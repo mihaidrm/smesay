@@ -14,7 +14,7 @@ export const QUICKSTART_COPY = {
   then: {
     title: "Then: read the results",
     lines: [
-      "Answers arrive live: who agreed, who pushed back and why, what is missing.",
+      "Answers arrive live: who agreed, who chose a different priority, who said not needed and why, and what is missing.",
       "The AI writes a short to-do list and names the answers behind each line.",
       "Export the answers as CSV, the project as JSON, or a PDF summary.",
     ],

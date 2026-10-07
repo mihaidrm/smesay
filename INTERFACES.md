@@ -144,7 +144,9 @@ internal.setAiBudgetEur, decision 0036), markDeleted(ws).
 Results (E8-1): results.numbers(ws, instrumentId, filter) gives ResultsNumbers
 (src/lib/results-tiles.ts: invited, submitted, inProgress, shown, total, agree, change,
 disagree, unclear, pick, answered, withComment, missing, unansweredItems, fullyAgreed,
-pushedBackItems, medianMinutes, anyAnswer, actions) from one SQL query, or null for an
+differentPriorityItems (items with at least one change), notNeededItems (items with at least
+one disagree; decision 0062: the two are never added into one number anywhere a person reads),
+medianMinutes, anyAnswer, actions) from one SQL query, or null for an
 instrument outside the workspace; results.rows(ws, instrumentId, filter) the answers the
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
 submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
@@ -163,7 +165,9 @@ list of columns, the value columns in the method's scale order; agreement.byItem
 agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
 answered, rounded half up in SQL; the tab sums with the same rule, src/lib/results-agreement.ts
 percentOf, and shows no percentage where no proposal was shown, figureOf's "[N] rated", as
-E10-1's items CSV will) }; tracker.people(ws, instrumentId, filter,
+E10-1's items CSV will), changePercent (change over answered, the same rounding; "Different
+priority %" in the items CSV, sharesOf in the model) and disagreePercent (disagree over
+answered; "Not needed %"; decision 0062) }; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
 fields, who (the name shown: the name field, else a personal invite's name or email; null
 for a public-link response with no name), anon (for a public-link response with no
@@ -182,7 +186,7 @@ session's workspace, and answers HEAD with 405; gaps.byField(ws, instrumentId, f
 every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
 share between two groups with 3 answers or more, in percentage points; null when fewer than
 two are compared), groups: GapGroup { group ('' for the people with no value, Not given on
-screen), agree, answered, compared }[] }, largest gap first, then the item's position (the
+screen), agree, change, disagree, answered, compared }[] }, largest gap first, then the item's position (the
 view orders ties as the Agreement table lists the items, src/lib/results-gaps.ts); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
 item of the instrument as DetailItem { id, reference, area, originalText, readerText,
 readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
