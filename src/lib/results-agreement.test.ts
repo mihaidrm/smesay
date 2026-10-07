@@ -3,7 +3,7 @@
 // ways with ties in the list's order, groups of fewer than 3 answers drawn but not compared,
 // and the series every view draws (the kinds, or the values picked where no proposal was shown).
 import { describe, expect, it } from "vitest";
-import { allRated, buildAgreement, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
+import { allRated, buildAgreement, changePercentOf, disagreePercentOf, figureLine, figureOf, groupTotals, kindSeries, notAnsweredOf, percentOf, sharesOf, sortRows, valueSeries, type Counts } from "@/lib/results-agreement";
 
 const c = (agree: number, change = 0, disagree = 0, unclear = 0, couldSee = agree + change + disagree + unclear, pick = 0, values: Record<string, number> = {}): Counts => ({ agree, change, disagree, unclear, pick, values, couldSee });
 const items = [
@@ -25,8 +25,18 @@ describe("the Agreement tab's model", () => {
     const submitting = areas[1];
     expect(submitting.rows.map((r) => r.reference)).toEqual(["CL-01", "CL-02"]);
     expect([submitting.totals.agree, submitting.totals.change, submitting.percent, submitting.notAnswered]).toEqual([5, 3, 50, 1]);
-    expect(areas[2].rows[0]).toMatchObject({ title: "Loose", percent: null, notAnswered: 0 });
+    // The two shares beside the agreement (decision 0062): 3 of 10 a different priority, 1 of 10 not needed.
+    expect([submitting.changePercent, submitting.disagreePercent]).toEqual([30, 10]);
+    expect(submitting.rows.map((r) => [r.percent, r.changePercent, r.disagreePercent])).toEqual([[80, 20, 0], [20, 40, 20]]);
+    expect(areas[2].rows[0]).toMatchObject({ title: "Loose", percent: null, changePercent: null, disagreePercent: null, notAnswered: 0 });
     expect([percentOf(c(19, 7, 2, 2)), percentOf(c(23, 7, 2, 2)), percentOf(c(1, 1)), percentOf(c(0))]).toEqual([63, 68, 50, null]);
+    // The sample since decision 0062: 18 agree, 7 a different priority, 3 not needed, 2 unclear of 30.
+    expect([percentOf(c(18, 7, 3, 2)), changePercentOf(c(18, 7, 3, 2)), disagreePercentOf(c(18, 7, 3, 2))]).toEqual([60, 23, 10]);
+    expect(sharesOf(c(18, 7, 3, 2))).toEqual({ percent: 60, changePercent: 23, disagreePercent: 10 });
+    expect(sharesOf(c(18, 7, 3, 2), true)).toEqual({ percent: null, changePercent: null, disagreePercent: null });
+    expect([changePercentOf(c(0)), disagreePercentOf(c(0))]).toEqual([null, null]);
+    expect(figureLine(c(18, 7, 3, 2))).toBe("60% agree · 23% different priority · 10% not needed");
+    expect([figureLine(c(0, 0, 0, 0, 4, 4), true), figureLine(c(0)), figureLine(c(0), false, "None")]).toEqual(["4 rated", "No answers", "None"]);
   });
 
   it("sorts within an area both ways, ties in the list's order", () => {
@@ -45,7 +55,7 @@ describe("the Agreement tab's model", () => {
       { itemId: "i1", group: "Finance", ...c(1, 0, 0, 0, 1) },
     ];
     const row = buildAgreement(items, ["Submitting"], split, true, { key: "ref", dir: "asc" }, "Not given")[0].rows[0];
-    expect(row.groups.map((g) => [g.group, g.compared, g.percent])).toEqual([["Finance", false, 100], ["Sales", true, 67]]);
+    expect(row.groups.map((g) => [g.group, g.compared, g.percent, g.changePercent, g.disagreePercent])).toEqual([["Finance", false, 100, 0, 0], ["Sales", true, 67, 33, 0]]);
     expect([row.counts.agree, row.counts.change, row.percent]).toEqual([3, 1, 75]);
   });
 
@@ -61,9 +71,9 @@ describe("the Agreement tab's model", () => {
     expect(figureOf(c(0, 0, 0, 0, 10, 10))).toEqual({ rated: 10 });
     expect(figureOf(c(0, 0, 0, 1, 11, 10), true)).toEqual({ rated: 10 });
     // A mix with proposals: a question on a proposed item keeps the percentage (0 of 1 agree).
-    expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ percent: 0 });
+    expect(figureOf(c(0, 0, 0, 1, 11, 10))).toEqual({ percent: 0, changePercent: 0, disagreePercent: 0 });
     // A proposal shown and only a question: 0%. No proposal shown (rated): 0 rated, never 0%.
-    expect(figureOf(c(0, 0, 0, 1))).toEqual({ percent: 0 });
+    expect(figureOf(c(0, 0, 0, 1))).toEqual({ percent: 0, changePercent: 0, disagreePercent: 0 });
     expect(figureOf(c(0, 0, 0, 1), true)).toEqual({ rated: 0 });
     expect(figureOf(c(0, 0, 0, 1, 5, 4), true)).toEqual({ rated: 4 });
     expect(figureOf(c(0), true)).toBeNull();
@@ -76,7 +86,8 @@ describe("the Agreement tab's model", () => {
     const none = items.map((it) => ({ ...it, proposed: null }));
     expect(allRated(buildAgreement(none, [], counts, false, { key: "ref", dir: "asc" }, "Not given"))).toBe(true);
     expect(allRated(buildAgreement(items, ["Submitting"], counts, false, { key: "ref", dir: "asc" }, "Not given"))).toBe(false);
-    expect(figureOf(c(3, 1))).toEqual({ percent: 75 });
+    expect(figureOf(c(3, 1))).toEqual({ percent: 75, changePercent: 25, disagreePercent: 0 });
+    expect(figureOf(c(1, 1, 2))).toEqual({ percent: 25, changePercent: 25, disagreePercent: 50 });
     expect(figureOf(c(0))).toBeNull();
   });
 

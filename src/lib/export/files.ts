@@ -56,12 +56,12 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
     const counts = new Map((await agreement.byItem(ws, instrument.id, f)).map((c) => [c.itemId, c]));
     return {
       preamble,
-      header: [C.reference, C.item, C.original, C.area, C.proposedValue, C.proposedLabel, KIND_LABELS.agree, KIND_LABELS.change, KIND_LABELS.disagree, KIND_LABELS.unclear, KIND_LABELS.pick, C.notAnswered, C.agreement],
+      header: [C.reference, C.item, C.original, C.area, C.proposedValue, C.proposedLabel, KIND_LABELS.agree, KIND_LABELS.change, KIND_LABELS.disagree, KIND_LABELS.unclear, KIND_LABELS.pick, C.notAnswered, C.agreement, C.changeShare, C.disagreeShare],
       rows: setItems.map((it) => {
         const c = counts.get(it.id);
         const p = proposed(it);
         const answered = c ? c.agree + c.change + c.disagree + c.unclear + c.pick : 0;
-        return [it.sourceRef ?? "", text(it), it.originalText, it.area ?? "", p ?? "", label(p), c?.agree ?? 0, c?.change ?? 0, c?.disagree ?? 0, c?.unclear ?? 0, c?.pick ?? 0, Math.max(0, (c?.couldSee ?? 0) - answered), c?.percent ?? ""];
+        return [it.sourceRef ?? "", text(it), it.originalText, it.area ?? "", p ?? "", label(p), c?.agree ?? 0, c?.change ?? 0, c?.disagree ?? 0, c?.unclear ?? 0, c?.pick ?? 0, Math.max(0, (c?.couldSee ?? 0) - answered), c?.percent ?? "", c?.changePercent ?? "", c?.disagreePercent ?? ""];
       }),
     };
   }

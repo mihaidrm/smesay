@@ -50,7 +50,8 @@ export function AlignedBars({ title, series, max, className }: { title: string; 
 }
 
 // A donut with 2 px surface gaps between slices (the gap shows the card behind, not a track),
-// the line beside it ("19 of 30 agree") and the numbers as its legend.
+// the line beside it ("18 of 30 agree · 23% different priority · 10% not needed") and the
+// numbers as its legend.
 export function Donut({ title, series, line, size = 120 }: { title: string; series: Series[]; line: string; size?: number }) {
   const total = series.reduce((a, s) => a + s.value, 0);
   const r = 40;

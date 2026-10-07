@@ -15,6 +15,16 @@ direct labels are its counts in words under it, since no number in a status colo
 contrast; the percentage is summed into areas and groups in the model with the SQL's rule,
 tested to agree.
 
+Amended 2026-10-07 (decision 0062, design note 114): beside every agreement figure sit two
+shares, Different priority (change over answered) and Not needed (disagree over answered),
+computed in SQL (agreement.byItem changePercent, disagreePercent) and in the model with the
+same rounding (src/lib/results-agreement.ts sharesOf); the Table view shows them as two
+columns after Agreement, the Columns heading and the Share donut line read "[P]% agree · [P]%
+different priority · [P]% not needed" (the donut: "18 of 30 agree · 23% different priority ·
+10% not needed"); the gap line names a group's different priority and not needed counts; the
+items CSV carries the two shares (E10-1). The sample's donut reads 18 of 30 since Lukas marks
+CL-05 not needed. Acceptance 1, 7 and 10 read with these.
+
 ## Acceptance criteria
 1. Agreement tab (PM app board): areas in order, each with its items: reference, text,
    proposed value, the answers, the counts, and the agreement percentage; an area row with
@@ -46,7 +56,8 @@ tested to agree.
    stays under 500 ms in every view.
 9. Clicking an item opens the item detail (E8-5).
 10. Playwright: on the seeded project switch to Columns and see one bar per kind for
-    Submitting; switch to Share and see the list donut with "19 of 30 agree"; split by Role
+    Submitting; switch to Share and see the list donut with "18 of 30 agree" and the two
+    shares; split by Role
     and see Sales and Finance bars on CL-04; sort by disagree and see CL-06 first.
 
 ## Out of scope

@@ -19,7 +19,9 @@ export type SummaryView = {
   tiles: { label: string; value: string }[];
   areas: { name: string; counts: SummaryCounts; percent: string }[];
   confidence: number[];
-  tables: { area: string; rows: { ref: string; text: string; proposed: string; counts: SummaryCounts; percent: string }[] }[];
+  // percent: the agreement figure; changePercent and disagreePercent the two shares beside it
+  // (decision 0062), empty where the figure reads rated or no answers.
+  tables: { area: string; rows: { ref: string; text: string; proposed: string; counts: SummaryCounts; percent: string; changePercent: string; disagreePercent: string }[] }[];
   // rows: the first REGISTER_ROWS_MAX of total; more: the line naming the CSV with the rest.
   registers: { title: string; columns: string[]; rows: string[][]; total: number; more: string | null; empty: string }[];
   signOffs: { who: string; when: string; confidence: string }[];
@@ -36,7 +38,7 @@ export const SUMMARY_COPY = {
   average: (avg: string, n: number) => `Average ${avg} from ${n} ${n === 1 ? "answer" : "answers"}`,
   noConfidenceYet: "No confidence given yet",
   items: "Items",
-  columns: { ref: "Reference", item: "Item", proposed: "Proposed", agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notAnswered: "Not answered", agreement: "Agreement" },
+  columns: { ref: "Reference", item: "Item", proposed: "Proposed", agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notAnswered: "Not answered", agreement: "Agreement", changeShare: "Different priority %", disagreeShare: "Not needed %" },
   signOff: "Sign-off record",
   signOffColumns: ["Respondent", "Submitted", "Confidence"],
   noSignOffs: "No one has submitted yet.",
@@ -140,7 +142,7 @@ ${v.lines.map((l) => `<p class="muted">${esc(l)}</p>`).join("")}
 <h2>${esc(SUMMARY_COPY.agreementByArea)}</h2>${legend}
 ${v.areas.map((a) => `<div class="area"><div><b>${esc(a.name)}</b> <span class="muted mono">${esc(a.percent)}</span></div>${stackedBar(a.counts)}<div class="muted">${esc(SUMMARY_COPY.countsInWords(a.counts))}</div></div>`).join("")}
 <h2>${esc(SUMMARY_COPY.confidence)}</h2>${histogram(v.confidence)}<p class="muted">${esc(averageLine(v.confidence))}</p>`;
-  const items = `<h2 class="break">${esc(SUMMARY_COPY.items)}</h2>${v.tables.map((t) => `<h3>${esc(t.area)}</h3>${table([C.ref, C.item, C.proposed, C.agree, C.change, C.disagree, C.unclear, C.pick, C.notAnswered, C.agreement], t.rows.map((r) => [r.ref, r.text, r.proposed, String(r.counts.agree), String(r.counts.change), String(r.counts.disagree), String(r.counts.unclear), String(r.counts.pick), String(r.counts.notAnswered), r.percent]), [3, 4, 5, 6, 7, 8, 9])}`).join("")}`;
+  const items = `<h2 class="break">${esc(SUMMARY_COPY.items)}</h2>${v.tables.map((t) => `<h3>${esc(t.area)}</h3>${table([C.ref, C.item, C.proposed, C.agree, C.change, C.disagree, C.unclear, C.pick, C.notAnswered, C.agreement, C.changeShare, C.disagreeShare], t.rows.map((r) => [r.ref, r.text, r.proposed, String(r.counts.agree), String(r.counts.change), String(r.counts.disagree), String(r.counts.unclear), String(r.counts.pick), String(r.counts.notAnswered), r.percent, r.changePercent, r.disagreePercent]), [3, 4, 5, 6, 7, 8, 9, 10, 11])}`).join("")}`;
   const regs = v.registers.map((r) => `<h2>${esc(r.title)} (${r.total})</h2>${r.rows.length === 0 ? `<p class="muted">${esc(r.empty)}</p>` : table(r.columns, r.rows)}${r.more ? `<p class="muted" data-more>${esc(r.more)}</p>` : ""}`).join("");
   const last = `<h2 class="break">${esc(SUMMARY_COPY.signOff)}</h2>${v.signOffs.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noSignOffs)}</p>` : table(SUMMARY_COPY.signOffColumns, v.signOffs.map((s) => [s.who, s.when, s.confidence]), [2])}
 <h2>${esc(SUMMARY_COPY.actions)}</h2>${v.actions.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noActions)}</p>` : v.actions.map((a) => `<div class="action"><div class="muted">${esc([a.kind, a.state].filter(Boolean).join(" · "))}</div><b>${esc(a.title)}</b><div>${esc(a.why)}</div><div class="muted">${esc(a.cites)}</div></div>`).join("")}`;

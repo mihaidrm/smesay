@@ -1,5 +1,5 @@
 // The headline tiles of Results (stories/E8-1, acceptance 1 and 2; design note 40): a catalogue
-// of twelve, six on by default, up to six shown, chosen per PM per instrument (user.
+// of thirteen, six on by default, up to six shown, chosen per PM per instrument (user.
 // results_prefs, INTERFACES.md ResultsPrefs). Each tile reads one number of the one SQL query
 // (src/db/queries/results.ts numbers), so every tile honours the filter. Copy:
 // docs/copy/app.md, Results. No database here.
@@ -10,7 +10,8 @@
 // count (the include-unsubmitted switch) with and without the filter. Answers are those of
 // the people kept, `answered` the four kinds answered against a proposal (a value rated with
 // no proposal shown, `pick`, is counted apart and never in agreement). Items are the
-// instrument's list.
+// instrument's list; an item with a different priority and an item marked not needed are two
+// counts, never one (decision 0062, design note 114).
 export type ResultsNumbers = {
   invited: number;
   submitted: number;
@@ -27,7 +28,8 @@ export type ResultsNumbers = {
   missing: number;
   unansweredItems: number;
   fullyAgreed: number;
-  pushedBackItems: number;
+  differentPriorityItems: number;
+  notNeededItems: number;
   medianMinutes: number | null;
   // Any answer on the instrument at all, with no filter and unsubmitted ones included: the
   // empty state shows until the first one.
@@ -36,7 +38,7 @@ export type ResultsNumbers = {
   actions: number;
 };
 
-export const TILE_IDS = ["submitted", "agreement", "change", "disagree", "unclear", "missing", "withComment", "unansweredItems", "fullyAgreed", "pushedBackItems", "medianMinutes", "inProgress"] as const;
+export const TILE_IDS = ["submitted", "agreement", "change", "disagree", "unclear", "missing", "withComment", "unansweredItems", "fullyAgreed", "differentPriorityItems", "notNeededItems", "medianMinutes", "inProgress"] as const;
 export type TileId = (typeof TILE_IDS)[number];
 export const MAX_TILES = 6;
 export const DEFAULT_TILES: TileId[] = ["submitted", "agreement", "change", "disagree", "unclear", "missing"];
@@ -52,7 +54,8 @@ export const TILE_NAMES: Record<TileId, string> = {
   withComment: "Answers with a reason or comment",
   unansweredItems: "Items with no answer yet",
   fullyAgreed: "Items fully agreed",
-  pushedBackItems: "Items with a different priority or disagree",
+  differentPriorityItems: "Items with a different priority",
+  notNeededItems: "Items marked not needed",
   medianMinutes: "Median minutes to submit",
   inProgress: "Responses in progress",
 };
@@ -63,7 +66,9 @@ export type TileView = { id: TileId; value: string; label: string; tone: Tone };
 const isTile = (x: unknown): x is TileId => typeof x === "string" && (TILE_IDS as readonly string[]).includes(x);
 
 // The stored choice, cleaned: known ids, once each, at most six; null (the default six) when
-// nothing usable is stored.
+// nothing usable is stored. An id the catalogue no longer has (the merged "pushedBackItems"
+// tile of 2026-10-04 to 2026-10-07, decision 0062) is dropped, so a PM who had it gets neither
+// of the two tiles that replaced it until they choose again.
 export function storedTiles(stored: unknown): TileId[] | null {
   if (!Array.isArray(stored)) return null;
   const kept = [...new Set(stored.filter(isTile))].slice(0, MAX_TILES);
@@ -108,8 +113,10 @@ export function tileView(id: TileId, n: ResultsNumbers): TileView {
       return { id, value: String(n.unansweredItems), label: "Items with no answer yet", tone: "ink" };
     case "fullyAgreed":
       return { id, value: String(n.fullyAgreed), label: "Items fully agreed", tone: "mint" };
-    case "pushedBackItems":
-      return { id, value: String(n.pushedBackItems), label: "Items with a different priority or disagree", tone: "sun" };
+    case "differentPriorityItems":
+      return { id, value: String(n.differentPriorityItems), label: "Items with a different priority", tone: "sun" };
+    case "notNeededItems":
+      return { id, value: String(n.notNeededItems), label: "Items marked not needed", tone: "sun" };
     case "medianMinutes":
       return { id, value: n.medianMinutes === null ? "None yet" : String(n.medianMinutes), label: "Median minutes to submit", tone: "ink" };
     case "inProgress":
@@ -117,6 +124,7 @@ export function tileView(id: TileId, n: ResultsNumbers): TileView {
   }
 }
 
-// The tab counts (acceptance 1): Different priority and Disagree, Questions and gaps (the
-// unclear answers and the missing items suggested), Actions.
-export const tabCounts = (n: ResultsNumbers) => ({ pushed: n.change + n.disagree, questions: n.unclear + n.missing, actions: n.actions });
+// The tab counts (acceptance 1): the Different priority and Disagree tab carries both counts,
+// never their sum (decision 0062); Questions and gaps (the unclear answers and the missing
+// items suggested); Actions.
+export const tabCounts = (n: ResultsNumbers) => ({ change: n.change, disagree: n.disagree, questions: n.unclear + n.missing, actions: n.actions });

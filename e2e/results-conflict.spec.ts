@@ -74,7 +74,7 @@ test("conflict view: two groups of 3 or more on CL-04, 50 points apart", async (
   await expect(top).toHaveCount(1);
   await expect(top.getByTestId("gap-item")).toContainText("CL-04");
   await expect(top.getByTestId("gap-points")).toHaveText("50 points apart");
-  await expect(top.getByTestId("gap-line")).toHaveText("Engineering manager: fewer than 3 answers. Finance: 3 of 3 agree. HR: fewer than 3 answers. Sales: 2 of 4 agree.");
+  await expect(top.getByTestId("gap-line")).toHaveText("Engineering manager: fewer than 3 answers. Finance: 3 of 3 agree, 0 different priority, 0 not needed. HR: fewer than 3 answers. Sales: 2 of 4 agree, 2 different priority, 0 not needed.");
   await expect(top.locator("[data-group=Finance]")).toContainText("3 of 3");
   await expect(top.locator("[data-group=HR]")).not.toContainText("of");
   // Under a filter that keeps one role, nothing is compared and the line says what to do.
