@@ -22,7 +22,7 @@ import { readAuthEnv } from "@/lib/auth";
 import { signedIn } from "@/lib/session";
 import { track, wasFirst } from "@/lib/analytics";
 import { GOALS, goalRequest, plausibleConfig, sendGoal } from "@/lib/plausible";
-import { rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
+import { chooseSheets, rechoose, saveMapping, savePaste, saveUpload, UPLOAD_COPY } from "@/lib/uploads";
 
 // retry (E4-2): the error is worth a "Try again" button. signedOut (E11-6): the session had ended;
 // the form keeps its text and shows the banner.
@@ -135,15 +135,34 @@ export async function chooseAction(_previous: ProjectFormState, formData: FormDa
   }
 }
 
+// The Sheets step (stories/E3-7): the names ticked, as many "sheet" fields.
+export async function sheetsAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
+  const { current } = await requireWritableWorkspace("/app");
+  const uploadId = String(formData.get("uploadId") ?? "");
+  const names = formData.getAll("sheet").map((v) => String(v));
+  try {
+    const result = await chooseSheets(current.ws, uploadId, names);
+    if ("error" in result) return { ...NONE, error: result.error };
+    revalidatePath(`/app/projects/${result.upload.projectId}/import`);
+    return { ...NONE, saved: true };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+}
+
 // The mapping card (stories/E3-3): every select of the card is in the form, named by the
-// column key; the server cleans the set (src/lib/import/mapping.ts) and saves it.
+// column key; the server cleans the set (src/lib/import/mapping.ts) and saves it. The switch
+// "Use the sheet names as areas" (stories/E3-7) rides in the same form when it is shown: "on"
+// or "off"; absent, the stored value stays.
 export async function mapAction(_previous: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
   const { current } = await requireWritableWorkspace("/app");
   const uploadId = String(formData.get("uploadId") ?? "");
   const raw: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) if (key.startsWith("col:")) raw[key.slice(4)] = value;
+  const sheetAreas = formData.has("sheetAreas") ? formData.get("sheetAreas") === "on" : undefined;
   try {
-    const result = await saveMapping(current.ws, uploadId, raw);
+    const result = await saveMapping(current.ws, uploadId, raw, sheetAreas);
     revalidatePath(`/app/projects/${result.upload.projectId}/import`);
     return { ...NONE, error: result.error, saved: result.error === null };
   } catch (error) {

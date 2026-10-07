@@ -77,7 +77,11 @@ the check constraints use them). Change this file first.
 - ImportReport (jsonb, item_set.import_report):
   { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow:
   number (0 when the file had none), unrecognisedValues: number, duplicateRefs: { kept: string,
-  folded: string[] }[] } (E3-5; kept is the reference of the item kept, or "row N").
+  folded: string[] }[], sheets?: SheetReport[] } (E3-5; kept is the reference of the item kept,
+  or "row N", "row N of SHEET" when several sheets were read). SheetReport (E3-7, present when
+  more than one sheet was read): { name, rowsRead, headerRow, items, emptyRows, exactDuplicates,
+  overLimit, unrecognisedValues }, the same counts for that sheet alone; the top-level counts
+  are the totals.
 - ImportRow (not stored; src/lib/import/report.ts, E3-4 and E3-5): the row shape the check
   and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
   foldedRefs }.
@@ -126,8 +130,20 @@ the check constraints use them). Change this file first.
   person dismissed; per person, every workspace).
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
-  ten data rows), rowsRead: number }. UploadKind: xlsx, csv, pasted (E3-4: a pasted list is
-  stored as text with three columns, Item, Area, Proposed value, and no header row).
+  ten data rows), rowsRead: number, sheetRows?: { name, rows }[] (E3-7, xlsx only: every sheet
+  with at least one non-empty row and that count, in file order), perSheet?: SheetPreview[]
+  (E3-7: the ticked sheets when more than one, each { name, headerRow, columns, rows, rowsRead }
+  as the single-sheet fields; columns is then the union of the ticked sheets' columns by key,
+  first seen first, rows the first ticked sheet's, rowsRead the total) }. UploadKind: xlsx,
+  csv, pasted (E3-4: a pasted list is stored as text with three columns, Item, Area, Proposed
+  value, and no header row).
+- UploadSheets (jsonb, upload.sheets; E3-7): SheetChoice[] = { name: string, headerRow?: number }[],
+  the sheets the PM ticked in file order; headerRow absent means the finder's row, 0 no header
+  row, N the row picked. Null until the Sheets step is confirmed, and null for a csv, a pasted
+  list and every row from before E3-7 (the single-sheet path reads upload.sheet and
+  upload.header_row as before). upload.sheet_areas (boolean, default true) is the switch "Use
+  the sheet names as areas": read only when more than one sheet is ticked and no column is
+  mapped as area.
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
@@ -362,10 +378,17 @@ the context rule src/lib/project-context.ts.
 Uploads (E3-2): uploads, the scoped six over upload plus uploads.latestForProject(ws, projectId)
 (the draft the Import step shows); `saveUpload(actor, projectId, { name, bytes })` and
 `rechoose(ws, uploadId, { sheet, headerRow })` in src/lib/uploads.ts, each returning
-{ error } or { upload }; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
+{ error } or { upload }; `chooseSheets(ws, uploadId, names)` (E3-7: the Sheets step; one name
+keeps the single-sheet path, several fill preview.perSheet; with several ticked, rechoose with
+a sheet and a header row sets that sheet's row) and `saveMapping(ws, uploadId, raw,
+sheetAreas?)`; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
 client can use it). upload.preview is UploadPreview (above): rowsRead counts the data rows
 below the chosen header row of the chosen sheet (every row when there is no header), at most
-2,000 after the checks; rows holds the first ten of them. Objects are at
+2,000 after the checks, over the ticked sheets together; rows holds the first ten of them.
+The sheet rule and the column union are in src/lib/import/sheets.ts; `checkSheets(mapping,
+sheets, { sheetAsArea })` in src/lib/import/report.ts is the check over several sheets with one
+duplicate map, and `sheetsMissingText(perSheet, mapping)` in src/lib/import/mapping.ts names
+the ticked sheets whose header lacks the item text column. Objects are at
 uploads/<workspace id>/<16 hex>.<xlsx|csv|txt> (txt for a pasted list, `savePaste()` in
 src/lib/uploads.ts), logos at logos/<workspace id>/..., so a workspace's objects are its
 segment under each of the two prefixes (E11-2 lists both).

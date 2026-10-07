@@ -85,6 +85,10 @@ Built 2026-10-02.
   the 5 MB and 2,000-row caps, no worker before launch, and SECURITY.md says so. The header
   detection keeps MIN_FILLED at two: a one-column list gets the picker and the mapping. The
   no-header message stays; the mapping card is the control it points at.
+- Change of 2026-10-07 (E3-7, design note 111): the sheet picker of acceptance 3 ("Sheet",
+  "Show sheet") is replaced by the Sheets step, where the PM ticks every sheet that holds the
+  list; rechoose() with a sheet name still works and confirms that one sheet. A workbook with
+  one sheet with rows, a csv and a pasted list keep this story's path.
 - Change of 2026-10-02 (with E3-5): LONGER_MIN in src/lib/import/header.ts went from 8 to 3,
   because a header "Requirement" over 19-character requirements was not found (the data
   rows were not "clearly longer" by 8); header.test.ts has the case. The six fixtures still
