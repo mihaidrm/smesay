@@ -2,8 +2,9 @@
 
 User: a PM's legal team; a respondent wondering where their answers go
 Status: built
-Outcome: the four legal pages exist as drafts with a marker at every place a lawyer must
-confirm, each showing its version and date, and every instrument links to the privacy notice.
+Outcome: the four legal pages exist, approved by the lawyer (version 3, decision 0059) with a
+marker only where the company details go, each showing its version and date, and every
+instrument links to the privacy notice.
 
 ## Acceptance criteria
 1. /legal/privacy, /legal/terms, /legal/dpa, /legal/subprocessors: drafted by Claude in plain
@@ -58,8 +59,10 @@ Built 2026-10-04 (design note 74, decision 0044):
   (src/components/respondent/powered-by.tsx, privacy), on every plan, opening in a new tab; the
   landing page's footer links to the four pages (docs/copy/landing.md).
 - Acceptance 4: `npm run legal:markers` (scripts/legal-markers.mjs) lists the markers per page
-  with their count; docs/accounts.md step 12 points the lawyer at it. The pages show the
-  markers in the sun tint until Mihai says they are confirmed.
+  with their count; docs/accounts.md step 12 points the lawyer at it. The pages showed the
+  markers in the sun tint until Mihai said they were confirmed: 2026-10-07, the lawyer
+  approved all 42 of version 2, and version 3 removes them (decision 0059). The three
+  markers for the company details stay until Mihai sends the values.
 - Acceptance 5: the copy scan covers docs/legal/ (scripts/scan-copy.mjs reads every .md).
 - Tests: src/lib/legal.test.ts, src/components/respondent/powered-by.test.tsx,
   e2e/legal.spec.ts.

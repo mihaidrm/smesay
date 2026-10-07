@@ -178,6 +178,9 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   40 in the app, 48 on the respondent side and marketing, 32 small. On the respondent side the
   primary is ink with the ground as text (RespondentV2; decision 0016: the PM's accent never
   on buttons). Verbs as labels. One primary per screen.
+- Cursor: every control a click acts on shows the hand (buttons, switches, radio pills,
+  tabs, options, summaries, selects, checkboxes, sliders, file pickers); a disabled one keeps
+  the arrow, a text field keeps the I-beam (design note 101; a base rule in globals.css).
 - Focus: 2 px violet ring, 2 px offset, on keyboard focus (focus-visible) on every control.
   Loading: a 14 px ring spinner before the label, the label stays. Disabled: the same control
   at 40 percent opacity, never grey on grey.
