@@ -30,7 +30,9 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   // name; open, the month's usage at zero.
   const openMenu = () => page.getByTestId("dev-menu-summary").click();
   await expect(page.getByTestId("dev-menu")).toBeVisible();
-  await expect(page.getByTestId("dev-menu-mode")).toHaveText("Stand-in (free)");
+  // The default without a cookie is the stand-in outside production and the real model in
+  // CI's production build (acceptance 2).
+  await expect(page.getByTestId("dev-menu-mode")).toHaveText(/^(Stand-in \(free\)|Real \(spends credits\))$/);
   await expect(page.getByTestId("dev-menu-usage")).toBeHidden();
   await openMenu();
   await expect(page.getByTestId("dev-menu-usage")).toHaveText("0 AI runs, EUR 0.00");
