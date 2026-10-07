@@ -98,7 +98,9 @@ export const PREVIEW_COPY = {
   device: "Device",
   desktop: "Desktop",
   phone: "Phone",
-  fullSize: "Open full size",
+  fullSize: "Full view",
+  // The compact preview (decision 0061): one card of N.
+  compactNote: (n: number) => (n === 1 ? "The one card. The full view shows every screen." : `1 of ${n} cards. The full view shows them all.`),
   frameTitle: "What respondents see",
   caption: {
     import: "Import sets the chapters and the cards.",
