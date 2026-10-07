@@ -19,7 +19,7 @@ import { useEffect, useId, useRef } from "react";
 import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { Layout, ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
-import { BUILD_COPY } from "@/lib/build-copy";
+import { BUILD_COPY, PREVIEW_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
 import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
 import { RespondentHeader } from "./respondent-header";
@@ -60,6 +60,10 @@ export type ChapterScreenProps = {
   footerNote: string;
   onContinue: () => void;
   poweredBy?: PoweredByShow;
+  // The builder's compact preview (decision 0061): the header, the chapter row and the first
+  // card only, no Previous and Next, no footer, no Powered by, a line saying how many cards
+  // the full view has.
+  compact?: boolean;
 };
 
 const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40";
@@ -67,7 +71,7 @@ const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 
 const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {} } = props;
+  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {}, compact = false } = props;
   const chapter = chapters[index];
   const noteId = useId();
   const card = (it: RespondentItem) => (
@@ -88,7 +92,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
   }, [at]);
   return (
     <div className={FRAME_OUTER} data-testid="chapter-screen" data-layout={layout}>
-      <div className={FRAME_CARD}>
+      <div className={cn(FRAME_CARD, compact && "@xl:mt-4")}>
       <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={headerNote} className={FRAME_HEADER} />
       {nav}
       {banner}
@@ -97,7 +101,15 @@ export function ChapterScreen(props: ChapterScreenProps) {
             slide plays on it and on nothing else (design note 99). The main clips the 24 px of
             the slide; long words in the titles wrap, so the clip never hides text. */}
         <div key={layout === "page" ? "page" : `${index}-${layout === "item" ? at : 0}`} className="flex grow flex-col gap-4" data-slide={slide ?? undefined}>
-        {layout === "page" ? (
+        {compact ? (
+          <>
+            <div className="flex flex-col gap-1">
+              <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] wrap-break-word" data-screen-heading data-testid="chapter-title">{(layout === "page" ? chapters[0] : chapter)?.name ?? title}</h1>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{(layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items).slice(0, 1).map(card)}</div>
+            <p className="text-sm text-ink-muted" data-testid="compact-note">{PREVIEW_COPY.compactNote(chapters.reduce((n, c) => n + c.items.length, 0))}</p>
+          </>
+        ) : layout === "page" ? (
           <>
             <h1 className="sr-only" tabIndex={-1} data-screen-heading>{title}</h1>
             <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>
@@ -133,15 +145,15 @@ export function ChapterScreen(props: ChapterScreenProps) {
         )}
         </div>
       </main>
-      <footer className={FRAME_ACTIONS}>
+      {!compact && <footer className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">
           <button type="button" onClick={onBack} className={BUTTON} data-testid="chapter-back">{RESPONDENT_COPY.back}</button>
           <button type="button" onClick={onContinue} aria-describedby={noteId} className={cn("min-h-12 min-w-0 grow rounded-full bg-ink px-6 py-2 text-base leading-5 wrap-break-word font-bold text-ground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface @xl:grow-0", FRAME_PRIMARY)} data-testid="chapter-continue">{continueLabel}</button>
         </div>
         <p id={noteId} className="text-sm text-ink-muted @xl:text-center" aria-live="polite" data-testid="chapter-note">{footerNote}</p>
-      </footer>
+      </footer>}
       </div>
-      <PoweredBy show={poweredBy} className={FRAME_POWERED} />
+      {!compact && <PoweredBy show={poweredBy} className={FRAME_POWERED} />}
     </div>
   );
 }

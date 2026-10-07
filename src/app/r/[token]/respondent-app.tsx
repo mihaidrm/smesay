@@ -59,7 +59,6 @@ import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
 import { areasOf, chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 import type { PreviewRing } from "@/lib/preview";
-import { ABOUT_YOU_COPY } from "@/lib/build-copy";
 import { keepSample } from "@/lib/sample-drafts";
 import { SAMPLE_COPY } from "@/lib/sample-copy";
 
@@ -96,10 +95,12 @@ export type RespondentAppProps = {
   poweredBy: PoweredByShow;
   // The visitors' sample (stories/E12-4): the cards as the tab kept them (src/app/sample/).
   initialDrafts?: Record<string, CardDraft>;
-  // The builder's preview (stories/E5-6): what its step rings; nothing is saved. sample: the
+  // The builder's preview (stories/E5-6): what its step rings; nothing is saved; compact
+  // (decision 0061) shows the first card only, with no footer and no Powered by. sample: the
   // visitors' sample at /sample (stories/E12-4): the answers stay in the tab's session storage,
-  // Submit shows Done without sending, and the band says nothing is saved.
-  preview?: { rings: PreviewRing[]; sample?: boolean } | null;
+  // Submit shows Done without sending. The band that says nothing is saved is the page's, above
+  // the app (src/app/sample/page.tsx, preview-route.tsx).
+  preview?: { rings: PreviewRing[]; sample?: boolean; compact?: boolean } | null;
 };
 
 // The page has hydrated (false in the server render and while hydrating, then true:
@@ -114,6 +115,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const preview = props.preview ?? null;
   const rings = new Set(preview?.rings ?? []);
   const sample = preview?.sample === true;
+  const compact = preview?.compact === true;
   const [started, setStarted] = useState(props.started);
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
   const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
@@ -408,8 +410,6 @@ export function RespondentApp(props: RespondentAppProps) {
     }
   };
   const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} ring={rings.has("nav")} />;
-  // The visitors' sample has its own band above the header (src/app/sample/page.tsx).
-  const previewStrip = preview && !sample ? <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text" data-testid="preview-note">{ABOUT_YOU_COPY.previewNote}</div> : null;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
     <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text @xl:px-8" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
@@ -434,12 +434,12 @@ export function RespondentApp(props: RespondentAppProps) {
     const left = here.filter((it) => !done[it.id]).length;
     const last = page || index >= chapters.length - 1;
     return (
-      <ChapterScreen slide={slide} workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={previewStrip ? <>{previewStrip}{banner}</> : banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} reasonRule={instrument.reasonRule} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
+      <ChapterScreen slide={slide} workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} headerNote={note} nav={nav} banner={banner} title={instrument.title} layout={instrument.layout} chapters={chapters} index={index} item={item} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} reasonRule={instrument.reasonRule} drafts={drafts} saved={sample ? done : preview ? {} : saver.saved} savedLabel={sample ? (sampleKept ? SAMPLE_COPY.saved : SAMPLE_COPY.notKept) : undefined} errors={saver.errors} unsaved={saver.unsaved} onChange={change} onItem={(i) => { setItem(i); setWelcomeDone(true); }}
         onBack={() => go(index === 0 || page ? { kind: "about" } : { kind: "chapter", index: index - 1 })}
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(index + 2, names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
         onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy}
-        rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} />
+        rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} compact={compact} />
     );
   };
   // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
@@ -481,7 +481,6 @@ export function RespondentApp(props: RespondentAppProps) {
         <div className={FRAME_OUTER} data-testid="nothing-to-rate">
           <div className={FRAME_CARD}>
           <RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />
-          {previewStrip}
           <main className="flex grow flex-col gap-4 px-5 pt-6 pb-8 @xl:px-8">
             <p className="text-[17px] leading-[26px] text-ink-muted">{PERSPECTIVES_COPY.nothingVisible}</p>
           </main>
