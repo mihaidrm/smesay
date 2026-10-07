@@ -28,6 +28,16 @@ export const ACTIONS_COPY = {
   sampleState: "The sample's actions are invented and cannot be marked. Mark the actions of your own project.",
   kinds: { rewrite: "Rewrite", conflict: "Groups disagree", followUp: "Follow up", coverage: "Coverage" } as Record<InsightKind, string>,
   tooLong: "There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree tab and the Questions and gaps tab; work from those.",
+  // E4-8: the counts line before any press, the thinking lines while a run is pending, the
+  // stand-in line and the no-run line under the actions.
+  submittedCounts: (submitted: number, started: number) => `Actions are written from submitted answers. ${submitted} of ${started} ${started === 1 ? "response is" : "responses are"} submitted.`,
+  thinking: (items: number, answers: number) => [
+    `Reading ${items} ${items === 1 ? "item" : "items"} and ${answers} ${answers === 1 ? "answer" : "answers"}`,
+    "Looking for where people disagree",
+    "Writing the to-do list",
+  ],
+  standIn: "These actions came from the stand-in, not the AI.",
+  noRun: "No AI run on this project yet.",
   // A model call that did not go through (src/lib/ai/client.ts Refusal; docs/copy/errors.md,
   // Dashboard and exports). The answers stay on the other tabs whatever happens here.
   refusals: {
@@ -37,7 +47,8 @@ export const ACTIONS_COPY = {
     failed: "The AI did not answer. No action changed. Try again in a minute.",
     invalid: "The AI answered in a form the app could not use. No action changed. Try again.",
     rateLimited: "Too many AI requests at once. Wait a minute and try again.",
-  } as Record<"budget" | "paused" | "plan" | "failed" | "invalid" | "rateLimited", string>,
+    off: "AI is switched off in the developer menu. Switch it to Stand-in or Real to run this.",
+  } as Record<"budget" | "paused" | "plan" | "failed" | "invalid" | "rateLimited" | "off", string>,
   sample: "The sample's actions are invented, to show what this tab looks like.",
   // E9-3: the cost line under the actions and the estimate before a refused run.
   lastRun: (when: string, tokens: number, cost: string) => `Last run ${when}: ${tokens.toLocaleString("en-GB")} tokens, ${cost}.`,

@@ -190,7 +190,7 @@ async function TabPanel({ tab, ws, projectId, isSample, instrument, filter, ctx,
   if (tab === "pushed") return <PushedTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "questions") return <QuestionsTab ws={ws} instrument={instrument} filter={filter} ctx={ctx} href={href} itemHref={itemHref} />;
   if (tab === "export") return <ExportTab projectId={projectId} query={filterQuery(filter, ctx, {})} sample={isSample} />;
-  if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} itemHref={itemHref} />;
+  if (tab === "actions") return <ActionsTab ws={ws} projectId={projectId} sample={isSample} instrument={instrument} itemHref={itemHref} />;
   return <AgreementTab ws={ws} projectId={projectId} instrument={instrument} filter={filter} ctx={ctx} view={view} itemHref={itemHref} />;
 }
 

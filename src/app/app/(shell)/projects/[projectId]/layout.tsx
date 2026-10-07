@@ -11,7 +11,9 @@ import type { StepKey } from "@/components/app/stepper";
 import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { instruments, invites, projects } from "@/db/queries";
+import { aiMode, devMenuOn } from "@/lib/ai/mode";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
+import { DEV_MENU_COPY } from "@/lib/dev-menu-copy";
 import { latestSet } from "@/lib/imports";
 import { SampleBand } from "@/components/app/sample-band";
 import { UnsavedBanner } from "@/components/app/unsaved";
@@ -39,6 +41,9 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const published = built && (await invites.livePublic(current.ws, project.id)) !== null;
   const furthest: StepKey = published ? "results" : built ? "build" : imported ? "shape" : "import";
   const done: StepKey[] = published ? ["import", "shape", "build", "share"] : built ? ["import", "shape"] : imported ? ["import"] : [];
+  // The AI mode pill (stories/E4-8, acceptance 1): beside the stepper when the developer
+  // menu's choice is not the real model, so the stand-in's output is never taken for the AI's.
+  const mode = devMenuOn() ? await aiMode() : "real";
   return (
     <main className="flex flex-col gap-5 px-8 pb-6">
       {/* The project header with the stepper stays at the top of the viewport while the step
@@ -48,7 +53,10 @@ export default async function ProjectLayout({ children, params }: { children: Re
           <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
         </div>
-        <ProjectStepper projectId={project.id} furthest={furthest} done={done} pages={BUILT} imported={imported} />
+        <div className="flex flex-wrap items-center gap-3">
+          <ProjectStepper projectId={project.id} furthest={furthest} done={done} pages={BUILT} imported={imported} />
+          {mode !== "real" && <NeutralPill data-testid="ai-mode-pill">{DEV_MENU_COPY.pill[mode]}</NeutralPill>}
+        </div>
         {project.isSample ? <DeleteSample projectId={project.id} /> : (
           <form action={archiveAction}>
             <input type="hidden" name="projectId" value={project.id} />

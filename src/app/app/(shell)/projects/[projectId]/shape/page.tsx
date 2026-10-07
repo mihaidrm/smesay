@@ -10,6 +10,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { instruments, items, itemSets, projects } from "@/db/queries";
+import { aiRuns } from "@/db/queries/aiRuns";
+import { STAND_IN_MODEL } from "@/lib/ai/prices";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
@@ -56,6 +58,9 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
   // The guide (stories/E15-3, E15-4): a refused run after the last good one, a list not shaped,
   // reader versions waiting. Not on the sample.
   const failed = set && !project.isSample ? await lastEventWith("shape_failed", current.ws, "project", project.id) : null;
+  // The stand-in line (stories/E4-8, acceptance 4): the project's last answered Shape run
+  // was the stand-in's, so the areas and readable versions on this page are not the AI's.
+  const lastShape = shaped && !project.isSample ? await aiRuns.lastFor(current.ws, project.id, "shape") : null;
   const tip = project.isSample || !set ? null : shapeTip({ hasSet: rows.length > 0, importedAt: set.importedAt, shapedAt: set.shapedAt, lastFailedAt: failed?.at ?? null, pending: suggested });
   // "Try again" only where a run can work again: not after a budget, plan or pause refusal.
   const retryable = failed !== null && ["failed", "invalid", "rateLimited"].includes(String(failed.properties.reason));
@@ -68,7 +73,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           {set && rows.length > 0 && !project.isSample && (
             <div className="flex flex-wrap items-center gap-2">
               {shaped && <ReaderAll key={suggested} projectId={project.id} suggested={suggested} />}
-              <ShapeButton projectId={project.id} shaped={shaped} />
+              <ShapeButton projectId={project.id} shaped={shaped} items={rows.length} />
             </div>
           )}
         </div>
@@ -77,6 +82,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
             {shaped && <>{SHAPE_COPY.grouped(rows.length, set.areas?.length ?? 0)} </>}
             <span data-testid="reader-counter">{SHAPE_COPY.counter(counts.accepted, counts.total)}</span>
             {shaped && <> <span className="text-[13px]">{SHAPE_COPY.runAgainHint}</span></>}
+            {lastShape?.model === STAND_IN_MODEL && <> <span className="text-[13px]" data-testid="shape-stand-in">{SHAPE_COPY.standIn}</span></>}
           </p>
         ) : (
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>

@@ -26,7 +26,7 @@ import { log } from "@/lib/log";
 
 
 // Every counted answer under the default view: submitted responses only (decision 0030).
-const COUNTED: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
+export const COUNTED: ResultsFilter = { fields: {}, kinds: [], withComment: false, perspective: null, status: [], includeUnsubmitted: false, sort: null, split: null, gaps: null };
 
 export type ActionRow = { kind: InsightKind; title: string; why: string; citedAnswerIds: string[]; citedMissingItemIds: string[] };
 

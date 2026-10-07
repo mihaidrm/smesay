@@ -49,6 +49,19 @@ npm run jobs:purge       # remove the workspaces deleted in Settings, their rows
 npm run legal:markers    # the lawyer's markers in docs/legal/ (stories/E11-3)
 ```
 
+AI calls on a local machine (stories/E4-8): the sidebar's developer menu, "AI calls", decides
+where Shape and Write actions go. It shows when `NODE_ENV` is not `production` (`npm run dev`)
+or when `SMESAY_DEV_MENU=1` is set (CI's Playwright run sets it for the production server);
+a production build without the variable never shows it and always calls the real model. The
+choice is the cookie `smesay-ai-mode` in your browser. With no cookie a local checkout starts
+on "Stand-in (free)": the answers come from src/lib/ai/stand-in.ts in the process, no key or
+cap is needed, the run is logged with model "stand-in" at EUR 0.00, and every screen says the
+output came from the stand-in. Pick "Real (spends credits)" to call the model with
+`ANTHROPIC_API_KEY` under `ANTHROPIC_MONTHLY_BUDGET_EUR`; "Off" refuses every call. The
+menu also shows the workspace's AI runs and spend this month. `npm run ai:smoke` and
+`npm run evals` always call the real model, whatever the menu says (decision 0039: they are
+yours to start).
+
 On a machine with a preinstalled Chromium and no download access, set
 `PLAYWRIGHT_CHROMIUM_PATH` to its path before `npm run test:e2e`. The app reads the same variable
 at run time: the PDF summary (stories/E10-3) prints with that Chromium, else with the one

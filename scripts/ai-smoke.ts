@@ -26,7 +26,8 @@ async function main() {
     schema: z.strictObject({ greeting: z.string() }),
     check: (out) => (out.greeting.includes("SMEsay") ? null : "the greeting does not name the product"),
     maxOutputTokens: 256,
-  });
+    // Mihai's paid check (decision 0039): the real model whatever the developer menu says (E4-8).
+  }, { mode: "real" });
   if (!result.ok) throw new Error(`${result.reason}: ${result.detail}. Shown to the user as: ${result.message}`);
   console.log(`Answer: ${result.output.greeting}`);
   console.log(`Model ${result.run.model}, ${result.run.tokensIn} tokens in, ${result.run.tokensOut} out, ${result.run.costEurCents} euro cent(s), ${result.run.durationMs} ms, ai_run ${result.run.id} in workspace ${ws.name}.`);

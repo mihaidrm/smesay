@@ -144,6 +144,26 @@ describe("writeActions", () => {
     expect(after.slice(2).map((r) => r.id)).toEqual([listed[0].id, listed[1].id]);
   });
 
+  // E4-8: the developer menu's stand-in answers in the process (src/lib/ai/stand-in.ts),
+  // the same four actions the browser tests see, logged as a stand-in run at zero cost; Off
+  // refuses with its own sentence and no retry.
+  it("writes four actions from the stand-in at zero cost, and refuses when AI is off", async () => {
+    const p = await answeredProject();
+    const runsBefore = await aiRuns.count(a.ws);
+    const result = await writeActions(a, p.project.id, { mode: "standin", standInDelayMs: 0 });
+    if (!("written" in result)) throw new Error(result.error);
+    expect(result.written.map((w) => w.kind)).toEqual(["rewrite", "conflict", "followUp", "coverage"]);
+    expect(result.written[1].citedAnswerIds.sort()).toEqual([p.anaFlags.id, p.boFlags.id].sort());
+    expect(result.written[3].citedMissingItemIds).toEqual([p.missing.id]);
+    expect(result.written.every((w) => w.model === "stand-in" && w.costEurCents === 0)).toBe(true);
+    expect(await aiRuns.count(a.ws)).toBe(runsBefore + 1);
+    const run = (await aiRuns.list(a.ws)).sort((x, y) => y.createdAt.getTime() - x.createdAt.getTime())[0];
+    expect(run).toMatchObject({ purpose: "insights", model: "stand-in", tokensIn: 1000, tokensOut: 500, costEurCents: 0 });
+    expect(await aiRuns.lastFor(a.ws, p.project.id, "insights")).toMatchObject({ id: run.id });
+    expect(await writeActions(a, p.project.id, { mode: "off" })).toEqual({ error: ACTIONS_COPY.refusals.off, retry: false });
+    expect(await aiRuns.count(a.ws)).toBe(runsBefore + 1);
+  });
+
   it("refuses the sample and another workspace's project, and shows nothing across workspaces", async () => {
     const sample = (await projects.list(a.ws)).find((p) => p.isSample)!;
     const { fetch, calls } = transport(fourAndABadOne);

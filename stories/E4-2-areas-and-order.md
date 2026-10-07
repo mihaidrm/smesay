@@ -38,3 +38,11 @@ E5's builder). One answer carries at most 400 items (design note 27).
   accepted" on the title row once shaped. The card is the drop target, so a drop on a closed
   area's row lands in it; the rationale is the first line inside. e2e/shape.spec.ts asserts
   the first area open and the second closed, then opened by a click.
+
+Amended 2026-10-07 (stories/E4-8, design note 113, decision 0044): while a run is pending
+the thinking state shows under the button ("Reading [N] items", "Grouping them into areas",
+"Writing a readable version of each"); a refusal shows in the danger tint with an alert
+icon, and the developer menu's "Off" adds its own refusal; after a run by the menu's
+stand-in the grouped line ends with "These areas and readable versions came from the
+stand-in, not the AI."; a refusal for "Off" writes no shape_failed event, so the rescue tip
+(E15-4) does not fire for it.

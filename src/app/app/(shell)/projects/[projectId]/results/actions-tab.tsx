@@ -7,16 +7,23 @@
 // shows its seeded actions with no controls (E9-1 acceptance 7, E9-2 acceptance 1). Under the
 // actions, the cost line (E9-3): the project's last run of Write actions and the workspace's
 // AI spend this month, the same sum as Settings' usage line (usage(), E2-6); not on the sample,
-// whose seeded runs no month counts (usage() leaves the sample out). Copy:
-// docs/copy/app.md, Results, Actions.
+// whose seeded runs no month counts (usage() leaves the sample out). E4-8 (acceptance 4 and
+// 6): before any press, when no response is submitted, the counts line says why a run has
+// nothing to read; under the actions, "No AI run on this project yet." until the first
+// answered run, and the stand-in line when that run was the stand-in's; the counts the
+// thinking state reads (the set's items, the submitted answers) come from the same queries.
+// Copy: docs/copy/app.md, Results, Actions.
 import Link from "next/link";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { aiRuns } from "@/db/queries/aiRuns";
 import { insights, type InsightWithCitations } from "@/db/queries/insights";
+import type { Instrument } from "@/db/queries/instruments";
+import { items } from "@/db/queries/items";
+import { results } from "@/db/queries/results";
 import { usage } from "@/db/queries/usage";
-import { formatEur } from "@/lib/ai/prices";
+import { formatEur, STAND_IN_MODEL } from "@/lib/ai/prices";
 import type { WorkspaceId } from "@/db/types";
-import { citationLines } from "@/lib/insights";
+import { citationLines, COUNTED } from "@/lib/insights";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
 import { RESPONSES_COPY } from "@/lib/results-copy";
 import { formatUtc } from "@/lib/sharing-format";
@@ -26,10 +33,15 @@ import { WriteActions } from "./write-actions";
 
 // The Results body renders only once the project has an answer (E8-1), so Write actions is
 // always there on a PM's project.
-type Props = { ws: WorkspaceId; projectId: string; sample: boolean; itemHref: (id: string) => string };
+type Props = { ws: WorkspaceId; projectId: string; sample: boolean; instrument: Instrument; itemHref: (id: string) => string };
 
-export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
-  const [rows, last, used] = await Promise.all([insights.listWithCitations(ws, projectId), aiRuns.lastFor(ws, projectId, "insights"), usage(ws)]);
+export async function ActionsTab({ ws, projectId, sample, instrument, itemHref }: Props) {
+  // The counts under the default view (submitted responses only, decision 0030): the
+  // started and submitted responses, the answers a run reads, the set's items.
+  const [rows, last, used, n, setItems] = await Promise.all([insights.listWithCitations(ws, projectId), aiRuns.lastFor(ws, projectId, "insights"), usage(ws), results.numbers(ws, instrument.id, COUNTED), items.forSet(ws, instrument.itemSetId)]);
+  const submitted = n?.submitted ?? 0;
+  const started = submitted + (n?.inProgress ?? 0);
+  const answers = (n?.answered ?? 0) + (n?.pick ?? 0);
   const open = rows.filter((r) => r.state === "open");
   const closed = (["done", "dismissed"] as const).map((state) => ({ state, rows: rows.filter((r) => r.state === state) })).filter((s) => s.rows.length > 0);
   const card = (r: InsightWithCitations) => <ActionCard key={r.id} r={r} projectId={projectId} sample={sample} itemHref={itemHref} />;
@@ -38,7 +50,10 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
       {sample ? (
         <p className="text-sm text-ink-muted" data-testid="actions-sample">{ACTIONS_COPY.sample}</p>
       ) : (
-        <WriteActions projectId={projectId} again={rows.length > 0} />
+        <>
+          {submitted === 0 && <p className="text-sm text-ink-muted" data-testid="actions-counts">{ACTIONS_COPY.submittedCounts(submitted, started)}</p>}
+          <WriteActions projectId={projectId} again={rows.length > 0} items={setItems.length} answers={answers} />
+        </>
       )}
       {rows.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="actions-empty">{sample ? ACTIONS_COPY.sampleEmpty : ACTIONS_COPY.empty}</p>
@@ -56,11 +71,14 @@ export async function ActionsTab({ ws, projectId, sample, itemHref }: Props) {
           ))}
         </>
       )}
-      {last && !sample && (
+      {!sample && (last ? (
         <p className="text-xs text-ink-muted" data-testid="actions-cost">
+          {last.model === STAND_IN_MODEL && <><span data-testid="actions-stand-in">{ACTIONS_COPY.standIn}</span> </>}
           {ACTIONS_COPY.lastRun(formatUtc(last.createdAt), last.tokensIn + last.tokensOut, formatEur(last.costEurCents))} {ACTIONS_COPY.thisMonth(formatEur(used.aiCostCentsThisMonth))}
         </p>
-      )}
+      ) : (
+        <p className="text-xs text-ink-muted" data-testid="actions-no-run">{ACTIONS_COPY.noRun}</p>
+      ))}
     </div>
   );
 }

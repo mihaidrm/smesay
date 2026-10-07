@@ -21,7 +21,9 @@ import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { isWithin, limitFor } from "@/lib/plans";
 import { AI_COPY } from "./copy";
-import { costEurCents, DEFAULT_MODEL, estimateCents } from "./prices";
+import { aiMode, type AiMode } from "./mode";
+import { costEurCents, DEFAULT_MODEL, estimateCents, STAND_IN_MODEL } from "./prices";
+import { standInFetch } from "./stand-in";
 import { assertStrict } from "./strict";
 import { log } from "@/lib/log";
 
@@ -58,12 +60,19 @@ export type RunInput<T> = {
 };
 
 // Swapped in by tests: a fetch that answers instead of the network, a short timeout, a fixed
-// clock. The app passes nothing.
-export type RunDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: Date; model?: string };
+// clock. The app passes nothing. mode (E4-8): where the call goes, else "real" when a fetch
+// is given (the test's fetch is the transport), else the request's cookie (src/lib/ai/
+// mode.ts); scripts/ai-smoke.ts and evals/run.ts pass "real", since they are Mihai's paid
+// checks. standInDelayMs: the stand-in's wait, STAND_IN_DELAY_MS unless given.
+export type RunDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: Date; model?: string; mode?: AiMode; standInDelayMs?: number };
+
+// The in-process stand-in waits this long before answering, so the thinking state can be
+// seen on a local machine (stories/E4-8, acceptance 5).
+export const STAND_IN_DELAY_MS = 2_000;
 
 export type Run = { id: string; model: string; tokensIn: number; tokensOut: number; costEurCents: number; durationMs: number };
 
-export type Refusal = "paused" | "budget" | "plan" | "rateLimited" | "failed" | "invalid";
+export type Refusal = "paused" | "budget" | "plan" | "rateLimited" | "failed" | "invalid" | "off";
 export type RunResult<T> =
   | { ok: true; output: T; run: Run }
   // paused: the product's monthly cap (ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036), refused
@@ -72,10 +81,11 @@ export type RunResult<T> =
   // the app cannot use: a refusal, a cut-off, a schema or check failure (acceptance 5). The
   // message is what the screen shows; detail is for the server log: codes, counts and paths
   // from this file, plus the caller's check reason, which the caller keeps free of list text.
-  // estimateCents: the call's estimate, on a paused or budget refusal (E9-3).
+  // estimateCents: the call's estimate, on a paused or budget refusal (E9-3). off: the
+  // developer menu's switch (E4-8), refused before the call, no row.
   | { ok: false; reason: Refusal; message: string; detail: string; estimateCents?: number };
 
-const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid };
+const MESSAGE: Record<Refusal, string> = { paused: AI_COPY.paused, budget: AI_COPY.budget, plan: AI_COPY.plan, rateLimited: AI_COPY.rateLimited, failed: AI_COPY.failed, invalid: AI_COPY.invalid, off: AI_COPY.off };
 const refused = <T>(reason: Refusal, detail: string, estimateCents?: number): RunResult<T> => ({ ok: false, reason, message: MESSAGE[reason], detail, ...(estimateCents === undefined ? {} : { estimateCents }) });
 
 // The text an estimate counts (E9-3): the prompt and the output schema the API sends with it.
@@ -103,7 +113,12 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   if (!project) throw new NotFoundError();
   if (project.isSample) throw new ForbiddenError(AI_COPY.sample);
 
-  const model = deps.model ?? DEFAULT_MODEL;
+  // Where the call goes (E4-8): the developer menu's choice, read from the request's cookie
+  // unless the caller says. "Off" is refused here, before the budget checks and the row.
+  const mode: AiMode = deps.mode ?? (deps.fetch ? "real" : await aiMode());
+  if (mode === "off") return refused("off", "AI is off in the developer menu");
+  const standIn = mode === "standin";
+  const model = standIn ? STAND_IN_MODEL : deps.model ?? DEFAULT_MODEL;
   const maxOutputTokens = input.maxOutputTokens ?? OUTPUT_TOKENS_MAX;
   const now = deps.now ?? new Date();
 
@@ -111,7 +126,9 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   // every workspace plus the call's estimate against ANTHROPIC_MONTHLY_BUDGET_EUR, then the
   // workspace's spend from usage(), the same rows E2-6 counts, against the workspace's euro
   // cap, and the plan's run cap through the same numbers, so none of the three can disagree.
-  const cap = productCapEur();
+  // The stand-in costs nothing, so it needs neither the product cap variable nor the key
+  // (E4-8, acceptance 4); its estimate is zero and the workspace's own checks still run.
+  const cap = standIn ? 0 : productCapEur();
   if (cap === null) {
     log("error", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set or not a whole number of euro. The AI call was not made.");
     return refused("failed", "ANTHROPIC_MONTHLY_BUDGET_EUR is not set");
@@ -120,17 +137,22 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   // note 26 named it as the gap the whole allowance covered; E9-3 lets a caller expect less).
   const outputFormat = outputFormatOf(input.schema);
   const estimate = estimateCents(model, estimateText(input.instructions, input.data, outputFormat), Math.min(input.expectedOutputTokens ?? maxOutputTokens, maxOutputTokens));
-  const productSpent = await internal.productAiCostCentsThisMonth(now);
-  if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
+  if (!standIn) {
+    const productSpent = await internal.productAiCostCentsThisMonth(now);
+    if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
+  }
   const used = await usage(input.ws, now);
   if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`, estimate);
   if (!isWithin(limitFor(workspace.plan, "aiRuns"), used.aiRunsThisMonth)) return refused("plan", `${used.aiRunsThisMonth} runs this month on plan ${workspace.plan}`);
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = standIn ? STAND_IN_MODEL : process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     log("error", "ANTHROPIC_API_KEY is not set. The AI call was not made.");
     return refused("failed", "ANTHROPIC_API_KEY is not set");
   }
+  // The transport: the test's fetch, the stand-in's (the SDK's client option fetch,
+  // client.d.ts), or the network when neither.
+  const transport = standIn ? standInFetch({ delayMs: deps.standInDelayMs ?? STAND_IN_DELAY_MS }) : deps.fetch;
 
   // Every call is a row (acceptance 2), answered or not: a call the provider did not answer
   // is logged with zero tokens and zero cost, so the log is the full list of attempts. The
@@ -149,7 +171,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const client = new Anthropic({ apiKey, fetch: deps.fetch, timeout: timeoutMs, maxRetries: 0 });
+    const client = new Anthropic({ apiKey, fetch: transport, timeout: timeoutMs, maxRetries: 0 });
     message = await client.messages.create({
       model,
       max_tokens: maxOutputTokens,
@@ -185,7 +207,7 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
   const run: Run = { id: row.id, model, tokensIn, tokensOut, costEurCents: row.costEurCents, durationMs };
   // The estimate next to the actual, counts only, so a real run shows how close the estimate
   // came (E9-3, acceptance 3; the tests have no real usage to compare with).
-  log("info", "AI run.", { purpose: input.purpose, estimateCents: estimate, costCents: row.costEurCents, tokensIn, tokensOut });
+  log("info", "AI run.", { purpose: input.purpose, model, estimateCents: estimate, costCents: row.costEurCents, tokensIn, tokensOut });
 
   // A refusal or a cut-off answer: the model answered, but not with something usable.
   if (message.stop_reason !== "end_turn") return refused("invalid", `stop_reason ${message.stop_reason}`);

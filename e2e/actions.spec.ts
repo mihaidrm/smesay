@@ -77,9 +77,19 @@ test("write actions from the answers, each citing the answers behind it", async 
 
   await page.goto(`${projectUrl}/results?tab=actions`);
   await expect(page.getByTestId("actions-empty")).toBeVisible();
+  // E4-8: before any run the tab says so; one response is submitted, so no counts line. The
+  // stand-in server waits 1.5 s on request (POST /delay), so the thinking state can be seen:
+  // the mascot in the analysis pose and the first line with the tab's counts.
+  await expect(page.getByTestId("actions-no-run")).toHaveText("No AI run on this project yet.");
+  await expect(page.getByTestId("actions-counts")).toHaveCount(0);
+  await request.post("http://localhost:4010/delay?ms=1500");
   await page.getByTestId("write-actions").click();
+  await expect(page.getByTestId("thinking-line")).toContainText("Reading 2 items and 2 answers");
+  await expect(page.getByTestId("thinking").getByTestId("mascot")).toHaveAttribute("data-pose", "analysis");
   const actions = page.getByTestId("action");
   await expect(actions).toHaveCount(4);
+  await expect(page.getByTestId("thinking")).toHaveCount(0);
+  await expect(page.getByTestId("actions-no-run")).toHaveCount(0);
   await expect(page.getByTestId("tab-actions")).toHaveText("Actions (4)");
   await expect(actions.getByTestId("action-kind")).toHaveText(["Rewrite", "Groups disagree", "Follow up", "Coverage"]);
   await expect(actions.first().getByTestId("action-title")).toHaveText("Rewrite the first item so its scope is clear.");

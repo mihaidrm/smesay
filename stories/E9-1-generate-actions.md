@@ -71,3 +71,12 @@ Built 2026-10-04 (design note 66, decision 0044):
 - Acceptance 7: the sample shows its four seeded actions with their kinds and citations (the
   fourth cites the missing item now) and no Write actions; writeActions refuses the sample.
 
+
+Amended 2026-10-07 (stories/E4-8, design note 113, decision 0044): the Actions tab says
+"Actions are written from submitted answers. [S] of [R] responses are submitted." above the
+button while no response is submitted, "No AI run on this project yet." under the actions
+until the first answered run, and "These actions came from the stand-in, not the AI." when
+that run was the developer menu's stand-in; a refusal shows in the danger tint with an alert
+icon; while a run is pending the thinking state shows under the button with the tab's
+counts. On a local checkout Write actions goes to the stand-in unless the menu says
+otherwise; Playwright keeps "real", which is the stand-in server.

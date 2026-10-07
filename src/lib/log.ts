@@ -15,6 +15,8 @@ import { scrubText } from "@/lib/scrub";
 export const FIELDS = [
   "workspace", "project", "set", "purpose", "reason", "detail", "step", "error", "sqlstate",
   "count", "objects", "responses", "projects", "estimateCents", "costCents", "tokensIn", "tokensOut",
+  // E4-8: the model a run went to ("stand-in" or the model id), so a local run says it spent nothing.
+  "model",
 ] as const;
 export type LogField = (typeof FIELDS)[number];
 export type LogFields = Partial<Record<LogField, string | number | null | undefined>>;
