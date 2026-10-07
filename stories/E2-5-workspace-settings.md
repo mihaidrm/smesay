@@ -27,6 +27,14 @@ saved.
    respondent's screens is checked by E7's test (e2e/respondent-a11y.spec.ts), since the
    sample has no preview (decision 0021, item 1; changed 2026-10-04 with E5-6).
 
+Changed 2026-10-07 (design note 104; Mihai: "accent color in brand needs to open a color
+picker - users wont know it"): the swatch of acceptance 1 is an input of type color that opens
+the browser's picker; the hex field stays beside it and the two stay in sync both ways (a
+picked colour is written in upper case, an invalid or partial hex leaves the swatch on the
+last valid colour, an empty field shows the default violet and the "No accent set" line); a
+tertiary Clear empties the field. Server validation (acceptance 4) is unchanged. Helper and
+test: pickerValue() and pickedHex() in src/lib/brand-rules.ts, src/lib/brand-rules.test.ts.
+
 ## Out of scope
 - Billing and plan changes: R3. The AI budget may become credits bought from SMEsay (decision
   0036, point 3).
