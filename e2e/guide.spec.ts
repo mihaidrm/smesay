@@ -61,10 +61,15 @@ test("the first-project path, the switch and Dismiss", async ({ page, request })
   await expect(card.getByTestId("guide-line")).toHaveText("Let the AI group the items into areas and write a readable version of each. Nothing changes until you accept.");
   await expect(card.getByRole("link", { name: "Go to Shape" })).toHaveAttribute("href", /\/app\/projects\/[0-9a-f-]{36}\/shape$/);
 
-  // Dismiss: gone, the focus on the title, and gone after a reload.
+  // Dismiss: gone, the focus on the title, and gone after a reload. The card hides itself
+  // before the server stores the dismissal (guide-card.tsx), so the reload waits for that
+  // store: a server action is a POST to the page (node_modules/next/dist/docs/01-app/
+  // 01-getting-started/07-mutating-data.md, "actions use the POST method").
+  const stored = page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/app" && r.ok());
   await card.getByTestId("guide-dismiss").click();
   await expect(card).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  await stored;
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Projects");
   await expect(card).toHaveCount(0);
