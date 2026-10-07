@@ -17,7 +17,8 @@ different-priority register, not beside it, so both keep their columns at 1440.
    role, proposed, their value, reason) and, under it, the disagree register (item,
    respondent, role, reason; decision 0014), each with its own count in its heading.
    Questions and gaps tab: the unclear register (item, respondent, role, question) and the
-   missing-item register (text, suggested area, suggested value, respondent, role).
+   missing-item register (text, respondent, role; the suggested area and value columns went
+   with the one-box form on 2026-10-07, decision 0060).
 2. Rows read across their columns: the respondent (named as on the Responses tab), their
    role, the value and the reason or question; values use the instrument's labels (E5-2).
 3. Sortable by every column, ascending and descending, the sort in the URL; the page's
@@ -50,8 +51,8 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md):
   Responses tab; one who has not submitted is marked "Not submitted", one who changed answers
   after Submit "Changes not submitted again" (E7-6).
 - Acceptance 3: every column sorts both ways, the sort in the URL (item, respondent, the
-  role field, proposed, their value, reason or question; for missing items the text, area
-  and value); the value columns sort in the scale's order (Must, Should, Could, Not needed),
+  role field, proposed, their value, reason or question; for missing items the text, since
+  2026-10-07); the value columns sort in the scale's order (Must, Should, Could, Not needed),
   not by the stored code; the header marks the column the rows are sorted by; the filter bar
   narrows every register. An empty register reads "None under this filter." or, with no
   filter, "None yet."

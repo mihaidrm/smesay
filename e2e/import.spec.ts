@@ -88,7 +88,9 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
   await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();
   await expect(page.getByTestId("imported-version")).toHaveText("Imported as version 1.");
-  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Shape/);
+  // The filled pill is the open page (design note 106): Import, with Shape now a link.
+  await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Import/);
+  await expect(page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ })).toBeVisible();
   // Everything imported: Versions is open with its summary, The list is closed with the file
   // name; a click on The list's title row opens it (design note 110).
   await expect(page.getByTestId("import-log")).toHaveJSProperty("open", true);

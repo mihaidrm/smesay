@@ -106,7 +106,9 @@ const ProjectFile = z.strictObject({
     signedOff: z.boolean(), submittedAt: date.nullable(), firstSubmittedAt: date.nullable(), closingAnswer: text(5000).nullable(), signOffText: text(1000).nullable(), createdAt: date, updatedAt: date,
     answers: z.array(z.strictObject({ id, itemId: id, kind: z.enum(FILE_ENUMS.answerKind), value: text(50).nullable(), reason: text(5000).nullable(), comment: text(5000).nullable(), updatedAt: date })),
   })),
-  missingItems: z.array(z.strictObject({ id, responseId: id, text: text(5000), suggestedArea: text(200).nullable(), suggestedValue: text(50).nullable(), createdAt: date })),
+  // suggestedArea and suggestedValue: written by files exported before 2026-10-07 (decision
+  // 0060); read and dropped.
+  missingItems: z.array(z.strictObject({ id, responseId: id, text: text(5000), suggestedArea: text(200).nullable().optional(), suggestedValue: text(50).nullable().optional(), createdAt: date })),
   insights: z.array(z.strictObject({
     kind: z.enum(FILE_ENUMS.insightKind).nullable(), title: text(500), why: text(2000).nullable(), citedAnswerIds: z.array(id), citedMissingItemIds: z.array(id),
     state: z.enum(FILE_ENUMS.insightState), closedAt: date.nullable(), closedBy: text(320).nullable(), model: text(100).nullable(), tokensIn: count.nullable(), tokensOut: count.nullable(), costEurCents: count.nullable(), createdAt: date,
@@ -135,7 +137,7 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
       submittedAt: iso(r.submittedAt), firstSubmittedAt: iso(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString(),
       answers: (answersOf.get(r.id) ?? []).map((a) => ({ id: a.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: a.updatedAt.toISOString() })),
     })),
-    missingItems: rows.missingItems.map((m) => ({ id: m.id, responseId: m.responseId, text: m.text, suggestedArea: m.suggestedArea, suggestedValue: m.suggestedValue, createdAt: m.createdAt.toISOString() })),
+    missingItems: rows.missingItems.map((m) => ({ id: m.id, responseId: m.responseId, text: m.text, createdAt: m.createdAt.toISOString() })),
     insights: rows.insights.map((s) => ({ kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds, citedMissingItemIds: s.citedMissingItemIds, state: s.state, closedAt: iso(s.closedAt), closedBy: s.closedByEmail, model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: s.createdAt.toISOString() })),
   };
 }
@@ -230,7 +232,7 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
     invites: f.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: D(v.opensAt), closesAt: D(v.closesAt), revokedAt: D(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: D(v.lastReminderAt), sentAt: D(v.sentAt), createdAt: new Date(v.createdAt) })),
     responses: f.responses.map((r) => ({ id: r.id, instrumentId: r.instrumentId, itemSetId: r.itemSetId, inviteId: r.inviteId, fields: fieldsOf(r), perspectives: r.perspectives, confidence: r.confidence, signedOff: r.signedOff, submittedAt: D(r.submittedAt), firstSubmittedAt: D(r.firstSubmittedAt), closingAnswer: r.closingAnswer, signOffText: r.signOffText, createdAt: new Date(r.createdAt), updatedAt: new Date(r.updatedAt) })),
     answers: f.responses.flatMap((r) => r.answers.map((a) => ({ id: a.id, responseId: r.id, itemId: a.itemId, kind: a.kind, value: a.value, reason: a.reason, comment: a.comment, updatedAt: new Date(a.updatedAt) }))),
-    missingItems: f.missingItems.map((m) => ({ ...m, createdAt: new Date(m.createdAt) })),
+    missingItems: f.missingItems.map((m) => ({ id: m.id, responseId: m.responseId, text: m.text, createdAt: new Date(m.createdAt) })),
     insights: f.insights.map((s) => ({ kind: s.kind, title: s.title, why: s.why, citedAnswerIds: s.citedAnswerIds, citedMissingItemIds: s.citedMissingItemIds, state: s.state, closedAt: D(s.closedAt), model: s.model, tokensIn: s.tokensIn, tokensOut: s.tokensOut, costEurCents: s.costEurCents, createdAt: new Date(s.createdAt) })),
   };
   // A database refusal the checks above did not foresee: the transaction rolls back, and the

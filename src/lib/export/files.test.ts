@@ -92,7 +92,7 @@ async function reconcile(f: ResultsFilter) {
   expect(median).toBe(n.medianMinutes);
   const missing = (await file(wsA, "missing", f)).rows;
   expect(missing.length).toBe(n.missing);
-  const registered = await registers.missing(wsA, instrument.id, f, instrument.respondentFields.map((s) => s.key), instrument.method);
+  const registered = await registers.missing(wsA, instrument.id, f, instrument.respondentFields.map((s) => s.key));
   expect(missing.map((r) => r["Suggested item"]).sort()).toEqual(registered.map((m) => safeText(m.text)).sort());
   return { answers, people };
 }

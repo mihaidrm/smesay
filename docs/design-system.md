@@ -187,11 +187,23 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 - Inputs: 40 high, hairline-strong, radius 12, surface fill, placeholder token (placeholder
   only, never for real text). Focus as buttons. Error: danger border and a message in danger
   saying what happened and what to do next.
+- File picker (src/components/app/file-picker.tsx, design note 103): a label drawn as the
+  secondary button around the file input, kept off screen with its id, name and accept; the
+  file's name beside it at 14 px muted, "No file chosen" before a pick; the ring on the button
+  while the input has the focus; the verb "Choose a file" ("Choose an image" for the logo);
+  disabled at 40 percent while the form is busy.
 - Status pills: tint fill, text colour from the table, 12 px weight 600, height 24, radius 999.
   Neutral pill: tint fill, soft ink. Count badge (nav): coral fill, dark text, 11 px 700.
   Toggle chip (the perspective tags on Shape, design note 44): a pill-shaped button with
   aria-pressed, hairline-strong and muted text when off, violet soft and violet text when
   on, 12 px 600, height 24, radius 999; aria-disabled at 60 percent while a press saves.
+- Colour picker (Settings, Brand; design note 104): a 40 by 40 swatch, radius 10, hairline,
+  the hand cursor and the focus ring, painted with the colour in the hex field beside it
+  (the default violet when the field is empty); it is an input of type color laid over the
+  swatch, so a press opens the browser's own picker, and the picked colour writes the hex
+  in upper case into the field. A tertiary Clear beside the field empties it. The same in
+  both modes; the swatch shows the saved value, not the lift the respondent side draws on
+  dark.
 - Toggle 44 by 24, violet when on, ink-muted when off, the thumb white on light and the ground
   on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
@@ -224,9 +236,10 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   mode toggle; the signed-in email and Sign out.
 - Project header: breadcrumb, title, the stepper and Archive on one row, pinned to the top of
   the viewport on the ground with a hairline under it while the step page scrolls.
-- Stepper: pills on a surface track, the current step a violet pill with on-violet text and an
-  on-violet circle holding a violet number, a done step a mint circle with a dark tick, a coming
-  step muted with a hairline-strong circle.
+- Stepper: pills on a surface track, the current step (the open page) a violet pill with
+  on-violet text and an on-violet circle holding a violet number, ringed in violet (2 px) with
+  a 2 px surface offset, a done step a mint circle with a dark tick, a coming step muted with a
+  hairline-strong circle.
 - Tiles: the workspace's initials and a project's colour (one of four gradients picked by the
   name; the sample a dashed outline) are decoration beside the written name, never the only
   mark.

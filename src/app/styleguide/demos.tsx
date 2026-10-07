@@ -16,6 +16,7 @@ import { StatusPill, NotAnsweredPill } from "@/components/ui/status-pill";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Banner, EmptyState, Toast } from "@/components/ui/banner";
 import { CollapsibleCard } from "@/components/app/collapsible-card";
+import { FilePicker, FILE_PICKER_COPY } from "@/components/app/file-picker";
 
 function Row({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
@@ -64,6 +65,16 @@ export function Demos() {
         <div className="flex w-full max-w-[360px] flex-col gap-1.5">
           <Label htmlFor="sg-ctx">What is this about?</Label>
           <Textarea id="sg-ctx" rows={2} placeholder="Write a few words on what the list is for and who answers." />
+        </div>
+      </Row>
+      <Row title="File picker" note="A label styled as the secondary button around the file input, the file's name beside it in muted text. The ring shows on the button while the input has the focus (design note 103).">
+        <div className="flex w-full max-w-[360px] flex-col gap-1.5">
+          <Label htmlFor="sg-file">Your file</Label>
+          <FilePicker id="sg-file" name="file" accept=".xlsx,.csv" />
+        </div>
+        <div className="flex w-full max-w-[360px] flex-col gap-1.5">
+          <Label htmlFor="sg-logo">Logo</Label>
+          <FilePicker id="sg-logo" name="logo" accept="image/png,image/svg+xml" label={FILE_PICKER_COPY.chooseImage} disabled />
         </div>
       </Row>
       <Row title="Status pills" note="Tint fill, text from the table, 12 px weight 600. Always with the word.">
