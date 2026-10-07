@@ -293,7 +293,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
   // The Closing card focused opens the Wrap up in the preview (E5-5, acceptance 3); a control
   // of another card opens the first screen again.
-  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap$/);
+  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap&compact=1$/);
   await expect(async () => { await ready(); await expect(wrapUp).toBeVisible({ timeout: 1_000 }); }).toPass({ timeout: 15_000 });
   await page.getByRole("switch", { name: "Ask for missing items" }).click();
   await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
@@ -309,8 +309,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
   await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
   await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
-  await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
-  await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
+  // The compact Wrap up has no Submit and no note (decision 0061); e2e/preview.spec.ts proves
+  // the preview saves nothing and e2e/respondent-submit.spec.ts proves the Submit rules.
+  await expect(wrapUp.getByTestId("wrap-up-submit")).toHaveCount(0);
 
   // The sidebar and the project header stay in view while the page scrolls (design note 43).
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
