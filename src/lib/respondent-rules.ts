@@ -110,7 +110,7 @@ export const RESPONDENT_ERRORS = {
   cookiesBlocked: "This browser did not keep the cookie this page needs to save your answers. Allow cookies for this site, or open the link in another browser.",
   itemsOpen: (n: number) => `${n} ${n === 1 ? "item is" : "items are"} still to finish. Finish ${n === 1 ? "it" : "them"} in the sections, then submit.`,
   fieldsOpen: "Fill in your details on About you, then submit.",
-  confidence: "Pick how sure you are, 1 to 5, before you submit.",
+  confidence: "Move the slider to say how sure you are before you submit.",
   signOff: "Tick the confirmation to submit.",
   // E7-5: the PM changed the sign-off sentence after this page opened.
   signOffChanged: "The confirmation changed since this page opened. Reload the page, read it and tick it again.",

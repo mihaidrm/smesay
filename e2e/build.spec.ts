@@ -304,7 +304,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers.");
   await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
   await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
-  await expect(wrapUp.getByRole("radio", { name: "3" })).toBeVisible();
+  await expect(wrapUp.getByTestId("confidence-slider")).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
   await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
 

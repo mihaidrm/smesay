@@ -144,3 +144,16 @@ Built 2026-10-04 (design note 55, decision 0044):
 - Fifth audit 2026-10-04 (on those fixes): 0 blocking, 0 should-fix, 7 nits. Merged (PR
   92); the nits are fixed with E7-6, whose saver changes touch the same code
   (stories/E7-6-submitted-and-edit.md).
+
+Amended 2026-10-07 (design note 107, Mihai's request of the same day): the confidence in
+acceptance 1 is still stored as 1 to 5, but the respondent picks it on a slider, not five
+pills. A native range input fills the row, the thumb in the PM's accent; the word of the
+value shows under it (Guessing, Not very sure, Fairly sure, Confident, Certain) with Guessing and Certain at the two ends; until the
+respondent moves it the thumb rests at 3, dimmed, and the line under it reads "Drag to say
+how sure you are". A tap that does not move the thumb, or Enter or Space on it, picks the
+value under it. Acceptance 2's sentence when only the confidence is left is now "Move the
+slider to say how sure you are before you submit." The receipt email names the word with the
+number ("Your confidence: Confident (4 of 5)."). The Playwright specs move the slider with the
+keyboard (ArrowRight from the unset 3 for 4, End for 5, ArrowLeft for one step down) and
+e2e/respondent-submit.spec.ts reads "Confident" under it; src/lib/closing.test.ts tests the
+word mapping (confidenceWord).
