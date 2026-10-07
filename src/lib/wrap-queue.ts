@@ -20,7 +20,7 @@ const text = (x: unknown, max: number) => (typeof x === "string" ? x.slice(0, ma
 export function wrapEntryOf(raw: string | null, responseId: string): WrapEntry | null {
   if (!raw) return null;
   try {
-    const v = JSON.parse(raw) as { response?: unknown; value?: { confidence?: unknown; closingAnswer?: unknown; missing?: { text?: unknown; area?: unknown; value?: unknown } }; base?: unknown; page?: unknown; seq?: unknown; after?: unknown };
+    const v = JSON.parse(raw) as { response?: unknown; value?: { confidence?: unknown; closingAnswer?: unknown; missing?: { text?: unknown } }; base?: unknown; page?: unknown; seq?: unknown; after?: unknown };
     if (!v || typeof v !== "object" || v.response !== responseId || !v.value || typeof v.value !== "object") return null;
     const after = parseAfter(v.after);
     if (!validCount(v.base) || !validPage(v.page) || !validCount(v.seq, 1) || !after) return null;
@@ -29,7 +29,7 @@ export function wrapEntryOf(raw: string | null, responseId: string): WrapEntry |
       confidence: typeof confidence === "number" && Number.isInteger(confidence) && confidence >= 1 && confidence <= 5 ? confidence : null,
       signed: false,
       closingAnswer: text(closingAnswer, REASON_MAX),
-      missing: { text: text(missing?.text, MISSING_MAX), area: text(missing?.area, 200), value: text(missing?.value, 20) },
+      missing: { text: text(missing?.text, MISSING_MAX) },
     };
     return { draft, base: v.base, page: v.page, seq: v.seq, after };
   } catch {

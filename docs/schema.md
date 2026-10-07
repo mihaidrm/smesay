@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-05 (the date of the latest migration, 0035_reason_rule).
+v1, 2026-10-07 (the date of the latest migration, 0036_missing_text_only).
 
-Generated from the snapshot of the 36 migrations in drizzle/ (0035_snapshot.json) by
+Generated from the snapshot of the 37 migrations in drizzle/ (0036_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -282,7 +282,7 @@ Checks: answer_kind_check: kind in ('agree', 'change', 'disagree', 'unclear', 'p
 
 ## missing_item
 
-what a respondent said was missing, with the area they suggested.
+what a respondent said was missing, in their own words (one box since 2026-10-07, decision 0060).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -290,8 +290,6 @@ what a respondent said was missing, with the area they suggested.
 | workspace_id | uuid | fk workspace.id, on delete cascade, not null |
 | response_id | uuid | fk response.id with workspace_id, on delete cascade, not null |
 | text | text | not null |
-| suggested_area | text |  |
-| suggested_value | text |  |
 | created_at | timestamp with time zone | not null, default now() |
 
 Foreign keys: missing_item_response_fk (response_id, workspace_id) references response (id, workspace_id) on delete cascade.

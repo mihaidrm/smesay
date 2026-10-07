@@ -20,7 +20,7 @@ import { wrapTakes, type SaveRef, type WrapSync } from "@/lib/respondent-rules";
 import { isUuid, scoped } from "./scoped";
 
 export type Response = typeof response.$inferSelect;
-type Missing = { text: string; area: string | null; value: string | null };
+type Missing = { text: string };
 // A Wrap up write (E7-5): the values and the version rule's fields (src/lib/respondent-rules.ts).
 export type WrapWrite = { confidence: number | null; closingAnswer: string | null; missing: Missing | null; base: number; page: string; seq: number; after: SaveRef[] };
 // The Wrap up as stored, with its version: what a stale write gets back.
@@ -35,12 +35,12 @@ async function lockedWrap(tx: Tx, workspaceId: WorkspaceId, inviteId: string, re
   const [row] = await tx.select().from(response).where(and(eq(response.workspaceId, workspaceId), eq(response.id, responseId), eq(response.inviteId, inviteId))).for("update");
   if (!row) return null;
   const kept = await tx.select().from(missingItem).where(and(eq(missingItem.workspaceId, workspaceId), eq(missingItem.responseId, responseId))).orderBy(asc(missingItem.createdAt), asc(missingItem.id));
-  const missing = kept[0] ? { text: kept[0].text, area: kept[0].suggestedArea, value: kept[0].suggestedValue } : null;
+  const missing = kept[0] ? { text: kept[0].text } : null;
   const sync: WrapSync = { version: row.wrapVersion, writer: row.wrapWriter, writerSeq: row.wrapWriterSeq };
   return { perspectives: row.perspectives, missing: kept, sync, stored: { confidence: row.confidence, closingAnswer: row.closingAnswer, missing, changedSince: row.submittedAt !== null && !row.signedOff, submittedAt: row.submittedAt, ...sync } satisfies StoredWrap };
 }
 const sameStored = (stored: StoredWrap, data: Pick<WrapWrite, "confidence" | "closingAnswer" | "missing">): boolean =>
-  stored.confidence === data.confidence && stored.closingAnswer === data.closingAnswer && (stored.missing === null ? data.missing === null : data.missing !== null && stored.missing.text === data.missing.text && stored.missing.area === data.missing.area && stored.missing.value === data.missing.value);
+  stored.confidence === data.confidence && stored.closingAnswer === data.closingAnswer && (stored.missing === null ? data.missing === null : data.missing !== null && stored.missing.text === data.missing.text);
 // The response's one missing item: the first row updated in place, any other removed; none
 // when the text is empty.
 async function writeMissing(tx: Tx, workspaceId: WorkspaceId, responseId: string, kept: { id: string }[], missing: Missing | null) {
@@ -48,8 +48,8 @@ async function writeMissing(tx: Tx, workspaceId: WorkspaceId, responseId: string
   const extra = missing && first ? rest : kept;
   if (extra.length > 0) await tx.delete(missingItem).where(and(eq(missingItem.workspaceId, workspaceId), inArray(missingItem.id, extra.map((m) => m.id))));
   if (!missing) return;
-  if (first) await tx.update(missingItem).set({ text: missing.text, suggestedArea: missing.area, suggestedValue: missing.value }).where(and(eq(missingItem.workspaceId, workspaceId), eq(missingItem.id, first.id)));
-  else await tx.insert(missingItem).values({ workspaceId, responseId, text: missing.text, suggestedArea: missing.area, suggestedValue: missing.value });
+  if (first) await tx.update(missingItem).set({ text: missing.text }).where(and(eq(missingItem.workspaceId, workspaceId), eq(missingItem.id, first.id)));
+  else await tx.insert(missingItem).values({ workspaceId, responseId, text: missing.text });
 }
 export type NewResponse = Pick<typeof response.$inferInsert, "instrumentId" | "itemSetId" | "inviteId" | "deviceToken" | "fields" | "perspectives">;
 export type InviteDates = Pick<Invite, "token" | "opensAt" | "closesAt" | "revokedAt">;

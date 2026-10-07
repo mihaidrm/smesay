@@ -440,12 +440,12 @@ describe("the registers", () => {
       const n = (await results.numbers(wsA, instrumentA, f))!;
       const pushed = await registers.answers(wsA, instrumentA, f, ["change", "disagree"], keys, "moscow");
       const unclear = await registers.answers(wsA, instrumentA, f, ["unclear"], keys, "moscow");
-      const missing = await registers.missing(wsA, instrumentA, f, keys, "moscow");
+      const missing = await registers.missing(wsA, instrumentA, f, keys);
       expect([pushed.filter((r) => r.kind === "change").length, pushed.filter((r) => r.kind === "disagree").length, unclear.length, missing.length]).toEqual([n.change, n.disagree, n.unclear, n.missing]);
     }
     // The fixture's missing item, with Dana's role.
-    const [m] = await registers.missing(wsA, instrumentA, NONE, keys, "moscow");
-    expect([m.text, m.area, m.fields.name, m.fields.role, m.submitted]).toEqual([missingItem.text, missingItem.suggestedArea, "Dana Okafor", "Finance", true]);
+    const [m] = await registers.missing(wsA, instrumentA, NONE, keys);
+    expect([m.text, m.fields.name, m.fields.role, m.submitted]).toEqual([missingItem.text, "Dana Okafor", "Finance", true]);
   });
 
   it("sort by any column, both ways, ties in the list's order", async () => {
@@ -512,25 +512,12 @@ describe("the registers", () => {
     const status = async (dir: "asc" | "desc") => (await registers.answers(wsH, instrumentH, { ...on, sort: { key: "status", dir } }, ["change", "disagree"], keys, "moscow")).map((r) => r.submitted);
     expect((await status("asc"))[0]).toBe(false);
     expect((await status("desc")).at(-1)).toBe(false);
-    // Two more missing items, from Sam and Priya, one with no value, then every missing column
-    // both ways.
-    await sql`insert into missing_item (workspace_id, response_id, text, suggested_area, suggested_value) values (${wsH}, ${sam}, 'Approve from a phone.', 'Approving', 'C'), (${wsH}, ${await responseOf("Priya Nair")}, 'Card statements imported.', 'Submitting', 'M'), (${wsH}, ${await responseOf("Lukas Berg")}, 'Mileage claims.', null, null)`;
-    const missing = async (key: string, dir: "asc" | "desc") => (await registers.missing(wsH, instrumentH, { ...on, sort: { key, dir } }, keys, "moscow")).map((m) => m.text);
+    // Three more missing items, from Sam, Priya and Lukas, then every missing column both ways.
+    await sql`insert into missing_item (workspace_id, response_id, text) values (${wsH}, ${sam}, 'Approve from a phone.'), (${wsH}, ${await responseOf("Priya Nair")}, 'Card statements imported.'), (${wsH}, ${await responseOf("Lukas Berg")}, 'Mileage claims.')`;
+    const missing = async (key: string, dir: "asc" | "desc") => (await registers.missing(wsH, instrumentH, { ...on, sort: { key, dir } }, keys)).map((m) => m.text);
     expect(await missing("text", "asc")).toEqual([...(await missing("text", "asc"))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
     for (const key of ["text", "respondent"]) expect(await missing(key, "desc")).toEqual([...(await missing(key, "asc"))].reverse());
-    // By area, the suggestion with no area last both ways, the rest reversed.
-    const areaAsc = await missing("area", "asc");
-    const areaDesc = await missing("area", "desc");
-    expect([areaAsc.at(-1), areaDesc.at(-1)]).toEqual(["Mileage claims.", "Mileage claims."]);
-    expect(areaDesc.slice(0, -1)).toEqual(areaAsc.slice(0, -1).reverse());
-    const place = (code: string | null) => ["M", "S", "C", "W"].indexOf(code ?? "");
-    const byValue = async (dir: "asc" | "desc") => (await registers.missing(wsH, instrumentH, { ...on, sort: { key: "value", dir } }, keys, "moscow")).map((m) => m.value);
-    // The scale's order both ways, the empty value last both ways.
-    expect((await byValue("asc")).filter((v) => v !== null).map(place)).toEqual([...(await byValue("asc")).filter((v) => v !== null).map(place)].sort((a, b) => a - b));
-    expect((await byValue("desc"))[0]).toBe("C");
-    expect((await byValue("asc")).at(-1)).toBeNull();
-    expect((await byValue("desc")).at(-1)).toBeNull();
-    expect((await registers.missing(wsH, instrumentH, on, keys, "moscow")).find((m) => m.who === "Sam Hill")?.submitted).toBe(false);
+    expect((await registers.missing(wsH, instrumentH, on, keys)).find((m) => m.who === "Sam Hill")?.submitted).toBe(false);
   });
 
   it("answer 600 generated responses from SQL under 500 ms", async () => {
@@ -556,7 +543,7 @@ describe("the registers", () => {
 
   it("read nothing of another workspace's instrument", async () => {
     expect(await registers.answers(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, ["change", "disagree", "unclear"], keys, "moscow")).toEqual([]);
-    expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys, "moscow")).toEqual([]);
+    expect(await registers.missing(wsB, instrumentA, { ...NONE, includeUnsubmitted: true }, keys)).toEqual([]);
   });
 });
 
