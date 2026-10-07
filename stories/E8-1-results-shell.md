@@ -8,6 +8,14 @@ honours, the tabs the prototype shows, and an empty state before the first answe
 Amended 2026-10-03 (design note 40; Mihai: the tallies at the top configurable, filter by
 department, by those who pushed back, by those who left comments; the pushed back split).
 
+Amended 2026-10-07 (decision 0062, design note 114; Mihai: "there are 2 types of agreements we
+should show"): the merged tile "Items with a different priority or disagree" is two tiles,
+"Items with a different priority" (items with at least one change) and "Items marked not
+needed" (items with at least one disagree); the catalogue is thirteen; the tab's name carries
+both counts, "Different priority 7 · Disagree 3", never their sum; the sample is 18 agree, 7
+different priority, 3 disagree, 2 unclear of 30 (60%), since Lukas marks CL-05 not needed, so
+no item is fully agreed. Acceptance 2 and 9 read with these numbers.
+
 ## Acceptance criteria
 1. Results (PM app board): the headline strip holds up to six tiles chosen by the PM from
    the catalogue below, six on by default; then the tabs Agreement, Different priority and
@@ -15,11 +23,12 @@ department, by those who pushed back, by those who left comments; the pushed bac
    a label anywhere on Results (decision 0014 names the kinds: Agree, Different priority,
    Disagree, Unclear).
 2. The tile catalogue, each one SQL number: submitted of invited ("5 of 7"); agreement
-   ("63%, 19 of 30", agree over answered); different priority (answers of kind change);
+   ("60%, 18 of 30", agree over answered); different priority (answers of kind change);
    disagree; unclear; missing items suggested; answers with a reason or comment; items with
-   no answer yet; items fully agreed (every answer agree); items most pushed back (count of
-   items with at least one change or disagree); median minutes to submit; responses in
-   progress. "Choose tiles" opens a checklist of the twelve with the six limit; the choice is
+   no answer yet; items fully agreed (every answer agree); items with a different priority
+   (at least one change) and items marked not needed (at least one disagree), two tiles never
+   added into one (decision 0062); median minutes to submit; responses in
+   progress. "Choose tiles" opens a checklist of the thirteen with the six limit; the choice is
    kept per PM per instrument (design note 40, question 3) in user.results_prefs.
 3. One filter bar under the strip, applied to every tile, tab, chart, register, detail and
    export: any respondent field (dropdown fields as a multi-select, text fields as contains),
@@ -49,7 +58,7 @@ department, by those who pushed back, by those who left comments; the pushed bac
    test checks the strip with the switch on and off against the seed (the in-progress
    respondent has 4 answers).
 8. The sample project shows the same page with the watermark (E8-8).
-9. Playwright: open the seeded project's Results, see "5 of 7" and 63% with the switch off,
+9. Playwright: open the seeded project's Results, see "5 of 7" and 60% with the switch off,
    the counts including the 4 unsubmitted answers with it on; filter by role Sales and see
    the strip and the tab counts change; swap a tile and reload to find it kept.
 

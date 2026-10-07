@@ -48,7 +48,10 @@ test("the steps, the Shape switch, the results views and the questions", async (
   const demo = page.getByTestId("results-demo");
   await demo.scrollIntoViewIfNeeded();
   await expect(page.getByTestId("results-tiles")).toContainText("5 of 7");
-  await expect(page.getByTestId("results-tiles")).toContainText("63%");
+  await expect(page.getByTestId("results-tiles")).toContainText("60%");
+  // Different priority and Disagree are two tiles, never one number (decision 0062).
+  await expect(page.getByTestId("results-tiles")).toContainText("Disagree");
+  await expect(page.getByTestId("gain-groups-disagree")).toContainText("1 of 3");
   await expect(demo).toHaveAttribute("data-view", "Table");
   await expect(page.getByTestId("results-table").getByRole("listitem")).toHaveCount(6);
   await demo.getByRole("button", { name: "Share" }).click();

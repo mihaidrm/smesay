@@ -1,15 +1,16 @@
 // The builder's preview (stories/E5-6) on a PM's project: the panel on Import, Shape, Build
-// and Share and not on Results; each step's caption and ring (Import the chapter row and the
-// cards, Shape the wording, Share the closing date once published); the preview says nothing
-// is saved, in the workspace's brand; Phone shows the 390 px column; Open full size opens the
-// same preview in a new tab. The write routes refuse a preview token (403). The sample
+// and Share and not on Results; the panel's compact view shows one card and no ring (decision
+// 0061) while the full view carries each step's ring (Import the chapter row and the cards,
+// Shape the wording); Share's closing date shows in the header once published; the preview
+// says nothing is saved, in the workspace's brand; Phone shows the 390 px column; Full view
+// opens the whole app in a new tab. The write routes refuse a preview token (403). The sample
 // project has no preview (decision 0021, item 1).
 import { expect, test } from "@playwright/test";
 import { latestLink } from "./mailpit";
 
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.49" } });
 
-test("preview: on every builder step, ringing what the step changes, saving nothing", async ({ page, request, context }) => {
+test("preview: on every builder step, one card in the panel, the rings in the full view, saving nothing", async ({ page, request, context }) => {
   test.setTimeout(120_000);
   const email = `e2e-preview-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
@@ -45,15 +46,32 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(panel.getByTestId("preview-caption")).toHaveText("Import sets the chapters and the cards.");
   await app.locator("[data-ready]").waitFor();
   await expect(app.getByTestId("preview-note")).toHaveText("Preview: nothing you enter here is saved");
-  await expect(app.locator("nav[data-ring]")).toBeVisible();
-  await expect(app.getByTestId("item-card").first()).toHaveClass(/ring-violet/);
   await expect(app.getByTestId("respondent-header").first()).toContainText("Marlow Group");
+  // Compact: the chapter row, one card of two, no ring, no footer.
+  await expect(app.locator("[data-preview-compact]")).toBeVisible();
+  await expect(app.getByTestId("item-card")).toHaveCount(1);
+  await expect(app.getByTestId("compact-note")).toHaveText("1 of 2 cards. The full view shows them all.");
+  await expect(app.locator("nav[data-ring]")).toHaveCount(0);
+  await expect(app.getByTestId("chapter-continue")).toHaveCount(0);
+  // The full view: the first chapter (one of the two items), the step's rings, the footer.
+  const [full] = await Promise.all([context.waitForEvent("page"), panel.getByTestId("preview-full-size").click()]);
+  await full.locator("[data-ready]").waitFor();
+  await expect(full.locator("[data-preview-compact]")).toHaveCount(0);
+  await expect(full.getByTestId("item-card")).toHaveCount(1);
+  await expect(full.getByTestId("chapter-continue")).toBeVisible();
+  await expect(full.locator("nav[data-ring]")).toBeVisible();
+  await expect(full.getByTestId("item-card").first()).toHaveClass(/ring-violet/);
+  await full.close();
 
   await page.goto(`${project}/shape`);
   await expect(panel.getByTestId("preview-caption")).toHaveText("Shape changes the wording on the cards.");
   await app.locator("[data-ready]").waitFor();
-  await expect(app.locator("legend[data-ring]").first()).toBeVisible();
-  await expect(app.locator("nav[data-ring]")).toHaveCount(0);
+  await expect(app.locator("legend[data-ring]")).toHaveCount(0);
+  const [shapeFull] = await Promise.all([context.waitForEvent("page"), panel.getByTestId("preview-full-size").click()]);
+  await shapeFull.locator("[data-ready]").waitFor();
+  await expect(shapeFull.locator("legend[data-ring]").first()).toBeVisible();
+  await expect(shapeFull.locator("nav[data-ring]")).toHaveCount(0);
+  await shapeFull.close();
 
   await page.goto(`${project}/build`);
   await expect(page.getByRole("heading", { name: "Build the validation" })).toBeVisible();
@@ -66,10 +84,10 @@ test("preview: on every builder step, ringing what the step changes, saving noth
   await expect(page.getByTestId("link-state")).toHaveText("Published");
   await expect(async () => {
     await app.locator("[data-ready]").waitFor({ timeout: 2_000 });
-    await expect(app.locator("[data-ring]").first()).toContainText("20 Jan 2027", { timeout: 1_000 });
+    await expect(app.getByTestId("respondent-note").first()).toContainText("20 Jan 2027", { timeout: 1_000 });
   }).toPass({ timeout: 15_000 });
 
-  // Phone: the 390 px column at true size; Open full size: the same preview in a new tab.
+  // Phone: the 390 px column at true size; Full view: the whole app in a new tab.
   await panel.getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
   await expect(page.getByTestId("preview-phone")).toBeVisible();
   await app.locator("[data-ready]").waitFor();

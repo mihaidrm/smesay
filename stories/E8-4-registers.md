@@ -12,6 +12,11 @@ sentence form became columns that read across (respondent, value, reason), so ev
 sorts; the landing page no longer quotes the sentence. The disagree register sits under the
 different-priority register, not beside it, so both keep their columns at 1440.
 
+Amended 2026-10-07 (decision 0062, design note 114): the tab's name carries the two
+registers' counts side by side, "Different priority 7 · Disagree 3", never their sum; the
+plain name "Different priority and Disagree" stays for the detail's Back link and a failed
+load's banner. The sample's disagree register holds 3 rows (Lukas on CL-05 joins Priya's two).
+
 ## Acceptance criteria
 1. "Different priority and Disagree" tab: the different-priority register (item, respondent,
    role, proposed, their value, reason) and, under it, the disagree register (item,

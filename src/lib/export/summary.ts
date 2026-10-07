@@ -10,7 +10,7 @@ import type { WorkspaceId } from "@/db/types";
 import { citationLines } from "@/lib/insights";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
 import { textFor, type ReaderFields } from "@/lib/item-text";
-import { agreementSortOf, buildAgreement, notAnsweredOf, type Counts } from "@/lib/results-agreement";
+import { agreementSortOf, buildAgreement, figureLine, notAnsweredOf, type Counts } from "@/lib/results-agreement";
 import { AGREEMENT_COPY, REGISTERS_COPY, RESPONSES_COPY } from "@/lib/results-copy";
 import { describeFilter, filterActive, type FilterContext, type ResultsFilter } from "@/lib/results-filter";
 import { tileView, type TileId } from "@/lib/results-tiles";
@@ -26,6 +26,8 @@ const marked = (p: { who: string | null; anon: number | null; submitted: boolean
   `${name(p)}${!p.submitted ? `, ${REGISTERS_COPY.notSubmitted.toLowerCase()}` : p.changedSince ? `, ${RESPONSES_COPY.changedSince.toLowerCase()}` : ""}`;
 const countsOf = (c: Counts): SummaryCounts => ({ agree: c.agree, change: c.change, disagree: c.disagree, unclear: c.unclear, pick: c.pick, notAnswered: notAnsweredOf(c) });
 const figure = (percent: number | null, rated: boolean, c: Counts) => (rated ? AGREEMENT_COPY.ratedLine(c.pick) : percent === null ? AGREEMENT_COPY.noPercent : `${percent}%`);
+// A share beside the agreement (decision 0062): empty where the figure reads rated or no answers.
+const share = (percent: number | null, rated: boolean) => (rated || percent === null ? "" : `${percent}%`);
 
 // Each register in the PDF stops at 20 rows (decision 0048): the heading keeps the full count
 // and a line names the CSV on the Export tab with every row, which follows the same filter.
@@ -70,11 +72,11 @@ export async function summaryView({ ws, workspace, project, instrument, filter, 
   return {
     workspace, project: project.name, title: instrument.title, generatedAt: formatUtc(now), sample: project.isSample, lines,
     tiles: tiles.map((id) => tileView(id, numbers)).map((t) => ({ label: t.label, value: t.value })),
-    areas: areas.map((a) => ({ name: areaName(a.name), counts: countsOf(a.totals), percent: figure(a.percent, a.rated, a.totals) })),
+    areas: areas.map((a) => ({ name: areaName(a.name), counts: countsOf(a.totals), percent: figureLine(a.totals, a.rated) })),
     confidence,
     tables: areas.map((a) => ({
       area: areaName(a.name),
-      rows: a.rows.map((r) => ({ ref: r.reference ?? "", text: r.title, proposed: label(r.proposed), counts: countsOf(r.counts), percent: figure(r.percent, r.proposed === null, r.counts) })),
+      rows: a.rows.map((r) => ({ ref: r.reference ?? "", text: r.title, proposed: label(r.proposed), counts: countsOf(r.counts), percent: figure(r.percent, r.proposed === null, r.counts), changePercent: share(r.changePercent, r.proposed === null), disagreePercent: share(r.disagreePercent, r.proposed === null) })),
     })),
     registers: [
       register(R.changeTitle, ["", R.item, R.respondent, R.proposed, R.theirValue, R.reason], pushed.filter((r) => r.kind === "change").map((r) => [...itemOf(r), marked(r), proposedOf(r.proposedValue), label(r.value), r.reason ?? ""]), answersFile),

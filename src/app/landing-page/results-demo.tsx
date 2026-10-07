@@ -3,8 +3,9 @@
 // design note 53): the dashboard of R1 as planned (stories/E8-1 tiles and filter bar, E8-3
 // the three views of agreement), drawn as static markup over the Marlow sample (decision
 // 0005; the numbers are the seed's, src/db/seed/sample.ts `expected`: 5 of 7 submitted, 30
-// answers, 19 agree, 7 different priority, 2 disagree, 2 unclear) until the dashboard
-// components exist. The view switch is the one live part: Table (a stacked bar per item),
+// answers, 18 agree, 7 different priority, 3 disagree, 2 unclear) until the dashboard
+// components exist. The tiles show Different priority and Disagree apart, never as one
+// number (decision 0062). The view switch is the one live part: Table (a stacked bar per item),
 // Columns (aligned bars per kind per area) and Share (a donut per area with the numbers
 // beside it). The kinds are named as decision 0014 names them and drawn in the status
 // colours of docs/design-system.md (Agree #2F855A, Different priority in the pushed-back
@@ -33,7 +34,7 @@ const ITEMS: { ref: string; text: string; area: string; counts: Counts }[] = [
   { ref: "CL-02", text: "Split one receipt across two projects or cost centres.", area: "Submitting", counts: c(2, 2, 0, 1) },
   { ref: "CL-03", text: "Managers approve or reject from the email, without logging in.", area: "Approving", counts: c(4, 1) },
   { ref: "CL-04", text: "Expenses over the policy limit are flagged before they reach the approver.", area: "Approving", counts: c(2, 2, 1) },
-  { ref: "CL-05", text: "Approved expenses are paid with the next salary run.", area: "Paying", counts: c(5) },
+  { ref: "CL-05", text: "Approved expenses are paid with the next salary run.", area: "Paying", counts: c(4, 0, 1) },
   { ref: "CL-06", text: "Employees can request a cash advance before a trip.", area: "Paying", counts: c(2, 1, 1, 1) },
 ];
 const AREAS = ["Submitting", "Approving", "Paying"].map((area) => ({
@@ -122,8 +123,8 @@ export function ResultsDemo() {
   const [view, setView] = useState<View>("Table");
   return (
     <div className="flex flex-col gap-4" data-testid="results-demo" data-view={view}>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4" data-testid="results-tiles">
-        {[["Submitted", "5 of 7"], ["Agreement", "63%"], ["Different priority", "7"], ["Unclear", "2"]].map(([label, value]) => (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5" data-testid="results-tiles">
+        {[["Submitted", "5 of 7"], ["Agreement", "60%"], ["Different priority", "7"], ["Disagree", "3"], ["Unclear", "2"]].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5 rounded-[14px] border border-[#E6E3F0] bg-white px-3 py-2.5">
             <span className="text-[13px] text-[#5E5A72]">{label}</span>
             <span className="font-mono text-[30px] leading-9 font-extrabold tracking-[-0.03em] whitespace-nowrap">{value}</span>

@@ -1,7 +1,7 @@
 // Where groups disagree (stories/E8-6; the PM app board, under the agreement table): for the
 // dropdown field picked (Role by default), the four items whose groups differ most in their
 // agreement share, each with a bar per group (Brand 06's comparison bars) and a line per
-// group, then "Show all" for every item (a native details element: no script). The gap comes
+// group with its agree, different priority and not needed counts (decision 0062), then "Show all" for every item (a native details element: no script). The gap comes
 // from SQL (src/db/queries/results.ts gaps.byField) under the page's filter and switch; only
 // items with a proposal shown are in the view, ties in the list's order
 // (src/lib/results-gaps.ts). A group with fewer than 3 answers on an item is shown with no
@@ -54,7 +54,7 @@ export async function ConflictView({ ws, instrumentId, filter, ctx, items, order
 
 function GapRow({ row, item, href }: { row: GapItem; item: { reference: string | null; title: string } | undefined; href: string }) {
   const name = (g: string) => (g === "" ? AGREEMENT_COPY.groupNone : g);
-  const line = row.groups.length === 0 ? CONFLICT_COPY.noGroups : row.groups.map((g) => (g.compared ? CONFLICT_COPY.groupLine(name(g.group), g.agree, g.answered) : CONFLICT_COPY.smallLine(name(g.group)))).join(" ");
+  const line = row.groups.length === 0 ? CONFLICT_COPY.noGroups : row.groups.map((g) => (g.compared ? CONFLICT_COPY.groupLine(name(g.group), g.agree, g.change, g.disagree, g.answered) : CONFLICT_COPY.smallLine(name(g.group)))).join(" ");
   return (
     <li className="flex flex-col gap-2 py-3" data-testid="gap-row">
       <div className="flex items-start justify-between gap-3">
