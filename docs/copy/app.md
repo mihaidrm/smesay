@@ -44,6 +44,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Logo, none yet (a member's view) | No logo yet |
 | Logo remove checkbox | Remove logo |
 | Accent label | Accent colour |
+| Accent picker, the swatch's name for screen readers (opens the browser's colour picker; design note 104) | Pick a colour |
+| Accent clear button (empties the field; off while it is empty) | Clear |
 | Accent line, readable | The contrast on white is [RATIO]:1. The accent colours the selected answer, the active chapter, the progress bar, the confidence picked and the initials shown when there is no logo. Buttons stay ink. |
 | Accent line, none set | No accent set. The respondent page uses violet. |
 | Save button | Save |
