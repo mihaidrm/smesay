@@ -272,7 +272,9 @@ last line of the page. The widths: About you, done, nothing to rate and the link
 closed, inactive, the passcode) and the link's error and 404 pages 720 px, the fields filling it; the Wrap up 760 px; a chapter
 1000 px with two card columns, because density is the point there. In the chapter and the
 Wrap up the content keeps the ground colour inside the card, so the item cards and tiles do
-not sit white on white. On a phone the same parts are full width, the actions in the bottom
+not sit white on white. The chapter row wraps its pills onto as many rows as they need from
+576 px, 6 px apart, and nothing is cut off; on a phone it is one scrolling line with a thin
+scrollbar under the pills (design note 109). On a phone the same parts are full width, the actions in the bottom
 band and "Powered by" under it. On a phone every column is the screen width and controls span it. The convention behind
 it (single column, labels above fields, the primary action under the form) is standard form
 guidance; the NN/g and GOV.UK pages on it could not be opened from this environment, so it is
