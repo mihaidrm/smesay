@@ -362,6 +362,25 @@ html.mode-sweep::view-transition-new(mode-thumb) {
   .font-mono {
     font-variant-numeric: tabular-nums;
   }
+  /* Everything a click acts on shows the hand (Mihai, 2026-10-07; design note 101). Tailwind
+     v4's preflight leaves buttons on the arrow: "Buttons now use cursor: default instead of
+     cursor: pointer" (tailwindcss.com/docs/upgrade-guide, "Buttons use the default cursor");
+     links show the hand on their own. A disabled control keeps the arrow. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="switch"]:not(:disabled),
+  [role="radio"]:not(:disabled),
+  [role="tab"]:not(:disabled),
+  [role="option"],
+  [role="menuitem"],
+  summary,
+  select:not(:disabled),
+  option,
+  ::file-selector-button,
+  input:not(:disabled):where([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="submit"], [type="button"], [type="reset"]),
+  label:has(> input:where([type="checkbox"], [type="radio"]):not(:disabled)) {
+    cursor: pointer;
+  }
   /* Reduced motion stops every transition and animation, the respondent side's 150 and 250 ms
      ones included (stories/E7-7, acceptance 6; developer.mozilla.org/docs/Web/CSS/@media/
      prefers-reduced-motion). */
