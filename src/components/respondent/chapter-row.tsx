@@ -8,8 +8,16 @@
 // hairline. A pill is 32 px high and takes a 48 px hit area (docs/design-system.md,
 // Respondent tap targets; the row's 8 px padding keeps the hit area inside its scroll box);
 // its count reads "[done] of [count] answered" to a screen reader. A click with a modifier
-// key keeps the link's own behaviour (a new tab). It scrolls sideways when long, with the
-// active pill brought into view. Under
+// key keeps the link's own behaviour (a new tab). Under 576 px the row scrolls sideways when
+// long, with the active pill brought into view and a thin scrollbar under the pills so the
+// respondent sees there is more (scrollbar-width and scrollbar-color, both standard:
+// developer.mozilla.org/docs/Web/CSS/scrollbar-width and
+// developer.mozilla.org/docs/Web/CSS/scrollbar-color; Safari on iOS ignores both and shows
+// its own overlay bar while scrolling); 12 px of bottom padding keeps the bar off the pills.
+// From the 576 px column (@xl, src/components/respondent/frame.ts) the pills wrap onto as
+// many rows as they need, 6 px apart, and nothing scrolls (design note 109; Mihai,
+// 2026-10-07). On the wrapped rows each pill's hit area reaches 3 px above and below it, so
+// the hit areas of two rows meet in the gap and do not overlap. Under
 // it, a 4 px bar in the accent shows the items answered, a progressbar with its numbers
 // (developer.mozilla.org/docs/Web/Accessibility/ARIA/Reference/Roles/progressbar_role).
 // The counts are the server's as this page last heard them (an answer counts once the
@@ -35,7 +43,7 @@ export type ChapterRowProps = {
   ring?: boolean;
 };
 
-const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap focus:outline-hidden transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
+const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] @xl:after:-inset-y-[3px] text-[13px] font-semibold whitespace-nowrap focus:outline-hidden transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
 export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false, ring = false }: ChapterRowProps) {
   const active = useRef<HTMLAnchorElement | null>(null);
@@ -66,8 +74,8 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
   return (
     <div className="flex flex-col gap-0 border-b border-hairline bg-surface" data-testid="chapter-nav">
       {showRow && (
-        <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && "m-1 rounded-full ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ring || undefined}>
-          <ol className="flex gap-1.5 overflow-x-auto px-5 py-2 @xl:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="chapter-row">
+        <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && "m-1 rounded-4xl ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ring || undefined}>
+          <ol className="flex gap-1.5 overflow-x-auto px-5 pt-2 pb-3 [scrollbar-width:thin] [scrollbar-color:var(--hairline-strong)_transparent] @xl:flex-wrap @xl:overflow-visible @xl:px-8 @xl:pb-2" data-testid="chapter-row">
             {pill({ kind: "about" }, RESPONDENT_COPY.aboutYou, "row-about")}
             {chapters.map((c, i) => pill({ kind: "chapter", index: i }, <>{c.name}<span className="font-mono text-[11px] font-medium" aria-hidden="true">{progress[i]?.done ?? 0}/{progress[i]?.count ?? 0}</span></>, `row-chapter-${i + 1}`, `${c.name}, ${RESPONDENT_COPY.pillAnswered(progress[i]?.done ?? 0, progress[i]?.count ?? 0)}`))}
             {pill({ kind: "wrap" }, RESPONDENT_COPY.wrapUp, "row-wrap")}
