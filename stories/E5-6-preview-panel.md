@@ -31,6 +31,15 @@ stores a response (decision 0021).
 7. The preview shows the workspace's current brand (E2-5): the logo in the header and
    `effectiveAccent()` where the respondent app uses it, so a PM sees the colour before sharing.
 
+Changed 2026-10-07 (decision 0061, design note 108; Mihai: "in preview we show 1 card, and
+maybe the top navigation etc. only things that are important. ofc he can open full view for
+more info"): the panel shows the compact view (the band, the header, the chapter row, the
+first card, no ring, no footer) at 58.3 percent of a 720 px column on desktop and at true
+size on a phone; "Open full size" is "Full view" and opens the whole app with the step's
+rings (acceptance 2 holds there); acceptance 5's 40.7 percent of the 1032 px column is the
+full view's own size in its tab. The band that says nothing is saved sits above the app, as
+the sample's band does.
+
 ## Out of scope
 - A preview on Results: nothing there changes the instrument (decision 0021).
 

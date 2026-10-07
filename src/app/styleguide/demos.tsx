@@ -109,11 +109,11 @@ export function Demos() {
         <Tabs defaultValue="agreement" className="w-full">
           <TabsList variant="line">
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
-            <TabsTrigger value="pushed">Different priority and Disagree</TabsTrigger>
+            <TabsTrigger value="pushed">Different priority 7 · Disagree 3</TabsTrigger>
             <TabsTrigger value="questions">Questions and gaps</TabsTrigger>
           </TabsList>
           <TabsContent value="agreement" className="pt-3 text-[13px] text-ink-muted">Agreement per item and area.</TabsContent>
-          <TabsContent value="pushed" className="pt-3 text-[13px] text-ink-muted">Every push-back with its reason.</TabsContent>
+          <TabsContent value="pushed" className="pt-3 text-[13px] text-ink-muted">Every different priority and every disagree with its reason.</TabsContent>
           <TabsContent value="questions" className="pt-3 text-[13px] text-ink-muted">Open questions and missing items.</TabsContent>
         </Tabs>
       </Row>

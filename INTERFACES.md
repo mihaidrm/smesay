@@ -77,7 +77,11 @@ the check constraints use them). Change this file first.
 - ImportReport (jsonb, item_set.import_report):
   { emptyRows: number, exactDuplicates: number, overLimit: number, rowsRead: number, headerRow:
   number (0 when the file had none), unrecognisedValues: number, duplicateRefs: { kept: string,
-  folded: string[] }[] } (E3-5; kept is the reference of the item kept, or "row N").
+  folded: string[] }[], sheets?: SheetReport[] } (E3-5; kept is the reference of the item kept,
+  or "row N", "row N of SHEET" when several sheets were read). SheetReport (E3-7, present when
+  more than one sheet was read): { name, rowsRead, headerRow, items, emptyRows, exactDuplicates,
+  overLimit, unrecognisedValues }, the same counts for that sheet alone; the top-level counts
+  are the totals.
 - ImportRow (not stored; src/lib/import/report.ts, E3-4 and E3-5): the row shape the check
   and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
   foldedRefs }.
@@ -126,8 +130,20 @@ the check constraints use them). Change this file first.
   person dismissed; per person, every workspace).
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
-  ten data rows), rowsRead: number }. UploadKind: xlsx, csv, pasted (E3-4: a pasted list is
-  stored as text with three columns, Item, Area, Proposed value, and no header row).
+  ten data rows), rowsRead: number, sheetRows?: { name, rows }[] (E3-7, xlsx only: every sheet
+  with at least one non-empty row and that count, in file order), perSheet?: SheetPreview[]
+  (E3-7: the ticked sheets when more than one, each { name, headerRow, columns, rows, rowsRead }
+  as the single-sheet fields; columns is then the union of the ticked sheets' columns by key,
+  first seen first, rows the first ticked sheet's, rowsRead the total) }. UploadKind: xlsx,
+  csv, pasted (E3-4: a pasted list is stored as text with three columns, Item, Area, Proposed
+  value, and no header row).
+- UploadSheets (jsonb, upload.sheets; E3-7): SheetChoice[] = { name: string, headerRow?: number }[],
+  the sheets the PM ticked in file order; headerRow absent means the finder's row, 0 no header
+  row, N the row picked. Null until the Sheets step is confirmed, and null for a csv, a pasted
+  list and every row from before E3-7 (the single-sheet path reads upload.sheet and
+  upload.header_row as before). upload.sheet_areas (boolean, default true) is the switch "Use
+  the sheet names as areas": read only when more than one sheet is ticked and no column is
+  mapped as area.
 
 ## Query helpers (database -> every route and page)
 Owner: E1-3. Consumers: every route, page, server action and the seed. Version 1, 2026-10-02.
@@ -144,7 +160,9 @@ internal.setAiBudgetEur, decision 0036), markDeleted(ws).
 Results (E8-1): results.numbers(ws, instrumentId, filter) gives ResultsNumbers
 (src/lib/results-tiles.ts: invited, submitted, inProgress, shown, total, agree, change,
 disagree, unclear, pick, answered, withComment, missing, unansweredItems, fullyAgreed,
-pushedBackItems, medianMinutes, anyAnswer, actions) from one SQL query, or null for an
+differentPriorityItems (items with at least one change), notNeededItems (items with at least
+one disagree; decision 0062: the two are never added into one number anywhere a person reads),
+medianMinutes, anyAnswer, actions) from one SQL query, or null for an
 instrument outside the workspace; results.rows(ws, instrumentId, filter) the answers the
 same filter keeps, one row each ({ id, responseId, itemId, kind, value, reason, comment,
 submitted }), which E10-1's CSV writes; results.people(ws, instrumentId, filter) the people
@@ -163,7 +181,9 @@ list of columns, the value columns in the method's scale order; agreement.byItem
 agree, change, disagree, unclear, pick, values (by code), couldSee, percent (agree over
 answered, rounded half up in SQL; the tab sums with the same rule, src/lib/results-agreement.ts
 percentOf, and shows no percentage where no proposal was shown, figureOf's "[N] rated", as
-E10-1's items CSV will) }; tracker.people(ws, instrumentId, filter,
+E10-1's items CSV will), changePercent (change over answered, the same rounding; "Different
+priority %" in the items CSV, sharesOf in the model) and disagreePercent (disagree over
+answered; "Not needed %"; decision 0062) }; tracker.people(ws, instrumentId, filter,
 fieldKeys) (E8-2) the people the filter keeps, started or invited, as PersonRow { id, source,
 fields, who (the name shown: the name field, else a personal invite's name or email; null
 for a public-link response with no name), anon (for a public-link response with no
@@ -182,7 +202,7 @@ session's workspace, and answers HEAD with 405; gaps.byField(ws, instrumentId, f
 every item of the instrument as GapItem { itemId, gap (the largest difference in agreement
 share between two groups with 3 answers or more, in percentage points; null when fewer than
 two are compared), groups: GapGroup { group ('' for the people with no value, Not given on
-screen), agree, answered, compared }[] }, largest gap first, then the item's position (the
+screen), agree, change, disagree, answered, compared }[] }, largest gap first, then the item's position (the
 view orders ties as the Agreement table lists the items, src/lib/results-gaps.ts); detail.item(ws, instrumentId, itemId, filter) (E8-5) one
 item of the instrument as DetailItem { id, reference, area, originalText, readerText,
 readerStatus, proposedValue } with DetailCounts { agree, change, disagree, unclear, pick,
@@ -362,10 +382,17 @@ the context rule src/lib/project-context.ts.
 Uploads (E3-2): uploads, the scoped six over upload plus uploads.latestForProject(ws, projectId)
 (the draft the Import step shows); `saveUpload(actor, projectId, { name, bytes })` and
 `rechoose(ws, uploadId, { sheet, headerRow })` in src/lib/uploads.ts, each returning
-{ error } or { upload }; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
+{ error } or { upload }; `chooseSheets(ws, uploadId, names)` (E3-7: the Sheets step; one name
+keeps the single-sheet path, several fill preview.perSheet; with several ticked, rechoose with
+a sheet and a header row sets that sheet's row) and `saveMapping(ws, uploadId, raw,
+sheetAreas?)`; UPLOAD_COPY in src/lib/import/copy.ts (no database import, so the
 client can use it). upload.preview is UploadPreview (above): rowsRead counts the data rows
 below the chosen header row of the chosen sheet (every row when there is no header), at most
-2,000 after the checks; rows holds the first ten of them. Objects are at
+2,000 after the checks, over the ticked sheets together; rows holds the first ten of them.
+The sheet rule and the column union are in src/lib/import/sheets.ts; `checkSheets(mapping,
+sheets, { sheetAsArea })` in src/lib/import/report.ts is the check over several sheets with one
+duplicate map, and `sheetsMissingText(perSheet, mapping)` in src/lib/import/mapping.ts names
+the ticked sheets whose header lacks the item text column. Objects are at
 uploads/<workspace id>/<16 hex>.<xlsx|csv|txt> (txt for a pasted list, `savePaste()` in
 src/lib/uploads.ts), logos at logos/<workspace id>/..., so a workspace's objects are its
 segment under each of the two prefixes (E11-2 lists both).

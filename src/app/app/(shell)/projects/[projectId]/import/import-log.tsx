@@ -34,7 +34,7 @@ export function ImportLog({ projectId, versions, diffText, open }: { projectId: 
                 <TableCell className="max-w-[220px] truncate" title={v.sourceFilename ?? ""}>{v.sourceFilename ?? (v.source === "pasted" ? "Pasted list" : "")}</TableCell>
                 <TableCell className="whitespace-nowrap">{DATE.format(v.importedAt)}</TableCell>
                 <TableCell className="font-mono text-sm">{v.items}</TableCell>
-                <TableCell className="text-[13px] text-ink-muted">{r ? `${r.emptyRows} empty, ${r.exactDuplicates} ${r.exactDuplicates === 1 ? "duplicate" : "duplicates"}, ${r.overLimit} long, ${r.unrecognisedValues ?? 0} ${(r.unrecognisedValues ?? 0) === 1 ? "value" : "values"}` : ""}</TableCell>
+                <TableCell className="text-[13px] text-ink-muted">{r ? `${r.emptyRows} empty, ${r.exactDuplicates} ${r.exactDuplicates === 1 ? "duplicate" : "duplicates"}, ${r.overLimit} long, ${r.unrecognisedValues ?? 0} ${(r.unrecognisedValues ?? 0) === 1 ? "value" : "values"}${r.sheets && r.sheets.length > 1 ? `, ${IMPORT_COPY.sheetsCell(r.sheets.length)}` : ""}` : ""}</TableCell>
                 <TableCell>{v.importedByName ?? ""}</TableCell>
               </TableRow>
             );

@@ -47,6 +47,8 @@ describe("IMPORT_CARD_COPY", () => {
     expect(IMPORT_CARD_COPY.preview.summary({ kind: "xlsx", rows: 12, headerRow: 1 })).toBe("12 rows, header on row 1");
     expect(IMPORT_CARD_COPY.preview.summary({ kind: "csv", rows: 13, headerRow: null })).toBe("13 rows, no header row");
     expect(IMPORT_CARD_COPY.preview.summary({ kind: "pasted", rows: 6, headerRow: null })).toBe("6 items");
+    expect(IMPORT_CARD_COPY.preview.summary({ kind: "xlsx", rows: 7, headerRow: null, sheets: "waiting" })).toBe("Pick the sheets");
+    expect(IMPORT_CARD_COPY.preview.summary({ kind: "xlsx", rows: 5, headerRow: 1, sheets: 2 })).toBe("5 rows across 2 sheets");
     expect(IMPORT_CARD_COPY.mapping.summary(3, 4, true)).toBe("3 of 4 columns mapped");
     expect(IMPORT_CARD_COPY.mapping.summary(2, 4, false)).toBe("No text column yet");
     expect(IMPORT_CARD_COPY.check.summary(null, null)).toBe("Waiting for the text column");

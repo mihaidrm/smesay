@@ -12,10 +12,11 @@ import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { Banner } from "@/components/ui/banner";
 import { invites, projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
-import { checkUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
+import { checkUpload, IMPORT_COPY, importLog, latestSet, sheetsError } from "@/lib/imports";
 import { IMPORT_CARD_COPY, importStage, openCards } from "@/lib/import-guide";
 import { mappingError } from "@/lib/import/mapping";
 import { PASTE_COPY } from "@/lib/import/paste";
+import { needsSheetStep } from "@/lib/import/sheets";
 import { rememberedFrom } from "@/lib/uploads";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
@@ -41,6 +42,12 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const remembered = upload ? await rememberedFrom(current.ws, upload) : null;
   const set = project.isSample ? null : await latestSet(current.ws, project.id);
   const check = upload && upload.mapping && !mappingError(upload.mapping) ? await checkUpload(upload) : null;
+  // Several sheets (stories/E3-7): the mapping and the check wait for the Sheets step; a ticked
+  // sheet without the item text column blocks the import; the switch shows when the sheet
+  // names can stand in for areas.
+  const waitingForSheets = upload !== null && needsSheetStep(upload) && upload.sheets === null;
+  const blocked = upload ? sheetsError(upload) : null;
+  const sheetAreas = upload && upload.mapping && (upload.preview.perSheet?.length ?? 0) > 1 && !Object.values(upload.mapping).includes("area") ? upload.sheetAreas : null;
   const log = project.isSample ? { versions: [], diffText: null } : await importLog(current.ws, project.id);
   const setItems = log.versions[0]?.items ?? 0;
   // The banner owed from E3-6 (stories/E6-1): the project has a public link in force.
@@ -50,7 +57,9 @@ export default async function ImportPage({ params }: { params: Promise<{ project
   const notImported = upload !== null && !(set && set.uploadId === upload.id);
   const tip = notImported && !mappable ? null : importTip({ hasSet: set !== null, pending: notImported && mappable ? { createdAt: upload.createdAt } : null });
   // Which cards are open (design note 110).
-  const mappingReady = mappable && upload.mapping !== null && mappingError(upload.mapping) === null;
+  // While the Sheets step waits (E3-7) the stage is "mapping", so the preview card that holds
+  // the step is the open one.
+  const mappingReady = mappable && !waitingForSheets && upload.mapping !== null && mappingError(upload.mapping) === null;
   const stage = importStage({ hasUpload: upload !== null, mappingReady, imported: upload !== null && !notImported });
   const cards = openCards(stage, { canUpload: !project.isSample });
   return (
@@ -82,11 +91,11 @@ export default async function ImportPage({ params }: { params: Promise<{ project
         </CollapsibleCard>
       )}
       {upload && <UploadPreview upload={upload} open={cards.preview} />}
-      {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} open={cards.mapping} />
+      {upload && upload.mapping && upload.preview.columns.length > 0 && !waitingForSheets && (
+        <MappingCard key={upload.id} uploadId={upload.id} columns={upload.preview.columns} mapping={upload.mapping} rememberedFrom={remembered ? DATE.format(remembered) : null} open={cards.mapping} sheetsError={blocked} sheetAreas={sheetAreas} />
       )}
-      {upload && upload.mapping && upload.preview.columns.length > 0 && (
-        <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} open={cards.check} />
+      {upload && upload.mapping && upload.preview.columns.length > 0 && !waitingForSheets && (
+        <CheckCard uploadId={upload.id} check={check} importedVersion={set && set.uploadId === upload.id ? set.version : null} open={cards.check} blocked={blocked} />
       )}
     </WithPreview>
   );

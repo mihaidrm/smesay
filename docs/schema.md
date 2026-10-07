@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-07 (the date of the latest migration, 0036_missing_text_only).
+v1, 2026-10-07 (the date of the latest migration, 0037_upload_sheets).
 
-Generated from the snapshot of the 37 migrations in drizzle/ (0036_snapshot.json) by
+Generated from the snapshot of the 38 migrations in drizzle/ (0037_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -418,7 +418,7 @@ Checks: admin_note_text_check: char_length(admin_note.text) between 1 and 2000.
 
 ## upload
 
-a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, a ten-row preview and the column mapping in jsonb.
+a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, the sheets ticked and the sheet-names-as-areas switch (E3-7), a ten-row preview and the column mapping in jsonb.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -431,6 +431,8 @@ a file a PM uploaded for a project (E3-2): the object key under uploads/<workspa
 | byte_size | integer | not null |
 | sheet | text |  |
 | header_row | integer |  |
+| sheets | jsonb |  |
+| sheet_areas | boolean | not null, default true |
 | preview | jsonb | not null |
 | mapping | jsonb |  |
 | created_by | text | fk user.id, on delete set null |

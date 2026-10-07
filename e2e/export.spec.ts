@@ -48,8 +48,9 @@ test("export the answers as CSV, with the page's filter", async ({ page, request
   const flines = ftext.slice(1).split("\r\n").filter((l) => l.length > 0);
   expect(flines[1]).toBe('"Filtered: Disagree"');
   // The answer filter keeps the people who gave such an answer, with all their answers, as
-  // Results does; the file's Disagree rows are the page's 2.
-  expect(flines.filter((l) => l.includes(',"Disagree",')).length).toBe(2);
+  // Results does; the file's Disagree rows are the page's 3 (src/db/seed/sample.ts
+  // expected.disagree).
+  expect(flines.filter((l) => l.includes(',"Disagree",')).length).toBe(3);
 
   // A request another site starts gets 403.
   expect((await page.request.get(filtered!, { headers: { "sec-fetch-site": "cross-site" } })).status()).toBe(403);

@@ -1,14 +1,15 @@
 // stories/E3-5: the check over a stored upload with its mapping, and the commit writing the
 // set with the same report; another workspace refused.
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { items, projects, workspaces } from "@/db/queries";
 import { prepareTestDatabase } from "@/db/test-db";
 import type { WorkspaceId } from "@/db/types";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
-import { checkUpload, commitUpload, IMPORT_COPY, importLog, latestSet } from "@/lib/imports";
+import { checkUpload, commitUpload, IMPORT_COPY, importLog, latestSet, sheetsError } from "@/lib/imports";
 import { memoryOutbox } from "@/lib/mail";
-import { savePaste, saveUpload, saveMapping } from "@/lib/uploads";
+import { chooseSheets, rechoose, savePaste, saveUpload, saveMapping, UPLOAD_COPY } from "@/lib/uploads";
 import { requireWorkspace } from "@/lib/workspace";
 
 const BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -72,5 +73,69 @@ describe("checkUpload and commitUpload", () => {
     if (!("upload" in emptyText)) throw new Error(emptyText.error);
     await saveMapping(a.ws, emptyText.upload.id, { Ref: "ref", Requirement: "skip", Notes: "text" });
     expect(await commitUpload(a.ws, emptyText.upload.id, a.userId)).toEqual({ error: IMPORT_COPY.nothing });
+  });
+});
+
+// stories/E3-7, acceptance 7: two sheets of the two-sheets fixture ticked, the mapping over
+// their union, a sheet without the text column refused, the sheet names as areas, then the
+// commit in sheet order with the folded duplicates and the per-sheet report.
+describe("several sheets", () => {
+  it("imports two sheets as one version, in sheet order then row order", async () => {
+    const bytes = new Uint8Array(readFileSync("src/lib/import/fixtures/two-sheets.xlsx"));
+    const saved = await saveUpload(a, projectA, { name: "two-sheets.xlsx", bytes });
+    if (!("upload" in saved)) throw new Error(saved.error);
+    expect(saved.upload.sheets).toBeNull();
+    expect(saved.upload.preview.sheetRows).toEqual([{ name: "Notes", rows: 1 }, { name: "Requirements", rows: 7 }, { name: "Old", rows: 3 }]);
+    // Notes has no header, so its one column is "A" and the text column is not there.
+    const withNotes = await chooseSheets(a.ws, saved.upload.id, ["Requirements", "Notes"]);
+    if (!("upload" in withNotes)) throw new Error(withNotes.error);
+    expect(withNotes.upload.sheets).toEqual([{ name: "Notes" }, { name: "Requirements" }]);
+    expect(withNotes.upload.preview.columns.map((c) => c.name)).toEqual(["", "Ref", "Requirement", "Module", "Priority"]);
+    expect(sheetsError(withNotes.upload)).toBe("Sheet Notes has no column Requirement. Untick it, or map the item text to a column every ticked sheet has.");
+    expect(await checkUpload(withNotes.upload)).toBeNull();
+    expect(await commitUpload(a.ws, saved.upload.id, a.userId)).toEqual({ error: sheetsError(withNotes.upload) });
+    expect(await chooseSheets(a.ws, saved.upload.id, [])).toEqual({ error: UPLOAD_COPY.noSheet });
+    await expect(chooseSheets(b.ws, saved.upload.id, ["Old"])).rejects.toBeInstanceOf(NotFoundError);
+
+    const two = await chooseSheets(a.ws, saved.upload.id, ["Old", "Requirements"]);
+    if (!("upload" in two)) throw new Error(two.error);
+    expect(two.upload.sheets).toEqual([{ name: "Requirements" }, { name: "Old" }]);
+    expect(two.upload.preview.perSheet?.map((s) => [s.name, s.headerRow, s.rowsRead])).toEqual([["Requirements", 1, 6], ["Old", 1, 2]]);
+    expect(two.upload.preview.rowsRead).toBe(8);
+    expect(two.upload.mapping).toEqual({ Ref: "ref", Requirement: "text", Module: "area", Priority: "value" });
+    expect(sheetsError(two.upload)).toBeNull();
+    // The area column wins; the duplicates on Old fold into Requirements.
+    const check = await checkUpload(two.upload);
+    expect(check?.items.map((i) => [i.sheet, i.ref, i.area])).toEqual([["Requirements", "CL-01", "Submitting"], ["Requirements", "CL-02", "Submitting"], ["Requirements", "CL-03", "Approving"], ["Requirements", "CL-04", "Approving"], ["Requirements", "CL-05", "Paying"], ["Requirements", "CL-06", "Paying"]]);
+    expect(check?.report.sheets).toEqual([
+      { name: "Requirements", rowsRead: 6, headerRow: 1, items: 6, emptyRows: 0, exactDuplicates: 0, overLimit: 0, unrecognisedValues: 0 },
+      { name: "Old", rowsRead: 2, headerRow: 1, items: 0, emptyRows: 0, exactDuplicates: 2, overLimit: 0, unrecognisedValues: 0 },
+    ]);
+    expect(check?.sheets?.[1].duplicateRows).toEqual([{ row: 2, keptRow: 2, keptSheet: "Requirements" }, { row: 3, keptRow: 3, keptSheet: "Requirements" }]);
+    // No area column: the sheet names stand in while the switch is on.
+    const noArea = await saveMapping(a.ws, saved.upload.id, { Ref: "ref", Requirement: "text", Module: "skip", Priority: "value" });
+    expect(noArea.upload.sheetAreas).toBe(true);
+    expect((await checkUpload(noArea.upload))?.items.map((i) => i.area)).toEqual(["Requirements", "Requirements", "Requirements", "Requirements", "Requirements", "Requirements"]);
+    const off = await saveMapping(a.ws, saved.upload.id, { Ref: "ref", Requirement: "text", Module: "skip", Priority: "value" }, false);
+    expect(off.upload.sheetAreas).toBe(false);
+    expect((await checkUpload(off.upload))?.items.every((i) => i.area === null)).toBe(true);
+    // A header row picked for one sheet lands on that sheet alone.
+    const picked = await rechoose(a.ws, saved.upload.id, { sheet: "Old", headerRow: 0 });
+    if (!("upload" in picked)) throw new Error(picked.error);
+    expect(picked.upload.sheets).toEqual([{ name: "Requirements" }, { name: "Old", headerRow: 0 }]);
+    expect(picked.upload.preview.perSheet?.map((s) => [s.name, s.headerRow, s.rowsRead])).toEqual([["Requirements", 1, 6], ["Old", null, 3]]);
+    const back = await rechoose(a.ws, saved.upload.id, { sheet: "Old", headerRow: 1 });
+    if (!("upload" in back)) throw new Error(back.error);
+    await saveMapping(a.ws, saved.upload.id, { Ref: "ref", Requirement: "text", Module: "skip", Priority: "value" }, true);
+
+    const committed = await commitUpload(a.ws, saved.upload.id, a.userId);
+    if (!("set" in committed)) throw new Error(committed.error);
+    expect(committed.set.source).toBe("xlsx");
+    expect(committed.set.importReport?.sheets?.map((s) => s.name)).toEqual(["Requirements", "Old"]);
+    expect(committed.set.importReport).toMatchObject({ rowsRead: 8, exactDuplicates: 2, duplicateRefs: [{ kept: "CL-01", folded: ["CL-01"] }, { kept: "CL-02", folded: ["CL-02"] }] });
+    const rows = (await items.list(a.ws)).filter((i) => i.itemSetId === committed.set.id).sort((x, y) => x.position - y.position);
+    expect(rows.map((r) => [r.position, r.sourceRef, r.area])).toEqual([[1, "CL-01", "Requirements"], [2, "CL-02", "Requirements"], [3, "CL-03", "Requirements"], [4, "CL-04", "Requirements"], [5, "CL-05", "Requirements"], [6, "CL-06", "Requirements"]]);
+    expect(rows[0].flags).toEqual({ foldedRefs: ["CL-01"] });
+    expect((await importLog(a.ws, projectA)).versions[0].importReport?.sheets).toHaveLength(2);
   });
 });

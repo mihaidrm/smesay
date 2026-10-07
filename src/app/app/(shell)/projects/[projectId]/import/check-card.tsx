@@ -8,11 +8,13 @@
 // query: tailwindcss.com/docs/responsive-design#container-queries), so beside the preview
 // panel they stack (decision 0021, item 5). A collapsible card (design note 110): open once
 // the mapping has a text column and until the import, by the page's rule; the summary is
-// the item count ready, or the version imported.
+// the item count ready, or the version imported. With several sheets ticked (stories/E3-7,
+// acceptance 6) the counts come once per sheet under "Sheet [NAME]", the rows named as in
+// that sheet, and a duplicate of a row on another sheet says which.
 import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { IMPORT_COPY } from "@/lib/imports";
 import { IMPORT_CARD_COPY } from "@/lib/import-guide";
-import type { CheckResult } from "@/lib/import/report";
+import type { CheckResult, SheetCheck } from "@/lib/import/report";
 import { ImportButton } from "./import-button";
 
 function Rows({ label, rows }: { label: string; rows: string[] }) {
@@ -25,22 +27,43 @@ function Rows({ label, rows }: { label: string; rows: string[] }) {
   );
 }
 
-export function CheckCard({ uploadId, check, importedVersion, open }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; open: boolean }) {
-  const counts = check ? IMPORT_COPY.counts(check.report) : null;
+type CountsInput = Pick<SheetCheck, "emptyRows" | "longRows" | "unrecognisedRows"> & {
+  name: string | null;
+  report: Parameters<typeof IMPORT_COPY.counts>[0];
+  duplicateRows: { row: number; keptRow: number; keptSheet?: string }[];
+};
+
+function Counts({ check }: { check: CountsInput }) {
+  const counts = IMPORT_COPY.counts(check.report);
+  return (
+    <>
+      <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
+        <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
+        <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => IMPORT_COPY.sameAs(d.row, d.keptRow, d.keptSheet && d.keptSheet !== check.name ? d.keptSheet : null))} />
+        <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
+      </div>
+      {check.report.unrecognisedValues > 0 && (
+        <div className="border-t border-hairline"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
+      )}
+    </>
+  );
+}
+
+export function CheckCard({ uploadId, check, importedVersion, open, blocked }: { uploadId: string; check: CheckResult | null; importedVersion: number | null; open: boolean; blocked: string | null }) {
   const n = check?.items.length ?? 0;
   return (
     <CollapsibleCard title={IMPORT_CARD_COPY.check.title} titleId="check-title" summary={IMPORT_CARD_COPY.check.summary(check ? n : null, importedVersion)} open={open} testId="check-card" className="@container" bodyClassName="flex flex-col border-t border-hairline">
-      {check && counts ? (
-        <div className="grid grid-cols-1 divide-y divide-hairline @3xl:grid-cols-3 @3xl:divide-x @3xl:divide-y-0">
-          <Rows label={counts.empty} rows={check.emptyRows.map((r) => `Row ${r}`)} />
-          <Rows label={counts.duplicates} rows={check.duplicateRows.map((d) => `Row ${d.row}, same as row ${d.keptRow}`)} />
-          <Rows label={counts.long} rows={check.longRows.map((r) => `Row ${r}`)} />
-        </div>
+      {check && check.sheets ? (
+        check.sheets.map((sheet) => (
+          <div key={sheet.name} className="flex flex-col border-b border-hairline" data-testid="check-sheet">
+            <div className="px-4 pt-3 text-[13px] font-semibold">{IMPORT_COPY.sheetHeading(sheet.name)}</div>
+            <Counts check={sheet} />
+          </div>
+        ))
+      ) : check ? (
+        <Counts check={{ ...check, name: null }} />
       ) : (
-        <div className="px-4 py-3 text-sm text-ink-muted">{IMPORT_COPY.noCheck}</div>
-      )}
-      {check && counts && check.report.unrecognisedValues > 0 && (
-        <div className="border-t border-hairline"><Rows label={counts.values} rows={check.unrecognisedRows.map((u) => `Row ${u.row}: ${u.value}`)} /></div>
+        <div className="px-4 py-3 text-sm text-ink-muted">{blocked ?? IMPORT_COPY.noCheck}</div>
       )}
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-hairline px-4 py-3">
         {importedVersion !== null ? (

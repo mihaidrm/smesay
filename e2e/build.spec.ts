@@ -148,12 +148,14 @@ test("build the intro and the respondent fields, see them in the preview", async
 
   // Scoring (stories/E5-2): the chapter shows the rating row with MoSCoW and the proposed
   // value dashed; switching to 1 to 5 fit changes the pills (E5-6, acceptance 6); a label
-  // renames a pill; the proposal switch off removes the dashed marker. The Build step rings
-  // the rating row and the chapter row.
+  // renames a pill; the proposal switch off removes the dashed marker. The panel's compact
+  // view shows the chapter row and one card without a ring (decision 0061); the Build step's
+  // rings are in the full view.
   await ready();
   const chapter = app.getByTestId("chapter-screen");
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
-  await expect(app.locator("nav[data-ring]")).toBeVisible();
+  await expect(app.getByTestId("chapter-row")).toBeVisible();
+  await expect(app.locator("nav[data-ring]")).toHaveCount(0);
   const row = chapter.getByTestId("rating-row").first();
   await expect(row.getByRole("radio")).toHaveText(["Must", "Should", "Could", "Not needed", "Unclear"]);
   await expect(row.locator("[data-proposed]")).toHaveText("Must");
@@ -242,7 +244,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(chapter).toHaveAttribute("data-layout", "page");
   await expect(app.getByTestId("chapter-row")).toHaveCount(0);
   await expect(chapter.getByTestId("layout-note")).toHaveText("All 2 on one page");
-  await expect(chapter.getByTestId("item-card")).toHaveCount(2);
+  // The compact view keeps one card (decision 0061); the note counts both.
+  await expect(chapter.getByTestId("item-card")).toHaveCount(1);
+  await expect(chapter.getByTestId("compact-note")).toHaveText("1 of 2 cards. The full view shows them all.");
   await noSideScroll(); await pillsTall();
   await page.getByText("Chapters", { exact: true }).click();
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
@@ -293,7 +297,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
   // The Closing card focused opens the Wrap up in the preview (E5-5, acceptance 3); a control
   // of another card opens the first screen again.
-  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap$/);
+  await expect(page.getByTestId("preview-iframe")).toHaveAttribute("src", /&screen=wrap&compact=1$/);
   await expect(async () => { await ready(); await expect(wrapUp).toBeVisible({ timeout: 1_000 }); }).toPass({ timeout: 15_000 });
   await page.getByRole("switch", { name: "Ask for missing items" }).click();
   await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
@@ -309,8 +313,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("closing-confidence")).toContainText("Always on");
   await expect(page.getByTestId("closing-confidence").getByRole("switch")).toHaveCount(0);
   await expect(wrapUp.getByTestId("confidence-slider")).toBeVisible();
-  await expect(wrapUp.getByTestId("wrap-up-submit")).toBeDisabled();
-  await expect(wrapUp.getByTestId("wrap-up-note")).toHaveText("Still needed: 1 item, how confident you are, the confirmation.");
+  // The compact Wrap up has no Submit and no note (decision 0061); e2e/preview.spec.ts proves
+  // the preview saves nothing and e2e/respondent-submit.spec.ts proves the Submit rules.
+  await expect(wrapUp.getByTestId("wrap-up-submit")).toHaveCount(0);
 
   // The sidebar and the project header stay in view while the page scrolls (design note 43).
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

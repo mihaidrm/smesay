@@ -42,8 +42,13 @@ export const IMPORT_CARD_COPY = {
   list: { title: "The list", summary: (filename: string | null) => filename ?? "No list yet" },
   preview: {
     title: "Preview",
-    summary: (p: { kind: "xlsx" | "csv" | "pasted"; rows: number; headerRow: number | null }) =>
-      p.kind === "pasted" ? `${n(p.rows)} ${p.rows === 1 ? "item" : "items"}` : `${n(p.rows)} ${p.rows === 1 ? "row" : "rows"}, ${p.headerRow ? `header on row ${p.headerRow}` : "no header row"}`,
+    // sheets: "waiting" while the Sheets step (E3-7) waits for the pick, the count of sheets
+    // ticked when several are, null otherwise.
+    summary: (p: { kind: "xlsx" | "csv" | "pasted"; rows: number; headerRow: number | null; sheets?: number | "waiting" | null }) =>
+      p.kind === "pasted" ? `${n(p.rows)} ${p.rows === 1 ? "item" : "items"}`
+        : p.sheets === "waiting" ? "Pick the sheets"
+        : typeof p.sheets === "number" ? `${n(p.rows)} ${p.rows === 1 ? "row" : "rows"} across ${n(p.sheets)} sheets`
+        : `${n(p.rows)} ${p.rows === 1 ? "row" : "rows"}, ${p.headerRow ? `header on row ${p.headerRow}` : "no header row"}`,
   },
   mapping: {
     title: "Column mapping",
