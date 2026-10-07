@@ -10,7 +10,8 @@ says where its AI output came from, and a run in progress shows that the app is 
 ## Acceptance criteria
 1. A developer menu at the bottom of the sidebar, shown only when the server sees
    `SMESAY_DEV_MENU=1` or `NODE_ENV` is not "production" (docs/setup.md, .env.example);
-   never in a production build without the variable. It holds "AI calls" with three choices,
+   never in a production build without the variable. It is a closed row, "Developer" with
+   the chosen mode beside it, so the sidebar keeps its height; open, it holds "AI calls" with three choices,
    "Stand-in (free)", "Real (spends credits)" and "Off", and the workspace's AI usage this
    month as "[N] AI runs, EUR [x]" from usage() (E2-6). The choice is the cookie
    `smesay-ai-mode`, read on the server by src/lib/ai/mode.ts aiMode() inside runModel; when

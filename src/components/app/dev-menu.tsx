@@ -18,30 +18,35 @@ export function DevMenu({ mode, runs, eur }: { mode: AiMode; runs: number; eur: 
   const [, start] = useTransition();
   const [failed, setFailed] = useState(false);
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-dashed border-hairline-strong px-3 py-2.5 text-xs text-ink-muted" data-testid="dev-menu">
-      <div className="font-semibold text-ink-soft">{DEV_MENU_COPY.title}</div>
-      <fieldset className="flex flex-col gap-1.5" aria-labelledby={groupId}>
-        <legend id={groupId} className="mb-1">{DEV_MENU_COPY.aiCalls}</legend>
-        {AI_MODES.map((m) => (
-          <label key={m} className="flex cursor-pointer items-center gap-2 text-ink-soft">
-            <input
-              type="radio"
-              name="ai-mode"
-              value={m}
-              checked={chosen === m}
-              data-testid={`ai-mode-${m}`}
-              className="size-3.5 accent-violet"
-              onChange={() => start(async () => {
-                setChosen(m);
-                try { await setAiModeAction(m); setFailed(false); } catch { setFailed(true); }
-              })}
-            />
-            <span>{DEV_MENU_COPY.modes[m]}</span>
-          </label>
-        ))}
-      </fieldset>
-      <div data-testid="dev-menu-usage">{DEV_MENU_COPY.usage(runs, eur)}</div>
-      {failed && <p role="alert" className="text-danger">{DEV_MENU_COPY.notSaved}</p>}
-    </div>
+    <details className="rounded-xl border border-dashed border-hairline-strong text-xs text-ink-muted" data-testid="dev-menu">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface [&::-webkit-details-marker]:hidden" data-testid="dev-menu-summary">
+        <span className="font-semibold text-ink-soft">{DEV_MENU_COPY.title}</span>
+        <span data-testid="dev-menu-mode">{DEV_MENU_COPY.modes[chosen]}</span>
+      </summary>
+      <div className="flex flex-col gap-2 px-3 pb-2.5">
+        <fieldset className="flex flex-col gap-1.5" aria-labelledby={groupId}>
+          <legend id={groupId} className="mb-1">{DEV_MENU_COPY.aiCalls}</legend>
+          {AI_MODES.map((m) => (
+            <label key={m} className="flex cursor-pointer items-center gap-2 text-ink-soft">
+              <input
+                type="radio"
+                name="ai-mode"
+                value={m}
+                checked={chosen === m}
+                data-testid={`ai-mode-${m}`}
+                className="size-3.5 accent-violet"
+                onChange={() => start(async () => {
+                  setChosen(m);
+                  try { await setAiModeAction(m); setFailed(false); } catch { setFailed(true); }
+                })}
+              />
+              <span>{DEV_MENU_COPY.modes[m]}</span>
+            </label>
+          ))}
+        </fieldset>
+        <div data-testid="dev-menu-usage">{DEV_MENU_COPY.usage(runs, eur)}</div>
+        {failed && <p role="alert" className="text-danger">{DEV_MENU_COPY.notSaved}</p>}
+      </div>
+    </details>
   );
 }

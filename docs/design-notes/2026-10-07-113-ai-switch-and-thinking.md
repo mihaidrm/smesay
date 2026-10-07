@@ -36,7 +36,9 @@ press, and a way to run without spending.
 
 ## What was decided
 
-1. One switch, in a developer menu at the bottom of the sidebar, "AI calls": Stand-in (free),
+1. One switch, in a developer menu at the bottom of the sidebar (a details row closed by
+   default with the chosen mode beside its name, so the sidebar's footer still fits a 720 px
+   viewport; CI caught the open card pushing Sign out below the fold), "AI calls": Stand-in (free),
    Real (spends credits), Off. The choice is a cookie (smesay-ai-mode), read by runModel
    through src/lib/ai/mode.ts, so every AI feature obeys it through the one door (E4-1). The
    menu exists only when the server sees NODE_ENV other than "production" or

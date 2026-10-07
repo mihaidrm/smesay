@@ -404,7 +404,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Sidebar, sample card title, line and button (design v2) | Try the sample / [SAMPLE NAME] has data on every screen and nothing to set up. / Open the sample |
 | Sidebar, Show tips switch above the mode toggle (E15-1; docs/copy/guide.md) | Show tips (the switch's name); on by default |
 | Sidebar, mode toggle label and state (design v2) | Dark mode (the switch's name); Light / Dark |
-| Sidebar, developer menu (E4-8; only when the server sees SMESAY_DEV_MENU=1 or NODE_ENV is not production, never in production otherwise) | Developer / AI calls (a group of three radios): Stand-in (free), Real (spends credits), Off / [N] AI runs, EUR [x] (the workspace's runs and spend this month, the same sum as Settings' usage line) / a failed store: The choice was not saved. Try again. |
+| Sidebar, developer menu (E4-8; only when the server sees SMESAY_DEV_MENU=1 or NODE_ENV is not production, never in production otherwise) | Developer (a closed row; the chosen mode's name beside it; a click opens it) / AI calls (a group of three radios): Stand-in (free), Real (spends credits), Off / [N] AI runs, EUR [x] (the workspace's runs and spend this month, the same sum as Settings' usage line) / a failed store: The choice was not saved. Try again. |
 | Project header, beside the stepper, when the developer menu's choice is not Real (E4-8) | AI: stand-in / AI: off |
 | Projects page, stat tiles (design v2) | [N] project(s) of your own / [N] response(s) this month / [N] AI run(s) this month |
 | Projects page, archive buttons | Show archived / Back to projects |

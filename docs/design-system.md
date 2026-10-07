@@ -240,8 +240,9 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   nothing pulses. The refusal box beside the same buttons is the danger tint: coral soft,
   danger text, a 16 px alert icon before the sentence.
 - Developer menu (design note 113; src/components/app/dev-menu.tsx; local and test builds
-  only): a dashed card at the bottom of the sidebar, "Developer" in soft ink, a radio group
-  "AI calls" with three choices, the month's usage under it; a neutral pill "AI: stand-in" or
+  only): a dashed details row at the bottom of the sidebar, closed by default so the sidebar
+  keeps its height at 720 px, "Developer" in soft ink with the chosen mode beside it; open, a
+  radio group "AI calls" with three choices and the month's usage under it; a neutral pill "AI: stand-in" or
   "AI: off" beside the project header's stepper while the choice is not the real model.
 - Sidebar: 248 wide on the surface, pinned to the viewport at its full height so the whole
   menu stays in view however long the page is (only the project list scrolls, inside it);
