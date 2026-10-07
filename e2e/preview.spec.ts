@@ -53,11 +53,12 @@ test("preview: on every builder step, one card in the panel, the rings in the fu
   await expect(app.getByTestId("compact-note")).toHaveText("1 of 2 cards. The full view shows them all.");
   await expect(app.locator("nav[data-ring]")).toHaveCount(0);
   await expect(app.getByTestId("chapter-continue")).toHaveCount(0);
-  // The full view: every card, the step's rings.
+  // The full view: the first chapter (one of the two items), the step's rings, the footer.
   const [full] = await Promise.all([context.waitForEvent("page"), panel.getByTestId("preview-full-size").click()]);
   await full.locator("[data-ready]").waitFor();
   await expect(full.locator("[data-preview-compact]")).toHaveCount(0);
-  await expect(full.getByTestId("item-card")).toHaveCount(2);
+  await expect(full.getByTestId("item-card")).toHaveCount(1);
+  await expect(full.getByTestId("chapter-continue")).toBeVisible();
   await expect(full.locator("nav[data-ring]")).toBeVisible();
   await expect(full.getByTestId("item-card").first()).toHaveClass(/ring-violet/);
   await full.close();

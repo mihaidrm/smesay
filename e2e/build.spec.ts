@@ -140,12 +140,14 @@ test("build the intro and the respondent fields, see them in the preview", async
 
   // Scoring (stories/E5-2): the chapter shows the rating row with MoSCoW and the proposed
   // value dashed; switching to 1 to 5 fit changes the pills (E5-6, acceptance 6); a label
-  // renames a pill; the proposal switch off removes the dashed marker. The Build step rings
-  // the rating row and the chapter row.
+  // renames a pill; the proposal switch off removes the dashed marker. The panel's compact
+  // view shows the chapter row and one card without a ring (decision 0061); the Build step's
+  // rings are in the full view.
   await ready();
   const chapter = app.getByTestId("chapter-screen");
   await expect(chapter.getByTestId("item-card")).toHaveCount(1);
-  await expect(app.locator("nav[data-ring]")).toBeVisible();
+  await expect(app.getByTestId("chapter-row")).toBeVisible();
+  await expect(app.locator("nav[data-ring]")).toHaveCount(0);
   const row = chapter.getByTestId("rating-row").first();
   await expect(row.getByRole("radio")).toHaveText(["Must", "Should", "Could", "Not needed", "Unclear"]);
   await expect(row.locator("[data-proposed]")).toHaveText("Must");
