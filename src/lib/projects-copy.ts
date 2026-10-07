@@ -4,6 +4,10 @@ export const PROJECTS_COPY = {
   badName: "Enter a name for the project, up to 80 characters.",
   planFull: "Your plan has no room for another project. Change the plan.",
   saved: "Saved.",
+  // The Import cards' titles (docs/copy/app.md), as the unsaved changes guard names them
+  // (stories/E5-9).
+  aboutCard: "About this project",
+  listCard: "The list",
   sample: "The sample project cannot be edited.",
   // The band on every screen of the sample (stories/E8-8, acceptance 1; CLAUDE.md, dashboard
   // rules): never dismissed.
