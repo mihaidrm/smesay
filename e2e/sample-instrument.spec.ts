@@ -46,7 +46,8 @@ test("a visitor answers the sample and reaches Done, with nothing saved", async 
   await cards.nth(1).getByRole("radio", { name: "Could" }).click();
   await page.getByTestId("chapter-continue").click();
 
-  await page.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  await page.getByTestId("confidence-slider").focus();
+  await page.getByTestId("confidence-slider").press("ArrowRight");
   await page.getByTestId("wrap-up-signoff").click();
   await page.getByTestId("wrap-up-submit").click();
   await expect(page.getByTestId("done-thanks")).toHaveText("Thank you, Dana.");

@@ -81,7 +81,10 @@ test("wrap up, submit, done, change, submit again", async ({ page, request, brow
   await link.reload();
   await link.locator("[data-ready]").waitFor();
   await expect(link.getByLabel("What is missing?")).toHaveValue("Mileage from a start and end address");
-  await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  // The slider rests at 3 until a move; one step right is 4, and the word under it says so.
+  await link.getByTestId("confidence-slider").focus();
+  await link.getByTestId("confidence-slider").press("ArrowRight");
+  await expect(link.getByTestId("confidence-word")).toHaveText("Confident");
   await link.getByTestId("wrap-up-signoff").click();
   await expect(link.getByTestId("wrap-up-note")).toHaveText("Everything is in. Submit when you are ready.");
   await link.getByTestId("wrap-up-submit").click();

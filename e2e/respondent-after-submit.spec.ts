@@ -68,7 +68,8 @@ test("submit, reopen, welcome back, change, submit again", async ({ page, reques
   await link.getByTestId("item-card").getByRole("radio", { name: "Should" }).click();
   await expect(link.getByTestId("item-card-note")).toHaveText("Saved");
   await link.getByTestId("chapter-continue").click();
-  await link.getByTestId("wrap-up-confidence").getByRole("radio", { name: "5" }).click();
+  await link.getByTestId("confidence-slider").focus();
+  await link.getByTestId("confidence-slider").press("End");
   await link.getByTestId("wrap-up-signoff").click();
   await link.getByTestId("wrap-up-submit").click();
   await expect(link.getByTestId("done-summary")).toHaveText("2 agreed, 0 changed, 0 not needed, 0 unclear, 0 items added");
@@ -86,7 +87,9 @@ test("submit, reopen, welcome back, change, submit again", async ({ page, reques
   await again.waitForTimeout(61_000 - (Date.now() % 60_000));
   await again.getByTestId("done-change").click();
   await expect(again.getByTestId("wrap-up-signoff").locator("input")).not.toBeChecked();
-  await again.getByTestId("wrap-up-confidence").getByRole("radio", { name: "4" }).click();
+  // The slider holds the submitted 5; one step left is 4.
+  await again.getByTestId("confidence-slider").focus();
+  await again.getByTestId("confidence-slider").press("ArrowLeft");
   // A change after Submit: the page says it must be submitted again (E7-6, acceptance 6).
   await expect(again.getByTestId("changed-since")).toHaveText("You changed answers after submitting. Submit again to send them.");
   await again.getByTestId("wrap-up-signoff").click();

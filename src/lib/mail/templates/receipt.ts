@@ -1,6 +1,8 @@
 // Email 4 of docs/copy/emails.md (the submission receipt, stories/E7-5, acceptance 5; template
 // stories/E12-3) on the shared frame (layout.ts). Counts only, with the link, never the answers
-// (decision 0031). The instants are written in UTC (src/lib/sharing-format.ts formatUtc).
+// (decision 0031). The instants are written in UTC (src/lib/sharing-format.ts formatUtc). The
+// confidence is named by its slider word with the number (design note 107).
+import { confidenceWord } from "@/lib/closing";
 import { formatUtc } from "@/lib/sharing-format";
 import { renderEmail, type Email } from "./layout";
 
@@ -27,7 +29,7 @@ export function receiptEmail(input: ReceiptEmailInput): Email {
     before: [
       { text: input.respondentName ? `Hi ${input.respondentName},` : "Hi," },
       { text: `Your answers on ${projectName} for ${workspaceName} were submitted on ${when}.` },
-      { text: `You answered ${counts.items} ${counts.items === 1 ? "item" : "items"}. ${split}, marked ${counts.notNeeded} not needed and ${counts.unclear} unclear, and suggested ${counts.missing} missing ${counts.missing === 1 ? "item" : "items"}. Your confidence was ${counts.confidence} of 5.` },
+      { text: `You answered ${counts.items} ${counts.items === 1 ? "item" : "items"}. ${split}, marked ${counts.notNeeded} not needed and ${counts.unclear} unclear, and suggested ${counts.missing} missing ${counts.missing === 1 ? "item" : "items"}. Your confidence: ${confidenceWord(counts.confidence)} (${counts.confidence} of 5).` },
       { text: closesAt ? `You can change your answers until the link closes on ${formatUtc(closesAt)}. Open the same link and press Change my answers.` : "You can change your answers while the link is open. Open the same link and press Change my answers." },
     ],
     button: { label: "See your answers", url },
