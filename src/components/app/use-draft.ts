@@ -57,5 +57,10 @@ export function useDraft<T extends Record<string, string>>(key: string, initial:
     try { window.sessionStorage.removeItem(storageKey(key)); } catch { /* nothing stored */ }
     setRestored(false);
   }, [key]);
-  return { values, set, restored, clear };
+  // Drops the stored draft whatever the form shows: Discard in the unsaved changes guard
+  // (stories/E5-9) remounts the form with the server's values right after.
+  const forget = useCallback(() => {
+    try { window.sessionStorage.removeItem(storageKey(key)); } catch { /* nothing stored */ }
+  }, [key]);
+  return { values, set, restored, clear, forget };
 }

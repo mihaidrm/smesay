@@ -14,6 +14,8 @@ import { needsSheetStep } from "@/lib/import/sheets";
 import { rememberedFrom } from "@/lib/uploads";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
+import { UnsavedMark } from "@/components/app/unsaved";
+import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { ContextForm } from "./context-form";
 import { MappingCard } from "./mapping";
 import { PasteForm } from "./paste-form";
@@ -68,7 +70,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} />
       <section className="flex flex-col gap-3 card p-4" aria-labelledby="about-title">
         <div className="flex flex-col gap-1">
-          <h3 id="about-title" className="font-semibold">About this project</h3>
+          <div className="flex items-center gap-2"><h3 id="about-title" className="font-semibold">{PROJECTS_COPY.aboutCard}</h3><UnsavedMark id="import-context" /></div>
           <p className="text-[13px] text-ink-muted">Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</p>
         </div>
         <ContextForm projectId={project.id} goal={project.contextGoal ?? ""} terms={project.contextTerms ?? ""} readOnly={project.isSample} />
@@ -76,7 +78,7 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {!project.isSample && (
         <section className="flex flex-col gap-3 card p-4" aria-labelledby="upload-title">
           <div className="flex flex-col gap-1">
-            <h3 id="upload-title" className="font-semibold">The list</h3>
+            <div className="flex items-center gap-2"><h3 id="upload-title" className="font-semibold">{PROJECTS_COPY.listCard}</h3><UnsavedMark id="import-paste" /></div>
             <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
           </div>
           <UploadForm projectId={project.id} hasUpload={upload !== null} />
