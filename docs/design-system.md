@@ -215,9 +215,10 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   mode toggle; the signed-in email and Sign out.
 - Project header: breadcrumb, title, the stepper and Archive on one row, pinned to the top of
   the viewport on the ground with a hairline under it while the step page scrolls.
-- Stepper: pills on a surface track, the current step a violet pill with on-violet text and an
-  on-violet circle holding a violet number, a done step a mint circle with a dark tick, a coming
-  step muted with a hairline-strong circle.
+- Stepper: pills on a surface track, the current step (the open page) a violet pill with
+  on-violet text and an on-violet circle holding a violet number, ringed in violet (2 px) with
+  a 2 px surface offset, a done step a mint circle with a dark tick, a coming step muted with a
+  hairline-strong circle.
 - Tiles: the workspace's initials and a project's colour (one of four gradients picked by the
   name; the sample a dashed outline) are decoration beside the written name, never the only
   mark.
