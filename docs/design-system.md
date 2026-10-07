@@ -192,6 +192,13 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   Toggle chip (the perspective tags on Shape, design note 44): a pill-shaped button with
   aria-pressed, hairline-strong and muted text when off, violet soft and violet text when
   on, 12 px 600, height 24, radius 999; aria-disabled at 60 percent while a press saves.
+- Colour picker (Settings, Brand; design note 104): a 40 by 40 swatch, radius 10, hairline,
+  the hand cursor and the focus ring, painted with the colour in the hex field beside it
+  (the default violet when the field is empty); it is an input of type color laid over the
+  swatch, so a press opens the browser's own picker, and the picked colour writes the hex
+  in upper case into the field. A tertiary Clear beside the field empties it. The same in
+  both modes; the swatch shows the saved value, not the lift the respondent side draws on
+  dark.
 - Toggle 44 by 24, violet when on, ink-muted when off, the thumb white on light and the ground
   on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
