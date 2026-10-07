@@ -13,6 +13,10 @@ Decision:
   header, the chapter row, the first card and the line "1 of [N] cards. The full view shows
   them all." No ring, no Previous and Next, no footer, no Powered by. Desktop is a 720 px
   column at 58.3 percent, so the card reads at 420 px; a phone is 390 px at true size.
+- On the Wrap up (the Closing card focused) the compact view shows the heading, the tally,
+  the still-to-finish line and the Closing card's parts; the item lists, the footer and Powered
+  by stay out (Mihai, 2026-10-07: "preview looks bad after the results start being
+  populated", a Wrap up with 119 rows at 40 percent).
 - "Full view" (was "Open full size") opens the whole app in a new tab, with the step's rings
   (E5-6 acceptance 2 holds there) at its own size.
 - The rings, which drew a violet line around every card and the chapter row (the "no gaps"

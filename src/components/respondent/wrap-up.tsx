@@ -29,7 +29,7 @@ import { cn } from "cn";
 import { PoweredBy, type PoweredByShow } from "./powered-by";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_LINE, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 import type { ClosingSpec, ScaleLabels, ScoringMethod } from "@/db/types";
-import { ABOUT_YOU_COPY, BUILD_COPY } from "@/lib/build-copy";
+import { BUILD_COPY } from "@/lib/build-copy";
 import { signOffFor, WRAP_UP_COPY } from "@/lib/closing";
 import { ACCENT_FILL, accentVars } from "@/lib/brand-rules";
 import { EMPTY_WRAP, MISSING_MAX, REASON_MAX, RESPONDENT_COPY, RESPONDENT_ERRORS, type Bucket, type Gap, type WrapValue } from "@/lib/respondent-rules";
@@ -58,6 +58,9 @@ export type WrapUpProps = {
   // The parts the Closing card changes (the form, the question, confidence, the sign-off),
   // ringed as one group in the preview (decision 0021).
   ring?: boolean;
+  // The builder's compact preview (decision 0061): the heading, the tally, the still-to-finish
+  // line and the Closing card's parts; no item lists, no footer, no Powered by.
+  compact?: boolean;
   className?: string;
   // The live link (E7-4): the header and row above, the gaps, moving to a chapter, Back.
   top?: React.ReactNode;
@@ -86,7 +89,7 @@ const GAP_NOTE: Record<Gap["note"], string> = { notRated: RESPONDENT_COPY.notRat
 
 const FIELD = "h-12 w-full rounded-xl border border-hairline-strong bg-surface px-4 text-[17px] text-ink focus:outline-hidden transition-colors focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground";
 
-export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null }: WrapUpProps) {
+export function WrapUp({ workspaceName, accent, closing, method, labels, showProposed, chapters, numbered = false, areas, total, preview = false, heading: Heading = "h1", ring = false, className, top, gaps, onGo, onBack, tally, sections, value, onValue, fieldsMissing = false, submitting = false, submitError = null, saveNote = null, onSubmit, poweredBy = true, slide = null, compact = false }: WrapUpProps) {
   const open = gaps ? gaps.length : total;
   const Body = "main";
   const firstGap = gaps?.[0];
@@ -113,8 +116,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
   const live = Boolean(onSubmit);
   return (
     <div className={cn(FRAME_OUTER, "min-h-full", className)} data-testid="wrap-up" data-preview={preview || undefined}>
-      <div className={FRAME_CARD}>
-      {preview && <div className="bg-sun-soft px-5 py-1.5 text-center text-xs font-semibold text-sun-text">{ABOUT_YOU_COPY.previewNote}</div>}
+      <div className={cn(FRAME_CARD, compact && "@xl:mt-4")}>
       {top ?? (
         <header className={cn("flex items-center gap-2.5 border-b border-hairline bg-surface px-5 pt-4 pb-3", FRAME_HEADER)}>
           <span className="grow text-[15px] font-bold">{workspaceName}</span>
@@ -147,7 +149,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
         ) : (
           <p className="text-sm text-ink-muted">{WRAP_UP_COPY.noItems}</p>
         )}
-        {gaps && gaps.length > 0 && (
+        {gaps && gaps.length > 0 && !compact && (
           <section className="flex flex-col gap-2" aria-labelledby={`${prefix}-gaps-title`} data-testid="wrap-up-unfinished">
             <h2 id={`${prefix}-gaps-title`} className="text-sm font-semibold">{RESPONDENT_COPY.stillToFinish}</h2>
             <ul className="flex flex-col divide-y divide-hairline rounded-xl border border-hairline bg-surface">
@@ -163,7 +165,7 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
             </ul>
           </section>
         )}
-        {sections && (["higher", "lower", "notNeeded", "unclear"] as const).map((bucket) => {
+        {sections && !compact && (["higher", "lower", "notNeeded", "unclear"] as const).map((bucket) => {
           const rows = sections.filter((r) => r.bucket === bucket);
           if (rows.length === 0) return null;
           return (
@@ -240,15 +242,15 @@ export function WrapUp({ workspaceName, accent, closing, method, labels, showPro
         </fieldset>
         </div>
       </Body>
-      <div className={FRAME_ACTIONS}>
+      {!compact && <div className={FRAME_ACTIONS}>
         <div className="flex items-center gap-3 @xl:justify-center">
         {onBack && <button type="button" disabled={submitting} onClick={onBack} className="h-12 rounded-full border border-hairline-strong bg-surface px-6 text-base font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40" data-testid="wrap-up-back">{RESPONDENT_COPY.back}</button>}
         <button type="button" disabled={disabled || preview || submitting} aria-busy={submitting || undefined} aria-describedby={`${prefix}-note`} onClick={() => { if (!disabled && !preview && !submitting) onSubmit?.(); }} className={cn("h-12 grow rounded-full bg-ink px-6 text-base font-bold text-ground transition-opacity focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 @xl:grow-0", FRAME_PRIMARY)} data-testid="wrap-up-submit">{submitting ? RESPONDENT_COPY.submitting : WRAP_UP_COPY.submit}</button>
         </div>
         <div id={`${prefix}-note`} aria-live="polite" className={cn("min-h-5 text-sm", FRAME_LINE, submitError && !disabled ? "text-danger" : "text-ink-muted")} data-testid="wrap-up-note">{onlyConfidence && !preview ? RESPONDENT_ERRORS.confidence : disabled ? WRAP_UP_COPY.stillNeeded(needed) : preview ? WRAP_UP_COPY.previewSubmit : (submitError ?? WRAP_UP_COPY.allIn)}</div>
+      </div>}
       </div>
-      </div>
-      <PoweredBy show={poweredBy} className={FRAME_POWERED} />
+      {!compact && <PoweredBy show={poweredBy} className={FRAME_POWERED} />}
     </div>
   );
 }

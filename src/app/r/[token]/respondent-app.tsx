@@ -471,7 +471,7 @@ export function RespondentApp(props: RespondentAppProps) {
           <PoweredBy show={props.poweredBy} privacy className={FRAME_POWERED} />
         </div>
       ) : (screen.kind === "wrap" || screen.kind === "done") && (chapters.length > 0 || preview) ? (
-        <WrapUp slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
+        <WrapUp compact={compact} slide={slide} workspaceName={workspaceName} accent={accent} closing={props.closing} method={instrument.method} labels={instrument.labels} showProposed={instrument.showProposed} chapters={names} numbered={!page && chapters[0]?.name != null} areas={areasOf(chapters)} total={chapters.reduce((n, c) => n + c.items.length, 0)} className="min-h-screen"
           top={<><RespondentHeader workspaceName={workspaceName} accent={accent} logoUrl={logoUrl} note={note} className={FRAME_HEADER} />{nav}{banner}</>}
           gaps={gaps}
           onGo={(chapter, itemId) => { const at = itemId ? chapters[chapter].items.findIndex((it) => it.id === itemId) : 0; const one = instrument.layout === "item"; go({ kind: "chapter", index: page ? 0 : chapter }, one ? Math.max(at, 0) : 0, one ? null : itemId ?? null); }}
