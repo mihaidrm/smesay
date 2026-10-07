@@ -28,7 +28,12 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await expect(page).toHaveURL(/\/app$/);
   // The menu is in the sidebar on every signed-in page, a closed row with the mode beside its
   // name; open, the month's usage at zero.
-  const openMenu = () => page.getByTestId("dev-menu-summary").click();
+  // The shell keeps the menu's state across client-side navigations, so a click opens it only
+  // when it is closed.
+  const openMenu = async () => {
+    const menu = page.getByTestId("dev-menu");
+    if (!(await menu.evaluate((el) => (el as HTMLDetailsElement).open))) await menu.locator("summary").click();
+  };
   await expect(page.getByTestId("dev-menu")).toBeVisible();
   // The default without a cookie is the stand-in outside production and the real model in
   // CI's production build (acceptance 2).
