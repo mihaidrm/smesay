@@ -8,10 +8,12 @@
 // control's accessible name carries the field it belongs to ("Required, Name"), since the
 // visible labels repeat on every row; Add a field moves focus to the new row's label and
 // Remove moves it to Add a field, so focus never falls to the page. "Saved." shows until the
-// next change. Design note 38.
+// next change. Design note 38. The card registers with the unsaved changes guard
+// (stories/E5-9); Discard remounts it with the server's values (useDiscard).
 import { useActionState, useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Toggle } from "@/components/app/toggle";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { RespondentFieldSpec } from "@/db/types";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { FIELD_TYPE_LABEL, FIELD_TYPES, FIELDS_MAX, type FieldType } from "@/lib/respondent-fields";
+import { isUnsaved } from "@/lib/unsaved";
 import { saveFieldsAction, type ProjectFormState } from "../../actions";
 
 type Row = { id: number; label: string; type: FieldType; mandatory: boolean; options: string };
@@ -27,12 +30,20 @@ const fromSpec = (fields: RespondentFieldSpec[]): Row[] => fields.map((f, i) => 
 
 const SELECT = "h-10 w-full rounded-xl border border-hairline-strong bg-surface px-3 text-sm text-ink outline-none focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function FieldsForm({ projectId, instrumentId, fields }: { projectId: string; instrumentId: string; fields: RespondentFieldSpec[] }) {
+type Props = { projectId: string; instrumentId: string; fields: RespondentFieldSpec[] };
+
+export function FieldsForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, fields, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveFieldsAction, { error: null, saved: false });
   const [rows, setRows] = useState<Row[]>(() => fromSpec(fields));
   const [nextId, setNextId] = useState(fields.length);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "build-fields", label: BUILD_COPY.fieldsCard, dirty: isUnsaved(dirty, pending, state), reset: discard });
   const addRef = useRef<HTMLButtonElement>(null);
   const prefix = useId();
   const patch = (id: number, change: Partial<Row>) => { setDirty(true); setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...change } : r))); };
@@ -54,7 +65,7 @@ export function FieldsForm({ projectId, instrumentId, fields }: { projectId: str
   };
   const payload = JSON.stringify(rows.map(({ label, type, mandatory, options }) => (type === "dropdown" ? { label, type, mandatory, options } : { label, type, mandatory })));
   return (
-    <form action={action} onSubmit={() => { setRefusal(null); setDirty(false); }} noValidate className="flex flex-col gap-3" data-testid="fields-form">
+    <form {...unsaved.props} action={action} onSubmit={() => { setRefusal(null); setDirty(false); }} noValidate className="flex flex-col gap-3" data-testid="fields-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <input type="hidden" name="fields" value={payload} />

@@ -3,8 +3,9 @@
 // step page scrolls, then the step page. The sample (stories/E8-8) has Delete sample in
 // Archive's place and the watermark band (SampleBand) in the pinned header on every step, so
 // it stays in view while the page scrolls, never dismissed. A project id outside the workspace
-// is 404 through projects.get(ws, id). Steps without a page yet are not links. Copy:
-// docs/copy/app.md.
+// is 404 through projects.get(ws, id). Steps without a page yet are not links. The unsaved
+// changes banner (stories/E5-9) sits in the pinned header too, under the title row, so it is
+// in view wherever the page is scrolled. Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import type { StepKey } from "@/components/app/stepper";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { instruments, invites, projects } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { latestSet } from "@/lib/imports";
 import { SampleBand } from "@/components/app/sample-band";
+import { UnsavedBanner } from "@/components/app/unsaved";
 import { DeleteSample } from "../../delete-sample";
 import { archiveAction } from "../actions";
 import { ProjectStepper } from "./project-stepper";
@@ -55,6 +57,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
           </form>
         )}
         {project.isSample && <SampleBand className="basis-full" />}
+        <UnsavedBanner className="basis-full" />
       </div>
       {children}
     </main>

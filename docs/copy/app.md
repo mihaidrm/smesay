@@ -105,6 +105,9 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Project frame breadcrumb | [WORKSPACE NAME] (the sample: [WORKSPACE NAME] · sample project) |
 | Archived marker and buttons | Archived; Archive project, Unarchive |
 | Stepper | Import, Shape, Build, Share, Results |
+| Unsaved changes banner (E5-9), under the title row of the pinned project header, after a click on a stepper pill, on Projects, Settings or Help, on a project in the sidebar's list, on Open the sample or on Go to Shape while a card of Import, Build or Share holds changes not saved (a save on its way or refused counts); the unsaved cards get a 2 px danger border and shake once | Save or discard your changes before you leave: [CARD TITLES, apart by commas]. [Button: Discard] (the saved values come back in every unsaved card) |
+| Unsaved changes label (E5-9), beside the title of each unsaved card after that click | Not saved |
+| Closing the tab, reloading or typing another address while a card is unsaved (E5-9) | The browser's own leave dialog, in the browser's words. |
 | Import step title | Import the list |
 | About card title | About this project |
 | About card line | Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build. |
