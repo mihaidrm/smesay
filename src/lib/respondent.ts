@@ -22,7 +22,7 @@ import { sendMail, type Mail } from "@/lib/mail";
 import { receiptEmail } from "@/lib/mail/templates/receipt";
 import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
-import { answerFor, answeredCount, areasOf, carriedFields, changedSinceSubmit, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
+import { answerFor, answeredCount, carriedFields, changedSinceSubmit, chaptersFor, isComplete, parseAnswerInput, parseFieldValues, parsePicks, parseSubmitInput, parseWrapInput, RESPONDENT_ERRORS, tallyOf, EMPTY_WRAP, type WrapSync, type WrapValue, type AnswerState, type AreaMeta, type RespondentItem } from "@/lib/respondent-rules";
 import { proposedCode } from "@/lib/scoring";
 import { track } from "@/lib/analytics";
 import { linkState } from "@/lib/sharing";
@@ -102,7 +102,7 @@ export async function loadRespondent(token: string, cookies: RespondentCookies, 
   // The Wrap up as last saved and its version (E7-5: saved as the respondent writes, and by
   // Submit).
   const missing = response ? (await missingItems.forResponse(link.ws, response.id))[0] : undefined;
-  const wrap: WrapValue = response ? wrapOf({ confidence: response.confidence, closingAnswer: response.closingAnswer, missing: missing ? { text: missing.text, area: missing.suggestedArea, value: missing.suggestedValue } : null }) : EMPTY_WRAP;
+  const wrap: WrapValue = response ? wrapOf({ confidence: response.confidence, closingAnswer: response.closingAnswer, missing: missing ? { text: missing.text } : null }) : EMPTY_WRAP;
   const wrapSync: WrapSync = response ? { version: response.wrapVersion, writer: response.wrapWriter, writerSeq: response.wrapWriterSeq } : { version: 0, writer: null, writerSeq: 0 };
   return { kind: "ready", link, response, items: list, areas, answers: answerMap(rows), versions: Object.fromEntries(rows.map((a) => [a.itemId, a.version])), wrap, wrapSync };
 }
@@ -236,10 +236,8 @@ export async function saveWrap(token: string, cookies: RespondentCookies, body: 
   const { link } = open;
   const response = await responseOf(link, cookies.device);
   if (!response || namedResponse(body) !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
-  const { items: all, areas } = await itemsOf(link);
-  const chapters = chaptersFor(areas, all, response.perspectives);
   const closing = link.instrument.closing;
-  const parsed = parseWrapInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm });
+  const parsed = parseWrapInput(body, { method: link.instrument.method, hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm });
   if ("error" in parsed) return { status: 422, error: parsed.error };
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";
   const { response: _named, ...write } = parsed.input;
@@ -257,7 +255,7 @@ const namedResponse = (body: unknown): unknown => (body && typeof body === "obje
 
 // The stored Wrap up as the page holds it (the sign-off is never stored for the page: it is
 // ticked for each Submit).
-export const wrapOf = (stored: { confidence: number | null; closingAnswer: string | null; missing: { text: string; area: string | null; value: string | null } | null }): WrapValue => ({ confidence: stored.confidence, signed: false, closingAnswer: stored.closingAnswer ?? "", missing: { text: stored.missing?.text ?? "", area: stored.missing?.area ?? "", value: stored.missing?.value ?? "" } });
+export const wrapOf = (stored: { confidence: number | null; closingAnswer: string | null; missing: { text: string } | null }): WrapValue => ({ confidence: stored.confidence, signed: false, closingAnswer: stored.closingAnswer ?? "", missing: { text: stored.missing?.text ?? "" } });
 const wrapReplyOf = (stored: StoredWrap): WrapReply => ({ wrap: wrapOf(stored), version: stored.version, writer: stored.writer, writerSeq: stored.writerSeq, changedSince: stored.changedSince, submittedAt: stored.submittedAt?.toISOString() ?? null });
 
 // The first word of the respondent's name, for "Thank you, [NAME]." and "Welcome back":
@@ -289,11 +287,10 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
   // replaced since never submits the response another window started (as saveAnswer).
   if (!response || namedResponse(body) !== response.id) return { status: 409, error: RESPONDENT_ERRORS.notStarted };
   const { items: all, areas } = await itemsOf(link);
-  const chapters = chaptersFor(areas, all, response.perspectives);
   const spec = link.instrument.respondentFields;
   if (missingMandatory(spec, { ...response.fields, ...carriedFields(link.invite, spec) }).length > 0) return { status: 422, error: RESPONDENT_ERRORS.fieldsOpen };
   const closing = link.instrument.closing;
-  const parsed = parseSubmitInput(body, { method: link.instrument.method, areas: areasOf(chapters), hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm, signOff: signOffFor(closing) });
+  const parsed = parseSubmitInput(body, { method: link.instrument.method, hasQuestion: Boolean(closing.closingQuestion), missingForm: closing.missingForm, signOff: signOffFor(closing) });
   if ("error" in parsed) return { status: 422, error: parsed.error };
   if (!response.submittedAt && !(await withinPlan(link.ws, "responses", now))) return { status: 403, error: RESPONDENT_ERRORS.planFull };
   const stillOpen = (dates: InviteDates) => dates.token === token && linkState(dates, now) === "open";

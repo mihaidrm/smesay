@@ -83,8 +83,9 @@ Built 2026-10-04 (design note 60, decision 0044; docs/review-list.md for the poi
   the tabs with their counts as links (the tab in the URL); each tab says which story brings
   its content (E8-2 to E8-4, E9-1, E10-1). "Pushed back" is on no label of Results; the
   E15 guide line that named a "Pushed back tab" now names the Different priority and
-  Disagree tab. The stepper's Results step is a page from here, the project's current step
-  once its link is published (Share done).
+  Disagree tab. The stepper's Results step is a page from here, the project's furthest step
+  once its link is published (Share ticked); the filled pill is the open page (design note
+  106, 2026-10-07).
 - Acceptance 2: src/lib/results-tiles.ts, the catalogue of twelve and the six by default;
   Choose tiles (tile-chooser.tsx) a checklist in a modal dialog, at most six, saved per PM
   per instrument (user.results_prefs, migration 0019), checked again on the server.

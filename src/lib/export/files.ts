@@ -81,10 +81,10 @@ export async function exportTable(ws: WorkspaceId, instrument: Instrument, file:
   }
 
   const keys = fields.map((s) => s.key);
-  const missing = await registers.missing(ws, instrument.id, { ...f, sort: null }, keys, method);
+  const missing = await registers.missing(ws, instrument.id, { ...f, sort: null }, keys);
   return {
     preamble,
-    header: [C.suggested, C.suggestedArea, C.suggestedValue, C.suggestedLabel, C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit],
-    rows: missing.map((m) => [m.text, m.area ?? "", m.value ?? "", label(m.value), name(m), ...keys.map((k) => m.fields[k] ?? ""), m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress, since(m)]),
+    header: [C.suggested, C.respondent, ...fields.map((s) => s.label), C.status, C.sinceSubmit],
+    rows: missing.map((m) => [m.text, name(m), ...keys.map((k) => m.fields[k] ?? ""), m.submitted ? EXPORT_COPY.statuses.submitted : EXPORT_COPY.statuses.inProgress, since(m)]),
   };
 }

@@ -21,7 +21,7 @@ const PURPOSE = {
   invite: 'a public link or a personal link per email; opens and closes; passcode; revoked; reminders. token is 128-bit random',
   response: 'one respondent\'s session against one instrument, pinned to the set version it was given; fields, confidence, sign-off, submitted_at',
   answer: 'one answer per item per response: kind (agree, change, disagree, unclear, pick), value, reason, comment',
-  missing_item: 'what a respondent said was missing, with the area they suggested',
+  missing_item: 'what a respondent said was missing, in their own words (one box since 2026-10-07, decision 0060)',
   insight: 'an AI-written action on a project with the answers it cites and its cost',
   ai_run: 'every call to the model: purpose, tokens, cost in euro cents, duration (E4 budget)',
   export_log: 'every download of an export: who, when, the file, the filter in words, the rows (E10-1, for E11-2)',

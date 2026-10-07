@@ -26,7 +26,7 @@ const nameOf = (who: string | null, anon: number | null) => who ?? RESPONSES_COP
 // The keys each register's query sorts by (src/db/queries/results.ts registers); any other
 // key sorts by the first column, in the direction asked.
 const ANSWER_KEYS = ["item", "respondent", "proposed", "value", "reason", "status"];
-const MISSING_KEYS = ["item", "text", "area", "value", "respondent", "status"];
+const MISSING_KEYS = ["item", "text", "respondent", "status"];
 
 
 function SortHeader({ c, sort, filter, href }: { c: Column; sort: ResultsFilter["sort"]; filter: ResultsFilter; href: Props["href"] }) {
@@ -127,7 +127,7 @@ export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref
   const answerKeys = [...ANSWER_KEYS, ...keys.map((k) => `field.${k}`)];
   const missingKeys = [...MISSING_KEYS, ...keys.map((k) => `field.${k}`)];
   const role = ctx.fields.find((f) => f.key === "role") ?? null;
-  const [unclear, missing] = await Promise.all([registers.answers(ws, instrument.id, filter, ["unclear"], keys, instrument.method), registers.missing(ws, instrument.id, filter, keys, instrument.method)]);
+  const [unclear, missing] = await Promise.all([registers.answers(ws, instrument.id, filter, ["unclear"], keys, instrument.method), registers.missing(ws, instrument.id, filter, keys)]);
   const label = (code: string | null) => (code ? (labelFor(instrument.method, instrument.scaleLabels, code) ?? code) : "");
   const who: Column[] = [{ key: "respondent", label: REGISTERS_COPY.respondent }, ...(role ? [{ key: "field.role", label: role.label }] : [])];
   return (
@@ -144,12 +144,10 @@ export async function QuestionsTab({ ws, instrument, filter, ctx, href, itemHref
         ))}
       </Register>
       <Register title={REGISTERS_COPY.missingTitle} count={missing.length} filter={filter} href={href} testId="register-missing" queryKeys={missingKeys} aliases={{ item: "text" }}
-        columns={[{ key: "text", label: REGISTERS_COPY.missingText }, { key: "area", label: REGISTERS_COPY.area }, { key: "value", label: REGISTERS_COPY.suggestedValue }, ...who]}>
+        columns={[{ key: "text", label: REGISTERS_COPY.missingText }, ...who]}>
         {missing.map((m: MissingRegisterRow) => (
           <tr key={m.id} className="border-t border-hairline hover:bg-tint" data-testid="register-row">
-            <td className={CELL}>{m.text}</td>
-            <td className={CELL}>{m.area ?? ""}</td>
-            <td className={`${CELL} whitespace-nowrap`}>{label(m.value)}</td>
+            <td className={`${CELL} whitespace-pre-line`}>{m.text}</td>
             <td className={CELL}><Respondent who={m.who} anon={m.anon} submitted={m.submitted} changedSince={m.changedSince} /></td>
             {role && <td className={CELL}>{m.fields.role ?? ""}</td>}
           </tr>

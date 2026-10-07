@@ -400,7 +400,7 @@ export type RegisterRow = {
   // Submitted, then answers changed and not submitted again (E7-6; the Responses tab's mark).
   changedSince: boolean;
 };
-export type MissingRegisterRow = { id: string; text: string; area: string | null; value: string | null; fields: Record<string, string>; who: string | null; anon: number | null; submitted: boolean; changedSince: boolean };
+export type MissingRegisterRow = { id: string; text: string; fields: Record<string, string>; who: string | null; anon: number | null; submitted: boolean; changedSince: boolean };
 
 // Stable sort of rows by a value's place in the scale (empty values last, both ways); rows
 // with the same place keep the query's order (the list's order in the same direction).
@@ -444,22 +444,20 @@ export const registers = {
     if (f.sort?.key === "proposed") return byScale(out, (r) => proposedCode(method, r.proposedValue), method, dirOf);
     return out;
   },
-  missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[], method: ScoringMethod): Promise<MissingRegisterRow[]> => {
+  missing: async (ws: WorkspaceId, instrumentId: string, f: ResultsFilter, fieldKeys: string[]): Promise<MissingRegisterRow[]> => {
     if (!isUuid(instrumentId)) return [];
     const dir = f.sort?.dir === "desc" ? sql`desc` : sql`asc`;
     const columns: Record<string, SQL> = {
       item: sql`lower(x.text) ${dir}`,
       text: sql`lower(x.text) ${dir}`,
-      area: sql`x.suggested_area ${dir} nulls last`,
       respondent: sql`lower(c.who) ${dir} nulls last, c.anon ${dir} nulls last`,
       status: sql`(c.submitted_at is not null) ${dir}`,
     };
-    const rows = await db.execute<{ id: string; text: string; suggested_area: string | null; suggested_value: string | null; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
-      select x.id, x.text, x.suggested_area, x.suggested_value, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
+    const rows = await db.execute<{ id: string; text: string; fields: Record<string, string>; who: string | null; anon: string | number | null; submitted: boolean; signed_off: boolean }>(sql`${head(ws, instrumentId, f, true)}
+      select x.id, x.text, c.fields, c.who, c.anon, (c.submitted_at is not null) as submitted, c.signed_off
         from missing_item x join counted c on c.id = x.response_id where x.workspace_id = ${ws}
         order by ${registerOrder(f.sort, fieldKeys, columns)}`);
-    const out: MissingRegisterRow[] = rows.map((r) => ({ id: r.id, text: r.text, area: r.suggested_area, value: r.suggested_value, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted, changedSince: r.submitted && !r.signed_off }));
-    return f.sort?.key === "value" ? byScale(out, (r) => r.value, method, f.sort.dir) : out;
+    return rows.map((r) => ({ id: r.id, text: r.text, fields: r.fields ?? {}, who: r.who, anon: r.anon === null ? null : Number(r.anon), submitted: r.submitted, changedSince: r.submitted && !r.signed_off }));
   },
 };
 
