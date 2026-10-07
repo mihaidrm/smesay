@@ -117,6 +117,8 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await expect(page.getByTestId("dev-menu-usage")).toHaveText("1 AI run, EUR 0.00");
 
   // Stand-in: the thinking state with the tab's counts, four actions, the stand-in line.
+  // The shell re-renders after a choice is stored, so the row may be closed again.
+  await openMenu();
   await page.getByTestId("ai-mode-standin").check();
   await expect(page.getByTestId("ai-mode-pill")).toHaveText("AI: stand-in");
   await page.getByTestId("write-actions").click();
@@ -129,6 +131,8 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await page.goto(`${projectUrl}/results?tab=actions`);
   await openMenu();
   await expect(page.getByTestId("dev-menu-usage")).toHaveText("2 AI runs, EUR 0.00");
+  // The shell re-renders after a choice is stored, so the row may be closed again.
+  await openMenu();
   await page.getByTestId("ai-mode-real").check();
   await expect(page.getByTestId("ai-mode-pill")).toHaveCount(0);
 });
