@@ -19,11 +19,14 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { cn } from "cn";
 
-export function CollapsibleCard({ title, titleId, count, summary, open, testId, className, bodyClassName, children, ...rest }: {
+export function CollapsibleCard({ title, titleId, count, summary, mark, open, testId, className, bodyClassName, children, ...rest }: {
   title: string;
   titleId: string;
   count?: string | null;
   summary?: string | null;
+  // mark: a label beside the title, such as the "Not saved" of the unsaved changes guard
+  // (stories/E5-9), visible while the card is closed too.
+  mark?: React.ReactNode;
   open: boolean;
   testId?: string;
   className?: string;
@@ -49,6 +52,7 @@ export function CollapsibleCard({ title, titleId, count, summary, open, testId, 
         <span className="flex min-w-0 items-baseline gap-2">
           <h3 id={titleId} className="font-semibold">{title}</h3>
           {count ? <span className="font-mono text-xs text-ink-muted">{count}</span> : null}
+          {mark}
         </span>
         <span className="flex min-w-0 shrink items-center gap-2 text-[13px] text-ink-muted">
           {summary ? <span className="truncate" data-testid="card-summary">{summary}</span> : null}

@@ -4,23 +4,34 @@
 // src/lib/instruments.ts); under it, how many items carry one and the way to Shape, where
 // items are tagged. "Saved." until the next change; Save is secondary like the other Build
 // cards (design note 38). Locked once published, like the Scoring card: the field and Save
-// are disabled under the locked line, and the server refuses too (savePerspectives).
-import Link from "next/link";
+// are disabled under the locked line, and the server refuses too (savePerspectives). The
+// card registers with the unsaved changes guard (stories/E5-9), and its Go to Shape link
+// runs the guard like a stepper pill; Discard remounts it with the server's values.
 import { useActionState, useId, useState } from "react";
+import { GuardedLink, useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BUILD_COPY } from "@/lib/build-copy";
 import { PERSPECTIVES_COPY } from "@/lib/perspectives";
+import { isUnsaved } from "@/lib/unsaved";
 import { savePerspectivesAction, type ProjectFormState } from "../../actions";
 
-export function PerspectivesForm({ projectId, instrumentId, names, tagged, total, locked }: { projectId: string; instrumentId: string; names: string[]; tagged: number; total: number; locked: boolean }) {
+type Props = { projectId: string; instrumentId: string; names: string[]; tagged: number; total: number; locked: boolean };
+
+export function PerspectivesForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, names, tagged, total, locked, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(savePerspectivesAction, { error: null, saved: false });
   const [text, setText] = useState(names.join("\n"));
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "build-perspectives", label: BUILD_COPY.perspectivesCard, dirty: isUnsaved(dirty, pending, state), reset: discard });
   const id = useId();
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-3" data-testid="perspectives-form">
+    <form {...unsaved.props} action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-3" data-testid="perspectives-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       {locked && <p className="text-[13px] text-ink-muted" data-testid="perspectives-locked">{PERSPECTIVES_COPY.locked}</p>}
@@ -29,7 +40,7 @@ export function PerspectivesForm({ projectId, instrumentId, names, tagged, total
         <Textarea id={`${id}-names`} name="perspectives" rows={3} value={text} onChange={(e) => { setDirty(true); setText(e.target.value); }} disabled={locked} className="min-h-[84px]" />
       </div>
       <p className="text-[13px] text-ink-muted" data-testid="perspectives-tagged">
-        {names.length === 0 ? BUILD_COPY.perspectivesNone : <>{BUILD_COPY.perspectivesTagged(tagged, total)} {!locked && <Link href={`/app/projects/${projectId}/shape`} className="underline underline-offset-4">{BUILD_COPY.perspectivesTaggedLink}</Link>}</>}
+        {names.length === 0 ? BUILD_COPY.perspectivesNone : <>{BUILD_COPY.perspectivesTagged(tagged, total)} {!locked && <GuardedLink href={`/app/projects/${projectId}/shape`} className="underline underline-offset-4">{BUILD_COPY.perspectivesTaggedLink}</GuardedLink>}</>}
       </p>
       {state.error && !dirty && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       {!state.error && !dirty && state.saved && <p role="status" className="text-[13px] text-agree-text">{BUILD_COPY.saved}</p>}

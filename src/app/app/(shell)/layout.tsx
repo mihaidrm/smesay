@@ -10,10 +10,13 @@
 // sidebar (Mihai, 2026-10-03).
 // Route group, so /app/new and /app/switch render without it (node_modules/next/dist/docs/
 // 01-app/03-api-reference/03-file-conventions/route-groups.md). Copy: docs/copy/app.md.
-import Link from "next/link";
+// The unsaved changes guard (stories/E5-9) is provided here, around the sidebar and the
+// page, since the sidebar's links leave a setup step too: every link in the sidebar runs the
+// guard (NavLink, GuardedLink), and nothing registers outside Import, Build and Share.
 import { CircleHelp, LayoutGrid, Settings } from "lucide-react";
 import { ModeToggle } from "@/components/app/mode-toggle";
 import { NavLink } from "@/components/app/nav-link";
+import { GuardedLink, UnsavedProvider } from "@/components/app/unsaved";
 import { WorkspaceTile } from "@/components/app/tiles";
 import { Lockup } from "@/components/brand/mark";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,6 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [memberRows, projectRows, guideState] = await Promise.all([members.list(current.ws), projects.list(current.ws), guide.state(session.user.id)]);
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   return (
+    <UnsavedProvider>
     <div className="flex min-h-screen items-start">
       {!viewing && <PlausibleScript />}
       <aside className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col gap-1.5 border-r border-hairline bg-surface px-3.5 py-[18px] text-sm" data-testid="sidebar">
@@ -55,13 +59,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="mt-3 flex min-h-0 flex-col gap-1 overflow-y-auto">
           <div className="flex items-center justify-between px-3">
             <div className="text-xs text-ink-muted">Projects</div>
-            <Link href="/app" className="rounded-sm text-xs font-semibold text-violet-text outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">All</Link>
+            <GuardedLink href="/app" className="rounded-sm text-xs font-semibold text-violet-text outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">All</GuardedLink>
           </div>
           {projectRows.filter((p) => p.archivedAt === null).map((p) => (
-            <Link key={p.id} href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+            <GuardedLink key={p.id} href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className="flex min-h-9 items-center justify-between gap-2 rounded-xl px-3 py-2 text-ink-soft transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
               <span className="truncate">{p.name}</span>
               {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
-            </Link>
+            </GuardedLink>
           ))}
         </div>
         <div className="mt-auto flex flex-col gap-3">
@@ -69,7 +73,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="flex flex-col gap-2 rounded-xl border border-hairline-strong bg-[linear-gradient(135deg,var(--violet-soft),var(--surface))] p-3.5" data-testid="sample-card">
               <div className="text-[13px] font-bold">Try the sample</div>
               <div className="text-xs leading-[17px] text-ink-muted">{sample.name} has data on every screen and nothing to set up.</div>
-              <Link href={`/app/projects/${sample.id}/results`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</Link>
+              <GuardedLink href={`/app/projects/${sample.id}/results`} className={buttonVariants({ variant: "secondary", size: "small", className: "self-start" })}>Open the sample</GuardedLink>
             </div>
           )}
           <NavLink href="/app/quickstart" icon={<CircleHelp aria-hidden="true" />}>{QUICKSTART_COPY.help}</NavLink>
@@ -95,5 +99,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       ) : <div className="flex min-w-0 flex-grow flex-col">{children}</div>}
     </div>
+    </UnsavedProvider>
   );
 }

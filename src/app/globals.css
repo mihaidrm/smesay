@@ -333,6 +333,24 @@ html.mode-sweep::view-transition-new(mode-thumb) {
   .cell-fade { animation: none; }
 }
 
+/* The unsaved changes guard (stories/E5-9; design note 112): a card whose form holds unsaved
+   changes after a stopped click gets a 2 px danger border (the hairline turns danger and an
+   inset line doubles it, so nothing moves) and shakes once, 4 px side to side over 400 ms.
+   :has selects the card from the marked form inside it (developer.mozilla.org/docs/Web/CSS/
+   :has). The base rule under @layer base stops the shake under prefers-reduced-motion. */
+@keyframes unsaved-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.card:has([data-unsaved]) {
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 1px var(--danger), var(--shadow-card);
+}
+.unsaved-shake {
+  animation: unsaved-shake 400ms ease-in-out;
+}
+
 /* The column of the pages outside the shell (sign-in, name the workspace, errors). */
 @utility auth-frame {
   margin-inline: auto;

@@ -3,23 +3,35 @@
 // name on the server, and the intro with the errors.md hint under it while it is empty and
 // the count as typed. "Saved." shows until the next change. Save is a secondary button:
 // Build has two Save cards and no primary action until Share exists (design note 38).
-// useActionState: react.dev/reference/react/useActionState.
+// useActionState: react.dev/reference/react/useActionState. The card registers with the
+// unsaved changes guard (stories/E5-9): a change makes it unsaved until the save goes
+// through; Discard remounts it with the server's values (useDiscard).
 import { useActionState, useState } from "react";
+import { useDiscard, useUnsavedForm } from "@/components/app/unsaved";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BUILD_COPY, INTRO_MAX } from "@/lib/build-copy";
+import { isUnsaved } from "@/lib/unsaved";
 import { saveIntroAction, type ProjectFormState } from "../../actions";
 
-export function IntroForm({ projectId, instrumentId, title: initialTitle, intro: initialIntro }: { projectId: string; instrumentId: string; title: string; intro: string }) {
+type Props = { projectId: string; instrumentId: string; title: string; intro: string };
+
+export function IntroForm(props: Props) {
+  const [epoch, discard] = useDiscard();
+  return <Form key={epoch} {...props} discard={discard} />;
+}
+
+function Form({ projectId, instrumentId, title: initialTitle, intro: initialIntro, discard }: Props & { discard: () => void }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(saveIntroAction, { error: null, saved: false });
   const [title, setTitle] = useState(initialTitle);
   const [intro, setIntro] = useState(initialIntro);
   const [dirty, setDirty] = useState(false);
+  const unsaved = useUnsavedForm({ id: "build-intro", label: BUILD_COPY.introCard, dirty: isUnsaved(dirty, pending, state), reset: discard });
   const over = intro.trim().length > INTRO_MAX;
   return (
-    <form action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-3" data-testid="intro-form">
+    <form {...unsaved.props} action={action} onSubmit={() => setDirty(false)} noValidate className="flex flex-col gap-3" data-testid="intro-form">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="instrumentId" value={instrumentId} />
       <div className="flex flex-col gap-1">

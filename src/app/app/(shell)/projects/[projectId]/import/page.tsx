@@ -19,6 +19,7 @@ import { PASTE_COPY } from "@/lib/import/paste";
 import { rememberedFrom } from "@/lib/uploads";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
+import { UnsavedMark } from "@/components/app/unsaved";
 import { ContextForm } from "./context-form";
 import { MappingCard } from "./mapping";
 import { PasteForm } from "./paste-form";
@@ -69,12 +70,12 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       )}
       {published && <Banner data-testid="published-banner">{IMPORT_COPY.published}</Banner>}
       <ImportLog projectId={project.id} versions={log.versions} diffText={log.diffText} open={cards.versions} />
-      <CollapsibleCard title={IMPORT_CARD_COPY.about.title} titleId="about-title" summary={IMPORT_CARD_COPY.about.summary(project.contextGoal ?? "", project.contextTerms ?? "")} open={cards.about} testId="card-about">
+      <CollapsibleCard title={IMPORT_CARD_COPY.about.title} titleId="about-title" summary={IMPORT_CARD_COPY.about.summary(project.contextGoal ?? "", project.contextTerms ?? "")} open={cards.about} testId="card-about" mark={<UnsavedMark id="import-context" />}>
         <p className="text-[13px] text-ink-muted">Write a few words on what the list is for and who answers. The AI reads this when it groups and rewrites the items and when it writes the actions. It is not shown to respondents; the intro they see is set in Build.</p>
         <ContextForm projectId={project.id} goal={project.contextGoal ?? ""} terms={project.contextTerms ?? ""} readOnly={project.isSample} />
       </CollapsibleCard>
       {!project.isSample && (
-        <CollapsibleCard title={IMPORT_CARD_COPY.list.title} titleId="upload-title" summary={IMPORT_CARD_COPY.list.summary(upload ? (upload.kind === "pasted" ? PASTE_COPY.filename : upload.filename) : null)} open={cards.list} testId="card-list">
+        <CollapsibleCard title={IMPORT_CARD_COPY.list.title} titleId="upload-title" summary={IMPORT_CARD_COPY.list.summary(upload ? (upload.kind === "pasted" ? PASTE_COPY.filename : upload.filename) : null)} open={cards.list} testId="card-list" mark={<UnsavedMark id="import-paste" />}>
           <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
           <UploadForm projectId={project.id} hasUpload={upload !== null} />
           <PasteForm projectId={project.id} />

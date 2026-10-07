@@ -9,8 +9,10 @@
 // Shape is ticked then too. useSelectedLayoutSegment reads the open step one level under the
 // layout (node_modules/next/dist/docs/01-app/03-api-reference/04-functions/
 // use-selected-layout-segment.md: "the active route segment one level below the Layout").
+// A pill's click runs the unsaved changes guard first (stories/E5-9).
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Stepper, STEPS, type StepKey } from "@/components/app/stepper";
+import { useUnsavedGuard } from "@/components/app/unsaved";
 
 const isStep = (value: string | null): value is StepKey => STEPS.some((s) => s.key === value);
 
@@ -19,5 +21,6 @@ export function ProjectStepper({ projectId, furthest, done, pages, imported }: {
   const viewed = isStep(segment) && pages.includes(segment) ? segment : null;
   const current = viewed ?? furthest;
   const reached = imported && viewed === "build" && furthest === "shape" ? "build" : furthest;
-  return <Stepper current={current} reached={reached} done={done} href={(step) => (pages.includes(step) ? `/app/projects/${projectId}/${step}` : null)} />;
+  const guard = useUnsavedGuard();
+  return <Stepper current={current} reached={reached} done={done} href={(step) => (pages.includes(step) ? `/app/projects/${projectId}/${step}` : null)} onClick={guard} />;
 }

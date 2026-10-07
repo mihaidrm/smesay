@@ -26,6 +26,7 @@ import { formatUtc, linkState, SHARE_COPY } from "@/lib/sharing";
 import { CopyLink } from "./copy-link";
 import { InvitesCard } from "./invites-card";
 import { RevokeLink } from "./revoke-link";
+import { UnsavedMark } from "@/components/app/unsaved";
 import { ShareForm } from "./share-form";
 import { WithPreview } from "../with-preview";
 
@@ -72,11 +73,11 @@ export default async function SharePage({ params }: { params: Promise<{ projectI
       {newerDraft && newerSet && builtOn && (
         <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-draft-title" data-testid="draft-card">
           <div className="flex items-center justify-between gap-3">
-            <h3 id="share-draft-title" className="text-[15px] font-bold">{SHARE_COPY.newerDraftCard(newerSet.version)}</h3>
+            <div className="flex items-center gap-2"><h3 id="share-draft-title" className="text-[15px] font-bold">{SHARE_COPY.newerDraftCard(newerSet.version)}</h3><UnsavedMark id="share-draft" /></div>
             <NeutralPill>{SHARE_COPY.states.draft}</NeutralPill>
           </div>
           <p className="text-sm text-ink-muted">{SHARE_COPY.newerDraft(newerSet.version, builtOn.version)}</p>
-          <ShareForm key={newerDraft.id} projectId={project.id} instrumentId={newerDraft.id} published={false} opensAt={null} closesAt={null} hasPasscode={false} />
+          <ShareForm key={newerDraft.id} projectId={project.id} instrumentId={newerDraft.id} published={false} opensAt={null} closesAt={null} hasPasscode={false} formId="share-draft" formLabel={SHARE_COPY.newerDraftCard(newerSet.version)} />
         </section>
       )}
     </WithPreview>
@@ -90,7 +91,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
   return (
     <section className="card flex max-w-[720px] flex-col gap-4 p-4" aria-labelledby="share-link-title" data-testid="link-card" data-state={state}>
       <div className="flex items-center justify-between gap-3">
-        <h3 id="share-link-title" className="text-[15px] font-bold">{SHARE_COPY.card}</h3>
+        <div className="flex items-center gap-2"><h3 id="share-link-title" className="text-[15px] font-bold">{SHARE_COPY.card}</h3><UnsavedMark id="share-link" /></div>
         {state === "draft" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.draft}</NeutralPill> : state === "revoked" ? <NeutralPill data-testid="link-state">{SHARE_COPY.states.revoked}</NeutralPill> : <StatusPill status="agree" data-testid="link-state">{SHARE_COPY.states.published}</StatusPill>}
       </div>
       <p className="text-sm text-ink-muted" data-testid="link-note">{note}</p>
@@ -103,7 +104,7 @@ function LinkCard({ projectId, isSample, instrument, invite }: { projectId: stri
         </ul>
       ) : (
         <>
-          <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${state === "revoked" ? "revoked" : "live"}`} projectId={projectId} instrumentId={instrument.id} inviteId={invite && state !== "revoked" ? invite.id : null} published={invite !== null && state !== "revoked"} again={state === "revoked"} opensAt={state === "revoked" ? null : (invite?.opensAt?.toISOString() ?? null)} closesAt={state === "revoked" ? null : (invite?.closesAt?.toISOString() ?? null)} hasPasscode={state !== "revoked" && invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} />
+          <ShareForm key={`${instrument.id}-${invite?.id ?? "draft"}-${state === "revoked" ? "revoked" : "live"}`} projectId={projectId} instrumentId={instrument.id} inviteId={invite && state !== "revoked" ? invite.id : null} published={invite !== null && state !== "revoked"} again={state === "revoked"} opensAt={state === "revoked" ? null : (invite?.opensAt?.toISOString() ?? null)} closesAt={state === "revoked" ? null : (invite?.closesAt?.toISOString() ?? null)} hasPasscode={state !== "revoked" && invite?.passcodeHash !== null && invite?.passcodeHash !== undefined} formId="share-link" formLabel={SHARE_COPY.card} />
           {invite && state !== "revoked" && <RevokeLink projectId={projectId} instrumentId={instrument.id} inviteId={invite.id} />}
         </>
       )}
