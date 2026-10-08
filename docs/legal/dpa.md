@@ -3,7 +3,7 @@ date: 2026-10-08
 ---
 # Data processing agreement
 
-This agreement applies when an organisation (the customer) uses SMEsay to collect answers from people, and Alerty S.R.L. processes those answers on the customer's behalf. It is part of the terms of service and is accepted with them; a customer who wants a signed copy can ask hello@smesay.app.
+This agreement applies when an organisation (the customer) uses SMEsay to collect answers from people, and Alerty S.R.L. processes those answers on the customer's behalf. It is part of the terms of service and is accepted with them; a customer who wants a signed copy can ask hello@smesay.com.
 
 ## The parties
 

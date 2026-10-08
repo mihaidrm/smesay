@@ -38,7 +38,7 @@ export default defineConfig({
       // block has em dashes and the pre-commit hook refuses it. webServer.env: test.d.ts.
       // SMESAY_DEV_MENU shows the developer menu in CI's production build (stories/E4-8); its
       // default mode there is "real", which is the stand-in server above, so it stays free.
-      env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "", SMESAY_DEV_MENU: "1", ANTHROPIC_BASE_URL: "http://localhost:4010", ANTHROPIC_API_KEY: "e2e-fake-key-for-the-stand-in", ANTHROPIC_MONTHLY_BUDGET_EUR: "100000", NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@smesay.app", ADMIN_EMAILS: "e2e-admin@marlow.example,e2e-admin-shell@marlow.example,e2e-admin-workspaces@marlow.example,e2e-admin-people@marlow.example,e2e-admin-view@marlow.example" },
+      env: { ...process.env, AI_AGENT: "", CLAUDECODE: "", CLAUDE_CODE: "", SMESAY_DEV_MENU: "1", ANTHROPIC_BASE_URL: "http://localhost:4010", ANTHROPIC_API_KEY: "e2e-fake-key-for-the-stand-in", ANTHROPIC_MONTHLY_BUDGET_EUR: "100000", NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@smesay.com", ADMIN_EMAILS: "e2e-admin@marlow.example,e2e-admin-shell@marlow.example,e2e-admin-workspaces@marlow.example,e2e-admin-people@marlow.example,e2e-admin-view@marlow.example" },
       url: "http://localhost:3000",
       reuseExistingServer: false,
       timeout: 120_000,

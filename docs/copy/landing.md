@@ -58,7 +58,7 @@ Start from the spreadsheet you already have. The AI rewrites it in plain words. 
    the approver." The card opens on Your
    sheet and turns to Shaped once it has been seen.)
 3. Send one link. Your experts open it on any device, with no account, and answer item by
-   item. The answers arrive while they work. (Fragment: smesay.app/r/7k2… Copy.) The phone is
+   item. The answers arrive while they work. (Fragment: smesay.com/r/7k2… Copy.) The phone is
    named in Questions, not here (Mihai, 2026-10-04).
 
 ## What you get back
@@ -168,7 +168,7 @@ link.
 
 ## Questions
 
-Title: Questions. Beside it: Something else on your mind? Write to hello@smesay.app.
+Title: Questions. Beside it: Something else on your mind? Write to hello@smesay.com.
 
 Each opens in place (a plus that turns to a cross):
 
@@ -198,7 +198,7 @@ Each opens in place (a plus that turns to a cross):
 ## Footer
 
 SMEsay. What the SMEs say. SME: subject matter expert. Privacy · Terms · DPA · Subprocessors ·
-hello@smesay.app. The four legal words link to /legal/privacy, /legal/terms, /legal/dpa and
+hello@smesay.com. The four legal words link to /legal/privacy, /legal/terms, /legal/dpa and
 /legal/subprocessors (E11-3); the address stays text until the domain is bought.
 
 ## Question bubble (E12-5, decided 2026-10-05, decision 0049)
@@ -258,8 +258,8 @@ screen:
   personal invite's email and optional name and role (E5-1, E6-2), logo and colour on the link (E2-5,
   E7-1), CSV export (E10-1), projects archived (decision 0028) and a workspace's rows and
   files removed within 24 hours (E11-2; backups, E11-4, have no retention period in any story
-  yet, a point for the privacy policy, E11-3, and the lawyer), free (decision 0008), hello@smesay.app (the domain,
-  docs/accounts.md).
+  yet, a point for the privacy policy, E11-3, and the lawyer), free (decision 0008), hello@smesay.com (the domain,
+  bought 2026-10-08, decision 0064).
 - Compare (design note 58), the With SMEsay column, each with its condition: import the
   sheet you already have, the AI's areas and plain words, the PM choosing the wording (E3,
   E4-1 to E4-3); a link, no account, made for a phone, in the wording the PM chose (E6-1,
@@ -287,8 +287,8 @@ screen:
 - The Free card: "unlimited experts", "Live dashboard and CSV export", "Your logo and colour
   on the link" (the settings, E2-5; the link shows them since E7-1).
 - The footer: the four legal pages exist since E11-3 and carry the lawyer's markers until the
-  lawyer confirms them; hello@smesay.app is a domain the plan buys at the launch gate
-  (docs/accounts.md), so it stays text until then.
+  lawyer confirms them; smesay.com was bought on 2026-10-08 (decision 0064) and hello@ stays
+  text until its inbox exists (docs/accounts.md step 11c).
 
 True on the day: the upload and shaping lines (E3, E4) and the free lines (decision 0008).
 

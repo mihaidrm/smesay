@@ -4,8 +4,8 @@
 // "## " headings, "- " list items (a line that does not start a new item continues the last
 // one) and paragraphs. Inline, "[LAWYER: ...]" markers (decision 0004 item 3) are kept and
 // shown, one level of brackets inside a marker included, and /legal/ addresses and the
-// authority's site become links. hello@smesay.app stays text until the domain is bought
-// (docs/copy/landing.md). Nothing is rendered as HTML: the page builds elements from these
+// authority's site become links. hello@smesay.com stays text until its inbox exists
+// (decision 0064; docs/accounts.md step 11c). Nothing is rendered as HTML: the page builds elements from these
 // parts. No database import.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

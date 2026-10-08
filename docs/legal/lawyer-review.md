@@ -36,8 +36,10 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   the analysis (ec.europa.eu/newsroom/just/document.cfm?doc_id=44100, 2017-10-30). Law 190/2018
   Art. 4(2) adds a DPO when national identification numbers are processed on legitimate
   interest; SMEsay asks for none, and the DPA forbids customers to ask for them. Proposal: no
-  DPO, hello@smesay.app as the privacy contact, and this paragraph as the dated note of the
-  analysis.
+  DPO, hello@smesay.com as the privacy contact, and this paragraph as the dated note of the
+  analysis. The lawyer read the address with the .app ending the plan assumed; the domain bought on
+  2026-10-08 is smesay.com (decision 0064), so the four pages name hello@smesay.com, a change
+  of fact, not of clause, inside version 4.
 - L3 Alerty controller for accounts, processor for respondents' answers. GDPR Art. 28; as
   written.
 - L4 Usage record: legitimate interest (Art. 6(1)(f)), 13 months. CNIL caps audience-
