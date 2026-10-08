@@ -8,21 +8,20 @@ import { describe, expect, it } from "vitest";
 import { inline, LEGAL_PAGES, markersIn, parseLegal, readLegal } from "./legal";
 
 describe("legal pages", () => {
-  it("parse with a version, a date, a title and, until the lawyer reads the liability and trial paragraphs of 2026-10-08, two markers on the terms", () => {
+  it("parse with a version, a date, a title and no marker (the lawyer approved the paragraphs of 2026-10-08)", () => {
     for (const page of LEGAL_PAGES) {
       const doc = readLegal(page);
       expect([doc.version, doc.date]).toEqual([4, "2026-10-08"]);
       expect(doc.blocks[0].kind).toBe("h1");
-      const markers = page === "terms" ? 2 : 0;
-      expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(markers);
-      expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(markers > 0);
+      expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(0);
+      expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(false);
     }
   });
   it("caps liability at the fees paid, nothing on the free plan, and makes paying after a trial acceptance", () => {
     const text = readFileSync("docs/legal/terms.md", "utf8");
     expect(text).toContain("limited to the fees you paid Alerty in the 12 months before the event. On the free plan you pay nothing, so by using it you accept that you cannot claim anything from Alerty.");
     expect(text).toContain("If you carry on after the trial ends and start paying, you accept these terms from that day, every section included.");
-    expect(text.replace(/\[LAWYER:(?:[^[\]]|\[[^[\]]*\])*\]/g, "")).not.toContain("EUR");
+    expect(text).not.toContain("EUR");
   });
   it("names what the privacy policy must cover", () => {
     const text = readFileSync("docs/legal/privacy.md", "utf8");
