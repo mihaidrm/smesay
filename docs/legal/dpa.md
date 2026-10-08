@@ -1,5 +1,5 @@
-version: 3
-date: 2026-10-07
+version: 4
+date: 2026-10-08
 ---
 # Data processing agreement
 
@@ -8,7 +8,7 @@ This agreement applies when an organisation (the customer) uses SMEsay to collec
 ## The parties
 
 - The customer, the controller: the organisation that owns the workspace.
-- The processor: Alerty S.R.L. [LAWYER: add the registered address and the registration number.]
+- The processor: Alerty S.R.L., Șoseaua Virtuții 22D, Bl. B1, Et. 4, Ap. 29, Sector 6, Bucharest, Romania, trade register number J2024022790002.
 
 ## What is processed
 

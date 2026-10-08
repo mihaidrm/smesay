@@ -278,8 +278,12 @@ Done on 2026-10-07: the lawyer checked the 42 marked items of version 2 and appr
 subprocessors.md (stories/E11-3), shown at /legal/privacy, /legal/terms, /legal/dpa and
 /legal/subprocessors, carries no check markers. `npm run legal:markers` lists what is left:
 3 on 2026-10-07, the registered address, the registration number and the fiscal code, on the
-privacy policy, the terms and the DPA. Send Claude the three values, and one commit fills them
-in (and COMPANY_ADDRESS for the emails' footer, step 11). A paragraph written after the
+privacy policy, the terms and the DPA.
+
+Done on 2026-10-08: Mihai sent the certificate of registration and version 4 of the three
+pages carries the registered seat, the trade register number and the fiscal code; `npm run
+legal:markers` lists 0. The same address is the value of COMPANY_ADDRESS in .env.example for
+the emails' footer: set it on the host too (step 11). A paragraph written after the
 lawyer's read (the identity levels of E5-7, in the anonymous responses pull request) keeps its
 marker until the lawyer reads it.
 

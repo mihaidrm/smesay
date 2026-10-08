@@ -8,14 +8,13 @@ import { describe, expect, it } from "vitest";
 import { inline, LEGAL_PAGES, markersIn, parseLegal, readLegal } from "./legal";
 
 describe("legal pages", () => {
-  it("parse with a version, a date, a title and, until the company details arrive, one marker on three pages", () => {
+  it("parse with a version, a date, a title and no marker (the company details arrived on 2026-10-08)", () => {
     for (const page of LEGAL_PAGES) {
       const doc = readLegal(page);
-      expect([doc.version, doc.date]).toEqual([3, "2026-10-07"]);
+      expect([doc.version, doc.date]).toEqual([4, "2026-10-08"]);
       expect(doc.blocks[0].kind).toBe("h1");
-      const markers = page === "subprocessors" ? 0 : 1;
-      expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(markers);
-      expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(markers === 1);
+      expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(0);
+      expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(false);
     }
   });
   it("names what the privacy policy must cover", () => {

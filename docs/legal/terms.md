@@ -1,5 +1,5 @@
-version: 3
-date: 2026-10-07
+version: 4
+date: 2026-10-08
 ---
 # Terms of service
 
@@ -7,7 +7,7 @@ These terms are the agreement between Alerty S.R.L. and the business that uses S
 
 ## The service
 
-SMEsay turns a list of requirements into a short validation that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L. [LAWYER: add the registered address and the registration number.]
+SMEsay turns a list of requirements into a short validation that subject matter experts rate, then shows where they agree, where they disagree and what is missing. It is offered by Alerty S.R.L., Șoseaua Virtuții 22D, Bl. B1, Et. 4, Ap. 29, Sector 6, Bucharest, Romania, trade register number J2024022790002.
 
 ## Accounts and workspaces
 
