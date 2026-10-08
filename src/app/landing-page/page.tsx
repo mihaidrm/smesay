@@ -40,7 +40,7 @@ import { QuestionBubble } from "./question-bubble";
 
 export const metadata: Metadata = {
   title: "SMEsay: send the list as a link",
-  description: "Your experts go through the list item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.",
+  description: "Turn a list of requirements into a link. Your experts answer item by item: agree, a different priority, not needed, or a question. You get a live dashboard, a to-do list written by AI, and the CSV.",
 };
 
 const NAVY = "#16152A";
@@ -70,7 +70,7 @@ function LiveCard() {
         <div className="flex items-center gap-1.5"><span className="landing-pulse block size-2 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Arriving now</div>
       </div>
       <div className="mt-3.5 text-[20px] leading-7 font-semibold tracking-[-0.015em] md:text-[22px] md:leading-[30px]">Expenses over the policy limit are flagged before they reach the approver.</div>
-      <div className="mt-3.5 flex items-center gap-2 text-[13px] text-[#5E5A72]">You proposed <Pill tint="#EEEAFF" text="#5A3BE0">Should have</Pill></div>
+      <div className="mt-3.5 flex items-center gap-2 text-[13px] text-[#5E5A72]">Your proposal <Pill tint="#EEEAFF" text="#5A3BE0">Should have</Pill></div>
       <div className="mt-3.5 flex flex-col border-t border-[#E6E3F0]">
         {rows.map(([initials, name, atint, atext, answer, ptint, ptext]) => (
           <div key={name} className="flex items-center gap-3 border-b border-[#F0EEF7] px-0.5 py-[9px] text-sm last:border-b-0">
@@ -92,6 +92,7 @@ function LiveCard() {
 // The questions (docs/copy/landing.md, Questions): native details and summary, so they open
 // without JavaScript and announce their state (developer.mozilla.org/docs/Web/HTML/Element/details).
 const QUESTIONS: [string, string][] = [
+  ["Who is it for?", "Anyone who has to get a list of requirements agreed by the people who know the work: a product manager, a project lead, a consultant, an IT manager choosing a tool. Those people are your experts; SME stands for subject matter expert."],
   ["Do my experts need an account?", "No. They open the link and answer. There is nothing to install and nothing to sign up for."],
   ["Does it work on a phone?", "Yes. The link is made for a phone first and works the same on a laptop. Answers save as they go, so an expert can stop and pick up where they left off."],
   ["What does the AI do?", "It sorts your list into areas, writes each item in plain words, flags duplicates and vague items, and drafts the to-do list from the answers, naming the answers behind each line. It never answers for your experts. You choose which wording goes out, move items between areas, and dismiss what you do not need."],
@@ -130,9 +131,9 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div aria-hidden="true" className="h-[76px]" />
         <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-start gap-12 px-5 pt-10 pb-16 md:px-8 lg:flex-row lg:items-center lg:justify-between lg:pt-6 lg:pb-14">
           <div className="landing-rise flex w-full max-w-[560px] flex-col items-start">
-            <div className="inline-flex h-[30px] items-center gap-2 rounded-full border border-[#46445F] bg-white/[0.04] pr-3 pl-2 text-[13px] text-[#D4D0E4]"><span className="landing-pulse block size-2 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Live: 5 of 7 experts answering right now</div>
-            <h1 className="mt-[22px] text-[40px] leading-[44px] font-extrabold tracking-[-0.04em] md:text-[66px] md:leading-[68px]">Send the list as a link. <span className="bg-[linear-gradient(90deg,#B8A8FF_0%,#FF8A78_60%,#FFD36E_100%)] bg-clip-text text-transparent">Get back who agrees, and why.</span></h1>
-            <p className="mt-[26px] max-w-[520px] text-[17px] leading-[26px] text-[#C9C4E0] md:text-[19px] md:leading-[30px]">Instead of emailing a spreadsheet around, your experts go through it item by item: agree, push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI, and the CSV.</p>
+            <div className="inline-flex min-h-[30px] items-center gap-2 rounded-full border border-[#46445F] bg-white/[0.04] py-1 pr-3 pl-2 text-[13px] leading-[18px] text-[#D4D0E4]"><span className="landing-pulse block size-2 shrink-0 rounded-full bg-[#5FD3B3]" aria-hidden="true" />Example: a company choosing an expense tool</div>
+            <h1 className="mt-[22px] text-[40px] leading-[44px] font-extrabold tracking-[-0.04em] md:text-[66px] md:leading-[68px]">Send your requirements as a link. <span className="bg-[linear-gradient(90deg,#B8A8FF_0%,#FF8A78_60%,#FFD36E_100%)] bg-clip-text text-transparent">See who agrees, and why.</span></h1>
+            <p className="mt-[26px] max-w-[520px] text-[17px] leading-[26px] text-[#C9C4E0] md:text-[19px] md:leading-[30px]">You wrote down what a new tool or process must do. SMEsay turns that list into a link. Your experts, the people who know the work, open it and answer item by item: agree, a different priority, not needed, or a question. You see where they agree, where they do not, and why.</p>
             <div className="mt-[34px] flex w-full flex-col gap-3.5 sm:w-auto sm:flex-row sm:items-center">
               <GoalLink goal={GOALS.startFree} href={start} className={primary}>Start free<span aria-hidden="true" className="ml-2 transition-transform duration-150 group-hover/button:translate-x-[3px]">→</span></GoalLink>
               <GoalLink goal={GOALS.trySample} href="/sample" className={ghost}>Try the sample as a respondent</GoalLink>
@@ -141,7 +142,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <div className="flex" aria-hidden="true">
                 {["#FF8A78", "#5FD3B3", "#FFD36E", "#9B86FF"].map((c, i) => <span key={c} className="size-[26px] rounded-full border-2" style={{ background: c, borderColor: NAVY, marginLeft: i ? -8 : 0 }} />)}
               </div>
-              <span>Your experts need no account and install nothing. It is free while we build it.</span>
+              <span>Your experts need no account and install nothing. Free while we build it.</span>
             </div>
           </div>
           <div className="landing-rise relative w-full max-w-[600px] pt-6 pb-16 lg:py-10 lg:pl-5 [animation-delay:150ms]">
@@ -149,7 +150,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <Mascot pose="hi" size={104} className="landing-float absolute right-0 bottom-8 lg:-right-12 lg:-bottom-2" />
             <div className="absolute bottom-2 -left-2 flex items-center gap-3 rounded-[14px] border border-[#343252] bg-[#1E1D33] px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.45)] lg:bottom-1 lg:-left-5" data-testid="agreement-chip">
               <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#2E2B55] font-extrabold text-[#B8A8FF]">60%</span>
-              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">30 answers from 5 experts</div></div>
+              <div className="text-[13px] leading-[18px]"><div className="font-semibold">Agreement so far</div><div className="text-[#A8A4BE]">30 answers from 5 of 7 experts</div></div>
             </div>
           </div>
         </div>
@@ -159,22 +160,22 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[640px] text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Three steps. The AI does the dull one.</h2>
-            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Start from the spreadsheet you already have. Let the AI make it readable. Send one link.</p>
+            <p className="max-w-[420px] text-[16px] leading-6 text-[#5E5A72]">Start from the spreadsheet you already have. The AI rewrites it in plain words. You send one link.</p>
           </Reveal>
           <div className="mt-10 grid gap-6 md:mt-12 lg:grid-cols-3">
             <Reveal className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">1</span><span className="text-[18px] font-bold">Import the list</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Upload an xlsx or csv file, or paste a list. Columns are matched once and remembered.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Upload the spreadsheet you already have, or paste the list. Each row becomes one item to answer.</p>
               <div className="mt-auto flex h-[120px] items-center justify-center rounded-[14px] border-[1.5px] border-dashed border-[#CFCBE0] bg-white text-sm text-[#5E5A72]"><span className="rounded-full bg-[#EEEAFF] px-3 py-1.5 font-semibold text-[#5A3BE0]">expense-requirements.xlsx</span></div>
             </Reveal>
             <Reveal delay={120} className="flex flex-col gap-3.5 rounded-[20px] border border-[#6D4CF5] bg-white p-[26px] shadow-[0_16px_40px_rgba(109,76,245,0.22)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">2</span><span className="text-[18px] font-bold">Shape it</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">AI sorts the list into areas and writes each item in plain words. You choose which wording your experts see.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">The AI sorts the items into areas and writes each one in plain words. You check the result and choose the wording your experts see.</p>
               <div className="mt-auto"><ShapeDemo /></div>
             </Reveal>
             <Reveal delay={240} className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">3</span><span className="text-[18px] font-bold">Send one link</span></div>
-              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Experts answer without an account or an app. Their answers arrive while they work.</p>
+              <p className="text-[15px] leading-[23px] text-[#5E5A72]">Your experts open it on any device, with no account, and answer item by item. The answers arrive while they work.</p>
               <div className="mt-auto flex items-center gap-2.5 rounded-[14px] bg-[#15131F] px-3.5 py-3 text-[13px] text-[#F3F1FA]"><span className="min-w-0 truncate font-mono text-[#B8A8FF]">smesay.app/r/7k2…</span><span className="ml-auto rounded-full bg-[#6D4CF5] px-2.5 py-1 font-semibold">Copy</span></div>
             </Reveal>
           </div>
@@ -185,30 +186,30 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
           <Reveal className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">What you get back</h2>
-            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Instead of a pile of replies, you get a picture of where your experts agree, where they do not and why, and what to decide next.</p>
+            <p className="max-w-[460px] text-[16px] leading-6 text-[#5E5A72]">Not a pile of replies. A live picture of who agrees with each item, who does not and why, and a list of what to decide next.</p>
           </Reveal>
           <div className="mt-8 grid gap-6 md:mt-10 lg:grid-cols-[1.35fr_1fr]">
             <Reveal className="flex flex-col gap-4 rounded-[20px] border border-[#E6E3F0] bg-[#F7F6FB] p-5 md:p-6">
               <div className="flex flex-col gap-1">
-                <h3 className="text-xs font-bold text-[#5A3BE0]">See where the list is weak</h3>
-                <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item and every area updates as answers arrive.</span>
-                <span className="text-[14px] leading-[21px] text-[#5E5A72]">Pick the numbers you watch, filter by role or by who left a reason, and switch the chart to the view your meeting needs.</span>
+                <h3 className="text-xs font-bold text-[#5A3BE0]">The dashboard, as the answers arrive</h3>
+                <span className="text-[20px] leading-7 font-bold tracking-[-0.015em]">Every item counted, every area summed up.</span>
+                <span className="text-[14px] leading-[21px] text-[#5E5A72]">One bar per item: green agreed, yellow a different priority, grey not needed, purple a question. The percentage is the share that agreed with your proposal.</span>
               </div>
               <ResultsDemo />
             </Reveal>
             <div className="flex flex-col gap-4">
               <Reveal delay={120} testId="gain-groups" className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
-                <h3 className="text-xs font-bold text-[#9E3321]">Know who disagrees, and why</h3>
-                <div className="text-[16px] leading-[22px] font-semibold">Sales and everyone else split on the policy flags.</div>
+                <h3 className="text-xs font-bold text-[#9E3321]">See which group disagrees, and why</h3>
+                <div className="text-[16px] leading-[22px] font-semibold">Sales wants the policy flags as a Must; everyone else is fine with Should.</div>
                 {/* The two kinds apart, never as one "did not agree" (decision 0062): CL-04's
                     Sales answers are both a different priority; Priya's is the one not needed. */}
                 <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-change">
-                  <span>A different priority than Should have</span>
+                  <span>Want a different priority</span>
                   <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#B7791F]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
                   <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 3</span></div>
                 </div>
                 <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-disagree">
-                  <span>Not needed</span>
+                  <span>Say it is not needed</span>
                   <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 2</span></div>
                   <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#718096]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
                 </div>
@@ -218,15 +219,15 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
                 </figure>
               </Reveal>
               <Reveal delay={240} testId="gain-actions" className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]">
-                <h3 className="text-xs font-bold text-[#5FD3B3]">Walk into the meeting with the decisions listed</h3>
+                <h3 className="text-xs font-bold text-[#5FD3B3]">A to-do list, written by AI from the answers</h3>
                 <ul className="flex flex-col gap-2 text-[15px] leading-[21px]">
-                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
-                  <li className="flex flex-col"><span>Answer two open questions before the link closes.</span><span className="text-xs text-[#A8A4BE]">To do, written by AI · cites 2 answers</span></li>
+                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">From 2 answers, each one cited</span></li>
+                  <li className="flex flex-col"><span>Answer the two open questions before the link closes.</span><span className="text-xs text-[#A8A4BE]">From 2 answers, each one cited</span></li>
                 </ul>
               </Reveal>
               <Reveal delay={360} testId="gain-exports" className="flex flex-col gap-2 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
-                <h3 className="text-xs font-bold text-[#166A52]">Numbers that hold up</h3>
-                <div className="text-[15px] leading-[22px]">Every number on the dashboard matches the export to the row, so the result stands up in the steering meeting.</div>
+                <h3 className="text-xs font-bold text-[#166A52]">Numbers you can take to the meeting</h3>
+                <div className="text-[15px] leading-[22px]">Every number on the dashboard matches the CSV export to the row. The PDF summary is your handout for the meeting.</div>
                 <div className="flex gap-2"><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">CSV</span><span className="rounded-full border border-[#CFCBE0] bg-white px-3 py-1 text-[13px] font-bold">PDF summary</span></div>
               </Reveal>
             </div>
