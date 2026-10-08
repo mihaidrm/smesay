@@ -3,12 +3,10 @@
 // not, and everyone while the variable is missing, gets the 404 page, so the page's existence
 // is not shown (notFound: node_modules/next/dist/docs/01-app/03-api-reference/04-functions/
 // not-found.md).
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { auth } from "@/lib/auth";
 import type { AdminProof } from "@/db/types";
-import type { Session } from "@/lib/session";
+import { readSession, type Session } from "@/lib/session";
 
 export function adminEmails(value = process.env.ADMIN_EMAILS): string[] {
   return (value ?? "").split(",").map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
@@ -22,7 +20,7 @@ export function isAdmin(email: string | null | undefined, list = adminEmails()):
 // user id from the session for the audit row. cache() keeps one session read per request when
 // the layout and the page both ask (react.dev/reference/react/cache).
 export const requireAdmin = cache(async (): Promise<{ session: Session; proof: AdminProof }> => {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await readSession();
   const proof = adminProofFor(session);
   if (!session || !proof) notFound();
   return { session, proof };
