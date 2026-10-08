@@ -5,8 +5,6 @@ lawyer to check". Version 3 of the four pages removes the 42 check markers (deci
 This sheet stays as the record of what was checked and why. The three company details were
 filled in on 2026-10-08 (version 4) from the certificate of registration Mihai sent (ONRC
 Bucharest, series B no. 5002112, issued 23.09.2024): the registered seat, the trade register
-number J2024022790002 and the fiscal code 50556917. Left: the identity paragraph of E5-7,
-written after the lawyer's read.
 number J2024022790002 and the fiscal code 50556917. Left for the lawyer: the identity paragraph
 of E5-7, written after his read, and two terms paragraphs changed on 2026-10-08 (L24, L28).
 

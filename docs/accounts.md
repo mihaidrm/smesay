@@ -281,8 +281,6 @@ subprocessors.md (stories/E11-3), shown at /legal/privacy, /legal/terms, /legal/
 privacy policy, the terms and the DPA.
 
 Done on 2026-10-08: Mihai sent the certificate of registration and version 4 of the three
-pages carries the registered seat, the trade register number and the fiscal code; `npm run
-legal:markers` lists 0. The same address is the value of COMPANY_ADDRESS in .env.example for
 pages carries the registered seat, the trade register number and the fiscal code. The same day
 the terms changed twice more (Mihai): liability is capped at the fees paid in the 12 months
 before the event, with nothing to claim on the free plan and no EUR 100 floor, and paying after

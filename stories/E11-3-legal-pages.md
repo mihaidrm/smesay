@@ -69,8 +69,6 @@ Built 2026-10-04 (design note 74, decision 0044):
 
 Changed 2026-10-08: Mihai sent the certificate of registration; version 4 of the privacy
 policy, the terms and the DPA carries the registered seat, the trade register number and the
-fiscal code, and `npm run legal:markers` lists 0. The subprocessor list moves to version 4 with
-them, unchanged, since the four pages share one version.
 fiscal code. The subprocessor list moves to version 4 with
 them, unchanged, since the four pages share one version.
 
