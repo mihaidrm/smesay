@@ -67,7 +67,8 @@ and why, and what to decide next.
 Results card. Label: See where the list is weak. Title: Every item and every area updates as answers
 arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
 the chart to the view your meeting needs.
-Tiles: Submitted 5 of 7. Agreement 60%. Different priority 7. Disagree 3. Unclear 2 (the two
+Tiles, the number above its label as in the product's stat tile (design note 116): Submitted 5 of 7.
+Agreement 60%. Different priority 7. Disagree 3. Unclear 2 (the two
 kinds as two tiles, never one number; decision 0062).
 Chips: Role: any. With a reason. + Choose tiles.
 View switch (works on the page): Table, Columns, Share. Table: the six items with a stacked bar
