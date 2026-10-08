@@ -84,3 +84,7 @@ Built 2026-10-05 (design note 98, decision 0044):
   0035 on a row from before it), src/lib/export/project.test.ts (round trip, an older file, an
   unknown rule), src/db/queries/results.test.ts (Progress under each rule).
 
+Changed 2026-10-08 (design note 122): the Scoring card is collapsible, closed on load with
+"MoSCoW, proposal shown, a reason when the answer differs, chapters" on its title row (the
+method, the switch, the reason rule and the layout); it opens by its title row, one Build
+card at a time. e2e/build.spec.ts and e2e/respondent-rate.spec.ts open it first.

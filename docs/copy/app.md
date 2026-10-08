@@ -227,6 +227,12 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Title | Build the validation |
 | Line under the title | This is what respondents see, built from version [N] of the list. The preview on the right follows every save. |
+| Build cards (design note 122) | The five cards (Intro, Scoring, Perspectives, Closing, Respondent fields) are collapsible and one is open at a time: Intro while it is empty, none once an intro is saved, none on the sample (src/lib/build-guide.ts). A click on a title row opens that card and closes the open one; a card stays open through its save. Each title row carries the card's settings, the rows below. |
+| Intro card summary | [TITLE]. [INTRO] / [TITLE]. No intro yet. |
+| Scoring card summary | [METHOD], proposal shown / proposal hidden, a reason when the answer differs / no reason required / a reason on every answer, chapters / one item per screen / single long page |
+| Perspectives card summary | [NAMES, apart by commas]. [N] of [M] items carry a perspective. / None. Every item goes to everyone. |
+| Closing card summary | A closing question / No closing question. Asks for missing items / Does not ask for missing items. Confidence always on. |
+| Fields card summary | [N] fields in mono beside the title ([N] field for one); Name and Role. Both required. / Name, Role and Team. All required. / All optional. / [N] of [M] required. / Required. / Optional. (one field) |
 | Empty state, no list yet | Import a list first. Build works on an imported version. Go to Import |
 | Newer version card (E3-6, acceptance 3) | Version [N] of the list was imported after this validation was built on version [M]. The validation keeps version [M] until you build on the new one; the intro, the fields, the scoring and the perspective names are copied over. Items are tagged again on Shape. [Button: Build on version [N]] |
 | Intro card title and fields | Intro; Title (the project name by default), Intro |
@@ -404,12 +410,13 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Mapping card title | Column mapping |
 | Mapping card summary (design note 110) | [N] of [N] columns mapped / No text column yet |
 | Row | [HEADER] (or Column [LETTER] without a header), Column [LETTER], maps to |
-| Roles | Item text, Area, Proposed value, Reference, Custom field, Do not import (the board's wording; the story said Ignore) |
+| Line above the rows (2026-10-08) | Say what each column holds. One column must be the item text; the others are optional. |
+| Roles, each shown as "label: meaning" (design note 120) | Item text: the requirement itself, one per row; Area: the group or section the item belongs to; Proposed value: your priority for it, such as Must or Should; Reference: the item's own id, such as CL-04; Context for the AI: background the AI reads when it shapes the list and writes actions; respondents never see it; Custom field: extra detail kept with the item and shown to respondents under it; Do not import: this column is left out |
 | Sixth custom field | Custom field (up to five custom fields), disabled |
 | Remembered line, above the card | Mapping remembered from [DATE] |
 | Rows with several sheets ticked (E3-7) | the columns of every ticked sheet once, by header, with the letter of the sheet it was first seen in |
 | Switch under the rows, only with several sheets ticked and no column mapped as Area (E3-7; on by default) | Use the sheet names as areas; on: Each item's area is the name of the sheet it came from.; off: No area column is mapped; the items come in without an area. |
-| Footer line | This mapping is remembered for files with the same headers. |
+| Footer line | Only one column can be the item text, the area, the proposed value, the reference or the context for the AI: picking one of these moves it here from the column that had it. This mapping is remembered for files with the same headers. |
 
 ## Signed-in shell (E2-1, E2-3)
 

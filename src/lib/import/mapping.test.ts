@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyMapping, cleanMapping, columnKeys, customCount, guessMapping, headersKey, MAPPING_COPY, mappingError } from "./mapping";
+import { applyMapping, cleanMapping, columnKeys, customCount, guessMapping, headersKey, MAPPING_COPY, mappingError, ROLES } from "./mapping";
 
 const MARLOW = [{ letter: "A", name: "Ref" }, { letter: "B", name: "Requirement" }, { letter: "C", name: "Module" }, { letter: "D", name: "Priority" }];
 
@@ -22,6 +22,15 @@ describe("the mapping rules (stories/E3-3)", () => {
     expect(guessMapping([{ letter: "A", name: "Owner" }, { letter: "B", name: "Description" }])).toEqual({ Owner: "skip", Description: "text" });
     expect(guessMapping([{ letter: "A", name: "" }, { letter: "B", name: "" }])).toEqual({ A: "text", B: "skip" });
     expect(guessMapping([{ letter: "A", name: "ID" }, { letter: "B", name: "Key" }])).toEqual({ ID: "ref", Key: "skip" });
+  });
+  it("lets the latest pick win a single role, and guesses a notes column as context (design note 120)", () => {
+    const columns = [{ letter: "A", name: "Ref" }, { letter: "B", name: "Requirement" }, { letter: "C", name: "Module" }];
+    expect(cleanMapping(columns, { Ref: "ref", Requirement: "text", Module: "ref" }, "Module")).toEqual({ Ref: "skip", Requirement: "text", Module: "ref" });
+    expect(cleanMapping(columns, { Ref: "ref", Requirement: "text", Module: "ref" })).toEqual({ Ref: "ref", Requirement: "text", Module: "skip" });
+    expect(cleanMapping(columns, { Ref: "context", Requirement: "text", Module: "context" }, "Ref")).toEqual({ Ref: "context", Requirement: "text", Module: "skip" });
+    expect(guessMapping([{ letter: "A", name: "Requirement" }, { letter: "B", name: "Notes" }])).toEqual({ Requirement: "text", Notes: "context" });
+    expect(ROLES.map((r) => r.value)).toEqual(["text", "area", "value", "ref", "context", "custom", "skip"]);
+    expect(ROLES.every((r) => r.hint.length > 0)).toBe(true);
   });
   it("cleans a form mapping: one column per single role, five custom fields at most, unknown roles skipped", () => {
     const columns = Array.from({ length: 8 }, (_, i) => ({ letter: String.fromCharCode(65 + i), name: `H${i}` }));
