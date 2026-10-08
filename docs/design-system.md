@@ -208,7 +208,10 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
   14 px, active ink with a 2 px violet underline. Segmented control: tint track, the active
-  option a surface pill with the card shadow.
+  option a surface pill with the card shadow. Tabs inside a page (src/components/app/tabs.tsx,
+  design note 123; the Actions tab's kinds): the segmented control's look over one panel at a
+  time, the ARIA tabs pattern (tablist, tab, tabpanel, one tab stop, the arrow keys), a mono
+  count beside a label, the other panels kept in the page and hidden.
 - Slider (the confidence on the Wrap up, design note 107): a native range input, 48 high as
   its tap target, the thumb and the filled track in the PM's accent through accent-color
   (lifted on dark as the pills were), the word of the value centred under it at 16 px 600,

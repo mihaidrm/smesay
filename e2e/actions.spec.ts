@@ -88,18 +88,35 @@ test("write actions from the answers, each citing the answers behind it", async 
   await expect(page.getByTestId("thinking").getByTestId("mascot")).toHaveAttribute("data-pose", "analysis");
   const actions = page.getByTestId("action");
   await expect(actions).toHaveCount(4);
+  // One tab per kind with its open count (design note 123), Follow up first and selected
+  // since it has an open action; the other panels stay in the page, hidden.
+  const kinds = page.getByRole("tablist", { name: "Action kinds" });
+  await expect(kinds.getByRole("tab")).toHaveText(["Follow up1", "Rewrite1", "Groups disagree1", "Coverage1"]);
+  await expect(kinds.getByRole("tab", { name: "Follow up 1" })).toHaveAttribute("aria-selected", "true");
+  const panel = (kind: string) => page.getByTestId(`actions-kinds-panel-${kind}`);
+  await expect(panel("followUp")).toBeVisible();
+  await expect(panel("rewrite")).toBeHidden();
+  await expect(panel("followUp").getByTestId("action-title")).toHaveText("Answer the open question before the link closes.");
+  // How actions are chosen: the details under the button, closed, with the support rule.
+  await expect(page.getByTestId("actions-how").locator("summary")).toHaveText("How actions are chosen");
+  await expect(page.getByTestId("actions-how")).not.toHaveJSProperty("open", true);
+  await page.getByTestId("actions-how").locator("summary").click();
+  await expect(page.getByTestId("actions-how")).toContainText("at least one in ten of those who answered the item");
   await expect(page.getByTestId("thinking")).toHaveCount(0);
   await expect(page.getByTestId("actions-no-run")).toHaveCount(0);
   await expect(page.getByTestId("tab-actions")).toHaveText("Actions (4)");
-  await expect(actions.getByTestId("action-kind")).toHaveText(["Rewrite", "Groups disagree", "Follow up", "Coverage"]);
-  await expect(actions.first().getByTestId("action-title")).toHaveText("Rewrite the first item so its scope is clear.");
-  await expect(actions.first().getByTestId("action-citation")).toHaveText('Ana Pop on "Receipts captured by phone"');
-  await expect(actions.nth(3).getByTestId("action-citation")).toHaveText("Ana Pop, missing item");
+  await expect(actions.getByTestId("action-kind")).toHaveText(["Follow up", "Rewrite", "Groups disagree", "Coverage"]);
+  await expect(panel("rewrite").getByTestId("action-title")).toHaveText("Rewrite the first item so its scope is clear.");
+  await expect(panel("rewrite").getByTestId("action-citation")).toHaveText('Ana Pop on "Receipts captured by phone"');
+  await expect(panel("coverage").getByTestId("action-citation")).toHaveText("Ana Pop, missing item");
   await expect(page.getByText("An action citing an answer that was never sent.")).toHaveCount(0);
   // E9-3: the cost of the run (the fake transport reports 1,000 tokens in and 500 out).
   await expect(page.getByTestId("actions-cost")).toHaveText(/^Last run \d{1,2} \w{3} \d{4}, \d{2}:\d{2} UTC: 1,500 tokens, EUR 0\.01\. This workspace this month: EUR 0\.01\.$/);
-  // The citation opens the item's detail (E8-5).
-  await actions.first().getByRole("link", { name: 'Ana Pop on "Receipts captured by phone"' }).click();
+  // The Rewrite tab by a click, then its citation opens the item's detail (E8-5).
+  await kinds.getByRole("tab", { name: "Rewrite 1" }).click();
+  await expect(panel("rewrite")).toBeVisible();
+  await expect(panel("followUp")).toBeHidden();
+  await panel("rewrite").getByRole("link", { name: 'Ana Pop on "Receipts captured by phone"' }).click();
   await expect(page.getByTestId("detail-title")).toHaveText("Receipts captured by phone");
   await page.getByTestId("detail-close").click();
   // Write again replaces the open actions.
@@ -109,22 +126,27 @@ test("write actions from the answers, each citing the answers behind it", async 
 
   // E9-2: Dismiss the rewrite, mark the conflict done; the tab counts the open ones; the done
   // one shows with its date and Reopen; Write again does not bring the dismissed one back.
-  const open = page.getByTestId("actions-list").getByTestId("action");
-  await open.filter({ hasText: "Rewrite the first item" }).getByTestId("action-dismiss").click();
-  await expect(page.getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
-  await open.filter({ hasText: "Settle the priority" }).getByTestId("action-done").click();
-  const done = page.getByTestId("actions-done").getByTestId("action");
+  // Back from the detail the page renders afresh: Follow up is selected again.
+  await kinds.getByRole("tab", { name: "Rewrite 1" }).click();
+  await panel("rewrite").getByTestId("actions-list").getByTestId("action").filter({ hasText: "Rewrite the first item" }).getByTestId("action-dismiss").click();
+  await expect(panel("rewrite").getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
+  await expect(kinds.getByRole("tab", { name: "Rewrite 0" })).toBeVisible();
+  await expect(panel("rewrite").getByTestId("actions-none-open")).toHaveText("None open. An item whose wording respondents read differently or found unclear.");
+  await kinds.getByRole("tab", { name: "Groups disagree 1" }).click();
+  await panel("conflict").getByTestId("actions-list").getByTestId("action").filter({ hasText: "Settle the priority" }).getByTestId("action-done").click();
+  const done = panel("conflict").getByTestId("actions-done").getByTestId("action");
   await expect(done).toHaveCount(1);
   await expect(done.getByTestId("action-closed")).toHaveText(/^Done \d{1,2} \w{3} \d{4}, \d{2}:\d{2} UTC$/);
   await expect(page.getByTestId("tab-actions")).toHaveText("Actions (2)");
   await expect(page.getByTestId("action").filter({ hasText: "Rewrite the first item" }).getByTestId("action-done")).toHaveCount(0);
   await done.getByTestId("action-reopen").click();
-  await expect(page.getByTestId("actions-done")).toHaveCount(0);
+  await expect(panel("conflict").getByTestId("actions-done")).toHaveCount(0);
   await expect(page.getByTestId("tab-actions")).toHaveText("Actions (3)");
   await page.getByTestId("write-actions").click();
-  await expect(open).toHaveCount(3);
-  await expect(open.filter({ hasText: "Rewrite the first item" })).toHaveCount(0);
-  await expect(page.getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
+  const openAll = page.getByTestId("actions-list").getByTestId("action");
+  await expect(openAll).toHaveCount(3);
+  await expect(openAll.filter({ hasText: "Rewrite the first item" })).toHaveCount(0);
+  await expect(panel("rewrite").getByTestId("actions-dismissed").getByTestId("action")).toHaveCount(1);
 
   // E9-3, acceptance 4: Settings' usage line counts the same month as the tab's line.
   // Read after a fresh load, so the line counts every run above.

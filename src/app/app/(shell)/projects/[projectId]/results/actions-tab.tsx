@@ -1,9 +1,12 @@
 // The Actions tab (stories/E9-1 and E9-2; the PM app board, Actions): Write actions (Write
-// again once there are some), then the open actions, each with its kind, the title, why in
-// one or two sentences and the citations, the answers grouped by item ("[Name] and [Name] on
-// [REF]", a link to the item's detail, E8-5) and the missing items ("[Name], missing item"),
-// with Mark done and Dismiss; then the Done and Dismissed sections, greyed, each action with
-// its state and date and Reopen. The tab's count is the open ones (E8-1 numbers). The sample
+// again once there are some), "How actions are chosen" (design note 123), then one tab per
+// kind (Follow up, Rewrite, Groups disagree, Coverage; src/components/app/tabs.tsx) with its
+// open count, the first with an open action selected: inside, the open actions of that
+// kind, each with the title, why in one or two sentences and the citations, the answers
+// grouped by item ("[Name] and [Name] on [REF]", a link to the item's detail, E8-5) and the
+// missing items ("[Name], missing item"), with Mark done and Dismiss; then the kind's Done
+// and Dismissed sections, greyed, each action with its state and date and Reopen. The tab's
+// count is the open ones (E8-1 numbers). The sample
 // shows its seeded actions with no controls (E9-1 acceptance 7, E9-2 acceptance 1). Under the
 // actions, the cost line (E9-3): the project's last run of Write actions and the workspace's
 // AI spend this month, the same sum as Settings' usage line (usage(), E2-6); not on the sample,
@@ -23,7 +26,9 @@ import { results } from "@/db/queries/results";
 import { usage } from "@/db/queries/usage";
 import { formatEur, STAND_IN_MODEL } from "@/lib/ai/prices";
 import type { WorkspaceId } from "@/db/types";
-import { citationLines, COUNTED } from "@/lib/insights";
+import { Tabs } from "@/components/app/tabs";
+import type { InsightKind } from "@/db/types";
+import { citationLines, COUNTED, KIND_ORDER } from "@/lib/insights";
 import { ACTIONS_COPY } from "@/lib/insights-copy";
 import { RESPONSES_COPY } from "@/lib/results-copy";
 import { formatUtc } from "@/lib/sharing-format";
@@ -42,9 +47,31 @@ export async function ActionsTab({ ws, projectId, sample, instrument, itemHref }
   const submitted = n?.submitted ?? 0;
   const started = submitted + (n?.inProgress ?? 0);
   const answers = (n?.answered ?? 0) + (n?.pick ?? 0);
-  const open = rows.filter((r) => r.state === "open");
-  const closed = (["done", "dismissed"] as const).map((state) => ({ state, rows: rows.filter((r) => r.state === state) })).filter((s) => s.rows.length > 0);
   const card = (r: InsightWithCitations) => <ActionCard key={r.id} r={r} projectId={projectId} sample={sample} itemHref={itemHref} />;
+  // One panel per kind: its open actions (or the kind's own empty line), then its Done and
+  // Dismissed. An action with no kind (none since migration 0021) goes with the first kind.
+  const ofKind = (kind: InsightKind) => rows.filter((r) => (r.kind ?? KIND_ORDER[0]) === kind);
+  const tabs = KIND_ORDER.map((kind) => ({ kind, rows: ofKind(kind), open: ofKind(kind).filter((r) => r.state === "open").length }));
+  const initial = (tabs.find((t) => t.open > 0) ?? tabs.find((t) => t.rows.length > 0) ?? tabs[0]).kind;
+  const panel = (kind: InsightKind) => {
+    const all = ofKind(kind);
+    const open = all.filter((r) => r.state === "open");
+    const closed = (["done", "dismissed"] as const).map((state) => ({ state, rows: all.filter((r) => r.state === state) })).filter((s) => s.rows.length > 0);
+    return (
+      <>
+        <section className="flex flex-col gap-3" aria-labelledby={`actions-open-${kind}`}>
+          <h3 id={`actions-open-${kind}`} className="sr-only">{ACTIONS_COPY.openHeading} ({open.length})</h3>
+          {open.length > 0 ? <ol className="flex flex-col gap-3" data-testid="actions-list">{open.map(card)}</ol> : <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-4 text-sm text-ink-muted" data-testid="actions-none-open">{ACTIONS_COPY.noneOfKind(ACTIONS_COPY.kindWhat[kind])}</p>}
+        </section>
+        {closed.map((s) => (
+          <section key={s.state} className="flex flex-col gap-3" aria-labelledby={`actions-${s.state}-${kind}`} data-testid={`actions-${s.state}`}>
+            <h3 id={`actions-${s.state}-${kind}`} className="text-sm font-semibold text-ink-muted">{s.state === "done" ? ACTIONS_COPY.doneHeading : ACTIONS_COPY.dismissedHeading} ({s.rows.length})</h3>
+            <ol className="flex flex-col gap-3">{s.rows.map(card)}</ol>
+          </section>
+        ))}
+      </>
+    );
+  };
   return (
     <div className="flex flex-col gap-4" data-testid="actions-tab">
       {sample ? (
@@ -55,21 +82,16 @@ export async function ActionsTab({ ws, projectId, sample, instrument, itemHref }
           <WriteActions projectId={projectId} again={rows.length > 0} items={setItems.length} answers={answers} />
         </>
       )}
+      <details className="text-sm text-ink-muted" data-testid="actions-how">
+        <summary className="w-fit cursor-pointer list-none rounded-sm text-[13px] font-semibold text-violet-text outline-none hover:underline focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground [&::-webkit-details-marker]:hidden">{ACTIONS_COPY.howTitle}</summary>
+        <div className="mt-2 flex max-w-[64ch] flex-col gap-2">
+          {ACTIONS_COPY.how.map((line) => <p key={line}>{line}</p>)}
+        </div>
+      </details>
       {rows.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-6 text-sm text-ink-muted" data-testid="actions-empty">{sample ? ACTIONS_COPY.sampleEmpty : ACTIONS_COPY.empty}</p>
       ) : (
-        <>
-          <section className="flex flex-col gap-3" aria-labelledby="actions-open">
-            <h3 id="actions-open" className="sr-only">{ACTIONS_COPY.openHeading} ({open.length})</h3>
-            {open.length > 0 ? <ol className="flex flex-col gap-3" data-testid="actions-list">{open.map(card)}</ol> : <p className="rounded-2xl border border-dashed border-hairline-strong bg-surface px-5 py-4 text-sm text-ink-muted" data-testid="actions-none-open">{ACTIONS_COPY.noneOpen}</p>}
-          </section>
-          {closed.map((s) => (
-            <section key={s.state} className="flex flex-col gap-3" aria-labelledby={`actions-${s.state}`} data-testid={`actions-${s.state}`}>
-              <h3 id={`actions-${s.state}`} className="text-sm font-semibold text-ink-muted">{s.state === "done" ? ACTIONS_COPY.doneHeading : ACTIONS_COPY.dismissedHeading} ({s.rows.length})</h3>
-              <ol className="flex flex-col gap-3">{s.rows.map(card)}</ol>
-            </section>
-          ))}
-        </>
+        <Tabs label={ACTIONS_COPY.kindsLabel} tabs={tabs.map((t) => ({ key: t.kind, label: ACTIONS_COPY.kinds[t.kind], count: t.open }))} initial={initial} panels={Object.fromEntries(KIND_ORDER.map((kind) => [kind, panel(kind)])) as Record<InsightKind, React.ReactNode>} testId="actions-kinds" />
       )}
       {!sample && (last ? (
         <p className="text-xs text-ink-muted" data-testid="actions-cost">
