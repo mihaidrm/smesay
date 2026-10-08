@@ -14,36 +14,40 @@ SMEsay. How it works. What you get. Compare. Pricing. Questions. Start free.
 
 ## Hero
 
-Chip: Live: 5 of 7 experts answering right now
+Rewritten 2026-10-08 (design note 117; Mihai: a stranger must understand the page): the
+example company is named once at the top, the headline says what the list is, and the first
+paragraph says who the experts are and what they do.
 
-Headline: Send the list as a link. Get back who agrees, and why.
+Chip: Example: a company choosing an expense tool
 
-Instead of emailing a spreadsheet around, your experts go through it item by item: agree,
-push back with a reason, or ask a question. You get a dashboard, a to-do list written by AI,
-and the CSV.
+Headline: Send your requirements as a link. See who agrees, and why.
+
+You wrote down what a new tool or process must do. SMEsay turns that list into a link. Your
+experts, the people who know the work, open it and answer item by item: agree, a different
+priority, not needed, or a question. You see where they agree, where they do not, and why.
 
 Buttons: Start free. Try the sample as a respondent (to /sample, stories/E12-4).
 
-Under the buttons: Your experts need no account and install nothing. It is free while we build it.
+Under the buttons: Your experts need no account and install nothing. Free while we build it.
 
 Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
-"Expenses over the policy limit are flagged before they reach the approver." You proposed
+"Expenses over the policy limit are flagged before they reach the approver." Your proposal
 Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agree. Lukas,
 engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
 2 answers.
 
-Agreement chip: 60%. Agreement so far. 30 answers from 5 experts.
+Agreement chip: 60%. Agreement so far. 30 answers from 5 of 7 experts.
 
 ## Three steps
 
 Title: Three steps. The AI does the dull one.
 
-Start from the spreadsheet you already have. Let the AI make it readable. Send one link.
+Start from the spreadsheet you already have. The AI rewrites it in plain words. You send one link.
 
-1. Import the list. Upload an xlsx or csv file, or paste a list. Columns are matched once and remembered.
-   (Fragment: expense-requirements.xlsx)
-2. Shape it. AI sorts the list into areas and writes each item in plain words. You choose
-   which wording your experts see. (Fragment, design note 53, concept 3: a switch "Your sheet" and "Shaped". Your
+1. Import the list. Upload the spreadsheet you already have, or paste the list. Each row becomes
+   one item to answer. (Fragment: expense-requirements.xlsx)
+2. Shape it. The AI sorts the items into areas and writes each one in plain words. You check
+   the result and choose the wording your experts see. (Fragment, design note 53, concept 3: a switch "Your sheet" and "Shaped". Your
    sheet: rows 2 to 5 of the Marlow spreadsheet as imported, "OCR receipt capture via mobile
    (auto-fill amt/date/vendor).", "Multi-allocation of single expense line to 2+ cost
    centres/projects.", "Approval actionable from notification email (no login).", "Policy
@@ -53,24 +57,31 @@ Start from the spreadsheet you already have. Let the AI make it readable. Send o
    email, without logging in.", "Expenses over the policy limit are flagged before they reach
    the approver." The card opens on Your
    sheet and turns to Shaped once it has been seen.)
-3. Send one link. Experts answer without an account or an app. Their answers arrive while
-   they work. (Fragment: smesay.app/r/7k2… Copy.) The phone is named in Questions, not here
-   (Mihai, 2026-10-04).
+3. Send one link. Your experts open it on any device, with no account, and answer item by
+   item. The answers arrive while they work. (Fragment: smesay.app/r/7k2… Copy.) The phone is
+   named in Questions, not here (Mihai, 2026-10-04).
 
 ## What you get back
 
 Title: What you get back.
 
-Beside it: Instead of a pile of replies, you get a picture of where your experts agree, where they do not
-and why, and what to decide next.
+Beside it: Not a pile of replies. A live picture of who agrees with each item, who does not and
+why, and a list of what to decide next.
 
 Results card. Label: See where the list is weak. Title: Every item and every area updates as answers
 arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
 the chart to the view your meeting needs.
+Results card. Label: The dashboard, as the answers arrive. Title: Every item counted, every area
+summed up. Line: One bar per item: green agreed, yellow a different priority, grey not needed,
+purple a question. The percentage is the share that agreed with your proposal.
 Tiles, the number above its label as in the product's stat tile (design note 116): Submitted 5 of 7.
 Agreement 60%. Different priority 7. Disagree 3. Unclear 2 (the two
 kinds as two tiles, never one number; decision 0062).
-Chips: Role: any. With a reason. + Choose tiles.
+Under the tiles (design note 117): 7 experts were asked and 5 have submitted. Of their 30
+answers, 18 agree with your proposals (60%), 7 want a different priority, 3 say not needed and
+2 asked a question.
+Chips: Role: any. With a reason. ("+ Choose tiles" left the page on 2026-10-08: it meant
+nothing to a visitor.)
 View switch (works on the page): Table, Columns, Share. Table: the six items with a stacked bar
 and the agreement each, the seed's reader texts cut to one line (CL-01 Photograph a receipt
 and the amount, date and merchant are filled in automatically, 80%; CL-02 Split one receipt
@@ -81,20 +92,21 @@ CL-05 Approved expenses are paid with the next salary run, 80%; CL-06 Employees 
 a cash advance before a trip, 40%). Columns: per area, one bar per kind with its count.
 Share: a donut per area with the agreement in the middle and the counts beside it.
 Legend: Agree, Different priority, Disagree, Unclear.
-Under it: Filter by any field you asked for, such as role, or by who left a reason. Every
-chart, count and export follows the same filter.
+Under it: Filter by role, or by who left a reason: every chart, count and export follows the
+filter. Table, Columns and Share are three views of the same answers.
 
-Label: Know who disagrees, and why. Sales and everyone else split on the policy flags. A
-different priority than Should have: Sales 2 of 2, everyone else 0 of 3. Not needed: Sales 0
-of 2, everyone else 1 of 3 (the two kinds on their own lines, never one "did not agree";
-decision 0062). "Sales gets most of the rejections, and always after the fact." Tom, sales.
+Label: See which group disagrees, and why. Sales wants the policy flags as a Must; everyone
+else is fine with Should. Want a different priority: Sales 2 of 2, everyone else 0 of 3. Say
+it is not needed: Sales 0 of 2, everyone else 1 of 3 (the two kinds on their own lines, never
+one "did not agree"; decision 0062). "Sales gets most of the rejections, and always after the
+fact." Tom, sales.
 
-Label: Walk into the meeting with the decisions listed. Decide whether policy flags move to
-Must have. To do, written by AI · cites 2 answers. Answer two open questions before the link
-closes. To do, written by AI · cites 2 answers.
+Label: A to-do list, written by AI from the answers. Decide whether policy flags move to Must
+have. From 2 answers, each one cited. Answer the two open questions before the link closes.
+From 2 answers, each one cited.
 
-Label: Numbers that hold up. Every number on the dashboard matches the export to the row, so
-the result stands up in the steering meeting. Chips: CSV. PDF summary.
+Label: Numbers you can take to the meeting. Every number on the dashboard matches the CSV
+export to the row. The PDF summary is your handout for the meeting. Chips: CSV. PDF summary.
 
 ## Compare (design note 58)
 
@@ -160,6 +172,10 @@ Title: Questions. Beside it: Something else on your mind? Write to hello@smesay.
 
 Each opens in place (a plus that turns to a cross):
 
+- Who is it for? Anyone who has to get a list of requirements agreed by the people who know
+  the work: a product manager, a project lead, a consultant, an IT manager choosing a tool.
+  Those people are your experts; SME stands for subject matter expert. (Added 2026-10-08,
+  design note 117; the questions are eight.)
 - Do my experts need an account? No. They open the link and answer. There is nothing to
   install and nothing to sign up for.
 - Does it work on a phone? Yes. The link is made for a phone first and works the same on a

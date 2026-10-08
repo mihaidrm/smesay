@@ -8,11 +8,14 @@ import { describe, expect, it } from "vitest";
 import { inline, LEGAL_PAGES, markersIn, parseLegal, readLegal } from "./legal";
 
 describe("legal pages", () => {
+  it("parse with a version, a date, a title and no marker (the company details arrived on 2026-10-08)", () => {
   it("parse with a version, a date, a title and, until the lawyer reads the liability and trial paragraphs of 2026-10-08, two markers on the terms", () => {
     for (const page of LEGAL_PAGES) {
       const doc = readLegal(page);
       expect([doc.version, doc.date]).toEqual([4, "2026-10-08"]);
       expect(doc.blocks[0].kind).toBe("h1");
+      expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(0);
+      expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(false);
       const markers = page === "terms" ? 2 : 0;
       expect(markersIn(readFileSync(`docs/legal/${page}.md`, "utf8")).length).toBe(markers);
       expect(doc.blocks.some((b) => (b.kind === "ul" ? b.items.flat() : b.parts).some((p) => p.kind === "marker"))).toBe(markers > 0);
