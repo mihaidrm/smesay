@@ -10,6 +10,14 @@ import { latestLink } from "./mailpit";
 
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.50" } });
 
+// Write actions goes to the fake transport on CI's production build ("real" is the default
+// there) and to the in-process stand-in on a local checkout (src/lib/ai/mode-rules.ts
+// modeFrom), whose cost line reads EUR 0.00. The cookie the developer menu sets pins the mode
+// to real, so the spec reads the same on both (browserContext.addCookies: test.d.ts).
+test.beforeEach(async ({ context }) => {
+  await context.addCookies([{ name: "smesay-ai-mode", value: "real", domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" }]);
+});
+
 test("write actions from the answers, each citing the answers behind it", async ({ page, request, browser }) => {
   test.setTimeout(120_000);
   const email = `e2e-actions-${Date.now()}@marlow.example`;
