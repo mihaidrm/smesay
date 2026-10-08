@@ -94,6 +94,11 @@ Purpose: the domain, its DNS records, and later file storage, all in one account
 5. Tell Claude the domain. Claude writes it into the docs and gives you the exact DNS records for
    steps 4 and 5 when they are needed.
 
+Done on 2026-10-08: Mihai bought smesay.com at Cloudflare Registrar (decision 0064). Every
+address in the product and the docs is on smesay.com; hello@smesay.com needs an inbox before
+the launch gate (step 11c; Cloudflare's Email Routing can forward it to an inbox you have,
+developers.cloudflare.com/email-routing, "Available on Free and Paid plans").
+
 ## Step 3. Neon, the database (before E1)
 
 1. Go to https://neon.tech and sign up with GitHub.
@@ -131,7 +136,7 @@ Local development uses a Postgres in Docker, so this step is only needed for the
 Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from step 2.
 
 1. Go to https://resend.com and sign up.
-2. Open "Domains", click "Add Domain". Enter a mail subdomain, for example `mail.yourdomain`.
+2. Open "Domains", click "Add Domain". Enter a mail subdomain, `mail.smesay.com`.
    Region: EU (Ireland). This is where mail is sent from; Resend keeps the account's records
    (addresses, subjects, delivery logs) in the United States
    (resend.com/docs/dashboard/domains/regions), as the privacy page says.
@@ -141,7 +146,7 @@ Purpose: magic-link sign-in emails, invites, reminders. Needs the domain from st
 5. Open "API Keys", click "Create API Key". Permission: "Sending access". Copy the key once.
 6. Set `MAIL_SMTP_URL=smtps://resend:THE_KEY@smtp.resend.com:465` in `.env.local` and in the
    host's settings (resend.com/docs/send-with-smtp; the app sends over SMTP, stories/E2-1), and
-   `EMAIL_FROM=` to an address on the mail subdomain, for example `sign-in@mail.yourdomain`.
+   `EMAIL_FROM=` to an address on the mail subdomain, `SMEsay <sign-in@mail.smesay.com>`.
 
 ## Step 6. Google sign-in (before E2)
 
@@ -264,7 +269,7 @@ everyone else, and everyone while it is empty, gets the 404 page.
 ## Step 11c. Your support address (any time)
 
 Set `NEXT_PUBLIC_SUPPORT_EMAIL=` in .env.local to the inbox that should get visitors'
-questions (decision 0049: your own address until the launch gate, then hello@smesay.app). The
+questions (decision 0049: your own address until the launch gate, then hello@smesay.com). The
 landing page's "Ask us a question" bubble (E12-5) only shows when it is set, and the error
 pages name it. Restart `npm run dev` after changing it, and at the launch gate set it before
 the build: Next.js writes the value into the code, the server's included, when it builds it

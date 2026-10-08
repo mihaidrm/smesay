@@ -9,7 +9,7 @@ This policy says what SMEsay collects, why, where it is kept, for how long, and 
 
 SMEsay is run by Alerty S.R.L., Șoseaua Virtuții 22D, Bl. B1, Et. 4, Ap. 29, Sector 6, Bucharest, Romania, trade register number J2024022790002, fiscal code 50556917.
 
-Write to hello@smesay.app about anything in this policy. Alerty has not appointed a data protection officer: SMEsay does not monitor people on a large scale or process special categories of data, so the GDPR does not require one (Article 37), and the address above reaches the person responsible for privacy.
+Write to hello@smesay.com about anything in this policy. Alerty has not appointed a data protection officer: SMEsay does not monitor people on a large scale or process special categories of data, so the GDPR does not require one (Article 37), and the address above reaches the person responsible for privacy.
 
 ## Who decides what happens to the data
 
@@ -72,7 +72,7 @@ Our host keeps request logs, which hold IP addresses, for up to 1 day (up to 30 
 
 ## How long it is kept
 
-- Your account (your name, email, Google sign-in details and sessions) is kept until you ask for it to be deleted; SMEsay has no button for that yet, so write to hello@smesay.app. An administrator then deletes the account within one month of your request: your sessions, sign-in details and memberships go, invitations to your address and unused sign-in links go, and what you made in workspaces stays there without your name. If you are the only owner of a workspace, another member is made owner or the workspace is deleted first.
+- Your account (your name, email, Google sign-in details and sessions) is kept until you ask for it to be deleted; SMEsay has no button for that yet, so write to hello@smesay.com. An administrator then deletes the account within one month of your request: your sessions, sign-in details and memberships go, invitations to your address and unused sign-in links go, and what you made in workspaces stays there without your name. If you are the only owner of a workspace, another member is made owner or the workspace is deleted first.
 - Everything in a workspace is kept while the workspace exists. Archiving a project hides it; it does not delete it.
 - An owner can delete a workspace in Settings. Every member loses access at once. The removal job, which runs every hour, then deletes every row and file in it within 24 hours and sends the owner who deleted it one email.
 - Backups of the database are kept for 7 days, so anything deleted is gone from them 7 days after it was deleted.
@@ -90,7 +90,7 @@ SMEsay sends no error reports to another company and counts no visits yet. This 
 
 ## Your rights
 
-You can ask to see the data held about you, to correct it, to delete it, to limit its use, to receive it in a portable form, and to object to its use. If you answered a validation, ask the organisation that sent you the link first; they control your answers. Write to hello@smesay.app for anything else. We answer within one month of your request; if a request is complex or there are many, we may take up to two more months and will tell you why within the first month.
+You can ask to see the data held about you, to correct it, to delete it, to limit its use, to receive it in a portable form, and to object to its use. If you answered a validation, ask the organisation that sent you the link first; they control your answers. Write to hello@smesay.com for anything else. We answer within one month of your request; if a request is complex or there are many, we may take up to two more months and will tell you why within the first month.
 
 You can complain to the Romanian data protection authority: Autoritatea Naţională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP), B-dul G-ral. Gheorghe Magheru 28-30, Sector 1, 010336 București, România; anspdcp@dataprotection.ro; www.dataprotection.ro.
 

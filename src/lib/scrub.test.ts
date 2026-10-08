@@ -28,7 +28,7 @@ describe("scrub", () => {
       message: "for ana@firma.ro",
       exception: { values: [{ type: "Error", value: "No invite for ana@firma.ro", mechanism: { type: "auto.function.nextjs.on_request_error", handled: false, data: { body: "Ana" } }, stacktrace: { frames: [{ filename: "app/x.js", function: "f", lineno: 3, colno: 4, in_app: true, vars: { email: "ana@firma.ro" }, context_line: "const email = 'ana@firma.ro'" }] } }] },
       transaction: "GET /r/abcdefabcdefabcdefabcdefabcdefab?x=ana",
-      request: { method: "PUT", url: "https://smesay.app/r/abcdefabcdefabcdefabcdefabcdefab/answers?x=ana@firma.ro", headers: { cookie: "s=1" }, cookies: { s: "1" }, data: { reason: "Ana says no" }, query_string: "x=1" },
+      request: { method: "PUT", url: "https://smesay.com/r/abcdefabcdefabcdefabcdefabcdefab/answers?x=ana@firma.ro", headers: { cookie: "s=1" }, cookies: { s: "1" }, data: { reason: "Ana says no" }, query_string: "x=1" },
       user: { email: "ana@firma.ro", ip_address: "10.0.0.1" },
       breadcrumbs: [{ message: "typed Ana" }],
       extra: { body: "Ana" },

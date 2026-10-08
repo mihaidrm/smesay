@@ -51,7 +51,7 @@ jobs:
       EMAIL_FROM: SMEsay <sign-in@localhost>
       # The landing page's question bubble (stories/E12-5) shows only when this is set; the
       # value is the error pages' own default, so nothing else changes. Mail goes to Mailpit.
-      NEXT_PUBLIC_SUPPORT_EMAIL: hello@smesay.app
+      NEXT_PUBLIC_SUPPORT_EMAIL: hello@smesay.com
       S3_ENDPOINT: http://localhost:9000
       S3_BUCKET: uploads
       S3_ACCESS_KEY_ID: smesay

@@ -6,7 +6,7 @@
 // have it (node_modules/next/dist/docs/01-app/02-guides/environment-variables.md, "Bundling
 // Environment Variables for the Browser"); until the domain is bought the placeholder is the
 // landing page's address, shown as text (docs/copy/landing.md).
-export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@smesay.app";
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "hello@smesay.com";
 
 // The maintenance window in minutes, from MAINTENANCE_MINUTES; 30 when it is not a whole number.
 export const maintenanceMinutes = (value: string | undefined) => (/^\d+$/.test(value ?? "") && Number(value) > 0 ? Number(value) : 30);

@@ -5,7 +5,7 @@
 // http://localhost:3000, so they match what the unit test checks; --origin changes only what is
 // sent (a mail client shows the mark only once that address is public).
 //   npm run email:samples
-//   npm run email:samples -- --send you@example.com --origin https://smesay.app
+//   npm run email:samples -- --send you@example.com --origin https://smesay.com
 import { writeFileSync } from "node:fs";
 import { sendMail } from "../src/lib/mail";
 import { SAMPLE_NAMES, SAMPLE_ORIGIN, sampleEmails } from "../src/lib/mail/templates/samples";

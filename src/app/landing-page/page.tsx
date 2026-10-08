@@ -176,7 +176,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <Reveal delay={240} className="flex flex-col gap-3.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[26px] shadow-[0_12px_32px_rgba(45,32,110,0.10)] transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_rgba(45,32,110,0.16)] motion-reduce:hover:translate-y-0">
               <div className="flex items-center gap-2.5"><span className="flex size-7 items-center justify-center rounded-full bg-[#6D4CF5] text-[13px] font-bold text-white">3</span><span className="text-[18px] font-bold">Send one link</span></div>
               <p className="text-[15px] leading-[23px] text-[#5E5A72]">Your experts open it on any device, with no account, and answer item by item. The answers arrive while they work.</p>
-              <div className="mt-auto flex items-center gap-2.5 rounded-[14px] bg-[#15131F] px-3.5 py-3 text-[13px] text-[#F3F1FA]"><span className="min-w-0 truncate font-mono text-[#B8A8FF]">smesay.app/r/7k2…</span><span className="ml-auto rounded-full bg-[#6D4CF5] px-2.5 py-1 font-semibold">Copy</span></div>
+              <div className="mt-auto flex items-center gap-2.5 rounded-[14px] bg-[#15131F] px-3.5 py-3 text-[13px] text-[#F3F1FA]"><span className="min-w-0 truncate font-mono text-[#B8A8FF]">smesay.com/r/7k2…</span><span className="ml-auto rounded-full bg-[#6D4CF5] px-2.5 py-1 font-semibold">Copy</span></div>
             </Reveal>
           </div>
         </div>
@@ -275,7 +275,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-5 md:px-8 lg:grid-cols-[1fr_1.6fr]">
           <Reveal className="flex flex-col gap-4">
             <h2 className="text-[32px] leading-9 font-extrabold tracking-[-0.035em] md:text-[44px] md:leading-[48px]">Questions</h2>
-            <p className="max-w-[360px] text-[16px] leading-6 text-[#5E5A72]">Something else on your mind? Write to hello@smesay.app.</p>
+            <p className="max-w-[360px] text-[16px] leading-6 text-[#5E5A72]">Something else on your mind? Write to hello@smesay.com.</p>
           </Reveal>
           <Reveal delay={120} className="flex flex-col divide-y divide-[#E6E3F0] rounded-[20px] border border-[#E6E3F0] bg-white px-5 md:px-6">
             {QUESTIONS.map(([q, a]) => (
@@ -298,7 +298,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <Link href="/legal/terms" className="underline-offset-4 hover:underline">Terms</Link><span aria-hidden="true">·</span>
             <Link href="/legal/dpa" className="underline-offset-4 hover:underline">DPA</Link><span aria-hidden="true">·</span>
             <Link href="/legal/subprocessors" className="underline-offset-4 hover:underline">Subprocessors</Link><span aria-hidden="true">·</span>
-            <span>hello@smesay.app</span>
+            <span>hello@smesay.com</span>
           </nav>
         </div>
       </footer>

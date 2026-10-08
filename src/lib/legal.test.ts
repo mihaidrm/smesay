@@ -28,12 +28,12 @@ describe("legal pages", () => {
     for (const words of ["Alerty S.R.L.", "24 hours", "The fields the person running the validation chose", "Anthropic", "Exports you make", "Frankfurt", "closing question", "smesay-answers", "user agent", "15 minutes"]) expect(text).toContain(words);
   });
   it("turns markers and legal addresses into parts, and keeps the contact as text", () => {
-    expect(inline("See /legal/dpa or write to hello@smesay.app. [LAWYER: set [N] days.] Done.")).toEqual([
+    expect(inline("See /legal/dpa or write to hello@smesay.com. [LAWYER: set [N] days.] Done.")).toEqual([
       { kind: "text", text: "See " }, { kind: "link", text: "/legal/dpa", href: "/legal/dpa" },
-      { kind: "text", text: " or write to hello@smesay.app. " }, { kind: "marker", text: "[LAWYER: set [N] days.]" }, { kind: "text", text: " Done." },
+      { kind: "text", text: " or write to hello@smesay.com. " }, { kind: "marker", text: "[LAWYER: set [N] days.]" }, { kind: "text", text: " Done." },
     ]);
     expect(markersIn("[LAWYER: set [N] days.] and [LAWYER: b]")).toEqual(["[LAWYER: set [N] days.]", "[LAWYER: b]"]);
-    expect(inline("https://smesay.app/legal/privacyX and /legal/terms/old")).toEqual([{ kind: "text", text: "https://smesay.app/legal/privacyX and /legal/terms/old" }]);
+    expect(inline("https://smesay.com/legal/privacyX and /legal/terms/old")).toEqual([{ kind: "text", text: "https://smesay.com/legal/privacyX and /legal/terms/old" }]);
   });
   it("reads headings, lists and paragraphs, and refuses a file without its header", () => {
     expect(parseLegal("version: 2\ndate: 2026-11-01\n---\n# Title\n\n## Part\n\n- one\n- two\n\nA line\nwrapped.").blocks.map((b) => b.kind)).toEqual(["h1", "h2", "ul", "p"]);
