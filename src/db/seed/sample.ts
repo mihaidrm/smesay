@@ -55,15 +55,18 @@ export const instrument = {
 // Seven respondents: six personal invites and one person who came through the public link.
 // status: submitted (the sign-off record on the landing page: time and confidence), progress
 // (answers so far), invited (never opened). Priya's time and confidence are not on a board; 3
-// gives the record's 3.8 average.
+// gives the record's 3.8 average. startedAt is when the person opened the link (the response
+// row's created_at and, until they submit, its updated_at): 18, 26, 14, 31 and 22 minutes
+// before submitting, a median of 22 on the strip; fixed dates, so the rows read the same on
+// any day the sample is seeded.
 export const people = [
-  { n: 1, name: "Ioana Marin", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-07T14:05:00Z", confidence: 4, reminders: 0 },
-  { n: 2, name: "Tom Reyes", role: "Sales", invite: "personal", status: "submitted", submittedAt: "2026-10-08T08:41:00Z", confidence: 3, reminders: 1 },
-  { n: 3, name: "Dana Okafor", role: "Finance", invite: "public", status: "submitted", submittedAt: "2026-10-08T09:12:00Z", confidence: 5, reminders: 0 },
-  { n: 4, name: "Lukas Berg", role: "Engineering manager", invite: "personal", status: "submitted", submittedAt: "2026-10-09T16:30:00Z", confidence: 4, reminders: 0 },
-  { n: 5, name: "Priya Nair", role: "HR", invite: "personal", status: "submitted", submittedAt: "2026-10-12T08:55:00Z", confidence: 3, reminders: 1 },
-  { n: 6, name: "Sam Hill", role: "Office manager", invite: "personal", status: "progress", submittedAt: null, confidence: null, reminders: 1 },
-  { n: 7, name: "Elena Costa", role: "Sales", invite: "personal", status: "invited", submittedAt: null, confidence: null, reminders: 1 },
+  { n: 1, name: "Ioana Marin", role: "Sales", invite: "personal", status: "submitted", startedAt: "2026-10-07T13:47:00Z", submittedAt: "2026-10-07T14:05:00Z", confidence: 4, reminders: 0 },
+  { n: 2, name: "Tom Reyes", role: "Sales", invite: "personal", status: "submitted", startedAt: "2026-10-08T08:15:00Z", submittedAt: "2026-10-08T08:41:00Z", confidence: 3, reminders: 1 },
+  { n: 3, name: "Dana Okafor", role: "Finance", invite: "public", status: "submitted", startedAt: "2026-10-08T08:58:00Z", submittedAt: "2026-10-08T09:12:00Z", confidence: 5, reminders: 0 },
+  { n: 4, name: "Lukas Berg", role: "Engineering manager", invite: "personal", status: "submitted", startedAt: "2026-10-09T15:59:00Z", submittedAt: "2026-10-09T16:30:00Z", confidence: 4, reminders: 0 },
+  { n: 5, name: "Priya Nair", role: "HR", invite: "personal", status: "submitted", startedAt: "2026-10-12T08:33:00Z", submittedAt: "2026-10-12T08:55:00Z", confidence: 3, reminders: 1 },
+  { n: 6, name: "Sam Hill", role: "Office manager", invite: "personal", status: "progress", startedAt: "2026-10-08T10:20:00Z", submittedAt: null, confidence: null, reminders: 1 },
+  { n: 7, name: "Elena Costa", role: "Sales", invite: "personal", status: "invited", startedAt: null, submittedAt: null, confidence: null, reminders: 1 },
 ] as const;
 
 // Answers per item and person (decisions 0014 and 0018): agree; change with the value picked and
