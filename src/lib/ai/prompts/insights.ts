@@ -55,11 +55,7 @@ export function buildActionsPrompt(input: { items: ActionsItem[]; answers: Actio
   for (const it of input.items) {
     const c = it.counts;
     const head = [it.reference, it.area ? `(area: ${fold(it.area)})` : null].filter(Boolean).join(" ");
-<<<<<<< HEAD
-    lines.push(`[${itemRef.get(it.id)}] ${head ? `${head} ` : ""}${fold(it.text)}${it.proposed ? ` (proposed: ${input.labelOf(it.proposed)})` : ""}. Answers: ${c.agree} agree, ${c.change} different priority, ${c.disagree} disagree, ${c.unclear} unclear${c.rated ? `, ${c.rated} rated` : ""}; ${c.couldSee} could see it. ${needs(c.agree + c.change + c.disagree + c.unclear + c.rated)}`);
-=======
-    lines.push(`[${itemRef.get(it.id)}] ${head ? `${head} ` : ""}${fold(it.text)}${it.proposed ? ` (proposed: ${input.labelOf(it.proposed)})` : ""}${it.context && fold(it.context) ? ` (context: ${fold(it.context)})` : ""}. Answers: ${c.agree} agree, ${c.change} different priority, ${c.disagree} disagree, ${c.unclear} unclear${c.rated ? `, ${c.rated} rated` : ""}; ${c.couldSee} could see it.`);
->>>>>>> origin/main
+    lines.push(`[${itemRef.get(it.id)}] ${head ? `${head} ` : ""}${fold(it.text)}${it.proposed ? ` (proposed: ${input.labelOf(it.proposed)})` : ""}${it.context && fold(it.context) ? ` (context: ${fold(it.context)})` : ""}. Answers: ${c.agree} agree, ${c.change} different priority, ${c.disagree} disagree, ${c.unclear} unclear${c.rated ? `, ${c.rated} rated` : ""}; ${c.couldSee} could see it. ${needs(c.agree + c.change + c.disagree + c.unclear + c.rated)}`);
   }
   lines.push("", `RESPONDENTS (${input.respondents.length})`);
   for (const r of input.respondents) {

@@ -11,13 +11,8 @@
 // runModel logs the ai_run with purpose "insights" and refuses the sample (E8-8, E9-1
 // acceptance 7). The run's tokens and cost are shared out over the actions it wrote (the
 // rest on the first), so the actions of a run add up to the run.
-<<<<<<< HEAD
-import { instruments, projects } from "@/db/queries";
-import { agreement, results } from "@/db/queries/results";
-=======
 import { instruments, items as itemRows, projects } from "@/db/queries";
-import { agreement } from "@/db/queries/results";
->>>>>>> origin/main
+import { agreement, results } from "@/db/queries/results";
 import { insights, type Insight } from "@/db/queries/insights";
 import { INSIGHT_STATES, type InsightKind, type InsightState } from "@/db/types";
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
