@@ -131,6 +131,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | File field line | Upload an xlsx or csv file, up to 5 MB and 2,000 rows, with one item per row; the columns are mapped on the next card. |
 | File picker (design note 103) | [Button: Choose a file], the file's name beside it; before a pick: No file chosen |
 | Upload button | Upload |
+| Attached file tile, beside the form once a list is attached (design note 119) | The list in use; [FILE] (Pasted list for a pasted one); [KIND] file, [SIZE] (a pasted list: A pasted list, [N] items); Uploaded [DATE] (Pasted [DATE]); The cards below read this list. Uploading or pasting another one replaces it here. |
 | Preview card title | Preview |
 | Preview card summary | [N] rows, header on row [N] / [N] rows, no header row / [N] items (a pasted list) / Pick the sheets (while the Sheets step waits, E3-7) / [N] rows across [N] sheets (several sheets ticked) |
 | Summary line (the board's wording) | We read [N] rows from [FILE] and found the header on row [N]. (no header: We read [N] rows from [FILE] and found no header row.) |

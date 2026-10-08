@@ -100,6 +100,9 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("card-list").getByTestId("card-summary")).toHaveText("expense-requirements.xlsx");
   await page.getByTestId("card-list").locator("summary").click();
   await expect(page.getByTestId("card-list")).toHaveJSProperty("open", true);
+  // The attached file shows as a tile beside the form, not only on the title row (design note 119).
+  await expect(page.getByTestId("attached-file")).toContainText("expense-requirements.xlsx");
+  await expect(page.getByTestId("attached-file")).toContainText("xlsx file, ");
 
   // A second copy with one changed row (CL-05): the mapping remembered, then version 2 and
   // the diff counts (E3-6, acceptance 4 and 5).
