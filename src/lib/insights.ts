@@ -3,11 +3,16 @@
 // insights.ts), and returns actions that cite them by ref. An action is kept only when every
 // ref it cites was in the data and it cites at least one (acceptance 2 and 3); the kept ones
 // replace the project's open actions, the done and dismissed ones stay (acceptance 4, E9-2).
+// An action also needs enough people behind it (design note 123; Mihai, 2026-10-08: "If 100
+// ppl answer and just 1 doesnt agree with something doesnt mean we make it as an action
+// item"): at least one in ten of those who answered the item it cites, one person when ten
+// or fewer answered, a missing item weighed against everyone who submitted (peopleNeeded,
+// supportedActions). The prompt tells the model the same rule with the number per item.
 // runModel logs the ai_run with purpose "insights" and refuses the sample (E8-8, E9-1
 // acceptance 7). The run's tokens and cost are shared out over the actions it wrote (the
 // rest on the first), so the actions of a run add up to the run.
 import { instruments, items as itemRows, projects } from "@/db/queries";
-import { agreement } from "@/db/queries/results";
+import { agreement, results } from "@/db/queries/results";
 import { insights, type Insight } from "@/db/queries/insights";
 import { INSIGHT_STATES, type InsightKind, type InsightState } from "@/db/types";
 import { INPUT_CHARS_MAX, runModel, type RunDeps } from "@/lib/ai/client";
@@ -46,6 +51,35 @@ export function keptActions(output: InsightOutput, answerRefs: Map<string, strin
   return kept;
 }
 
+// The support rule (design note 123): one in ten of those who answered, at least one.
+export const SUPPORT_SHARE = 10;
+export const peopleNeeded = (answered: number): number => Math.max(1, Math.ceil(answered / SUPPORT_SHARE));
+
+// The order the Actions tab shows the kinds in (Mihai, 2026-10-08: "Follow up, Rewrite etc").
+export const KIND_ORDER: InsightKind[] = ["followUp", "rewrite", "conflict", "coverage"];
+
+// What supportedActions weighs an action against: who gave each cited answer and missing
+// item, which item each answer is on, how many answered each item, how many submitted.
+export type Support = {
+  answerRespondent: Map<string, string>;
+  answerItem: Map<string, string>;
+  missingRespondent: Map<string, string>;
+  answeredByItem: Map<string, number>;
+  submitted: number;
+};
+
+// The people behind an action are the distinct respondents of what it cites; the line it
+// must reach is one in ten of the most-answered item it cites (of everyone who submitted
+// when it cites a missing item), one person when ten or fewer. An action citing an answer
+// or missing item that supplies no respondent counts nobody for it.
+export function supportedActions(actions: ActionRow[], s: Support): ActionRow[] {
+  return actions.filter((a) => {
+    const people = new Set([...a.citedAnswerIds.map((id) => s.answerRespondent.get(id)), ...a.citedMissingItemIds.map((id) => s.missingRespondent.get(id))].filter((r): r is string => r !== undefined));
+    const answered = Math.max(0, ...a.citedAnswerIds.map((id) => s.answeredByItem.get(s.answerItem.get(id) ?? "") ?? 0), ...(a.citedMissingItemIds.length > 0 ? [s.submitted] : []));
+    return people.size >= peopleNeeded(answered);
+  });
+}
+
 // The run's tokens and cost over the actions: equal shares, the rest on the first.
 export function share(total: number, n: number): number[] {
   if (n === 0) return [];
@@ -73,6 +107,7 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const counts = new Map((await agreement.byItem(actor.ws, instrument.id, COUNTED)).map((c) => [c.itemId, c]));
   const input = await insights.inputFor(actor.ws, instrument.id);
   if (input.answers.length === 0) return { error: ACTIONS_COPY.emptyNoAnswers, retry: false };
+  const submitted = (await results.numbers(actor.ws, instrument.id, COUNTED))?.submitted ?? 0;
   // The dropdown fields, except the name field even when the PM made it a dropdown of names:
   // the model sees groups, never a person (note 66).
   const groups = instrument.respondentFields.filter((f) => f.type === "dropdown" && f.key !== "name");
@@ -86,6 +121,7 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
     respondents: [...respondents].map(([key, g]) => ({ key, groups: g })),
     scale: scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label),
     labelOf: (code) => labelFor(instrument.method, instrument.scaleLabels, code) ?? code ?? "",
+    submitted,
   }, contextOf({ goal: project.contextGoal, terms: project.contextTerms }));
   if (prompt.instructions.length + prompt.data.length > INPUT_CHARS_MAX) return { error: ACTIONS_COPY.tooLong, retry: false };
   // The check refuses nothing: an action citing an unknown ref is dropped, not the run.
@@ -96,7 +132,15 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
     const cost = result.estimateCents !== undefined ? `${ACTIONS_COPY.estimate(formatEur(result.estimateCents))} ` : "";
     return { error: cost + ACTIONS_COPY.refusals[result.reason], retry: result.reason === "failed" || result.reason === "invalid" };
   }
-  const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
+  const cited = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
+  const kept = supportedActions(cited, {
+    answerRespondent: new Map(answers.map((a) => [a.id, a.respondent])),
+    answerItem: new Map(answers.map((a) => [a.id, a.itemId])),
+    missingRespondent: new Map(input.missing.map((m) => [m.id, m.responseId])),
+    answeredByItem: new Map([...counts].map(([id, c]) => [id, c.agree + c.change + c.disagree + c.unclear + c.pick])),
+    submitted,
+  });
+  if (kept.length < cited.length) log("info", "Actions below the support line were dropped.", { project: project.id, count: cited.length - kept.length });
   const ran = () => track("insight_run", { actions: kept.length, costCents: result.run.costEurCents }, { workspaceId: actor.ws, userId: actor.userId });
   // A run that keeps nothing leaves the open actions as they are (the tab says so).
   if (kept.length === 0) { await ran(); return { written: [] }; }

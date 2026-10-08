@@ -13,7 +13,7 @@ import { usage } from "@/db/queries/usage";
 import { runModel, type RunDeps } from "@/lib/ai/client";
 import { InsightOutput } from "@/lib/ai/insights-schema";
 import { buildActionsPrompt } from "@/lib/ai/prompts/insights";
-import { ACTIONS_EXPECTED_OUTPUT, keptActions } from "@/lib/insights";
+import { ACTIONS_EXPECTED_OUTPUT, keptActions, supportedActions } from "@/lib/insights";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 
@@ -45,7 +45,20 @@ export function promptFor(spec: InsightSpec) {
     respondents: spec.respondents,
     scale: spec.scale,
     labelOf: (code) => code ?? "",
+    submitted: spec.respondents.length,
   });
+}
+
+// The support line the app applies (design note 123), from the spec's counts: every
+// respondent in the spec counts as submitted.
+function supportFor(spec: InsightSpec) {
+  return {
+    answerRespondent: new Map(spec.answers.map((a, i) => [`answer-${i + 1}`, a.respondent])),
+    answerItem: new Map(spec.answers.map((a, i) => [`answer-${i + 1}`, a.item])),
+    missingRespondent: new Map(spec.missing.map((m, i) => [`missing-${i + 1}`, m.respondent])),
+    answeredByItem: new Map(spec.items.map((it) => [it.ref, it.counts.agree + it.counts.change + it.counts.disagree + it.counts.unclear])),
+    submitted: spec.respondents.length,
+  };
 }
 
 export async function runInsightSpec(spec: InsightSpec, ws: WorkspaceId, projectId: string, deps: RunDeps = {}): Promise<InsightRun> {
@@ -55,7 +68,7 @@ export async function runInsightSpec(spec: InsightSpec, ws: WorkspaceId, project
   const prompt = promptFor(spec);
   const result = await runModel({ ws, projectId, purpose: "insights", instructions: prompt.instructions, data: prompt.data, schema: InsightOutput, check: () => null, maxOutputTokens: 4_000, expectedOutputTokens: ACTIONS_EXPECTED_OUTPUT }, deps);
   if (!result.ok) return { id: spec.id, pass: false, kinds: [], written: 0, kept: 0, failures: [`refused: ${result.reason}`], costCents: await spent(), model: "", error: `${result.reason}: ${result.detail}` };
-  const kept = keptActions(result.output, prompt.answerRefs, prompt.missingRefs);
+  const kept = supportedActions(keptActions(result.output, prompt.answerRefs, prompt.missingRefs), supportFor(spec));
   const kinds = [...new Set(kept.map((a) => a.kind))];
   const failures = [
     ...spec.expectedKinds.filter((k) => !kinds.includes(k)).map((k) => `no ${k} action`),

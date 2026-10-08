@@ -614,7 +614,10 @@ left out even as a dropdown), A[n] answers that carry a reason or a question, M[
 chars), why: string (1 to 400 chars), answers: string[] (A refs), missing: string[] (M refs) }]
 (up to 8) }
 The app keeps an action only when it cites at least one ref and every ref it cites was sent
-(src/lib/insights.ts keptActions; acceptance 2 and 3), and stores it as an insight row with
+(src/lib/insights.ts keptActions; acceptance 2 and 3) and when enough distinct respondents
+are behind it: one in ten of those who answered the most-answered item it cites, one person
+when ten or fewer, a missing item weighed against everyone who submitted (supportedActions,
+design note 123; the item lines and the MISSING ITEMS heading tell the model the number), and stores it as an insight row with
 kind, title, why, cited_answer_ids and cited_missing_item_ids, the model, and its share of the
 run's tokens and cost (share(); the shares add up to the run). writeActions(actor, projectId,
 deps) runs it: results.read, the sample refused, the answers of submitted responses only
