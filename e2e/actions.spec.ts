@@ -95,7 +95,9 @@ test("write actions from the answers, each citing the answers behind it", async 
   await expect(page.getByTestId("thinking-line")).toContainText("Reading 2 items and 2 answers");
   await expect(page.getByTestId("thinking").getByTestId("mascot")).toHaveAttribute("data-pose", "analysis");
   const actions = page.getByTestId("action");
-  await expect(actions).toHaveCount(4);
+  // The dev server compiles the Results page with its actions on this first render, which can
+  // take longer than the default 5 seconds on a slow machine (CI runs the production build).
+  await expect(actions).toHaveCount(4, { timeout: 15_000 });
   // One tab per kind with its open count (design note 123), Follow up first and selected
   // since it has an open action; the other panels stay in the page, hidden.
   const kinds = page.getByRole("tablist", { name: "Action kinds" });
