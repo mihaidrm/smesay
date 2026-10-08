@@ -90,7 +90,7 @@ const ProjectFile = z.strictObject({
     areas, shapeRuns: count, shapedAt: date.nullable(), contextUsed,
     items: z.array(z.strictObject({
       id, position: count.min(1), sourceRef: text(WHOLE).nullable(), originalText: text(WHOLE), readerText: text(WHOLE).nullable(), readerStatus: z.enum(FILE_ENUMS.readerStatus).nullable(),
-      area: text(WHOLE).nullable(), areaRationale: text(WHOLE).nullable(), proposedValue: text(WHOLE).nullable(), custom, flags, perspectives: z.array(text(100)),
+      area: text(WHOLE).nullable(), areaRationale: text(WHOLE).nullable(), proposedValue: text(WHOLE).nullable(), custom, aiContext: text(WHOLE).nullable().optional(), flags, perspectives: z.array(text(100)),
     })).max(2000),
   })),
   instruments: z.array(z.strictObject({
@@ -130,7 +130,7 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
     itemSets: rows.itemSets.map((s) => ({
       id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport, importedAt: s.importedAt.toISOString(),
       areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: iso(s.shapedAt), contextUsed: s.contextUsed,
-      items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, flags: it.flags, perspectives: it.perspectives })),
+      items: rows.items.filter((it) => it.itemSetId === s.id).map((it) => ({ id: it.id, position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom as Record<string, string> | null, aiContext: it.aiContext, flags: it.flags, perspectives: it.perspectives })),
     })),
     instruments: rows.instruments.map((i) => ({ id: i.id, itemSetId: i.itemSetId, title: i.title, intro: i.intro, method: i.method, showProposed: i.showProposed, layout: i.layout, reasonRule: i.reasonRule, respondentFields: i.respondentFields, scaleLabels: i.scaleLabels, perspectives: i.perspectives, closing: i.closing, publishedAt: iso(i.publishedAt), createdAt: i.createdAt.toISOString() })),
     invites: rows.invites.map((v) => ({ id: v.id, instrumentId: v.instrumentId, kind: v.kind, email: v.email, name: v.name, roleHint: v.roleHint, opensAt: iso(v.opensAt), closesAt: iso(v.closesAt), hadPasscode: v.passcodeHash !== null, revokedAt: iso(v.revokedAt), remindersSent: v.remindersSent, lastReminderAt: iso(v.lastReminderAt), sentAt: iso(v.sentAt), createdAt: v.createdAt.toISOString() })),

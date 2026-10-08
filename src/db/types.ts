@@ -41,7 +41,7 @@ export type Layout = "chapters" | "item" | "page";
 export type ReasonRule = "differs" | "never" | "always";
 // The four answers and the rate-blind pick (decisions 0014, 0018; INTERFACES.md AnswerKind).
 export type AnswerKind = "agree" | "change" | "disagree" | "unclear" | "pick";
-export type ColumnRole = "text" | "area" | "value" | "ref" | "custom" | "skip";
+export type ColumnRole = "text" | "area" | "value" | "ref" | "context" | "custom" | "skip";
 export type ColumnMapping = { [column: string]: ColumnRole };
 // What the server found in an upload (stories/E3-2): the sheets, the chosen sheet, the header
 // row (1-based, null when none qualified), the columns with their letters and names, the first

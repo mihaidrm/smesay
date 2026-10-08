@@ -36,6 +36,12 @@ Outcome: enter an email, click the link in the email, be signed in; nothing else
 ## Technical notes
 Built 2026-10-02.
 
+Changed 2026-10-08: every page reads the session through readSession() (src/lib/session.ts).
+better-auth refuses with "Failed to get session" (UNAUTHORIZED) when the session row is gone
+by the time of its daily refresh write, after expiring the cookies; that read now counts as
+signed out and the page sends the person to sign in instead of an error page (Mihai saw the
+error page that day). src/lib/session.test.ts covers it.
+
 - src/lib/auth.ts: better-auth with the magic link plugin (better-auth.com/docs/plugins/magic-
   link; options in node_modules/better-auth/dist/plugins/magic-link/index.d.mts: `expiresIn`
   in seconds, set to 15 minutes; `sendMagicLink` gets email and url; `storeToken: "hashed"`, so

@@ -3,9 +3,9 @@
 // when Google is configured, "Continue with Google" under it. Copy from docs/copy/app.md and
 // errors.md, "Sign-in". A signed-in person goes straight to the app. searchParams is a
 // Promise in Next.js 16 (decision 0024; nextjs.org/docs/app/api-reference/file-conventions/page).
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth, GOOGLE_ERROR_PATH, readGoogleEnv } from "@/lib/auth";
+import { GOOGLE_ERROR_PATH, readGoogleEnv } from "@/lib/auth";
+import { readSession } from "@/lib/session";
 import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
 import { GoogleButton } from "./google-button";
 import { safeNextPath } from "@/lib/safe-path";
@@ -20,7 +20,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   // A source from the landing page's link rides through the magic link to the workspace step
   // (stories/E13-3, acceptance 4).
   const target = nextWithSource(safeNextPath(next), cleanSource(utm_source));
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await readSession();
   if (session) redirect(target);
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">

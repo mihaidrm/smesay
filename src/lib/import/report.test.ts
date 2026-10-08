@@ -38,6 +38,11 @@ describe("checkRows", () => {
     expect(result.items[2].text).toHaveLength(ITEM_LIMIT + 1);
     expect(result.items[3].custom).toEqual({});
   });
+  it("carries the context column for the AI, trimmed, null when empty or unmapped (design note 120)", () => {
+    const r = checkRows([{ letter: "A", name: "Item" }, { letter: "B", name: "Notes" }], { Item: "text", Notes: "context" }, [["Receipts by phone", " Legal asked for it "], ["Approve from email", ""]], 1, null);
+    expect(r.items.map((i) => i.context)).toEqual(["Legal asked for it", null]);
+    expect(result.items[0].context).toBeNull();
+  });
   it("works without a reference or custom column and names rows by number", () => {
     const r = checkRows([{ letter: "A", name: "Item" }], { Item: "text" }, [["Same"], ["Same"], ["Other"]], 1, null);
     expect(r.report.duplicateRefs).toEqual([{ kept: "row 1", folded: ["row 2"] }]);

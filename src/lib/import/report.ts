@@ -24,6 +24,8 @@ export type ImportRow = {
   area: string | null;
   value: string | null;
   custom: { [header: string]: string } | null;
+  // The column mapped as "Context for the AI" (E3-3, 2026-10-08), or null.
+  context: string | null;
   foldedRefs: string[];
   sheet?: string;
 };
@@ -76,7 +78,7 @@ function check(mapping: ColumnMapping, segments: Segment[], options: { sheetAsAr
   for (const segment of segments) {
     const keys = columnKeys(segment.columns);
     const index = (role: string) => keys.findIndex((k) => mapping[k] === role);
-    const textAt = index("text"); const refAt = index("ref"); const areaAt = index("area"); const valueAt = index("value");
+    const textAt = index("text"); const refAt = index("ref"); const areaAt = index("area"); const valueAt = index("value"); const contextAt = index("context");
     const customAt = keys.map((k, i) => (mapping[k] === "custom" ? i : -1)).filter((i) => i >= 0);
     const cell = (r: string[], i: number) => (i >= 0 ? (r[i] ?? "").trim() : "");
     const own: SheetCheck = { name: segment.name ?? "", report: { name: segment.name ?? "", rowsRead: segment.rows.length, headerRow: segment.headerRow ?? 0, items: 0, emptyRows: 0, exactDuplicates: 0, overLimit: 0, unrecognisedValues: 0 }, emptyRows: [], duplicateRows: [], longRows: [], unrecognisedRows: [] };
@@ -103,7 +105,7 @@ function check(mapping: ColumnMapping, segments: Segment[], options: { sheetAsAr
       for (const i of customAt) if (cell(r, i)) custom[keys[i]] = cell(r, i);
       // The area: the mapped column's cell; with no area column and the option on, the sheet.
       const area = cell(r, areaAt) || (sheetAsArea && segment.name ? segment.name : null);
-      const item: ImportRow = { row, ref, text, area, value: rawValue ? normaliseValue(rawValue).value : null, custom: customAt.length ? custom : null, foldedRefs: [] };
+      const item: ImportRow = { row, ref, text, area, value: rawValue ? normaliseValue(rawValue).value : null, custom: customAt.length ? custom : null, context: cell(r, contextAt) || null, foldedRefs: [] };
       if (segment.name !== null) item.sheet = segment.name;
       seen.set(key, item);
       items.push(item);

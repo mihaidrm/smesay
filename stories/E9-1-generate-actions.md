@@ -80,3 +80,13 @@ that run was the developer menu's stand-in; a refusal shows in the danger tint w
 icon; while a run is pending the thinking state shows under the button with the tab's
 counts. On a local checkout Write actions goes to the stand-in unless the menu says
 otherwise; Playwright keeps "real", which is the stand-in server.
+
+Amended 2026-10-08 (design note 123, decision 0044; Mihai: "If 100 ppl answer and just 1
+doesnt agree with something doesnt mean we make it as an action item"): an action also needs
+enough people behind it, at least one in ten of those who answered the item it cites (one
+when ten or fewer answered; a missing item against everyone who submitted; both groups for
+Groups disagree). The prompt says the number per item and the app drops an action below the
+line (src/lib/insights.ts supportedActions, tested); the evals runner applies the same line.
+The tab shows the actions under one tab per kind (Follow up, Rewrite, Groups disagree,
+Coverage; src/components/app/tabs.tsx) and explains the rule under "How actions are chosen".
+
