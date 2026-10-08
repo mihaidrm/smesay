@@ -44,7 +44,7 @@ question reaches Mihai's inbox with the visitor's address to reply to.
 ## Open questions
 - None. Answered 2026-10-05 (decision 0049): no "AI" anywhere, "Ask us a question"; the
   questions go to Mihai's own address in .env.local until the launch gate, then
-  hello@smesay.app; the panel promises a reply by email within one working day.
+  hello@smesay.com; the panel promises a reply by email within one working day.
 
 ## Technical notes
 The landing page is a server page with no JavaScript beyond its islands (E12-1); the bubble
@@ -90,5 +90,5 @@ Built 2026-10-05 (design note 94, decision 0044):
   limit named); e2e/question-bubble.spec.ts at both sizes (Mailpit holds the email; its
   Reply-To header names the visitor; Escape closes the panel after Sent; on a phone Tab stays
   in the sheet). CI and the
-  Playwright server set NEXT_PUBLIC_SUPPORT_EMAIL to hello@smesay.app, the error pages' own
+  Playwright server set NEXT_PUBLIC_SUPPORT_EMAIL to hello@smesay.com, the error pages' own
   default, so nothing else changes. docs/accounts.md step 11c names the variable.

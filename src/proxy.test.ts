@@ -59,7 +59,7 @@ describe("proxy", () => {
     expect(a.headers.get("x-middleware-request-content-security-policy")).toBe(csp);
     expect(proxy(req("/app/projects", "10.9.0.4")).headers.get("content-security-policy")).toMatch(/nonce-/);
     expect(proxy(new NextRequest(`${BASE}/apple`)).status).toBe(200);
-    expect(proxy(new NextRequest("https://smesay.app/")).headers.get("content-security-policy")).toContain("upgrade-insecure-requests");
+    expect(proxy(new NextRequest("https://smesay.com/")).headers.get("content-security-policy")).toContain("upgrade-insecure-requests");
   });
   it("answers every request with 503 while MAINTENANCE=1", async () => {
     process.env.MAINTENANCE = "1";

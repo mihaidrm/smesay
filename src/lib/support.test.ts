@@ -60,12 +60,12 @@ describe("the question bubble", () => {
 
   it("builds email 5: text only, the question as written, Reply-To the visitor", () => {
     const input = { email: "ana@marlow.example", question: "Line one\nLine two", page: "/landing-page", trap: false };
-    const mail = supportEmail("mihai@example.com", input, "https://smesay.app", new Date(Date.UTC(2026, 9, 5, 14, 7)));
+    const mail = supportEmail("mihai@example.com", input, "https://smesay.com", new Date(Date.UTC(2026, 9, 5, 14, 7)));
     expect(mail).toEqual({
       to: "mihai@example.com",
       subject: "Question from the landing page: ana@marlow.example",
       replyTo: "ana@marlow.example",
-      text: "Line one\nLine two\n\nThe visitor sent this from https://smesay.app/landing-page on 2026-10-05 14:07 UTC. Reply to this email to answer.\n",
+      text: "Line one\nLine two\n\nThe visitor sent this from https://smesay.com/landing-page on 2026-10-05 14:07 UTC. Reply to this email to answer.\n",
     });
     expect(mail).not.toHaveProperty("html");
   });
@@ -73,8 +73,8 @@ describe("the question bubble", () => {
   it("has the words of docs/copy/landing.md, with no AI in them", () => {
     expect(SUPPORT_COPY.sent("ana@marlow.example")).toBe("Sent. We will reply to ana@marlow.example.");
     expect(SUPPORT_COPY.questionLong(QUESTION_MAX)).toBe("Keep your question to 2,000 characters.");
-    expect(SUPPORT_COPY.tooMany(5, "hello@smesay.app")).toBe("You have sent 5 questions in the last hour. Email hello@smesay.app instead.");
-    expect(SUPPORT_COPY.tooManyConnection("hello@smesay.app")).toBe("Too many questions came from your connection in the last hour. Email hello@smesay.app instead.");
+    expect(SUPPORT_COPY.tooMany(5, "hello@smesay.com")).toBe("You have sent 5 questions in the last hour. Email hello@smesay.com instead.");
+    expect(SUPPORT_COPY.tooManyConnection("hello@smesay.com")).toBe("Too many questions came from your connection in the last hour. Email hello@smesay.com instead.");
     const all = Object.values(SUPPORT_COPY).map((v) => (typeof v === "function" ? (v as (...a: unknown[]) => string)(5, "x") : v)).join(" ");
     expect(all).not.toMatch(/\bAI\b/);
   });

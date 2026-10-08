@@ -16,7 +16,7 @@ const post = (body: unknown, from = "10.1.0.1", type = "application/json") =>
 const ok = { email: "ana@marlow.example", question: "Can experts answer in Romanian?", page: "/landing-page" };
 
 describe("POST /api/support", () => {
-  beforeEach(() => { sent.length = 0; fail = false; supportByAddress.clear(); supportByConnection.clear(); vi.stubEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@marlow.example"); vi.stubEnv("BETTER_AUTH_URL", "https://smesay.app/"); });
+  beforeEach(() => { sent.length = 0; fail = false; supportByAddress.clear(); supportByConnection.clear(); vi.stubEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@marlow.example"); vi.stubEnv("BETTER_AUTH_URL", "https://smesay.com/"); });
   afterEach(() => vi.unstubAllEnvs());
 
   it("mails one question with Reply-To the visitor", async () => {
@@ -24,7 +24,7 @@ describe("POST /api/support", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ sent: true });
     expect(sent).toEqual([expect.objectContaining({ to: "support@marlow.example", replyTo: "ana@marlow.example" })]);
-    expect((sent[0] as { text: string }).text).toContain("https://smesay.app/landing-page");
+    expect((sent[0] as { text: string }).text).toContain("https://smesay.com/landing-page");
   });
 
   it("answers Sent to a filled hidden field and mails nothing", async () => {

@@ -83,7 +83,8 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E14 Admin and support | Admin shell and audit log, workspaces with their settings and the support actions, people and their sign-in, read-only view of a workspace (decision 0035). E14-1 to E14-4 built 2026-10-05 (PRs 124 to 127); open: your ADMIN_EMAILS in .env.local; Mihai's acceptance notes per story still owed | ADMIN_EMAILS in .env.local | 3 | done |
 | E15 Onboarding and tutorial | The robot as the guide: the guide card and its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips, the measurement on the admin page (design note 39; after E8 and E13, before the launch gate) E15-1 to E15-5 built 2026-10-05 (PRs 128 to 130); open: the "help" pose to place (docs/assets.md), the baseline from the first ten real sign-ups; Mihai's acceptance notes per story still owed. | none | 3 | done |
 
-Launch gate: Mihai decides the product is worth a domain. Then: name, domain, personal Vercel
+Launch gate: Mihai decides the product is worth a domain. Then: name and domain (smesay.com,
+bought 2026-10-08 at Cloudflare, decision 0064), personal Vercel
 and Neon, Resend, Sentry, Plausible, the company details on the legal pages (with COMPANY_ADDRESS set for the
 emails' footer, E12-3), deploy. After that, one organisation
 Mihai does not work for runs a real validation.
