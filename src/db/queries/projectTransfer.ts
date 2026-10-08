@@ -50,7 +50,7 @@ export async function readProject(ws: WorkspaceId, projectId: string): Promise<T
 export type TransferInput = {
   project: { name: string; contextGoal: string | null; contextTerms: string | null };
   itemSets: { id: string; version: number; source: "xlsx" | "csv" | "pasted"; sourceFilename: string | null; importReport: (typeof itemSet.$inferInsert)["importReport"]; importedAt: Date; areas: (typeof itemSet.$inferInsert)["areas"]; shapeRuns: number; shapedAt: Date | null; contextUsed: (typeof itemSet.$inferInsert)["contextUsed"] }[];
-  items: { id: string; itemSetId: string; position: number; sourceRef: string | null; originalText: string; readerText: string | null; readerStatus: (typeof item.$inferInsert)["readerStatus"]; area: string | null; areaRationale: string | null; proposedValue: string | null; custom: unknown; flags: (typeof item.$inferInsert)["flags"]; perspectives: string[] }[];
+  items: { id: string; itemSetId: string; position: number; sourceRef: string | null; originalText: string; readerText: string | null; readerStatus: (typeof item.$inferInsert)["readerStatus"]; area: string | null; areaRationale: string | null; proposedValue: string | null; custom: unknown; aiContext?: string | null; flags: (typeof item.$inferInsert)["flags"]; perspectives: string[] }[];
   instruments: (Omit<typeof instrument.$inferInsert, "workspaceId" | "projectId"> & { id: string; itemSetId: string })[];
   invites: { id: string; instrumentId: string; kind: "public" | "personal"; email: string | null; name: string | null; roleHint: string | null; opensAt: Date | null; closesAt: Date | null; revokedAt: Date | null; remindersSent: number; lastReminderAt: Date | null; sentAt: Date | null; createdAt: Date }[];
   responses: { id: string; instrumentId: string; itemSetId: string; inviteId: string; fields: Record<string, string>; perspectives: string[]; confidence: number | null; signedOff: boolean; submittedAt: Date | null; firstSubmittedAt: Date | null; closingAnswer: string | null; signOffText: string | null; createdAt: Date; updatedAt: Date }[];
@@ -71,7 +71,7 @@ export async function writeProject(ws: WorkspaceId, input: TransferInput, userId
     for (const s of input.itemSets) {
       await tx.insert(itemSet).values({ id: fresh(s.id), workspaceId: ws, projectId, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport, importedBy: userId, importedAt: s.importedAt, areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: s.shapedAt, contextUsed: s.contextUsed });
     }
-    const itemRows = input.items.map((it) => ({ id: fresh(it.id), workspaceId: ws, itemSetId: map(it.itemSetId), position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom, flags: it.flags, perspectives: it.perspectives }));
+    const itemRows = input.items.map((it) => ({ id: fresh(it.id), workspaceId: ws, itemSetId: map(it.itemSetId), position: it.position, sourceRef: it.sourceRef, originalText: it.originalText, readerText: it.readerText, readerStatus: it.readerStatus, area: it.area, areaRationale: it.areaRationale, proposedValue: it.proposedValue, custom: it.custom, aiContext: it.aiContext ?? null, flags: it.flags, perspectives: it.perspectives }));
     for (let i = 0; i < itemRows.length; i += 500) await tx.insert(item).values(itemRows.slice(i, i + 500));
     for (const ins of input.instruments) {
       const { id, itemSetId, ...rest } = ins;

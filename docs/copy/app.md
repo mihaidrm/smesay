@@ -410,12 +410,13 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Mapping card title | Column mapping |
 | Mapping card summary (design note 110) | [N] of [N] columns mapped / No text column yet |
 | Row | [HEADER] (or Column [LETTER] without a header), Column [LETTER], maps to |
-| Roles | Item text, Area, Proposed value, Reference, Custom field, Do not import (the board's wording; the story said Ignore) |
+| Line above the rows (2026-10-08) | Say what each column holds. One column must be the item text; the others are optional. |
+| Roles, each shown as "label: meaning" (design note 120) | Item text: the requirement itself, one per row; Area: the group or section the item belongs to; Proposed value: your priority for it, such as Must or Should; Reference: the item's own id, such as CL-04; Context for the AI: background the AI reads when it shapes the list and writes actions; respondents never see it; Custom field: extra detail kept with the item and shown to respondents under it; Do not import: this column is left out |
 | Sixth custom field | Custom field (up to five custom fields), disabled |
 | Remembered line, above the card | Mapping remembered from [DATE] |
 | Rows with several sheets ticked (E3-7) | the columns of every ticked sheet once, by header, with the letter of the sheet it was first seen in |
 | Switch under the rows, only with several sheets ticked and no column mapped as Area (E3-7; on by default) | Use the sheet names as areas; on: Each item's area is the name of the sheet it came from.; off: No area column is mapped; the items come in without an area. |
-| Footer line | This mapping is remembered for files with the same headers. |
+| Footer line | Only one column can be the item text, the area, the proposed value, the reference or the context for the AI: picking one of these moves it here from the column that had it. This mapping is remembered for files with the same headers. |
 
 ## Signed-in shell (E2-1, E2-3)
 

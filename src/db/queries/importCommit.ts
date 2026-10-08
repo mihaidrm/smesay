@@ -13,7 +13,7 @@ import { item, itemSet, project } from "@/db/schema";
 import type { ImportReport, WorkspaceId } from "@/db/types";
 import type { ItemSet } from "./itemSets";
 
-export type CommitItem = { ref: string | null; text: string; area: string | null; value: string | null; custom: { [header: string]: string } | null; foldedRefs?: string[] };
+export type CommitItem = { ref: string | null; text: string; area: string | null; value: string | null; custom: { [header: string]: string } | null; context?: string | null; foldedRefs?: string[] };
 export type CommitInput = { projectId: string; uploadId: string | null; source: "xlsx" | "csv" | "pasted"; filename: string | null; report: ImportReport; items: CommitItem[]; userId: string };
 
 export async function commitImport(workspaceId: WorkspaceId, input: CommitInput): Promise<ItemSet | null> {
@@ -28,7 +28,7 @@ export async function commitImport(workspaceId: WorkspaceId, input: CommitInput)
     if (input.items.length > 0) {
       await tx.insert(item).values(input.items.map((it, i) => ({
         workspaceId, itemSetId: set.id, position: i + 1, sourceRef: it.ref, originalText: it.text,
-        area: it.area, proposedValue: it.value, custom: it.custom,
+        area: it.area, proposedValue: it.value, custom: it.custom, aiContext: it.context ?? null,
         flags: it.foldedRefs && it.foldedRefs.length > 0 ? { foldedRefs: it.foldedRefs } : null,
       })));
     }

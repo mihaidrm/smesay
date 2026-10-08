@@ -202,6 +202,9 @@ export const item = pgTable("item", {
   areaRationale: text("area_rationale"),
   proposedValue: text("proposed_value"),
   custom: jsonb("custom"),
+  // E3-3, 2026-10-08: the column mapped as "Context for the AI", read by Shape and Write
+  // actions, never shown to a respondent (design note 120).
+  aiContext: text("ai_context"),
   flags: jsonb("flags").$type<ItemFlags>(),
   // E5-4: the perspectives this item is shown to; empty means everyone.
   perspectives: text("perspectives").array().notNull().default(sql`'{}'::text[]`),

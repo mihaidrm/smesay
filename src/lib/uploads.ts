@@ -185,7 +185,7 @@ async function initialMapping(ws: WorkspaceId, preview: UploadPreview): Promise<
 export async function saveMapping(ws: WorkspaceId, uploadId: string, raw: Record<string, unknown>, sheetAreas?: boolean): Promise<{ upload: Upload; error: string | null }> {
   const current = await uploads.get(ws, uploadId);
   if (!current) throw new NotFoundError();
-  const mapping = cleanMapping(current.preview.columns, raw);
+  const mapping = cleanMapping(current.preview.columns, raw, typeof raw.changed === "string" ? raw.changed : undefined);
   const updated = await uploads.update(ws, uploadId, sheetAreas === undefined ? { mapping } : { mapping, sheetAreas });
   if (!updated) throw new NotFoundError();
   const error = mappingError(mapping);
