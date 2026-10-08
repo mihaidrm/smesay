@@ -45,6 +45,10 @@ const total = (n: Counts) => n.agree + n.change + n.disagree + n.unclear;
 const pct = (n: Counts) => `${Math.round((n.agree / total(n)) * 100)}%`;
 const spoken = (n: Counts) => KINDS.filter((k) => n[k.key] > 0).map((k) => `${k.label} ${n[k.key]}`).join(", ");
 
+// The tiles: label, value, text colour (the tones of src/lib/results-tiles.ts, in the
+// landing's written-out colours: ink, mint text, sun text, sun text, violet text).
+const TILES: [string, string, string][] = [["Submitted", "5 of 7", "#15131F"], ["Agreement", "60%", "#166A52"], ["Different priority", "7", "#8A5A00"], ["Disagree", "3", "#8A5A00"], ["Unclear", "2", "#5A3BE0"]];
+
 const VIEWS = ["Table", "Columns", "Share"] as const;
 type View = (typeof VIEWS)[number];
 
@@ -123,11 +127,15 @@ export function ResultsDemo() {
   const [view, setView] = useState<View>("Table");
   return (
     <div className="flex flex-col gap-4" data-testid="results-demo" data-view={view}>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5" data-testid="results-tiles">
-        {[["Submitted", "5 of 7"], ["Agreement", "60%"], ["Different priority", "7"], ["Disagree", "3"], ["Unclear", "2"]].map(([label, value]) => (
-          <div key={label} className="flex flex-col gap-0.5 rounded-[14px] border border-[#E6E3F0] bg-white px-3 py-2.5">
-            <span className="text-[13px] text-[#5E5A72]">{label}</span>
-            <span className="font-mono text-[30px] leading-9 font-extrabold tracking-[-0.03em] whitespace-nowrap">{value}</span>
+      {/* The tiles mirror the product's StatTile (src/components/app/tiles.tsx): the number
+          first, the label under it, so the numbers line up whatever the label's length, in
+          the text colour of each tile's tone. From 1280 px the five sit on one row with the
+          Submitted tile a third wider, since "5 of 7" is the widest number. */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-[1.3fr_repeat(4,1fr)]" data-testid="results-tiles">
+        {TILES.map(([label, value, colour]) => (
+          <div key={label} className="flex min-w-0 flex-col gap-1 rounded-[14px] border border-[#E6E3F0] bg-white px-3 py-2.5">
+            <span className="font-mono text-[26px] leading-8 font-extrabold tracking-[-0.03em] whitespace-nowrap md:text-[28px]" style={{ color: colour }}>{value}</span>
+            <span className="text-[13px] leading-[17px] text-[#5E5A72]">{label}</span>
           </div>
         ))}
       </div>
