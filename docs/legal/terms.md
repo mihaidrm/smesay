@@ -17,6 +17,8 @@ You sign in with a link sent to your email address or with Google. A workspace b
 
 While SMEsay is being built with its first users, the free plan has no limit on projects or responses. Each workspace has a monthly allowance for the AI features, and SMEsay as a whole has a monthly limit on what it spends on AI; when either is reached, Shape and Write actions stop until the next month. Paid plans come later; nothing built on the free plan is lost or locked when they do. We tell you by email at least 30 days before a change to the free plan that limits what you can do.
 
+A paid plan may start with a free trial. During the trial you pay nothing, so the free plan's terms apply, the liability section included. If you carry on after the trial ends and start paying, you accept these terms from that day, every section included. [LAWYER: added 2026-10-08 after your read of version 3. Payment after a trial as acceptance of the clauses art. 1203 of the Civil Code names (liability, suspension, law and court): confirm it counts as express written acceptance, or say what the checkout must show.]
+
 ## Your content
 
 What you import, build and collect stays yours. You give Alerty the right to store and process it only to run the service for you, as the data processing agreement (/legal/dpa) sets out. You are responsible for having a lawful basis to collect the answers you collect, for telling respondents who you are, what you ask of them and how long you keep their answers, and for not asking for special categories of personal data.
@@ -37,7 +39,7 @@ Alerty aims to keep SMEsay available but does not promise any level of availabil
 
 Nothing in these terms limits liability for harm caused on purpose or by gross negligence, or for injury to a person's life, body or health.
 
-Apart from that, Alerty is not liable for indirect or consequential loss, such as lost profit, lost revenue, lost data that you could have exported, or loss of business, and Alerty's total liability under these terms is limited to the greater of the fees you paid Alerty in the 12 months before the event and EUR 100.
+Apart from that, Alerty is not liable for indirect or consequential loss, such as lost profit, lost revenue, lost data that you could have exported, or loss of business, and Alerty's total liability under these terms is limited to the fees you paid Alerty in the 12 months before the event. On the free plan you pay nothing, so by using it you accept that you cannot claim anything from Alerty. [LAWYER: changed 2026-10-08 after your read of version 3. The EUR 100 floor of L24 goes: the cap is the fees paid, and nothing on the free plan. Confirm this holds under art. 1355 of the Civil Code, which keeps intent, gross negligence and injury out of every limit, and under art. 1203.]
 
 ## Ending
 
