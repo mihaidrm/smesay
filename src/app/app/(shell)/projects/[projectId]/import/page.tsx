@@ -18,6 +18,7 @@ import { mappingError } from "@/lib/import/mapping";
 import { PASTE_COPY } from "@/lib/import/paste";
 import { needsSheetStep } from "@/lib/import/sheets";
 import { rememberedFrom } from "@/lib/uploads";
+import { AttachedFile } from "./attached-file";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
 import { UnsavedMark } from "@/components/app/unsaved";
@@ -86,8 +87,18 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {!project.isSample && (
         <CollapsibleCard title={IMPORT_CARD_COPY.list.title} titleId="upload-title" summary={IMPORT_CARD_COPY.list.summary(upload ? (upload.kind === "pasted" ? PASTE_COPY.filename : upload.filename) : null)} open={cards.list} testId="card-list" mark={<UnsavedMark id="import-paste" />}>
           <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
-          <UploadForm projectId={project.id} hasUpload={upload !== null} />
-          <PasteForm projectId={project.id} />
+          {/* With a list attached, the tile stands beside the form (design note 119). */}
+          {upload ? (
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+              <div className="flex flex-col gap-3"><UploadForm projectId={project.id} hasUpload /><PasteForm projectId={project.id} /></div>
+              <AttachedFile upload={upload} />
+            </div>
+          ) : (
+            <>
+              <UploadForm projectId={project.id} hasUpload={false} />
+              <PasteForm projectId={project.id} />
+            </>
+          )}
         </CollapsibleCard>
       )}
       {upload && <UploadPreview upload={upload} open={cards.preview} />}

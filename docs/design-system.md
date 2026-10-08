@@ -192,6 +192,11 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   file's name beside it at 14 px muted, "No file chosen" before a pick; the ring on the button
   while the input has the focus; the verb "Choose a file" ("Choose an image" for the logo);
   disabled at 40 percent while the form is busy.
+- Attached file tile (import/attached-file.tsx, design note 119): a tint panel with a 64 px
+  violet-soft square holding a 32 px Lucide icon (FileSpreadsheet for a file, FileText for a
+  pasted list), then a 12 px muted heading, the name at 15 px 600 truncated with the full name on
+  hover, and three 13 px muted lines (kind and size, the date, what the tile means); beside the
+  upload form from 768 px, under it below.
 - Status pills: tint fill, text colour from the table, 12 px weight 600, height 24, radius 999.
   Neutral pill: tint fill, soft ink. Count badge (nav): coral fill, dark text, 11 px 700.
   Toggle chip (the perspective tags on Shape, design note 44): a pill-shaped button with

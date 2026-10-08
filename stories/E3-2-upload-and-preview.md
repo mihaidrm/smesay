@@ -99,3 +99,9 @@ Built 2026-10-02.
   column and closed with "[N] rows, header on row [N]" once it has one. The rule is
   src/lib/import-guide.ts; e2e/import.spec.ts opens Preview by its title row before the
   header row picker.
+
+Changed 2026-10-08 (design note 119; Mihai: "make it more obvious that there is a file attached
+already - maybe show a bigger thumbnail in that empty space"): once a list is attached, the
+list card shows it as a tile beside the upload form (icon, name, kind and size, date, what the
+tile means), not only as a name on the card's title row. src/lib/import/attached.ts and its
+test; e2e/import.spec.ts reads the tile after the first upload.
