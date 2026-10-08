@@ -22,7 +22,7 @@ export function isAdmin(email: string | null | undefined, list = adminEmails()):
 // user id from the session for the audit row. cache() keeps one session read per request when
 // the layout and the page both ask (react.dev/reference/react/cache).
 export const requireAdmin = cache(async (): Promise<{ session: Session; proof: AdminProof }> => {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await readSession();
   const proof = adminProofFor(session);
   if (!session || !proof) notFound();
   return { session, proof };
