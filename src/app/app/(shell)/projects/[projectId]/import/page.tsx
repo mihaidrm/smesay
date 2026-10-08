@@ -9,6 +9,7 @@
 // The sample project has no upload card (it is read-only, stories/E8-8). Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import { CollapsibleCard } from "@/components/app/collapsible-card";
+import { NextStep } from "@/components/app/next-step";
 import { Banner } from "@/components/ui/banner";
 import { invites, projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -18,6 +19,7 @@ import { mappingError } from "@/lib/import/mapping";
 import { PASTE_COPY } from "@/lib/import/paste";
 import { needsSheetStep } from "@/lib/import/sheets";
 import { rememberedFrom } from "@/lib/uploads";
+import { AttachedFile } from "./attached-file";
 import { CheckCard } from "./check-card";
 import { ImportLog } from "./import-log";
 import { UnsavedMark } from "@/components/app/unsaved";
@@ -73,6 +75,11 @@ export default async function ImportPage({ params }: { params: Promise<{ project
           </p>
         )}
       </div>
+      {/* The latest upload is in: the next-step panel (design note 121). A newer upload not yet
+          imported shows the cards instead. */}
+      {set && !notImported && !project.isSample && (
+        <NextStep done={IMPORT_COPY.done} detail={IMPORT_COPY.doneDetail(setItems, set.version)} href={`/app/projects/${project.id}/shape`} label={IMPORT_COPY.toShape} />
+      )}
       {!project.isSample && (
         <StepTip path={`/app/projects/${project.id}/import`} tip={tip}
           action={tip === "rescue.mapping" ? { label: GUIDE_LINES["rescue.mapping"].action, href: "#mapping-title" } : undefined} />
@@ -86,8 +93,18 @@ export default async function ImportPage({ params }: { params: Promise<{ project
       {!project.isSample && (
         <CollapsibleCard title={IMPORT_CARD_COPY.list.title} titleId="upload-title" summary={IMPORT_CARD_COPY.list.summary(upload ? (upload.kind === "pasted" ? PASTE_COPY.filename : upload.filename) : null)} open={cards.list} testId="card-list" mark={<UnsavedMark id="import-paste" />}>
           <p className="text-[13px] text-ink-muted">Upload the spreadsheet you already have. We find the header row and show the first ten rows before anything is imported.</p>
-          <UploadForm projectId={project.id} hasUpload={upload !== null} />
-          <PasteForm projectId={project.id} />
+          {/* With a list attached, the tile stands beside the form (design note 119). */}
+          {upload ? (
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+              <div className="flex flex-col gap-3"><UploadForm projectId={project.id} hasUpload /><PasteForm projectId={project.id} /></div>
+              <AttachedFile upload={upload} />
+            </div>
+          ) : (
+            <>
+              <UploadForm projectId={project.id} hasUpload={false} />
+              <PasteForm projectId={project.id} />
+            </>
+          )}
         </CollapsibleCard>
       )}
       {upload && <UploadPreview upload={upload} open={cards.preview} />}

@@ -21,6 +21,7 @@ import { hasReaderVersion, readerCounts, readerIsOriginal } from "@/lib/item-tex
 import { areaNames, contextLine, flagsFor, groupByArea, hadImportedAreas, SHAPE_COPY } from "@/lib/shaping";
 import { Board } from "./board";
 import { StepTip } from "../step-tip";
+import { NextStep } from "@/components/app/next-step";
 import { shapeTip } from "@/lib/guide";
 import { GUIDE_LINES } from "@/lib/guide-lines";
 import { lastEventWith } from "@/lib/analytics";
@@ -88,6 +89,7 @@ export default async function ShapePage({ params }: { params: Promise<{ projectI
           <p className="text-ink-muted">{SHAPE_COPY.intro}</p>
         )}
         {project.isSample && <p className="text-[13px] text-ink-muted" data-testid="sample-read-only">{PROJECTS_COPY.sample}</p>}
+        {shaped && !project.isSample && <NextStep done={SHAPE_COPY.done} detail={SHAPE_COPY.doneDetail} href={`/app/projects/${project.id}/build`} label={SHAPE_COPY.toBuild} />}
         <StepTip path={`/app/projects/${project.id}/shape`} tip={tip}
           action={tip === "rescue.shapeFailed" && retryable ? { label: GUIDE_LINES["rescue.shapeFailed"].action, href: "#shape-run" } : undefined} />
         {set && rows.length > 0 && !project.isSample && <ContextLine line={contextLine(set, { goal: project.contextGoal, terms: project.contextTerms })} importHref={`/app/projects/${project.id}/import#about-title`} />}

@@ -4,18 +4,23 @@
 // (headersKey). Pure; the storage is src/lib/uploads.ts. Copy: docs/copy/app.md and errors.md.
 import type { ColumnMapping, ColumnRole } from "@/db/types";
 
-export const ROLES: { value: ColumnRole; label: string }[] = [
-  { value: "text", label: "Item text" },
-  { value: "area", label: "Area" },
-  { value: "value", label: "Proposed value" },
-  { value: "ref", label: "Reference" },
-  { value: "custom", label: "Custom field" },
-  { value: "skip", label: "Do not import" },
+// Each role with what it means, shown in the select as "label: hint" (Mihai, 2026-10-08: "make
+// the items in this dropdown much more intuitive"; design note 120).
+export const ROLES: { value: ColumnRole; label: string; hint: string }[] = [
+  { value: "text", label: "Item text", hint: "the requirement itself, one per row" },
+  { value: "area", label: "Area", hint: "the group or section the item belongs to" },
+  { value: "value", label: "Proposed value", hint: "your priority for it, such as Must or Should" },
+  { value: "ref", label: "Reference", hint: "the item's own id, such as CL-04" },
+  { value: "context", label: "Context for the AI", hint: "background the AI reads when it shapes the list and writes actions; respondents never see it" },
+  { value: "custom", label: "Custom field", hint: "extra detail kept with the item and shown to respondents under it" },
+  { value: "skip", label: "Do not import", hint: "this column is left out" },
 ];
 export const CUSTOM_MAX = 5;
-export const SINGLE_ROLES: ColumnRole[] = ["text", "area", "value", "ref"];
+export const SINGLE_ROLES: ColumnRole[] = ["text", "area", "value", "ref", "context"];
 
 export const MAPPING_COPY = {
+  intro: "Say what each column holds. One column must be the item text; the others are optional.",
+  single: "Only one column can be the item text, the area, the proposed value, the reference or the context for the AI: picking one of these moves it here from the column that had it.",
   noText: "Pick the column that holds the requirement text. Without it there is nothing to import.",
   customLimit: "Up to five custom fields",
   remembered: (date: string) => `Mapping remembered from ${date}`,
@@ -56,6 +61,7 @@ const GUESSES: { role: ColumnRole; test: RegExp }[] = [
   { role: "text", test: /^(requirement|requirements|item|items|text|description|title|need|user story|story|feature|statement)$/i },
   { role: "area", test: /^(area|module|category|group|section|theme|epic|topic|domain)$/i },
   { role: "value", test: /^(priority|proposed value|value|moscow|rating|importance|score)$/i },
+  { role: "context", test: /^(notes?|comments?|context|details?|background|rationale|why|remarks?)$/i },
 ];
 
 export function guessMapping(columns: Column[]): ColumnMapping {
@@ -74,16 +80,22 @@ export function guessMapping(columns: Column[]): ColumnMapping {
   return mapping;
 }
 
-// A mapping as the form sends it: unknown keys and roles dropped, one column per single role
-// (the first wins), at most CUSTOM_MAX custom fields (the rest become skip).
-export function cleanMapping(columns: Column[], raw: Record<string, unknown>): ColumnMapping {
+// A mapping as the form sends it: unknown keys and roles dropped, one column per single role,
+// at most CUSTOM_MAX custom fields (the rest become skip). The latest pick wins a single role
+// (2026-10-08; Mihai: "selecting Reference ... changes back to do not import"): the column the
+// PM just changed keeps its role and any other column asking for the same one is not imported;
+// without a changed column (a remembered mapping, a guess) the first in file order keeps it.
+export function cleanMapping(columns: Column[], raw: Record<string, unknown>, changed?: string): ColumnMapping {
   const mapping: ColumnMapping = {};
+  const keys = columnKeys(columns);
+  const roleOf = (key: string): ColumnRole => (ROLES.some((r) => r.value === raw[key]) ? (raw[key] as ColumnRole) : "skip");
   const taken = new Set<ColumnRole>();
+  const winner = changed !== undefined && keys.includes(changed) && SINGLE_ROLES.includes(roleOf(changed)) ? changed : null;
+  if (winner) taken.add(roleOf(winner));
   let custom = 0;
-  for (const key of columnKeys(columns)) {
-    const value = raw[key];
-    let role: ColumnRole = ROLES.some((r) => r.value === value) ? (value as ColumnRole) : "skip";
-    if (SINGLE_ROLES.includes(role)) {
+  for (const key of keys) {
+    let role = roleOf(key);
+    if (SINGLE_ROLES.includes(role) && key !== winner) {
       if (taken.has(role)) role = "skip";
       else taken.add(role);
     }

@@ -69,3 +69,9 @@ Built 2026-10-02.
   "nothing to import" message has a next step; INTERFACES.md lists the helpers; the
   citation for `.for("update")` points at the drizzle types. Acceptance 5's "0 of 0" is the
   project list's cell, not the pill (design note 23; decision 0040).
+
+Changed 2026-10-08 (design note 121; Mihai: "Clicking import needs to actually feel like
+import is happening"): the Import button reads "Importing [N] items..." while the commit
+runs, and once the latest upload is in, a next-step panel under the title says "The list is
+imported." with the count and version and a big link, Continue to Shape the list.
+e2e/import.spec.ts reads the panel.

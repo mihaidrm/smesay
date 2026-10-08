@@ -19,7 +19,8 @@ import { internal } from "@/db/queries/internal";
 import { auth } from "@/lib/auth";
 import { NotFoundError } from "@/lib/errors";
 import { commitUpload } from "@/lib/imports";
-import { ACTIONS_EXPECTED_OUTPUT, citationLines, keptActions, setActionState, share, writeActions } from "@/lib/insights";
+import { ACTIONS_EXPECTED_OUTPUT, citationLines, keptActions, peopleNeeded, setActionState, share, supportedActions, writeActions } from "@/lib/insights";
+import { buildActionsPrompt } from "@/lib/ai/prompts/insights";
 import { sameAction } from "@/db/queries/insights";
 import { openDraft, saveFields } from "@/lib/instruments";
 import type { ResultsFilter } from "@/lib/results-filter";
@@ -291,6 +292,43 @@ describe("the pure parts", () => {
       { kind: "rewrite", title: "Rewrite CL-01.", why: "Two readings.", citedAnswerIds: ["id-1", "id-2"], citedMissingItemIds: [] },
       { kind: "coverage", title: "Add mileage.", why: "Missing.", citedAnswerIds: [], citedMissingItemIds: ["m-1"] },
     ]);
+  });
+  it("needs one in ten of those who answered, at least one (design note 123)", () => {
+    expect([0, 1, 5, 10, 11, 20, 25, 100].map(peopleNeeded)).toEqual([1, 1, 1, 1, 2, 2, 3, 10]);
+  });
+  it("keeps an action only when enough distinct people are behind it", () => {
+    const row = (kind: "rewrite" | "coverage", answers: string[], missing: string[] = []) => ({ kind, title: "T", why: "W", citedAnswerIds: answers, citedMissingItemIds: missing });
+    const support = {
+      answerRespondent: new Map([["a1", "r1"], ["a2", "r1"], ["a3", "r2"], ["a4", "r3"]]),
+      answerItem: new Map([["a1", "big"], ["a2", "small"], ["a3", "big"], ["a4", "big"]]),
+      missingRespondent: new Map([["m1", "r9"]]),
+      answeredByItem: new Map([["big", 30], ["small", 4]]),
+      submitted: 30,
+    };
+    const kept = supportedActions([
+      row("rewrite", ["a1"]),             // one person on an item 30 answered: needs 3
+      row("rewrite", ["a1", "a2"]),       // the same person twice: still one
+      row("rewrite", ["a2"]),             // one person on an item 4 answered: enough
+      row("rewrite", ["a1", "a3", "a4"]), // three people on the big item: enough
+      row("coverage", [], ["m1"]),        // one person's missing item against 30 submitted: needs 3
+      row("coverage", ["a2"], ["m1"]),    // two people, weighed against the 30 submitted: needs 3
+      row("rewrite", ["a1", "zz"]),       // an unknown answer supplies nobody
+    ], support);
+    expect(kept.map((a) => a.citedAnswerIds)).toEqual([["a2"], ["a1", "a3", "a4"]]);
+  });
+  it("tells the model the number per item and for the missing items", () => {
+    const prompt = buildActionsPrompt({
+      items: [{ id: "i1", reference: "CL-01", area: null, text: "Receipts by phone", proposed: null, counts: { agree: 20, change: 3, disagree: 1, unclear: 0, rated: 0, couldSee: 25 } }],
+      answers: [{ id: "a1", itemId: "i1", respondent: "r1", kind: "change", value: "S", text: "Email." }],
+      missing: [{ id: "m1", respondent: "r1", text: "Mileage" }],
+      respondents: [{ key: "r1", groups: {} }],
+      scale: ["Must", "Should"],
+      labelOf: (code) => code ?? "",
+      submitted: 25,
+    });
+    expect(prompt.data).toContain("25 could see it. An action needs 3 people behind it.");
+    expect(prompt.data).toContain("MISSING ITEMS (1; 25 submitted, an action needs 3 people behind it.)");
+    expect(prompt.instructions).toContain("at least one in 10 of those who answered");
   });
   it("shares a total so the parts add up, the rest on the first", () => {
     expect(share(10, 3)).toEqual([4, 3, 3]);

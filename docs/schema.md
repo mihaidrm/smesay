@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-07 (the date of the latest migration, 0037_upload_sheets).
+v1, 2026-10-08 (the date of the latest migration, 0038_ai_context).
 
-Generated from the snapshot of the 38 migrations in drizzle/ (0037_snapshot.json) by
+Generated from the snapshot of the 39 migrations in drizzle/ (0038_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -150,6 +150,7 @@ one requirement: original_text is never overwritten, reader_text sits beside it 
 | area_rationale | text |  |
 | proposed_value | text |  |
 | custom | jsonb |  |
+| ai_context | text |  |
 | flags | jsonb |  |
 | perspectives | text[] | not null, default {} |
 

@@ -34,7 +34,8 @@ the check constraints use them). Change this file first.
   live in src/lib/plans.ts, the one place in the code that names a limit (decision 0008).
 - MemberRole: owner, member.
 - ItemSetSource: xlsx, csv, pasted.
-- ColumnRole (E3-3): text, area, value, ref, custom, skip. ColumnMapping (jsonb,
+- ColumnRole (E3-3): text, area, value, ref, context (2026-10-08: the column the AI reads as
+  background, stored as item.ai_context, never shown to a respondent), custom, skip. ColumnMapping (jsonb,
   upload.mapping and workspace_mapping.mapping): { [column]: ColumnRole }, keyed by the
   column's header, or its letter when the file has no header; one column per text, area, value
   and ref, up to five custom. workspace_mapping is keyed by the sorted headers joined with
@@ -84,7 +85,7 @@ the check constraints use them). Change this file first.
   are the totals.
 - ImportRow (not stored; src/lib/import/report.ts, E3-4 and E3-5): the row shape the check
   and the commit read, from a file or a pasted list: { row, ref, text, area, value, custom,
-  foldedRefs }.
+  context, foldedRefs }.
 - ItemFlags (jsonb, item.flags): { duplicateOf?: string (E4-4; the position of the other item
   in the set, as a string, shown by its source reference), ambiguity?: string (up to 300
   characters, whitespace folded), dismissed?: boolean (E4-4: the PM dismissed the item's
@@ -613,7 +614,10 @@ left out even as a dropdown), A[n] answers that carry a reason or a question, M[
 chars), why: string (1 to 400 chars), answers: string[] (A refs), missing: string[] (M refs) }]
 (up to 8) }
 The app keeps an action only when it cites at least one ref and every ref it cites was sent
-(src/lib/insights.ts keptActions; acceptance 2 and 3), and stores it as an insight row with
+(src/lib/insights.ts keptActions; acceptance 2 and 3) and when enough distinct respondents
+are behind it: one in ten of those who answered the most-answered item it cites, one person
+when ten or fewer, a missing item weighed against everyone who submitted (supportedActions,
+design note 123; the item lines and the MISSING ITEMS heading tell the model the number), and stores it as an insight row with
 kind, title, why, cited_answer_ids and cited_missing_item_ids, the model, and its share of the
 run's tokens and cost (share(); the shares add up to the run). writeActions(actor, projectId,
 deps) runs it: results.read, the sample refused, the answers of submitted responses only
@@ -656,7 +660,8 @@ src/db/queries/projectTransfer.ts. The zod schema ProjectFile in project.ts is t
 sample, else null), project { name, contextGoal, contextTerms, createdAt }, itemSets [{ id,
 version, source, sourceFilename, importReport, importedAt, areas, shapeRuns, shapedAt,
 contextUsed, items [{ id, position, sourceRef, originalText, readerText, readerStatus, area,
-areaRationale, proposedValue, custom, flags, perspectives }] }], instruments [{ id, itemSetId,
+areaRationale, proposedValue, custom, aiContext (from 2026-10-08; optional on import, a file
+without it reads null), flags, perspectives }] }], instruments [{ id, itemSetId,
 title, intro, method, showProposed, layout, reasonRule (from 2026-10-05; optional on
 import, a file without it reads `differs`, so version 1 files from before still import),
 respondentFields, scaleLabels, perspectives, closing, publishedAt, createdAt }], invites [{ id, instrumentId, kind, email, name, roleHint,

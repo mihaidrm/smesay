@@ -46,3 +46,7 @@ icon, and the developer menu's "Off" adds its own refusal; after a run by the me
 stand-in the grouped line ends with "These areas and readable versions came from the
 stand-in, not the AI."; a refusal for "Off" writes no shape_failed event, so the rescue tip
 (E15-4) does not fire for it.
+
+Changed 2026-10-08 (design note 121; Mihai: "same for when shaping is done"): after a run
+a next-step panel under the lines says "The list is shaped." with what to do next and a big
+link, Continue to Build the validation. e2e/shape.spec.ts reads the panel.

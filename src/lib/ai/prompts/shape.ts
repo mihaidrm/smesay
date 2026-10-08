@@ -11,7 +11,8 @@ import { AREAS_MAX, AREAS_MIN } from "../shape-schema";
 
 // area: the area the item came with (imported). keep: the area the PM moved it to, which
 // the answer must keep whatever the grouping.
-export type PromptItem = { ref: string; text: string; area: string | null; keep?: string | null };
+// context: the column mapped as "Context for the AI" (E3-3, 2026-10-08), background for the item.
+export type PromptItem = { ref: string; text: string; area: string | null; keep?: string | null; context?: string | null };
 
 export type ShapePrompt = { instructions: string; data: string; importedAreas: string[] | null };
 
@@ -39,6 +40,7 @@ export function buildShapePrompt(items: PromptItem[], context: ProjectContext = 
     grouping,
     ...(contextData ? [CONTEXT_INSTRUCTION, "Here the goal and audience guide the areas and their order where the list came without areas, and the tone of every reader version; the terms to keep as written appear in the reader versions exactly as given."] : []),
     "An item marked (keep in: name) was put there by hand: include an area with exactly that name and keep the item in it.",
+    "A (context: ...) note after an item is background its author added: use it to place the item and to write its reader version, and never copy it into the reader version.",
     "Every item appears in exactly one area. Use every ref once and invent none: no new items, no merged items, no dropped items.",
     "For each area write the rationale as one full sentence with a subject and a verb that says why the area sits where it does, such as: This comes first, because every claim starts here.",
     "For each item write a reader version: the same requirement in plain words a non-expert reads in one go. Keep every number, name, date, product name and negative (not, never, only, except) exactly. Do not add detail the item does not have, and give nobody a gender the item does not give: use the name as written or they. When a sentence could be read two ways, keep the original wording of that part rather than choosing one reading. If the item already reads plainly, repeat it unchanged.",
@@ -48,6 +50,6 @@ export function buildShapePrompt(items: PromptItem[], context: ProjectContext = 
   const head = (contextData ? `${contextData}\n\n` : "") + (importedAreas ? `AREAS: ${importedAreas.map((a) => JSON.stringify(a)).join(", ")}\n` : "");
   // A hand-placed item is marked by where it is now, even when it came with another area.
   const mark = (it: PromptItem) => (it.keep && fold(it.keep) ? ` (keep in: ${fold(it.keep)})` : it.area && fold(it.area) ? ` (area: ${fold(it.area)})` : "");
-  const lines = items.map((it) => `[${it.ref}]${mark(it)} ${fold(it.text)}`);
+  const lines = items.map((it) => `[${it.ref}]${mark(it)} ${fold(it.text)}${it.context && fold(it.context) ? ` (context: ${fold(it.context)})` : ""}`);
   return { instructions, data: `${head}ITEMS (${items.length})\n${lines.join("\n")}`, importedAreas };
 }

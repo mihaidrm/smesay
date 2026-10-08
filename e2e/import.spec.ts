@@ -72,6 +72,15 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByLabel("Requirement", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("value");
   await expect(page.getByTestId("mapping-remembered")).toHaveCount(0);
+  // The latest pick wins a single role (design note 120): Reference moves from Ref to Module and
+  // back instead of the pick reverting without a word.
+  await page.getByLabel("Module", { exact: true }).selectOption("ref");
+  await expect(page.getByLabel("Ref", { exact: true })).toHaveValue("skip");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("ref");
+  await page.getByLabel("Ref", { exact: true }).selectOption("ref");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("skip");
+  await page.getByLabel("Module", { exact: true }).selectOption("area");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("area");
   await page.getByLabel("Module", { exact: true }).selectOption("custom");
   await page.getByLabel("Requirement", { exact: true }).selectOption("skip");
   await expect(page.locator("#mapping-error")).toHaveText("Pick the column that holds the requirement text. Without it there is nothing to import.");
@@ -88,6 +97,9 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("imported-line")).toContainText("Imported 12 items as version 1 on");
   await expect(page.getByTestId("import-log").getByRole("link", { name: "Version 1", exact: true })).toBeVisible();
   await expect(page.getByTestId("imported-version")).toHaveText("Imported as version 1.");
+  // The next-step panel (design note 121): the import is in, the big link goes to Shape.
+  await expect(page.getByTestId("next-step")).toContainText("The list is imported.");
+  await expect(page.getByTestId("next-step").getByRole("link", { name: /Continue to Shape the list/ })).toHaveAttribute("href", /\/shape$/);
   // The filled pill is the open page (design note 106): Import, with Shape now a link.
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Import/);
   await expect(page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Shape/ })).toBeVisible();
@@ -100,6 +112,9 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByTestId("card-list").getByTestId("card-summary")).toHaveText("expense-requirements.xlsx");
   await page.getByTestId("card-list").locator("summary").click();
   await expect(page.getByTestId("card-list")).toHaveJSProperty("open", true);
+  // The attached file shows as a tile beside the form, not only on the title row (design note 119).
+  await expect(page.getByTestId("attached-file")).toContainText("expense-requirements.xlsx");
+  await expect(page.getByTestId("attached-file")).toContainText("xlsx file, ");
 
   // A second copy with one changed row (CL-05): the mapping remembered, then version 2 and
   // the diff counts (E3-6, acceptance 4 and 5).

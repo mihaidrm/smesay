@@ -72,3 +72,9 @@ Built 2026-10-03 (design note 38):
   the fields block, non-string input refused, the secondary Save buttons, and the doc rows.
   The hint wording (question 1) stays as the story wrote it until Mihai decides.
 
+Changed 2026-10-08 (design note 122): the Intro, Scoring, Perspectives, Closing and
+Respondent fields cards are collapsible (src/components/app/collapsible-card.tsx), one open
+at a time, each with its settings on its title row ("New expense tool. No intro yet.", "Name
+and Role. Both required."). Intro is open while it is empty; with an intro saved every card
+is closed and opens by its title row. The rule is src/lib/build-guide.ts; e2e/build.spec.ts
+opens each card before working in it.
