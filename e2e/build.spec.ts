@@ -58,6 +58,21 @@ test("build the intro and the respondent fields, see them in the preview", async
   // The stepper says Build on the first open, while the draft is being created, and after.
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
   await expect(page.getByTestId("build-line")).toHaveText("This is what respondents see, built from version 1 of the list. The preview on the right follows every save.");
+  // The five cards are collapsible and one is open at a time (design note 122): Intro while
+  // it is empty, the others closed with their settings on the title row.
+  const card = (name: string) => page.getByTestId(`card-${name}`);
+  const openCard = async (name: string) => {
+    if (!(await card(name).evaluate((el) => (el as HTMLDetailsElement).open))) await card(name).locator("summary").click();
+    await expect(card(name)).toHaveJSProperty("open", true);
+  };
+  await expect(card("intro")).toHaveJSProperty("open", true);
+  await expect(card("intro").getByTestId("card-summary")).toHaveText("New expense tool. No intro yet.");
+  await expect(card("scoring")).toHaveJSProperty("open", false);
+  await expect(card("scoring").getByTestId("card-summary")).toHaveText("MoSCoW, proposal shown, a reason when the answer differs, chapters");
+  await expect(card("perspectives").getByTestId("card-summary")).toHaveText("None. Every item goes to everyone.");
+  await expect(card("closing").getByTestId("card-summary")).toHaveText("No closing question. Asks for missing items. Confidence always on.");
+  await expect(card("fields").locator("summary")).toContainText("2 fields");
+  await expect(card("fields").getByTestId("card-summary")).toHaveText("Name and Role. Both required.");
   await expect(page.getByLabel("Title")).toHaveValue("New expense tool");
   await expect(page.getByTestId("intro-hint")).toHaveText("Write one or two lines so respondents know what the list is for. They see this first.");
   await expect(page.getByTestId("field-row")).toHaveCount(2);
@@ -113,10 +128,16 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("intro-hint")).toHaveText("");
   await page.getByTestId("intro-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("intro-form").getByRole("status")).toHaveText("Saved.");
+  // The card stays open through its save; its title row carries the saved intro.
+  await expect(card("intro").getByTestId("card-summary")).toHaveText("New expense tool. Six things the new tool should do. Five minutes.");
+  await expect(card("intro")).toHaveJSProperty("open", true);
   await toAbout();
   await expect(preview.getByTestId("about-you-intro")).toHaveText("Six things the new tool should do. Five minutes.");
 
-  // A dropdown field (acceptance 2 and 5): add, type, options, save, see the select.
+  // A dropdown field (acceptance 2 and 5): add, type, options, save, see the select. Opening
+  // the fields card closes Intro (one open at a time).
+  await openCard("fields");
+  await expect(card("intro")).toHaveJSProperty("open", false);
   await page.getByRole("button", { name: "Add a field" }).click();
   await expect(page.getByTestId("field-row")).toHaveCount(3);
   // Focus lands on the new row's label (design note 38).
@@ -127,6 +148,8 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByRole("switch", { name: "Required, Team" }).click();
   await page.getByTestId("fields-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("fields-form").getByRole("status")).toHaveText("Saved.");
+  await expect(card("fields").locator("summary")).toContainText("3 fields");
+  await expect(card("fields").getByTestId("card-summary")).toHaveText("Name, Role and Team. All required.");
   await toAbout();
   const team = preview.getByLabel("Team");
   await expect(team).toBeVisible();
@@ -145,6 +168,9 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.reload();
   await expect(page.getByRole("navigation", { name: "Steps" }).locator("[aria-current='step']")).toHaveText(/Build/);
   await page.getByTestId("preview-panel").getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
+  // With an intro written, every card is closed on load; Scoring opens by its title row.
+  await expect(card("intro")).toHaveJSProperty("open", false);
+  await openCard("scoring");
 
   // Scoring (stories/E5-2): the chapter shows the rating row with MoSCoW and the proposed
   // value dashed; switching to 1 to 5 fit changes the pills (E5-6, acceptance 6); a label
@@ -176,6 +202,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("scale-labels").getByRole("textbox")).toHaveCount(5);
   await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
+  await expect(card("scoring").getByTestId("card-summary")).toHaveText("1 to 5 fit, proposal shown, a reason when the answer differs, chapters");
   await ready();
   await expect(row.getByRole("radio")).toHaveText(["1", "2", "3", "4", "5", "Unclear"]);
   await expect(row).toContainText("no fit");
@@ -257,6 +284,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   // Perspectives (stories/E5-4): two names on Build, one item tagged Finance and one Sales
   // on Shape, the respondent who picks Finance sees one item; the one who picks nothing
   // sees none and gets the "nothing to rate" screen.
+  await openCard("perspectives");
   await page.getByLabel("Perspectives, one per line").fill("Finance\nSales");
   await page.getByTestId("perspectives-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("perspectives-form").getByRole("status")).toHaveText("Saved.");
@@ -277,6 +305,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("perspective-tags").nth(1).getByRole("button", { name: "Sales" })).not.toHaveAttribute("aria-disabled", "true");
   await page.getByRole("navigation", { name: "Steps" }).getByRole("link", { name: /Build/ }).click();
   await expect(page.getByTestId("perspectives-tagged")).toContainText("2 of 2 items carry a perspective.");
+  await expect(card("perspectives").getByTestId("card-summary")).toHaveText("Finance, Sales. 2 of 2 items carry a perspective.");
   await page.getByTestId("preview-panel").getByRole("group", { name: "Device" }).getByRole("button", { name: "Phone" }).click();
   // The preview opens with no perspective picked: no item to rate.
   await ready();
@@ -294,6 +323,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(wrapUp.getByTestId("wrap-up-missing")).toBeVisible();
   await expect(wrapUp.getByTestId("wrap-up-question")).toHaveCount(0);
   await expect(wrapUp.getByTestId("wrap-up-signoff")).toContainText("I confirm these are my answers and they can be shared with the project team.");
+  await openCard("closing");
   await page.getByLabel("Closing question, optional").fill("What would make this list complete?");
   // The Closing card focused opens the Wrap up in the preview (E5-5, acceptance 3); a control
   // of another card opens the first screen again.
@@ -303,6 +333,8 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.getByLabel("Sign-off text").fill("I confirm these are my answers.");
   await page.getByTestId("closing-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("closing-form").getByRole("status")).toHaveText("Saved.");
+  await expect(card("closing").getByTestId("card-summary")).toHaveText("A closing question. Does not ask for missing items. Confidence always on.");
+  await openCard("scoring");
   await page.getByRole("radio", { name: /One item per screen/ }).focus();
   await expect(page.getByTestId("preview-iframe")).not.toHaveAttribute("src", /screen=wrap/);
   await startAs();
@@ -326,6 +358,7 @@ test("build the intro and the respondent fields, see them in the preview", async
   await page.evaluate(() => window.scrollTo(0, 0));
 
   // Removing the last field is refused (acceptance 2).
+  await openCard("fields");
   await page.getByRole("button", { name: "Remove Team" }).click();
   await expect(page.getByRole("button", { name: "Add a field" })).toBeFocused();
   await page.getByRole("button", { name: "Remove Role" }).click();

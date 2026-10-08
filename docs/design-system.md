@@ -237,8 +237,12 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   opens and closes over 300 ms ease-out (height to auto through interpolate-size on
   ::details-content; browsers without it open at once) and stays in the DOM while closed.
   The page decides which cards are open: on Import the card whose work comes next (the rule
-  in src/lib/import-guide.ts), on Shape the first area. Any card opens by a click; a link to
-  an anchor inside a closed card opens it.
+  in src/lib/import-guide.ts), on Shape the first area, on Build Intro while it is empty
+  (src/lib/build-guide.ts, design note 122). Any card opens by a click; a link to an anchor
+  inside a closed card opens it. On Build the five cards share a name, so one is open at a
+  time (the details element's name attribute), and each holds its state through a save (the
+  card's `hold`: the open prop applies on mount only); on Import a changed prop moves the
+  cards.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
 - Thinking (design note 113; src/components/app/thinking.tsx): while an AI run is pending,

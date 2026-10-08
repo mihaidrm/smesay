@@ -118,6 +118,8 @@ test("rate items: reasons and questions, Saved, the three layouts at 375 px", as
   // One item per screen.
   const layout = async (name: string) => {
     await page.goto(`${projectUrl}/build`);
+    // The Scoring card is closed on load (design note 122); its title row opens it.
+    await page.getByTestId("card-scoring").locator("summary").click();
     await page.getByText(name, { exact: true }).click();
     await page.getByTestId("scoring-form").getByRole("button", { name: "Save" }).click();
     await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
