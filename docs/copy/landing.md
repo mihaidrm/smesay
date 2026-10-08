@@ -68,6 +68,9 @@ Title: What you get back.
 Beside it: Not a pile of replies. A live picture of who agrees with each item, who does not and
 why, and a list of what to decide next.
 
+Results card. Label: See where the list is weak. Title: Every item and every area updates as answers
+arrive. Line: Pick the numbers you watch, filter by role or by who left a reason, and switch
+the chart to the view your meeting needs.
 Results card. Label: The dashboard, as the answers arrive. Title: Every item counted, every area
 summed up. Line: One bar per item: green agreed, yellow a different priority, grey not needed,
 purple a question. The percentage is the share that agreed with your proposal.
