@@ -49,3 +49,8 @@ Amended 2026-10-07 (design note 107): acceptance 1's "Confidence 1 to 5" stays t
 scale; the respondent answers it on a slider from Guessing to Certain (stories/E7-5, amended
 the same day). The Closing card's line reads "Respondents always answer it, on a slider from
 Guessing to Certain. The dashboard shows the spread as 1 to 5."
+
+Changed 2026-10-08 (design note 122): the Closing card is collapsible, closed on load with
+"No closing question. Asks for missing items. Confidence always on." on its title row; it
+opens by its title row, one Build card at a time, and the row's focus opens the Wrap up in
+the preview as the fields do (acceptance 3).
