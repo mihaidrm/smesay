@@ -1,7 +1,9 @@
 "use client";
 // The column mapping card (stories/E3-3; PM app board, Import): one row per column with its
-// header, its letter and a select of the roles; a change submits the whole form, so the server
-// keeps one column per single role and at most five custom fields (src/lib/import/mapping.ts).
+// header, its letter and a select of the roles, each option read as "label: meaning" (design
+// note 120); a change submits the whole form with the changed column's key, so the server keeps
+// one column per single role, the latest pick winning, and at most five custom fields
+// (src/lib/import/mapping.ts).
 // The sixth Custom field option is disabled with its reason. The missing-text message sits
 // under the rows; the Import button comes with the check report (E3-5).
 // The selects are uncontrolled, each keyed by its saved role: React resets a form's fields
@@ -31,6 +33,7 @@ import { mapAction, type ProjectFormState } from "../../actions";
 export function MappingCard({ uploadId, columns, mapping, rememberedFrom, open, sheetsError = null, sheetAreas = null }: { uploadId: string; columns: Column[]; mapping: ColumnMapping; rememberedFrom: string | null; open: boolean; sheetsError?: string | null; sheetAreas?: boolean | null }) {
   const [state, action, pending] = useActionState<ProjectFormState, FormData>(mapAction, { error: null, saved: false });
   const form = useRef<HTMLFormElement>(null);
+  const changed = useRef<HTMLInputElement>(null);
   const custom = customCount(mapping);
   const keys = columnKeys(columns);
   const error = pending ? null : state.error ?? mappingError(mapping) ?? sheetsError;
@@ -40,6 +43,8 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom, open, 
       {rememberedFrom && <p data-testid="mapping-remembered" className="px-4 pt-3 text-[13px] text-ink-muted">{MAPPING_COPY.remembered(rememberedFrom)}</p>}
       <form ref={form} action={action} className="flex flex-col">
         <input type="hidden" name="uploadId" value={uploadId} />
+        <input type="hidden" name="changed" ref={changed} />
+        <p className="px-4 pt-3 text-[13px] text-ink-muted">{MAPPING_COPY.intro}</p>
         {columns.map((column, i) => {
           const key = keys[i];
           const role = mapping[key] ?? "skip";
@@ -52,10 +57,10 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom, open, 
               </div>
               <span className="text-ink-muted">maps to</span>
               <select key={role} id={id} name={`col:${key}`} defaultValue={role} disabled={pending} className="h-9 min-w-[200px] flex-grow rounded-md border border-hairline-strong bg-surface px-2 text-sm"
-                onChange={() => form.current?.requestSubmit()}>
+                onChange={() => { if (changed.current) changed.current.value = key; form.current?.requestSubmit(); }}>
                 {ROLES.map((r) => {
                   const customFull = r.value === "custom" && role !== "custom" && custom >= CUSTOM_MAX;
-                  return <option key={r.value} value={r.value} disabled={customFull} title={customFull ? MAPPING_COPY.customLimit : undefined}>{r.label}{customFull ? ` (${MAPPING_COPY.customLimit.toLowerCase()})` : ""}</option>;
+                  return <option key={r.value} value={r.value} disabled={customFull} title={customFull ? MAPPING_COPY.customLimit : undefined}>{`${r.label}: ${r.hint}`}{customFull ? ` (${MAPPING_COPY.customLimit.toLowerCase()})` : ""}</option>;
                 })}
               </select>
             </div>
@@ -70,7 +75,7 @@ export function MappingCard({ uploadId, columns, mapping, rememberedFrom, open, 
             <p className="text-[13px] text-ink-muted">{sheetAreas ? MAPPING_COPY.sheetAreasHint : MAPPING_COPY.sheetAreasOff}</p>
           </div>
         )}
-        <div className="px-4 py-3 text-[13px] text-ink-muted">{MAPPING_COPY.footer}</div>
+        <div className="px-4 py-3 text-[13px] text-ink-muted">{MAPPING_COPY.single} {MAPPING_COPY.footer}</div>
         {error && <p id="mapping-error" role="alert" className="px-4 pb-3 text-sm text-danger">{error}</p>}
       </form>
     </CollapsibleCard>

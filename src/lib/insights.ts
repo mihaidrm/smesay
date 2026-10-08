@@ -6,7 +6,7 @@
 // runModel logs the ai_run with purpose "insights" and refuses the sample (E8-8, E9-1
 // acceptance 7). The run's tokens and cost are shared out over the actions it wrote (the
 // rest on the first), so the actions of a run add up to the run.
-import { instruments, projects } from "@/db/queries";
+import { instruments, items as itemRows, projects } from "@/db/queries";
 import { agreement } from "@/db/queries/results";
 import { insights, type Insight } from "@/db/queries/insights";
 import { INSIGHT_STATES, type InsightKind, type InsightState } from "@/db/types";
@@ -67,6 +67,9 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   const instrument = await instruments.latestForProject(actor.ws, project.id);
   if (!instrument) return { error: ACTIONS_COPY.emptyNoAnswers, retry: false };
   const { items } = await itemsFor(actor.ws, { ...instrument, showProposed: true });
+  // The context column (E3-3, 2026-10-08) is read from the set's rows: itemsFor is the respondent's
+  // shape, which never carries it.
+  const contextOfItem = new Map((await itemRows.forSet(actor.ws, instrument.itemSetId)).map((r) => [r.id, r.aiContext]));
   const counts = new Map((await agreement.byItem(actor.ws, instrument.id, COUNTED)).map((c) => [c.itemId, c]));
   const input = await insights.inputFor(actor.ws, instrument.id);
   if (input.answers.length === 0) return { error: ACTIONS_COPY.emptyNoAnswers, retry: false };
@@ -77,7 +80,7 @@ export async function writeActions(actor: Actor, projectId: string, deps?: RunDe
   for (const r of [...input.answers, ...input.missing]) if (!respondents.has(r.responseId)) respondents.set(r.responseId, Object.fromEntries(groups.map((g) => [g.label, r.fields[g.key] ?? ""])));
   const answers: ActionsAnswer[] = input.answers.flatMap((a) => (a.kind === "change" || a.kind === "disagree" || a.kind === "unclear" ? [{ id: a.id, itemId: a.itemId, respondent: a.responseId, kind: a.kind, value: a.value, text: a.reason ?? a.comment }] : []));
   const prompt = buildActionsPrompt({
-    items: items.map((it) => { const c = counts.get(it.id); return { id: it.id, reference: it.reference, area: it.area, text: it.title, proposed: it.proposed, counts: { agree: c?.agree ?? 0, change: c?.change ?? 0, disagree: c?.disagree ?? 0, unclear: c?.unclear ?? 0, rated: c?.pick ?? 0, couldSee: c?.couldSee ?? 0 } }; }),
+    items: items.map((it) => { const c = counts.get(it.id); return { id: it.id, reference: it.reference, area: it.area, text: it.title, proposed: it.proposed, context: contextOfItem.get(it.id) ?? null, counts: { agree: c?.agree ?? 0, change: c?.change ?? 0, disagree: c?.disagree ?? 0, unclear: c?.unclear ?? 0, rated: c?.pick ?? 0, couldSee: c?.couldSee ?? 0 } }; }),
     answers,
     missing: input.missing.map((m) => ({ id: m.id, respondent: m.responseId, text: m.text })),
     respondents: [...respondents].map(([key, g]) => ({ key, groups: g })),

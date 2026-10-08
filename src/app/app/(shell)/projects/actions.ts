@@ -160,6 +160,8 @@ export async function mapAction(_previous: ProjectFormState, formData: FormData)
   const uploadId = String(formData.get("uploadId") ?? "");
   const raw: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) if (key.startsWith("col:")) raw[key.slice(4)] = value;
+  // The column whose select was just changed (src/lib/import/mapping.ts cleanMapping).
+  if (formData.get("changed")) raw.changed = String(formData.get("changed"));
   const sheetAreas = formData.has("sheetAreas") ? formData.get("sheetAreas") === "on" : undefined;
   try {
     const result = await saveMapping(current.ws, uploadId, raw, sheetAreas);

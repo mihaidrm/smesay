@@ -8,6 +8,11 @@ const plain = [{ ref: "1", text: "Receipts by phone", area: null }, { ref: "2", 
 const withAreas = [{ ref: "1", text: "Receipts by phone", area: "Submitting" }, { ref: "2", text: "Approval from the email", area: "Approving" }, { ref: "3", text: "Travel advances", area: null }];
 
 describe("buildShapePrompt", () => {
+  it("appends an item's context for the AI as a note, folded, and tells the model what it is (design note 120)", () => {
+    const p = buildShapePrompt([{ ref: "1", text: "Receipts by phone", area: null, context: " Legal asked\nfor it " }, { ref: "2", text: "Approval", area: null, context: "" }]);
+    expect(p.data).toBe("ITEMS (2)\n[1] Receipts by phone (context: Legal asked for it)\n[2] Approval");
+    expect(p.instructions).toContain("never copy it into the reader version");
+  });
   it("puts the items in the data block, one per line, whitespace folded, and none in the instructions", () => {
     const p = buildShapePrompt(plain);
     expect(p.data).toBe("ITEMS (2)\n[1] Receipts by phone\n[2] Approval from the email");

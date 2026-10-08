@@ -10,7 +10,7 @@ import type { InsightKind } from "@/db/types";
 import { CONTEXT_INSTRUCTION, contextBlock, type ProjectContext } from "../context";
 import { ACTIONS_MAX } from "../insights-schema";
 
-export type ActionsItem = { id: string; reference: string | null; area: string | null; text: string; proposed: string | null; counts: { agree: number; change: number; disagree: number; unclear: number; rated: number; couldSee: number } };
+export type ActionsItem = { id: string; reference: string | null; area: string | null; text: string; proposed: string | null; context?: string | null; counts: { agree: number; change: number; disagree: number; unclear: number; rated: number; couldSee: number } };
 export type ActionsAnswer = { id: string; itemId: string; respondent: string; kind: "change" | "disagree" | "unclear"; value: string | null; text: string | null };
 export type ActionsMissing = { id: string; respondent: string; text: string };
 export type ActionsRespondent = { key: string; groups: Record<string, string> };
@@ -48,7 +48,7 @@ export function buildActionsPrompt(input: { items: ActionsItem[]; answers: Actio
   for (const it of input.items) {
     const c = it.counts;
     const head = [it.reference, it.area ? `(area: ${fold(it.area)})` : null].filter(Boolean).join(" ");
-    lines.push(`[${itemRef.get(it.id)}] ${head ? `${head} ` : ""}${fold(it.text)}${it.proposed ? ` (proposed: ${input.labelOf(it.proposed)})` : ""}. Answers: ${c.agree} agree, ${c.change} different priority, ${c.disagree} disagree, ${c.unclear} unclear${c.rated ? `, ${c.rated} rated` : ""}; ${c.couldSee} could see it.`);
+    lines.push(`[${itemRef.get(it.id)}] ${head ? `${head} ` : ""}${fold(it.text)}${it.proposed ? ` (proposed: ${input.labelOf(it.proposed)})` : ""}${it.context && fold(it.context) ? ` (context: ${fold(it.context)})` : ""}. Answers: ${c.agree} agree, ${c.change} different priority, ${c.disagree} disagree, ${c.unclear} unclear${c.rated ? `, ${c.rated} rated` : ""}; ${c.couldSee} could see it.`);
   }
   lines.push("", `RESPONDENTS (${input.respondents.length})`);
   for (const r of input.respondents) {
