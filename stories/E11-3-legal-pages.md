@@ -74,5 +74,6 @@ them, unchanged, since the four pages share one version.
 
 Changed 2026-10-08, later the same day: the terms cap liability at the fees paid in the 12
 months before the event, with nothing to claim on the free plan and no EUR 100 floor, and say
-that paying after a free trial is acceptance of every section (Mihai). Two markers on the terms
-until the lawyer reads them, so `npm run legal:markers` lists 2 (review sheet L24, L28).
+that paying after a free trial is acceptance of every section (Mihai). The lawyer approved both
+the same day (decision 0063), so the markers went and `npm run legal:markers` lists 0 (review
+sheet L24, L28).

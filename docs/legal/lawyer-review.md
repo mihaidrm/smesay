@@ -5,8 +5,9 @@ lawyer to check". Version 3 of the four pages removes the 42 check markers (deci
 This sheet stays as the record of what was checked and why. The three company details were
 filled in on 2026-10-08 (version 4) from the certificate of registration Mihai sent (ONRC
 Bucharest, series B no. 5002112, issued 23.09.2024): the registered seat, the trade register
-number J2024022790002 and the fiscal code 50556917. Left for the lawyer: the identity paragraph
-of E5-7, written after his read, and two terms paragraphs changed on 2026-10-08 (L24, L28).
+number J2024022790002 and the fiscal code 50556917. Two terms paragraphs changed later that day
+(L24, L28) and the lawyer approved them the same day (Mihai: "yes lawyer agreed", decision
+0063). Left for the lawyer: the identity paragraph of E5-7, written after his read.
 
 Mihai, 2026-10-05: "i think you should first do a version when you put everything with what you
 find online as guidance - and he will check those final things - i think you can put everything
@@ -111,7 +112,7 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   is the fees paid in the 12 months before the event, and nothing on the free plan; the EUR 100
   floor goes. A cap of nothing on a free service reads as an exclusion, which art. 1355 allows
   only outside intent, gross negligence and injury (the first liability paragraph keeps those
-  out); the marker asks the lawyer to confirm.
+  out). The lawyer approved the paragraph on 2026-10-08 (decision 0063).
 - L25 Ending the service: 60 days' email notice, then at least 30 days to export. Vercel gives
   30 days on paid plans (vercel.com/legal/terms). The EU Data Act, applying from 2025-09-12,
   sets at least 30 days for data retrieval on switching (Regulation 2023/2854 Art. 25(2)(g),
@@ -127,8 +128,8 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   the free plan's terms apply; paying after it is acceptance of every section. This is the
   art. 1203 question of L24: whether paying after a trial counts as express written acceptance
   of the liability, suspension, law and court clauses, or what the checkout must show, is the
-  marker's question to the lawyer. No plan has a trial yet; the paragraph is there so the
-  terms need no new version when one starts.
+  question put to the lawyer, who approved the paragraph on 2026-10-08 (decision 0063). No
+  plan has a trial yet; the paragraph is there so the terms need no new version when one starts.
 
 ## Data processing agreement
 

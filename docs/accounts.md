@@ -284,8 +284,8 @@ Done on 2026-10-08: Mihai sent the certificate of registration and version 4 of 
 pages carries the registered seat, the trade register number and the fiscal code. The same day
 the terms changed twice more (Mihai): liability is capped at the fees paid in the 12 months
 before the event, with nothing to claim on the free plan and no EUR 100 floor, and paying after
-a free trial counts as accepting every section. `npm run legal:markers` lists 2, both on the
-terms, for the lawyer (docs/legal/lawyer-review.md, L24 and L28). The same address is the value of COMPANY_ADDRESS in .env.example for
+a free trial counts as accepting every section; the lawyer approved both the same day
+(decision 0063), so `npm run legal:markers` lists 0 again. The same address is the value of COMPANY_ADDRESS in .env.example for
 the emails' footer: set it on the host too (step 11). A paragraph written after the
 lawyer's read (the identity levels of E5-7, in the anonymous responses pull request) keeps its
 marker until the lawyer reads it.
