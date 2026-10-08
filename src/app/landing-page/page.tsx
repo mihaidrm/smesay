@@ -200,19 +200,24 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
             <div className="flex flex-col gap-4">
               <Reveal delay={120} testId="gain-groups" className="flex flex-col gap-2.5 rounded-[20px] border border-[#E6E3F0] bg-white p-[22px] shadow-[0_12px_32px_rgba(45,32,110,0.10)]">
                 <h3 className="text-xs font-bold text-[#9E3321]">See which group disagrees, and why</h3>
-                <div className="text-[16px] leading-[22px] font-semibold">Sales wants the policy flags as a Must; everyone else is fine with Should.</div>
-                {/* The two kinds apart, never as one "did not agree" (decision 0062): CL-04's
-                    Sales answers are both a different priority; Priya's is the one not needed. */}
-                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-change">
-                  <span>Want a different priority</span>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-full rounded-full bg-[#B7791F]" /></div><span className="shrink-0 font-mono whitespace-nowrap">2 of 2</span></div>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 3</span></div>
-                </div>
-                <div className="flex flex-col gap-1.5 text-[12px] text-[#5E5A72]" data-testid="gain-groups-disagree">
-                  <span>Say it is not needed</span>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Sales</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true" /><span className="shrink-0 font-mono whitespace-nowrap">0 of 2</span></div>
-                  <div className="flex items-center gap-2"><span className="w-[96px] shrink-0">Everyone else</span><div className="h-2 grow rounded-full bg-[#F0EEF7]" aria-hidden="true"><div className="h-2 w-1/3 rounded-full bg-[#718096]" /></div><span className="shrink-0 font-mono whitespace-nowrap">1 of 3</span></div>
-                </div>
+                <p className="text-[13px] leading-5 text-[#5E5A72]">Item CL-04, &ldquo;Expenses over the policy limit are flagged before they reach the approver.&rdquo; You proposed Should.</p>
+                <div className="text-[16px] leading-[22px] font-semibold">Sales wants it as a Must; everyone else is fine with Should.</div>
+                {/* Counts of people, in a table with its rows and columns named (Mihai, 2026-10-08:
+                    "I still have 0 clue what these numbers mean here"; design note 118), never "2 of 2".
+                    The two kinds of disagreement stay two rows, never one "did not agree" (decision
+                    0062): CL-04's Sales answers are both a different priority; Priya's is the one not
+                    needed; Dana and Lukas agree (src/db/seed/sample.ts). */}
+                <table className="w-full border-collapse text-[12px] leading-4 text-[#5E5A72]" data-testid="gain-groups-table">
+                  <caption className="caption-top pb-1.5 text-left text-[12px] leading-4 text-[#5E5A72]">How the 5 people who answered split on this item, by role.</caption>
+                  <thead>
+                    <tr><th scope="col" className="pb-1 text-left font-medium">Their answer</th><th scope="col" className="pb-1 pl-4 text-right font-medium">Sales<span className="block text-[11px] font-normal">2 people</span></th><th scope="col" className="pb-1 pl-4 text-right font-medium">Everyone else<span className="block text-[11px] font-normal">3 people</span></th></tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-[#F0EEF7]" data-testid="gain-groups-agree"><th scope="row" className="py-1.5 text-left font-normal">Agree with Should</th><td className="py-1.5 pl-4 text-right font-mono tabular-nums">0</td><td className="py-1.5 pl-4 text-right font-mono tabular-nums">2</td></tr>
+                    <tr className="border-t border-[#F0EEF7]" data-testid="gain-groups-change"><th scope="row" className="py-1.5 text-left font-normal">Want a different priority</th><td className="py-1.5 pl-4 text-right font-mono tabular-nums font-semibold text-[#8A5A00]">2<span className="block font-sans text-[11px] font-normal">both say Must</span></td><td className="py-1.5 pl-4 text-right font-mono tabular-nums">0</td></tr>
+                    <tr className="border-t border-[#F0EEF7]" data-testid="gain-groups-disagree"><th scope="row" className="py-1.5 text-left font-normal">Say it is not needed</th><td className="py-1.5 pl-4 text-right font-mono tabular-nums">0</td><td className="py-1.5 pl-4 text-right font-mono tabular-nums font-semibold text-[#4A5568]">1</td></tr>
+                  </tbody>
+                </table>
                 <figure className="flex flex-col gap-1 border-l-2 border-[#FF6B57] pl-3">
                   <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;Sales gets most of the rejections, and always after the fact.&rdquo;</blockquote>
                   <figcaption className="text-[13px] text-[#5E5A72]">Tom, sales</figcaption>
