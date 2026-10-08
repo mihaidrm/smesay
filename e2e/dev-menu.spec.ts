@@ -33,6 +33,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   const openMenu = async () => {
     const menu = page.getByTestId("dev-menu");
     if (!(await menu.evaluate((el) => (el as HTMLDetailsElement).open))) await menu.locator("summary").click();
+    await expect(menu).toHaveJSProperty("open", true);
   };
   await expect(page.getByTestId("dev-menu")).toBeVisible();
   // The default without a cookie is the stand-in outside production and the real model in
@@ -91,8 +92,14 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await link.getByTestId("item-card").nth(1).getByRole("radio", { name: "Should" }).click();
   await expect(link.getByTestId("item-card-note").nth(1)).toHaveText("Saved");
   // Answers in, nothing submitted: the Actions tab says why a run has nothing to read (before
-  // the first answer, Results is its empty state).
-  await page.goto(`${projectUrl}/results?tab=actions`);
+  // the first answer, Results is its empty state). Results is opened at its full address:
+  // without "unsubmitted" the page redirects to it, and a redirect thrown after the shell has
+  // streamed goes into the document as a meta refresh (node_modules/next/dist/server/app-render/
+  // make-get-server-inserted-html.js, "__next-page-redirect"), which makes the router's own
+  // redirect a document load (node_modules/next/dist/client/components/router-reducer/reducers/
+  // navigate-reducer.js: "which will trigger an MPA navigation"). That load closes the developer
+  // menu's details row under the step that opened it (CI on 6449cb6, PR 169, run 37743681385).
+  await page.goto(`${projectUrl}/results?tab=actions&unsubmitted=1`);
   await expect(page.getByTestId("actions-counts")).toHaveText("Actions are written from submitted answers. 0 of 1 response is submitted.");
   await expect(page.getByTestId("actions-no-run")).toBeVisible();
   await link.getByTestId("chapter-continue").click();
@@ -105,7 +112,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await phone.close();
 
   // Off: the refusal in the danger box, no run made.
-  await page.goto(`${projectUrl}/results?tab=actions`);
+  await page.goto(`${projectUrl}/results?tab=actions&unsubmitted=1`);
   await expect(page.getByTestId("actions-counts")).toHaveCount(0);
   await openMenu();
   await page.getByTestId("ai-mode-off").check();
@@ -128,7 +135,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await expect(page.getByTestId("actions-cost")).toContainText("1,500 tokens, EUR 0.00. This workspace this month: EUR 0.00.");
 
   // Real: no pill. (In this run "real" is the stand-in server, so nothing is spent.)
-  await page.goto(`${projectUrl}/results?tab=actions`);
+  await page.goto(`${projectUrl}/results?tab=actions&unsubmitted=1`);
   await openMenu();
   await expect(page.getByTestId("dev-menu-usage")).toHaveText("2 AI runs, EUR 0.00");
   // The shell re-renders after a choice is stored, so the row may be closed again.
