@@ -27,6 +27,23 @@ export const ACTIONS_COPY = {
   noneOpen: "No open actions. Write again to look for new ones, or reopen one below.",
   sampleState: "The sample's actions are invented and cannot be marked. Mark the actions of your own project.",
   kinds: { rewrite: "Rewrite", conflict: "Groups disagree", followUp: "Follow up", coverage: "Coverage" } as Record<InsightKind, string>,
+  // The kind tabs (design note 123): one tab per kind with its open count, in KIND_ORDER
+  // (src/lib/insights.ts), and what each kind is, as the empty line of its tab.
+  kindsLabel: "Action kinds",
+  kindWhat: {
+    followUp: "A question respondents asked that someone should answer.",
+    rewrite: "An item whose wording respondents read differently or found unclear.",
+    conflict: "An item that groups of respondents, by a dropdown field such as role, answer differently.",
+    coverage: "An area few could rate, or a missing item worth adding.",
+  } as Record<InsightKind, string>,
+  noneOfKind: (what: string) => `None open. ${what}`,
+  // How actions are chosen (design note 123): the details under the button.
+  howTitle: "How actions are chosen",
+  how: [
+    "The AI reads the answers that carry a reason or a question (a different priority, not needed, unclear) and the missing items, with the counts on every item. It writes at most 8 actions, the most useful first, and each names the people behind it. An action that names nobody is dropped.",
+    "An action needs enough people behind it: at least one in ten of those who answered the item, and one person when ten or fewer answered. A missing item is weighed against everyone who submitted. One person out of a hundred does not make an action; their answer stays on the Different priority and Disagree tab and the Questions and gaps tab.",
+    "Groups disagree needs both groups above that line. Mark an action done or dismiss it; a new run keeps those out of the way.",
+  ],
   tooLong: "There are too many answers to write actions from in one go. Every reason and question is on the Different priority and Disagree tab and the Questions and gaps tab; work from those.",
   // E4-8: the counts line before any press, the thinking lines while a run is pending, the
   // stand-in line and the no-run line under the actions.

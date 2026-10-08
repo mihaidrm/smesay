@@ -73,3 +73,13 @@ Built 2026-10-02.
   another's memory untouched. Open: picking a single role another column holds reverts the
   pick to "Do not import" without a message (the first column in file order keeps it); noted
   for E3-5's card.
+
+Changed 2026-10-08 (design note 120; Mihai: "make the items in this dropdown much more
+intuitive", "selecting Reference doesnt work - it changes back to do not import", "a field that
+signals the user that the AI can get more context about the requirement"): every option reads
+"label: meaning" and a line above the rows says what the card asks; the latest pick wins a
+single role (the column that had it goes to Do not import, said in the footer) instead of the
+silent revert the audit left open; a seventh role, Context for the AI, is stored as
+item.ai_context (migration 0038), read by Shape and Write actions as "(context: ...)" after
+the item, never shown to a respondent, guessed from a Notes, Comments, Context, Details,
+Background, Rationale, Why or Remarks header, carried by the whole-project export.

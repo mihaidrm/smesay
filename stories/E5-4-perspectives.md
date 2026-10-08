@@ -58,3 +58,6 @@ Built 2026-10-03 (design note 44, decision 0044):
   Shape, sees the "nothing to rate" screen with no pick, then picks Finance in the preview
   and sees one item and "0 of 1".
 
+Changed 2026-10-08 (design note 122): the Perspectives card is collapsible, closed on load
+with "None. Every item goes to everyone." or "[NAMES]. [N] of [M] items carry a perspective."
+on its title row; it opens by its title row, one Build card at a time.

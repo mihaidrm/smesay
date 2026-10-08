@@ -92,7 +92,7 @@ export async function commitUpload(ws: WorkspaceId, uploadId: string, userId: st
   const set = await commitImport(ws, {
     projectId: upload.projectId, uploadId: upload.id, source: upload.kind, filename: upload.kind === "pasted" ? null : upload.filename,
     report: check.report, userId,
-    items: check.items.map((it) => ({ ref: it.ref, text: it.text, area: it.area, value: it.value, custom: it.custom, foldedRefs: it.foldedRefs })),
+    items: check.items.map((it) => ({ ref: it.ref, text: it.text, area: it.area, value: it.value, custom: it.custom, context: it.context, foldedRefs: it.foldedRefs })),
   });
   if (!set) throw new NotFoundError();
   await track("import_committed", { source: upload.kind === "pasted" ? "paste" : "upload", rows: check.items.length }, { workspaceId: ws, userId });

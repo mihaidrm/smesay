@@ -72,6 +72,15 @@ test("upload a spreadsheet and see the ten-row preview", async ({ page, request 
   await expect(page.getByLabel("Requirement", { exact: true })).toHaveValue("text");
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("value");
   await expect(page.getByTestId("mapping-remembered")).toHaveCount(0);
+  // The latest pick wins a single role (design note 120): Reference moves from Ref to Module and
+  // back instead of the pick reverting without a word.
+  await page.getByLabel("Module", { exact: true }).selectOption("ref");
+  await expect(page.getByLabel("Ref", { exact: true })).toHaveValue("skip");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("ref");
+  await page.getByLabel("Ref", { exact: true }).selectOption("ref");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("skip");
+  await page.getByLabel("Module", { exact: true }).selectOption("area");
+  await expect(page.getByLabel("Module", { exact: true })).toHaveValue("area");
   await page.getByLabel("Module", { exact: true }).selectOption("custom");
   await page.getByLabel("Requirement", { exact: true }).selectOption("skip");
   await expect(page.locator("#mapping-error")).toHaveText("Pick the column that holds the requirement text. Without it there is nothing to import.");

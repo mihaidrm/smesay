@@ -208,7 +208,10 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   on dark, named by its visible label. Progress bar 4 px,
   violet fill (the PM's accent on the respondent side), label and mono count above. Tabs:
   14 px, active ink with a 2 px violet underline. Segmented control: tint track, the active
-  option a surface pill with the card shadow.
+  option a surface pill with the card shadow. Tabs inside a page (src/components/app/tabs.tsx,
+  design note 123; the Actions tab's kinds): the segmented control's look over one panel at a
+  time, the ARIA tabs pattern (tablist, tab, tabpanel, one tab stop, the arrow keys), a mono
+  count beside a label, the other panels kept in the page and hidden.
 - Slider (the confidence on the Wrap up, design note 107): a native range input, 48 high as
   its tap target, the thumb and the filled track in the PM's accent through accent-color
   (lifted on dark as the pills were), the word of the value centred under it at 16 px 600,
@@ -237,8 +240,12 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   opens and closes over 300 ms ease-out (height to auto through interpolate-size on
   ::details-content; browsers without it open at once) and stays in the DOM while closed.
   The page decides which cards are open: on Import the card whose work comes next (the rule
-  in src/lib/import-guide.ts), on Shape the first area. Any card opens by a click; a link to
-  an anchor inside a closed card opens it.
+  in src/lib/import-guide.ts), on Shape the first area, on Build Intro while it is empty
+  (src/lib/build-guide.ts, design note 122). Any card opens by a click; a link to an anchor
+  inside a closed card opens it. On Build the five cards share a name, so one is open at a
+  time (the details element's name attribute), and each holds its state through a save (the
+  card's `hold`: the open prop applies on mount only); on Import a changed prop moves the
+  cards.
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
 - Next-step panel (design note 121; src/components/app/next-step.tsx): once a step's work is

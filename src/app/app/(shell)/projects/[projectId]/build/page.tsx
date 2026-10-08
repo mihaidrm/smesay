@@ -6,7 +6,9 @@
 // respondent app for the draft, ringing the rating row, the chapter row, About you's fields
 // and the Wrap up's closing part. Without a set the page
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
-// not edited. Copy: docs/copy/app.md (Build).
+// not edited. The five cards are collapsible and one is open at a time (design note 122;
+// src/lib/build-guide.ts says which opens and writes the settings on each title row; the
+// card holds its state through a save). Copy: docs/copy/app.md (Build).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { itemSets, items, projects } from "@/db/queries";
@@ -16,7 +18,9 @@ import { CLOSING_COPY, signOffFor } from "@/lib/closing";
 import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, REASON_RULES_META, scaleFor } from "@/lib/scoring";
+import { CollapsibleCard } from "@/components/app/collapsible-card";
 import { UnsavedMark } from "@/components/app/unsaved";
+import { BUILD_CARD_COPY, openBuildCards } from "@/lib/build-guide";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
 import { FieldsForm } from "./fields-form";
@@ -51,6 +55,9 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
   const locked = readOnly || (await isPublished(current.ws, instrument.id));
   const tagged = rows.filter((it) => it.perspectives.length > 0).length;
   const methodLabel = METHODS.find((m) => m.key === instrument.method)?.label ?? instrument.method;
+  const cards = openBuildCards({ intro: instrument.intro, readOnly });
+  // One group, so opening a card closes the open one; `hold` keeps a card open through its save.
+  const group = { name: "build-cards", hold: true } as const;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -60,8 +67,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
       {!locked && <StepTip path={`/app/projects/${project.id}/build`} tip={buildTip({ intro: instrument.intro, fields: instrument.respondentFields })} />}
       <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}
-          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-intro-title">
-            <div className="flex items-center gap-2"><h3 id="build-intro-title" className="text-[15px] font-bold">{BUILD_COPY.introCard}</h3><UnsavedMark id="build-intro" /></div>
+          <CollapsibleCard {...group} title={BUILD_COPY.introCard} titleId="build-intro-title" summary={BUILD_CARD_COPY.intro.summary(instrument.title, instrument.intro)} mark={<UnsavedMark id="build-intro" />} open={cards.intro} testId="card-intro">
             {readOnly ? (
               <div className="flex flex-col gap-2 text-sm">
                 <div><span className="text-ink-muted">{BUILD_COPY.titleLabel}: </span>{instrument.title}</div>
@@ -71,12 +77,9 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             ) : (
               <IntroForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} title={instrument.title} intro={instrument.intro ?? ""} />
             )}
-          </section>
-          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-scoring-title">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2"><h3 id="build-scoring-title" className="text-[15px] font-bold">{BUILD_COPY.scoringCard}</h3><UnsavedMark id="build-scoring" /></div>
-              <p className="text-[13px] text-ink-muted">{BUILD_COPY.scoringLine}</p>
-            </div>
+          </CollapsibleCard>
+          <CollapsibleCard {...group} title={BUILD_COPY.scoringCard} titleId="build-scoring-title" summary={BUILD_CARD_COPY.scoring.summary(instrument)} mark={<UnsavedMark id="build-scoring" />} open={cards.scoring} testId="card-scoring">
+            <p className="text-[13px] text-ink-muted">{BUILD_COPY.scoringLine}</p>
             {readOnly ? (
               <ul className="flex flex-col text-sm" data-testid="scoring-list">
                 <li className="flex justify-between gap-4 py-2.5"><span>{BUILD_COPY.methodLabel}</span><span className="text-ink-muted">{methodLabel}: {scaleFor(instrument.method, instrument.scaleLabels).map((v) => v.label).join(", ")}, {labelFor(instrument.method, null, "unclear")}</span></li>
@@ -88,23 +91,17 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             ) : (
               <ScoringForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} method={instrument.method} showProposed={instrument.showProposed} labels={instrument.scaleLabels} reasonRule={instrument.reasonRule} layout={instrument.layout} locked={locked} />
             )}
-          </section>
-          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-perspectives-title">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2"><h3 id="build-perspectives-title" className="text-[15px] font-bold">{BUILD_COPY.perspectivesCard}</h3><UnsavedMark id="build-perspectives" /></div>
-              <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
-            </div>
+          </CollapsibleCard>
+          <CollapsibleCard {...group} title={BUILD_COPY.perspectivesCard} titleId="build-perspectives-title" summary={BUILD_CARD_COPY.perspectives.summary(instrument.perspectives, tagged, rows.length)} mark={<UnsavedMark id="build-perspectives" />} open={cards.perspectives} testId="card-perspectives">
+            <p className="text-[13px] text-ink-muted">{BUILD_COPY.perspectivesLine}</p>
             {readOnly ? (
               <p className="text-sm text-ink-muted" data-testid="perspectives-list">{instrument.perspectives.length === 0 ? BUILD_COPY.perspectivesNone : BUILD_COPY.perspectivesList(instrument.perspectives)} {BUILD_COPY.sample}</p>
             ) : (
               <PerspectivesForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} names={instrument.perspectives} tagged={tagged} total={rows.length} locked={locked} />
             )}
-          </section>
-          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-closing-title" data-preview-screen="wrap">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2"><h3 id="build-closing-title" className="text-[15px] font-bold">{CLOSING_COPY.card}</h3><UnsavedMark id="build-closing" /></div>
-              <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
-            </div>
+          </CollapsibleCard>
+          <CollapsibleCard {...group} title={CLOSING_COPY.card} titleId="build-closing-title" summary={BUILD_CARD_COPY.closing.summary(instrument.closing)} mark={<UnsavedMark id="build-closing" />} open={cards.closing} testId="card-closing" data-preview-screen="wrap">
+            <p className="text-[13px] text-ink-muted">{CLOSING_COPY.line}</p>
             {readOnly ? (
               <ul className="flex flex-col text-sm" data-testid="closing-list">
                 <li className="flex justify-between gap-4 py-2.5"><span>{CLOSING_COPY.questionLabel}</span><span className="text-ink-muted">{instrument.closing.closingQuestion ?? BUILD_COPY.off}</span></li>
@@ -116,12 +113,9 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             ) : (
               <ClosingForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} closing={instrument.closing} locked={locked} />
             )}
-          </section>
-          <section className="card flex flex-col gap-3 p-4" aria-labelledby="build-fields-title">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2"><h3 id="build-fields-title" className="text-[15px] font-bold">{BUILD_COPY.fieldsCard}</h3><UnsavedMark id="build-fields" /></div>
-              <p className="text-[13px] text-ink-muted">{BUILD_COPY.fieldsLine}</p>
-            </div>
+          </CollapsibleCard>
+          <CollapsibleCard {...group} title={BUILD_COPY.fieldsCard} titleId="build-fields-title" count={BUILD_CARD_COPY.fields.count(instrument.respondentFields.length)} summary={BUILD_CARD_COPY.fields.summary(instrument.respondentFields)} mark={<UnsavedMark id="build-fields" />} open={cards.fields} testId="card-fields">
+            <p className="text-[13px] text-ink-muted">{BUILD_COPY.fieldsLine}</p>
             {readOnly ? (
               <ul className="flex flex-col text-sm" data-testid="fields-list">
                 {instrument.respondentFields.map((f) => (
@@ -131,7 +125,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
             ) : (
               <FieldsForm key={instrument.id} projectId={project.id} instrumentId={instrument.id} fields={instrument.respondentFields} />
             )}
-          </section>
+          </CollapsibleCard>
       </WithPreview>
     </div>
   );
