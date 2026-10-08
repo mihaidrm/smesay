@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 test("the landing page loads with the headline and fits a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/landing-page");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Send the list as a link.");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Send your requirements as a link.");
   const starts = page.getByRole("link", { name: /^Start free/ });
   await expect(starts).toHaveCount(3);
   for (const i of [0, 1, 2]) await expect(starts.nth(i)).toHaveAttribute("href", "/sign-in");
@@ -51,6 +51,7 @@ test("the steps, the Shape switch, the results views and the questions", async (
   await expect(page.getByTestId("results-tiles")).toContainText("60%");
   // Different priority and Disagree are two tiles, never one number (decision 0062).
   await expect(page.getByTestId("results-tiles")).toContainText("Disagree");
+  await expect(page.getByTestId("results-tiles-caption")).toContainText("18 agree with your proposals (60%), 7 want a different priority, 3 say not needed and 2 asked a question.");
   await expect(page.getByTestId("gain-groups-disagree")).toContainText("1 of 3");
   await expect(demo).toHaveAttribute("data-view", "Table");
   await expect(page.getByTestId("results-table").getByRole("listitem")).toHaveCount(6);
@@ -62,7 +63,7 @@ test("the steps, the Shape switch, the results views and the questions", async (
   const phone = page.getByTestId("faq-item").filter({ hasText: "Does it work on a phone?" });
   await phone.locator("summary").click();
   await expect(phone.getByText("The link is made for a phone first")).toBeVisible();
-  await expect(page.getByTestId("faq-item")).toHaveCount(7);
+  await expect(page.getByTestId("faq-item")).toHaveCount(8);
 
   await page.setViewportSize({ width: 390, height: 844 });
   for (const view of ["Columns", "Share"]) {
