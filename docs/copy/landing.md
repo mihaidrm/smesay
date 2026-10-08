@@ -95,11 +95,14 @@ Legend: Agree, Different priority, Disagree, Unclear.
 Under it: Filter by role, or by who left a reason: every chart, count and export follows the
 filter. Table, Columns and Share are three views of the same answers.
 
-Label: See which group disagrees, and why. Sales wants the policy flags as a Must; everyone
-else is fine with Should. Want a different priority: Sales 2 of 2, everyone else 0 of 3. Say
-it is not needed: Sales 0 of 2, everyone else 1 of 3 (the two kinds on their own lines, never
-one "did not agree"; decision 0062). "Sales gets most of the rejections, and always after the
-fact." Tom, sales.
+Label: See which group disagrees, and why. Under it the item: Item CL-04, "Expenses over the
+policy limit are flagged before they reach the approver." You proposed Should. Headline: Sales
+wants it as a Must; everyone else is fine with Should. Then a table of people, never "2 of 2"
+(Mihai, 2026-10-08; design note 118). Caption: How the 5 people who answered split on this
+item, by role. Columns: Their answer; Sales, 2 people; Everyone else, 3 people. Rows: Agree
+with Should, 0 and 2; Want a different priority, 2 (with "both say Must" under it) and 0; Say it is not needed, 0
+and 1 (the two kinds on their own rows, never one "did not agree"; decision 0062). "Sales gets
+most of the rejections, and always after the fact." Tom, sales.
 
 Label: A to-do list, written by AI from the answers. Decide whether policy flags move to Must
 have. From 2 answers, each one cited. Answer the two open questions before the link closes.
@@ -294,7 +297,7 @@ True on the day: the upload and shaping lines (E3, E4) and the free lines (decis
 
 Numbers inside product screens, the Marlow example, not claims: the live card's answers and
 the agreement chip (60%, 30 answers from 5 experts), the Shape fragment's rows and the results
-card's tiles, items, percentages and counts, "2 of 2", "0 of 3", "0 of 2", "1 of 3", Tom's
+card's tiles, items, percentages and counts, the group table's people (0 and 2, 2 and 0, 0 and 1), Tom's
 reason and the two to-dos are all the seed's
 (src/db/seed/sample.ts: 5 of 7 submitted, 30 answers, 18 agree, 7 different priority, 3
 disagree, 2 unclear; since decision 0062, 2026-10-07, Lukas marks CL-05 not needed).

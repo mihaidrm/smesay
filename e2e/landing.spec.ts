@@ -52,7 +52,13 @@ test("the steps, the Shape switch, the results views and the questions", async (
   // Different priority and Disagree are two tiles, never one number (decision 0062).
   await expect(page.getByTestId("results-tiles")).toContainText("Disagree");
   await expect(page.getByTestId("results-tiles-caption")).toContainText("18 agree with your proposals (60%), 7 want a different priority, 3 say not needed and 2 asked a question.");
-  await expect(page.getByTestId("gain-groups-disagree")).toContainText("1 of 3");
+  // The group card counts people in a table with named rows and columns, never "2 of 2"
+  // (design note 118).
+  const groups = page.getByTestId("gain-groups-table");
+  await expect(groups.getByRole("row", { name: /Want a different priority/ })).toContainText("both say Must");
+  await expect(groups.getByRole("row", { name: /Say it is not needed/ })).toContainText("1");
+  await expect(page.getByTestId("gain-groups")).toContainText("Item CL-04");
+  await expect(page.getByTestId("gain-groups")).not.toContainText(/\d of \d/);
   await expect(demo).toHaveAttribute("data-view", "Table");
   await expect(page.getByTestId("results-table").getByRole("listitem")).toHaveCount(6);
   await demo.getByRole("button", { name: "Share" }).click();

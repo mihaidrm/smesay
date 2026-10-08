@@ -124,3 +124,9 @@ hero, the three steps, "What you get back" and the questions were rewritten so e
 says what the visitor is looking at, the example company is named once at the top, and no
 product word appears without its plain meaning. Acceptance 1 now reads eight questions; acceptance 6
 reads the new headline and the sentence under the tiles.
+
+Changed 2026-10-08, later (design note 118; Mihai: "I still have 0 clue what these numbers mean
+here"): the group card names the item and the proposal, keeps its headline, and shows a table
+of people (columns Sales, 2 people and Everyone else, 3 people; rows Agree with Should, Want a
+different priority, Say it is not needed) instead of bars labelled "2 of 2"; e2e/landing.spec.ts
+reads the rows and checks that no "of" count is left on the card.
