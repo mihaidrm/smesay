@@ -35,6 +35,15 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
     if (!(await menu.evaluate((el) => (el as HTMLDetailsElement).open))) await menu.locator("summary").click();
     await expect(menu).toHaveJSProperty("open", true);
   };
+  // The pill in the project header. After a choice is stored the shell re-renders, and the
+  // old header and the new one can both be in the page for a while (PR 176's run
+  // 37768803375 saw "AI: stand-in" and "AI: off" side by side), so the pill is read once
+  // there is one again.
+  const pillReads = async (text: string) => {
+    const pill = page.getByTestId("ai-mode-pill");
+    await expect(pill).toHaveCount(1, { timeout: 15_000 });
+    await expect(pill).toHaveText(text);
+  };
   await expect(page.getByTestId("dev-menu")).toBeVisible();
   // The default without a cookie is the stand-in outside production and the real model in
   // CI's production build (acceptance 2).
@@ -59,7 +68,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   // in-process stand-in waits 2 s), then the areas with the stand-in line.
   await openMenu();
   await page.getByTestId("ai-mode-standin").check();
-  await expect(page.getByTestId("ai-mode-pill")).toHaveText("AI: stand-in");
+  await pillReads("AI: stand-in");
   await page.goto(`${projectUrl}/shape`);
   await page.getByRole("button", { name: "Shape with AI" }).click();
   await expect(page.getByTestId("thinking-line")).toContainText("Reading 2 items");
@@ -116,7 +125,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   await expect(page.getByTestId("actions-counts")).toHaveCount(0);
   await openMenu();
   await page.getByTestId("ai-mode-off").check();
-  await expect(page.getByTestId("ai-mode-pill")).toHaveText("AI: off");
+  await pillReads("AI: off");
   await page.getByTestId("write-actions").click();
   await expect(page.getByTestId("actions-error")).toHaveText("AI is switched off in the developer menu. Switch it to Stand-in or Real to run this.");
   await expect(page.getByTestId("actions-error").getByRole("button", { name: "Try again" })).toHaveCount(0);
@@ -127,7 +136,7 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   // The shell re-renders after a choice is stored, so the row may be closed again.
   await openMenu();
   await page.getByTestId("ai-mode-standin").check();
-  await expect(page.getByTestId("ai-mode-pill")).toHaveText("AI: stand-in");
+  await pillReads("AI: stand-in");
   await page.getByTestId("write-actions").click();
   await expect(page.getByTestId("thinking-line")).toContainText("Reading 2 items and 2 answers");
   await expect(page.getByTestId("action")).toHaveCount(4);
