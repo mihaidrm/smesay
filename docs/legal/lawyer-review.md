@@ -5,8 +5,8 @@ lawyer to check". Version 3 of the four pages removes the 42 check markers (deci
 This sheet stays as the record of what was checked and why. The three company details were
 filled in on 2026-10-08 (version 4) from the certificate of registration Mihai sent (ONRC
 Bucharest, series B no. 5002112, issued 23.09.2024): the registered seat, the trade register
-number J2024022790002 and the fiscal code 50556917. Left: the identity paragraph of E5-7,
-written after the lawyer's read.
+number J2024022790002 and the fiscal code 50556917. Left for the lawyer: the identity paragraph
+of E5-7, written after his read, and two terms paragraphs changed on 2026-10-08 (L24, L28).
 
 Mihai, 2026-10-05: "i think you should first do a version when you put everything with what you
 find online as guidance - and he will check those final things - i think you can put everything
@@ -106,6 +106,12 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   court take effect only if "acceptate, în mod expres, în scris" (codulcivil.ro/art-1203). How
   to meet that online (for example a separate box at sign-up naming those clauses) is for the
   lawyer; SMEsay's sign-in has no such box today.
+  Changed 2026-10-08 (Mihai: "remove the 100 euro part - they can only claim what they paid.
+  the free tier si free but they accept they cannot claim anything while using free"): the cap
+  is the fees paid in the 12 months before the event, and nothing on the free plan; the EUR 100
+  floor goes. A cap of nothing on a free service reads as an exclusion, which art. 1355 allows
+  only outside intent, gross negligence and injury (the first liability paragraph keeps those
+  out); the marker asks the lawyer to confirm.
 - L25 Ending the service: 60 days' email notice, then at least 30 days to export. Vercel gives
   30 days on paid plans (vercel.com/legal/terms). The EU Data Act, applying from 2025-09-12,
   sets at least 30 days for data retrieval on switching (Regulation 2023/2854 Art. 25(2)(g),
@@ -116,6 +122,13 @@ the hosting plans are set at the launch gate (docs/review-list.md).
 - L27 Changes: 30 days' notice by email and in the app; Linear, GitHub and Atlassian give 30
   days (linear.app/terms; docs.github.com, GitHub terms, effective 2026-04-27; Atlassian above).
   A changed art. 1203 clause may need a new express acceptance.
+- L28 Free trial, added 2026-10-08 (Mihai: "we will probably add a free trial - if that free
+  trial passes, and they start paying it means they accepted everything"): during the trial
+  the free plan's terms apply; paying after it is acceptance of every section. This is the
+  art. 1203 question of L24: whether paying after a trial counts as express written acceptance
+  of the liability, suspension, law and court clauses, or what the checkout must show, is the
+  marker's question to the lawyer. No plan has a trial yet; the paragraph is there so the
+  terms need no new version when one starts.
 
 ## Data processing agreement
 
