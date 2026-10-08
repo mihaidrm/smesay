@@ -15,11 +15,18 @@
 // A link to an anchor inside a closed card ("Import a new version" to #upload-title, "Add it
 // on Import" to #about-title, the rescue tip to #mapping-title) opens the card: on mount and
 // on every hashchange the card opens when the hash's target is inside it.
+// `hold` (Build, design note 122): the open prop is read once, on mount, and the card then
+// stays as the person left it; without it a changed prop opens or closes the card (Import,
+// where the check card closes after the import and Versions opens). `name` on the details
+// element makes the cards that share it an exclusive group, one open at a time
+// (developer.mozilla.org/docs/Web/HTML/Reference/Elements/details, the name attribute;
+// browser-compat-data: Chrome 120, Firefox 130, Safari 17.2; an older browser leaves every
+// card to open on its own).
 import { ChevronDown } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 
-export function CollapsibleCard({ title, titleId, count, summary, mark, open, testId, className, bodyClassName, children, ...rest }: {
+export function CollapsibleCard({ title, titleId, count, summary, mark, open, hold = false, testId, className, bodyClassName, children, ...rest }: {
   title: string;
   titleId: string;
   count?: string | null;
@@ -28,12 +35,14 @@ export function CollapsibleCard({ title, titleId, count, summary, mark, open, te
   // (stories/E5-9), visible while the card is closed too.
   mark?: React.ReactNode;
   open: boolean;
+  hold?: boolean;
   testId?: string;
   className?: string;
   bodyClassName?: string;
   children: React.ReactNode;
 } & Omit<React.ComponentProps<"details">, "title" | "open" | "children" | "className">) {
   const ref = useRef<HTMLDetailsElement>(null);
+  const [first] = useState(open);
   useEffect(() => {
     const reveal = () => {
       const card = ref.current;
@@ -47,7 +56,7 @@ export function CollapsibleCard({ title, titleId, count, summary, mark, open, te
     return () => window.removeEventListener("hashchange", reveal);
   }, []);
   return (
-    <details ref={ref} open={open} className={cn("collapsible card", className)} aria-labelledby={titleId} data-testid={testId} {...rest}>
+    <details ref={ref} open={hold ? first : open} className={cn("collapsible card", className)} aria-labelledby={titleId} data-testid={testId} {...rest}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-ground [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 items-baseline gap-2">
           <h3 id={titleId} className="font-semibold">{title}</h3>

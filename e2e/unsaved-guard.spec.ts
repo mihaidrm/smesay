@@ -36,7 +36,8 @@ test("a step with unsaved changes keeps the page until Save or Discard", async (
   await expect(page).toHaveURL(/\/build$/);
   const intro = page.getByRole("textbox", { name: "Intro" });
   await expect(intro).toBeVisible();
-  const introCard = page.locator('section[aria-labelledby="build-intro-title"]');
+  // The Intro card is open while the intro is empty (design note 122).
+  const introCard = page.getByTestId("card-intro");
   const banner = page.getByTestId("unsaved-banner");
 
   // Typed, not saved: the Share pill keeps the page and says what is not saved (acceptance 2).
@@ -46,7 +47,7 @@ test("a step with unsaved changes keeps the page until Save or Discard", async (
   await expect(banner).toHaveText(/Save or discard your changes before you leave: Intro\./);
   await expect(introCard.getByTestId("unsaved-mark")).toHaveText("Not saved");
   await expect(page.getByTestId("intro-form")).toHaveAttribute("data-unsaved", "");
-  await expect(page.locator('section[aria-labelledby="build-scoring-title"]').getByTestId("unsaved-mark")).toHaveCount(0);
+  await expect(page.getByTestId("card-scoring").getByTestId("unsaved-mark")).toHaveCount(0);
 
   // Discard puts the server's values back and clears the banner and the label (acceptance 3).
   await banner.getByRole("button", { name: "Discard" }).click();
