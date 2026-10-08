@@ -12,6 +12,10 @@ export const SHAPE_COPY = {
   runAgainHint: "Run again replaces the areas the AI chose. Items you moved stay where they are.",
   grouped: (items: number, areas: number) => `AI grouped ${items} ${items === 1 ? "item" : "items"} into ${areas} ${areas === 1 ? "area" : "areas"} and wrote a readable version of each.`,
   notShaped: "Not shaped yet",
+  // The next-step panel after a run (design note 121).
+  done: "The list is shaped.",
+  doneDetail: "Accept or edit the reader versions below if you want to, then build the validation your respondents will see.",
+  toBuild: "Continue to Build the validation",
   placedByAi: "Placed by AI",
   movedByYou: "Moved by you",
   moveLabel: (ref: string) => `Move ${ref} to`,
