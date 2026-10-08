@@ -167,7 +167,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Fourth line, only above zero | [N] proposed values were not recognised and are kept as written. (1 proposed value was not recognised and is kept as written.) |
 | Rows under a count | Row [N]; Row [N], same as row [N]; Row [N]: [VALUE] |
 | With several sheets ticked (E3-7): the counts once per sheet under a heading; a duplicate of a row on another sheet | Sheet [NAME]; Row [N], same as row [N] of sheet [NAME] |
-| Import button | Import [N] items (disabled at 40 percent without a text column or with nothing to import) |
+| Import button | Import [N] items (disabled at 40 percent without a text column or with nothing to import); while it runs: Importing [N] items... |
+| Next-step panel under the title once the latest upload is in (design note 121) | The list is imported. [N] items, version [N]. Next, the AI shapes it into areas and writes a readable version of each item. [Button: Continue to Shape the list] |
 | After the import, in the check card | Imported as version [N]. |
 | Under the Import title, once a set exists | Imported [N] items as version [N] on [DATE]. Import a new version (a link to the upload card) |
 | Check card without a text column | Pick the column that holds the item text above, and the check appears here. |
@@ -196,6 +197,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Button, while running | Shaping... |
 | Under the button while a run is pending (E4-8; the thinking state: the mascot and one line that changes every 1.6 seconds, three dots after it) | Reading [N] items / Grouping them into areas / Writing a readable version of each |
 | Button, after a run | Run again |
+| Next-step panel under the lines, after a run, not on the sample (design note 121) | The list is shaped. Accept or edit the reader versions below if you want to, then build the validation your respondents will see. [Button: Continue to Build the validation] |
 | After the grouped line, when the last Shape run was the stand-in's (E4-8) | These areas and readable versions came from the stand-in, not the AI. |
 | Grouped line, after a run | AI grouped [N] items into [M] areas and wrote a readable version of each. [A] of [R] reader versions accepted. Run again replaces the areas the AI chose. Items you moved stay where they are. |
 | Counter alone, on the sample (E4-3) | [A] of [R] reader versions accepted. |

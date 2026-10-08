@@ -9,6 +9,7 @@
 // The sample project has no upload card (it is read-only, stories/E8-8). Copy: docs/copy/app.md.
 import { notFound } from "next/navigation";
 import { CollapsibleCard } from "@/components/app/collapsible-card";
+import { NextStep } from "@/components/app/next-step";
 import { Banner } from "@/components/ui/banner";
 import { invites, projects, uploads } from "@/db/queries";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
@@ -74,6 +75,11 @@ export default async function ImportPage({ params }: { params: Promise<{ project
           </p>
         )}
       </div>
+      {/* The latest upload is in: the next-step panel (design note 121). A newer upload not yet
+          imported shows the cards instead. */}
+      {set && !notImported && !project.isSample && (
+        <NextStep done={IMPORT_COPY.done} detail={IMPORT_COPY.doneDetail(setItems, set.version)} href={`/app/projects/${project.id}/shape`} label={IMPORT_COPY.toShape} />
+      )}
       {!project.isSample && (
         <StepTip path={`/app/projects/${project.id}/import`} tip={tip}
           action={tip === "rescue.mapping" ? { label: GUIDE_LINES["rescue.mapping"].action, href: "#mapping-title" } : undefined} />

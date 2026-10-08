@@ -88,6 +88,9 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await expect(areas.nth(0).getByTestId("item")).toHaveCount(4);
   await expect(page.getByTestId("placed-pill")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Run again" })).toBeVisible();
+  // The next-step panel (design note 121): shaped, the big link goes to Build.
+  await expect(page.getByTestId("next-step")).toContainText("The list is shaped.");
+  await expect(page.getByTestId("next-step").getByRole("link", { name: /Continue to Build the validation/ })).toHaveAttribute("href", /\/build$/);
 
   // Move to, by keyboard-reachable controls.
   const travel = page.getByTestId("item").filter({ hasText: "Travel advances before a trip" });

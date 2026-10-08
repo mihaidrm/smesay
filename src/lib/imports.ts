@@ -22,6 +22,11 @@ import { getObject } from "@/lib/storage";
 export const IMPORT_COPY = {
   diff: (text: string, from: number, to: number) => `Version ${from} to ${to}: ${text}.`,
   button: (n: number) => `Import ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}`,
+  // While the commit runs, and the next-step panel once it is in (design note 121).
+  importing: (n: number) => `Importing ${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}...`,
+  done: "The list is imported.",
+  doneDetail: (n: number, version: number) => `${n.toLocaleString("en-GB")} ${n === 1 ? "item" : "items"}, version ${version}. Next, the AI shapes it into areas and writes a readable version of each item.`,
+  toShape: "Continue to Shape the list",
   nothing: "There is nothing to import: every row is empty in the item text column. Map the column that holds the text, or upload another file.",
   already: (version: number) => `This file is already imported as version ${version}. Upload or paste the next version to import again.`,
   noCheck: "Pick the column that holds the item text above, and the check appears here.",

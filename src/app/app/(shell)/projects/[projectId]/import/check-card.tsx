@@ -69,7 +69,7 @@ export function CheckCard({ uploadId, check, importedVersion, open, blocked }: {
         {importedVersion !== null ? (
           <span data-testid="imported-version" className="text-[13px] text-ink-muted">Imported as version {importedVersion}.</span>
         ) : (
-          <ImportButton uploadId={uploadId} label={IMPORT_COPY.button(n)} disabled={!check || n === 0} />
+          <ImportButton uploadId={uploadId} label={IMPORT_COPY.button(n)} pendingLabel={IMPORT_COPY.importing(n)} disabled={!check || n === 0} />
         )}
       </div>
     </CollapsibleCard>
