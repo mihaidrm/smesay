@@ -66,3 +66,13 @@ Built 2026-10-04 (design note 74, decision 0044):
 - Acceptance 5: the copy scan covers docs/legal/ (scripts/scan-copy.mjs reads every .md).
 - Tests: src/lib/legal.test.ts, src/components/respondent/powered-by.test.tsx,
   e2e/legal.spec.ts.
+
+Changed 2026-10-08: Mihai sent the certificate of registration; version 4 of the privacy
+policy, the terms and the DPA carries the registered seat, the trade register number and the
+fiscal code. The subprocessor list moves to version 4 with
+them, unchanged, since the four pages share one version.
+
+Changed 2026-10-08, later the same day: the terms cap liability at the fees paid in the 12
+months before the event, with nothing to claim on the free plan and no EUR 100 floor, and say
+that paying after a free trial is acceptance of every section (Mihai). Two markers on the terms
+until the lawyer reads them, so `npm run legal:markers` lists 2 (review sheet L24, L28).

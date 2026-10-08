@@ -1,7 +1,8 @@
 // npm run legal:markers (stories/E11-3, acceptance 4): every "[LAWYER: ...]" marker in
 // docs/legal/, per page, with its count, for the lawyer's review (docs/accounts.md step 12).
-// The lawyer approved version 3 on 2026-10-07 (decision 0059); the three markers left ask for the
-// company details, and go when Mihai sends them.
+// The lawyer approved version 3 on 2026-10-07 (decision 0059); version 4 of 2026-10-08 filled in the
+// company details and, the same day, changed the terms' liability cap and added the free trial
+// paragraph (docs/legal/lawyer-review.md, L24 and L28): those two markers stay until the lawyer reads them.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
