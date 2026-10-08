@@ -2,8 +2,11 @@
 
 Mihai, 2026-10-07: "lawyer check all items and he approved so you can remove the tags for
 lawyer to check". Version 3 of the four pages removes the 42 check markers (decision 0059).
-This sheet stays as the record of what was checked and why. Left to fill: the three company
-details below, and the identity paragraph of E5-7, written after the lawyer's read.
+This sheet stays as the record of what was checked and why. The three company details were
+filled in on 2026-10-08 (version 4) from the certificate of registration Mihai sent (ONRC
+Bucharest, series B no. 5002112, issued 23.09.2024): the registered seat, the trade register
+number J2024022790002 and the fiscal code 50556917. Left: the identity paragraph of E5-7,
+written after the lawyer's read.
 
 Mihai, 2026-10-05: "i think you should first do a version when you put everything with what you
 find online as guidance - and he will check those final things - i think you can put everything
@@ -162,7 +165,8 @@ the hosting plans are set at the launch gate (docs/review-list.md).
 
 ## Still the lawyer's to fill
 
-- The registered address, the registration number and the fiscal code (three places).
+- The registered address, the registration number and the fiscal code (three places): filled in
+  on 2026-10-08, version 4, from the certificate of registration.
 - How to meet Civil Code art. 1203 online (L24, L26, L27).
 - Whether the free beta is a "non-production version" under the Data Act (L25).
 - Consent for visit counts when Plausible is switched on (L17).

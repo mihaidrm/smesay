@@ -13,9 +13,9 @@
 // alone and no privacy link, rather than not being sent. Plain template strings, no library
 // (the story's technical note; design note 79).
 //
-// The registered address is COMPANY_ADDRESS, set at the launch gate once the lawyer confirms it
-// (docs/legal/privacy.md marks the same gap). Unset, the footer leaves the line out rather than
-// send a bracket to a person.
+// The registered address is COMPANY_ADDRESS (the value is in .env.example since 2026-10-08, the
+// seat on the certificate of registration, the same as docs/legal/privacy.md). Unset, the footer
+// leaves the line out rather than send a bracket to a person.
 
 export const COMPANY = "SMEsay, by Alerty S.R.L.";
 

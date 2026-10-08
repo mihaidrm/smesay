@@ -1,5 +1,5 @@
-version: 3
-date: 2026-10-07
+version: 4
+date: 2026-10-08
 ---
 # Privacy policy
 
@@ -7,7 +7,7 @@ This policy says what SMEsay collects, why, where it is kept, for how long, and 
 
 ## Who we are
 
-SMEsay is run by Alerty S.R.L. [LAWYER: add the registered address, the company registration number and the fiscal code.]
+SMEsay is run by Alerty S.R.L., Șoseaua Virtuții 22D, Bl. B1, Et. 4, Ap. 29, Sector 6, Bucharest, Romania, trade register number J2024022790002, fiscal code 50556917.
 
 Write to hello@smesay.app about anything in this policy. Alerty has not appointed a data protection officer: SMEsay does not monitor people on a large scale or process special categories of data, so the GDPR does not require one (Article 37), and the address above reaches the person responsible for privacy.
 
