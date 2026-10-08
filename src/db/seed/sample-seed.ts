@@ -70,12 +70,17 @@ export async function seedSampleInto(ws: WorkspaceId, projectName: string): Prom
       inviteId = personal.id;
     }
     if (p.status === "invited") continue;
+    // The row's times are the fixture's dates, not the seeding moment: a row created now reads
+    // as "Submitted again" once the clock passes the person's submittedAt (results.ts
+    // changed_after: updated_at > first_submitted_at) and its time to submit goes to 0 (CI on
+    // 6e91b33, 2026-10-08 09:17 UTC, five minutes after Dana's 09:12).
     const response = await responses.create(ws, {
       instrumentId: instrument.id, itemSetId: set.id, inviteId, deviceToken: token(),
       fields: { name: p.name, role: p.role }, confidence: p.confidence, signedOff: p.status === "submitted",
       submittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
       // E7-5: the sample was submitted once, so the first Submit is the latest.
       firstSubmittedAt: p.submittedAt ? new Date(p.submittedAt) : null,
+      createdAt: new Date(p.startedAt), updatedAt: new Date(p.submittedAt ?? p.startedAt),
     });
     responseIds.set(p.n, response.id);
   }

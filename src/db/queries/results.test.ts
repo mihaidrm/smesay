@@ -187,6 +187,10 @@ describe("the Responses tab", () => {
     expect(by("Sam Hill")).toMatchObject({ status: "inProgress", answered: 4, visible: 6, source: "personal", reminders: 1, submittedAt: null });
     expect(by("Elena Costa")).toMatchObject({ status: "invited", answered: 0, visible: 6, reminders: 1, fields: { name: "Elena Costa", role: "Sales" } });
     expect(by("Dana Okafor")).toMatchObject({ status: "submitted", source: "public", reminders: null, changedSince: false, submittedAgain: false, anon: null });
+    // The sample's rows carry the fixture's dates, so nobody reads as changed or submitted again
+    // on any day the sample is seeded, and the time to submit is the fixture's (median 22).
+    expect(all.filter((p) => p.changedSince || p.submittedAgain).map((p) => p.fields.name)).toEqual([]);
+    expect((await results.numbers(wsA, instrumentA, NONE))!.medianMinutes).toBe(22);
     // The fixture's reasons: Lukas gave a reason on every answer that is not agree.
     const lukas = Object.values(fixture).map((byPerson) => byPerson[4]).filter((a) => a && a.kind !== "agree").length;
     expect(by("Lukas Berg").withComment).toBe(lukas);
