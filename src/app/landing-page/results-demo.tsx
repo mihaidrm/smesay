@@ -131,10 +131,11 @@ export function ResultsDemo() {
           </div>
         ))}
       </div>
+      {/* The tiles in one sentence (design note 117): a visitor reads what the five numbers are. */}
+      <p className="text-[13px] leading-[19px] text-[#5E5A72]" data-testid="results-tiles-caption">7 experts were asked and 5 have submitted. Of their 30 answers, 18 agree with your proposals (60%), 7 want a different priority, 3 say not needed and 2 asked a question.</p>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="rounded-full border border-[#CFCBE0] bg-white px-2.5 py-1 font-semibold">Role: any</span>
         <span className="rounded-full border border-[#CFCBE0] bg-white px-2.5 py-1 font-semibold">With a reason</span>
-        <span className="rounded-full border border-dashed border-[#CFCBE0] px-2.5 py-1 font-semibold text-[#5E5A72]">+ Choose tiles</span>
         <div className="ml-auto flex rounded-full bg-[#EEEAFF] p-[3px]" role="group" aria-label="Chart view">
           {VIEWS.map((v) => (
             <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cn("relative h-8 rounded-full px-3.5 font-semibold focus-visible:z-10 whitespace-nowrap outline-hidden transition-[background-color,box-shadow,color] duration-150 focus-visible:ring-2 focus-visible:ring-[#6D4CF5] focus-visible:ring-offset-2 motion-reduce:transition-none", view === v ? "bg-white text-[#15131F] shadow-[0_2px_8px_rgba(45,32,110,0.14)]" : "text-[#5E5A72] hover:text-[#15131F]")}>{v}</button>
@@ -143,7 +144,7 @@ export function ResultsDemo() {
       </div>
       <div className="min-h-[188px]">{view === "Table" ? <TableView /> : view === "Columns" ? <ColumnsView /> : <ShareView />}</div>
       <Legend />
-      <p className="border-t border-[#E6E3F0] pt-3 text-xs text-[#5E5A72]">Filter by any field you asked for, such as role, or by who left a reason. Every chart, count and export follows the same filter.</p>
+      <p className="border-t border-[#E6E3F0] pt-3 text-xs text-[#5E5A72]">Filter by role, or by who left a reason: every chart, count and export follows the filter. Table, Columns and Share are three views of the same answers.</p>
     </div>
   );
 }

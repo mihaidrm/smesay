@@ -118,3 +118,9 @@ Amended 2026-10-05 (Mihai; design note 95): the header is sticky over every sect
 (src/app/landing-page/sticky-header.tsx), transparent over the hero and navy with a blur once
 the page scrolls; the nav links glide to their section (scroll-behavior: smooth, not under
 reduced motion) and each section stops 80 px from the top. e2e/landing.spec.ts covers both.
+
+Changed 2026-10-08 (design note 117; Mihai: "a complete stranger understands everything"): the
+hero, the three steps, "What you get back" and the questions were rewritten so every section
+says what the visitor is looking at, the example company is named once at the top, and no
+product word appears without its plain meaning. Acceptance 1 now reads eight questions; acceptance 6
+reads the new headline and the sentence under the tiles.
