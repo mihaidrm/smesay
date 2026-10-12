@@ -1,7 +1,11 @@
 name: CI
 
+# One run per commit: a pull request's pushes run through pull_request, main's through push.
+# With both on every branch each commit ran twice and every failure mailed twice (Mihai,
+# 2026-10-12).
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:

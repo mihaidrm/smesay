@@ -10,7 +10,7 @@ MISTAKES.md with what caught it.
 
 Tests are basic (decision 0004): unit tests for logic, one Playwright test for the main path of
 each user-facing flow. CI runs lint, typecheck, the scans, the tests, the build and Playwright on
-every push; the session runs only the fast checks and the test file it just wrote (decision
+every pull request and every push to main; the session runs only the fast checks and the test file it just wrote (decision
 0032). Report the CI result with numbers. "Tests pass" is not a report. Mihai tests real devices
 and mail clients.
 

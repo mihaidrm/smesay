@@ -25,7 +25,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 npm run dev              # http://localhost:3000
 ```
 
-Checks, the same ones CI runs on every push (.github/workflows/ci.yml):
+Checks, the same ones CI runs on every pull request and on every push to main (.github/workflows/ci.yml):
 
 ```
 npm run lint             # ESLint, next/core-web-vitals and next/typescript
