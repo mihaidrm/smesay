@@ -131,6 +131,16 @@ describe("summaryHtml", () => {
     expect(html).toContain('<th class="n">Agreement</th><th class="n">Different priority %</th><th class="n">Not needed %</th>');
     expect(html).toContain('<td class="n">60%</td><td class="n">20%</td><td class="n">0%</td>');
   });
+  it("gives the item text 36 percent of the page and the six counts one bar with its words (design note 129)", () => {
+    const html = summaryHtml(VIEW);
+    expect(html).toContain('<table class="items"><colgroup><col style="width:9%"><col style="width:36%"><col style="width:8%"><col style="width:20%"><col style="width:9%"><col style="width:9%"><col style="width:9%"></colgroup>');
+    expect(html).toContain("<th>Reference</th><th>Item</th><th>Proposed</th><th>Answers</th>");
+    expect(html).not.toContain("<th>Agree</th>");
+    expect(html).toContain('<td class="mono">CL-04</td><td>Photograph a receipt</td><td>Should</td><td class="bar"><svg width="130" height="8"');
+    expect(html).toContain('<div class="muted small">3 agree · 1 different priority · 1 unclear</div>');
+    // The legend sits over the items too, since they start a new page.
+    expect(html.split('<p class="legend muted">')).toHaveLength(3);
+  });
   it("labels every bar with its counts in words, never colour alone", () => {
     const html = summaryHtml(VIEW);
     expect(html).toContain('aria-label="3 agree · 1 different priority · 1 unclear"');
