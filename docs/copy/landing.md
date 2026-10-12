@@ -33,7 +33,7 @@ Under the buttons: Your experts need no account and install nothing. Free while 
 Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
 "Expenses over the policy limit are flagged before they reach the approver." Your proposal
 Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agree. Lukas,
-engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
+engineering manager: Agree. To do, written by AI: Decide whether CL-04 changes priority from Should to Must. From
 2 answers.
 
 Agreement chip: 60%. Agreement so far. 30 answers from 5 of 7 experts.
@@ -106,8 +106,9 @@ was over the limit three weeks later, after I have paid." Ioana, sales (Mihai, 2
 line read as written by a machine and did not follow from the headline; Ioana's reason on CL-04
 in the seed says why Sales wants a Must).
 
-Label: A to-do list, written by AI from the answers. Decide whether policy flags move to Must
-have. From 2 answers, each one cited. Answer the two open questions before the link closes.
+Label: A to-do list, written by AI from the answers. Decide whether CL-04 changes priority from Should to Must.
+(Mihai, 2026-10-12: "policy flags move" was the item's nickname, not its priority; the title now
+names the item and the change.) From 2 answers, each one cited. Answer the two open questions before the link closes.
 From 2 answers, each one cited.
 
 Label: Numbers you can take to the meeting. Every number on the dashboard matches the CSV

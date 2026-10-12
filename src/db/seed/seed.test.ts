@@ -60,7 +60,7 @@ describe("npm run db:seed", () => {
     const answerId = (ref: string, name: string) => all.find((a) => a.itemId === byRef[ref] && a.responseId === byName[name])!.id;
     const list = await insights.list(ws);
     const cited = (title: string) => list.find((i) => i.title.startsWith(title))!.citedAnswerIds.sort();
-    expect(cited("Decide whether policy flags")).toEqual([answerId("CL-04", "Ioana Marin"), answerId("CL-04", "Tom Reyes")].sort());
+    expect(cited("Decide whether CL-04")).toEqual([answerId("CL-04", "Ioana Marin"), answerId("CL-04", "Tom Reyes")].sort());
     expect(cited("Answer two open questions")).toEqual([answerId("CL-02", "Tom Reyes"), answerId("CL-06", "Lukas Berg")].sort());
     expect(cited("Rewrite CL-06")).toEqual([answerId("CL-06", "Priya Nair"), answerId("CL-06", "Lukas Berg")].sort());
     expect(cited("Consider adding mileage")).toEqual([]);
