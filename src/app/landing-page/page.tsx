@@ -219,8 +219,8 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
                   </tbody>
                 </table>
                 <figure className="flex flex-col gap-1 border-l-2 border-[#FF6B57] pl-3">
-                  <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;Sales gets most of the rejections, and always after the fact.&rdquo;</blockquote>
-                  <figcaption className="text-[13px] text-[#5E5A72]">Tom, sales</figcaption>
+                  <blockquote className="text-[14px] leading-[21px] text-[#15131F]">&ldquo;I find out I was over the limit three weeks later, after I have paid.&rdquo;</blockquote>
+                  <figcaption className="text-[13px] text-[#5E5A72]">Ioana, sales</figcaption>
                 </figure>
               </Reveal>
               <Reveal delay={240} testId="gain-actions" className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]">

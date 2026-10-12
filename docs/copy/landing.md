@@ -101,8 +101,10 @@ wants it as a Must; everyone else is fine with Should. Then a table of people, n
 (Mihai, 2026-10-08; design note 118). Caption: The 5 answers on this item, by role (Mihai, 2026-10-12:
 the first wording, "How the 5 people who answered split on this item", read badly). Columns: Their answer; Sales, 2 people; Everyone else, 3 people. Rows: Agree
 with Should, 0 and 2; Want a different priority, 2 (with "both say Must" under it) and 0; Say it is not needed, 0
-and 1 (the two kinds on their own rows, never one "did not agree"; decision 0062). "Sales gets
-most of the rejections, and always after the fact." Tom, sales.
+and 1 (the two kinds on their own rows, never one "did not agree"; decision 0062). "I find out I
+was over the limit three weeks later, after I have paid." Ioana, sales (Mihai, 2026-10-12: Tom's
+line read as written by a machine and did not follow from the headline; Ioana's reason on CL-04
+in the seed says why Sales wants a Must).
 
 Label: A to-do list, written by AI from the answers. Decide whether policy flags move to Must
 have. From 2 answers, each one cited. Answer the two open questions before the link closes.
