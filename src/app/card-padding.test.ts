@@ -11,6 +11,7 @@ const files = (dir: string): string[] => readdirSync(dir, { withFileTypes: true 
 const PADDED_BY_CHILDREN = new Set([
   "src/app/app/(shell)/settings/page.tsx|card",
   "src/app/app/(shell)/settings/data.tsx|card",
+  "src/app/app/(shell)/settings/emails.tsx|card",
   "src/app/app/(shell)/projects/[projectId]/import/mapping.tsx|flex flex-col card",
   "src/app/app/(shell)/projects/[projectId]/import/check-card.tsx|@container flex flex-col card",
   "src/app/app/(shell)/page.tsx|card overflow-hidden",

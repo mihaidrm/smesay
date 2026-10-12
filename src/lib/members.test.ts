@@ -44,12 +44,15 @@ beforeAll(async () => {
 }, 60_000);
 
 describe("invite", () => {
-  it("as an owner writes the row and sends the sign-in email", async () => {
+  // E16-1, acceptance 4: the email is the invitation (10), named after the inviter (here the
+  // owner's email, since the sign-up carries no name) and the workspace, with the sign-in link.
+  it("as an owner writes the row and sends the invitation email", async () => {
     const before = memoryOutbox.length;
     const result = await inviteMember({ ws, userId: owner.id }, ` ${invitee.email.toUpperCase()} `);
     expect(result).toEqual({ sent: true, email: invitee.email });
     expect(memoryOutbox.length).toBe(before + 1);
-    expect(memoryOutbox[before]).toMatchObject({ to: invitee.email, subject: "Your sign-in link for SMEsay" });
+    expect(memoryOutbox[before]).toMatchObject({ to: invitee.email, subject: expect.stringMatching(/^\S+@\S+ invited you to Members on SMEsay$/) });
+    expect(memoryOutbox[before].text).toContain("/api/auth/magic-link/verify");
     const { invited } = await listMembersAndInvites(ws);
     expect(invited.map((i) => i.email)).toEqual([invitee.email]);
   });
