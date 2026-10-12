@@ -98,8 +98,8 @@ filter. Table, Columns and Share are three views of the same answers.
 Label: See which group disagrees, and why. Under it the item: Item CL-04, "Expenses over the
 policy limit are flagged before they reach the approver." You proposed Should. Headline: Sales
 wants it as a Must; everyone else is fine with Should. Then a table of people, never "2 of 2"
-(Mihai, 2026-10-08; design note 118). Caption: How the 5 people who answered split on this
-item, by role. Columns: Their answer; Sales, 2 people; Everyone else, 3 people. Rows: Agree
+(Mihai, 2026-10-08; design note 118). Caption: The 5 answers on this item, by role (Mihai, 2026-10-12:
+the first wording, "How the 5 people who answered split on this item", read badly). Columns: Their answer; Sales, 2 people; Everyone else, 3 people. Rows: Agree
 with Should, 0 and 2; Want a different priority, 2 (with "both say Must" under it) and 0; Say it is not needed, 0
 and 1 (the two kinds on their own rows, never one "did not agree"; decision 0062). "Sales gets
 most of the rejections, and always after the fact." Tom, sales.
