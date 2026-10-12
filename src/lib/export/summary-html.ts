@@ -38,7 +38,7 @@ export const SUMMARY_COPY = {
   average: (avg: string, n: number) => `Average ${avg} from ${n} ${n === 1 ? "answer" : "answers"}`,
   noConfidenceYet: "No confidence given yet",
   items: "Items",
-  columns: { ref: "Reference", item: "Item", proposed: "Proposed", agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notAnswered: "Not answered", agreement: "Agreement", changeShare: "Different priority %", disagreeShare: "Not needed %" },
+  columns: { ref: "Reference", item: "Item", proposed: "Proposed", answers: "Answers", agree: "Agree", change: "Different priority", disagree: "Disagree", unclear: "Unclear", pick: "Rated", notAnswered: "Not answered", agreement: "Agreement", changeShare: "Different priority %", disagreeShare: "Not needed %" },
   signOff: "Sign-off record",
   signOffColumns: ["Respondent", "Submitted", "Confidence"],
   noSignOffs: "No one has submitted yet.",
@@ -101,8 +101,20 @@ function histogram(values: number[]): string {
   return `<svg width="${values.length * (w + gap)}" height="${h}" role="img" aria-label="${esc(values.map((n, i) => SUMMARY_COPY.confidenceAxis(n, i + 1)).join(", "))}">${bars.join("")}</svg>`;
 }
 
-const table = (columns: string[], rows: string[][], numeric: number[] = []) =>
-  `<table><thead><tr>${columns.map((c, i) => `<th${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+const table = (columns: string[], rows: string[][], numeric: number[] = [], cls = "") =>
+  `<table${cls ? ` class="${cls}"` : ""}><thead><tr>${columns.map((c, i) => `<th${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${numeric.includes(i) ? ' class="n"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+// The items table (design note 129; Mihai, 2026-10-12, a table whose twelve columns left the
+// item's words one per line): fixed column widths, so the item text keeps 36 percent of the
+// page whatever the headers need, and the six counts as one cell, the area's stacked bar at
+// cell size over the counts in words; the agreement and the two shares stay as columns
+// (decision 0062). table-layout: fixed sizes the columns from the colgroup, not the content
+// (developer.mozilla.org/docs/Web/CSS/table-layout).
+const ITEM_WIDTHS = [9, 36, 8, 20, 9, 9, 9];
+const itemsTable = (t: SummaryView["tables"][number], C: typeof SUMMARY_COPY.columns) =>
+  `<table class="items"><colgroup>${ITEM_WIDTHS.map((w) => `<col style="width:${w}%">`).join("")}</colgroup><thead><tr><th>${esc(C.ref)}</th><th>${esc(C.item)}</th><th>${esc(C.proposed)}</th><th>${esc(C.answers)}</th><th class="n">${esc(C.agreement)}</th><th class="n">${esc(C.changeShare)}</th><th class="n">${esc(C.disagreeShare)}</th></tr></thead><tbody>${t.rows
+    .map((r) => `<tr><td class="mono">${esc(r.ref)}</td><td>${esc(r.text)}</td><td>${esc(r.proposed)}</td><td class="bar">${stackedBar(r.counts, 130, 8)}<div class="muted small">${esc(SUMMARY_COPY.countsInWords(r.counts))}</div></td><td class="n">${esc(r.percent)}</td><td class="n">${esc(r.changePercent)}</td><td class="n">${esc(r.disagreePercent)}</td></tr>`)
+    .join("")}</tbody></table>`;
 
 const averageLine = (bins: number[]) => {
   const n = bins.reduce((a, b) => a + b, 0);
@@ -130,6 +142,13 @@ h3{font-size:10.5pt;margin:4mm 0 1.5mm;font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-bottom:3mm}
 th{text-align:left;font-weight:600;color:#5e5a72;border-bottom:1px solid #cfcbe0;padding:1.2mm 1.5mm}
 td{border-bottom:1px solid #e6e3f0;padding:1.2mm 1.5mm;vertical-align:top}
+table.items{table-layout:fixed}
+table.items th{font-size:7.5pt;line-height:1.25;vertical-align:bottom}
+table.items td{overflow-wrap:break-word}
+table.items td.n{overflow-wrap:normal}
+table.register td:first-child{white-space:nowrap}
+td.bar svg{display:block;margin:0.6mm 0 0.8mm}
+.small{font-size:7.5pt;line-height:1.3}
 th.n,td.n{text-align:right}
 tr{break-inside:avoid}
 .break{break-before:page}
@@ -142,8 +161,8 @@ ${v.lines.map((l) => `<p class="muted">${esc(l)}</p>`).join("")}
 <h2>${esc(SUMMARY_COPY.agreementByArea)}</h2>${legend}
 ${v.areas.map((a) => `<div class="area"><div><b>${esc(a.name)}</b> <span class="muted mono">${esc(a.percent)}</span></div>${stackedBar(a.counts)}<div class="muted">${esc(SUMMARY_COPY.countsInWords(a.counts))}</div></div>`).join("")}
 <h2>${esc(SUMMARY_COPY.confidence)}</h2>${histogram(v.confidence)}<p class="muted">${esc(averageLine(v.confidence))}</p>`;
-  const items = `<h2 class="break">${esc(SUMMARY_COPY.items)}</h2>${v.tables.map((t) => `<h3>${esc(t.area)}</h3>${table([C.ref, C.item, C.proposed, C.agree, C.change, C.disagree, C.unclear, C.pick, C.notAnswered, C.agreement, C.changeShare, C.disagreeShare], t.rows.map((r) => [r.ref, r.text, r.proposed, String(r.counts.agree), String(r.counts.change), String(r.counts.disagree), String(r.counts.unclear), String(r.counts.pick), String(r.counts.notAnswered), r.percent, r.changePercent, r.disagreePercent]), [3, 4, 5, 6, 7, 8, 9, 10, 11])}`).join("")}`;
-  const regs = v.registers.map((r) => `<h2>${esc(r.title)} (${r.total})</h2>${r.rows.length === 0 ? `<p class="muted">${esc(r.empty)}</p>` : table(r.columns, r.rows)}${r.more ? `<p class="muted" data-more>${esc(r.more)}</p>` : ""}`).join("");
+  const items = `<h2 class="break">${esc(SUMMARY_COPY.items)}</h2>${legend}${v.tables.map((t) => `<h3>${esc(t.area)}</h3>${itemsTable(t, C)}`).join("")}`;
+  const regs = v.registers.map((r) => `<h2>${esc(r.title)} (${r.total})</h2>${r.rows.length === 0 ? `<p class="muted">${esc(r.empty)}</p>` : table(r.columns, r.rows, [], "register")}${r.more ? `<p class="muted" data-more>${esc(r.more)}</p>` : ""}`).join("");
   const last = `<h2 class="break">${esc(SUMMARY_COPY.signOff)}</h2>${v.signOffs.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noSignOffs)}</p>` : table(SUMMARY_COPY.signOffColumns, v.signOffs.map((s) => [s.who, s.when, s.confidence]), [2])}
 <h2>${esc(SUMMARY_COPY.actions)}</h2>${v.actions.length === 0 ? `<p class="muted">${esc(SUMMARY_COPY.noActions)}</p>` : v.actions.map((a) => `<div class="action"><div class="muted">${esc([a.kind, a.state].filter(Boolean).join(" · "))}</div><b>${esc(a.title)}</b><div>${esc(a.why)}</div><div class="muted">${esc(a.cites)}</div></div>`).join("")}`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(SUMMARY_COPY.heading)}</title><style>${css}</style></head><body>${page1}${items}${regs}${last}</body></html>`;
