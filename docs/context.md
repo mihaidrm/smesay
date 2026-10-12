@@ -122,6 +122,10 @@ EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 
 E17 Feedback (the Feedback page in the app, the admin inbox with Mark solved, Reopen and
 Remove, an email per report to the admin addresses; decision 0069, design note 134) built
 2026-10-12.
+The launch marketing strategy is docs/marketing/launch-strategy.md (decision 0070,
+2026-10-12): Claude runs the routine, Mihai owns the accounts and the posts under his name;
+the first two real users are sought from his network, Product Makers and LinkedIn
+(docs/marketing/pilot-users.md).
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):

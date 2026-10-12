@@ -321,6 +321,21 @@ The button has a confirm line; the audit log records it. Take SMEsay back to bui
 same card undoes the state (trials already granted keep their date). A paying customer is
 put on their plan from the workspace's admin page (Change the plan) until billing exists.
 
+## Step 12c. Marketing accounts (before Launch week)
+
+The launch plan is docs/marketing/launch-strategy.md (decision 0070). Claude never creates an
+account; these are yours, each a few minutes:
+1. A LinkedIn Page for Alerty / SMEsay, from your own profile (LinkedIn asks for a profile a
+   few days old with the company as your employer and a verified work email:
+   linkedin.com/help/linkedin/answer/a543852 and a726850). Add a second admin.
+2. Product Makers (productmakers.ro): join the Slack, say hi in #intros, ask the organisers
+   where a feedback request may go.
+3. Maker accounts on Uneed, Fazier, BetaList, SaaSHub and Indie Hackers; vendor accounts on
+   G2 and Capterra (the free listings). Claude fills each form's text from
+   docs/marketing/outreach-drafts.md; you press Submit.
+4. Plausible (step 11), so Launch week has visitor numbers.
+Spend: none in the plan before the first paying customer.
+
 ## Step 13. Later phases
 
 - R2: an Atlassian developer app (Jira import and write-back), Notion and Trello integration
