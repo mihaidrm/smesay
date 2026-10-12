@@ -16,9 +16,9 @@ export const project = {
 };
 
 export const areas = [
-  { name: "Submitting", rationale: "This comes first, because every claim starts here." },
-  { name: "Approving", rationale: "This covers what happens to a claim once it is in." },
-  { name: "Paying", rationale: "This comes last and covers paying the money back." },
+  { name: "Submitting", rationale: "These items cover how a claim is submitted." },
+  { name: "Approving", rationale: "These items cover what happens to a claim once it is in." },
+  { name: "Paying", rationale: "These items cover how the money is paid back." },
 ];
 
 // position, reference, area, proposed value (M, S, C, W), reader text, original text, details.

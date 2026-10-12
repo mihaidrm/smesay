@@ -84,7 +84,7 @@ test("shape a list into areas and move items", async ({ page, request }) => {
   await areas.nth(1).locator("summary").click();
   await expect(areas.nth(1)).toHaveJSProperty("open", true);
   await expect(areas.nth(0)).toContainText("Submitting");
-  await expect(areas.nth(0).getByTestId("rationale")).toHaveText("This comes first, because submitting starts it.");
+  await expect(areas.nth(0).getByTestId("rationale")).toHaveText("These items cover submitting.");
   await expect(areas.nth(0).getByTestId("item")).toHaveCount(4);
   await expect(page.getByTestId("placed-pill")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Run again" })).toBeVisible();
