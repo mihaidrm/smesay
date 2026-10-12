@@ -16,7 +16,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { workspaces } from "@/db/queries";
-import { AI_BUDGET_MAX_EUR, NOTE_MAX, adminNotes, adminWorkspace, audited, setAiBudget } from "@/db/queries/admin";
+import { AI_BUDGET_MAX_EUR, AI_CREDITS_MAX_CENTS, NOTE_MAX, adminNotes, adminWorkspace, audited, setAiBudget, setAiCredits } from "@/db/queries/admin";
 import type { AdminProof, PlanKey } from "@/db/types";
 import { requireAdmin } from "@/lib/admin";
 import { WORKSPACE_ADMIN_COPY as C } from "@/lib/admin-copy";
@@ -87,6 +87,22 @@ export async function setBudgetAction(_previous: AdminActionState, formData: For
     if (now.aiBudgetEur === eur) return { error: C.sameBudget };
     return (await setAiBudget(proof, found.ws, eur)) ? ok : { error: C.missing };
   }), C.budgetDone(eur)));
+}
+
+// E2-7 (decision 0068): the credits in cents after launch, or "plan" for the plan's own.
+export async function setCreditsAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  const { proof, found } = await target(formData);
+  if (!found) return { error: C.missing, done: null };
+  const raw = text(formData, "credits");
+  const cents = raw === "plan" ? null : /^\d{1,7}$/.test(raw) ? Number(raw) : Number.NaN;
+  if (cents !== null && (!Number.isInteger(cents) || cents > AI_CREDITS_MAX_CENTS)) return { error: C.badCredits, done: null };
+  const id = found.workspace.id;
+  return attempt(id, async () => answer(await audited(proof, { action: "ai_credits_set", targetWorkspaceId: id, changes: { from: found.workspace.aiCreditsCents, to: cents } }, async (): Promise<Result> => {
+    const now = await fresh(proof, id);
+    if (!now) return { error: C.missing };
+    if (now.aiCreditsCents === cents) return { error: C.sameCredits };
+    return (await setAiCredits(proof, found.ws, cents)) ? ok : { error: C.missing };
+  }), C.creditsDone(cents)));
 }
 
 export async function resendInviteAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {

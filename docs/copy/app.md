@@ -54,6 +54,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Plan card title and value | Plan, Free |
 | Plan pill | While we build it with the first users |
 | Plan note | Paid plans come later. Nothing you build now is lost or locked. |
+| Plan card after launch (E2-7, decision 0068): the name, a pill on the trial, a line | Trial, pill Ends on [DATE], line One validation and 20 respondents for 7 days, with the AI. Then the free plan. / Free, line One project and 25 responses a month. The AI comes with a paid plan. / Pro or Team, line [N] responses a month, with the AI. / Enterprise, line No limits. (no credit number anywhere a member sees, decision 0036) |
 | Usage line under the plan note (E2-6; the spend added with E9-3) | [N] projects, [N] responses this month, [N] AI runs this month, EUR [SPENT] on AI this month. |
 | Note | No AI budget on the page: the workspace budget will be set and seen in the admin area only (decision 0036; E14-2, not built yet). |
 | Emails to you card (E16-1), under the Plan card; the switches are the person's own, every workspace | Emails to you. These switches are yours, in every workspace. Each of these emails also has a link that stops it. / About your validations: One email when a validation's link closes, and one when everyone you invited has submitted. (on) / Daily digest: At most one email a day, only after a day with a new submission on an open validation. (off) / Getting started: Up to four emails in your first two weeks, until you publish a validation. (on) |
@@ -462,7 +463,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 |---|---|
 | Crumb, title and line | SMEsay admin / Overview / This page shows every workspace, its usage, and the steps from sign-up to submission. The sample projects are left out. |
 | Totals | [N] workspaces / [N] projects / [N] validations published / [N] responses submitted |
-| Paid-plan metric | the metric's label from src/lib/plans.ts (now: Workspaces with a response submitted this month), and under it: [N]. No threshold is set yet, so paid plans stay off. (with a threshold: [N] of [THRESHOLD] to switch paid plans on.; reached: [N] of [THRESHOLD]: the threshold is reached, paid plans can switch on.) |
+| Launch card (E2-7, decision 0068), above the metric | Launch / being built: SMEsay is being built: the free plan has no limits, the AI runs on the hidden budget, and the developer menu shows. then four lines on what launching changes, then [Button: Launch SMEsay], confirm line Launch SMEsay now? Every free workspace starts its 7-day trial, the limits and the AI credits take effect, and the developer menu disappears. / launched: Launched on [DATE] by [EMAIL]. The plan limits and the AI credits are in force; the developer menu is gone. then [Button: Take SMEsay back to building], confirm line Take SMEsay back to building? The limits and the credits stop, the hidden budget and the developer menu come back. Trials already granted keep their end date. / done lines: SMEsay is launched. [N] workspaces start a trial. and SMEsay is back to building. |
+| Paid-plan metric | the metric's label from src/lib/plans.ts (now: Workspaces with a response submitted this month), and under it: [N]. Paid plans switch on with the Launch button above. The metric is information. (with a threshold: [N] of [THRESHOLD] to switch paid plans on.; reached: [N] of [THRESHOLD]: the threshold is reached, paid plans can switch on.) |
 | Funnel title and note | Funnel per week / Each step shows its count and, under it, its share of the step before in the same week; a step can count more than the one before (one publish, many invites). Weeks start on Monday, UTC. |
 | Tab title | the app's (SMEsay): the page has no title of its own, so its 404 is like any other |
 | Funnel columns | Week of, Sign-ups, Workspaces, Projects, Imports, Published, Invites, Links opened, Started, Submitted, Exports |
@@ -489,6 +491,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Columns | Time (UTC), Admin, Action, Outcome, Workspace or person, What changed |
 | Outcome | Done, Refused, Failed, Not recorded |
 | Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing |
+| The target of Launched SMEsay and Took SMEsay back to building (E2-7) | SMEsay |
 | A target or admin removed since | deleted; a workspace waiting for removal: [NAME] (deleted, removal pending); in the filters: deleted ([first 8 characters of the id]) |
 | What changed | key: value pairs by key in alphabetical order (none for an empty value) |
 | Empty | No admin actions yet. (filtered: No admin actions match these filters.) |
@@ -512,15 +515,16 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Back link and title | All workspaces / [WORKSPACE NAME] |
 | Sections | Marked deleted, Settings, AI budget, Members, Invitations waiting, Projects, Uploads, Last 20 product events, Support notes |
 | Marked deleted | Deleted [DATE, TIME] by [EMAIL]. The removal job deletes it within 24 hours of that; until then it can be restored. |
-| Settings | Slug, Accent (default), Logo (set, none), Plan, Created |
-| AI budget | The workspace has spent [EUR N.NN] of EUR [N] this month. Only this page shows and sets the budget (decision 0036). Field: Monthly AI budget in euro |
+| Settings | Slug, Accent (default), Logo (set, none), Plan, Created, Trial until ([DATE] or none; E2-7) |
+| AI budget (before launch) | The workspace has spent [EUR N.NN] of EUR [N] this month. Only this page shows and sets the budget (decision 0036). Field: Monthly AI budget in euro |
+| AI credits (after launch, E2-7) | The workspace has spent [EUR N.NN] of [EUR N.NN] this month, its plan's or trial's (or: set here). Only this page shows and sets the credits (decision 0036). Field: Monthly AI credits in cents, or plan for the plan's |
 | Members | Name, Email, Role (Owner, Member), Joined; none: No members. Members of a deleted workspace can leave it before it is removed. |
 | Invitations waiting | every invitation not accepted: Email, Invited, Link expires ([TIME], or [TIME] (expired)); none: No invitations waiting. |
 | Projects | [NAME], status, [N] items, version [N] (not set), Archived [DATE]; validations: Validation, State (Draft, Published, Closed, Revoked), Built on, Links (public, [N] personal, none), Created, Published, Opens, Closes; where the product would refuse a revoke, in place of the button: sample, project archived, replaced by a newer validation; none: No projects. |
 | Uploads | File, Project, Kind, Size, Uploaded; none: No uploads. |
 | Events | [TIME] [EVENT NAME] [KEY=VALUE]; none: No product events yet. |
 | Support notes | [TIME], [ADMIN EMAIL or deleted] and the text; none: No notes yet. Field: A note for this workspace, seen only here |
-| Buttons | Change the plan, Set the budget, Send again, Revoke the link, Restore the workspace, Add the note; Confirm, Cancel |
+| Buttons | Change the plan, Set the budget (before launch) or Set the credits (after; confirm line Set the AI credits of [NAME] to [VALUE] a month? (a number of cents, or plan for the plan's); done lines AI credits set to [N] cents a month. and AI credits set to the plan's.), Send again, Revoke the link, Restore the workspace, Add the note; Confirm, Cancel |
 | Confirm lines | Change the plan of [NAME] to [PLAN]? The workspace's limits change at once. / Set the AI budget of [NAME] to EUR [N] a month? / Send the invitation to [EMAIL] again? They get a new sign-in link; an earlier one still works until it expires. / Revoke the public link of [TITLE]? Respondents see that it is no longer active; answers given so far stay. / Restore [NAME]? Members who have not left it get it back. Files the removal job already deleted do not come back. / Add this note? It cannot be edited or removed. |
 | Done lines | Plan changed to [PLAN]. / AI budget set to EUR [N] a month. / Invitation sent again to [EMAIL]. / Link revoked. / Workspace restored. / Note added. |
 | Refusals | in docs/copy/errors.md, Admin |

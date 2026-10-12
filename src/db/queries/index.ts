@@ -19,4 +19,5 @@ export { aiRuns } from "./aiRuns";
 export { exportLogs } from "./exportLogs";
 export { guide, firstProjectFacts, type FirstProjectFacts } from "./guide";
 export { emails } from "./emails";
+export { productState } from "./product";
 export * as projectTransfer from "./projectTransfer";

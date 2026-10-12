@@ -91,6 +91,7 @@ async function Log({ proof, search }: { proof: AdminProof; search: Search }) {
                   <td className="px-3 py-2">
                     {r.targetWorkspaceId && <div>{r.targetWorkspaceName === null ? C.deleted : r.targetWorkspaceDeleted ? C.markedDeleted(r.targetWorkspaceName) : r.targetWorkspaceName}</div>}
                     {r.targetUserId && <div className="text-ink-muted">{r.targetUserEmail ?? C.deleted}</div>}
+                    {!r.targetWorkspaceId && !r.targetUserId && <div>{C.product}</div>}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs text-ink-muted">{auditChanges(r.changes)}</td>
                 </tr>

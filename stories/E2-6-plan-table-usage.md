@@ -55,3 +55,6 @@ Built 2026-10-02.
   reads it.
 - Not in this story: calling withinPlan() where limits apply (E3-1 project creation, E7-5
   submission, E4-1 AI run; each names it), plan screens and charging (R3).
+
+Amended 2026-10-12 (E2-7, decision 0068): the AI runs cap goes; credits per plan replace it,
+and the free plan's limits take effect with the Launch button, not the usage metric.

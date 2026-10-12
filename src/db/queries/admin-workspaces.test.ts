@@ -178,6 +178,18 @@ describe("the actions", () => {
     expect((await rows()).at(-1)).toEqual({ action: "ai_budget_set", admin_user_id: adminId, changes: { from: 10, to: 25 }, outcome: "done" });
   });
 
+  // E2-7 (decision 0068): the credits in cents, or "plan" for the plan's own, with their rows.
+  it("set the AI credits, with its row", async () => {
+    expect((await actions.setCreditsAction(blank, form({ workspaceId: wsId, credits: "abc" }))).error).toBe(C.badCredits);
+    expect((await actions.setCreditsAction(blank, form({ workspaceId: wsId, credits: "1000001" }))).error).toBe(C.badCredits);
+    expect(await actions.setCreditsAction(blank, form({ workspaceId: wsId, credits: "500" }))).toEqual({ error: null, done: "AI credits set to 500 cents a month." });
+    expect((await sql`select ai_credits_cents from workspace where id = ${wsId}`)[0].ai_credits_cents).toBe(500);
+    expect((await rows()).at(-1)).toEqual({ action: "ai_credits_set", admin_user_id: adminId, changes: { from: null, to: 500 }, outcome: "done" });
+    expect(await actions.setCreditsAction(blank, form({ workspaceId: wsId, credits: "plan" }))).toEqual({ error: null, done: "AI credits set to the plan's." });
+    expect(await actions.setCreditsAction(blank, form({ workspaceId: wsId, credits: "plan" }))).toEqual({ error: C.sameCredits, done: null });
+    expect((await sql`select ai_credits_cents from workspace where id = ${wsId}`)[0].ai_credits_cents).toBeNull();
+  });
+
   it("send an open invitation again through the product's sender, and refuse an accepted one", async () => {
     const email = `invitee-${stamp}@marlow.example`;
     const [{ id }] = await sql`insert into workspace_invite (workspace_id, email, role, invited_by) values (${wsId}, ${email}, 'member', ${ownerId}) returning id`;

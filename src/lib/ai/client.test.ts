@@ -273,3 +273,25 @@ describe("runModel", () => {
     expect(calls).toHaveLength(0);
   });
 });
+
+// E2-7 (decision 0068): after launch the free plan has no credits and the trial 33 cents; the
+// launched state is injected (the shared test database is never launched).
+describe("the credits after launch", () => {
+  it("refuses the free plan with the plan sentence, and the trial past 33 cents with the budget one", async () => {
+    const { fetch, calls } = answer(good);
+    // A workspace of its own: B carries the product cap test's run this month.
+    const c = await signIn("ai-c");
+    const wsC = await requireWorkspace(c.headers, (await workspaces.create({ name: "AI C", slug: "ai-c-" + randomUUID() }, c.userId)).id);
+    const own = (await projects.create(wsC, { name: "Credits" })).id;
+    const now = new Date();
+    const at = (opts: Parameters<typeof input>[0] = {}) => ({ ...input(opts), ws: wsC, projectId: own });
+    expect(await runModel(at({ maxOutputTokens: 1 }), { fetch, now, launched: true })).toMatchObject({ ok: false, reason: "plan", message: AI_COPY.plan });
+    expect(calls).toHaveLength(0);
+    await internal.setTrialEndsAt(wsC, new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000));
+    expect((await runModel(at({ maxOutputTokens: 100 }), { fetch, now, launched: true })).ok).toBe(true);
+    await aiRuns.create(wsC, { projectId: own, purpose: "shape", model: DEFAULT_MODEL, tokensIn: 10, tokensOut: 10, costEurCents: 30, durationMs: 1 });
+    expect(await runModel(at(), { fetch, now, launched: true })).toMatchObject({ ok: false, reason: "budget", message: AI_COPY.budget });
+    await internal.setTrialEndsAt(wsC, null);
+    expect(await runModel(at({ maxOutputTokens: 1 }), { fetch, now, launched: true })).toMatchObject({ ok: false, reason: "plan" });
+  });
+});

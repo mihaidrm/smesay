@@ -136,6 +136,17 @@ export const internal = {
   },
   // The workspace's AI budget (decision 0036): set from the admin area (E14-2) and the tests,
   // never through the session-scoped update, so no workspace member can change it.
+  // E2-7 (decision 0068): the admin's credit override in cents, null for the plan's.
+  setAiCreditsCents: async (workspaceId: string, cents: number | null): Promise<Workspace | null> =>
+    isUuid(workspaceId) && (cents === null || (Number.isInteger(cents) && cents >= 0))
+      ? (await db.update(workspace).set({ aiCreditsCents: cents }).where(eq(workspace.id, workspaceId)).returning())[0] ?? null
+      : null,
+  // A workspace's trial end, for the tests (the admin's launch grants trials in one statement).
+  setTrialEndsAt: async (workspaceId: string, at: Date | null): Promise<boolean> =>
+    isUuid(workspaceId) && (await db.update(workspace).set({ trialEndsAt: at }).where(eq(workspace.id, workspaceId)).returning({ id: workspace.id })).length > 0,
+  // At launch every live free workspace without a trial gets one ending at endsAt; the count.
+  grantTrials: async (endsAt: Date): Promise<number> =>
+    (await db.update(workspace).set({ trialEndsAt: endsAt }).where(and(eq(workspace.plan, "free"), isNull(workspace.trialEndsAt), isNull(workspace.deletedAt))).returning({ id: workspace.id })).length,
   setAiBudgetEur: async (workspaceId: string, aiBudgetEur: number): Promise<Workspace | null> =>
     isUuid(workspaceId) && Number.isInteger(aiBudgetEur) && aiBudgetEur >= 0
       ? (await db.update(workspace).set({ aiBudgetEur }).where(eq(workspace.id, workspaceId)).returning())[0] ?? null

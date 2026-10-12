@@ -76,6 +76,13 @@ describe("audited", () => {
     expect(await rowsFor(w.id)).toHaveLength(0);
   });
 
+  it("records a product action with no target (E2-7)", async () => {
+    const out = await audited(proof, { action: "product_launched" }, async () => "launched");
+    expect(out).toBe("launched");
+    const rows = await sql`select target_workspace_id, target_user_id, outcome from admin_audit where action = 'product_launched' and admin_user_id = ${adminId} order by created_at desc limit 1`;
+    expect(rows).toEqual([{ target_workspace_id: null, target_user_id: null, outcome: "done" }]);
+  });
+
   it("marks a refusal refused and a throw failed, and passes the error on", async () => {
     const w = await newWorkspace("Audit Outcomes");
     expect(await audited(proof, { action: "member_removed", targetWorkspaceId: w.id }, async () => ({ error: "This is the last owner." }))).toEqual({ error: "This is the last owner." });
@@ -134,7 +141,7 @@ describe("auditLog", () => {
   });
 
   it("words every action, outcome and a row's changes", () => {
-    expect(Object.keys(AUDIT_COPY.actions)).toHaveLength(12);
+    expect(Object.keys(AUDIT_COPY.actions)).toHaveLength(15);
     expect(Object.keys(AUDIT_COPY.outcomes)).toEqual(["done", "refused", "failed", "none"]);
     expect(auditChanges({ to: "pro", from: "free", note: null })).toBe("from: free, note: none, to: pro");
     expect(AUDIT_COPY.pageOf(1, 2, 52)).toBe("Page 1 of 2, 52 actions");

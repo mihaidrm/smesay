@@ -113,7 +113,7 @@ export type AdminProof = { readonly checked: "admin"; readonly userId: string } 
 
 // What an admin can do (stories/E14-1 to E14-4), one admin_audit row each. Change INTERFACES.md
 // first.
-export const ADMIN_ACTIONS = ["plan_changed", "ai_budget_set", "invite_resent", "link_revoked", "workspace_restored", "note_added", "magic_link_sent", "signed_out_everywhere", "member_removed", "account_deleted", "view_started", "view_stopped"] as const;
+export const ADMIN_ACTIONS = ["plan_changed", "ai_budget_set", "ai_credits_set", "product_launched", "product_taken_back", "invite_resent", "link_revoked", "workspace_restored", "note_added", "magic_link_sent", "signed_out_everywhere", "member_removed", "account_deleted", "view_started", "view_stopped"] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 export type AuditChanges = Record<string, string | number | boolean | null>;
 // What became of the action after its row was written: null while it runs, or when the process

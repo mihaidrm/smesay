@@ -27,7 +27,7 @@ import { guide, members, projects } from "@/db/queries";
 import { ShowTips } from "@/components/app/show-tips";
 import { DevMenu } from "@/components/app/dev-menu";
 import { usage } from "@/db/queries/usage";
-import { aiMode, devMenuOn } from "@/lib/ai/mode";
+import { aiMode, devMenuShown } from "@/lib/ai/mode";
 import { formatEur } from "@/lib/ai/prices";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { QUICKSTART_COPY } from "@/lib/quickstart-copy";
@@ -46,7 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sample = projectRows.find((p) => p.isSample && p.archivedAt === null) ?? null;
   // The developer menu (stories/E4-8): only when the server sees it on, never in a production
   // build without SMESAY_DEV_MENU; the AI mode from the cookie and the month's usage.
-  const dev = devMenuOn() ? { mode: await aiMode(), used: await usage(current.ws) } : null;
+  const dev = (await devMenuShown()) ? { mode: await aiMode(), used: await usage(current.ws) } : null;
   return (
     <UnsavedProvider>
     <div className="flex min-h-screen items-start">

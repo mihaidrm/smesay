@@ -60,7 +60,7 @@ export const ACTIONS_COPY = {
   refusals: {
     budget: "This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions.",
     paused: "AI is paused until next month. The answers are all on the other tabs.",
-    plan: "This workspace has used its AI runs for the month on its plan. The answers are all on the other tabs. Change the plan, or come back next month.",
+    plan: "AI comes with a paid plan. The answers are all on the other tabs.",
     failed: "The AI did not answer. No action changed. Try again in a minute.",
     invalid: "The AI answered in a form the app could not use. No action changed. Try again.",
     rateLimited: "Too many AI requests at once. Wait a minute and try again.",

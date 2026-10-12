@@ -304,6 +304,20 @@ the emails' footer: set it on the host too (step 11). A paragraph written after 
 lawyer's read (the identity levels of E5-7, in the anonymous responses pull request) keeps its
 marker until the lawyer reads it.
 
+## Step 12b. Pressing Launch (the day the product goes live)
+
+The product launches when you press Launch on /admin (stories/E2-7, decision 0068): every
+free workspace starts a 7-day trial, the plan limits and the AI credits take effect, and the
+developer menu disappears. Before pressing it:
+1. The landing page's pricing says what the plans are (the Free card still says "without
+   limits" and "paid plans come later"; its own pull request, decision 0042's gate).
+2. LIFECYCLE_EMAILS and the two cron lines (step 11d, docs/runbooks/backup-restore.md).
+3. The Console's auto-reload is on, or the AI stops when the balance runs out (step 9).
+4. ANTHROPIC_MONTHLY_BUDGET_EUR matches the Console's monthly limit.
+The button has a confirm line; the audit log records it. Take SMEsay back to building on the
+same card undoes the state (trials already granted keep their date). A paying customer is
+put on their plan from the workspace's admin page (Change the plan) until billing exists.
+
 ## Step 13. Later phases
 
 - R2: an Atlassian developer app (Jira import and write-back), Notion and Trello integration

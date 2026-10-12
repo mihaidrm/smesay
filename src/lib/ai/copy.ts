@@ -3,7 +3,8 @@
 export const AI_COPY = {
   budget: "This workspace has used its AI budget for the month. The list is imported and can be published as it is. Come back next month.",
   paused: "AI is paused until next month. The list is imported and can be published as it is.",
-  plan: "This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month.",
+  // E2-7 (decision 0068): no credits on the plan (the free plan after launch).
+  plan: "AI comes with a paid plan. The list is imported and can be published as it is.",
   failed: "The AI did not answer. Nothing changed. Try again; if it fails again, use the items as imported and come back later.",
   invalid: "The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later.",
   rateLimited: "Too many AI requests at once. Wait a minute and try again.",

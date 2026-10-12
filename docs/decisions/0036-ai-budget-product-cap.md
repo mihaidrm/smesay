@@ -26,3 +26,7 @@ Consequences: stories E2-5, E2-6, E4-1 and E14-2, stories/backlog.md, docs/copy/
 errors.md, INTERFACES.md, SECURITY.md, docs/accounts.md, .env.example, the PM app board
 (Settings) and design note 31, all on 2026-10-03. Design notes 18 and 26 keep their text as
 history with a line pointing here. docs/schema.md follows the migration through sync-status.
+
+Amended 2026-10-12 (decision 0068): after launch the per-workspace budget (item 2) is replaced
+by the plan's AI credits in cents (trial 33 cents, free 0, paid 20 percent of the monthly
+price), set and seen on the workspace's admin page only; the product cap (item 1) stays.

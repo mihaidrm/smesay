@@ -32,6 +32,13 @@ the check constraints use them). Change this file first.
   followUp, coverage.
 - PlanKey: free, pro, team, enterprise (workspace.plan, default free; E2-6). The limits per plan
   live in src/lib/plans.ts, the one place in the code that names a limit (decision 0008).
+- Entitlement (E2-7, decision 0068; src/lib/plans.ts): { plan: PlanKey, name, trial: boolean,
+  trialEndsAt, limits: Limits, aiCreditsCents, model }, from entitlementFor(workspace, launched,
+  now): before launch the plan's limits and the hidden budget in cents; after launch the trial
+  (workspace.trial_ends_at in the future on the free plan: TRIAL), the free limits with 0
+  credits, or the paid plan's, with workspace.ai_credits_cents as the admin's override.
+- ProductState (src/db/queries/product.ts): { launchedAt, launchedBy, launchedByEmail } from
+  the product table's one row; productState.launched(), launch(userId, now), takeBack().
 - MemberRole: owner, member.
 - ItemSetSource: xlsx, csv, pasted.
 - ColumnRole (E3-3): text, area, value, ref, context (2026-10-08: the column the AI reads as
@@ -413,6 +420,16 @@ aiRunsThisMonth, aiCostCentsThisMonth, by SQL); internal.productAiCostCentsThisM
 the product's spend across every workspace for the cap of decision 0036 (a sum, never a row,
 in the fenced module); PLANS and withinPlan(ws, kind) in
 src/lib/plans.ts; workspaces.setPlan(ws, plan) is the column change, with no screen until R3.
+E2-7 (decision 0068): entitlement(ws, now, launched?) and entitlementFor(workspace, launched,
+now), TRIAL and TRIAL_MS, limitOf(limits, kind); withinPlan and roomInPlan take an optional
+launched (the tests); runModel's RunDeps gains launched and reads the plan's model and credits;
+devMenuShown(env, launched?) and aiMode(env, launched?) in src/lib/ai/mode.ts;
+createWorkspaceWithSample takes { launched, now } and sets trial_ends_at; in
+src/db/queries/admin.ts: setAiCredits(proof, ws, cents | null), launchProduct(proof, userId,
+now): { trials } | null, takeBackProduct(proof); internal.setAiCreditsCents, setTrialEndsAt,
+grantTrials(endsAt). Server actions launchAction and takeBackAction in src/app/admin/actions.ts,
+setCreditsAction in the workspace page's actions. AdminAction gains ai_credits_set,
+product_launched, product_taken_back. PLAN_CARD_COPY in src/lib/plan-copy.ts.
 Permissions (E2-4): `can(role, action)` in src/lib/permissions.ts over the
 Action union; `requireRole()` in src/lib/members.ts throws ForbiddenError (403). Onboarding (E2-3):
 createWorkspaceWithSample(data, ownerUserId) in src/db/queries/onboarding.ts, imported by

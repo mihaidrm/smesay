@@ -108,7 +108,8 @@ nothing Claude runs spends money: the Evals job starts by hand only, and the smo
 E4-1 is accepted: Mihai's `npm run ai:smoke` on 2026-10-03 answered in 2,744 ms for 1 euro
 cent. E2-2 is accepted: the real Google sign-in worked on his PC the same day (decision 0037). The AI budget questions of design note 26 are decided (0036, 2026-10-03,
 PR 46): one product cap in ANTHROPIC_MONTHLY_BUDGET_EUR, the workspace budget hidden at
-EUR 10. E2 is complete; E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33; E3-7,
+EUR 10. E2 is complete (E2-7, the Launch button, the 7-day trial and the AI credits per plan,
+built 2026-10-12, decision 0068); E3 is complete (E3-1 to E3-6 built and audited, PRs 29 to 33; E3-7,
 the Sheets step for a workbook with several tabs, built 2026-10-07 from Mihai's message,
 design note 111; E3-8, the project tile's icon and colour, built 2026-10-12, decision 0066,
 design note 131); E16 Notifications (emails to the PM about a validation and the

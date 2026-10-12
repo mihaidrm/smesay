@@ -14,15 +14,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
-import { aiRuns, projects, workspaces } from "@/db/queries";
+import { aiRuns, productState, projects, workspaces } from "@/db/queries";
 import { internal } from "@/db/queries/internal";
 import { usage } from "@/db/queries/usage";
 import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
-import { isWithin, limitFor } from "@/lib/plans";
+import { entitlementFor } from "@/lib/plans";
 import { AI_COPY } from "./copy";
 import { aiMode, type AiMode } from "./mode";
-import { costEurCents, DEFAULT_MODEL, estimateCents, STAND_IN_MODEL } from "./prices";
+import { costEurCents, estimateCents, STAND_IN_MODEL } from "./prices";
 import { standInFetch } from "./stand-in";
 import { assertStrict } from "./strict";
 import { log } from "@/lib/log";
@@ -64,7 +64,10 @@ export type RunInput<T> = {
 // is given (the test's fetch is the transport), else the request's cookie (src/lib/ai/
 // mode.ts); scripts/ai-smoke.ts and evals/run.ts pass "real", since they are Mihai's paid
 // checks. standInDelayMs: the stand-in's wait, STAND_IN_DELAY_MS unless given.
-export type RunDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: Date; model?: string; mode?: AiMode; standInDelayMs?: number };
+export type RunDeps = { fetch?: typeof fetch; timeoutMs?: number; now?: Date; model?: string; mode?: AiMode; standInDelayMs?: number
+  // E2-7: the launched state, given by the tests (the shared test database is never launched).
+  launched?: boolean;
+};
 
 // The in-process stand-in waits this long before answering, so the thinking state can be
 // seen on a local machine (stories/E4-8, acceptance 5).
@@ -115,10 +118,14 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
 
   // Where the call goes (E4-8): the developer menu's choice, read from the request's cookie
   // unless the caller says. "Off" is refused here, before the budget checks and the row.
-  const mode: AiMode = deps.mode ?? (deps.fetch ? "real" : await aiMode());
+  const launched = deps.launched ?? (await productState.launched());
+  const mode: AiMode = deps.mode ?? (deps.fetch ? "real" : await aiMode(process.env, launched));
   if (mode === "off") return refused("off", "AI is off in the developer menu");
   const standIn = mode === "standin";
-  const model = standIn ? STAND_IN_MODEL : deps.model ?? DEFAULT_MODEL;
+  // E2-7 (decision 0068): what the workspace may spend this month and which model answers,
+  // from its plan, its trial and the launched state (src/lib/plans.ts entitlementFor).
+  const entitled = entitlementFor(workspace, launched, deps.now ?? new Date());
+  const model = standIn ? STAND_IN_MODEL : deps.model ?? entitled.model;
   const maxOutputTokens = input.maxOutputTokens ?? OUTPUT_TOKENS_MAX;
   const now = deps.now ?? new Date();
 
@@ -142,8 +149,10 @@ export async function runModel<T>(input: RunInput<T>, deps: RunDeps = {}): Promi
     if (productSpent + estimate > cap * 100) return refused("paused", `product spent ${productSpent} + estimate ${estimate} cents over ${cap} euro`, estimate);
   }
   const used = await usage(input.ws, now);
-  if (used.aiCostCentsThisMonth + estimate > workspace.aiBudgetEur * 100) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${workspace.aiBudgetEur} euro`, estimate);
-  if (!isWithin(limitFor(workspace.plan, "aiRuns"), used.aiRunsThisMonth)) return refused("plan", `${used.aiRunsThisMonth} runs this month on plan ${workspace.plan}`);
+  // No credits at all (the free plan after launch) says the plan sentence; a month's credits
+  // used up says the budget one. The runs cap of E2-6 is gone: credits replace it.
+  if (launched && entitled.plan === "free" && !entitled.trial && entitled.aiCreditsCents === 0) return refused("plan", "no AI credits on the free plan", estimate);
+  if (used.aiCostCentsThisMonth + estimate > entitled.aiCreditsCents) return refused("budget", `spent ${used.aiCostCentsThisMonth} + estimate ${estimate} cents over ${entitled.aiCreditsCents} cents`, estimate);
 
   const apiKey = standIn ? STAND_IN_MODEL : process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {

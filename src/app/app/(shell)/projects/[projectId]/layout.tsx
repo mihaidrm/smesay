@@ -11,7 +11,7 @@ import type { StepKey } from "@/components/app/stepper";
 import { Button } from "@/components/ui/button";
 import { NeutralPill } from "@/components/ui/status-pill";
 import { instruments, invites, projects } from "@/db/queries";
-import { aiMode, devMenuOn } from "@/lib/ai/mode";
+import { aiMode, devMenuShown } from "@/lib/ai/mode";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { DEV_MENU_COPY } from "@/lib/dev-menu-copy";
 import { latestSet } from "@/lib/imports";
@@ -44,7 +44,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
   const done: StepKey[] = published ? ["import", "shape", "build", "share"] : built ? ["import", "shape"] : imported ? ["import"] : [];
   // The AI mode pill (stories/E4-8, acceptance 1): beside the stepper when the developer
   // menu's choice is not the real model, so the stand-in's output is never taken for the AI's.
-  const mode = devMenuOn() ? await aiMode() : "real";
+  const mode = (await devMenuShown()) ? await aiMode() : "real";
   return (
     <main className="flex flex-col gap-5 px-8 pb-6">
       {/* The project header with the stepper stays at the top of the viewport while the step

@@ -288,6 +288,13 @@
       "when": 1791819380941,
       "tag": "0040_notification_emails",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1791825021338,
+      "tag": "0041_launch_trial_credits",
+      "breakpoints": true
     }
   ]
 }

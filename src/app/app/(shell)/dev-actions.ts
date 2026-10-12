@@ -9,12 +9,13 @@
 // view changes nothing).
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { AI_MODE_COOKIE, AI_MODE_COOKIE_SECONDS, devMenuOn, isAiMode } from "@/lib/ai/mode-rules";
+import { AI_MODE_COOKIE, AI_MODE_COOKIE_SECONDS, isAiMode } from "@/lib/ai/mode-rules";
+import { devMenuShown } from "@/lib/ai/mode";
 import { requireWritableWorkspace } from "@/lib/current-workspace";
 
 export async function setAiModeAction(mode: string): Promise<void> {
   await requireWritableWorkspace("/app");
-  if (!devMenuOn() || !isAiMode(mode)) return;
+  if (!(await devMenuShown()) || !isAiMode(mode)) return;
   (await cookies()).set(AI_MODE_COOKIE, mode, { path: "/", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: AI_MODE_COOKIE_SECONDS });
   revalidatePath("/app", "layout");
 }

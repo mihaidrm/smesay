@@ -75,7 +75,7 @@ of the content; page means it replaces the screen.
 | Banner, Shape | The product's monthly AI cap reached (ANTHROPIC_MONTHLY_BUDGET_EUR, decision 0036) | AI is paused until next month. The list is imported and can be published as it is. |
 | Banner, Shape | Workspace AI budget spent (the budget is hidden from the workspace, decision 0036) | This workspace has used its AI budget for the month. The list is imported and can be published as it is. Come back next month. |
 | Banner, Shape | Rate limited | Too many AI requests at once. Wait a minute and try again. |
-| Banner, Shape | Plan's AI run cap reached (E2-6, E4-1; no plan carries a cap today) | This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
+| Banner, Shape | No AI credits on the plan: the free plan after launch (E2-7, decision 0068; before launch no plan refuses this way) | AI comes with a paid plan. The list is imported and can be published as it is. (was: This workspace has used its AI runs for the month on its plan. The list is imported and can be published as it is. Change the plan, or come back next month. |
 | Banner, Shape | AI answered but the answer is unusable: refused, cut off, or failed the schema or the check (E4-1) | The AI answered in a form the app could not use. Nothing changed. Try again; if it fails again, use the items as imported and come back later. [Button: Try again] |
 | Banner, Shape and inline, Actions tab (E4-8) | The developer menu's AI calls switch is Off (local and test builds only; never in production) | AI is switched off in the developer menu. Switch it to Stand-in or Real to run this. |
 | | The Try again button sits beside the two messages above only; a paused, budget, plan, size, sample or off refusal has none (E4-2, E4-8). From E4-8 every refusal shows in the danger tint with an alert icon, on Shape and on the Actions tab. | |
@@ -269,7 +269,7 @@ of the content; page means it replaces the screen.
 | Inline, Actions tab (E9-1) | Write actions on the sample | The sample's actions are invented and cannot be written again. Write actions on your own project. |
 | Inline, Actions tab (E9-1, E9-3) | The AI budget for the month is used | This run would cost about EUR [ESTIMATE]. This workspace has used its AI budget for the month. The answers are all on the other tabs. Come back next month to write actions. |
 | Inline, Actions tab (E9-1, E9-3) | AI paused by the product cap | This run would cost about EUR [ESTIMATE]. AI is paused until next month. The answers are all on the other tabs. |
-| Inline, Actions tab (E9-1) | The plan's AI runs for the month are used | This workspace has used its AI runs for the month on its plan. The answers are all on the other tabs. Change the plan, or come back next month. |
+| Inline, Actions tab (E9-1; E2-7) | No AI credits on the plan: the free plan after launch | AI comes with a paid plan. The answers are all on the other tabs. (was: This workspace has used its AI runs for the month on its plan. The answers are all on the other tabs. Change the plan, or come back next month. |
 | Inline, Actions tab (E9-1) | The AI did not answer | The AI did not answer. No action changed. Try again in a minute. [Button: Try again] |
 | Inline, Actions tab (E9-1) | The AI answered in a form the app could not use | The AI answered in a form the app could not use. No action changed. Try again. [Button: Try again] |
 | Inline, Actions tab (E9-1) | Too many AI requests at once | Too many AI requests at once. Wait a minute and try again. |
@@ -314,6 +314,9 @@ of the content; page means it replaces the screen.
 | Plan | The plan it is on | The workspace is already on this plan. |
 | Plan | The workspace is marked deleted | This workspace is marked deleted. Restore it first. |
 | AI budget | Not a whole number from 0 to 10000 | Enter a whole number of euro from 0 to 10000. |
+| AI credits (E2-7) | Not a whole number of cents from 0 to 1000000, nor plan | Enter a whole number of cents from 0 to 1000000, or plan. |
+| AI credits (E2-7) | The credits it already has | The workspace already has these credits. |
+| Launch (E2-7, the Overview) | Launch pressed on a launched product, or Take back on one being built, from a stale page | SMEsay is already launched. Reload the page. / SMEsay is not launched. Reload the page. |
 | AI budget | The amount it has | The budget is already this amount. |
 | Restore | Not marked deleted, or already removed | This workspace is not marked deleted, or the removal job has already removed it. |
 | Note | Empty | Write the note first. |

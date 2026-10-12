@@ -53,7 +53,8 @@ npm run legal:markers    # the lawyer's markers in docs/legal/ (stories/E11-3)
 AI calls on a local machine (stories/E4-8): the sidebar's developer menu, "AI calls", decides
 where Shape and Write actions go. It shows when `NODE_ENV` is not `production` (`npm run dev`)
 or when `SMESAY_DEV_MENU=1` is set (CI's Playwright run sets it for the production server);
-a production build without the variable never shows it and always calls the real model. The
+a production build without the variable never shows it and always calls the real model; once
+Launch is pressed on /admin (stories/E2-7) no build shows it. The
 choice is the cookie `smesay-ai-mode` in your browser. With no cookie a local checkout starts
 on "Stand-in (free)": the answers come from src/lib/ai/stand-in.ts in the process, no key or
 cap is needed, the run is logged with model "stand-in" at EUR 0.00, and every screen says the

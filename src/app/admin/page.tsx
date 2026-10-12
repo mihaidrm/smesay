@@ -12,6 +12,9 @@ import { requireAdmin } from "@/lib/admin";
 import { ADMIN_COPY as C, GUIDE_ADMIN_COPY as G, actedRate, share } from "@/lib/admin-copy";
 import { formatEur } from "@/lib/ai/prices";
 import { PAID_PLAN_SWITCH, PLAN_METRICS } from "@/lib/plans";
+import { productState } from "@/db/queries";
+import { ConfirmForm } from "./confirm-form";
+import { launchAction, takeBackAction } from "./actions";
 import type { AdminProof } from "@/db/types";
 
 // No page metadata: a title of its own would show in the 404 sent to anyone else (Next keeps
@@ -40,7 +43,7 @@ export default async function AdminPage() {
 
 async function Overview({ proof }: { proof: AdminProof }) {
   const now = new Date();
-  const [weeks, rows, all, firstWeeks, tips] = await Promise.all([funnel(proof, now), workspaceUsage(proof, now), totals(proof), firstProjectFunnel(proof, now), guideStats(proof, now)]);
+  const [weeks, rows, all, firstWeeks, tips, state] = await Promise.all([funnel(proof, now), workspaceUsage(proof, now), totals(proof), firstProjectFunnel(proof, now), guideStats(proof, now), productState.get()]);
   const metric = PLAN_METRICS[PAID_PLAN_SWITCH.metric];
   return (
     <>
@@ -49,6 +52,15 @@ async function Overview({ proof }: { proof: AdminProof }) {
         <StatTile value={all.projects} label={C.totals.projects} />
         <StatTile value={all.published} label={C.totals.published} />
         <StatTile value={all.submitted} label={C.totals.submitted} tone="mint" />
+      </div>
+      {/* E2-7 (decision 0068): the one button that launches the product, and its reverse. */}
+      <div className="card flex flex-col gap-3 px-5 py-4" data-testid="admin-launch">
+        <span className="text-[13px] font-semibold text-ink-muted">{C.launch.title}</span>
+        <p className="text-base" data-testid="admin-launch-state">{state.launchedAt ? C.launch.launched(DAY.format(state.launchedAt), state.launchedByEmail ?? C.launch.unknownAdmin) : C.launch.building}</p>
+        {!state.launchedAt && <ul className="list-disc pl-5 text-sm text-ink-muted">{C.launch.changes.map((line) => <li key={line}>{line}</li>)}</ul>}
+        {state.launchedAt
+          ? <ConfirmForm action={takeBackAction} hidden={{}} label={C.launch.takeBack} confirmLine={C.launch.confirmTakeBack} testId="take-back-form" />
+          : <ConfirmForm action={launchAction} hidden={{}} label={C.launch.button} confirmLine={C.launch.confirm} testId="launch-form" variant="destructive" />}
       </div>
       <div className="card flex flex-col gap-1 px-5 py-4" data-testid="admin-metric">
         <span className="text-[13px] font-semibold text-ink-muted">{metric.label}</span>

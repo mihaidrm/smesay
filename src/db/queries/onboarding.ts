@@ -9,6 +9,8 @@
 // (node_modules/drizzle-orm/errors.js, DrizzleQueryError), and the next try adds a 4 character
 // suffix; three tries, then the error is thrown.
 import { randomBytes } from "node:crypto";
+import { productState } from "./product";
+import { TRIAL_MS } from "@/lib/plans";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { workspace, workspaceInvite, workspaceMember } from "@/db/schema";
@@ -25,12 +27,15 @@ export function isUniqueViolation(error: unknown): boolean {
 }
 
 // firstSource: the utm_source the person arrived with, already cleaned (src/lib/utm.ts; E13-3).
-export async function createWorkspaceWithSample({ name, slug, firstSource = null }: { name: string; slug: string; firstSource?: string | null }, ownerUserId: string): Promise<Workspace> {
+// launched (E2-7, decision 0068): after launch a new workspace starts its 7-day trial at once
+// (workspace.trial_ends_at); read from the product's row unless the caller gives it.
+export async function createWorkspaceWithSample({ name, slug, firstSource = null, launched, now = new Date() }: { name: string; slug: string; firstSource?: string | null; launched?: boolean; now?: Date }, ownerUserId: string): Promise<Workspace> {
+  const trialEndsAt = (launched ?? (await productState.launched())) ? new Date(now.getTime() + TRIAL_MS) : null;
   let created: Workspace | null = null;
   for (let attempt = 0; created === null; attempt++) {
     const candidate = attempt === 0 ? slug : `${slug}-${randomBytes(2).toString("hex")}`;
     try {
-      created = await workspaces.create({ name, slug: candidate, firstSource }, ownerUserId);
+      created = await workspaces.create({ name, slug: candidate, firstSource, trialEndsAt }, ownerUserId);
     } catch (error) {
       if (!isUniqueViolation(error) || attempt === 2) throw error;
     }
