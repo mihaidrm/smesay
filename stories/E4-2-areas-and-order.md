@@ -50,3 +50,10 @@ stand-in, not the AI."; a refusal for "Off" writes no shape_failed event, so the
 Changed 2026-10-08 (design note 121; Mihai: "same for when shaping is done"): after a run
 a next-step panel under the lines says "The list is shaped." with what to do next and a big
 link, Continue to Build the validation. e2e/shape.spec.ts reads the panel.
+
+Amended 2026-10-12 (design note 124; Mihai: "remove the AI language 'This comes first, because
+every claim starts here.' re-fraze things in normal language"): the rationale is one plain
+sentence on what the area's items cover, such as "These items cover how a claim is
+submitted.", not a sentence about the area's place in the order. The sample seed's three
+lines, the stand-in's line, the Shape prompt's and the schema's example say so.
+
