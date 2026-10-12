@@ -83,3 +83,9 @@ Built 2026-10-04 (design note 71, decision 0044):
   and the page runs no script and loads nothing from the network.
 - Out of scope as written: the workspace logo is not in the header yet (the name is).
 - E9-2 acceptance 4: the summary carries the actions' state.
+
+Changed 2026-10-12 (Mihai: Download PDF answered 500 on his machine, which had no browser
+for Playwright): the browser comes from the first of PLAYWRIGHT_CHROMIUM_PATH, Playwright's
+download, Google Chrome and Microsoft Edge (src/lib/export/pdf.ts launchPlan); with none the
+route answers 503 with x-export-problem: no-browser and the tab shows the errors.md sentence
+that says what to install. pdf.test.ts covers the order and the two error sentences.
