@@ -16,6 +16,11 @@
 // between answers on the same card (note 12, finding 4). Two modes: the Build preview keeps
 // the pick in memory (no onChange, stories/E5-6, acceptance 4); the respondent app controls
 // the draft and the saved state (E7-2, E7-3). One component for both, so the two cannot drift.
+// On the two-column grid the rating rows of a row sit at one height (design note 125, Mihai:
+// "priority buttons must always be alligned on cards"): the legend reserves two summary lines,
+// and the reference line when any item of the chapter has one, and a card without details
+// keeps the View more row empty when another item of the chapter has details. Not on a phone,
+// where the cards stand in one column and nothing sits beside them.
 import { useId, useState } from "react";
 import { cn } from "cn";
 import type { ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
@@ -24,6 +29,7 @@ import { labelFor } from "@/lib/scoring";
 import { RatingRow } from "./rating-row";
 
 export type CardDraft = { picked: string | null; reason: string; comment: string };
+export type CardRow = { reference: boolean; details: boolean };
 export const EMPTY_DRAFT: CardDraft = { picked: null, reason: "", comment: "" };
 
 export type ItemCardProps = {
@@ -41,6 +47,8 @@ export type ItemCardProps = {
   ring?: boolean;
   ringCard?: boolean;
   ringWording?: boolean;
+  // The card sits in a two-column row (md and up): which parts any item of its chapter has.
+  row?: CardRow;
   // The respondent app: the draft, whether the server has its complete answer, and the change.
   idKey?: string;
   draft?: CardDraft;
@@ -72,7 +80,7 @@ const TOGGLE = "relative rounded-sm text-xs font-semibold after:absolute after:-
 // 48 px target without covering the summary or the rating row.
 const MORE = "relative inline-flex h-8 items-center self-start rounded-sm text-xs font-semibold text-ink-muted underline underline-offset-2 after:absolute after:-inset-x-1.5 after:-inset-y-2 after:content-[''] hover:text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, reasonRule, accent, ring, ringCard = false, ringWording = false, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
+export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, reasonRule, accent, ring, ringCard = false, ringWording = false, row, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
   const [own, setOwn] = useState<CardDraft>(EMPTY_DRAFT);
   const draft = controlled ?? own;
   const set = (next: CardDraft) => (onChange ? onChange(next) : setOwn(next));
@@ -91,7 +99,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(method);
   return (
     <fieldset className={cn("card flex h-full min-w-0 flex-col gap-2 p-3", ringCard && "ring-2 ring-violet ring-offset-4 ring-offset-ground")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>
-      <legend className={cn("float-left flex w-full flex-col gap-0.5", ringWording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
+      <legend className={cn("float-left flex w-full flex-col gap-0.5", row && (row.reference ? "md:min-h-16" : "md:min-h-[46px]"), ringWording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
         {reference && <span className="text-xs leading-4 font-semibold text-ink-muted" data-testid="card-reference">{RESPONDENT_COPY.reference(reference)}</span>}
         <span className={cn("text-base leading-[23px] font-semibold wrap-break-word", !detailsOpen && "line-clamp-2")}>{title}</span>
       </legend>
@@ -102,6 +110,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
           <div id={`${prefix}-details`} hidden={!detailsOpen} className="rounded-lg bg-ground px-2.5 py-1.5 text-[13px] leading-[18px] wrap-anywhere text-ink-muted" data-testid="card-details">{details}</div>
         </>
       )}
+      {!details && row?.details && <div className="hidden h-8 md:block" data-testid="card-more-space" />}
       <RatingRow method={method} labels={labels} proposed={proposed} showProposed={showProposed} value={draft.picked} accent={accent} onChange={(code) => set({ ...draft, picked: code })} name={title} idKey={idKey} ring={ring} />
       {slot === "reason" ? (
         <div className="relative z-10 flex flex-col gap-1">

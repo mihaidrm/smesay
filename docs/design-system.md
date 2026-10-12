@@ -325,7 +325,10 @@ question is missing, since the box asks). The proposed value has a dashed muted 
 selected pill fills with the PM's accent and white text, and on dark with the lifted accent
 and the dark ink. Cards sit in one column on a phone and two on desktop, 12 px apart; the two
 cards of a row are always the same height, the shorter one stretched with its footer at the
-bottom. Moving to another chapter (or item, on the one-item layout) slides the new content in
+bottom, and their rating rows sit at one height (design note 125): on that grid the legend
+reserves two summary lines, and the reference line when any item of the chapter has one, and
+a card without details keeps an empty View more row when another item of the chapter has
+details; the phone's single column reserves nothing. Moving to another chapter (or item, on the one-item layout) slides the new content in
 24 px from the side the respondent moved to, fading in over 240 ms; not under reduced motion.
 
 ## Data

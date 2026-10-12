@@ -16,7 +16,10 @@ sets when text is required on Build, stories/E5-2 acceptance 6).
    note 99, Mihai: "Comment and details share the same box - its maybe a bit confusing" and
    "add it as a title above the summary of each card and say something like requirement
    CL-01": the legend is "Requirement [REF]" over the summary; the details open with View
-   more above the rating row; the two cards of a row are the same height.)
+   more above the rating row; the two cards of a row are the same height. Amended
+   2026-10-12, design note 125, Mihai: "priority buttons must always be alligned on cards":
+   on desktop the rating rows of a row sit at one height, whatever the summaries' lengths
+   and whether every item has details or a reference.)
 2. The four answers (decision 0014) through the values (decision 0018): the proposed value is
    Agree; another value is Change with the box "Could you tell us why you think the priority
    should be different?" (amended 2026-10-05, design note 99; the fit or "it" for the other
@@ -104,3 +107,7 @@ not written yet"; respondent-rate checks the empty note and data-note on a live 
 audit of the same day found the one-item layout dropping focus on Next item (the new button
 of the same name now takes it) and the Wrap up's slide widening a phone (the slide now moves
 an inner block inside the clip).
+Amended 2026-10-12 (design note 125): on the two-column grid the card reserves two summary
+lines, the reference line and the View more row from what any item of the chapter has, so
+the rating rows of a row align; "the sample's cards" reads CL-01's two lines, CL-02's one and
+the two rows' tops.
