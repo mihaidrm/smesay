@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-12 (the date of the latest migration, 0039_project_tile).
+v1, 2026-10-12 (the date of the latest migration, 0040_notification_emails).
 
-Generated from the snapshot of the 40 migrations in drizzle/ (0039_snapshot.json) by
+Generated from the snapshot of the 41 migrations in drizzle/ (0040_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -184,6 +184,8 @@ how one set version is shown to respondents: method, proposed value shown or not
 | perspectives | jsonb | not null, default [] |
 | closing | jsonb | not null, default {"confidence": true, "missingForm": true, "signOffText": ""} |
 | published_at | timestamp with time zone |  |
+| closed_email_at | timestamp with time zone |  |
+| complete_email_at | timestamp with time zone |  |
 | created_at | timestamp with time zone | not null, default now() |
 
 Unique: instrument_id_workspace_uq on id, workspace_id; instrument_id_item_set_uq on id, item_set_id.
@@ -478,6 +480,8 @@ better-auth: the signed-in person.
 | last_sign_in_at | timestamp |  |
 | guide_state | jsonb | not null, default {"tipsOff": false, "dismissed": []} |
 | results_prefs | jsonb | not null, default {} |
+| email_prefs | jsonb | not null, default {"validations": true, "digest": false, "guide": true} |
+| email_state | jsonb | not null, default {"token": null, "digestAt": null, "steps": {}} |
 
 Unique: user_email_unique on email.
 

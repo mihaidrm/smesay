@@ -18,7 +18,7 @@
 // parameter: sql.param with the text[] column as the encoder, which Drizzle writes as a
 // Postgres array literal (node_modules/drizzle-orm/pg-core/columns/common.js, PgArray
 // mapToDriverValue, and pg-core/utils/array.js, makePgArray), cast with ::text[].
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { instrument, invite, item, project } from "@/db/schema";
 import type { WorkspaceId } from "@/db/types";
@@ -39,6 +39,10 @@ export const instruments = {
   },
   // The instrument of the project on that set: the one that exists, or the one created from
   // data. Null when the project is not in the workspace.
+  // E16-1: takes the one send of the everyone-has-submitted email (8) for a validation; false
+  // once it is taken, so two Submits at once send one email.
+  claimCompleteEmail: async (workspaceId: WorkspaceId, instrumentId: string, now = new Date()): Promise<boolean> =>
+    isUuid(instrumentId) && (await db.update(instrument).set({ completeEmailAt: now }).where(and(eq(instrument.workspaceId, workspaceId), eq(instrument.id, instrumentId), isNull(instrument.completeEmailAt))).returning({ id: instrument.id })).length > 0,
   createOnSet: async (workspaceId: WorkspaceId, data: NewRow<typeof instrument>): Promise<Instrument | null> => {
     if (!isUuid(data.projectId) || !isUuid(data.itemSetId)) return null;
     return db.transaction(async (tx) => {

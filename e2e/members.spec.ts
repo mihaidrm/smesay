@@ -3,7 +3,7 @@
 // the workspace, and the owner's list shows them as a member. Two browser contexts, one per
 // person: playwright.dev/docs/browser-contexts.
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { latestLink } from "./mailpit";
+import { latestLink, latestMessage } from "./mailpit";
 
 // CI runs the production server, where better-auth rate-limits the magic link paths to 5 per
 // minute per client address, and with no forwarded address every test shares one bucket
@@ -60,6 +60,10 @@ test("owner invites, the invitee signs in and appears as a member", async ({ bro
   await owner.getByLabel("Invite by email").fill(inviteeEmail);
   await sendInvite.click();
   await expect(owner.getByRole("status")).toContainText("Invite sent.");
+  // E16-1, acceptance 4: the invitation names the workspace and carries the sign-in link.
+  const invitation = await latestMessage(owner.context().request, inviteeEmail);
+  expect(invitation.subject).toContain("invited you to Marlow Group on SMEsay");
+  expect(invitation.text).toContain("added you to Marlow Group");
   await expect(owner.getByTestId("invited-row")).toHaveCount(1);
   await expect(owner.getByTestId("invited-row").first()).toContainText(inviteeEmail);
 

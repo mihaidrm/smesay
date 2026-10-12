@@ -133,6 +133,18 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   question put to the lawyer, who approved the paragraph on 2026-10-08 (decision 0063). No
   plan has a trial yet; the paragraph is there so the terms need no new version when one starts.
 
+- L31 Service emails, added 2026-10-12 (decision 0067, design note 132): the product now
+  sends, beside the sign-in link and the invitation, one email when a validation's link
+  closes and one when everyone invited has submitted, a daily digest only when turned on, and
+  up to four short emails in a person's first two weeks until they publish a validation, each
+  with a stop link and a switch in Settings. The privacy policy says nothing about emails yet.
+  Questions for the lawyer: whether the paragraph proposed in design note 132 ("Emails from
+  SMEsay ...") goes under "What we collect from users" or its own heading; whether the
+  getting-started series rests on Article 6(1)(b) (the contract) or 6(1)(f) (legitimate
+  interest, with the stop link) and whether the ePrivacy soft opt-in (art. 13(2)) applies to
+  a free service; whether the stop link in every email meets the right to object. The series
+  is not sent until the answer (LIFECYCLE_EMAILS, docs/accounts.md step 11d).
+
 ## Data processing agreement
 
 - L30 Accepted with the terms, a signed copy on request: Art. 28(9) allows "electronic form";

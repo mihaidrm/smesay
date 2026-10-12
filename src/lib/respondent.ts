@@ -19,6 +19,7 @@ import { isVisible } from "@/lib/perspectives";
 import { viewOf, type LinkView } from "@/lib/link-access";
 import { signOffFor } from "@/lib/closing";
 import { sendMail, type Mail } from "@/lib/mail";
+import { notifyComplete } from "@/lib/notifications";
 import { receiptEmail } from "@/lib/mail/templates/receipt";
 import { withinPlan } from "@/lib/plans";
 import { missingMandatory } from "@/lib/respondent-fields";
@@ -323,6 +324,8 @@ export async function submitResponse(token: string, cookies: RespondentCookies, 
         const tally = tallyOf(link.instrument.method, visible, rows, link.instrument.reasonRule);
         const mail = receiptEmail({ respondentName: link.invite.name ?? null, projectName: link.project.name, workspaceName: link.brand.name, submittedAt: saved.submittedAt ?? now, closesAt: link.invite.closesAt, url: `${baseUrl}/r/${token}`, counts: { items: visible.length, changed: tally.higher.length + tally.lower.length, rated: tally.rated.length, notNeeded: tally.notNeeded.length, unclear: tally.unclear.length, missing: missing ? 1 : 0, confidence }, rateBlind: !link.instrument.showProposed });
         try { await send({ to, ...mail }); } catch { /* The answers are in; the receipt is a courtesy. */ }
+        // E16-1, acceptance 2: the members hear when this Submit completed the personal invites.
+        try { await notifyComplete(link.ws, link.instrument.id, baseUrl, now, send); } catch { /* Logged inside; the answers are in. */ }
       }
     : null;
   return { submittedAt: saved.submittedAt ?? now, name: firstNameOf(link, saved), version: saved.wrapVersion, receipt };

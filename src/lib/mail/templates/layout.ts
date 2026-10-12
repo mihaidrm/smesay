@@ -31,8 +31,14 @@ export type EmailParts = {
   // The button and the link under it; no button for an email with nothing to do (deletion).
   button?: { label: string; url: string };
   after?: Para[];
+  // E16-1: the last paragraph of an email the person can stop: why they get it and the stop
+  // link, a link in the HTML and the address in the text.
+  stop?: { reason: string; url: string };
 };
 export type Email = { subject: string; text: string; html: string };
+
+// The first line: the person's name when there is one (E16: a sign-up may have none).
+export const greeting = (name: string | null): Para => ({ text: name ? `Hi ${name},` : "Hi," });
 
 export function companyAddress(): string | null {
   const value = process.env.COMPANY_ADDRESS?.trim();
@@ -40,7 +46,7 @@ export function companyAddress(): string | null {
 }
 
 export function renderEmail(parts: EmailParts): Email {
-  const { origin, subject, preheader, before, button, after = [] } = parts;
+  const { origin, subject, preheader, before, button, after = [], stop } = parts;
   const privacyUrl = origin ? new URL("/legal/privacy", origin).toString() : null;
   const markUrl = origin ? new URL("/assets/brand/mark-44.png", origin).toString() : null;
   const address = companyAddress();
@@ -50,6 +56,7 @@ export function renderEmail(parts: EmailParts): Email {
     ...before.flatMap((p) => [p.text, ""]),
     ...(button ? [button.url, ""] : []),
     ...after.flatMap((p) => [p.text, ""]),
+    ...(stop ? [`You get this email because ${stop.reason} Stop these emails: ${stop.url}`, ""] : []),
     ...footer,
     ...(privacyUrl ? [`Privacy policy: ${privacyUrl}`] : []),
   ].join("\n");
@@ -59,6 +66,7 @@ export function renderEmail(parts: EmailParts): Email {
   const buttonHtml = button ? `<a href="${escape(button.url)}" style="display:inline-block;background:#6D4CF5;color:#FFFFFF;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:700">${escape(button.label)}</a>
 <p style="margin:24px 0 0;word-break:break-all;color:#5E5A72;font-size:14px;line-height:20px">${escape(button.url)}</p>` : "";
   const afterHtml = after.map((p) => para(p, "24px 0 0")).join("\n");
+  const stopHtml = stop ? `<p style="margin:24px 0 0;color:#5E5A72;font-size:13px;line-height:18px">You get this email because ${escape(stop.reason)} <a href="${escape(stop.url)}" style="color:#5A3BE0">Stop these emails</a></p>` : "";
   const footerHtml = footer.map(escape).join("<br>") + (privacyUrl ? `<br><a href="${escape(privacyUrl)}" style="color:#5A3BE0">Privacy policy</a>` : "");
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escape(subject)}</title></head><body style="margin:0;background:#F7F6FB;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#15131F">
@@ -68,7 +76,7 @@ ${preheader ? `<span style="display:none;max-height:0;overflow:hidden">${escape(
 <table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:24px"><tr>${markUrl ? `<td style="padding-right:8px;vertical-align:middle"><img src="${escape(markUrl)}" width="22" height="22" alt="" style="display:block;border:0"></td>` : ""}<td style="vertical-align:middle;font-weight:800;letter-spacing:-0.02em">S<span style="color:#5A3BE0">ME</span>say</td></tr></table>
 ${beforeHtml}
 ${buttonHtml}
-${afterHtml}
+${afterHtml}${stopHtml ? "\n" + stopHtml : ""}
 </td></tr></table>
 <p style="margin:24px 0 0;color:#5E5A72;font-size:13px;line-height:18px">${footerHtml}</p>
 </td></tr></table></body></html>`;

@@ -15,6 +15,8 @@ import { formatEur } from "@/lib/ai/prices";
 import { BrandForm } from "./brand";
 import { InviteForm, MemberRow } from "./members";
 import { DataSection } from "./data";
+import { EmailsCard } from "./emails";
+import { readEmailPrefs } from "@/lib/email-prefs";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -26,6 +28,7 @@ export default async function SettingsPage() {
   const manage = me !== null && can(me.role, "members.invite");
   const brandManage = me !== null && can(me.role, "workspace.rename");
   const { members: rows, invited } = await listMembersAndInvites(current.ws);
+  const emailPrefs = await readEmailPrefs(session.user.id);
   const owners = rows.filter((m) => m.role === "owner").length;
   const used = await usage(current.ws);
   const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
@@ -60,6 +63,7 @@ export default async function SettingsPage() {
               <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month, ${formatEur(used.aiCostCentsThisMonth)} on AI this month.`}</div>
             </div>
           </section>
+          <EmailsCard prefs={emailPrefs} disabled={Boolean(viewing)} />
         </div>
       </div>
       <section className="card" aria-labelledby="members-title">

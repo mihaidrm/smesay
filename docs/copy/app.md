@@ -56,6 +56,10 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Plan note | Paid plans come later. Nothing you build now is lost or locked. |
 | Usage line under the plan note (E2-6; the spend added with E9-3) | [N] projects, [N] responses this month, [N] AI runs this month, EUR [SPENT] on AI this month. |
 | Note | No AI budget on the page: the workspace budget will be set and seen in the admin area only (decision 0036; E14-2, not built yet). |
+| Emails to you card (E16-1), under the Plan card; the switches are the person's own, every workspace | Emails to you. These switches are yours, in every workspace. Each of these emails also has a link that stops it. / About your validations: One email when a validation's link closes, and one when everyone you invited has submitted. (on) / Daily digest: At most one email a day, only after a day with a new submission on an open validation. (off) / Getting started: Up to four emails in your first two weeks, until you publish a validation. (on) |
+| Emails to you, a switch that did not save | The switch was not saved. Try again. |
+| Stop page, /email/stop (E16-1), from the Stop these emails link of an email; the kind is one of: the emails about your validations, the daily digest, the getting-started emails | Stop [KIND]? / SMEsay stops sending you [KIND]. The other emails are not changed; their switches are in Settings. / [Button: Stop these emails] |
+| Stop page, after the button or when the kind is already off | Done. / Done. You will not get [KIND] from SMEsay any more. The switch is in Settings if you change your mind. / [Button: Go to SMEsay] |
 
 ## Settings, Data (E11-2; owners only)
 
