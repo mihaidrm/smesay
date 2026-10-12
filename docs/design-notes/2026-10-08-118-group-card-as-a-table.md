@@ -29,3 +29,8 @@ Decided:
 Not changed: the product's own "Where groups disagree" view (conflict-view.tsx) prints "agree
 of answered" per group next to a bar, with a legend line per group; Mihai has not pointed at
 it. A row in docs/review-list.md asks whether it should read like this card.
+
+Amended 2026-10-12 (Mihai: "this seems bad wording?"): the caption reads "The 5 answers on this
+item, by role." in place of "How the 5 people who answered split on this item, by role."; the
+page, the LandingF board and docs/copy/landing.md say the same.
+

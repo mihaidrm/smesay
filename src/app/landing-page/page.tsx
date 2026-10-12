@@ -208,7 +208,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
                     0062): CL-04's Sales answers are both a different priority; Priya's is the one not
                     needed; Dana and Lukas agree (src/db/seed/sample.ts). */}
                 <table className="w-full border-collapse text-[12px] leading-4 text-[#5E5A72]" data-testid="gain-groups-table">
-                  <caption className="caption-top pb-1.5 text-left text-[12px] leading-4 text-[#5E5A72]">How the 5 people who answered split on this item, by role.</caption>
+                  <caption className="caption-top pb-1.5 text-left text-[12px] leading-4 text-[#5E5A72]">The 5 answers on this item, by role.</caption>
                   <thead>
                     <tr><th scope="col" className="pb-1 text-left font-medium">Their answer</th><th scope="col" className="pb-1 pl-4 text-right font-medium">Sales<span className="block text-[11px] font-normal">2 people</span></th><th scope="col" className="pb-1 pl-4 text-right font-medium">Everyone else<span className="block text-[11px] font-normal">3 people</span></th></tr>
                   </thead>
