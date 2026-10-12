@@ -34,3 +34,8 @@ Amended 2026-10-12 (Mihai: "this seems bad wording?"): the caption reads "The 5 
 item, by role." in place of "How the 5 people who answered split on this item, by role."; the
 page, the LandingF board and docs/copy/landing.md say the same.
 
+Amended 2026-10-12 (Mihai: the quote "feels too AI-ish" and "doesnt seem like it relates to the
+text above it"): the card quotes Ioana's reason on CL-04 from the sample seed, "I find out I
+was over the limit three weeks later, after I have paid." (Ioana, sales), which is why Sales
+wants the flag as a Must; Tom's reason stays in the seed as his answer.
+
