@@ -64,6 +64,11 @@ test("build the intro and the respondent fields, see them in the preview", async
   const openCard = async (name: string) => {
     if (!(await card(name).evaluate((el) => (el as HTMLDetailsElement).open))) await card(name).locator("summary").click();
     await expect(card(name)).toHaveJSProperty("open", true);
+    // The body opens over 300 ms with a content-visibility transition (globals.css); a click
+    // inside it before the end can miss (PR 201's run 38296262358: Add a field left two rows).
+    // Wait for every animation to end, as e2e/respondent-a11y.spec.ts does
+    // (developer.mozilla.org/docs/Web/API/Document/getAnimations).
+    await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"));
   };
   await expect(card("intro")).toHaveJSProperty("open", true);
   await expect(card("intro").getByTestId("card-summary")).toHaveText("New expense tool. No intro yet.");
