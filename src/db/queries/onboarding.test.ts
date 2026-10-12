@@ -76,3 +76,17 @@ describe("markQuickstartSeen", () => {
     expect(await members.markQuickstartSeen(wsB, "someone-else", first)).toBe(false);
   });
 });
+
+// E2-7 (decision 0068): a workspace made after launch starts its 7-day trial; before launch
+// none. The launched state is injected (the shared test database is never launched).
+describe("the trial on a new workspace", () => {
+  it("ends 7 days after creation once launched, and is not set before", async () => {
+    const now = new Date("2026-10-15T12:00:00Z");
+    const launched = await createWorkspaceWithSample({ name: "Trial Co", slug: `trial-${Date.now()}`, launched: true, now }, userId);
+    made.push(launched.id);
+    expect(launched.trialEndsAt?.toISOString()).toBe("2026-10-22T12:00:00.000Z");
+    const building = await createWorkspaceWithSample({ name: "Build Co", slug: `build-${Date.now()}`, launched: false, now }, userId);
+    made.push(building.id);
+    expect(building.trialEndsAt).toBeNull();
+  });
+});

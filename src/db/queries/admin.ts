@@ -14,6 +14,8 @@ import { log } from "@/lib/log";
 import { GUIDE_LINES, TIP_IDS, type TipId } from "@/lib/guide-lines";
 import { DEFAULT_FIELDS } from "@/lib/respondent-fields";
 import { internal } from "./internal";
+import { productState } from "./product";
+import { TRIAL_MS } from "@/lib/plans";
 import { unsafeWorkspaceId } from "./scoped";
 import { usageByWorkspace } from "./usage";
 import type { Workspace } from "./workspaces";
@@ -281,6 +283,21 @@ export const adminNotes = {
 // The AI budget (decision 0036): seen and set only here; the write is the product's own
 // (internal.setAiBudgetEur, which the AI client reads).
 export const AI_BUDGET_MAX_EUR = 10_000;
+// E2-7 (decision 0068): the credits in cents after launch, and the product's switch itself.
+export const AI_CREDITS_MAX_CENTS = 1_000_000;
+export async function setAiCredits(proof: AdminProof, ws: WorkspaceId, cents: number | null): Promise<Workspace | null> {
+  checked(proof);
+  return internal.setAiCreditsCents(ws, cents);
+}
+export async function launchProduct(proof: AdminProof, adminUserId: string, now = new Date()): Promise<{ trials: number } | null> {
+  checked(proof);
+  if (!(await productState.launch(adminUserId, now))) return null;
+  return { trials: await internal.grantTrials(new Date(now.getTime() + TRIAL_MS)) };
+}
+export async function takeBackProduct(proof: AdminProof): Promise<boolean> {
+  checked(proof);
+  return productState.takeBack();
+}
 export async function setAiBudget(proof: AdminProof, ws: WorkspaceId, eur: number): Promise<Workspace | null> {
   checked(proof);
   return internal.setAiBudgetEur(ws, eur);

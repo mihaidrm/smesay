@@ -10,7 +10,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { projects, workspaceInvites } from "@/db/queries";
+import { productState, projects, workspaceInvites } from "@/db/queries";
+import { entitlementFor } from "@/lib/plans";
 import { adminNotes, adminWorkspace, projectVersions, workspaceEvents, workspaceInstruments, workspaceUploads } from "@/db/queries/admin";
 import { usage } from "@/db/queries/usage";
 import type { AdminProof, WorkspaceId } from "@/db/types";
@@ -22,7 +23,7 @@ import { INVITE_VALID_MINUTES } from "@/lib/invites";
 import { listMembersAndInvites } from "@/lib/members";
 import { PLANS } from "@/lib/plans";
 import { projectStatus } from "@/lib/project-status";
-import { addNoteAction, changePlanAction, resendInviteAction, restoreAction, revokeLinkAction, setBudgetAction } from "./actions";
+import { addNoteAction, changePlanAction, resendInviteAction, restoreAction, revokeLinkAction, setBudgetAction, setCreditsAction } from "./actions";
 import { ConfirmForm } from "../../confirm-form";
 import { startViewAction } from "../../view-as/actions";
 import { VIEW_AS_COPY } from "@/lib/view-as-copy";
@@ -68,6 +69,7 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
     workspaceUploads(proof, ws), workspaceEvents(proof, ws, 20), adminNotes.list(proof, ws), usage(ws),
   ]);
   const now = new Date();
+  const launched = await productState.launched();
   // Every invitation not yet accepted, the expired ones too, so one that "did not work" an hour
   // ago can be sent again; listMembersAndInvites gives the ones still within their minutes.
   const waiting = invitations.filter((i) => i.acceptedAt === null).sort((a, b) => b.invitedAt.getTime() - a.invitedAt.getTime());
@@ -103,6 +105,7 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
             <dt className="text-ink-muted">{C.settings.logo}</dt><dd>{w.logoObjectKey ? C.settings.logoSet : C.settings.logoNone}</dd>
             <dt className="text-ink-muted">{C.settings.plan}</dt><dd data-testid="admin-plan">{C.plans[w.plan]}</dd>
             <dt className="text-ink-muted">{C.settings.created}</dt><dd>{DAY.format(w.createdAt)}</dd>
+            <dt className="text-ink-muted">{C.settings.trial}</dt><dd data-testid="admin-trial">{w.trialEndsAt ? DAY.format(w.trialEndsAt) : C.settings.trialNone}</dd>
           </dl>
           <ConfirmForm action={changePlanAction} hidden={hidden} label={C.changePlan} confirmLine={C.confirmPlan(w.name)} valueField="plan" valueLabels={C.plans} testId="plan-form">
             <label className="flex flex-col gap-1 text-[13px] font-semibold text-ink-muted">
@@ -113,6 +116,18 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
             </label>
           </ConfirmForm>
         </Section>
+        {/* E2-7: before launch the euro budget of decision 0036; after it the credits in cents. */}
+        {launched ? (
+          <Section title={C.sections.credits} testId="admin-credits">
+            <p className="text-sm">{C.creditsLine(formatEur(used.aiCostCentsThisMonth), formatEur(entitlementFor(w, true, now).aiCreditsCents), w.aiCreditsCents !== null)}</p>
+            <ConfirmForm action={setCreditsAction} hidden={hidden} label={C.setCredits} confirmLine={C.confirmCredits(w.name)} valueField="credits" testId="credits-form">
+              <label className="flex flex-col gap-1 text-[13px] font-semibold text-ink-muted">
+                {C.creditsLabel}
+                <input name="credits" inputMode="numeric" defaultValue={w.aiCreditsCents ?? "plan"} className={`${SELECT} w-40`} />
+              </label>
+            </ConfirmForm>
+          </Section>
+        ) : (
         <Section title={C.sections.budget} testId="admin-budget">
           <p className="text-sm">{C.budgetLine(formatEur(used.aiCostCentsThisMonth), w.aiBudgetEur)}</p>
           <ConfirmForm action={setBudgetAction} hidden={hidden} label={C.setBudget} confirmLine={C.confirmBudget(w.name)} valueField="budget" testId="budget-form">
@@ -122,6 +137,7 @@ async function Detail({ proof, ws, w }: { proof: AdminProof; ws: WorkspaceId; w:
             </label>
           </ConfirmForm>
         </Section>
+        )}
       </div>
       <Section title={C.sections.members} testId="admin-members">
         {people.members.length === 0 ? <p className="text-sm text-ink-muted">{C.noMembers}</p> : <table className="w-full text-sm">

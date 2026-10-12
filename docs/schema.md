@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-12 (the date of the latest migration, 0040_notification_emails).
+v1, 2026-10-12 (the date of the latest migration, 0041_launch_trial_credits).
 
-Generated from the snapshot of the 41 migrations in drizzle/ (0040_snapshot.json) by
+Generated from the snapshot of the 42 migrations in drizzle/ (0041_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -28,6 +28,18 @@ live updates), not in the snapshot.
 - Tokens (invite.token, response.device_token) are at least 32 characters; crypto.randomBytes(16)
   as hex gives exactly 32.
 
+## product
+
+one row (id 1): when SMEsay was launched and by whom, null while it is being built; the Launch button on /admin (E2-7, decision 0068).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | smallint | pk |
+| launched_at | timestamp with time zone |  |
+| launched_by | text | fk user.id, on delete set null |
+
+Checks: product_one_row_check: product.id = 1.
+
 ## workspace
 
 organisation: members, AI budget, branding defaults (accent and logo); deleted_at starts the 24-hour removal (E11).
@@ -40,6 +52,8 @@ organisation: members, AI budget, branding defaults (accent and logo); deleted_a
 | accent_hex | text |  |
 | logo_object_key | text |  |
 | ai_budget_eur | integer | not null, default 10 |
+| ai_credits_cents | integer |  |
+| trial_ends_at | timestamp with time zone |  |
 | plan | text | not null, default free |
 | created_at | timestamp with time zone | not null, default now() |
 | deleted_at | timestamp with time zone |  |
@@ -404,7 +418,7 @@ one row per admin action, written before the action runs and marked done, refuse
 | created_at | timestamp with time zone | not null, default now() |
 
 Indexes: admin_audit_created_idx on created_at; admin_audit_workspace_idx on target_workspace_id; admin_audit_admin_idx on admin_user_id.
-Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null.
+Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'ai_credits_set', 'product_launched', 'product_taken_back', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null or admin_audit.action in ('product_launched', 'product_taken_back').
 
 ## admin_note
 

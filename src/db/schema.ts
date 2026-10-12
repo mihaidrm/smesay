@@ -44,6 +44,10 @@ export const workspace = pgTable("workspace", {
   accentHex: text("accent_hex"),
   logoObjectKey: text("logo_object_key"),
   aiBudgetEur: integer("ai_budget_eur").notNull().default(10),
+  // E2-7 (decision 0068): the admin's AI credits for the month in cents after launch, null for
+  // the plan's; and when the free plan's trial ends, null for none (src/lib/plans.ts).
+  aiCreditsCents: integer("ai_credits_cents"),
+  trialEndsAt: ts("trial_ends_at"),
   // The plan (stories/E2-6): a column change switches a workspace; the limits are in
   // src/lib/plans.ts and the free entry has none while the product is validated (decision 0008).
   plan: text("plan", { enum: PLAN_KEYS }).notNull().default("free"),
@@ -54,6 +58,14 @@ export const workspace = pgTable("workspace", {
   // The utm_source the first owner arrived with, cleaned (stories/E13-3; src/lib/utm.ts).
   firstSource: text("first_source"),
 }, (t) => [uniqueIndex("workspace_slug_idx").on(t.slug), check("workspace_plan_check", oneOf("plan", PLAN_KEYS))]);
+
+// The product's one row (stories/E2-7, decision 0068): when Mihai pressed Launch and who did.
+// Null until then. One row by the check on id; no workspace, like better-auth's tables.
+export const product = pgTable("product", {
+  id: smallint("id").primaryKey(),
+  launchedAt: ts("launched_at"),
+  launchedBy: text("launched_by").references(() => user.id, { onDelete: "set null" }),
+}, (t) => [check("product_one_row_check", sql`${t.id} = 1`)]);
 
 export const workspaceMember = pgTable("workspace_member", {
   workspaceId: wsRef(),
@@ -498,7 +510,8 @@ export const adminAudit = pgTable("admin_audit", {
   index("admin_audit_admin_idx").on(t.adminUserId),
   check("admin_audit_action_check", oneOf("action", ADMIN_ACTIONS)),
   check("admin_audit_outcome_check", sql`${t.outcome} is null or ${oneOf("outcome", AUDIT_OUTCOMES)}`),
-  check("admin_audit_target_check", sql`${t.targetWorkspaceId} is not null or ${t.targetUserId} is not null`),
+  // The product actions (E2-7) have no workspace and no person: their target is SMEsay itself.
+  check("admin_audit_target_check", sql`${t.targetWorkspaceId} is not null or ${t.targetUserId} is not null or ${t.action} in ('product_launched', 'product_taken_back')`),
 ]);
 
 // Support notes (stories/E14-2, acceptance 3): free text an admin writes on a workspace, shown

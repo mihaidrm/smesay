@@ -17,6 +17,9 @@ import { InviteForm, MemberRow } from "./members";
 import { DataSection } from "./data";
 import { EmailsCard } from "./emails";
 import { readEmailPrefs } from "@/lib/email-prefs";
+import { productState } from "@/db/queries";
+import { entitlementFor } from "@/lib/plans";
+import { PLAN_CARD_COPY } from "@/lib/plan-copy";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -29,6 +32,9 @@ export default async function SettingsPage() {
   const brandManage = me !== null && can(me.role, "workspace.rename");
   const { members: rows, invited } = await listMembersAndInvites(current.ws);
   const emailPrefs = await readEmailPrefs(session.user.id);
+  // E2-7: before launch the free line of decision 0008; after it the trial, free or paid plan.
+  const launched = await productState.launched();
+  const entitled = entitlementFor(current.workspace, launched);
   const owners = rows.filter((m) => m.role === "owner").length;
   const used = await usage(current.ws);
   const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
@@ -58,8 +64,8 @@ export default async function SettingsPage() {
           <section className="card" aria-labelledby="plan-title">
             <h2 id="plan-title" className="border-b border-hairline px-4 py-3 font-semibold">Plan</h2>
             <div className="flex flex-col gap-1.5 px-4 py-4 text-sm">
-              <div><span className="font-medium">Free</span> <span className="ml-1 rounded-full bg-violet-soft px-2.5 py-0.5 text-xs font-semibold text-violet-text">While we build it with the first users</span></div>
-              <div className="text-xs text-ink-muted">Paid plans come later. Nothing you build now is lost or locked.</div>
+              <div data-testid="plan-name"><span className="font-medium">{launched ? entitled.name : "Free"}</span> {!launched && <span className={"ml-1 rounded-full bg-violet-soft px-2.5 py-0.5 text-xs font-semibold text-violet-text"}>{PLAN_CARD_COPY.building.pill}</span>} {launched && entitled.trial && entitled.trialEndsAt && <span className={"ml-1 rounded-full bg-violet-soft px-2.5 py-0.5 text-xs font-semibold text-violet-text"} data-testid="plan-trial-ends">{PLAN_CARD_COPY.trial.pill(DATE.format(entitled.trialEndsAt))}</span>}</div>
+              <div className="text-xs text-ink-muted" data-testid="plan-note">{!launched ? PLAN_CARD_COPY.building.note : entitled.trial ? PLAN_CARD_COPY.trial.note : entitled.plan === "free" ? PLAN_CARD_COPY.free.note : PLAN_CARD_COPY.paid(entitled)}</div>
               <div className="text-xs text-ink-muted" data-testid="usage-line">{`${n(used.projects, "project", "projects")}, ${n(used.responsesThisMonth, "response", "responses")} this month, ${n(used.aiRunsThisMonth, "AI run", "AI runs")} this month, ${formatEur(used.aiCostCentsThisMonth)} on AI this month.`}</div>
             </div>
           </section>

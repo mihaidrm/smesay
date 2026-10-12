@@ -19,3 +19,6 @@ section is the Free card (EUR 0 a month, four feature lines, "paid plans come la
 nothing you build now is lost or locked") in place of the one free line. The rule stays:
 free while we build it with the first users, no paid plan on the page.
 
+Amended 2026-10-12 (decision 0068): the paid plans switch on with the Launch button on /admin,
+not with the usage metric, which stays on the admin page as information; the free plan's
+limits after launch are the business plan's (1 project, 25 responses a month) with no AI.

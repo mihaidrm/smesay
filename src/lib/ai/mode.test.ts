@@ -13,7 +13,11 @@ vi.mock("next/headers", () => ({
   },
 }));
 
-const { AI_MODE_COOKIE, AI_MODES, aiMode, devMenuOn, isAiMode, modeFrom } = await import("./mode");
+// E2-7: the product's row, mocked, so the test needs no database and can flip the launched state.
+const flags = vi.hoisted(() => ({ launched: false }));
+vi.mock("@/db/queries", () => ({ productState: { launched: async () => flags.launched } }));
+
+const { AI_MODE_COOKIE, AI_MODES, aiMode, devMenuOn, devMenuShown, isAiMode, modeFrom } = await import("./mode");
 
 const local = { NODE_ENV: "development" };
 const production = { NODE_ENV: "production" };
@@ -80,5 +84,23 @@ describe("aiMode", () => {
     outsideRequest = true;
     expect(await aiMode(local)).toBe("standin");
     expect(await aiMode(ci)).toBe("real");
+  });
+});
+
+describe("devMenuShown (E2-7, decision 0068)", () => {
+  it("is the environment's rule until the product is launched, then never, and the mode is real", async () => {
+    flags.launched = false;
+    expect(await devMenuShown(local)).toBe(true);
+    expect(await devMenuShown(production)).toBe(false);
+    expect(await devMenuShown(ci)).toBe(true);
+    flags.launched = true;
+    expect(await devMenuShown(local)).toBe(false);
+    expect(await devMenuShown(ci)).toBe(false);
+    outsideRequest = false;
+    cookieValue = "off";
+    expect(await aiMode(local)).toBe("real");
+    expect(await aiMode(ci, false)).toBe("off");
+    flags.launched = false;
+    cookieValue = undefined;
   });
 });
