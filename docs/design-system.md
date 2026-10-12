@@ -281,9 +281,10 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   on-violet text and an on-violet circle holding a violet number, ringed in violet (2 px) with
   a 2 px surface offset, a done step a mint circle with a dark tick, a coming step muted with a
   hairline-strong circle.
-- Tiles: the workspace's initials and a project's colour (one of four gradients picked by the
-  name; the sample a dashed outline) are decoration beside the written name, never the only
-  mark.
+- Tiles: the workspace's initials on the coral to sun gradient, and a project's initials on
+  one of eight gradients picked by its id (design note 126; the sample's in muted ink on a
+  dashed outline) are decoration beside the written name, never the only mark; the dark ink
+  reads at 4.5 or better on every stop and midpoint (tiles.test.ts).
 
 ## Respondent columns
 
