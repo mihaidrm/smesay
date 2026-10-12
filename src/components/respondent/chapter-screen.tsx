@@ -21,7 +21,7 @@ import { PoweredBy, type PoweredByShow } from "./powered-by";
 import type { Layout, ReasonRule, ScaleLabels, ScoringMethod } from "@/db/types";
 import { BUILD_COPY, PREVIEW_COPY } from "@/lib/build-copy";
 import { RESPONDENT_COPY, type Chapter, type RespondentItem } from "@/lib/respondent-rules";
-import { ItemCard, type CardDraft, EMPTY_DRAFT } from "./item-card";
+import { ItemCard, type CardDraft, type CardRow, EMPTY_DRAFT } from "./item-card";
 import { RespondentHeader } from "./respondent-header";
 import { FRAME_ACTIONS, FRAME_CARD, FRAME_HEADER, FRAME_OUTER, FRAME_POWERED, FRAME_PRIMARY } from "./frame";
 
@@ -74,8 +74,11 @@ export function ChapterScreen(props: ChapterScreenProps) {
   const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {}, compact = false } = props;
   const chapter = chapters[index];
   const noteId = useId();
-  const card = (it: RespondentItem) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
+  // On the two-column grid every card of a chapter learns which parts any of its items has, so
+  // the rating rows of a row sit at one height (item-card.tsx, design note 125).
+  const rowOf = (c: { items: RespondentItem[] }): CardRow => ({ reference: c.items.some((i) => Boolean(i.reference)), details: c.items.some((i) => Boolean(i.details)) });
+  const card = (it: RespondentItem, row?: CardRow) => (
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} row={row} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));
@@ -108,7 +111,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
             </div>
             {layout === "item" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(1, chapter.items.length, chapter.name ?? title)}</p>}
             {layout === "page" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>}
-            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{(layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items).slice(0, 1).map(card)}</div>
+            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{(layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items).slice(0, 1).map((it) => card(it))}</div>
             <p className="text-sm text-ink-muted" data-testid="compact-note">{PREVIEW_COPY.compactNote(chapters.reduce((n, c) => n + c.items.length, 0))}</p>
           </>
         ) : layout === "page" ? (
@@ -121,7 +124,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
                   <h2 id={`chapter-heading-${n}`} className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] wrap-break-word">{c.name ?? title}</h2>
                   {c.intro && <p className="text-sm leading-5 wrap-break-word text-ink-muted">{c.intro}</p>}
                 </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{c.items.map(card)}</div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{c.items.map((it) => card(it, rowOf(c)))}</div>
               </section>
             ))}
           </>
@@ -141,7 +144,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
                 </div>
               </>
             ) : (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{chapter.items.map(card)}</div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{chapter.items.map((it) => card(it, rowOf(chapter)))}</div>
             )}
           </>
         )}
