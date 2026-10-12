@@ -36,7 +36,7 @@ export function shape(data: string) {
     areas = areas.filter((a) => a.items.length > 0);
   }
   return {
-    areas: areas.map((a, i) => ({ ...a, rationale: i === 0 ? `This comes first, because ${a.name.toLowerCase()} starts it.` : `This comes next, because ${a.name.toLowerCase()} follows.` })),
+    areas: areas.map((a) => ({ ...a, rationale: `These items cover ${a.name.toLowerCase()}.` })),
     // One ambiguity on the per diem item, one duplicate flag on mileage pointing at the first
     // item, so the browser test can see both banners (stories/E4-4).
     items: items.map((it) => ({ ref: it.ref, reader: `${it.text} (in plain words)`, flags: { ambiguity: /per diem/i.test(it.text) ? "Which countries, and who sets the rate" : null, duplicateOf: /mileage/i.test(it.text) ? items[0].ref : null } })),
