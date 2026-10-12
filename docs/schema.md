@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-12 (the date of the latest migration, 0041_launch_trial_credits).
+v1, 2026-10-12 (the date of the latest migration, 0042_feedback).
 
-Generated from the snapshot of the 42 migrations in drizzle/ (0041_snapshot.json) by
+Generated from the snapshot of the 43 migrations in drizzle/ (0042_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -418,7 +418,7 @@ one row per admin action, written before the action runs and marked done, refuse
 | created_at | timestamp with time zone | not null, default now() |
 
 Indexes: admin_audit_created_idx on created_at; admin_audit_workspace_idx on target_workspace_id; admin_audit_admin_idx on admin_user_id.
-Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'ai_credits_set', 'product_launched', 'product_taken_back', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null or admin_audit.action in ('product_launched', 'product_taken_back').
+Checks: admin_audit_action_check: action in ('plan_changed', 'ai_budget_set', 'ai_credits_set', 'product_launched', 'product_taken_back', 'invite_resent', 'link_revoked', 'workspace_restored', 'note_added', 'magic_link_sent', 'signed_out_everywhere', 'member_removed', 'account_deleted', 'view_started', 'view_stopped', 'feedback_solved', 'feedback_reopened', 'feedback_removed'); admin_audit_outcome_check: admin_audit.outcome is null or outcome in ('done', 'refused', 'failed'); admin_audit_target_check: admin_audit.target_workspace_id is not null or admin_audit.target_user_id is not null or admin_audit.action in ('product_launched', 'product_taken_back').
 
 ## admin_note
 
@@ -434,6 +434,26 @@ a support note an admin wrote on a workspace, shown only on its admin page; goes
 
 Indexes: admin_note_workspace_idx on workspace_id.
 Checks: admin_note_text_check: char_length(admin_note.text) between 1 and 2000.
+
+## feedback
+
+one row per report sent from the Feedback page: the kind, the text, the page it came from, open or solved with who and when; the person and the admin are set null when an account goes (E17-1, decision 0069).
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | pk, default gen_random_uuid() |
+| workspace_id | uuid | fk workspace.id, on delete cascade, not null |
+| user_id | text | fk user.id, on delete set null |
+| kind | text | not null |
+| text | text | not null |
+| page | text |  |
+| status | text | not null, default open |
+| solved_at | timestamp with time zone |  |
+| solved_by | text | fk user.id, on delete set null |
+| created_at | timestamp with time zone | not null, default now() |
+
+Indexes: feedback_workspace_idx on workspace_id; feedback_status_created_idx on status, created_at.
+Checks: feedback_kind_check: kind in ('wrong', 'idea', 'question', 'other'); feedback_status_check: status in ('open', 'solved'); feedback_text_check: char_length(feedback.text) between 1 and 2000; feedback_page_check: feedback.page is null or char_length(feedback.page) between 1 and 300.
 
 ## upload
 

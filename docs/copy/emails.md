@@ -325,6 +325,24 @@ Two weeks ago you signed in to SMEsay and no validation went out. If something g
 way, reply to this email and say what; it reaches the people who build SMEsay.
 If SMEsay is not for you, ignore this. It is the last email of this kind.
 
+## 12. Feedback report (E17-1; to every address in ADMIN_EMAILS, not to a user)
+
+Sent when a signed-in person sends a report from /app/feedback, one message per admin
+address, from the page's server action after the row is written (src/lib/feedback.ts). Plain
+text, no design; a failed send is logged and the report stays on /admin/feedback.
+
+From: the app's sender address (EMAIL_FROM)
+Reply-To: [THE PERSON'S EMAIL]
+Subject: Feedback, [KIND IN LOWER CASE]: [WORKSPACE NAME] (for example: Feedback, something is wrong: Marlow Group)
+
+Body:
+[THE PERSON'S EMAIL] sent this from [WORKSPACE NAME] on [DATE AND TIME UTC], about [PATH or no page]:
+
+[THE TEXT, as written]
+
+Open the reports: [APP ADDRESS]/admin/feedback
+Reply to this email to answer [THE PERSON'S EMAIL].
+
 ## When a trial exists (drafted, not sent)
 
 No plan has a trial (decision 0008). When one does, two steps join the series, keyed on the

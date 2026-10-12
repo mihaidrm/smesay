@@ -19,6 +19,7 @@ const PADDED_BY_CHILDREN = new Set([
   "src/app/admin/workspaces/page.tsx|card overflow-x-auto",
   "src/app/admin/people/page.tsx|card overflow-x-auto",
   "src/app/admin/audit/page.tsx|card overflow-x-auto",
+  "src/app/admin/feedback/page.tsx|card overflow-x-auto",
 ]);
 
 describe("cards", () => {

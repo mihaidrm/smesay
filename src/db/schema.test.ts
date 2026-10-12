@@ -22,7 +22,7 @@ const AUTH_TABLES = ["user", "session", "account", "verification"];
 // names its target in a column, with no foreign key, so a row outlives its target; product
 // (stories/E2-7) is the one row that says whether SMEsay is launched.
 const UNSCOPED_TABLES = ["admin_audit", "product"];
-const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event", "admin_note"];
+const APP_TABLES = ["workspace", "workspace_member", "workspace_invite", "project", "item_set", "item", "instrument", "invite", "response", "answer", "missing_item", "insight", "ai_run", "upload", "workspace_mapping", "export_log", "event", "admin_note", "feedback"];
 // Columns that reference a user, not a workspace parent (export_log.made_by: E10-1).
 const USER_COLUMNS = ["user_id", "created_by", "made_by", "deleted_by", "admin_user_id"];
 

@@ -7,7 +7,7 @@
 // PM side in R1 (decision 0020). Each nav item arrived with its page: Workspaces with E14-2,
 // People with E14-3. Copy: docs/copy/app.md, Admin shell.
 import Link from "next/link";
-import { ArrowLeft, Building, LayoutDashboard, ScrollText, Users } from "lucide-react";
+import { ArrowLeft, Building, LayoutDashboard, MessageSquare, ScrollText, Users } from "lucide-react";
 import { NavLink } from "@/components/app/nav-link";
 import { Lockup } from "@/components/brand/mark";
 import { requireAdmin } from "@/lib/admin";
@@ -25,6 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <NavLink href="/admin/workspaces" icon={<Building aria-hidden="true" />}>{C.workspaces}</NavLink>
           <NavLink href="/admin/people" icon={<Users aria-hidden="true" />}>{C.people}</NavLink>
           <NavLink href="/admin/audit" icon={<ScrollText aria-hidden="true" />}>{C.audit}</NavLink>
+          <NavLink href="/admin/feedback" icon={<MessageSquare aria-hidden="true" />}>{C.feedback}</NavLink>
         </nav>
         <div className="mt-auto flex flex-col gap-3">
           <Link href="/app" className="flex h-10 items-center gap-3 rounded-xl px-3 font-medium text-ink-muted transition-colors duration-150 outline-none hover:bg-tint hover:text-ink focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface [&_svg]:size-[18px]">

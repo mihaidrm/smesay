@@ -7,8 +7,8 @@
 // (postgresql.org/docs/current/functions-datetime.html, date_trunc).
 import { and, count, desc, eq, exists, gte, ilike, inArray, isNotNull, isNull, max, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { account, adminAudit, adminNote, event, instrument, invite, itemSet, project, response, session, upload, user, verification, workspace, workspaceInvite, workspaceMember } from "@/db/schema";
-import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FunnelStep, type WorkspaceId } from "@/db/types";
+import { account, adminAudit, adminNote, event, feedback, instrument, invite, itemSet, project, response, session, upload, user, verification, workspace, workspaceInvite, workspaceMember } from "@/db/schema";
+import { FUNNEL_STEPS, type AdminAction, type AdminProof, type AuditChanges, type AuditOutcome, type FeedbackKind, type FeedbackStatus, type FunnelStep, type WorkspaceId } from "@/db/types";
 import { alias } from "drizzle-orm/pg-core";
 import { log } from "@/lib/log";
 import { GUIDE_LINES, TIP_IDS, type TipId } from "@/lib/guide-lines";
@@ -470,4 +470,35 @@ export async function firstProjectFunnel(proof: AdminProof, now = new Date()): P
     if (target) Object.assign(target, { signups: r.signups, imported: r.imported, shaped: r.shaped, built: r.built, shared: r.shared, medianHoursToLink: r.median === null ? null : Math.round(Number(r.median) * 10) / 10 });
   }
   return weeks.reverse();
+}
+
+// The feedback inbox (stories/E17-1, acceptance 6): every workspace's reports, newest first,
+// by status; and the three changes an admin makes to one, each inside audited() by the action.
+export type FeedbackInboxRow = { id: string; workspaceId: string; workspaceName: string | null; senderEmail: string | null; kind: FeedbackKind; page: string | null; text: string; status: FeedbackStatus; createdAt: Date; solvedAt: Date | null; solvedByEmail: string | null };
+export const FEEDBACK_INBOX_MAX = 200;
+export async function feedbackInbox(proof: AdminProof, status: FeedbackStatus | "all"): Promise<FeedbackInboxRow[]> {
+  checked(proof);
+  const sender = alias(user, "sender");
+  const solver = alias(user, "solver");
+  const rows = await db.select({ id: feedback.id, workspaceId: feedback.workspaceId, workspaceName: workspace.name, senderEmail: sender.email, kind: feedback.kind, page: feedback.page, text: feedback.text, status: feedback.status, createdAt: feedback.createdAt, solvedAt: feedback.solvedAt, solvedByEmail: solver.email })
+    .from(feedback).leftJoin(workspace, eq(workspace.id, feedback.workspaceId)).leftJoin(sender, eq(sender.id, feedback.userId)).leftJoin(solver, eq(solver.id, feedback.solvedBy))
+    .where(status === "all" ? undefined : eq(feedback.status, status)).orderBy(desc(feedback.createdAt), desc(feedback.id)).limit(FEEDBACK_INBOX_MAX);
+  return rows.map((r) => ({ ...r, kind: r.kind as FeedbackKind, status: r.status as FeedbackStatus }));
+}
+export async function feedbackReport(proof: AdminProof, id: string): Promise<{ id: string; ws: WorkspaceId; status: FeedbackStatus } | null> {
+  checked(proof);
+  if (!isUuid(id)) return null;
+  const row = (await db.select({ id: feedback.id, workspaceId: feedback.workspaceId, status: feedback.status }).from(feedback).where(eq(feedback.id, id)))[0];
+  return row ? { id: row.id, ws: unsafeWorkspaceId(row.workspaceId), status: row.status as FeedbackStatus } : null;
+}
+// Solved records who and when; reopened clears both. False when the row is gone.
+export async function setFeedbackStatus(proof: AdminProof, id: string, status: FeedbackStatus, adminUserId: string, now = new Date()): Promise<boolean> {
+  checked(proof);
+  const rows = await db.update(feedback).set(status === "solved" ? { status, solvedAt: now, solvedBy: adminUserId } : { status, solvedAt: null, solvedBy: null }).where(eq(feedback.id, id)).returning({ id: feedback.id });
+  return rows.length === 1;
+}
+export async function removeFeedback(proof: AdminProof, id: string): Promise<boolean> {
+  checked(proof);
+  const rows = await db.delete(feedback).where(eq(feedback.id, id)).returning({ id: feedback.id });
+  return rows.length === 1;
 }

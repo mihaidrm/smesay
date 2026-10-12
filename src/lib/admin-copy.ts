@@ -57,6 +57,7 @@ export const ADMIN_SHELL_COPY = {
   workspaces: "Workspaces",
   people: "People",
   audit: "Audit log",
+  feedback: "Feedback",
   back: "Back to the app",
 };
 
@@ -76,6 +77,7 @@ export const AUDIT_COPY = {
     plan_changed: "Changed the plan", ai_budget_set: "Set the AI budget", ai_credits_set: "Set the AI credits", product_launched: "Launched SMEsay", product_taken_back: "Took SMEsay back to building", invite_resent: "Sent an invitation again", link_revoked: "Revoked a link",
     workspace_restored: "Restored the workspace", note_added: "Added a support note", magic_link_sent: "Sent a sign-in link", signed_out_everywhere: "Signed the person out everywhere",
     member_removed: "Removed a member", account_deleted: "Deleted the account", view_started: "Started viewing as the owner", view_stopped: "Stopped viewing",
+    feedback_solved: "Marked a report solved", feedback_reopened: "Reopened a report", feedback_removed: "Removed a report",
   } satisfies Record<AdminAction, string>,
   deleted: "deleted",
   // The target of a product action (E2-7): no workspace and no person.
@@ -266,3 +268,28 @@ export const GUIDE_ADMIN_COPY = {
 
 // Acted on over shown, as a percentage; an empty cell when nothing was shown.
 export const actedRate = (acted: number, shown: number): string => (shown === 0 ? "" : `${Math.round((acted / shown) * 100)}%`);
+
+// The feedback inbox (stories/E17-1, acceptance 6; docs/copy/app.md, Admin feedback).
+export const FEEDBACK_ADMIN_COPY = {
+  crumb: "SMEsay admin",
+  title: "Feedback",
+  intro: "Every report sent from the Feedback page in the app, newest first. Mark a report solved when it is handled; remove one that has no value.",
+  filters: { open: "Open", solved: "Solved", all: "All" },
+  columns: { when: "Sent", workspace: "Workspace", person: "Person", kind: "Kind", page: "Page", text: "Report", status: "Status", actions: "Actions" },
+  empty: { open: "No open report.", solved: "No solved report.", all: "No report yet." },
+  noPage: "no page",
+  gone: "deleted",
+  solvedLine: (when: string, by: string) => `Solved on ${when} by ${by}`,
+  solve: "Mark solved",
+  reopen: "Reopen",
+  remove: "Remove",
+  confirmSolve: "Mark this report solved?",
+  confirmReopen: "Reopen this report?",
+  confirmRemove: "Remove this report? It is deleted; the audit log keeps that it was removed.",
+  solved: "Marked solved.",
+  reopened: "Reopened.",
+  removed: "Removed.",
+  missing: "That report is gone. Reload the page.",
+  same: "The report already has that status. Reload the page.",
+  failed: "That did not work, and it has been logged. Try again in a minute.",
+};
