@@ -65,7 +65,9 @@ yours to start).
 On a machine with a preinstalled Chromium and no download access, set
 `PLAYWRIGHT_CHROMIUM_PATH` to its path before `npm run test:e2e`. The app reads the same variable
 at run time: the PDF summary (stories/E10-3) prints with that Chromium, else with the one
-`npx playwright install chromium` downloads; with neither, a summary download fails.
+`npx playwright install chromium` downloads, else with the Google Chrome or Microsoft Edge
+installed on the machine; with none, the Export tab says so and the server logs one line
+(src/lib/export/pdf.ts, since 2026-10-12).
 
 ## What is in the scaffold and where each choice comes from
 
