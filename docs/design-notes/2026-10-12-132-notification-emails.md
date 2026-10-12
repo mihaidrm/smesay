@@ -63,7 +63,7 @@ workspace (a service message under GDPR Article 6(1)(b), the contract). The seri
 message about the service to a person who signed up for it; Claude's reading is Article
 6(1)(f), legitimate interest, with an easy stop in every email, and the ePrivacy soft opt-in
 does not apply since nothing is sold. The lawyer confirms. Proposed paragraph for "What we
-collect from users", put to the lawyer as L31 in docs/legal/lawyer-review.md:
+collect from users", put to the lawyer as L43 in docs/legal/lawyer-review.md:
 
 "Emails from SMEsay. We send you sign-in links and, if you are invited to a workspace, the
 invitation. About your own validations we send one email when a validation's link closes
@@ -73,6 +73,8 @@ on the next step. Each of these emails has a link that stops that kind of email,
 Settings has a switch for each. We do not send newsletters or offers."
 
 Until the lawyer confirms, LIFECYCLE_EMAILS stays unset and the series is counted, not sent.
+Confirmed on 2026-10-12: the paragraph is in docs/legal/privacy.md, version 5; the switch is
+set when the product goes live.
 
 ## Not changed
 

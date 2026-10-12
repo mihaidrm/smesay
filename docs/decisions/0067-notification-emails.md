@@ -22,7 +22,7 @@ Decision:
   copy is drafted and marked not sent.
 - The series goes out only when LIFECYCLE_EMAILS=on, which Mihai sets at the launch gate
   once the lawyer confirms the privacy policy's paragraph on service emails (design note 132,
-  docs/legal/lawyer-review.md L31). The validation emails and the invitation need no gate:
+  docs/legal/lawyer-review.md L43). The validation emails and the invitation need no gate:
   they follow from actions in the person's own workspace.
 - Claude's choices under decision 0044, in docs/review-list.md: recipients are every member
   of the workspace with the switch on; the digest is opt-in; the steps are at 1, 3, 7 and 14
@@ -33,3 +33,7 @@ instrument.complete_email_at), src/lib/notifications.ts, scripts/jobs-emails.ts,
 templates, the Settings card, /email/stop, docs/copy/emails.md (emails 7 to 11), app.md,
 errors.md, docs/design-system.md, INTERFACES.md, docs/setup.md, docs/runbooks, .env.example,
 docs/accounts.md, docs/legal/lawyer-review.md, stories/E16-1 and E16-2, design note 132.
+
+Amended 2026-10-12: the lawyer confirmed the paragraph (L43; Mihai: "lawyer said ok"), and it
+is in the privacy policy, version 5. LIFECYCLE_EMAILS stays the operator's switch, set when
+the product goes live (docs/accounts.md step 12b), not a wait on anyone.

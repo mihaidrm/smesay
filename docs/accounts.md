@@ -281,10 +281,10 @@ Variables for the Browser"), so changing it on the host needs a new build.
 
 `npm run jobs:emails` (E16, hourly by cron, docs/runbooks/backup-restore.md) sends the
 closing summaries and the digests as soon as it runs. The getting-started series goes only
-with `LIFECYCLE_EMAILS=on` in the host's settings: set it once the lawyer confirms the
-privacy policy's paragraph on service emails (L31 in docs/legal/lawyer-review.md; the text
-is in design note 132) and the paragraph is on /legal/privacy. Until then the job prints how
-many are due and sends none.
+with `LIFECYCLE_EMAILS=on` in the host's settings. The lawyer confirmed the privacy policy's
+paragraph on service emails on 2026-10-12 (L43 in docs/legal/lawyer-review.md) and it is on
+/legal/privacy (version 5), so set the variable when the product goes live (step 12b). Until
+then the job prints how many are due and sends none.
 
 ## Step 12. Legal (before launch)
 
@@ -294,6 +294,8 @@ subprocessors.md (stories/E11-3), shown at /legal/privacy, /legal/terms, /legal/
 /legal/subprocessors, carries no check markers. `npm run legal:markers` lists what is left:
 3 on 2026-10-07, the registered address, the registration number and the fiscal code, on the
 privacy policy, the terms and the DPA.
+On 2026-10-12 the lawyer confirmed the paragraph on service emails (L43); it is in the
+privacy policy as version 5 (decision 0067).
 
 Done on 2026-10-08: Mihai sent the certificate of registration and version 4 of the three
 pages carries the registered seat, the trade register number and the fiscal code. The same day

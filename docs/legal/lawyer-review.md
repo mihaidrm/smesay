@@ -133,7 +133,7 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   question put to the lawyer, who approved the paragraph on 2026-10-08 (decision 0063). No
   plan has a trial yet; the paragraph is there so the terms need no new version when one starts.
 
-- L31 Service emails, added 2026-10-12 (decision 0067, design note 132): the product now
+- L43 Service emails, added 2026-10-12 (decision 0067, design note 132): the product now
   sends, beside the sign-in link and the invitation, one email when a validation's link
   closes and one when everyone invited has submitted, a daily digest only when turned on, and
   up to four short emails in a person's first two weeks until they publish a validation, each
@@ -142,8 +142,11 @@ the hosting plans are set at the launch gate (docs/review-list.md).
   SMEsay ...") goes under "What we collect from users" or its own heading; whether the
   getting-started series rests on Article 6(1)(b) (the contract) or 6(1)(f) (legitimate
   interest, with the stop link) and whether the ePrivacy soft opt-in (art. 13(2)) applies to
-  a free service; whether the stop link in every email meets the right to object. The series
-  is not sent until the answer (LIFECYCLE_EMAILS, docs/accounts.md step 11d).
+  a free service; whether the stop link in every email meets the right to object.
+  Accepted on 2026-10-12 (Mihai relayed the lawyer's answer as an ok; no detail on the legal
+  basis questions was passed on). The paragraph is in docs/legal/privacy.md, version 5, under
+  "What we collect from users", as proposed. LIFECYCLE_EMAILS stays the operator's switch,
+  set when the product goes live (docs/accounts.md steps 11d and 12b).
 
 ## Data processing agreement
 
