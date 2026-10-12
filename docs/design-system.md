@@ -254,7 +254,8 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
 - Stat tile: a card with the number at 30 px 800 in mono and a 13 px muted label; the number in
   ink or in violet text, mint text or sun text by what it counts (never a solid).
 - Next-step panel (design note 121; src/components/app/next-step.tsx): once a step's work is
-  done, a panel on the agree tint with a hairline, 20 by 16 px padding, Lucide's CircleCheck at
+  done (Import with the list in, Shape after a run, Build once an intro is saved, decision
+  0065), a panel on the agree tint with a hairline, 20 by 16 px padding, Lucide's CircleCheck at
   24 px in the agree colour, a 600 line and a 13 px muted line, and a primary link at the
   respondent size (48 px) with an arrow; the link wraps under the text below 600 px.
 - Thinking (design note 113; src/components/app/thinking.tsx): while an AI run is pending,
