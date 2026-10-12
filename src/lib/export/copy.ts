@@ -37,6 +37,8 @@ export const EXPORT_COPY = {
       line: "The PDF holds what this page shows: the headline numbers, the agreement by area, the items, the registers, the sign-off record and the actions.",
       download: "Download PDF",
       failed: "The PDF export did not finish. Try again; if it fails again, reload the page and export again.",
+      // The route answered 503 with x-export-problem: no-browser (src/lib/export/pdf.ts).
+      noBrowser: "The PDF export needs a browser on the server and none was found. On your own machine, run npx playwright install chromium and try again; on a host, docs/setup.md says where the browser comes from.",
       overLimit: (pages: number | string) => `The summary runs to ${pages} pages, over the ${SUMMARY_PAGE_LIMIT} a deck takes. It still downloads; to shorten it, filter this page, for example to one role or to Disagree, and download again.`,
     },
     download: "Download CSV",

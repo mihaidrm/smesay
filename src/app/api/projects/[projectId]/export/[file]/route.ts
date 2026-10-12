@@ -16,7 +16,9 @@
 // (src/lib/export/pdf.ts), with its page count in the x-summary-pages header so the Export tab
 // can say when it runs over 30 pages; logged with the page count as its rows. Next leaves
 // playwright-core out of the server bundle (node_modules/next/dist/lib/
-// server-external-packages.jsonc lists it).
+// server-external-packages.jsonc lists it). A server with no browser for the PDF (pdf.ts
+// NoBrowserError) gets 503 with x-export-problem: no-browser, which the Export tab turns into
+// its own sentence (docs/copy/errors.md), and one log line; a retry cannot help there.
 import { exportLogs, instruments, projects } from "@/db/queries";
 import { resultsPrefs } from "@/db/queries/results";
 import { EXPORT_FILES, type CsvFile, type ExportFile } from "@/db/types";
@@ -24,7 +26,8 @@ import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { BOM, line } from "@/lib/export/csv";
 import { exportTable } from "@/lib/export/files";
-import { renderPdf } from "@/lib/export/pdf";
+import { NoBrowserError, renderPdf } from "@/lib/export/pdf";
+import { log } from "@/lib/log";
 import { exportProject } from "@/lib/export/project";
 import { summaryView } from "@/lib/export/summary";
 import { summaryFooter, summaryHeader, summaryHtml } from "@/lib/export/summary-html";
@@ -63,7 +66,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ proj
   if (file === "summary") {
     const view = await summaryView({ ws: current.ws, workspace: current.workspace.name, project, instrument, filter, ctx, tiles: storedTiles(prefs.tiles) ?? DEFAULT_TILES, now: new Date() });
     if (!view) return new Response(null, { status: 404 });
-    const pdf = await renderPdf(summaryHtml(view), { header: summaryHeader(view), footer: summaryFooter() });
+    let pdf;
+    try {
+      pdf = await renderPdf(summaryHtml(view), { header: summaryHeader(view), footer: summaryFooter() });
+    } catch (e) {
+      if (!(e instanceof NoBrowserError)) throw e;
+      log("error", "The PDF summary found no browser on this server", { project: project.id, reason: "no-browser", detail: e.tried.join(", ") });
+      return new Response(null, { status: 503, headers: { "x-export-problem": "no-browser", "cache-control": "no-store" } });
+    }
     await exportLogs.create(current.ws, { projectId: project.id, madeBy: session.user.id, file: "summary", filter: logFilter, rows: pdf.pages });
     await track("export_downloaded", { format: "pdf" }, { workspaceId: current.ws, userId: session.user.id });
     return new Response(new Uint8Array(pdf.bytes), { headers: { "content-type": "application/pdf", "content-disposition": attachment(EXPORT_COPY.fileName(project.name, "summary", date)), "x-summary-pages": String(pdf.pages), "cache-control": "no-store" } });

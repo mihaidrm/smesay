@@ -232,6 +232,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Line under the title | This is what respondents see, built from version [N] of the list. The preview on the right follows every save. |
 | Build cards (design note 122) | The five cards (Intro, Scoring, Perspectives, Closing, Respondent fields) are collapsible and one is open at a time: Intro while it is empty, none once an intro is saved, none on the sample (src/lib/build-guide.ts). A click on a title row opens that card and closes the open one; a card stays open through its save. Each title row carries the card's settings, the rows below. |
 | Intro card summary | [TITLE]. [INTRO] / [TITLE]. No intro yet. |
+| Next-step panel under the title once an intro is saved, not on the sample (decision 0065, design note 127) | The validation is built. Change any card below if you want to, then share the link your respondents open. [Button: Continue to Share the link] |
 | Scoring card summary | [METHOD], proposal shown / proposal hidden, a reason when the answer differs / no reason required / a reason on every answer, chapters / one item per screen / single long page |
 | Perspectives card summary | [NAMES, apart by commas]. [N] of [M] items carry a perspective. / None. Every item goes to everyone. |
 | Closing card summary | A closing question / No closing question. Asks for missing items / Does not ask for missing items. Confidence always on. |

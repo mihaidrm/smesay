@@ -78,3 +78,9 @@ at a time, each with its settings on its title row ("New expense tool. No intro 
 and Role. Both required."). Intro is open while it is empty; with an intro saved every card
 is closed and opens by its title row. The rule is src/lib/build-guide.ts; e2e/build.spec.ts
 opens each card before working in it.
+
+Changed 2026-10-12 (decision 0065, design note 127; Mihai: "the Build Step doesnt have a
+next step button popping up when everthing is filled in"): with an intro saved, the
+next-step panel (design note 121) sits under the title, "The validation is built." with
+Continue to Share the link; the rule is buildDone in src/lib/build-guide.ts, and
+e2e/build.spec.ts reads the panel after the intro's save.

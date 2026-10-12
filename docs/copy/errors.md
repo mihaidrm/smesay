@@ -254,6 +254,7 @@ of the content; page means it replaces the screen.
 | Banner, results (E8-1) | The headline numbers, a tab or an item's detail fail to load | [PART] could not load. It has been logged. Try again in a minute. [Button: Try again] ([PART]: The headline numbers, the tab's name, or The item's detail (E8-5)) |
 | Banner, results | Live updates lost | Live updates stopped. The page keeps the last numbers; reload to catch up. |
 | Banner, results | Fewer than 3 responses in a group | Groups with fewer than 3 answers are shown but not compared, so one person cannot be singled out. (3: decision 0031.) |
+| Inline, Export tab, Download PDF (E10-3) | The server has no browser for the PDF: Playwright's Chromium is not downloaded and no Google Chrome or Microsoft Edge is installed (the route answers 503) | The PDF export needs a browser on the server and none was found. On your own machine, run npx playwright install chromium and try again; on a host, docs/setup.md says where the browser comes from. |
 | Inline, Import a project (E10-2) | No file chosen | Choose the .json file made with Whole project on a project's Export tab. |
 | Inline, Import a project (E10-2) | A file over 5 MB | This file is over 5 MB, the most an import reads, so this project cannot move by file. Its answers export as CSV on the project's Export tab. |
 | Inline, Import a project (E10-2) | More responses submitted this month than the plan takes | This file has [N] responses submitted this month, and the workspace's plan takes [M] more this month. Import it once the month turns. |

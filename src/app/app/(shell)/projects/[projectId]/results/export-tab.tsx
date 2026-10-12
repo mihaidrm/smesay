@@ -30,7 +30,7 @@ export function ExportTab({ projectId, query, sample }: { projectId: string; que
         <li className="card flex flex-col gap-2 p-4" data-testid="export-summary">
           <h3 className="text-[15px] font-bold">{T.summary.title}</h3>
           <p className="text-sm text-ink-muted">{T.summary.line}</p>
-          <ExportDownload href={`/api/projects/${projectId}/export/summary${query ? `?${query}` : ""}`} label={T.summary.download} srLabel={T.summary.title} busyLabel={T.downloading} failed={T.summary.failed} testId="export-summary-download" fallbackName="summary.pdf" pages={{ limit: SUMMARY_PAGE_LIMIT, note: T.summary.overLimit("{pages}") }} />
+          <ExportDownload href={`/api/projects/${projectId}/export/summary${query ? `?${query}` : ""}`} label={T.summary.download} srLabel={T.summary.title} busyLabel={T.downloading} failed={T.summary.failed} problems={{ "no-browser": T.summary.noBrowser }} testId="export-summary-download" fallbackName="summary.pdf" pages={{ limit: SUMMARY_PAGE_LIMIT, note: T.summary.overLimit("{pages}") }} />
         </li>
       </ul>
     </div>

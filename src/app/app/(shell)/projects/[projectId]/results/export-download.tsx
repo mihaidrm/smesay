@@ -3,7 +3,9 @@
 // before the page's script loads; with the script, the click fetches the file, saves it under
 // the name the route gives (Content-Disposition, filename*) through an object URL
 // (developer.mozilla.org/docs/Web/API/URL/createObjectURL_static), shows "Preparing the file"
-// while it waits, and says so when the route fails (docs/copy/errors.md, Export failed). The
+// while it waits, and says so when the route fails (docs/copy/errors.md, Export failed); a
+// route that names its problem (x-export-problem, the PDF with no browser on the server) gets
+// that problem's sentence instead, since a retry cannot help there. The
 // fetch does not follow a redirect (redirect: "manual", developer.mozilla.org/docs/Web/API/
 // RequestInit#redirect): a signed-out session is sent to the sign-in page, which must not be
 // saved as the file, so a redirect counts as a failure.
@@ -21,9 +23,9 @@ const nameOf = (disposition: string | null, fallback: string) => {
 export const pagesNote = (count: number, pages?: { limit: number; note: string }) =>
   pages && count > pages.limit ? pages.note.replace("{pages}", String(count)) : null;
 
-export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId, fallbackName, pages }: { href: string; label: string; srLabel: string; busyLabel: string; failed: string; testId: string; fallbackName: string; pages?: { limit: number; note: string } }) {
+export function ExportDownload({ href, label, srLabel, busyLabel, failed, problems, testId, fallbackName, pages }: { href: string; label: string; srLabel: string; busyLabel: string; failed: string; problems?: Record<string, string>; testId: string; fallbackName: string; pages?: { limit: number; note: string } }) {
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   async function download(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
@@ -31,11 +33,11 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
     // so it does nothing; the link is drawn disabled (data-download, src/app/globals.css).
     if (busy || e.currentTarget.closest("fieldset:disabled")) return;
     setBusy(true);
-    setError(false);
+    setError(null);
     setNote(null);
     try {
       const res = await fetch(href, { cache: "no-store", redirect: "manual" });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) throw new Error(res.headers.get("x-export-problem") ?? String(res.status));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -46,8 +48,9 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setNote(pagesNote(Number(res.headers.get("x-summary-pages")), pages));
-    } catch {
-      setError(true);
+    } catch (e) {
+      const problem = e instanceof Error ? problems?.[e.message] : undefined;
+      setError(problem ?? failed);
     } finally {
       setBusy(false);
     }
@@ -58,7 +61,7 @@ export function ExportDownload({ href, label, srLabel, busyLabel, failed, testId
         {busy ? busyLabel : label}<span className="sr-only"> {srLabel}</span>
       </a>
       {note && <p role="status" className="rounded-lg bg-sun-soft px-3 py-2 text-sm text-sun-text" data-testid={`${testId}-pages`}>{note}</p>}
-      {error && <p role="alert" className="rounded-lg bg-unclear-tint px-3 py-2 text-sm text-unclear-text" data-testid={`${testId}-error`}>{failed}</p>}
+      {error && <p role="alert" className="rounded-lg bg-unclear-tint px-3 py-2 text-sm text-unclear-text" data-testid={`${testId}-error`}>{error}</p>}
     </div>
   );
 }
