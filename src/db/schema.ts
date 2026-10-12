@@ -13,7 +13,7 @@ import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
  smallint } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
-import { ADMIN_ACTIONS, AUDIT_OUTCOMES, EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
+import { ADMIN_ACTIONS, AUDIT_OUTCOMES, EXPORT_FILES, FEEDBACK_KINDS, FEEDBACK_PAGE_MAX, FEEDBACK_STATUSES, FEEDBACK_TEXT_MAX, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
 import type { AuditChanges, ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview, UploadSheets } from "./types";
 
 export * from "./auth-schema";
@@ -526,4 +526,27 @@ export const adminNote = pgTable("admin_note", {
 }, (t) => [
   index("admin_note_workspace_idx").on(t.workspaceId),
   check("admin_note_text_check", sql`char_length(${t.text}) between 1 and 2000`),
+]);
+
+// A feedback report from a signed-in person (stories/E17-1, decision 0069): the kind, the
+// text, the page it was sent from, and whether Mihai has handled it. Goes with the workspace;
+// the person and the admin who solved it are "set null" so a report outlives an account.
+export const feedback = pgTable("feedback", {
+  id: id(),
+  workspaceId: wsRef(),
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  kind: text("kind").notNull(),
+  text: text("text").notNull(),
+  page: text("page"),
+  status: text("status").notNull().default("open"),
+  solvedAt: ts("solved_at"),
+  solvedBy: text("solved_by").references(() => user.id, { onDelete: "set null" }),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [
+  index("feedback_workspace_idx").on(t.workspaceId),
+  index("feedback_status_created_idx").on(t.status, t.createdAt),
+  check("feedback_kind_check", oneOf("kind", FEEDBACK_KINDS)),
+  check("feedback_status_check", oneOf("status", FEEDBACK_STATUSES)),
+  check("feedback_text_check", sql`char_length(${t.text}) between 1 and ${sql.raw(String(FEEDBACK_TEXT_MAX))}`),
+  check("feedback_page_check", sql`${t.page} is null or char_length(${t.page}) between 1 and ${sql.raw(String(FEEDBACK_PAGE_MAX))}`),
 ]);

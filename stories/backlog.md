@@ -16,6 +16,7 @@ E13 Analytics for us: product event catalogue and log, an admin page with the fu
 E14 Admin and support: the admin shell and its audit log, every workspace with its settings and the support actions, every person with their sign-in and sessions, a read-only view of a workspace as its owner sees it (decision 0035). Stories E14-1 to E14-4.
 E15 Onboarding and tutorial with the robot: the guide card with its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips for three stuck states, and the measurement that decides which tips stay (design note 39). Stories E15-1 to E15-5, written 2026-10-03.
 E16 Notifications: emails to the PM about a validation (closing summary, everyone has submitted, an opt-in daily digest), a workspace invitation that names the inviter, the Emails card and the stop link, and the getting-started series for people who signed in and have not published (decision 0067). Stories E16-1 and E16-2.
+E17 Feedback: a feedback form in the app (kind, text, the page), the workspace's own list, the admin inbox with Mark solved, Reopen and Remove, an email to the admin addresses per report. E17-1 (2026-10-12, decision 0069).
 
 64 stories were written on 2026-10-01 (decision 0029), E13's three on 2026-10-02 (decision 0030), E14's four the same day (decision 0035) and E15's five on 2026-10-03 (design note 39), from docs/business-plan.pdf pages 9 to
 15, the decisions, the design notes, the prototype boards and docs/copy/. A story is rewritten

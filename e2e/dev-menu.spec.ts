@@ -37,10 +37,12 @@ test("switch AI calls between Off, Stand-in and Real, and see where each answer 
   };
   // The pill in the project header. After a choice is stored the shell re-renders, and the
   // old header and the new one can both be in the page for a while (PR 176's run
-  // 37768803375 saw "AI: stand-in" and "AI: off" side by side), so the pill is read once
-  // there is one again.
+  // 37768803375 saw "AI: stand-in" and "AI: off" side by side; main's run 38229066594 saw
+  // the old one alone, then both), so the spec waits for the new pill, then for the old one
+  // to go, and reads the text last.
   const pillReads = async (text: string) => {
     const pill = page.getByTestId("ai-mode-pill");
+    await expect(pill.filter({ hasText: text })).toHaveCount(1, { timeout: 15_000 });
     await expect(pill).toHaveCount(1, { timeout: 15_000 });
     await expect(pill).toHaveText(text);
   };

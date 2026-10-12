@@ -334,6 +334,24 @@ of the content; page means it replaces the screen.
 | Delete | The admin's own account | An admin cannot delete their own account. Ask another admin to delete it. |
 | Delete | The only owner of a workspace, deleted ones waiting for removal included | This person is the only owner of [WORKSPACES]. Ask them to make another member an owner, or to delete the workspace, then delete the account. |
 
+## Feedback (E17-1, /app/feedback)
+
+| Where | When | Text |
+|---|---|---|
+| Beside Send | No kind picked | Pick what the report is about. |
+| Beside Send | The text is empty | Write what you would like to tell us. |
+| Beside Send | The text is over 2,000 characters | Keep the report under 2,000 characters. |
+| Beside Send | The workspace sent 20 reports in the last hour | This workspace has sent 20 reports in the last hour. Try again later, or write to us by email. |
+| Beside Send | The action threw (logged) | The report was not saved. Try again in a minute. |
+
+## Admin (E17-1, the feedback inbox's actions)
+
+| Where | When | Text |
+|---|---|---|
+| Under the form | The report was removed since the page loaded | That report is gone. Reload the page. |
+| Under the form | The report already has that status | The report already has that status. Reload the page. |
+| Under the form | The action threw (logged) | That did not work, and it has been logged. Try again in a minute. |
+
 ## View as (E14-4)
 
 | Where | When | Text |

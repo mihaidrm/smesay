@@ -264,7 +264,8 @@ is billed per use.
 
 Set `ADMIN_EMAILS=` in .env.local to the email you sign in with (several are comma separated),
 and at the launch gate in the host's settings. /admin then shows you the Overview (E13-2);
-everyone else, and everyone while it is empty, gets the 404 page.
+everyone else, and everyone while it is empty, gets the 404 page. Every address in the list
+also gets an email per feedback report sent from the app (E17-1, docs/copy/emails.md, 12).
 
 ## Step 11c. Your support address (any time)
 
