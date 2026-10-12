@@ -8,7 +8,9 @@
 // points to Import. The sample is read-only (stories/E8-8): its intro and fields are listed,
 // not edited. The five cards are collapsible and one is open at a time (design note 122;
 // src/lib/build-guide.ts says which opens and writes the settings on each title row; the
-// card holds its state through a save). Copy: docs/copy/app.md (Build).
+// card holds its state through a save). With an intro saved the next-step panel sits under
+// the title (decision 0065, design note 127): the validation is built, Continue to Share.
+// Copy: docs/copy/app.md (Build).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { itemSets, items, projects } from "@/db/queries";
@@ -19,8 +21,9 @@ import { BUILD_COPY, isPublished, openDraft } from "@/lib/instruments";
 import { fieldSummary } from "@/lib/respondent-fields";
 import { labelFor, LAYOUTS_META, METHODS, REASON_RULES_META, scaleFor } from "@/lib/scoring";
 import { CollapsibleCard } from "@/components/app/collapsible-card";
+import { NextStep } from "@/components/app/next-step";
 import { UnsavedMark } from "@/components/app/unsaved";
-import { BUILD_CARD_COPY, openBuildCards } from "@/lib/build-guide";
+import { BUILD_CARD_COPY, buildDone, openBuildCards } from "@/lib/build-guide";
 import { BuildOn } from "./build-on";
 import { ClosingForm } from "./closing-form";
 import { FieldsForm } from "./fields-form";
@@ -64,6 +67,7 @@ export default async function BuildPage({ params }: { params: Promise<{ projectI
         <h2 className="text-xl font-bold tracking-[-0.02em]">{BUILD_COPY.title}</h2>
         <p className="text-ink-muted" data-testid="build-line">{BUILD_COPY.line(builtOn.version)}</p>
       </div>
+      {buildDone({ intro: instrument.intro, readOnly }) && <NextStep done={BUILD_COPY.done} detail={BUILD_COPY.doneDetail} href={`/app/projects/${project.id}/share`} label={BUILD_COPY.toShare} />}
       {!locked && <StepTip path={`/app/projects/${project.id}/build`} tip={buildTip({ intro: instrument.intro, fields: instrument.respondentFields })} />}
       <WithPreview projectId={project.id} step="build">
           {newer && !readOnly && <BuildOn key={instrument.id} projectId={project.id} instrumentId={instrument.id} built={builtOn.version} latest={newer.version} />}

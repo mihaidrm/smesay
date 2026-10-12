@@ -11,6 +11,10 @@ export const BUILD_COPY = {
   line: (version: number) => `This is what respondents see, built from version ${version} of the list. The preview on the right follows every save.`,
   noSet: "Import a list first. Build works on an imported version.",
   noSetLink: "Go to Import",
+  // The next-step panel once an intro is saved (decision 0065, design note 127).
+  done: "The validation is built.",
+  doneDetail: "Change any card below if you want to, then share the link your respondents open.",
+  toShare: "Continue to Share the link",
   introCard: "Intro",
   titleLabel: "Title",
   introLabel: "Intro",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUILD_CARD_COPY, listOf, openBuildCards } from "./build-guide";
+import { BUILD_CARD_COPY, buildDone, listOf, openBuildCards } from "./build-guide";
 
 describe("openBuildCards", () => {
   it("opens Intro alone while the intro is empty", () => {
@@ -11,6 +11,17 @@ describe("openBuildCards", () => {
   });
   it("opens nothing on the sample", () => {
     expect(openBuildCards({ intro: null, readOnly: true })).toEqual({ intro: false, scoring: false, perspectives: false, closing: false, fields: false });
+  });
+});
+
+describe("buildDone", () => {
+  it("is false while the intro is empty and on the sample", () => {
+    expect(buildDone({ intro: null, readOnly: false })).toBe(false);
+    expect(buildDone({ intro: "  ", readOnly: false })).toBe(false);
+    expect(buildDone({ intro: "Six things the new tool should do.", readOnly: true })).toBe(false);
+  });
+  it("is true once an intro is saved", () => {
+    expect(buildDone({ intro: "Six things the new tool should do.", readOnly: false })).toBe(true);
   });
 });
 

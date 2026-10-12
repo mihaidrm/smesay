@@ -123,11 +123,15 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(start).toHaveCSS("opacity", "0.4");
   await expect(preview.getByTestId("about-you-hint")).toHaveText("Fill in your name and role to start.");
 
-  // The intro, saved and shown in the preview.
+  // The intro, saved and shown in the preview. The next-step panel (decision 0065) appears
+  // with it: nothing before the save, the validation built and Continue to Share after.
+  await expect(page.getByTestId("next-step")).toHaveCount(0);
   await page.getByRole("textbox", { name: "Intro" }).fill("Six things the new tool should do. Five minutes.");
   await expect(page.getByTestId("intro-hint")).toHaveText("");
   await page.getByTestId("intro-form").getByRole("button", { name: "Save" }).click();
   await expect(page.getByTestId("intro-form").getByRole("status")).toHaveText("Saved.");
+  await expect(page.getByTestId("next-step")).toContainText("The validation is built.");
+  await expect(page.getByTestId("next-step").getByRole("link", { name: /Continue to Share the link/ })).toHaveAttribute("href", /\/share$/);
   // The card stays open through its save; its title row carries the saved intro.
   await expect(card("intro").getByTestId("card-summary")).toHaveText("New expense tool. Six things the new tool should do. Five minutes.");
   await expect(card("intro")).toHaveJSProperty("open", true);

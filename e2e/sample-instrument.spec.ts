@@ -96,6 +96,12 @@ test("the sample's cards: reference line, View more, equal heights, the slide", 
   const cards = page.getByTestId("item-card");
   const first = cards.nth(0);
   await expect(first.getByTestId("card-reference")).toHaveText("Requirement CL-01");
+  // The rating rows of the two cards of a row sit at one height whatever the titles' lengths
+  // (design note 125): CL-01's summary takes two lines here and CL-02's one.
+  const rowTop = async (i: number) => Math.round((await cards.nth(i).getByRole("radiogroup").boundingBox())!.y);
+  const lines = async (i: number) => cards.nth(i).locator("legend > span:last-child").evaluate((el) => Math.round(el.getBoundingClientRect().height / 23));
+  expect([await lines(0), await lines(1)]).toEqual([2, 1]);
+  expect(await rowTop(0)).toBe(await rowTop(1));
   // The details are closed, above the rating row, and open in place.
   await expect(first.getByTestId("card-details")).toBeHidden();
   const more = first.getByTestId("card-more");
