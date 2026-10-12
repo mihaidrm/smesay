@@ -118,6 +118,10 @@ LIFECYCLE_EMAILS until the lawyer answers L31; its
 seven open points were decided on 2026-10-03 (decision 0040, the defaults as built). Every story exists (76 in 15 epics; E15 Onboarding written 2026-10-03, design note 39, four questions for Mihai there; E8-1 to E8-4 and E10-1 amended the same day for views, filters, tiles and the kind names, design note 40, four questions there); a story is rewritten when Mihai
 sends a direction. The Anthropic key is in Mihai's .env.local since 2026-10-02 (Console limit
 EUR 10, and ANTHROPIC_MONTHLY_BUDGET_EUR must say 10 too, docs/accounts.md step 9).
+The launch marketing strategy is docs/marketing/launch-strategy.md (decision 0070,
+2026-10-12): Claude runs the routine, Mihai owns the accounts and the posts under his name;
+the first two real users are sought from his network, Product Makers and LinkedIn
+(docs/marketing/pilot-users.md).
 
 <!-- sync:phases -->
 Status, derived from the Phase tables in docs/plan-steps.md (run `node scripts/sync-status.mjs --write` after changing a Status cell):

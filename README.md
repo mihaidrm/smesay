@@ -21,6 +21,7 @@ Owner: Alerty S.R.L. Built by Mihai (product, acceptance, accounts) and Claude C
 - docs/design-notes/ dated design work; this is the record that the design is ours
 - docs/schema.md     object model
 - docs/copy/         every user-facing text: landing, quickstart, emails, error messages
+- docs/marketing/    the launch strategy, the pilot-user plan, the outreach drafts, the log (decision 0070)
 - scripts/scan-copy.mjs  the WRITING.md scan, `npm run scan:copy`; the rules are in scripts/copy-rules.mjs
 - scripts/sync-status.mjs  writes status from docs/plan-steps.md and stories/ into the Roadmap and Stories boards and docs/context.md; checks retired terms and references
 - scripts/stories-board.mjs  the Stories board generator the sync script uses

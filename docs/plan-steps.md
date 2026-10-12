@@ -96,7 +96,7 @@ Mihai does not work for runs a real validation.
 |---|---|---|
 | 4.1 | No new features. Fix what hurt, in the order users said it | Claude, Mihai decides the order |
 | 4.2 | Rewrite the landing page from what respondents and PMs said | Claude |
-| 4.3 | Offline export as a lead magnet; first content pieces; LinkedIn and PM communities | Claude drafts, Mihai posts |
+| 4.3 | The template page as the lead magnet, one bottom-of-funnel page a week, the outreach routine and the communities, as docs/marketing/launch-strategy.md says (decision 0070, 2026-10-12) | Claude drafts, sends and measures; Mihai posts under his name and makes the accounts |
 | 4.4 | Buy a designed logo mark if the name sticks (docs/brand-assets.md) | Mihai |
 | 4.5 | Move Vercel to Pro before the first paying customer | Mihai |
 
