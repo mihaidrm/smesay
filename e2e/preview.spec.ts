@@ -60,7 +60,9 @@ test("preview: on every builder step, one card in the panel, the rings in the fu
   await expect(full.getByTestId("item-card")).toHaveCount(1);
   await expect(full.getByTestId("chapter-continue")).toBeVisible();
   await expect(full.locator("nav[data-ring]")).toBeVisible();
-  await expect(full.getByTestId("item-card").first()).toHaveClass(/ring-violet/);
+  // Import rings the cards as one block, not each card (design note 130).
+  await expect(full.getByTestId("chapter-cards").first()).toHaveClass(/ring-violet/);
+  await expect(full.getByTestId("item-card").first()).not.toHaveClass(/ring-violet/);
   await full.close();
 
   await page.goto(`${project}/shape`);

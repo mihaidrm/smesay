@@ -89,3 +89,9 @@ for Playwright): the browser comes from the first of PLAYWRIGHT_CHROMIUM_PATH, P
 download, Google Chrome and Microsoft Edge (src/lib/export/pdf.ts launchPlan); with none the
 route answers 503 with x-export-problem: no-browser and the tab shows the errors.md sentence
 that says what to install. pdf.test.ts covers the order and the two error sentences.
+
+Changed 2026-10-12 (design note 129; Mihai: "need a smart fix for this -- looks very bad like
+that"): the items table has fixed column widths (the item text 36 percent of the page) and
+the six counts as one Answers cell, the item's stacked bar over its counts in words;
+Agreement and the two shares stay as columns (decision 0062). The legend sits under the Items
+heading too. summary.test.ts reads the widths, the headers and the bar cell.
