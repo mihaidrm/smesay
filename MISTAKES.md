@@ -36,3 +36,9 @@ database's clock, and later writes keep the greatest of the two. Once the real c
 noon on that date, three tests failed on main and on every pull request. Caught by CI on PR
 133. Fixed: startResponse stamps the new row with its own now; the answers test runs an hour
 ahead of the real clock, as its route calls use the real time.
+
+2026-10-12, PR 199: the privacy policy went to version 5 and the session ran the legal
+Playwright spec but not src/lib/legal.test.ts, which pinned every legal page to version 4 of
+2026-10-08. Caught by CI on PR 199 (both runs, 3 minutes in). Fixed: the test expects the
+version per page. Lesson: a change to docs/legal/ runs `npx vitest run src/lib/legal.test.ts`
+with the spec.
