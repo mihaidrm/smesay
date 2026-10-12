@@ -16,6 +16,7 @@ import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { DEV_MENU_COPY } from "@/lib/dev-menu-copy";
 import { latestSet } from "@/lib/imports";
 import { SampleBand } from "@/components/app/sample-band";
+import { ProjectTile } from "@/components/app/tiles";
 import { UnsavedBanner } from "@/components/app/unsaved";
 import { DeleteSample } from "../../delete-sample";
 import { archiveAction } from "../actions";
@@ -51,7 +52,7 @@ export default async function ProjectLayout({ children, params }: { children: Re
       <div className="sticky top-0 z-20 -mx-8 flex flex-wrap items-center justify-between gap-4 border-b border-hairline bg-ground px-8 py-4" data-testid="project-header">
         <div className="flex flex-col gap-1">
           <div className="text-[13px] text-ink-muted" data-testid="breadcrumb">{current.workspace.name}{project.isSample ? " · sample project" : ""}</div>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]">{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-[-0.03em]"><ProjectTile name={project.name} id={project.id} sample={project.isSample} icon={project.icon} tile={project.tile} size="sm" />{project.name}{archived && <NeutralPill>Archived</NeutralPill>}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ProjectStepper projectId={project.id} furthest={furthest} done={done} pages={BUILT} imported={imported} />

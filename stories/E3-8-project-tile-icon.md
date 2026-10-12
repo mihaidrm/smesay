@@ -1,7 +1,7 @@
 # E3-8 Project tile: an icon and a colour the PM picks
 
 User: a PM with several projects who wants to tell them apart at a glance
-Status: deferred until Mihai decides (proposed 2026-10-12, design note 131)
+Status: built
 Outcome: a project's tile shows an icon and a colour the PM chose, and until then its
 initials on the colour its id picks (design note 126), everywhere the project is named with a
 tile.
@@ -33,13 +33,21 @@ tile.
 - A colour outside the eight gradients.
 
 ## Open questions
-- Mihai decides whether to build it (the proposal of 2026-10-12, design note 131, which holds
-  the alternatives). Nothing blocks building once he says yes.
+- None. Mihai said yes on 2026-10-12 (decision 0066).
+
+## Built
+Built 2026-10-12 (decision 0066). The popover stays open after a pick so the icon and the
+colour are set in one visit; it closes on Escape, Tab, a press outside, a scroll or the tile
+again. The popover sits at a fixed position read from the tile when it opens, because the
+list's card clips what overflows it. Tests: src/lib/project-icons.test.ts (2),
+src/lib/tile-picker.test.ts (4), src/components/app/tiles.test.ts (2 new),
+src/lib/projects.test.ts (2 new), src/lib/export/project.test.ts (1 new),
+e2e/projects.spec.ts (the main path, extended).
 
 ## Technical notes
 - Migration: project.icon text null (a name from the curated set), project.tile smallint
   null (0 to 7, the gradient's index); docs/schema.md follows from the snapshot.
 - src/lib/project-icons.ts holds the 24 names and their plain-English labels for the
   popover's accessible names ("Briefcase", "Receipt", "Plane", ...).
-- The popover is the app's own (no Popover in src/components/ui yet): a line in
-  docs/design-notes/ when it is added, per the PM side's rule.
+- The popover is the app's own (no Popover in src/components/ui): its line is in
+  docs/design-system.md, Components, and design note 131, Built.

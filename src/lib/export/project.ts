@@ -10,6 +10,8 @@
 // far, so there is nothing older to migrate. The sample's file is refused: its invented data
 // would show without the watermark (CLAUDE.md, dashboard).
 import { z } from "zod";
+import { isProjectIcon } from "@/lib/project-icons";
+import { isTileIndex } from "@/components/app/tiles";
 import { projectTransfer } from "@/db/queries";
 import type { TransferInput, TransferRows } from "@/db/queries/projectTransfer";
 import { NotFoundError } from "@/lib/errors";
@@ -84,7 +86,9 @@ const ProjectFile = z.strictObject({
   exportedAt: date,
   sample: z.boolean(),
   note: text(200).nullable(),
-  project: z.strictObject({ name: text(80), contextGoal: text(2000).nullable(), contextTerms: text(2000).nullable(), createdAt: date }),
+  // icon and tile: from 2026-10-12 (stories/E3-8); a file without them reads null, a key or
+  // an index not on offer reads null too.
+  project: z.strictObject({ name: text(80), contextGoal: text(2000).nullable(), contextTerms: text(2000).nullable(), createdAt: date, icon: text(40).nullable().optional(), tile: z.number().int().nullable().optional() }),
   itemSets: z.array(z.strictObject({
     id, version: count.min(1), source: z.enum(FILE_ENUMS.source), sourceFilename: text(300).nullable(), importReport, importedAt: date,
     areas, shapeRuns: count, shapedAt: date.nullable(), contextUsed,
@@ -126,7 +130,7 @@ export function toFile(rows: TransferRows, now = new Date()): ProjectExport {
   return {
     format: PROJECT_FORMAT, version: PROJECT_VERSION, exportedAt: now.toISOString(), sample: rows.project.isSample,
     note: rows.project.isSample ? EXPORT_COPY.watermark : null,
-    project: { name: rows.project.name, contextGoal: rows.project.contextGoal, contextTerms: rows.project.contextTerms, createdAt: rows.project.createdAt.toISOString() },
+    project: { name: rows.project.name, contextGoal: rows.project.contextGoal, contextTerms: rows.project.contextTerms, createdAt: rows.project.createdAt.toISOString(), icon: rows.project.icon, tile: rows.project.tile },
     itemSets: rows.itemSets.map((s) => ({
       id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport, importedAt: s.importedAt.toISOString(),
       areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: iso(s.shapedAt), contextUsed: s.contextUsed,
@@ -227,7 +231,7 @@ export async function importProject(actor: Actor, raw: string, now = new Date())
   const keysOf = new Map(f.instruments.map((i) => [i.id, new Set(i.respondentFields.map((s) => s.key))]));
   const fieldsOf = (r: ProjectExport["responses"][number]) => Object.fromEntries(Object.entries(r.fields).filter(([k]) => keysOf.get(r.instrumentId)?.has(k)));
   const input: TransferInput = {
-    project: { name: name.data, contextGoal: f.project.contextGoal, contextTerms: f.project.contextTerms },
+    project: { name: name.data, contextGoal: f.project.contextGoal, contextTerms: f.project.contextTerms, icon: isProjectIcon(f.project.icon) ? f.project.icon : null, tile: isTileIndex(f.project.tile) ? f.project.tile : null },
     itemSets: f.itemSets.map((s) => ({ id: s.id, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport as TransferInput["itemSets"][number]["importReport"], importedAt: new Date(s.importedAt), areas: s.areas as TransferInput["itemSets"][number]["areas"], shapeRuns: s.shapeRuns, shapedAt: D(s.shapedAt), contextUsed: s.contextUsed as TransferInput["itemSets"][number]["contextUsed"] })),
     items: f.itemSets.flatMap((s) => s.items.map((it) => ({ ...it, itemSetId: s.id, flags: it.flags as TransferInput["items"][number]["flags"] }))),
     instruments: f.instruments.map((i) => ({ ...i, reasonRule: i.reasonRule ?? DEFAULT_REASON_RULE, respondentFields: i.respondentFields as TransferInput["instruments"][number]["respondentFields"], scaleLabels: i.scaleLabels as TransferInput["instruments"][number]["scaleLabels"], closing: i.closing as TransferInput["instruments"][number]["closing"], publishedAt: D(i.publishedAt), createdAt: new Date(i.createdAt) })),

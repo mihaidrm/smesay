@@ -98,6 +98,8 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Status values | Draft, Open, Scheduled (E6-1: a link that opens later), Closed, Sample |
 | Updated cell of the sample | Created with the workspace |
 | Row buttons | Open, Delete sample (then the confirm line from errors.md with Cancel and Delete sample) |
+| Project tile, a button on each row but the sample's (E3-8) | Choose the icon and colour of [PROJECT] |
+| Tile popover (E3-8): two groups and a last item | Icons: Briefcase, Receipt, Wallet, Credit card, Plane, Car, Truck, Package, Building, Store, Shopping cart, Calendar, Clock, Mail, Phone, People, Person with a tick, Shield, Key, Document, Checklist, Bar chart, Map pin, Heart (the accessible names; the icons are Lucide's, docs/assets.md row 3); Colours: Coral to sun, Lavender to mint, Coral to lavender, Mint to sun, Sun to lavender, Mint to coral, Coral, soft, Mint, soft; Back to the initials |
 | Empty state when the workspace has no project of its own, archived ones included | No projects yet. Start one and import your list. [New project] |
 | Empty state when every project is archived and the sample is deleted (the list is empty) | All your projects are archived. Unarchive one from the archived list, or start a new one. [Show archived] [New project] |
 | Empty state of the archived view | No archived projects. Archived projects appear here. |
@@ -106,6 +108,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | New project field and button | Project name, Create project |
 | Import a project page (E10-2) | Import a project. Choose the .json file made with Whole project on a project's Export tab. The project comes in with its lists, validations, responses and actions. Its public link comes in revoked: press Publish again on the Share page for a new one. Personal invites keep their state, with links nobody has yet: Remind sends a new one to the people who have not submitted, and Revoke then New link sends one to anyone.; field: Project file (.json), its picker [Button: Choose a file] with the file's name beside it, No file chosen before a pick (design note 103); [Button: Import project]; refusals in docs/copy/errors.md, Projects |
 | Project frame breadcrumb | [WORKSPACE NAME] (the sample: [WORKSPACE NAME] · sample project) |
+| Project frame title row (E3-8) | the project's tile at 24 px, then [PROJECT NAME] |
 | Archived marker and buttons | Archived; Archive project, Unarchive |
 | Stepper | Import, Shape, Build, Share, Results |
 | Unsaved changes banner (E5-9), under the title row of the pinned project header, after a click on a stepper pill, on Projects, Settings or Help, on a project in the sidebar's list, on Open the sample or on Go to Shape while a card of Import, Build or Share holds changes not saved (a save on its way or refused counts); the unsaved cards get a 2 px danger border and shake once | Save or discard your changes before you leave: [CARD TITLES, apart by commas]. [Button: Discard] (the saved values come back in every unsaved card) |

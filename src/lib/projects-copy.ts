@@ -1,6 +1,15 @@
 // Messages of the project pages (stories/E3-1; docs/copy/errors.md and app.md), without a
 // database import so the client forms can show them.
 export const PROJECTS_COPY = {
+  // The tile picker (stories/E3-8, decision 0066).
+  tile: {
+    choose: (project: string) => `Choose the icon and colour of ${project}`,
+    icons: "Icons",
+    colours: "Colours",
+    reset: "Back to the initials",
+    notAChoice: "That is not one of the icons or colours on offer. Pick one from the list.",
+    notSaved: "The tile was not saved. Try again.",
+  },
   badName: "Enter a name for the project, up to 80 characters.",
   planFull: "Your plan has no room for another project. Change the plan.",
   saved: "Saved.",

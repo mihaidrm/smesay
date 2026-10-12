@@ -333,6 +333,19 @@ html.mode-sweep::view-transition-new(mode-thumb) {
   .cell-fade { animation: none; }
 }
 
+/* A project tile the PM just set (stories/E3-8; design note 131): the tile pops once, scale 1
+   to 1.12 and back over 240 ms. Nothing moves under prefers-reduced-motion. */
+@keyframes tile-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+.tile-pop {
+  animation: tile-pop 240ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-pop { animation: none; }
+}
+
 /* The unsaved changes guard (stories/E5-9; design note 112): a card whose form holds unsaved
    changes after a stopped click gets a 2 px danger border (the hairline turns danger and an
    inset line doubles it, so nothing moves) and shakes once, 4 px side to side over 400 ms.

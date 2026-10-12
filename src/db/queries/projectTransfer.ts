@@ -48,7 +48,7 @@ export async function readProject(ws: WorkspaceId, projectId: string): Promise<T
 
 // What write() takes: the rows as a file holds them (ids are the file's own keys).
 export type TransferInput = {
-  project: { name: string; contextGoal: string | null; contextTerms: string | null };
+  project: { name: string; contextGoal: string | null; contextTerms: string | null; icon: string | null; tile: number | null };
   itemSets: { id: string; version: number; source: "xlsx" | "csv" | "pasted"; sourceFilename: string | null; importReport: (typeof itemSet.$inferInsert)["importReport"]; importedAt: Date; areas: (typeof itemSet.$inferInsert)["areas"]; shapeRuns: number; shapedAt: Date | null; contextUsed: (typeof itemSet.$inferInsert)["contextUsed"] }[];
   items: { id: string; itemSetId: string; position: number; sourceRef: string | null; originalText: string; readerText: string | null; readerStatus: (typeof item.$inferInsert)["readerStatus"]; area: string | null; areaRationale: string | null; proposedValue: string | null; custom: unknown; aiContext?: string | null; flags: (typeof item.$inferInsert)["flags"]; perspectives: string[] }[];
   instruments: (Omit<typeof instrument.$inferInsert, "workspaceId" | "projectId"> & { id: string; itemSetId: string })[];
@@ -67,7 +67,7 @@ export async function writeProject(ws: WorkspaceId, input: TransferInput, userId
     const newId = new Map<string, string>();
     const map = (old: string) => { const id = newId.get(old); if (!id) throw new Error(`The file refers to ${old}, which it does not hold.`); return id; };
     const fresh = (old: string) => { const id = randomUUID(); newId.set(old, id); return id; };
-    await tx.insert(project).values({ id: projectId, workspaceId: ws, name: input.project.name, contextGoal: input.project.contextGoal, contextTerms: input.project.contextTerms, createdBy: userId });
+    await tx.insert(project).values({ id: projectId, workspaceId: ws, name: input.project.name, contextGoal: input.project.contextGoal, contextTerms: input.project.contextTerms, icon: input.project.icon, tile: input.project.tile, createdBy: userId });
     for (const s of input.itemSets) {
       await tx.insert(itemSet).values({ id: fresh(s.id), workspaceId: ws, projectId, version: s.version, source: s.source, sourceFilename: s.sourceFilename, importReport: s.importReport, importedBy: userId, importedAt: s.importedAt, areas: s.areas, shapeRuns: s.shapeRuns, shapedAt: s.shapedAt, contextUsed: s.contextUsed });
     }

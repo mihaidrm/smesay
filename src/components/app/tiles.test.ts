@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio, hexToRgb } from "@/lib/contrast";
-import { gradientFor, initials, TILE_STOPS } from "./tiles";
+import { gradientAt, gradientFor, initials, isTileIndex, TILE_NAMES, TILE_STOPS, tileLook } from "./tiles";
 
 describe("initials", () => {
   it("takes the first letter of the first two words, upper case", () => {
@@ -27,6 +27,20 @@ describe("gradientFor", () => {
     expect(new Set(["YES", "Test 1", "BBC"].map(gradientFor)).size).toBeGreaterThan(1);
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
     expect(new Set(letters.map(gradientFor)).size).toBe(8);
+  });
+});
+
+// E3-8: the PM's pick wins over the id's gradient; a pick off the list reads as none.
+describe("tileLook", () => {
+  it("names the eight gradients once each and reads an index 0 to 7", () => {
+    expect(TILE_NAMES).toHaveLength(8);
+    expect(new Set(TILE_NAMES).size).toBe(8);
+    expect([isTileIndex(0), isTileIndex(7), isTileIndex(8), isTileIndex(-1), isTileIndex(1.5), isTileIndex("3"), isTileIndex(null)]).toEqual([true, true, false, false, false, false, false]);
+  });
+  it("takes the picked gradient and icon, and the id's gradient without a pick", () => {
+    expect(tileLook({ id: "proj_01ABC" })).toEqual({ gradient: gradientFor("proj_01ABC"), icon: null });
+    expect(tileLook({ id: "proj_01ABC", icon: "plane", tile: 3 })).toMatchObject({ gradient: gradientAt(3), icon: { key: "plane", label: "Plane" } });
+    expect(tileLook({ id: "proj_01ABC", icon: "rocket", tile: 9 })).toEqual({ gradient: gradientFor("proj_01ABC"), icon: null });
   });
 });
 

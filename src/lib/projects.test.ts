@@ -14,7 +14,7 @@ import { auth } from "@/lib/auth";
 import { memoryOutbox } from "@/lib/mail";
 import { contextError } from "@/lib/project-context";
 import { projectStatus } from "@/lib/project-status";
-import { createProject, deleteSample, PROJECTS_COPY, saveContext, setArchived } from "@/lib/projects";
+import { createProject, deleteSample, PROJECTS_COPY, saveContext, setArchived, setTile } from "@/lib/projects";
 import { requireWorkspace } from "@/lib/workspace";
 import type { WorkspaceId } from "@/db/types";
 
@@ -92,6 +92,34 @@ describe("the context", () => {
     expect((await projects.get(ws, sample.id))?.contextGoal).toBe(sample.contextGoal);
     await expect(setArchived(ws, sample.id, true)).rejects.toMatchObject({ status: 403 });
     expect((await projects.get(ws, sample.id))?.archivedAt).toBeNull();
+  });
+});
+
+// E3-8, acceptance 2, 3 and 5: the pick saves without moving updated_at, a pick off the
+// list is refused, another workspace's project is 404, the sample is 403.
+describe("the tile", () => {
+  it("saves an icon and a colour, each on its own, and drops the icon on null", async () => {
+    const { project } = (await createProject({ ws, userId }, "Tiled")) as { project: { id: string; updatedAt: Date } };
+    await new Promise((r) => setTimeout(r, 20));
+    const picked = await setTile(ws, project.id, "plane", null);
+    expect("project" in picked && [picked.project.icon, picked.project.tile, picked.project.updatedAt.getTime()]).toEqual(["plane", null, project.updatedAt.getTime()]);
+    const coloured = await setTile(ws, project.id, "plane", 3);
+    expect("project" in coloured && [coloured.project.icon, coloured.project.tile]).toEqual(["plane", 3]);
+    const reset = await setTile(ws, project.id, null, 3);
+    expect("project" in reset && [reset.project.icon, reset.project.tile]).toEqual([null, 3]);
+    const row = (await projects.summaries(ws)).find((r) => r.id === project.id)!;
+    expect([row.icon, row.tile]).toEqual([null, 3]);
+  });
+  it("refuses a pick off the list, another workspace's project and the sample", async () => {
+    const { project } = (await createProject({ ws, userId }, "Guarded")) as { project: { id: string } };
+    for (const [icon, tile] of [["rocket", null], ["plane", 8], ["plane", -1], ["plane", 1.5], ["plane", "3"], [3, null]] as const) {
+      expect(await setTile(ws, project.id, icon, tile), `${icon} ${tile}`).toEqual({ error: PROJECTS_COPY.tile.notAChoice });
+    }
+    expect((await projects.get(ws, project.id))?.icon).toBeNull();
+    await expect(setTile(other, project.id, "plane", 1)).rejects.toMatchObject({ status: 404 });
+    const sample = (await projects.summaries(ws)).find((r) => r.isSample)!;
+    await expect(setTile(ws, sample.id, "plane", 1)).rejects.toMatchObject({ status: 403 });
+    expect((await projects.get(ws, sample.id))?.icon).toBeNull();
   });
 });
 
