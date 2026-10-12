@@ -28,10 +28,17 @@ test("the email switches save and show their state after a reload", async ({ pag
   await expect(validations).toHaveAttribute("aria-checked", "true");
   await expect(digest).toHaveAttribute("aria-checked", "false");
   await expect(guide).toHaveAttribute("aria-checked", "true");
+  // A switch shows its new state at once (useOptimistic) while the save travels; the reload
+  // waits for each save's reply, else it cuts the request.
+  const saved = () => page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/app/settings");
+  let reply = saved();
   await digest.click();
   await expect(digest).toHaveAttribute("aria-checked", "true");
+  await reply;
+  reply = saved();
   await validations.click();
   await expect(validations).toHaveAttribute("aria-checked", "false");
+  await reply;
   await page.reload();
   await expect(card.getByTestId("email-switch-digest")).toHaveAttribute("aria-checked", "true");
   await expect(card.getByTestId("email-switch-validations")).toHaveAttribute("aria-checked", "false");

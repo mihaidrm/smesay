@@ -31,6 +31,11 @@ export const emails = {
   setPrefs: async (userId: string, prefs: EmailPrefs): Promise<void> => {
     await db.update(user).set({ emailPrefs: readPrefs(prefs) }).where(eq(user.id, userId));
   },
+  // One switch, in one statement on the jsonb, so two saves at once both land (the Settings
+  // card's switches are pressed in quick succession).
+  setPref: async (userId: string, kind: EmailKind, on: boolean): Promise<void> => {
+    await db.update(user).set({ emailPrefs: sql`jsonb_set(${user.emailPrefs}, ${`{${kind}}`}::text[], to_jsonb(${on}::boolean))` }).where(eq(user.id, userId));
+  },
   state: async (userId: string): Promise<EmailState> => readState((await db.select({ s: user.emailState }).from(user).where(eq(user.id, userId)))[0]?.s),
   // The stop link's token for a person: made once, from randomBytes(16); the write sets it only
   // where none is set, so two emails at once get the same one.

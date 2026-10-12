@@ -32,6 +32,11 @@ describe("the email switches", () => {
     expect(await setEmailPref(userId, "offers", true)).toBeNull();
     expect(await setEmailPref(userId, "digest", "yes")).toBeNull();
     expect(await readEmailPrefs(userId)).toEqual({ validations: true, digest: true, guide: true });
+    // Two switches pressed at once both land (the card's switches, one statement each).
+    await Promise.all([setEmailPref(userId, "validations", false), setEmailPref(userId, "guide", false)]);
+    expect(await readEmailPrefs(userId)).toEqual({ validations: false, digest: true, guide: false });
+    await setEmailPref(userId, "validations", true);
+    await setEmailPref(userId, "guide", true);
   });
   it("makes the stop token once and stops one kind by it; an unknown token does nothing", async () => {
     const token = await emails.token(userId);

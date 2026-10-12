@@ -12,13 +12,12 @@ export async function readEmailPrefs(userId: string): Promise<EmailPrefs> {
   return emails.prefs(userId);
 }
 
-// Saves one switch; anything but a kind on the list and a boolean is refused.
+// Saves one switch, in one statement so two saves at once both land; anything but a kind on
+// the list and a boolean is refused.
 export async function setEmailPref(userId: string, kind: unknown, on: unknown): Promise<EmailPrefs | null> {
   if (!isEmailKind(kind) || typeof on !== "boolean") return null;
-  const current = await emails.prefs(userId);
-  const next = { ...current, [kind]: on } as EmailPrefs;
-  await emails.setPrefs(userId, next);
-  return next;
+  await emails.setPref(userId, kind, on);
+  return emails.prefs(userId);
 }
 
 export type StopTarget = { kind: EmailKind; name: string; already: boolean };
