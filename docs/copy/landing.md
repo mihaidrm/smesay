@@ -33,7 +33,7 @@ Under the buttons: Your experts need no account and install nothing. Free while 
 Live card (the Marlow sample, src/db/seed/sample.ts): Approving · CL-04. Arriving now.
 "Expenses over the policy limit are flagged before they reach the approver." Your proposal
 Should have. Ioana, sales: Must have. Tom, sales: Must have. Dana, finance: Agree. Lukas,
-engineering manager: Agree. To do, written by AI: Decide whether policy flags move to Must have. From
+engineering manager: Agree. To do, written by AI: Decide whether CL-04 changes priority from Should to Must. From
 2 answers.
 
 Agreement chip: 60%. Agreement so far. 30 answers from 5 of 7 experts.

@@ -82,7 +82,7 @@ function LiveCard() {
       </div>
       <div className="mt-3.5 flex h-2 gap-1" aria-hidden="true"><div className="grow-[2] rounded-full bg-[#1F9D7A]" /><div className="grow-[2] rounded-full bg-[#F5B740]" /><div className="grow rounded-full bg-[#CFCBE0]" /></div>
       <div className="mt-3.5 flex items-center justify-between gap-3.5 rounded-2xl bg-[linear-gradient(135deg,#262450,#16152A)] px-[18px] py-3.5 text-[#F3F1FA]">
-        <div><div className="text-xs font-semibold text-[#5FD3B3]">To do, written by AI</div><div className="mt-0.5 text-[15px]">Decide whether policy flags move to Must have.</div></div>
+        <div><div className="text-xs font-semibold text-[#5FD3B3]">To do, written by AI</div><div className="mt-0.5 text-[15px]">Decide whether CL-04 changes priority from Should to Must.</div></div>
         <div className="text-xs whitespace-nowrap text-[#A8A4BE]">From 2 answers</div>
       </div>
     </div>
@@ -226,7 +226,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
               <Reveal delay={240} testId="gain-actions" className="flex flex-col gap-2.5 rounded-[20px] bg-[linear-gradient(135deg,#262450,#16152A)] p-[22px] text-[#F3F1FA] shadow-[0_12px_32px_rgba(45,32,110,0.18)]">
                 <h3 className="text-xs font-bold text-[#5FD3B3]">A to-do list, written by AI from the answers</h3>
                 <ul className="flex flex-col gap-2 text-[15px] leading-[21px]">
-                  <li className="flex flex-col"><span>Decide whether policy flags move to Must have.</span><span className="text-xs text-[#A8A4BE]">From 2 answers, each one cited</span></li>
+                  <li className="flex flex-col"><span>Decide whether CL-04 changes priority from Should to Must.</span><span className="text-xs text-[#A8A4BE]">From 2 answers, each one cited</span></li>
                   <li className="flex flex-col"><span>Answer the two open questions before the link closes.</span><span className="text-xs text-[#A8A4BE]">From 2 answers, each one cited</span></li>
                 </ul>
               </Reveal>

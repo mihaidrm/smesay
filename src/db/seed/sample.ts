@@ -90,7 +90,7 @@ export const missingItem = { person: 3, text: "Mileage is calculated from a star
 // Four actions with their kind (stories/E9-1); cites are (item, person) answer pairs, and the
 // fourth cites the missing item (cited_missing_item_ids, decision 0033).
 export const insights = [
-  { n: 1, kind: "conflict" as const, title: "Decide whether policy flags move to Must have.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][], missing: false },
+  { n: 1, kind: "conflict" as const, title: "Decide whether CL-04 changes priority from Should to Must.", why: "Both salespeople pushed it up from Should have. Nobody outside Sales did.", cites: [[4, 1], [4, 2]] as [number, number][], missing: false },
   { n: 2, kind: "followUp" as const, title: "Answer two open questions before the link closes.", why: "Two respondents could not rate an item without more detail.", cites: [[2, 2], [6, 4]] as [number, number][], missing: false },
   { n: 3, kind: "rewrite" as const, title: "Rewrite CL-06 to say who repays an advance if the trip is cancelled.", why: "HR rated it Not needed because an unreconciled advance becomes taxable income, and the engineering manager asked who carries the risk if the trip is cancelled.", cites: [[6, 5], [6, 4]] as [number, number][], missing: false },
   { n: 4, kind: "coverage" as const, title: "Consider adding mileage from addresses to Submitting.", why: "One respondent suggested it as a missing item.", cites: [] as [number, number][], missing: true },
