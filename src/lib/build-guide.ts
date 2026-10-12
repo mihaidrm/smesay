@@ -19,6 +19,14 @@ export function openBuildCards(d: { intro: string | null; readOnly: boolean }): 
   return { ...none, intro: (d.intro ?? "").trim() === "" };
 }
 
+// Build is filled in once an intro is saved (decision 0065; Mihai, 2026-10-12: "the Build Step
+// doesnt have a next step button popping up when everthing is filled in"): every other card
+// has a default, and Intro is the one that opens while it is empty. The page then shows the
+// next-step panel to Share (design note 127). Never on the sample, which cannot be edited.
+export function buildDone(d: { intro: string | null; readOnly: boolean }): boolean {
+  return !d.readOnly && (d.intro ?? "").trim() !== "";
+}
+
 const n = (x: number) => x.toLocaleString("en-GB");
 
 // "Name and Role", "Name, Role and Team".
