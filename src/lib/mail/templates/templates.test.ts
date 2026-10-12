@@ -14,6 +14,22 @@ const emails = sampleEmails(ORIGIN);
 const saved = process.env.COMPANY_ADDRESS;
 afterEach(() => { if (saved === undefined) delete process.env.COMPANY_ADDRESS; else process.env.COMPANY_ADDRESS = saved; });
 
+// E16-1, acceptance 5: the emails a person can stop end with the reason and the stop link; the
+// transactional ones and the invitation carry none.
+const STOPPABLE = ["closing", "complete", "digest", "series-start", "series-import", "series-share", "series-last"] as const;
+describe("the stop line", () => {
+  it("is on every email a person can stop, as a link in the HTML and the address in the text, and on no other", () => {
+    for (const name of SAMPLE_NAMES) {
+      const stoppable = (STOPPABLE as readonly string[]).includes(name);
+      expect(emails[name].text.includes("Stop these emails: " + ORIGIN + "/email/stop?t="), name).toBe(stoppable);
+      expect(emails[name].html.includes('/email/stop?t=3f9c2a7be41d0c58a6e19f7b2d4c8e05&amp;k='), name).toBe(stoppable);
+    }
+    expect(emails.invitation.subject).toBe("Mara Stan invited you to Marlow Group on SMEsay");
+    expect(emails.closing.subject).toBe("New expense tool closed: 5 of 6 submitted");
+    expect(emails["series-last"].html).not.toContain("display:inline-block;background:#6D4CF5");
+  });
+});
+
 describe.each(SAMPLE_NAMES)("the %s email", (name) => {
   const email = emails[name];
   it("leaves no placeholder in the subject, the text or the HTML", () => {
@@ -28,7 +44,8 @@ describe.each(SAMPLE_NAMES)("the %s email", (name) => {
   });
 });
 
-describe.each(SAMPLE_NAMES.filter((n) => n !== "deletion"))("the %s email's button", (name) => {
+// The deletion email and the last of the series have nothing to press.
+describe.each(SAMPLE_NAMES.filter((n) => n !== "deletion" && n !== "series-last"))("the %s email's button", (name) => {
   it("has one violet button, the link as plain text under it, and the privacy link", () => {
     const { html, text } = emails[name];
     expect(html.match(/background:#6D4CF5/g)).toHaveLength(1);

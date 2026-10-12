@@ -12,7 +12,7 @@
 // one owner inside one locked transaction (src/db/queries/members.ts). Messages: src/lib/
 // members-copy.ts, from docs/copy/errors.md.
 import { z } from "zod";
-import { members, workspaceInvites } from "@/db/queries";
+import { members, workspaceInvites, workspaces } from "@/db/queries";
 import type { MemberWithUser } from "@/db/queries/members";
 import type { WorkspaceInvite } from "@/db/queries/workspaceInvites";
 import type { MemberRole, WorkspaceId } from "@/db/types";
@@ -21,6 +21,7 @@ import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { INVITE_LIMIT, INVITE_LIMIT_MINUTES, INVITE_VALID_MINUTES } from "@/lib/invites";
 import { MEMBERS_COPY } from "@/lib/members-copy";
 import { can, type Action } from "@/lib/permissions";
+import { invitationContext } from "@/lib/invitation-context";
 
 // headers: the request's, which the endpoint requires (requireHeaders); the tests pass none.
 export type Actor = { ws: WorkspaceId; userId: string; headers?: Headers };
@@ -60,8 +61,14 @@ export async function sendWorkspaceInvite(ws: WorkspaceId, input: { email: strin
   if ((await members.listWithUsers(ws)).some((m) => m.email.toLowerCase() === email)) return { error: MEMBERS_COPY.alreadyMember(email) };
   if ((await workspaceInvites.countSince(ws, INVITE_LIMIT_MINUTES)) >= INVITE_LIMIT) return { error: MEMBERS_COPY.tooMany };
   const row = await workspaceInvites.replace(ws, { email, role: "member", invitedBy: input.invitedBy });
+  // E16-1, acceptance 4: the magic link goes out as the invitation email (10), named after the
+  // member who invites; with no inviter on file (an admin's resend of an old row) as the
+  // workspace's.
+  const workspace = await workspaces.getById(ws);
+  const inviter = input.invitedBy ? (await members.listWithUsers(ws)).find((m) => m.userId === input.invitedBy) ?? null : null;
+  const invitation = { inviterName: inviter?.name.trim() || inviter?.email || workspace?.name || "SMEsay", inviterEmail: inviter?.email ?? "", workspaceName: workspace?.name ?? "your workspace" };
   try {
-    await auth.api.signInMagicLink({ headers: input.headers ?? new Headers(), body: { email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } });
+    await invitationContext.run(invitation, () => auth.api.signInMagicLink({ headers: input.headers ?? new Headers(), body: { email, callbackURL: "/app", errorCallbackURL: "/sign-in/link-used" } }));
   } catch {
     await workspaceInvites.remove(ws, row.id);
     return { error: MEMBERS_COPY.notSent(email) };

@@ -129,6 +129,13 @@ the check constraints use them). Change this file first.
 - GuideState (jsonb, user.guide_state; E15-1, written 2026-10-03, column added with that
   story): { tipsOff: boolean, dismissed: string[] } (the ids of docs/copy/guide.md the
   person dismissed; per person, every workspace).
+- EmailPrefs (jsonb, user.email_prefs; E16-1, 2026-10-12, drizzle/0040): { validations:
+  boolean (default true), digest: boolean (false), guide: boolean (true) }, the person's
+  switches for emails 7 and 8, 9, and 11 of docs/copy/emails.md; EMAIL_KINDS in
+  src/db/types.ts are the keys and the stop link's k values.
+- EmailState (jsonb, user.email_state; E16-1): { token: string | null (32 hex from
+  randomBytes(16), the stop link's, made on the first email that needs it), digestAt: ISO |
+  null, steps: { [step]: ISO | "skipped" } (the series' record, E16-2) }.
 - UploadPreview (jsonb, upload.preview; E3-2): { sheets: string[], sheet: string | null,
   headerRow: number | null (1-based), columns: { letter, name }[], rows: string[][] (the first
   ten data rows), rowsRead: number, sheetRows?: { name, rows }[] (E3-7, xlsx only: every sheet
@@ -828,6 +835,28 @@ requireWritableWorkspace(nextPath) and refuseWhileViewing(session) in
 src/lib/current-workspace.ts send a write during a view to /app/view-only. openDraft(ws, project,
 { create }) in src/lib/instruments.ts (create false never makes an instrument). VIEW_AS_COPY in
 src/lib/view-as-copy.ts.
+
+Emails (E16-1, E16-2): user.emailPrefs and user.emailState (EmailPrefs, EmailState);
+instrument.closedEmailAt and completeEmailAt mark emails 7 and 8 as sent. In
+src/db/queries/emails.ts: emails.prefs(userId), setPrefs(userId, prefs), state(userId),
+token(userId), byToken(token), stop(token, kind), markDigest(userId, at), markSteps(userId,
+steps), recipients(ws, kind): Recipient[] { userId, name, email, token }, people(userIds,
+kind). In src/db/queries/internal.ts (the job, no session): unsentClosings(): Closing[],
+markClosedEmail(instrumentId, at), digestCandidates(since, now): DigestCandidate[],
+memberIds(workspaceIds), seriesPeople(from, to): SeriesPerson[]. In src/lib/notifications.ts:
+closeInstant(invites), sendClosingSummaries(origin, now, send), notifyComplete(ws,
+instrumentId, origin, now, send), sendDigests(origin, now, send) at DIGEST_HOUR_UTC 6,
+seriesDue(person, now): { send, handled }, sendSeries(origin, now, send, env) behind
+LIFECYCLE_EMAILS, sendDueEmails(origin, now, send, env): Report. stopLink(origin, token,
+kind) in src/lib/mail/stop-link.ts: { url (/email/stop?t&k), headers (List-Unsubscribe,
+List-Unsubscribe-Post) }. Mail (src/lib/mail.ts) gains headers?: Record<string, string>.
+The invitation: invitationContext.run(invitation, fn) and current() in
+src/lib/invitation-context.ts; the magic-link hook in src/lib/auth.ts renders
+invitationEmail inside it. In src/lib/email-prefs.ts: readEmailPrefs(userId),
+setEmailPref(userId, kind, on), stopTarget(token, kind), stopEmails(token, kind). Server
+action setEmailPrefAction(kind, on) in src/app/app/(shell)/settings/actions.ts; the stop
+page's stopEmailsAction(formData) in src/app/email/stop/actions.ts; POST
+/api/email/stop?t&k answers 200 "Stopped." or 404. EMAIL_COPY in src/lib/email-copy.ts.
 
 Guide (E15-1, E15-2): user.guideState (GuideState, default { tipsOff: false, dismissed: [] },
 drizzle/0034). GUIDE_LINES { [TipId]: { pose, line, action or null } }, TIP_IDS, GUIDE_COPY and

@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, uuid, jsonb } from "drizzle-orm/pg-core";
-import type { GuideState, ResultsPrefs } from "./types";
+import type { EmailPrefs, EmailState, GuideState, ResultsPrefs } from "./types";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -21,6 +21,10 @@ export const user = pgTable("user", {
   guideState: jsonb("guide_state").$type<GuideState>().notNull().default(sql`'{"tipsOff": false, "dismissed": []}'::jsonb`),
   // E8-1: the person's choices on Results, per instrument (INTERFACES.md ResultsPrefs).
   resultsPrefs: jsonb("results_prefs").$type<ResultsPrefs>().notNull().default(sql`'{}'::jsonb`),
+  // E16-1: the person's email switches and what the emails have done (INTERFACES.md EmailPrefs,
+  // EmailState); the defaults are DEFAULT_EMAIL_PREFS in src/db/types.ts.
+  emailPrefs: jsonb("email_prefs").$type<EmailPrefs>().notNull().default(sql`'{"validations": true, "digest": false, "guide": true}'::jsonb`),
+  emailState: jsonb("email_state").$type<EmailState>().notNull().default(sql`'{"token": null, "digestAt": null, "steps": {}}'::jsonb`),
 });
 
 export const session = pgTable(

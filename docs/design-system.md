@@ -400,8 +400,12 @@ under 4.5:1 on the dark surface or under the dark ink (note 33).
 
 600 px, white on the lavender ground, one column, system stack, the mark as a 22 px PNG
 (public/assets/brand/mark-44.png, served by the app) beside the wordmark in text, one violet button (#6D4CF5, white
-text, radius 999), hairlines, 32 px padding, radius 16. Transactional only: sign-in, invite,
-reminder, submission receipt. The landing page's questions reach SMEsay's own inbox as plain
+text, radius 999), hairlines, 32 px padding, radius 16. Transactional: sign-in, invite,
+reminder, submission receipt, the deletion confirmation and the workspace invitation; about
+the person's own validations and the getting-started series (E16, decision 0067): the closing
+summary, everyone has submitted, the opt-in daily digest and the four steps, each ending in a
+13 px muted line with the reason and a violet Stop these emails link, and carrying the
+List-Unsubscribe headers. The landing page's questions reach SMEsay's own inbox as plain
 text (E12-5). Footer: company name, the registered address from COMPANY_ADDRESS (left out until the lawyer
 confirms it, E11), privacy policy link in violet text. One frame for all of them:
 src/lib/mail/templates/layout.ts (E12-3).

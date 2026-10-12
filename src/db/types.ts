@@ -124,3 +124,14 @@ export type AuditOutcome = (typeof AUDIT_OUTCOMES)[number];
 // The guide's state for a person (stories/E15-1, INTERFACES.md): tips off, and the ids of
 // docs/copy/guide.md they dismissed.
 export type GuideState = { tipsOff: boolean; dismissed: string[] };
+
+// Which emails a person gets (stories/E16-1, INTERFACES.md EmailPrefs): the validation emails
+// (7 and 8 of docs/copy/emails.md), the daily digest (9, off by default) and the getting-started
+// series (11, E16-2). The kinds are the stop link's values.
+export const EMAIL_KINDS = ["validations", "digest", "guide"] as const;
+export type EmailKind = (typeof EMAIL_KINDS)[number];
+export type EmailPrefs = Record<EmailKind, boolean>;
+export const DEFAULT_EMAIL_PREFS: EmailPrefs = { validations: true, digest: false, guide: true };
+// What the emails have done for a person (EmailState): the stop link's token (32 hex, made on the
+// first email that needs it), when the last digest went, and when each step of the series went.
+export type EmailState = { token: string | null; digestAt: string | null; steps: Record<string, string> };

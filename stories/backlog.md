@@ -1,4 +1,4 @@
-# R1 backlog: fifteen epics, in build order
+# R1 backlog: sixteen epics, in build order
 
 E1  Foundation: repo, CI, schema v1, migrations, workspace scoping, local Docker Postgres and RustFS, seed; deploy deferred to the launch gate (decision 0006). Stories E1-1 to E1-5 written 2026-10-01.
 E2  Accounts and workspaces: magic link, Google (Microsoft and Apple after launch, decision 0034); workspace on first sign-in and switcher; members, owner and member roles; settings (name, logo, accent); plan table and usage counters (decision 0008). Stories E2-1 to E2-6.
@@ -15,6 +15,7 @@ E12 Landing and onboarding: landing page, quickstart, transactional emails, the 
 E13 Analytics for us: product event catalogue and log, an admin page with the funnel and usage per workspace, visitor analytics on the landing page and the PM app (decision 0030). Stories E13-1 to E13-3.
 E14 Admin and support: the admin shell and its audit log, every workspace with its settings and the support actions, every person with their sign-in and sessions, a read-only view of a workspace as its owner sees it (decision 0035). Stories E14-1 to E14-4.
 E15 Onboarding and tutorial with the robot: the guide card with its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips for three stuck states, and the measurement that decides which tips stay (design note 39). Stories E15-1 to E15-5, written 2026-10-03.
+E16 Notifications: emails to the PM about a validation (closing summary, everyone has submitted, an opt-in daily digest), a workspace invitation that names the inviter, the Emails card and the stop link, and the getting-started series for people who signed in and have not published (decision 0067). Stories E16-1 and E16-2.
 
 64 stories were written on 2026-10-01 (decision 0029), E13's three on 2026-10-02 (decision 0030), E14's four the same day (decision 0035) and E15's five on 2026-10-03 (design note 39), from docs/business-plan.pdf pages 9 to
 15, the decisions, the design notes, the prototype boards and docs/copy/. A story is rewritten

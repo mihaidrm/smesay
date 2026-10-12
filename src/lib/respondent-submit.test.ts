@@ -311,10 +311,11 @@ describe("Submit", () => {
     if ("status" in first) throw new Error(first.error);
     if ("stale" in first) throw new Error("stale");
     expect([first.submittedAt, first.name]).toEqual([now, "Ana"]);
-    // The receipt goes after the reply (the route runs it with after()).
+    // The receipt goes after the reply (the route runs it with after()), and this Submit
+    // completes the personal invites, so the member hears too (E16-1, acceptance 2).
     expect(sent).toEqual([]);
     await first.receipt?.();
-    expect(sent.map((m) => [m.to, m.subject])).toEqual([["ana@x.example", "Your answers on Submit personal were submitted"]]);
+    expect(sent.map((m) => [m.to, m.subject])).toEqual([["ana@x.example", "Your answers on Submit personal were submitted"], [expect.stringMatching(/^submit-.*@example\.com$/), "Everyone has submitted on Submit personal"]]);
     expect(sent[0].text).toContain("You answered 2 items. You gave 1 a different priority, marked 0 not needed and 1 unclear, and suggested 0 missing items. Your confidence: Fairly sure (3 of 5).");
     expect(sent[0].text).toContain(`${BASE}/r/${ana.token}`);
     expect(sent[0].text).not.toContain("Later");

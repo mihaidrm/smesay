@@ -14,8 +14,20 @@ import { redirect } from "next/navigation";
 import { deleteWorkspace } from "@/lib/workspace-data";
 import { track } from "@/lib/analytics";
 import { WORKSPACE_DATA_COPY } from "@/lib/workspace-data-copy";
+import { EMAIL_COPY } from "@/lib/email-copy";
+import { setEmailPref } from "@/lib/email-prefs";
 
 export type MembersState = { error: string | null; sent?: string | null };
+
+// The Emails to you card (stories/E16-1, acceptance 5): one switch of the person's own, saved
+// at once; the kind and the value are checked on the server.
+export async function setEmailPrefAction(kind: string, on: boolean): Promise<{ error: string | null }> {
+  const { session } = await requireWritableWorkspace("/app/settings");
+  const next = await setEmailPref(session.user.id, kind, on);
+  if (!next) return { error: EMAIL_COPY.settings.notSaved };
+  revalidatePath("/app/settings");
+  return { error: null };
+}
 export type BrandState = { error: string | null; field: "name" | "accentHex" | "logo" | null; saved: boolean; tooLight: boolean };
 
 async function actor() {

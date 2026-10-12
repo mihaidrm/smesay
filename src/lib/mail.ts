@@ -12,7 +12,10 @@ import { createTransport, type Transporter } from "nodemailer";
 // from as { name, address } and replyTo: node_modules/nodemailer/dist/esm/mime-node/index.d.ts
 // MimeNodeAddressInput, dist/esm/mail-composer/index.d.ts replyTo).
 // html is left out for a text-only message (email 5, stories/E12-5).
-export type Mail = { to: string; subject: string; text: string; html?: string; fromName?: string; replyTo?: string };
+// headers (stories/E16-1): the List-Unsubscribe pair of RFC 8058 on the emails a person can stop;
+// nodemailer takes them as an object keyed by header name (dist/esm/mime-node/index.d.ts
+// MimeNodeHeaderMap, through mail-composer's headers).
+export type Mail = { to: string; subject: string; text: string; html?: string; fromName?: string; replyTo?: string; headers?: Record<string, string> };
 export const memoryOutbox: Mail[] = [];
 
 let transporter: Transporter | null = null;
@@ -29,5 +32,5 @@ export async function sendMail(mail: Mail): Promise<void> {
   if (url === "memory:") { memoryOutbox.push(mail); return; }
   transporter ??= createTransport(url);
   const address = from.match(/<([^>]+)>/)?.[1] ?? from;
-  await transporter.sendMail({ from: mail.fromName ? { name: mail.fromName, address } : from, replyTo: mail.replyTo, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html });
+  await transporter.sendMail({ from: mail.fromName ? { name: mail.fromName, address } : from, replyTo: mail.replyTo, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html, headers: mail.headers });
 }

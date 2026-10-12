@@ -22,6 +22,9 @@ const EXCEPTIONS = {
   [path.join(SRC, "lib", "insights.test.ts")]: ["queries/internal"],
   // E11-2: the removal job reads every deleted workspace and deletes its rows.
   [path.join(SRC, "lib", "workspace-removal.ts")]: ["queries/internal"],
+  // E16: the hourly emails read across workspaces as the removal job does.
+  [path.join(SRC, "lib", "notifications.ts")]: ["queries/internal"],
+  [path.join(SRC, "lib", "notifications.test.ts")]: ["queries/internal"],
   // E14-3: the account actions take the admin proof and forget an address across workspaces.
   [path.join(SRC, "lib", "accounts.ts")]: ["queries/admin"],
   // E14-4: the admin's view of a workspace finds it through the admin module, behind the proof.

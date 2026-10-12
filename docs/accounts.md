@@ -276,6 +276,15 @@ the build: Next.js writes the value into the code, the server's included, when i
 (node_modules/next/dist/docs/01-app/02-guides/environment-variables.md, "Bundling Environment
 Variables for the Browser"), so changing it on the host needs a new build.
 
+## Step 11d. The getting-started emails (at the launch gate)
+
+`npm run jobs:emails` (E16, hourly by cron, docs/runbooks/backup-restore.md) sends the
+closing summaries and the digests as soon as it runs. The getting-started series goes only
+with `LIFECYCLE_EMAILS=on` in the host's settings: set it once the lawyer confirms the
+privacy policy's paragraph on service emails (L31 in docs/legal/lawyer-review.md; the text
+is in design note 132) and the paragraph is on /legal/privacy. Until then the job prints how
+many are due and sends none.
+
 ## Step 12. Legal (before launch)
 
 Done on 2026-10-07: the lawyer checked the 42 marked items of version 2 and approved them all

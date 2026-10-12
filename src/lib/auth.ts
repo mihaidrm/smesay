@@ -44,6 +44,8 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendMail } from "@/lib/mail";
 import { SIGN_IN_LINK_MINUTES, signInEmail } from "@/lib/mail/templates/sign-in";
+import { invitationEmail } from "@/lib/mail/templates/invitation";
+import { invitationContext } from "@/lib/invitation-context";
 import { addressOf, LOCAL, minutesOf, signInLimit } from "@/lib/ratelimit";
 import { SIGN_IN_COPY } from "@/lib/sign-in-copy";
 import { track } from "@/lib/analytics";
@@ -187,7 +189,11 @@ export function createAuth({ baseURL, secret, google }: AuthEnv, options: { disa
       magicLink({
         expiresIn: SIGN_IN_LINK_MINUTES * 60,
         storeToken: "hashed",
-        sendMagicLink: async ({ email, url }) => { await sendMail({ to: email, ...signInEmail(url) }); },
+        // E16-1: inside sendWorkspaceInvite's context the email is the invitation (10).
+        sendMagicLink: async ({ email, url }) => {
+          const invitation = invitationContext.current();
+          await sendMail({ to: email, ...(invitation ? invitationEmail({ ...invitation, url }) : signInEmail(url)) });
+        },
       }),
       nextCookies(),
     ],

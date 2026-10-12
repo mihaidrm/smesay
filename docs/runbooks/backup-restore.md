@@ -88,7 +88,9 @@ On the host, as the app's user, with the app's environment loaded:
 
 (02:15 every night, server time; the host's path and log file are set at the gate.) Nothing runs
 on its own locally. The removal job (E11-2) needs its own line: `15 * * * * ... npm run
-jobs:purge`.
+jobs:purge`, and the emails job (E16) another: `30 * * * * ... npm run jobs:emails`, with
+BETTER_AUTH_URL set for the links and LIFECYCLE_EMAILS=on once the lawyer confirms the
+privacy paragraph (design note 132).
 
 ## In CI
 

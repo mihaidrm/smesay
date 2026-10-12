@@ -46,6 +46,7 @@ npm run backup           # the database and the bucket to BACKUP_PATH, in a fold
 npm run restore -- [DIR] # into the empty database DATABASE_URL names, after its name is typed
 npm run backup:check     # backup, restore into a new empty database, compare the row counts (CI runs it)
 npm run jobs:purge       # remove the workspaces deleted in Settings, their rows and files
+npm run jobs:emails      # send the closing summaries, the digests and the getting-started series that are due (E16)
 npm run legal:markers    # the lawyer's markers in docs/legal/ (stories/E11-3)
 ```
 

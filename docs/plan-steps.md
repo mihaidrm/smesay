@@ -58,7 +58,7 @@ Gate: the prototype and the design system are accepted, the name and domain exis
 
 Gate: `npm run lint` and `npm test` pass on the empty app, CI runs on every push.
 
-## Phase 3. R1 build, fifteen epics in order (planned as about 47 sessions over 24 weeks, to about mid April 2027; built 2 to 5 October 2026)
+## Phase 3. R1 build, sixteen epics in order (planned as about 47 sessions over 24 weeks, to about mid April 2027; built 2 to 5 October 2026)
 
 Each epic: stories written, Mihai answers questions, Claude builds story by story, the reviewer
 audits, Mihai accepts each story with a note. Estimates are sessions at two per week.
@@ -82,6 +82,7 @@ audits, Mihai accepts each story with a note. Estimates are sessions at two per 
 | E13 Analytics for us | Event catalogue and log, admin page with funnel and usage per workspace, Plausible on the landing page and the PM app (decision 0030). E13-1 to E13-3 built 2026-10-05 (PR 121 and the E13-2 and E13-3 PRs); open: Plausible's variables and goals at the launch gate (step 11), the paid-plan threshold; Mihai's acceptance notes per story still owed | Plausible at the launch gate (step 11); ADMIN_EMAILS in .env.local | 2 | done |
 | E14 Admin and support | Admin shell and audit log, workspaces with their settings and the support actions, people and their sign-in, read-only view of a workspace (decision 0035). E14-1 to E14-4 built 2026-10-05 (PRs 124 to 127); open: your ADMIN_EMAILS in .env.local; Mihai's acceptance notes per story still owed | ADMIN_EMAILS in .env.local | 3 | done |
 | E15 Onboarding and tutorial | The robot as the guide: the guide card and its off switch, the first-project path ticked from the data, one tip per step page and the sample walkthrough, rescue tips, the measurement on the admin page (design note 39; after E8 and E13, before the launch gate) E15-1 to E15-5 built 2026-10-05 (PRs 128 to 130); open: the "help" pose to place (docs/assets.md), the baseline from the first ten real sign-ups; Mihai's acceptance notes per story still owed. | none | 3 | done |
+| E16 Notifications | Emails to the PM about a validation: a closing summary, everyone has submitted, an opt-in daily digest; a workspace invitation that names the inviter; the Emails to you card and the one-click stop link; the getting-started series for people who signed in and have not published, behind LIFECYCLE_EMAILS until the lawyer confirms the privacy paragraph (decision 0067, design note 132). E16-1 and E16-2 built 2026-10-12 | LIFECYCLE_EMAILS and the jobs:emails cron line at the launch gate; the lawyer's answer on L31 | 1 | done |
 
 Launch gate: Mihai decides the product is worth a domain. Then: name and domain (smesay.com,
 bought 2026-10-08 at Cloudflare, decision 0064), personal Vercel

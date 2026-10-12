@@ -281,6 +281,13 @@
       "when": 1791804594034,
       "tag": "0039_project_tile",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1791819380941,
+      "tag": "0040_notification_emails",
+      "breakpoints": true
     }
   ]
 }

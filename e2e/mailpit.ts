@@ -19,6 +19,20 @@ export async function latestLink(request: APIRequestContext, to: string): Promis
   throw new Error(`No sign-in email for ${to} arrived in Mailpit within 15 seconds.`);
 }
 
+// The newest message to an address: its subject and text (stories/E16-1, acceptance 4).
+export async function latestMessage(request: APIRequestContext, to: string): Promise<{ subject: string; text: string }> {
+  for (let i = 0; i < 30; i++) {
+    const list = await request.get(`${MAILPIT}/api/v1/search?query=${encodeURIComponent("to:" + to)}&limit=1`);
+    const body = await list.json();
+    if (body.messages?.length) {
+      const message = await (await request.get(`${MAILPIT}/api/v1/message/${body.messages[0].ID}`)).json();
+      return { subject: message.Subject as string, text: message.Text as string };
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error(`No email for ${to} arrived in Mailpit within 15 seconds.`);
+}
+
 // The newest message to an address, with its subject, text and the first /r/ link in it
 // (stories/E6-2, acceptance 6).
 export async function latestInvite(request: APIRequestContext, to: string): Promise<{ subject: string; from: string; text: string; link: string }> {
