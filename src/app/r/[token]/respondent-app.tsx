@@ -59,6 +59,7 @@ import { SAVE_TIMEOUT_MS } from "@/lib/answer-queue";
 import { chaptersFor, gapsOf, heardSubmit, showsChanged, startSubmit, type SinceReply, type SubmitSeen, type WrapSync, type WrapValue, isComplete, parseScreen, pickedOf, progressOf, screenCount, tallyOf, type Bucket, RESPONDENT_COPY, RESPONDENT_ERRORS, screenParam, type AnswerState, type AreaMeta, type RespondentItem, type Screen } from "@/lib/respondent-rules";
 import { useAnswerSaver } from "./answer-saver";
 import type { PreviewRing } from "@/lib/preview";
+import { changesLine, diffPreview, focusOf, type PreviewSnapshot } from "@/lib/preview-diff";
 import { keepSample } from "@/lib/sample-drafts";
 import { SAMPLE_COPY } from "@/lib/sample-copy";
 
@@ -100,13 +101,33 @@ export type RespondentAppProps = {
   // visitors' sample at /sample (stories/E12-4): the answers stay in the tab's session storage,
   // Submit shows Done without sending. The band that says nothing is saved is the page's, above
   // the app (src/app/sample/page.tsx, preview-route.tsx).
-  preview?: { rings: PreviewRing[]; sample?: boolean; compact?: boolean } | null;
+  // store: the session storage key the builder's preview keeps its last view under, so the
+  // load a save causes can mark what changed (design note 128; src/lib/preview-diff.ts).
+  preview?: { rings: PreviewRing[]; sample?: boolean; compact?: boolean; store?: string } | null;
 };
 
 // The page has hydrated (false in the server render and while hydrating, then true:
 // react.dev/reference/react/useSyncExternalStore, getServerSnapshot), as data-ready on the
 // root, so a browser test types only into a page that takes the typing.
 const noSubscribe = () => () => {};
+// The view the builder's preview drew last for a store key, read from the tab's session
+// storage once per load and kept, so every render gets the same value (what
+// useSyncExternalStore asks of a snapshot: react.dev/reference/react/useSyncExternalStore).
+const lastViews = new Map<string, PreviewSnapshot | null>();
+function lastView(store: string | undefined): PreviewSnapshot | null {
+  if (!store) return null;
+  if (!lastViews.has(store)) {
+    let view: PreviewSnapshot | null = null;
+    try {
+      const raw = window.sessionStorage.getItem(store);
+      view = raw ? (JSON.parse(raw) as PreviewSnapshot) : null;
+    } catch {
+      view = null;
+    }
+    lastViews.set(store, view);
+  }
+  return lastViews.get(store) ?? null;
+}
 const firstName = (fields: ResponseFields): string | null => (fields.name ?? "").trim().split(/\s+/)[0] || null;
 
 export function RespondentApp(props: RespondentAppProps) {
@@ -120,12 +141,38 @@ export function RespondentApp(props: RespondentAppProps) {
   const [picks, setPicks] = useState<string[]>(props.initialPicks);
   const [savedPicks, setSavedPicks] = useState<string[]>(props.initialPicks);
   const [fields, setFields] = useState<ResponseFields>(props.initialFields);
-  const [screen, setScreen] = useState<Screen>(props.initialScreen);
+  const [screenState, setScreen] = useState<Screen>(props.initialScreen);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const chapters = useMemo(() => chaptersFor(areas, items, savedPicks), [areas, items, savedPicks]);
   const [drafts, setDrafts] = useState<Record<string, CardDraft>>(() => props.initialDrafts ?? Object.fromEntries(Object.entries(props.answers).map(([id, a]) => [id, { picked: pickedOf(a), reason: a.reason ?? "", comment: a.comment ?? "" }])));
-  const [item, setItem] = useState(props.initialItem);
+  const [itemState, setItem] = useState(props.initialItem);
+  // The builder's preview marks what the last save changed (design note 128): the view drawn
+  // last for this project and step waits in the tab's session storage, which the frame shares
+  // with the step page around it (html.spec.whatwg.org/multipage/webstorage.html, "the
+  // sessionStorage attribute": one set of areas per top-level traversable, one area per
+  // origin). The load a save causes reads it once (lastView, through useSyncExternalStore so
+  // the server's render and the hydration agree), compares the two, marks the parts that
+  // differ and, in the compact view, shows the first card that changed until the person moves
+  // (touched). A load that changes nothing (the device toggle, a reload) marks nothing. The
+  // new view is stored after the read; storage that is off means no marks, never an error.
+  const store = preview?.store;
+  const last = useSyncExternalStore(noSubscribe, () => lastView(store), () => null);
+  const changes = useMemo(() => (last && store && !sample ? diffPreview(last, { instrument, items, areas, closing: props.closing, closesAt: props.closesAt }) : null), [last, store, sample, instrument, items, areas, props.closing, props.closesAt]);
+  useEffect(() => {
+    if (!store || sample) return;
+    lastView(store);
+    try {
+      window.sessionStorage.setItem(store, JSON.stringify({ instrument, items, areas, closing: props.closing, closesAt: props.closesAt } satisfies PreviewSnapshot));
+    } catch {
+      // Storage is off: the next load marks nothing.
+    }
+  }, [store, sample, instrument, items, areas, props.closing, props.closesAt]);
+  const [touched, setTouched] = useState(false);
+  const focus = useMemo(() => (compact && changes && !touched && screenState.kind === "chapter" ? focusOf(changes, chapters, instrument.layout) : null), [compact, changes, touched, screenState, chapters, instrument.layout]);
+  const screen = useMemo<Screen>(() => (focus ? { kind: "chapter", index: focus.index } : screenState), [focus, screenState]);
+  const item = focus ? focus.item : itemState;
+  const marks = changes ? { card: new Set([...changes.added, ...changes.moved, ...changes.tags]), wording: new Set(changes.wording), proposal: new Set(changes.proposals), rating: changes.rating } : undefined;
   // The slide between screens (design note 99; Mihai: "a swipe animation or something similar
   // when moving through chapters, nothing too obnoxious"): the screens in their order (About
   // you, each chapter and its items, the Wrap up and Done) give the way the respondent moved,
@@ -251,6 +298,7 @@ export function RespondentApp(props: RespondentAppProps) {
     if (saver.storageOff && screen.kind !== "about") setStorageNoticeDone(true);
     setScreen(next);
     setItem(itemIndex);
+    setTouched(true);
     // The screen already showing (its own pill tapped) adds no history entry.
     // In the builder's preview a screen replaces the entry and keeps the preview's query, so
     // Back leaves the step page and a reload keeps the step and its rings. The visitors' sample
@@ -339,7 +387,7 @@ export function RespondentApp(props: RespondentAppProps) {
   // with no areas have no sections, and Start says only "Start".
   const firstChapter = page ? null : chaptersFor(areas, items, picks)[0]?.name ?? null;
   // In the preview the closing date is ringed on Share (the step that sets it).
-  const note: React.ReactNode = saver.unsaved || wrapSaver.failed ? RESPONDENT_COPY.notSaved : headerNote && rings.has("note") ? <span className="rounded-md px-1 ring-2 ring-violet ring-offset-2 ring-offset-surface" data-ring>{headerNote}</span> : headerNote;
+  const note: React.ReactNode = saver.unsaved || wrapSaver.failed ? RESPONDENT_COPY.notSaved : headerNote && changes?.note ? <span className="rounded-md px-1 ring-2 ring-sun ring-offset-2 ring-offset-surface" data-mark>{headerNote}</span> : headerNote && rings.has("note") ? <span className="rounded-md px-1 ring-2 ring-violet ring-offset-2 ring-offset-surface" data-ring>{headerNote}</span> : headerNote;
   const names = chapters.map((c) => c.name ?? instrument.title);
   // What counts as answered: what the server holds complete, or in the preview the cards as
   // they stand (nothing is saved there).
@@ -406,7 +454,7 @@ export function RespondentApp(props: RespondentAppProps) {
       setSubmitting(false);
     }
   };
-  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} ring={rings.has("nav")} />;
+  const nav = <ChapterRow accent={accent} chapters={names.map((name) => ({ name }))} progress={progress} screen={screen} showRow={!page} onGo={(next) => go(next)} locked={submitting} ring={rings.has("nav")} mark={changes?.sections === true} />;
   const welcome = props.welcome && !welcomeDone && screen.kind !== "about" ? (
     <div className="flex flex-col gap-0.5 border-b border-hairline bg-mint-soft px-5 py-2.5 text-sm text-mint-text @xl:px-8" role="status" data-testid="welcome-back">
       <p className="font-semibold">{RESPONDENT_COPY.welcomeBack(props.welcome.name)}</p>
@@ -436,7 +484,7 @@ export function RespondentApp(props: RespondentAppProps) {
         continueLabel={last ? RESPONDENT_COPY.continueWrap : RESPONDENT_COPY.continueTo(index + 2, names[index + 1])}
         footerNote={left > 0 ? RESPONDENT_COPY.toRateHere(left, here.length) : page ? RESPONDENT_COPY.allRatedPage(here.length) : RESPONDENT_COPY.allRated(here.length)}
         onContinue={() => go(last ? { kind: "wrap" } : { kind: "chapter", index: index + 1 })} poweredBy={props.poweredBy}
-        rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} compact={compact} />
+        rings={{ rating: rings.has("rating"), card: rings.has("cards"), wording: rings.has("wording") }} marks={marks} compact={compact} />
     );
   };
   // The builder's preview shows the Wrap up even with nothing to rate, for the Closing card
@@ -444,6 +492,7 @@ export function RespondentApp(props: RespondentAppProps) {
   const width = screen.kind === "chapter" && chapters[screen.index] ? "max-w-[1032px]" : (screen.kind === "wrap" || (screen.kind === "done" && !submitted)) && (chapters.length > 0 || preview) ? "max-w-[792px]" : "max-w-[752px]";
   return (
     <div className={cn("mx-auto min-h-screen w-full bg-ground", width)} data-ready={ready || undefined}>
+      {changes && <p role="status" className="border-b border-hairline bg-sun-soft px-4 py-2 text-center text-sm text-sun-text" data-testid="preview-changed">{changesLine(changes, items)}</p>}
       {screen.kind === "about" ? (
         <AboutYou workspaceName={workspaceName} logoUrl={logoUrl} accent={accent} headerNote={note} title={instrument.title} intro={instrument.intro} fields={instrument.fields} prefilled={prefilled} initialValues={fields} initialPicks={picks} firstChapter={firstChapter} perspectives={instrument.perspectives} picked={picks} onPickPerspectives={setPicks} starting={starting} startError={startError} onStart={start} nav={started ? nav : undefined} className="min-h-screen" poweredBy={props.poweredBy} preview={Boolean(preview) && !sample} ring={rings.has("fields") ? "fields" : undefined} />
       ) : screen.kind === "chapter" && chapters[screen.index] ? (

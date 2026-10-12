@@ -204,6 +204,11 @@ test("build the intro and the respondent fields, see them in the preview", async
   await expect(page.getByTestId("scoring-form").getByRole("status")).toHaveText("Saved.");
   await expect(card("scoring").getByTestId("card-summary")).toHaveText("1 to 5 fit, proposal shown, a reason when the answer differs, chapters");
   await ready();
+  // The preview marks what the save changed (design note 128): the line under the band and
+  // the sun ring on the rating row; nothing else changed since the last load.
+  await expect(app.getByTestId("preview-changed")).toHaveText("Your last save changed the rating row.");
+  await expect(row).toHaveAttribute("data-mark", "true");
+  await expect(chapter.getByTestId("item-card").first()).not.toHaveAttribute("data-mark");
   await expect(row.getByRole("radio")).toHaveText(["1", "2", "3", "4", "5", "Unclear"]);
   await expect(row).toContainText("no fit");
   await expect(row.locator("[data-proposed]")).toHaveCount(0);

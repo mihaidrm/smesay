@@ -308,6 +308,12 @@ recorded here unverified.
 
 ## Rating row (respondent cards)
 
+The builder's preview (E5-6) rings in violet the parts its step owns (2 px, offset 4 on a card
+and a rating row, 2 on a legend and the chapter row). What the last save changed is marked in
+sun with the same rings (design note 128): the whole card, its legend, its rating row, the
+chapter row, the closing date in the header; the sun ring replaces the violet one on the same
+part. Under the band, one line on the sun-soft tint in sun text says what changed.
+
 Decision 0018, kept in v2 (RespondentV2), reworked on 2026-10-05 (design note 99). A card on
 the surface with the card shadow, 12 px padding, parts 8 px apart. "Requirement [REF]" at 12/16
 weight 600 in muted (no line when the item has no reference), then the summary at 16/23 weight

@@ -56,6 +56,9 @@ export type ChapterScreenProps = {
   nav?: React.ReactNode;
   // The builder's preview (stories/E5-6): the parts of the cards its step rings.
   rings?: { rating?: boolean; card?: boolean; wording?: boolean };
+  // What the last save changed, marked in sun (design note 128; src/lib/preview-diff.ts): the
+  // cards by id (whole, wording, rating row) and the rating row of every card.
+  marks?: { card: Set<string>; wording: Set<string>; proposal: Set<string>; rating: boolean };
   continueLabel: string;
   footerNote: string;
   onContinue: () => void;
@@ -71,17 +74,24 @@ const BUTTON = "h-12 rounded-full border border-hairline-strong bg-surface px-6 
 const ON_GROUND = "focus-visible:ring-offset-ground";
 
 export function ChapterScreen(props: ChapterScreenProps) {
-  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, continueLabel, footerNote, onContinue, poweredBy = true, rings = {}, compact = false } = props;
+  const { slide = null, workspaceName, accent, logoUrl, headerNote, title, layout, chapters, index, item, method, labels, showProposed, reasonRule, drafts, saved, savedLabel, errors = {}, unsaved = false, onChange, onItem, onBack, banner, nav, marks, continueLabel, footerNote, onContinue, poweredBy = true, rings = {}, compact = false } = props;
   const chapter = chapters[index];
   const noteId = useId();
   // On the two-column grid every card of a chapter learns which parts any of its items has, so
   // the rating rows of a row sit at one height (item-card.tsx, design note 125).
   const rowOf = (c: { items: RespondentItem[] }): CardRow => ({ reference: c.items.some((i) => Boolean(i.reference)), details: c.items.some((i) => Boolean(i.details)) });
   const card = (it: RespondentItem, row?: CardRow) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} row={row} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} row={row} mark={marks ? { card: marks.card.has(it.id), wording: marks.wording.has(it.id), rating: marks.rating || marks.proposal.has(it.id) } : undefined} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));
+  // The compact view (decision 0061) shows one card: the first, or the one the preview opened
+  // on because the last save changed it (design note 128), named by its place overall.
+  const compactCards = layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items;
+  const atCompact = Math.min(Math.max(item, 0), Math.max(compactCards.length - 1, 0));
+  const compactPosition = (layout === "page" ? 0 : chapters.slice(0, index).reduce((n, c) => n + c.items.length, 0)) + atCompact;
+  const shown = compactCards[atCompact];
+  const compactFocused = shown !== undefined && marks !== undefined && (marks.card.has(shown.id) || marks.wording.has(shown.id) || marks.proposal.has(shown.id));
   // Previous and Next item sit in the content that remounts for the slide (design note 99), so
   // the pressed button is gone after the move; the new one of the same name takes the focus,
   // or the other when the end of the chapter disabled it (WCAG 2.4.3, focus order).
@@ -109,10 +119,10 @@ export function ChapterScreen(props: ChapterScreenProps) {
             <div className="flex flex-col gap-1">
               <h1 className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] wrap-break-word" data-screen-heading data-testid="chapter-title">{(layout === "page" ? chapters[0] : chapter)?.name ?? title}</h1>
             </div>
-            {layout === "item" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(1, chapter.items.length, chapter.name ?? title)}</p>}
+            {layout === "item" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(atCompact + 1, chapter.items.length, chapter.name ?? title)}</p>}
             {layout === "page" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>}
-            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{(layout === "page" ? chapters.flatMap((c) => c.items) : chapter.items).slice(0, 1).map((it) => card(it))}</div>
-            <p className="text-sm text-ink-muted" data-testid="compact-note">{PREVIEW_COPY.compactNote(chapters.reduce((n, c) => n + c.items.length, 0))}</p>
+            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{compactCards.slice(atCompact, atCompact + 1).map((it) => card(it))}</div>
+            <p className="text-sm text-ink-muted" data-testid="compact-note">{compactFocused && compactPosition > 0 ? PREVIEW_COPY.compactChanged(compactPosition + 1, total) : PREVIEW_COPY.compactNote(total)}</p>
           </>
         ) : layout === "page" ? (
           <>
