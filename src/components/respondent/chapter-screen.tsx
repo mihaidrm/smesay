@@ -54,7 +54,8 @@ export type ChapterScreenProps = {
   onBack: () => void;
   banner?: React.ReactNode;
   nav?: React.ReactNode;
-  // The builder's preview (stories/E5-6): the parts of the cards its step rings.
+  // The builder's preview (stories/E5-6): the parts its step rings. card rings the cards' grid
+  // as one block (design note 130: rings on every card touched across the 12 px gap).
   rings?: { rating?: boolean; card?: boolean; wording?: boolean };
   // What the last save changed, marked in sun (design note 128; src/lib/preview-diff.ts): the
   // cards by id (whole, wording, rating row) and the rating row of every card.
@@ -81,9 +82,10 @@ export function ChapterScreen(props: ChapterScreenProps) {
   // the rating rows of a row sit at one height (item-card.tsx, design note 125).
   const rowOf = (c: { items: RespondentItem[] }): CardRow => ({ reference: c.items.some((i) => Boolean(i.reference)), details: c.items.some((i) => Boolean(i.details)) });
   const card = (it: RespondentItem, row?: CardRow) => (
-    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} row={row} mark={marks ? { card: marks.card.has(it.id), wording: marks.wording.has(it.id), rating: marks.rating || marks.proposal.has(it.id) } : undefined} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringCard={rings.card} ringWording={rings.wording} />
+    <ItemCard key={it.id} idKey={it.id} reference={it.reference} title={it.title} details={it.details} method={method} labels={labels} proposed={it.proposed} showProposed={showProposed} reasonRule={reasonRule} accent={accent} row={row} mark={marks ? { card: marks.card.has(it.id), wording: marks.wording.has(it.id), rating: marks.rating || marks.proposal.has(it.id) } : undefined} draft={drafts[it.id] ?? EMPTY_DRAFT} saved={saved[it.id] ?? false} savedLabel={savedLabel} unsaved={unsaved} error={errors[it.id] ?? null} onChange={(d) => onChange(it.id, d)} ring={rings.rating} ringWording={rings.wording} />
   );
   const total = chapters.reduce((n, c) => n + c.items.length, 0);
+  const cardsRing = rings?.card ? "rounded-2xl ring-2 ring-violet ring-offset-4 ring-offset-ground" : undefined;
   const at = Math.min(Math.max(item, 0), Math.max(chapter.items.length - 1, 0));
   // The compact view (decision 0061) shows one card: the first, or the one the preview opened
   // on because the last save changed it (design note 128), named by its place overall.
@@ -121,7 +123,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
             </div>
             {layout === "item" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(atCompact + 1, chapter.items.length, chapter.name ?? title)}</p>}
             {layout === "page" && <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewAllOnOne(total)}</p>}
-            <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{compactCards.slice(atCompact, atCompact + 1).map((it) => card(it))}</div>
+            <div className={cn("grid grid-cols-1 gap-3 md:max-w-[488px]", cardsRing)} data-ring={rings?.card || undefined} data-testid="chapter-cards">{compactCards.slice(atCompact, atCompact + 1).map((it) => card(it))}</div>
             <p className="text-sm text-ink-muted" data-testid="compact-note">{compactFocused && compactPosition > 0 ? PREVIEW_COPY.compactChanged(compactPosition + 1, total) : PREVIEW_COPY.compactNote(total)}</p>
           </>
         ) : layout === "page" ? (
@@ -134,7 +136,7 @@ export function ChapterScreen(props: ChapterScreenProps) {
                   <h2 id={`chapter-heading-${n}`} className="text-[22px] leading-7 font-extrabold tracking-[-0.025em] wrap-break-word">{c.name ?? title}</h2>
                   {c.intro && <p className="text-sm leading-5 wrap-break-word text-ink-muted">{c.intro}</p>}
                 </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{c.items.map((it) => card(it, rowOf(c)))}</div>
+                <div className={cn("grid grid-cols-1 gap-3 md:grid-cols-2", cardsRing)} data-ring={rings?.card || undefined} data-testid="chapter-cards">{c.items.map((it) => card(it, rowOf(c)))}</div>
               </section>
             ))}
           </>
@@ -147,14 +149,14 @@ export function ChapterScreen(props: ChapterScreenProps) {
             {layout === "item" ? (
               <>
                 <p className="text-sm text-ink-muted" data-testid="layout-note">{BUILD_COPY.previewItemOf(at + 1, chapter.items.length, chapter.name ?? title)}</p>
-                <div className="grid grid-cols-1 gap-3 md:max-w-[488px]" data-testid="chapter-cards">{card(chapter.items[at])}</div>
+                <div className={cn("grid grid-cols-1 gap-3 md:max-w-[488px]", cardsRing)} data-ring={rings?.card || undefined} data-testid="chapter-cards">{card(chapter.items[at])}</div>
                 <div className="flex gap-3">
                   <button type="button" onClick={() => { moved.current = "previous-item"; onItem(at - 1); }} disabled={at === 0} className={cn(BUTTON, ON_GROUND)} data-testid="previous-item">{RESPONDENT_COPY.previousItem}</button>
                   <button type="button" onClick={() => { moved.current = "next-item"; onItem(at + 1); }} disabled={at >= chapter.items.length - 1} className={cn(BUTTON, ON_GROUND)} data-testid="next-item">{RESPONDENT_COPY.nextItem}</button>
                 </div>
               </>
             ) : (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="chapter-cards">{chapter.items.map((it) => card(it, rowOf(chapter)))}</div>
+              <div className={cn("grid grid-cols-1 gap-3 md:grid-cols-2", cardsRing)} data-ring={rings?.card || undefined} data-testid="chapter-cards">{chapter.items.map((it) => card(it, rowOf(chapter)))}</div>
             )}
           </>
         )}
