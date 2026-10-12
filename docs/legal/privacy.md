@@ -1,5 +1,5 @@
-version: 4
-date: 2026-10-08
+version: 5
+date: 2026-10-12
 ---
 # Privacy policy
 
@@ -29,6 +29,7 @@ For what respondents give in a workspace, the organisation that owns the workspa
 - A session cookie that keeps you signed in. It lasts 30 days and is renewed at most once a day while you use SMEsay, so it ends between 29 and 30 days after you last used it. Signing in with Google also sets a cookie that lasts at most 10 minutes.
 - To slow down repeated sign-in attempts, your email address and IP address are counted in the server's memory, on the basis of our legitimate interest in keeping the service secure. They are not written to the database or to disk. A count is removed at most 24 hours and 10 minutes after the last attempt it counted, or when the server restarts.
 - On your device, the browser's storage keeps your light or dark mode choice (smesay-mode).
+- Emails from SMEsay. We send you sign-in links and, if you are invited to a workspace, the invitation. About your own validations we send one email when a validation's link closes and one when everyone you invited has submitted; a daily summary only if you turn it on. In your first two weeks, until you publish a validation, we send up to four short emails on the next step. Each of these emails has a link that stops that kind of email, and Settings has a switch for each. We do not send newsletters or offers.
 
 ## What we collect from respondents
 
