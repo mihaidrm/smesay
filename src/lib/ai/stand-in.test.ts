@@ -25,7 +25,7 @@ describe("shape", () => {
   it("keeps the imported areas, places the loose items in the first one and a moved item where the PM put it", () => {
     const out = ShapeOutput.parse(shape(withAreas.data));
     expect(out.areas.map((a) => [a.name, a.items])).toEqual([["Submitting", ["1", "3"]], ["Approving", ["2", "4"]]]);
-    expect(out.areas[0].rationale).toBe("This comes first, because submitting starts it.");
+    expect(out.areas[0].rationale).toBe("These items cover submitting.");
     expect(checkShape(out, ["1", "2", "3", "4"], withAreas.importedAreas, new Map([["1", "Submitting"], ["2", "Approving"]]), ["Approving"])).toBeNull();
     expect(out.items.map((i) => i.reader)).toEqual(["Receipts captured by phone (in plain words)", "Approval from the notification email (in plain words)", "Per diem rates by country (in plain words)", "Mileage from a start and end address (in plain words)"]);
     expect(out.items[2].flags).toEqual({ ambiguity: "Which countries, and who sets the rate", duplicateOf: null });
