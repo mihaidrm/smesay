@@ -89,3 +89,12 @@ Built 2026-10-04 (design note 65, decision 0044; docs/review-list.md):
 - Acceptance 7: the preview is in the workspace's current brand (its logo and
   effectiveAccent()).
 
+
+Changed 2026-10-12 (design note 128; Mihai: "when we save something in the 5 steps (import /
+shape etc, we need to also highlight the change in the preview version to make it obvious
+what is changing"): the load a save causes marks in sun what differs from the view drawn
+last for the step (the tab's session storage; src/lib/preview-diff.ts): a new or moved
+card, a card's wording, a rating row, the chapter row, the closing date; one line under the
+band says it in words ("Your last save changed the wording on CL-01 and the rating row."),
+and the compact view opens on the first card that changed. e2e/build.spec.ts reads the line
+and the rating row's mark after the scoring save.

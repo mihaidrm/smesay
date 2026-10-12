@@ -47,6 +47,8 @@ export type ChapterRowProps = {
   locked?: boolean;
   // The builder's preview rings the row when its step changes it (stories/E5-6).
   ring?: boolean;
+  // The preview marks the row in sun when the last save changed the sections (design note 128).
+  mark?: boolean;
 };
 
 const PILL = "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 after:absolute after:inset-x-0 after:content-[''] text-[13px] font-semibold whitespace-nowrap focus:outline-hidden transition-colors duration-150 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
@@ -66,7 +68,7 @@ export function twoRowWidth(widths: number[], room: number): number | null {
   return Math.ceil(Math.max(sum(widths.slice(0, half)), sum(widths.slice(half)))) + 1;
 }
 
-export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false, ring = false }: ChapterRowProps) {
+export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, locked = false, ring = false, mark = false }: ChapterRowProps) {
   const active = useRef<HTMLAnchorElement | null>(null);
   const list = useRef<HTMLOListElement | null>(null);
   // The list's width on two rows, null while one row fits the card (design note 115).
@@ -114,7 +116,7 @@ export function ChapterRow({ accent, chapters, progress, screen, showRow, onGo, 
   return (
     <div className="flex flex-col gap-0 border-b border-hairline bg-surface" data-testid="chapter-nav">
       {showRow && (
-        <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && "m-1 rounded-4xl ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ring || undefined}>
+        <nav aria-label={RESPONDENT_COPY.chapters} className={cn("relative", ring && !mark && "m-1 rounded-4xl ring-2 ring-violet ring-offset-2 ring-offset-surface", mark && "m-1 rounded-4xl ring-2 ring-sun ring-offset-2 ring-offset-surface")} data-ring={ring || undefined} data-mark={mark || undefined}>
           <div className="overflow-x-auto [scrollbar-width:thin] [scrollbar-color:var(--hairline-strong)_transparent]">
             <ol ref={list} className="flex flex-wrap gap-1.5 px-5 pt-2 pb-3 @xl:px-8" style={twoRows === null ? undefined : { width: twoRows }} data-rows={twoRows === null ? 1 : 2} data-testid="chapter-row">
             {pill({ kind: "about" }, RESPONDENT_COPY.aboutYou, "row-about")}

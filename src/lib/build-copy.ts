@@ -112,4 +112,21 @@ export const PREVIEW_COPY = {
     build: "Build changes the rating row, the chapter row, About you and the Wrap up.",
     share: "Share sets the closing date in the header.",
   },
+  // What the last save changed (design note 128; src/lib/preview-diff.ts): the line under the
+  // band, its parts, and the compact note when the view opened on the card that changed.
+  changed: (parts: string) => `Your last save changed ${parts}.`,
+  parts: {
+    added: (names: string | null, n: number) => (names && n === 1 ? `a new card (${names})` : names ? `${n} new cards (${names})` : `${n} new ${n === 1 ? "card" : "cards"}`),
+    removed: (n: number) => `${n} ${n === 1 ? "card" : "cards"} removed`,
+    wording: (names: string | null, n: number) => `the wording on ${names ?? `${n} cards`}`,
+    proposal: (names: string | null, n: number) => `the proposal on ${names ?? `${n} cards`}`,
+    section: (names: string | null, n: number) => `the section of ${names ?? `${n} cards`}`,
+    tags: (names: string | null, n: number) => `who sees ${names ?? `${n} cards`}`,
+    rating: "the rating row",
+    nav: "the chapter row",
+    about: "About you",
+    closing: "the Wrap up",
+    note: "the closing date",
+  },
+  compactChanged: (n: number, total: number) => `Card ${n} of ${total}, the one your save changed. The full view shows them all.`,
 };

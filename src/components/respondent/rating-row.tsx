@@ -20,9 +20,11 @@ import { scaleFor, SCORING_COPY, UNCLEAR } from "@/lib/scoring";
 
 // idKey: a stable key for the ids (the item's id on the respondent page; two items may
 // share a title).
-export function RatingRow({ method, labels, proposed, showProposed, value, accent, onChange, name, idKey, ring }: {
+export function RatingRow({ method, labels, proposed, showProposed, value, accent, onChange, name, idKey, ring, mark }: {
   method: ScoringMethod; labels: ScaleLabels | null; proposed: string | null; showProposed: boolean; value: string | null; accent: string;
   onChange?: (code: string) => void; name: string; idKey?: string; ring?: boolean;
+  // The builder's preview marks the row in sun when the last save changed it (design note 128).
+  mark?: boolean;
 }) {
   const pills = [...scaleFor(method, labels).map((v) => ({ code: v.code, label: v.label, caption: v.caption })), { code: UNCLEAR, label: SCORING_COPY.unclear, caption: undefined as string | undefined }];
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
@@ -34,7 +36,7 @@ export function RatingRow({ method, labels, proposed, showProposed, value, accen
     onChange?.(pills[to].code);
   };
   return (
-    <div role="radiogroup" aria-label={`${SCORING_COPY.yourRating}: ${name}`} className={cn("flex flex-col gap-1", ring && "rounded-lg ring-2 ring-violet ring-offset-4 ring-offset-surface")} data-testid="rating-row" data-method={method}>
+    <div role="radiogroup" aria-label={`${SCORING_COPY.yourRating}: ${name}`} className={cn("flex flex-col gap-1", ring && !mark && "rounded-lg ring-2 ring-violet ring-offset-4 ring-offset-surface", mark && "rounded-lg ring-2 ring-sun ring-offset-4 ring-offset-surface")} data-testid="rating-row" data-method={method} data-mark={mark || undefined}>
       <span aria-hidden="true" className="font-mono text-[11px] leading-[14px] text-ink-muted">{SCORING_COPY.yourRating}</span>
       <div className="flex gap-0.5">
         {pills.map((p, i) => {

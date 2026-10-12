@@ -72,7 +72,7 @@ export async function PreviewRoute({ token, query }: { token: string; query: Que
         changedSince={false}
         closesAt={view.closesAt ? view.closesAt.toISOString() : null}
         poweredBy={page.poweredBy}
-        preview={{ rings: compact ? [] : parseRings(query.ring), compact }}
+        preview={{ rings: compact ? [] : parseRings(query.ring), compact, store: `smesay-preview:${claim.project}:${step}` }}
       />
     </div>
   );

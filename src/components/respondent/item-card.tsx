@@ -47,6 +47,9 @@ export type ItemCardProps = {
   ring?: boolean;
   ringCard?: boolean;
   ringWording?: boolean;
+  // The builder's preview marks in sun what the last save changed (design note 128): the
+  // whole card (new, or moved to another section or perspective), its wording, its rating row.
+  mark?: { card?: boolean; wording?: boolean; rating?: boolean };
   // The card sits in a two-column row (md and up): which parts any item of its chapter has.
   row?: CardRow;
   // The respondent app: the draft, whether the server has its complete answer, and the change.
@@ -80,7 +83,7 @@ const TOGGLE = "relative rounded-sm text-xs font-semibold after:absolute after:-
 // 48 px target without covering the summary or the rating row.
 const MORE = "relative inline-flex h-8 items-center self-start rounded-sm text-xs font-semibold text-ink-muted underline underline-offset-2 after:absolute after:-inset-x-1.5 after:-inset-y-2 after:content-[''] hover:text-ink focus:outline-hidden focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
-export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, reasonRule, accent, ring, ringCard = false, ringWording = false, row, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
+export function ItemCard({ reference, title, details, method, labels, proposed, showProposed, reasonRule, accent, ring, ringCard = false, ringWording = false, mark, row, idKey, draft: controlled, saved = false, savedLabel = RESPONDENT_COPY.saved, unsaved = false, error = null, onChange }: ItemCardProps) {
   const [own, setOwn] = useState<CardDraft>(EMPTY_DRAFT);
   const draft = controlled ?? own;
   const set = (next: CardDraft) => (onChange ? onChange(next) : setOwn(next));
@@ -98,8 +101,8 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
   const noteText = error ? error : note === "notRated" ? RESPONDENT_COPY.notRated : note !== null ? "" : onChange ? (saved ? savedLabel : unsaved ? RESPONDENT_COPY.notSavedYet : "") : (labelFor(method, labels, draft.picked) ?? "");
   const prompt = !answer ? "" : answer.kind === "unclear" ? RESPONDENT_COPY.unclearPrompt : answer.kind === "disagree" ? RESPONDENT_COPY.disagreePrompt : RESPONDENT_COPY.changePrompt(method);
   return (
-    <fieldset className={cn("card flex h-full min-w-0 flex-col gap-2 p-3", ringCard && "ring-2 ring-violet ring-offset-4 ring-offset-ground")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")}>
-      <legend className={cn("float-left flex w-full flex-col gap-0.5", row && (row.reference ? "md:min-h-16" : "md:min-h-[46px]"), ringWording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
+    <fieldset className={cn("card flex h-full min-w-0 flex-col gap-2 p-3", ringCard && !mark?.card && "ring-2 ring-violet ring-offset-4 ring-offset-ground", mark?.card && "ring-2 ring-sun ring-offset-4 ring-offset-ground")} data-testid="item-card" data-item={idKey} data-note={note ?? (saved ? "saved" : "pending")} data-mark={mark?.card ? "card" : mark?.wording ? "wording" : undefined}>
+      <legend className={cn("float-left flex w-full flex-col gap-0.5", row && (row.reference ? "md:min-h-16" : "md:min-h-[46px]"), ringWording && !mark?.wording && "rounded-md ring-2 ring-violet ring-offset-2 ring-offset-surface", mark?.wording && "rounded-md ring-2 ring-sun ring-offset-2 ring-offset-surface")} data-ring={ringWording || undefined}>
         {reference && <span className="text-xs leading-4 font-semibold text-ink-muted" data-testid="card-reference">{RESPONDENT_COPY.reference(reference)}</span>}
         <span className={cn("text-base leading-[23px] font-semibold wrap-break-word", !detailsOpen && "line-clamp-2")}>{title}</span>
       </legend>
@@ -111,7 +114,7 @@ export function ItemCard({ reference, title, details, method, labels, proposed, 
         </>
       )}
       {!details && row?.details && <div className="hidden h-8 md:block" data-testid="card-more-space" />}
-      <RatingRow method={method} labels={labels} proposed={proposed} showProposed={showProposed} value={draft.picked} accent={accent} onChange={(code) => set({ ...draft, picked: code })} name={title} idKey={idKey} ring={ring} />
+      <RatingRow method={method} labels={labels} proposed={proposed} showProposed={showProposed} value={draft.picked} accent={accent} onChange={(code) => set({ ...draft, picked: code })} name={title} idKey={idKey} ring={ring} mark={mark?.rating} />
       {slot === "reason" ? (
         <div className="relative z-10 flex flex-col gap-1">
           <label htmlFor={`${prefix}-reason`} className="text-xs leading-4 text-ink-muted">{prompt}</label>
