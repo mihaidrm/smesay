@@ -788,6 +788,20 @@ src/db/queries/events.ts (used by wasFirst); goalBody(config, name, url) and SIG
 in src/lib/plausible.ts; sendClientGoal(goal) in src/components/analytics/goal-link.tsx; workspace.firstSource (text, null), set by
 createWorkspaceWithSample({ name, slug, firstSource }); AdminWorkspace gains firstSource.
 
+Feedback (E17-1, decision 0069): FEEDBACK_KINDS (wrong, idea, question, other) and
+FeedbackKind, FEEDBACK_STATUSES (open, solved) and FeedbackStatus, FEEDBACK_TEXT_MAX 2000,
+FEEDBACK_PAGE_MAX 300 in src/db/types.ts. Table feedback { id, workspaceId, userId (text,
+null, set null), kind, text, page (text, null), status (default open), solvedAt, solvedBy
+(text, null, set null), createdAt }. Scoped: feedbackReports.create(ws, { userId, kind, text,
+page }), list(ws): FeedbackRow[] { id, kind, text, page, status, senderEmail, createdAt,
+solvedAt }, countSince(ws, since). Admin (queries/admin.ts): feedbackInbox(proof, status |
+"all"): FeedbackInboxRow[] (with workspaceId, workspaceName, senderEmail, solvedByEmail),
+feedbackReport(proof, id), setFeedbackStatus(proof, id, status, adminUserId, now),
+removeFeedback(proof, id). src/lib/feedback.ts: checkReport(input), pagePath(value),
+adminFeedbackMail(to, report): Mail, sendReport(ctx, input, deps): { ok, id } | { ok, error },
+FEEDBACK_HOURLY_CAP 20. AdminAction gains feedback_solved, feedback_reopened,
+feedback_removed (target: the report's workspace; changes { feedback: id }).
+
 Admin audit (E14-1): ADMIN_ACTIONS in src/db/types.ts (plan_changed, ai_budget_set,
 invite_resent, link_revoked, workspace_restored, note_added, magic_link_sent,
 signed_out_everywhere, member_removed, account_deleted, view_started, view_stopped) and

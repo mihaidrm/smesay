@@ -113,7 +113,7 @@ export type AdminProof = { readonly checked: "admin"; readonly userId: string } 
 
 // What an admin can do (stories/E14-1 to E14-4), one admin_audit row each. Change INTERFACES.md
 // first.
-export const ADMIN_ACTIONS = ["plan_changed", "ai_budget_set", "ai_credits_set", "product_launched", "product_taken_back", "invite_resent", "link_revoked", "workspace_restored", "note_added", "magic_link_sent", "signed_out_everywhere", "member_removed", "account_deleted", "view_started", "view_stopped"] as const;
+export const ADMIN_ACTIONS = ["plan_changed", "ai_budget_set", "ai_credits_set", "product_launched", "product_taken_back", "invite_resent", "link_revoked", "workspace_restored", "note_added", "magic_link_sent", "signed_out_everywhere", "member_removed", "account_deleted", "view_started", "view_stopped", "feedback_solved", "feedback_reopened", "feedback_removed"] as const;
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 export type AuditChanges = Record<string, string | number | boolean | null>;
 // What became of the action after its row was written: null while it runs, or when the process
@@ -129,6 +129,15 @@ export type GuideState = { tipsOff: boolean; dismissed: string[] };
 // (7 and 8 of docs/copy/emails.md), the daily digest (9, off by default) and the getting-started
 // series (11, E16-2). The kinds are the stop link's values.
 export const EMAIL_KINDS = ["validations", "digest", "guide"] as const;
+
+// A feedback report (stories/E17-1, decision 0069): what kind it is and whether Mihai has
+// handled it. Change INTERFACES.md first.
+export const FEEDBACK_KINDS = ["wrong", "idea", "question", "other"] as const;
+export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
+export const FEEDBACK_STATUSES = ["open", "solved"] as const;
+export type FeedbackStatus = (typeof FEEDBACK_STATUSES)[number];
+export const FEEDBACK_TEXT_MAX = 2000;
+export const FEEDBACK_PAGE_MAX = 300;
 export type EmailKind = (typeof EMAIL_KINDS)[number];
 export type EmailPrefs = Record<EmailKind, boolean>;
 export const DEFAULT_EMAIL_PREFS: EmailPrefs = { validations: true, digest: false, guide: true };

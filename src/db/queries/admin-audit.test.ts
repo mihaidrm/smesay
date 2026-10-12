@@ -141,7 +141,7 @@ describe("auditLog", () => {
   });
 
   it("words every action, outcome and a row's changes", () => {
-    expect(Object.keys(AUDIT_COPY.actions)).toHaveLength(15);
+    expect(Object.keys(AUDIT_COPY.actions)).toHaveLength(18);
     expect(Object.keys(AUDIT_COPY.outcomes)).toEqual(["done", "refused", "failed", "none"]);
     expect(auditChanges({ to: "pro", from: "free", note: null })).toBe("from: free, note: none, to: pro");
     expect(AUDIT_COPY.pageOf(1, 2, 52)).toBe("Page 1 of 2, 52 actions");

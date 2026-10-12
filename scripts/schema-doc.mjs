@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 export const DOC = 'docs/schema.md';
 
-const ORDER = ['product', 'workspace', 'workspace_member', 'workspace_invite', 'project', 'item_set', 'item', 'instrument', 'invite', 'response', 'answer', 'missing_item', 'insight', 'ai_run', 'export_log', 'event', 'admin_audit', 'admin_note', 'upload', 'workspace_mapping', 'user', 'session', 'account', 'verification'];
+const ORDER = ['product', 'workspace', 'workspace_member', 'workspace_invite', 'project', 'item_set', 'item', 'instrument', 'invite', 'response', 'answer', 'missing_item', 'insight', 'ai_run', 'export_log', 'event', 'admin_audit', 'admin_note', 'feedback', 'upload', 'workspace_mapping', 'user', 'session', 'account', 'verification'];
 const PURPOSE = {
   workspace: 'organisation: members, AI budget, branding defaults (accent and logo); deleted_at starts the 24-hour removal (E11)',
   workspace_member: 'who belongs to a workspace and as what (owner, member); user_id is better-auth\'s',
@@ -27,6 +27,7 @@ const PURPOSE = {
   export_log: 'every download of an export: who, when, the file, the filter in words, the rows (E10-1, for E11-2)',
   admin_note: 'a support note an admin wrote on a workspace, shown only on its admin page; goes with the workspace (E14-2)',
   product: 'one row (id 1): when SMEsay was launched and by whom, null while it is being built; the Launch button on /admin (E2-7, decision 0068)',
+  feedback: 'one row per report sent from the Feedback page: the kind, the text, the page it came from, open or solved with who and when; the person and the admin are set null when an account goes (E17-1, decision 0069)',
   admin_audit: 'one row per admin action, written before the action runs and marked done, refused or failed after; the target workspace or person in a column with no foreign key, so a row outlives its target (E14-1)',
   event: 'one row per product step from the catalogue: name, counts and fixed values, no personal data beyond the user id; no workspace for sign-ups and deletions (E13-1, docs/analytics.md)',
   user: 'better-auth: the signed-in person',
