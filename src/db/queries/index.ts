@@ -20,4 +20,5 @@ export { exportLogs } from "./exportLogs";
 export { guide, firstProjectFacts, type FirstProjectFacts } from "./guide";
 export { emails } from "./emails";
 export { productState } from "./product";
+export { feedbackReports, type FeedbackRow } from "./feedback";
 export * as projectTransfer from "./projectTransfer";

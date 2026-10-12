@@ -17,6 +17,7 @@
 // guard (NavLink, GuardedLink), and nothing registers outside Import, Build and Share.
 import { CircleHelp, LayoutGrid, Settings } from "lucide-react";
 import { ModeToggle } from "@/components/app/mode-toggle";
+import { FeedbackLink } from "@/components/app/feedback-link";
 import { NavLink } from "@/components/app/nav-link";
 import { GuardedLink, UnsavedProvider } from "@/components/app/unsaved";
 import { WorkspaceTile } from "@/components/app/tiles";
@@ -65,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <NavLink href="/app" exact icon={<LayoutGrid aria-hidden="true" />}>Projects</NavLink>
         <NavLink href="/app/settings" icon={<Settings aria-hidden="true" />}>Settings</NavLink>
+        <FeedbackLink />
         <div className="mt-3 flex min-h-0 flex-col gap-1 overflow-y-auto">
           <div className="flex items-center justify-between px-3">
             <div className="text-xs text-ink-muted">Projects</div>

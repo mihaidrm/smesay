@@ -76,6 +76,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Where | Text |
 |---|---|
 | Sidebar nav item (design v2; was a link beside the workspace name) | Settings |
+| Sidebar nav item under Settings (E17-1) | Feedback (the link carries the page it was pressed on) |
 | Page title | Workspace settings |
 | Page line | Name, logo and accent appear on every validation created after you save. |
 | Section title | Members |
@@ -490,7 +491,7 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Filters | Workspace, Admin (each with All), Show, Clear the filters |
 | Columns | Time (UTC), Admin, Action, Outcome, Workspace or person, What changed |
 | Outcome | Done, Refused, Failed, Not recorded |
-| Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing |
+| Actions | Changed the plan, Set the AI budget, Sent an invitation again, Revoked a link, Restored the workspace, Added a support note, Sent a sign-in link, Signed the person out everywhere, Removed a member, Deleted the account, Started viewing as the owner, Stopped viewing, Marked a report solved, Reopened a report, Removed a report (E17-1) |
 | The target of Launched SMEsay and Took SMEsay back to building (E2-7) | SMEsay |
 | A target or admin removed since | deleted; a workspace waiting for removal: [NAME] (deleted, removal pending); in the filters: deleted ([first 8 characters of the id]) |
 | What changed | key: value pairs by key in alphabetical order (none for an empty value) |
@@ -529,6 +530,21 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Done lines | Plan changed to [PLAN]. / AI budget set to EUR [N] a month. / Invitation sent again to [EMAIL]. / Link revoked. / Workspace restored. / Note added. |
 | Refusals | in docs/copy/errors.md, Admin |
 
+## Feedback (E17-1, /app/feedback)
+
+| Where | Text |
+|---|---|
+| Crumb, title and line | [WORKSPACE NAME] / Feedback / Something wrong, an idea, a question: tell us here. We read every report. |
+| Kind (radio buttons) | What is it about? Something is wrong, An idea, A question, Something else |
+| Text field | What would you like to tell us? (hint: Up to 2,000 characters.) |
+| The page line (when the item was pressed on a page) | About: [PATH] |
+| Button | Send (Sending while it runs) |
+| Sent line | Sent. Thank you. If we reply, it goes to [EMAIL]. |
+| List title | Reports from this workspace |
+| List item | [KIND] · [PATH] (the path when there is one), the text, [EMAIL], [DATE AND TIME UTC] (Someone who left, once the account is gone); the pill Open or Solved |
+| Empty | No report yet. |
+| Refusals | in docs/copy/errors.md, Feedback |
+
 ## Admin people (E14-3, /admin/people)
 
 | Where | Text |
@@ -565,3 +581,19 @@ with E2-1; each story that adds a screen adds its strings here first, then in th
 | Confirm lines | Send a sign-in link to [EMAIL]? It works once and expires in 15 minutes. / Sign [EMAIL] out on every device? / Remove [EMAIL] from [WORKSPACE]? / Delete the account of [EMAIL]? This cannot be undone. |
 | Done lines | Sign-in link sent to [EMAIL]. / [N] sessions ended. (1 session ended.) / Removed from [WORKSPACE]. / Account deleted. |
 | Refusals | in docs/copy/errors.md, Admin |
+
+## Admin feedback (E17-1, /admin/feedback)
+
+| Where | Text |
+|---|---|
+| Admin nav item | Feedback |
+| Crumb, title and line | SMEsay admin / Feedback / Every report sent from the Feedback page in the app, newest first. Mark a report solved when it is handled; remove one that has no value. |
+| Filters (links; Open is the default) | Open, Solved, All |
+| Columns | Sent, Workspace (a link to its admin page), Person, Kind, Report (the page above the text; no page when there is none), Status, Actions |
+| Status | Open; Solved, under it Solved on [DATE AND TIME UTC] by [ADMIN EMAIL] |
+| A workspace or person removed since | deleted |
+| Buttons | Mark solved (an open report) or Reopen (a solved one), Remove; Confirm, Cancel |
+| Confirm lines | Mark this report solved? / Reopen this report? / Remove this report? It is deleted; the audit log keeps that it was removed. |
+| Done lines | Marked solved. / Reopened. / Removed. |
+| Empty | No open report. / No solved report. / No report yet. |
+| Refusals | in docs/copy/errors.md, Admin (E17-1) |
