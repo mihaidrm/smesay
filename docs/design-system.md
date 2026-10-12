@@ -158,7 +158,8 @@ Mail (decision 0004).
 Design note 33, Motion: cards lift 2 px on hover; buttons lift 2 px over 150 ms, the primary's
 glow deepens, the secondary fills violet soft, pressed drops back in 60 ms; the live dot pulses
 every 2.2 s; the stepper's active pill and the mode toggle's thumb slide over 150 to 250 ms;
-progress bars fill over 250 ms; a changed dashboard cell fades over 400 ms; the mode toggle
+progress bars fill over 250 ms; a changed dashboard cell fades over 400 ms; a project tile
+the PM just set pops once, scale 1 to 1.12 and back over 240 ms (design note 131); the mode toggle
 sweeps the new mode in over 1,800 ms behind a soft diagonal edge at a steady speed, on the
 page from the first frame: from the top left corner going light, from the bottom right
 going dark (a view transition, design note 35); on the respondent side a new chapter, item
@@ -284,8 +285,15 @@ focus, loading and disabled, plus empty and error where they apply (build rules)
   hairline-strong circle.
 - Tiles: the workspace's initials on the coral to sun gradient, and a project's initials on
   one of eight gradients picked by its id (design note 126; the sample's in muted ink on a
-  dashed outline) are decoration beside the written name, never the only mark; the dark ink
-  reads at 4.5 or better on every stop and midpoint (tiles.test.ts).
+  dashed outline), or the icon and the gradient the PM picked (design note 131: a Lucide
+  icon at 18 px in ink on the 32 px tile, 14 px on the header's 24 px tile), are decoration
+  beside the written name, never the only mark; the dark ink reads at 4.5 or better on
+  every stop and midpoint (tiles.test.ts).
+- The tile popover (design note 131; the one popover in the app, src/app/app/(shell)/
+  project-tile-picker.tsx): 308 px, 12 px padding, 12 radius, the hairline border, the card
+  shadow, on the surface colour; a labelled group of icons in 32 px cells, a labelled group
+  of colours, then a text item; the picked icon's cell violet soft; the keyboard of the
+  WAI-ARIA menu pattern. It sits at a fixed position under its button, read when it opens.
 
 ## Respondent columns
 

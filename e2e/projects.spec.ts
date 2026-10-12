@@ -8,6 +8,9 @@ import { latestLink } from "./mailpit";
 test.use({ extraHTTPHeaders: { "x-forwarded-for": "10.0.0.5" } });
 
 test("create a project and keep its context", async ({ page, request }) => {
+  // The path crosses the list twice, the project page and a reload since E3-8; on a cold dev
+  // server that passes 30 seconds, so the limit is doubled here, as e2e/build.spec.ts does.
+  test.setTimeout(90_000);
   const email = `e2e-project-${Date.now()}@marlow.example`;
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
@@ -66,6 +69,43 @@ test("create a project and keep its context", async ({ page, request }) => {
   await expect(rows.first().getByTestId("project-status")).toHaveText("Sample");
   await expect(rows.first()).toContainText("5 of 7");
   await expect(page.getByText("No projects yet")).toHaveCount(0);
+
+  // E3-8, acceptance 5: the tile picker. The sample's tile is not a button. A click opens the
+  // popover and picks Plane; from there the keyboard walks three rows down to a colour and
+  // Enter picks it; Escape closes with the focus back on the tile. The picks show on the row
+  // and in the project header, and stay through a reload.
+  await expect(rows.first().getByTestId("tile-button")).toHaveCount(0);
+  const tile = rows.nth(1).getByTestId("project-tile");
+  await expect(tile).not.toHaveAttribute("data-icon");
+  const open = rows.nth(1).getByRole("button", { name: "Choose the icon and colour of New expense tool" });
+  await open.click();
+  const picker = page.getByTestId("tile-picker");
+  await expect(picker).toBeVisible();
+  await expect(picker.getByRole("menuitemradio")).toHaveCount(32);
+  await picker.getByRole("menuitemradio", { name: "Plane" }).click();
+  await expect(tile).toHaveAttribute("data-icon", "plane");
+  await expect(picker.getByRole("menuitemradio", { name: "Plane" })).toHaveAttribute("aria-checked", "true");
+  await expect(picker.getByRole("menuitemradio", { name: "Plane" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(picker.getByRole("menuitemradio", { name: "Sun to lavender" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(tile).toHaveAttribute("data-tile", "4");
+  await expect(picker.getByRole("menuitemradio", { name: "Sun to lavender" })).toHaveAttribute("aria-checked", "true");
+  await page.keyboard.press("Escape");
+  await expect(picker).toHaveCount(0);
+  await expect(open).toBeFocused();
+  await page.reload();
+  await expect(tile).toHaveAttribute("data-icon", "plane");
+  await expect(tile).toHaveAttribute("data-tile", "4");
+  await rows.nth(1).getByRole("link", { name: "New expense tool" }).click();
+  await expect(page).toHaveURL(/\/import$/);
+  const headerTile = page.getByTestId("project-header").getByTestId("project-tile");
+  await expect(headerTile).toHaveAttribute("data-icon", "plane");
+  await expect(headerTile).toHaveAttribute("data-tile", "4");
+  await page.goto("/app");
+  await expect(rows).toHaveCount(2);
 
   // Every project archived and the sample deleted: the list is empty, the robot says so.
   await page.getByRole("button", { name: "Delete sample" }).click();

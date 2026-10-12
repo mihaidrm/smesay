@@ -50,6 +50,8 @@ of the content; page means it replaces the screen.
 | Inline, upload | Upload pressed with no file chosen (E3-2) | Choose an xlsx or csv file, then press Upload. |
 | Inline, upload | The file has the extension but is not a workbook or readable text (E3-2) | The file could not be read as a spreadsheet. Export it again as xlsx or csv and upload it. |
 | Inline, upload | Upload on the sample project, through the server (E3-2) | The sample project cannot be edited. |
+| Inline, tile popover | A pick that is not one of the 24 icons or the eight colours, through the server (E3-8) | That is not one of the icons or colours on offer. Pick one from the list. |
+| Inline, tile popover | The session ended before the pick reached the server (E3-8) | The tile was not saved. Try again. |
 | Inline, preview | No header row found | We found no header row. Pick the row that holds the column names, or tell us which column is the requirement. |
 | Inline, Sheets step | Use these sheets pressed with no sheet ticked (E3-7) | Tick at least one sheet. |
 | Inline, Sheets step | The sheets ticked have more than 2,000 rows together (E3-7; the stored choice stays) | The sheets ticked have [N] rows together. The limit is 2,000. Untick a sheet or split the list. |

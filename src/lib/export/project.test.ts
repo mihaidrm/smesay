@@ -106,6 +106,29 @@ describe("importProject", () => {
     expect("projectId" in again && again.projectId).not.toBe(result.projectId);
   });
 
+  // E3-8, acceptance 4: the tile's icon and colour go out and come back; a file written
+  // before they existed reads none, and so does a pick off the list.
+  it("keeps the tile on a round trip and reads none from an older file or a pick off the list", async () => {
+    const file = await exportProject(a, sampleId);
+    expect([file.project.icon, file.project.tile]).toEqual([null, null]);
+    const asPm = { ...file, sample: false, note: null };
+    const tiled = await importProject(b, JSON.stringify({ ...asPm, project: { ...asPm.project, icon: "plane", tile: 3 } }));
+    if (!("projectId" in tiled)) throw new Error(tiled.error);
+    const made = await projects.get(b.ws, tiled.projectId);
+    expect([made?.icon, made?.tile]).toEqual(["plane", 3]);
+    const back = await exportProject(b, tiled.projectId);
+    expect([back.project.icon, back.project.tile]).toEqual(["plane", 3]);
+    const { icon: _i, tile: _t, ...older } = asPm.project;
+    void [_i, _t];
+    const plain = await importProject(b, JSON.stringify({ ...asPm, project: older }));
+    const off = await importProject(b, JSON.stringify({ ...asPm, project: { ...asPm.project, icon: "rocket", tile: 9 } }));
+    for (const r of [plain, off]) {
+      if (!("projectId" in r)) throw new Error(r.error);
+      const p = await projects.get(b.ws, r.projectId);
+      expect([p?.icon, p?.tile]).toEqual([null, null]);
+    }
+  });
+
   // E5-2, acceptance 6 (design note 98): the reason rule goes out and comes back; a file
   // written before the rule existed has none and reads the default; a value outside the
   // three is a damaged file.

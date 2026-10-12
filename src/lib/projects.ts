@@ -9,6 +9,8 @@ import { projects } from "@/db/queries";
 import type { Project } from "@/db/queries/projects";
 import type { WorkspaceId } from "@/db/types";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { isProjectIcon } from "@/lib/project-icons";
+import { isTileIndex } from "@/components/app/tiles";
 import { PROJECTS_COPY } from "@/lib/projects-copy";
 import { withinPlan } from "@/lib/plans";
 import { contextError } from "@/lib/project-context";
@@ -44,6 +46,19 @@ export async function setArchived(ws: WorkspaceId, projectId: string, archived: 
   const project = await projects.setArchived(ws, projectId, archived);
   if (!project) throw new NotFoundError();
   return project;
+}
+
+// The tile the PM picked (stories/E3-8): an icon key or null, a gradient index 0 to 7 or null;
+// anything else is refused, and the sample keeps its dashed outline. updated_at stays: the
+// list's Updated column reads the last context save, archive or unarchive (docs/copy/app.md).
+export async function setTile(ws: WorkspaceId, projectId: string, icon: unknown, tile: unknown): Promise<{ error: string } | { project: Project }> {
+  const current = await projects.get(ws, projectId);
+  if (!current) throw new NotFoundError();
+  if (current.isSample) throw new ForbiddenError(PROJECTS_COPY.sample);
+  if (!(icon === null || isProjectIcon(icon)) || !(tile === null || isTileIndex(tile))) return { error: PROJECTS_COPY.tile.notAChoice };
+  const project = await projects.update(ws, projectId, { icon, tile });
+  if (!project) throw new NotFoundError();
+  return { project };
 }
 
 export async function deleteSample(ws: WorkspaceId, projectId: string): Promise<boolean> {

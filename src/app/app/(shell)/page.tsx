@@ -21,6 +21,7 @@ import { usage } from "@/db/queries/usage";
 import { requireCurrentWorkspace } from "@/lib/current-workspace";
 import { projectStatus, type ProjectStatus } from "@/lib/project-status";
 import { DeleteSample } from "./delete-sample";
+import { ProjectTilePicker } from "./project-tile-picker";
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -88,7 +89,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             return (
               <div key={p.id} data-testid="project-row" className="flex min-h-[52px] items-center gap-4 border-t border-hairline px-[18px] py-2 transition-colors duration-150 hover:bg-tint">
                 <div className="flex flex-grow items-center gap-2.5">
-                  <ProjectTile name={p.name} id={p.id} sample={p.isSample} />
+                  {p.isSample ? <ProjectTile name={p.name} id={p.id} sample /> : <ProjectTilePicker id={p.id} name={p.name} icon={p.icon} tile={p.tile} />}
                   <Link href={`/app/projects/${p.id}/${p.isSample ? "results" : "import"}`} className="font-semibold">{p.name}</Link>
                   {p.isSample && <NeutralPill className="h-[18px] text-[11px]">Sample</NeutralPill>}
                 </div>

@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { requireWritableWorkspace } from "@/lib/current-workspace";
 import { NotFoundError } from "@/lib/errors";
-import { createProject, deleteSample, saveContext, setArchived } from "@/lib/projects";
+import { createProject, deleteSample, PROJECTS_COPY, saveContext, setArchived, setTile } from "@/lib/projects";
 import { EXPORT_COPY } from "@/lib/export/copy";
 import { importProject, PROJECT_FILE_MAX } from "@/lib/export/project";
 import { commitUpload } from "@/lib/imports";
@@ -70,6 +70,23 @@ export async function saveContextAction(_previous: ProjectFormState, formData: F
   revalidatePath(`/app/projects/${projectId}/import`);
   revalidatePath("/app");
   return { ...NONE, saved: true };
+}
+
+// The tile picker (stories/E3-8): the pick saves at once; the row and the project header read
+// it on the next render. Another workspace's project is 404; the sample is refused.
+export async function setTileAction(projectId: string, icon: string | null, tile: number | null): Promise<{ error: string | null }> {
+  if (!(await signedIn())) return { error: PROJECTS_COPY.tile.notSaved };
+  const { current } = await requireWritableWorkspace("/app");
+  try {
+    const result = await setTile(current.ws, projectId, icon, tile);
+    if ("error" in result) return { error: result.error };
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
+  revalidatePath("/app");
+  revalidatePath(`/app/projects/${projectId}`, "layout");
+  return { error: null };
 }
 
 export async function archiveAction(formData: FormData): Promise<void> {

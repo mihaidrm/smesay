@@ -1,8 +1,8 @@
 # Schema v1 (generated)
 
-v1, 2026-10-08 (the date of the latest migration, 0038_ai_context).
+v1, 2026-10-12 (the date of the latest migration, 0039_project_tile).
 
-Generated from the snapshot of the 39 migrations in drizzle/ (0038_snapshot.json) by
+Generated from the snapshot of the 40 migrations in drizzle/ (0039_snapshot.json) by
 `node scripts/schema-doc.mjs --write`; the pre-commit hook fails when this file is stale. The design
 is in stories/E1-2-schema-v1.md and the enums in INTERFACES.md. Column types are Postgres types;
 fk = foreign key, pk = primary key. Triggers live in the custom migrations
@@ -85,7 +85,7 @@ Checks: workspace_invite_role_check: role in ('owner', 'member').
 
 ## project
 
-one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample.
+one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample; icon and tile are the tile the PM picked (E3-8: an icon key of src/lib/project-icons.ts and a gradient index 0 to 7), null for the initials on the gradient the id picks.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -99,6 +99,8 @@ one validation effort; the AI context (decision 0011); is_sample marks the water
 | created_at | timestamp with time zone | not null, default now() |
 | updated_at | timestamp with time zone | not null, default now() |
 | archived_at | timestamp with time zone |  |
+| icon | text |  |
+| tile | smallint |  |
 
 Unique: project_id_workspace_uq on id, workspace_id.
 

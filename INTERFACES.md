@@ -657,7 +657,9 @@ exportProject(actor, projectId) and importProject(actor, text) in src/lib/export
 readProject(ws, projectId) and writeProject(ws, input, userId, now) in
 src/db/queries/projectTransfer.ts. The zod schema ProjectFile in project.ts is the contract:
 { format: "smesay.project", version: 1, exportedAt, sample, note (the watermark line on the
-sample, else null), project { name, contextGoal, contextTerms, createdAt }, itemSets [{ id,
+sample, else null), project { name, contextGoal, contextTerms, createdAt, icon, tile (from
+2026-10-12, E3-8: the tile's icon key and gradient index; optional on import, a file without
+them reads null, and so does a key or an index not on offer) }, itemSets [{ id,
 version, source, sourceFilename, importReport, importedAt, areas, shapeRuns, shapedAt,
 contextUsed, items [{ id, position, sourceRef, originalText, readerText, readerStatus, area,
 areaRationale, proposedValue, custom, aiContext (from 2026-10-08; optional on import, a file

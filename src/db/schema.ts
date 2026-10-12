@@ -11,7 +11,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean, check, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid,
-} from "drizzle-orm/pg-core";
+ smallint } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 import { ADMIN_ACTIONS, AUDIT_OUTCOMES, EXPORT_FILES, INSIGHT_KINDS, INSIGHT_STATES } from "./types";
 import type { AuditChanges, ClosingSpec, ColumnMapping, ImportReport, ItemFlags, ProjectContext, RespondentFieldSpec, ResponseFields, ScaleLabels, ShapeArea, UploadPreview, UploadSheets } from "./types";
@@ -100,6 +100,11 @@ export const project = pgTable("project", {
   // Updated column reads it.
   updatedAt: ts("updated_at").notNull().defaultNow(),
   archivedAt: ts("archived_at"),
+  // E3-8 (decision 0066): the tile the PM picked, an icon name from src/lib/project-icons.ts and
+  // a gradient index 0 to 7 (src/components/app/tiles.tsx); null shows the initials on the
+  // gradient the id picks.
+  icon: text("icon"),
+  tile: smallint("tile"),
 }, (t) => [
   index("project_workspace_idx").on(t.workspaceId),
   index("project_created_by_idx").on(t.createdBy),

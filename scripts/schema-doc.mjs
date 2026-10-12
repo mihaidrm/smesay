@@ -14,7 +14,7 @@ const PURPOSE = {
   workspace_invite: 'an open invitation by email (E2-4); becomes a workspace_member row on the invitee\'s first signed-in request',
   workspace_mapping: 'a column mapping remembered per workspace (E3-3), keyed by the sorted headers; the next file with the same headers maps itself',
   upload: 'a file a PM uploaded for a project (E3-2): the object key under uploads/<workspace id>/, the sheet and header row chosen, the sheets ticked and the sheet-names-as-areas switch (E3-7), a ten-row preview and the column mapping in jsonb',
-  project: 'one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample',
+  project: 'one validation effort; the AI context (decision 0011); is_sample marks the watermarked sample; icon and tile are the tile the PM picked (E3-8: an icon key of src/lib/project-icons.ts and a gradient index 0 to 7), null for the initials on the gradient the id picks',
   item_set: 'one imported or pasted version of the list (decision 0010); version is unique per project',
   item: 'one requirement: original_text is never overwritten, reader_text sits beside it (E4); area, proposed value, custom fields, flags',
   instrument: 'how one set version is shown to respondents: method, proposed value shown or not, layout, intro, respondent fields, closing (decisions 0014, 0016, 0018)',
